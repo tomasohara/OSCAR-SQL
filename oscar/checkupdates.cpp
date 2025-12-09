@@ -289,11 +289,12 @@ void CheckUpdates::replyFinished(QNetworkReply *reply)
         msg = QObject::tr("Unable to check for updates. Please try again later.");
         msgIsReady = true;
     } else {
+        qDebug() << "Update check HTML return"
+                 << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
+                 << reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
 //      qDebug() << reply->header(QNetworkRequest::ContentTypeHeader).toString();
 //      qDebug() << reply->header(QNetworkRequest::LastModifiedHeader).toDateTime().toString();
 //      qDebug() << reply->header(QNetworkRequest::ContentLengthHeader).toULongLong();
-      qDebug() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-      qDebug() << reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
 
         versionXML = reply->readAll().toLower();
         reply->deleteLater();

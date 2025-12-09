@@ -188,6 +188,8 @@ void ProfileSelector::updateProfileList()
     ui->profileView->setModel(proxy);
     ui->profileView->setSortingEnabled(true);
 
+    ui->profileView->sortByColumn(0, Qt::AscendingOrder);
+
     QHeaderView *headerView = ui->profileView->horizontalHeader();
     headerView->setStretchLastSection(true);
     headerView->setSectionResizeMode(QHeaderView::Stretch);
