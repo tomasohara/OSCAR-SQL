@@ -562,8 +562,8 @@ gGraphView::gGraphView(QWidget *parent, gGraphView *shared, QWidget *caller)
     else
         zoom100_action->setToolTip(tr("Restore X-axis zoom to 100% to view entire day's data."));
 
-    QAction * action = context_menu->addAction(tr("Reset Graph Layout"), this, SLOT(resetLayout()));
-    action->setToolTip(tr("Resets all graphs to a uniform height and default order."));
+    QAction * action = context_menu->addAction(tr("Reset Graph Heights"), this, SLOT(resetLayout()));
+    action->setToolTip(tr("Resets all graphs to a uniform height."));
 
     context_menu->addSeparator();
     limits_menu = context_menu->addMenu(tr("Y-Axis"));
