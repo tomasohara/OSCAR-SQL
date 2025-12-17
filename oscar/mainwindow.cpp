@@ -644,11 +644,14 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     if (updateChecker != nullptr)
         updateChecker->showMessage();
 
+    ui->actionExport_CSV->setEnabled(true);
     return true;
 }
 
 void MainWindow::CloseProfile()
 {
+    ui->actionExport_CSV->setEnabled(false);
+
     if (updateChecker != nullptr)
         updateChecker->showMessage();
 
