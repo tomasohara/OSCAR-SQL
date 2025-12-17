@@ -507,7 +507,7 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     if (!lockhost.isEmpty()) {
         if (lockhost.compare(QHostInfo::localHostName()) != 0) {
             if (staticQMessageBox::warning(this, STR_MessageBox_Warning,
-                    QObject::tr("There is a lockfile already present for this profile '%1', claimed on '%2'.").arg(prof->user->userName()).arg(lockhost)+"\n\n"+
+                    QObject::tr("There is a lockfile already present for this profile '%1', claimed on '%2'.").arg(prof->user->userName(), lockhost)+"\n\n"+
                     QObject::tr("You can only work with one instance of an individual OSCAR profile at a time.")+"\n\n"+
                     QObject::tr("If you are using cloud storage, make sure OSCAR is closed and syncing has completed first on the other computer before proceeding."),
                     QMessageBox::Cancel |QMessageBox::Ok, QMessageBox::Cancel) == QMessageBox::Cancel) {
@@ -621,7 +621,7 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     PopulatePurgeMenu();
 
     AppSetting->setProfileName(p_profile->user->userName());
-    setWindowTitle(tr("%1 (Profile: %2)").arg(getMainWindowTitle()).arg(AppSetting->profileName()));
+    setWindowTitle(tr("%1 (Profile: %2)").arg(getMainWindowTitle(),AppSetting->profileName()));
 
     QList<Machine *> oximachines = p_profile->GetMachines(MT_OXIMETER);                // Machines of any type except Journal
     QList<Machine *> posmachines = p_profile->GetMachines(MT_POSITION);
@@ -1097,7 +1097,7 @@ QList<ImportPath> MainWindow::selectCPAPDataCards(const QString & prompt, bool a
         QString infostr;
         if (!info.model.isEmpty()) {
             QString infostr2 = info.model+" ("+info.serial+")";
-            infostr = tr("A %1 file structure for a %2 was located at:").arg(info.brand).arg(infostr2);
+            infostr = tr("A %1 file structure for a %2 was located at:").arg(info.brand, infostr2);
         } else {
             infostr = tr("A %1 file structure was located at:").arg(datacards[0].loader->loaderName());
         }
@@ -1283,8 +1283,8 @@ void MainWindow::updateFavourites()
                                 tmp += "<br/>";
                             }
                             tmp += QString("<tr><td><b><a href='daily=%1'>%2</a></b>")
-                                    .arg(date.toString(Qt::ISODate))
-                                    .arg(date.toString(MedDateFormat));
+                                    .arg(date.toString(Qt::ISODate),
+                                    date.toString(MedDateFormat));
 
                             tmp += "<list>";
 

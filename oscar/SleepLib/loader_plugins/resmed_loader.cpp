@@ -53,6 +53,7 @@ const QString STR_ResMed_AirSense10 = "AirSense 10";
 const QString STR_ResMed_AirSense11 = "AirSense 11";
 const QString STR_ResMed_AirCurve10 = "AirCurve 10";
 const QString STR_ResMed_AirCurve11 = "AirCurve 11";
+const QString STR_ResMed_Sleepmate10 = "Sleepmate 10";
 const QString STR_ResMed_S9 = "S9";
 const QString STR_UnknownModel = "Resmed ???";
 
@@ -91,6 +92,8 @@ ResmedLoader::ResmedLoader() {
     m_pixmap_paths[STR_ResMed_AirSense10] = RM10_ICON;
     m_pixmaps[STR_ResMed_AirCurve10] = QPixmap(RM10C_ICON);
     m_pixmap_paths[STR_ResMed_AirCurve10] = RM10C_ICON;
+    m_pixmaps[STR_ResMed_Sleepmate10] = QPixmap(RM10_ICON);
+    m_pixmap_paths[STR_ResMed_Sleepmate10] = RM10_ICON;
 #endif
     m_type = MT_CPAP;
 
@@ -2292,6 +2295,9 @@ QHash<QString, QString> parseIdentLine( const QString line, MachineInfo * info)
             if (value.contains(STR_ResMed_AirSense10)) {
         //      value.replace(STR_ResMed_AirSense10, "");
                 info->series = STR_ResMed_AirSense10;
+            } else if (value.contains(STR_ResMed_Sleepmate10)) {
+            //      value.replace(STR_ResMed_Sleepmate10, "");
+                info->series = STR_ResMed_Sleepmate10;
             } else if (value.contains(STR_ResMed_AirCurve10)) {
         //      value.replace(STR_ResMed_AirCurve10, "");
                 info->series = STR_ResMed_AirCurve10;
