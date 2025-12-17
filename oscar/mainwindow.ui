@@ -68,14 +68,14 @@
     <item>
      <widget class="QSplitter" name="mainsplitter">
       <property name="orientation">
-       <enum>Qt::Orientation::Horizontal</enum>
+       <enum>Qt::Horizontal</enum>
       </property>
       <widget class="QSplitter" name="logsplitter">
        <property name="frameShape">
-        <enum>QFrame::Shape::StyledPanel</enum>
+        <enum>QFrame::StyledPanel</enum>
        </property>
        <property name="orientation">
-        <enum>Qt::Orientation::Vertical</enum>
+        <enum>Qt::Vertical</enum>
        </property>
        <widget class="QTabWidget" name="tabWidget">
         <property name="sizePolicy">
@@ -485,10 +485,10 @@
          <bool>true</bool>
         </property>
         <property name="tabPosition">
-         <enum>QTabWidget::TabPosition::North</enum>
+         <enum>QTabWidget::North</enum>
         </property>
         <property name="tabShape">
-         <enum>QTabWidget::TabShape::Rounded</enum>
+         <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
          <number>0</number>
@@ -534,10 +534,10 @@
              </sizepolicy>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
+             <enum>QFrame::StyledPanel</enum>
             </property>
             <property name="frameShadow">
-             <enum>QFrame::Shadow::Raised</enum>
+             <enum>QFrame::Raised</enum>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <property name="spacing">
@@ -604,8 +604,13 @@
                 </sizepolicy>
                </property>
                <property name="currentSection">
-                <enum>QDateTimeEdit::Section::MonthSection</enum>
+                <enum>QDateTimeEdit::MonthSection</enum>
                </property>
+               <!--   this cause oscar to crash on start up with linus 20.04.o4
+               <property name="displayFormat">
+                <string>Qt::SystemLocaleShortDate</string>
+               </property>
+               -->
                <property name="calendarPopup">
                 <bool>true</bool>
                </property>
@@ -630,23 +635,28 @@
                 </sizepolicy>
                </property>
                <property name="currentSection">
-                <enum>QDateTimeEdit::Section::DaySection</enum>
+                <enum>QDateTimeEdit::MonthSection</enum>
+               </property>
+               <!--   this cause oscar to crash on start up with linus 20.04.o4
+               <property name="displayFormat">
+                <string>Qt::SystemLocaleShortDate</string>
+               </property>
+               -->
+               <property name="currentSectionIndex">
+                <number>1</number>
                </property>
                <property name="calendarPopup">
                 <bool>true</bool>
-               </property>
-               <property name="currentSectionIndex">
-                <number>1</number>
                </property>
               </widget>
              </item>
              <item>
               <spacer name="horizontalSpacer">
                <property name="orientation">
-                <enum>Qt::Orientation::Horizontal</enum>
+                <enum>Qt::Horizontal</enum>
                </property>
                <property name="sizeType">
-                <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+                <enum>QSizePolicy::MinimumExpanding</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -797,10 +807,10 @@ QToolBox::tab:selected  {
 }</string>
        </property>
        <property name="frameShape">
-        <enum>QFrame::Shape::Box</enum>
+        <enum>QFrame::Box</enum>
        </property>
        <property name="frameShadow">
-        <enum>QFrame::Shadow::Sunken</enum>
+        <enum>QFrame::Sunken</enum>
        </property>
        <property name="lineWidth">
         <number>1</number>
@@ -819,8 +829,8 @@ QToolBox::tab:selected  {
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>132</width>
-          <height>697</height>
+          <width>123</width>
+          <height>704</height>
          </rect>
         </property>
         <property name="palette">
@@ -965,7 +975,7 @@ border: 2px solid #56789a; border-radius: 30px;
             </size>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -1009,7 +1019,7 @@ border: 2px solid #56789a; border-radius: 30px;
             </size>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -1059,7 +1069,7 @@ border: 2px solid #56789a; border-radius: 30px;
             </size>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -1103,7 +1113,7 @@ border: 2px solid #56789a; border-radius: 30px;
             </size>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -1147,7 +1157,7 @@ border: 2px solid #56789a; border-radius: 30px;
             </size>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -1200,13 +1210,13 @@ border: 2px solid #56789a; border-radius: 30px;
             <bool>false</bool>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
            </property>
            <property name="arrowType">
-            <enum>Qt::ArrowType::NoArrow</enum>
+            <enum>Qt::NoArrow</enum>
            </property>
           </widget>
          </item>
@@ -1247,7 +1257,7 @@ border: 2px solid #56789a; border-radius: 30px;
             </size>
            </property>
            <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -1257,10 +1267,10 @@ border: 2px solid #56789a; border-radius: 30px;
          <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
+            <enum>Qt::Vertical</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Policy::Expanding</enum>
+            <enum>QSizePolicy::Expanding</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -1277,7 +1287,7 @@ border: 2px solid #56789a; border-radius: 30px;
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>149</width>
+          <width>137</width>
           <height>686</height>
          </rect>
         </property>
@@ -1363,7 +1373,7 @@ border: 2px solid #56789a; border-radius: 30px;
           <number>0</number>
          </property>
          <property name="sizeConstraint">
-          <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
+          <enum>QLayout::SetNoConstraint</enum>
          </property>
          <property name="leftMargin">
           <number>0</number>
@@ -1876,10 +1886,10 @@ border: 2px solid #56789a; border-radius: 30px;
             <string notr="true">background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(125, 125, 255, 255), stop:1 rgba(200, 200, 255, 255))</string>
            </property>
            <property name="frameShape">
-            <enum>QFrame::Shape::Box</enum>
+            <enum>QFrame::Box</enum>
            </property>
            <property name="frameShadow">
-            <enum>QFrame::Shadow::Sunken</enum>
+            <enum>QFrame::Sunken</enum>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <property name="spacing">
@@ -1971,15 +1981,6 @@ border: 2px solid #56789a; border-radius: 30px;
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>255</red>
-                    <green>255</green>
-                    <blue>255</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                 </active>
                 <inactive>
                  <colorrole role="WindowText">
@@ -2045,15 +2046,6 @@ border: 2px solid #56789a; border-radius: 30px;
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>255</red>
-                    <green>255</green>
-                    <blue>255</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                 </inactive>
                 <disabled>
                  <colorrole role="WindowText">
@@ -2115,15 +2107,6 @@ border: 2px solid #56789a; border-radius: 30px;
                    <color alpha="255">
                     <red>170</red>
                     <green>170</green>
-                    <blue>255</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>255</red>
-                    <green>255</green>
                     <blue>255</blue>
                    </color>
                   </brush>
@@ -2189,15 +2172,6 @@ background-color: rgb(190, 209, 255);
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="Highlight">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="255">
-                    <red>39</red>
-                    <green>191</green>
-                    <blue>115</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                  <colorrole role="AlternateBase">
                   <brush brushstyle="SolidPattern">
                    <color alpha="255">
@@ -2236,15 +2210,6 @@ background-color: rgb(190, 209, 255);
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="Highlight">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="255">
-                    <red>39</red>
-                    <green>191</green>
-                    <blue>115</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                  <colorrole role="AlternateBase">
                   <brush brushstyle="SolidPattern">
                    <color alpha="255">
@@ -2280,15 +2245,6 @@ background-color: rgb(190, 209, 255);
                     <red>163</red>
                     <green>190</green>
                     <blue>255</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
-                 <colorrole role="Highlight">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="255">
-                    <red>39</red>
-                    <green>191</green>
-                    <blue>115</blue>
                    </color>
                   </brush>
                  </colorrole>
@@ -2346,12 +2302,9 @@ border-radius: 10px;
            </property>
            <property name="html">
             <string notr="true">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-hr { height: 1px; border-width: 0; }
-li.unchecked::marker { content: &quot;\2610&quot;; }
-li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'MS Shell Dlg 2'; font-size:8.25pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="openLinks">
@@ -2366,7 +2319,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>149</width>
+          <width>137</width>
           <height>686</height>
          </rect>
         </property>
@@ -2406,12 +2359,9 @@ li.checked::marker { content: &quot;\2612&quot;; }
            </property>
            <property name="html">
             <string notr="true">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-hr { height: 1px; border-width: 0; }
-li.unchecked::marker { content: &quot;\2610&quot;; }
-li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'MS Shell Dlg 2'; font-size:8.25pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="openLinks">
