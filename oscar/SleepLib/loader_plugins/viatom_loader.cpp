@@ -429,8 +429,10 @@ QStringList ViatomLoader::getNameFilter()
     // Sometimes the files have a SleepU_ or O2Ring_ prefix.
     // Sometimes they have punctuation in the timestamp.
     // Note that ":" is not allowed on macOS, so Mac users will need to rename their files in order to select and import them.
+    // Added the "*.dat" by JosEoff - Revised to add filename qualifier to prevent a malformed filename - CN
     return QStringList({"*20[0-5][0-9][01][0-9][0-3][0-9][012][0-9][0-5][0-9][0-5][0-9]*",
-                        "*20[0-5][0-9]-[01][0-9]-[0-3][0-9] [012][0-9]:[0-5][0-9]:[0-5][0-9]*"
+                        "*20[0-5][0-9]-[01][0-9]-[0-3][0-9] [012][0-9]:[0-5][0-9]:[0-5][0-9]*",
+                        "*20[0-5][0-9][01][0-9][0-3][0-9][012][0-9][0-5][0-9][0-5][0-9].dat"
     });
 }
 

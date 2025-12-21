@@ -1791,10 +1791,10 @@ void FlowParser::flagSteadyBreathing(Session *session)
             time = el->time(i);
             value = el->data(i);
             if (value <= threshold) {
-                if (lastvalue > threshold) {
+                if (lastvalue >= threshold) {
                     steadytime = time;
                 }
-            } else if (lastvalue < threshold) {
+            } else if (lastvalue <= threshold) {
                 int duration = (time - steadytime) / 1000L;
                 if (duration>=minimumFlagTime_Seconds){
                      BF->AddEvent(time, duration);
