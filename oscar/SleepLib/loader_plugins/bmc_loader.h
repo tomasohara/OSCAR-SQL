@@ -8,6 +8,8 @@
 #include "SleepLib/profiles.h"
 #include "SleepLib/loader_plugins/bmcDataParsing.h"
 
+
+
 class EventList;
 
 const int bmc_version = 1;

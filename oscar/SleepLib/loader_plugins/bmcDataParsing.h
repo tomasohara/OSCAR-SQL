@@ -105,7 +105,7 @@ public:
     QDateTime Timestamp;
     int Index;
     quint16 StartOffsetPacket;
-    quint8 StartFileIndex;
+    quint16 StartFileIndex;
     quint16 NextOffsetPacket;
     bool HasValidNext;
     quint8 NextFileIndex;
@@ -230,7 +230,7 @@ public:
     BmcWaveformCrumb WaveformCrumb;
 };
 
-//#pragma pack(push, 1)
+#pragma pack(push, 1)
 struct BmcWaveformPacketStruct{
     uint16_t Header; //00
     int16_t Offset0x02; //02
@@ -262,8 +262,8 @@ struct BmcWaveformPacketStruct{
     int16_t TidalVolume; //C6
     int16_t Offset0xC8;
     int16_t MinuteVentilation; //CA
-    int16_t Offset0xCC;
-    int16_t Offset0xCE;
+    int16_t SpO2Pct;      // 0xCC – saturazione ossigeno %
+    int16_t PulseRate;    // 0xCE – battiti al minuto
     int16_t RespiratoryRate; //D0
     int16_t IERatio; //D2
     int16_t Offset0xD4;
@@ -292,7 +292,7 @@ struct BmcWaveformPacketStruct{
     uint8_t Second;  //FE
     uint8_t Terminator;
 };
-//#pragma pack(pop)
+#pragma pack(pop)
 
 
 class BmcWaveformPacketRaw
@@ -307,6 +307,8 @@ public:
     quint16 Leak;
     qint16 TidalVolume;
     qint16 MinuteVentilation;
+    quint16 SpO2Pct;
+    quint16 PulseRate;
     quint16 RespiratoryRate;
     qint16 IERatioMapped;
 

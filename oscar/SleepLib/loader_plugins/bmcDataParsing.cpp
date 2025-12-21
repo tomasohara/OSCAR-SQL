@@ -4,6 +4,8 @@
 #include <QDir>
 #include <QBuffer>
 
+#include <QDebug>
+
 
 #ifdef DEBUG_BMC
 #include <qtextstream.h>
@@ -38,12 +40,22 @@ BmcUsrSession::BmcUsrSession(QDataStream* strm, bool InProgressSession) : BmcUsr
 
 quint32 BmcUsrSession::GetNextHistoricSessionOffset(QDataStream* strm)
 {
-    quint64 currentOffset = strm->device()->pos();
-    strm->skipRawData(1);
-    quint32 nextOffset;
-    *strm >> nextOffset;
-    strm->device()->seek(currentOffset);
-    return nextOffset;
+    const quint64 current = strm->device()->pos();
+
+    strm->skipRawData(1);          // skip 0xE1/0xE2
+    quint32 next;  *strm >> next;
+
+    /*  se next è “strano” (0, 0xFFFFFFFF o prima del punto corrente)
+        usiamo la fine-file come sentinella                 */
+    const quint64 end   = strm->device()->size();
+    if (next == 0            ||
+        next == 0xFFFFFFFF   ||
+        next <= current      ||
+        next >  end)
+        next = static_cast<quint32>(end);
+
+    strm->device()->seek(current);
+    return next;
 }
 
 
@@ -80,9 +92,9 @@ void BmcUsrSession::ReadInProgressSession(QDataStream* strm)
         {
             BmcRespiratoryEvent evt;
             switch (msgType){
-                case 0x07: evt.EventType = BmcRespiratoryEventType::CSA; break;
-                case 0x08: evt.EventType = BmcRespiratoryEventType::OSA; break;
-                case 0x09: evt.EventType = BmcRespiratoryEventType::HYP; break;
+            case 0x07: evt.EventType = BmcRespiratoryEventType::CSA; break;
+            case 0x08: evt.EventType = BmcRespiratoryEventType::OSA; break;
+            case 0x09: evt.EventType = BmcRespiratoryEventType::HYP; break;
             }
 
             evt.StartTime = this->StartTimestamp.addSecs(60 * 60 * msgBytes[0]).addSecs(60 * msgBytes[1]);
@@ -140,44 +152,44 @@ void BmcUsrSession::ReadHistoricSession(QDataStream* strm)
 
         switch (msgType)
         {
-            case 0x86:
-            case 0x82:
+        case 0x86:
+        case 0x82:
+        {
+            for (int i = 0; i < count; i++)
             {
-                for (int i = 0; i < count; i++)
-                {
-                    *strm >> tmp32;
-                    MessageItem32 msg(msgType, tmp32);
-                    this->DataMessages32.append(msg);
-                }
-                break;
+                *strm >> tmp32;
+                MessageItem32 msg(msgType, tmp32);
+                this->DataMessages32.append(msg);
             }
+            break;
+        }
 
-            case 0x83:
-            case 0x84:
-            case 0x87:
+        case 0x83:
+        case 0x84:
+        case 0x87:
+        {
+            for (int i = 0; i < count; i++)
             {
-                for (int i = 0; i < count; i++)
-                {
-                    quint8 b1, b2, b3;
-                    *strm >> b1;
-                    *strm >> b2;
-                    *strm >> b3;
-                    MessageItem24 msg(msgType, b1, b2, b3);
-                    this->DataMessages24.append(msg);
-                }
-                break;
+                quint8 b1, b2, b3;
+                *strm >> b1;
+                *strm >> b2;
+                *strm >> b3;
+                MessageItem24 msg(msgType, b1, b2, b3);
+                this->DataMessages24.append(msg);
             }
+            break;
+        }
 
-            default:
+        default:
+        {
+            for (int i = 0; i < count; i++)
             {
-                for (int i = 0; i < count; i++)
-                {
-                    *strm >> tmp16;
-                    MessageItem16 msg(msgType, tmp16);
-                    this->DataMessages16.append(msg);
-                }
-                break;
+                *strm >> tmp16;
+                MessageItem16 msg(msgType, tmp16);
+                this->DataMessages16.append(msg);
             }
+            break;
+        }
         }
     }
 
@@ -185,9 +197,9 @@ void BmcUsrSession::ReadHistoricSession(QDataStream* strm)
     {
         BmcRespiratoryEvent evt;
         switch (msg.MessageType){
-            case 0x83: evt.EventType = BmcRespiratoryEventType::OSA; break;
-            case 0x84: evt.EventType = BmcRespiratoryEventType::HYP; break;
-            case 0x87: evt.EventType = BmcRespiratoryEventType::CSA; break;
+        case 0x83: evt.EventType = BmcRespiratoryEventType::OSA; break;
+        case 0x84: evt.EventType = BmcRespiratoryEventType::HYP; break;
+        case 0x87: evt.EventType = BmcRespiratoryEventType::CSA; break;
         }
 
         evt.StartTime = this->StartTimestamp.addSecs(60 * 60 * msg.Data1).addSecs(60 * msg.Data2);
@@ -228,7 +240,7 @@ BmcIdxEntry::BmcIdxEntry(QDataStream* strm) : BmcIdxEntry()
     *strm >> this->NextOffsetPacket; //0x011
     *strm >> this->NextFileIndex; //0x013
 
-    if (StartFileIndex > 29){
+    if (StartFileIndex > 999){
         throw std::invalid_argument("Invalid nnn waveform file index");
     }
 
@@ -403,9 +415,15 @@ BmcWaveformPacket::BmcWaveformPacket(char* buffer)
 
     this->Raw.Leak = packetStruct->Leak;
     this->Raw.TidalVolume = packetStruct->TidalVolume;
+    this->Raw.SpO2Pct   = packetStruct->SpO2Pct;      // nessuna scala extra
+    this->Raw.PulseRate = packetStruct->PulseRate;    // idem
     this->Raw.MinuteVentilation = packetStruct->MinuteVentilation;
     this->Raw.RespiratoryRate = packetStruct->RespiratoryRate;
-    this->Raw.IERatioMapped = ((qint16)(packetStruct->IERatio <= 100 ? 100 - IERatioLookup[packetStruct->IERatio] : 0) * 10);
+    //this->Raw.IERatioMapped = ((qint16)(packetStruct->IERatio <= 100 ? 100 - IERatioLookup[packetStruct->IERatio] : 0) * 10);
+    this->Raw.IERatioMapped = static_cast<qint16>(
+                (packetStruct->IERatio <= 100)
+                              ? 100 - IERatioLookup[packetStruct->IERatio]
+                                  : 0);
     this->Raw.Timestamp = QDateTime(QDate(packetStruct->Year, packetStruct->Month, packetStruct->Day), QTime(packetStruct->Hour, packetStruct->Minute, packetStruct->Second));
 
 }
@@ -458,11 +476,11 @@ bool BmcData::DirectoryHasBmcData(const QString& path)
 
 }
 
-int notused=0;
+
 int BmcData::ReadDataCount()
 {
     QFile file(this->usrFilePath);
-    notused =file.open(QIODevice::ReadOnly);
+    file.open(QIODevice::ReadOnly);
 
     file.seek(0x102338);  //Packets start at offset 0x800
 
@@ -489,7 +507,7 @@ BmcMachineInfo BmcData::ReadMachineInfo()
    BmcMachineInfo info;
 
    QFile usrFile(this->usrFilePath);
-   notused = usrFile.open(QIODevice::ReadOnly);
+   usrFile.open(QIODevice::ReadOnly);
 
    char buf[32];
 
@@ -627,7 +645,7 @@ QDateTime BmcData::ReadWaveformPacketTimestamp(const QString& path, quint16 pack
     if ((quint64)file.size() < byteOffset)
         return QDateTime();
 
-    notused = file.open(QIODevice::ReadOnly);
+    file.open(QIODevice::ReadOnly);
     if (!file.isOpen()){
         throw std::invalid_argument("Waveform file could be opened");
     }
@@ -658,7 +676,7 @@ void BmcData::ReadIdxFile()
     QString idxPath = ChangeFileExtension(this->usrFilePath, ".idx");
     QFile file(idxPath);
 
-    notused = file.open(QIODevice::ReadOnly);
+    file.open(QIODevice::ReadOnly);
 
     file.seek(0x800);  //Packets start at offset 0x800
 
@@ -671,7 +689,7 @@ void BmcData::ReadIdxFile()
     {
         auto arr = file.read(512);
         QBuffer buf(&arr);
-        notused = buf.open(QIODevice::ReadOnly);
+        buf.open(QIODevice::ReadOnly);
         QDataStream strmPacket(&buf);
         strmPacket.setByteOrder(QDataStream::LittleEndian);
 
@@ -690,33 +708,40 @@ void BmcData::ReadIdxFile()
 void BmcData::ReadAllSessions()
 {
     QFile fileUSR(this->usrFilePath);
-    notused = fileUSR.open(QIODevice::ReadOnly);
+    fileUSR.open(QIODevice::ReadOnly);
 
     QDataStream strmUSR(&fileUSR);
     strmUSR.setByteOrder(QDataStream::LittleEndian);
 
     BmcUsrSession inProgressSession(&strmUSR, true);
 
-    //The offset at which sessions begin
-    fileUSR.seek(0x102340);
-
+    const quint64 sessionsStart = 0x102340;
+    fileUSR.seek(sessionsStart);
     //For each session, we determine the length of the session data, copy
     // the data to memory and then parse it from memory to save on file seeking.
-    do
+
+    while (fileUSR.pos() < fileUSR.size())
     {
-        quint32 nextOffset = BmcUsrSession::GetNextHistoricSessionOffset(&strmUSR);
-        quint32 len = nextOffset - fileUSR.pos();
+        quint64 here      = fileUSR.pos();
+        quint32 next      = BmcUsrSession::GetNextHistoricSessionOffset(&strmUSR);
+        quint64 sliceEnd  = qMin<quint64>(next, fileUSR.size());
 
-        auto rawData = fileUSR.read(len);
+        if (sliceEnd <= here)         // sicurezza aggiuntiva
+            break;
 
-        QBuffer buf(&rawData);
-        notused = buf.open(QIODevice::ReadOnly);
-        QDataStream strmSession(&buf);
-        strmSession.setByteOrder(QDataStream::LittleEndian);
-        BmcUsrSession session(&strmSession, false);
-        this->AllUsrSessions.append(session);
+        const quint32 len = static_cast<quint32>(sliceEnd - here);
+        QByteArray raw   = fileUSR.read(len);
 
-    }while (fileUSR.pos() < fileUSR.size());
+        QBuffer  buf(&raw);  buf.open(QIODevice::ReadOnly);
+        QDataStream strm(&buf);  strm.setByteOrder(QDataStream::LittleEndian);
+
+        try {
+            BmcUsrSession s(&strm, /*InProgress*/false);
+            this->AllUsrSessions.append(s);
+        } catch (...) {
+            qDebug() << "Sessione corrotta @ offset" << here;
+        }
+    }
 
     this->AllUsrSessions.append(inProgressSession);
 
@@ -735,10 +760,12 @@ void BmcData::BuildWaveformCrumbs()
         QString idxPath = ChangeFileExtension(this->usrFilePath, ".idx");
 
         for (int j = 0; j < 16; j++)
-        {
-            quint16 packetOffset = i * 0x1000;
-            quint64 byteOffset = packetOffset * 0x100;
+            {
+            quint16 packetOffset = static_cast<quint16>(j * 0x1000);
+
             QDateTime timestamp = ReadWaveformPacketTimestamp(filepath, packetOffset);
+
+            quint64 byteOffset = packetOffset * 0x100;
             if (!timestamp.isNull()){
                 BmcWaveformCrumb crumb;
                 crumb.Filepath = filepath;
@@ -747,6 +774,8 @@ void BmcData::BuildWaveformCrumbs()
                 crumb.ByteOffset = byteOffset;
                 crumb.Timestamp = timestamp;
                 this->WaveformCrumbs.append(crumb);
+                qDebug() << "Crumb" << crumb.Timestamp.toString(Qt::ISODate) << crumb.FileIndex << crumb.PacketOffset;
+
             }
         }
 
@@ -775,7 +804,7 @@ QList<BmcWaveformPacket> BmcData::ReadWaveforms(BmcDataLink& link)
 
     int currentFileIndex = link.WaveformCrumb.FileIndex;
     QFile* nnnFile = new QFile(link.WaveformCrumb.Filepath);
-    notused = nnnFile->open(QIODevice::ReadOnly);
+    nnnFile->open(QIODevice::ReadOnly);
     nnnFile->seek(link.WaveformCrumb.ByteOffset);
 
     bool complete = false;
@@ -793,10 +822,12 @@ QList<BmcWaveformPacket> BmcData::ReadWaveforms(BmcDataLink& link)
 #endif
             BmcWaveformPacket packet(packetBuf);
 
-            if (packet.Timestamp >= link.UsrSession.StartTimestamp && packet.Timestamp <= link.UsrSession.EndTimestamp)
+            if (packet.Timestamp >= link.UsrSession.StartTimestamp &&
+                packet.Timestamp <= link.UsrSession.EndTimestamp)
                 waveforms.append(packet);
 
-            if (packet.Timestamp > link.UsrSession.EndTimestamp || packet.Timestamp < lastPacketTimestamp){
+            if (packet.Timestamp > link.UsrSession.EndTimestamp ||
+                packet.Timestamp < lastPacketTimestamp){
                 complete = true;
                 break;
             }
@@ -824,7 +855,7 @@ QList<BmcWaveformPacket> BmcData::ReadWaveforms(BmcDataLink& link)
         if (!complete)
         {
             nnnFile = new QFile(nextPath);
-            notused = nnnFile->open(QIODevice::ReadOnly);
+            nnnFile->open(QIODevice::ReadOnly);
         }
     }
 
@@ -852,10 +883,11 @@ void BmcData::FindValidSessions()
         entry.StartWaveformPacketTimestamp = ReadWaveformPacketTimestamp(startPath, entry.StartOffsetPacket);
 
 
-        auto daysDifference =  qAbs(entry.Timestamp.daysTo(entry.StartWaveformPacketTimestamp));
+        auto daysDifference = qAbs(entry.Timestamp.daysTo(entry.StartWaveformPacketTimestamp));
 
         if (daysDifference >= 3)
-            break;
+            continue;
+
 
         this->ValidIdxEntries.insert(0, entry);
     }
@@ -868,27 +900,36 @@ void BmcData::FindValidSessions()
 
         for (auto &idxEntry : this->ValidIdxEntries)
         {
-            if (usrSession.StartTimestamp >= idxEntry.StartWaveformPacketTimestamp)
+            const bool stessoGiorno      = usrSession.StartTimestamp.date() == idxEntry.StartWaveformPacketTimestamp.date();
+            const bool giornoSuccessivo  = usrSession.StartTimestamp.date().addDays(1) == idxEntry.StartWaveformPacketTimestamp.date();
+
+            if (  usrSession.StartTimestamp >= idxEntry.StartWaveformPacketTimestamp
+                || stessoGiorno
+                || giornoSuccessivo)
+            {
                 foundIdxEntry = &idxEntry;
+            }
             else
                 break;
         }
 
-        if (foundIdxEntry != NULL){
-            BmcDataLink link;
-            link.IdxEntry = *foundIdxEntry;
-            link.UsrSession = usrSession;
-
-            for (auto &crumb : this->WaveformCrumbs){
-                if (crumb.Timestamp < usrSession.StartTimestamp)
-                    link.WaveformCrumb = crumb;
-                else
+        BmcWaveformCrumb chosenCrumb;
+        for (const auto &crumb : this->WaveformCrumbs) {
+            if (crumb.Timestamp >= usrSession.StartTimestamp) {
+                    chosenCrumb = crumb;
                     break;
-            }
-
-            this->SessionLinks.append(link);
+                }
         }
-    }
+        if (!chosenCrumb.Timestamp.isValid())
+            continue;
 
+        BmcDataLink link;
+        link.UsrSession   = usrSession;
+        link.WaveformCrumb= chosenCrumb;
+        if (foundIdxEntry)
+            link.IdxEntry = *foundIdxEntry;
+
+        this->SessionLinks.append(link);
+    }
 }
 
