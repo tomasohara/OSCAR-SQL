@@ -1136,3 +1136,19 @@ This revised database migration strategy leverages OSCAR's existing rebuild capa
 **Updated**: December 22, 2025  
 **Author**: OSCAR Development Team  
 **Status**: Revised Strategy Based on Rebuild Capability
+
+
+
+#### Initial requests to Claude Sonnet 4.5 on 12/21/2025 and 12/22/2025:
+
+##### 1st request:
+
+Application OSCAR main.cpp is in c:\oscar\oscar-code\oscar. Qt pro file is c:\oscar\oscar-code\oscar\oscar.pro. OSCAR "loaders" read data from SD cards produced by CPAP machines. OSCAR's goal is to present the data to the user in an understandable fashion and keep historical records. The application maintains data in files on disk, organized in profiles. We want to change OSCAR so that it uses a database rather than separate data files. Note that files read by the loader programs are data from an outside source so cannot be converted to a database; they also all have uniquely different formats so cannot be combined. Application must be in c++ and Qt6 as it is must compile and run on multiple platforms (Windows, MacOS, linux, etc.).
+
+Please identify the files that should be converted to a database and suggest a migration path, preferably one that can be implemented incrementally.
+
+##### 2nd iteration:
+
+Here is some background that may help in the design process. OSCAR is an application to examine data on an SD card from a CPAP machine, or related devices like SpO2 machines, with the intent of helping the user improve their sleep apnea situation. OSCAR is an open source project which is in use world-wide by individuals with CPAP machines. It is not designed to be used in a medical or business environment, though that may be happening without our knowledge. OSCAR is installed by the user just as any application; there is no in-person technical support although individuals can get help on ApneaBoard.com and other forums. This means installation of all parts of the product needs to be accomplished by a single installer and without technical support. OSCAR is free and all development and support is done by volunteers and other users. With the latest release, the OSCAR Team installation site offers downloads in 22 different flavors, for different operating systems and versions. Users with platforms not directly supported can and do download the OSCAR source to their machine and build the application on their machine.
+
+OSCAR can rebuild the session and summary data from backups of the original SD card. We have done this before to support file structure changes and the process works well. That does mean we will have to convert all the loader modules at the same time as we convert the plotting and other reporting functions. While migration of session and summary data would be helpful in allowing us to get all of the reporting and computing steps working, we could not release OSCAR without also having all loaders converted. We could test development by converting only a few loader modules, notably ResMed as being the most popular machine in use. It may be easier to convert a single loader module for testing rather than spending effort on migration which will not be of use in the release version of OSCAR.
