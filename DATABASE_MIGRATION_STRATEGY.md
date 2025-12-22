@@ -4,6 +4,16 @@
 
 This document provides a comprehensive strategy for migrating OSCAR from its current file-based storage system to a SQLite database. The analysis identifies which files should be converted to database tables and which must remain as files, and proposes an incremental migration path that minimizes risk while maximizing benefits.
 
+**Key Insight:** OSCAR can rebuild all session and summary data from SD card backups. This fundamentally simplifies the migration strategy - instead of migrating existing data files, we focus on converting loaders to write to the database, then users can regenerate their data from SD card backups. This approach is cleaner, safer, and leverages OSCAR's existing rebuild capability.
+
+### OSCAR Context
+- Open source application used worldwide by individuals
+- Self-installed, no technical support required
+- 22 platform flavors (Windows, macOS, Linux variants)
+- All development by volunteers
+- Users can rebuild data from original SD card backups
+- Must work with single installer - no manual configuration
+
 ## Current State Analysis
 
 ### File-Based Storage Overview
@@ -426,241 +436,304 @@ CREATE INDEX idx_day_sessions_session ON day_sessions(session_id);
 4. **Normalized Schema** - Reduce redundancy
 5. **Flexible Properties** - Key-value tables for extensibility
 
-## Incremental Migration Path
+## Revised Migration Strategy (Loader-First Approach)
 
-### Phase 1: Foundation (Weeks 1-2)
+### Strategic Insight: Leverage Rebuild Capability
+
+**OSCAR's existing ability to rebuild all session and summary data from SD card backups fundamentally changes the migration strategy.** Instead of complex data migration from XML/binary files, we:
+
+1. Convert loaders to write to database
+2. Convert UI/reporting to read from database  
+3. Users re-import from their SD card backups
+4. Clean, simple, and leverages existing functionality
+
+**Key Benefits:**
+- Simpler implementation (no complex XML/binary migration)
+- Cleaner data (regenerated from source)
+- Lower risk (uses proven rebuild functionality)
+- All loaders must be converted before release anyway
+- Users already have SD card backups
+
+### Phase 1: Foundation & Test Loader (Weeks 1-4)
 
 **Goals:**
 - Set up SQLite infrastructure
 - Create database schema
-- Implement basic CRUD operations
-- Establish testing framework
+- Convert ONE loader (ResMed) as proof of concept
+- Validate end-to-end workflow
 
 **Tasks:**
 1. Create database connection manager
-2. Implement schema creation scripts
+2. Implement complete database schema
 3. Build repository pattern classes
 4. Create unit tests
-5. Add dual-mode support (database vs files)
+5. **Convert ResMed loader to write to database**
+6. Test import from ResMed SD card
+7. Verify data in database tables
+
+**Why ResMed First:**
+- Most popular CPAP brand
+- Complex data format (good test)
+- Large user base for testing
+- Representative of loader complexity
+
+**Testing:**
+- Import test ResMed SD card data
+- Verify all data in database
+- Test session summaries
+- Test event data
+- Profile basic performance
 
 **Deliverables:**
-- Working SQLite database
+- Working SQLite database with full schema
 - Repository classes for all tables
-- Test suite passing
-- Command-line flag: `--use-database`
+- ResMed loader writes to database
+- Test suite validating ResMed import
+- Proof of concept complete
 
-### Phase 2: Profile & Machine Migration (Weeks 3-5)
+**Critical Decision Point:** If Phase 1 succeeds, proceed with converting remaining loaders. If issues arise, resolve before continuing.
 
-**Goals:**
-- Migrate profile and machine metadata
-- Update profile loading logic
-- Implement migration tools
-
-**Tasks:**
-1. Create ProfileRepository class
-2. Create MachineRepository class
-3. Implement XML to database converter
-4. Update Profile class to use database
-5. Update Machine class to use database
-6. Create migration command
-
-**Migration Flow:**
-```
-Profile.xml → XML Parser → ProfileRepository → Database
-machines.xml → XML Parser → MachineRepository → Database
-```
-
-**Testing:**
-- Migrate test profiles
-- Verify all preferences preserved
-- Test profile switching
-- Validate machine listings
-
-**Rollback:** Keep original XML files until validated
-
-**Deliverables:**
-- `--migrate-profile "username"` command
-- Profiles load from database
-- Machines list from database
-- Original XML remains as backup
-
-### Phase 3: Session Summary Migration (Weeks 6-9)
+### Phase 2: Core UI & Reporting (Weeks 5-8)
 
 **Goals:**
-- Migrate session summaries to database
-- Achieve significant performance improvements
-- Handle large datasets efficiently
+- Convert UI components to read from database
+- Maintain feature parity with file-based version
+- Optimize query performance
 
 **Tasks:**
-1. Create SessionRepository class
-2. Create ChannelSummaryRepository class
-3. Implement Summaries.xml.gz parser
-4. Batch migration with progress reporting
-5. Update session loading logic
+1. Update Profile/Machine loading from database
+2. Convert Daily view to use database
+3. Convert Overview to use database
+4. Convert Statistics to use database
+5. Update Reports to use database
 6. Implement caching layer
+7. Performance optimization
 
-**Migration Strategy:**
-- Progressive migration (newest sessions first)
-- Date range selection
-- Background processing
-- Progress indicators
+**Data Flow:**
+```
+Database → Repository → UI Components
+```
 
 **Testing:**
-- Migrate sessions incrementally
-- Verify statistics accuracy
+- All UI screens work with database
+- Feature parity with file version
 - Performance benchmarks
 - Memory profiling
 
 **Expected Performance:**
 - 10-50x faster session queries
 - 50% memory reduction
-- 30% faster startup
-
-**Deliverables:**
-- `--migrate-sessions [date-range]` command
-- Session summaries in database
-- Daily view loads from database
-- Overview statistics from database
-
-### Phase 4: Event Data Migration (Weeks 10-13)
-
-**Goals:**
-- Migrate detailed event data
-- Implement compression
-- Maintain performance with large datasets
-
-**Tasks:**
-1. Create EventRepository class
-2. Implement binary file parser
-3. Add zlib compression
-4. On-demand event loading
-5. Update Daily tab to use database
-6. Optimize BLOB handling
-
-**Hybrid Approach:**
-- Summaries: Always in database
-- Events: Database with file fallback option
-- User choice for very large datasets
-
-**Testing:**
-- Migrate event data for test sessions
-- Verify waveform accuracy
-- Test compression ratios
-- Daily detail view validation
-
-**Deliverables:**
-- `--migrate-events` command
-- Event data in database
-- Daily detail view works from database
-- File-based option remains available
-
-### Phase 5: Channel Configuration (Weeks 14-15)
-
-**Goals:**
-- Migrate channel preferences
-- Enable per-profile customization
-
-**Tasks:**
-1. Create ChannelRepository class
-2. Parse channels.dat file
-3. Migrate to channel_definitions table
-4. Update channel preference UI
-5. Implement preference inheritance
-
-**Deliverables:**
-- Channel preferences in database
-- Per-profile customization works
-- Preference UI updated
-
-### Phase 6: Daily Aggregation Caching (Weeks 16-17)
-
-**Goals:**
-- Implement day-level caching
-- Dramatic improvement in overview loading
-
-**Tasks:**
-1. Create DayRepository class
-2. Calculate and store daily aggregates
-3. Update overview screen logic
-4. Implement incremental updates
-5. Add cache invalidation
-
-**Testing:**
-- Verify daily statistics
-- Test date range queries
-- Overview performance benchmarks
-
-**Expected Performance:**
 - Instant overview loading
-- 100x faster statistics queries
 
 **Deliverables:**
-- Days table populated
-- Overview screen uses database
-- Real-time performance improvement
+- All UI reads from database
+- Reporting functions use database
+- Performance meets/exceeds file-based version
+- ResMed users can fully use database version
 
-### Phase 7: Loader Integration (Weeks 18-21)
+### Phase 3: Convert All Loaders (Weeks 9-14)
 
 **Goals:**
-- Update loaders to write to database
+- Convert all 15+ loader plugins to write to database
+- Ensure consistency across all loaders
 - Maintain SD card backup functionality
-- Ensure all loaders work correctly
 
-**Tasks:**
-1. Update MachineLoader base class
-2. Modify all 15+ loader plugins
-3. Implement transaction management
-4. Preserve SD card backup process
-5. Add import error handling
+**Loader Conversion Priority:**
+1. **ResMed** (Week 9) - Already done in Phase 1
+2. **Philips Respironics (PRS1)** (Week 10) - 2nd most popular
+3. **Fisher & Paykel (Icon)** (Week 10) - Popular
+4. **BMC** (Week 11) - Growing user base
+5. **Prisma/Löwenstein** (Week 11) - European market
+6. **Intellipap** (Week 12) - Specialty
+7. **Weinmann** (Week 12) - European
+8. **SleepStyle** (Week 13) - New Zealand/Asia
+9. **Oximeters** (Week 13) - CMS50, MD300W1, Viatom
+10. **Position sensors, sleep trackers** (Week 14) - Somnopose, Dreem, Zeo
+11. **Other/Legacy loaders** (Week 14) - Resvent, vREM, MSeries
 
-**Import Flow:**
+**Loader Conversion Template:**
+```cpp
+// Each loader follows same pattern:
+class LoaderXYZ : public MachineLoader {
+    int Open(const QString & path) override {
+        // 1. Parse SD card files (UNCHANGED)
+        ParseSDCardData(path);
+        
+        // 2. Create Session object (UNCHANGED)
+        Session* session = CreateSession();
+        
+        // 3. Write to database (NEW)
+        SessionRepository repo(DatabaseManager::instance());
+        repo.create(session);
+        
+        // 4. Backup SD card to filesystem (UNCHANGED)
+        BackupSDCard(path);
+        
+        return SUCCESS;
+    }
+};
 ```
-SD Card (File) → Loader Plugin → Parse Data → Database Repository
-       ↓                                              ↓
-   (Backup to                                    (Structured
-    filesystem)                                   storage)
-```
 
-**Testing:**
-- Test each loader plugin
-- Verify data imports correctly
-- Test error handling
-- Rollback testing
+**Testing Strategy:**
+- Convert 2-3 loaders per week
+- Test each with real SD card data
+- Verify database correctness
+- Validate backup still works
+- Test with volunteer users
 
 **Deliverables:**
 - All loaders write to database
 - SD card backups still created
-- Robust error handling
-- Transaction safety
+- Transaction safety for all imports
+- Consistent error handling across loaders
 
-### Phase 8: Optimization & Polish (Weeks 22-24)
+### Phase 4: User Data Transition (Weeks 15-16)
 
 **Goals:**
-- Performance tuning
-- User experience improvements
-- Production readiness
+- Provide tools for users to transition
+- Create re-import utility
+- Documentation and user guide
 
 **Tasks:**
-1. Query optimization
-2. Index tuning
-3. Cache optimization
-4. Memory profiling
-5. Concurrent access testing
-6. Migration wizard UI
-7. Documentation
-8. User guide
+1. Create "Rebuild from Backup" utility
+2. Implement progress indicators
+3. Create user documentation
+4. Video tutorial
+5. FAQ and troubleshooting guide
 
-**Testing:**
-- Full application testing
-- Performance benchmarks
-- Load testing
-- User acceptance testing
+**Rebuild Utility:**
+```
+┌────────────────────────────────────────────┐
+│     Rebuild Data from SD Card Backups     │
+├────────────────────────────────────────────┤
+│                                            │
+│  Profile: John Doe                         │
+│                                            │
+│  This will rebuild your OSCAR database     │
+│  from your SD card backups.                │
+│                                            │
+│  Located SD card backups:                  │
+│  ☑ ResMed AirSense 10 (2,487 sessions)    │
+│  ☑ Contec CMS50 (412 sessions)            │
+│                                            │
+│  Estimated time: 12 minutes                │
+│  Database size: ~450 MB                    │
+│                                            │
+│  Note: Your existing data will remain      │
+│  as backup until you confirm success.      │
+│                                            │
+│  [Back]  [Start Rebuild]  [Cancel]         │
+└────────────────────────────────────────────┘
+```
+
+**User Transition Flow:**
+1. User installs new OSCAR version
+2. First launch detects file-based data
+3. Offers to rebuild from SD card backups
+4. User clicks "Rebuild"
+5. OSCAR re-imports all SD card backups
+6. Verifies database integrity
+7. User confirms data looks correct
+8. Old files moved to backup folder
 
 **Deliverables:**
-- Optimized database
-- Migration wizard
+- Rebuild utility
+- User documentation
+- Video tutorial
+- Transition wizard
+
+### Phase 5: Testing & Refinement (Weeks 17-20)
+
+**Goals:**
+- Extensive testing with volunteers
+- Bug fixes and refinements
+- Performance optimization
+- Platform-specific testing
+
+**Testing Areas:**
+1. **Functional Testing**
+   - All loaders work correctly
+   - All UI features work
+   - Data accuracy verified
+   - SD card backup still works
+
+2. **Performance Testing**
+   - Query speed benchmarks
+   - Memory usage profiling
+   - Startup time measurement
+   - Large dataset handling
+
+3. **Platform Testing**
+   - Windows 10/11
+   - macOS (Intel & Apple Silicon)
+   - Linux (Ubuntu, Fedora, etc.)
+   - Build from source
+
+4. **User Acceptance Testing**
+   - Real users with real data
+   - Volunteer beta testers
+   - Forum feedback
+   - Bug reports
+
+**Bug Triage:**
+- Critical: Blocks release
+- High: Must fix before release
+- Medium: Should fix if time permits
+- Low: Document as known issue
+
+**Deliverables:**
+- All critical/high bugs fixed
+- Performance validated
+- Platform compatibility verified
+- Beta test sign-off
+
+### Phase 6: Documentation & Release (Weeks 21-24)
+
+**Goals:**
+- Complete all documentation
+- Create installers for 22 platforms
+- Release preparation
+- Support preparation
+
+**Tasks:**
+1. **Developer Documentation**
+   - Database schema documentation
+   - API reference
+   - Loader conversion guide
+   - Contribution guidelines
+
+2. **User Documentation**
+   - User guide updates
+   - Migration instructions
+   - FAQ
+   - Troubleshooting guide
+   - Video tutorials
+
+3. **Release Preparation**
+   - Create installers for all platforms
+   - Test installation on each platform
+   - Update website
+   - Prepare release notes
+   - Forum announcements
+
+4. **Support Preparation**
+   - Forum moderator briefing
+   - Known issues list
+   - Quick start guide
+   - Support scripts
+
+**Release Strategy:**
+- Beta release to volunteers (Week 21)
+- Address critical feedback (Week 22)
+- Release candidate (Week 23)
+- Final release (Week 24)
+
+**Deliverables:**
 - Complete documentation
-- Production-ready system
+- Installers for 22 platforms
+- Release notes
+- Forum support ready
+- Production release
 
 ## Database Implementation Details
 
@@ -946,53 +1019,120 @@ oscar --use-files
 4. **Extension Guide** - Adding new features
 5. **Testing Guide** - Running and writing tests
 
-## Timeline & Milestones
+## Revised Timeline & Milestones
 
-### Milestone 1: Foundation (End of Week 2)
+### Milestone 1: Proof of Concept (End of Week 4)
 - Database infrastructure complete
-- Basic repositories implemented
-- Test framework established
+- ResMed loader converted and tested
+- End-to-end workflow validated
+- **Go/No-Go Decision Point**
 
-### Milestone 2: Metadata Migration (End of Week 5)
-- Profiles and machines in database
-- Command-line migration tools
-- Initial testing complete
+### Milestone 2: UI Conversion (End of Week 8)
+- All UI components use database
+- Feature parity achieved
+- Performance benchmarks met
+- ResMed users can use database version
 
-### Milestone 3: Session Migration (End of Week 9)
-- Session summaries in database
-- Performance improvements visible
-- User testing begins
+### Milestone 3: All Loaders Converted (End of Week 14)
+- All 15+ loaders write to database
+- SD card backups still functional
+- Consistent error handling
+- Ready for user testing
 
-### Milestone 4: Event Migration (End of Week 13)
-- Event data in database
-- Compression working
-- Full feature parity with file-based
+### Milestone 4: User Transition Tools (End of Week 16)
+- Rebuild utility complete
+- Documentation ready
+- User transition path clear
+- Ready for beta testing
 
-### Milestone 5: Complete Integration (End of Week 21)
-- All loaders use database
-- Migration wizard complete
-- Full testing complete
+### Milestone 5: Testing Complete (End of Week 20)
+- All critical bugs fixed
+- Performance validated
+- Platform compatibility verified
+- Beta testing successful
 
 ### Milestone 6: Production Release (End of Week 24)
 - Documentation complete
-- Beta testing successful
-- Ready for release
+- 22 platform installers ready
+- Forum support prepared
+- Production release
+
+## Critical Success Factors
+
+### 1. Single Installer Requirement
+- Database must be automatically initialized on first run
+- No manual configuration required
+- Works across all 22 platform variants
+- Users building from source must have seamless experience
+
+### 2. Rebuild from Backup Strategy
+- Simpler than migrating old data
+- Cleaner data (regenerated from source)
+- Leverages existing OSCAR capability
+- Users already have SD card backups
+- Proven, reliable process
+
+### 3. All-or-Nothing Loader Conversion
+- **Cannot release with partial loader support**
+- All loaders must be converted before release
+- Test with ResMed first (proof of concept)
+- Then systematically convert remaining loaders
+- No migration of old XML/binary files needed
+
+### 4. Volunteer Development Context
+- Keep implementation as simple as possible
+- Clear, well-documented code
+- Minimize breaking changes
+- Enable incremental development
+- Support community contributions
+
+### 5. Multi-Platform Support
+- Must work on Windows, macOS, Linux
+- Test on multiple platforms throughout development
+- SQLite provides excellent cross-platform support
+- Qt provides consistent database API
+
+## Implementation Priorities
+
+### Must Have (Release Blockers)
+1. All loaders converted to database
+2. All UI components read from database
+3. SD card backup still works
+4. Rebuild from backup utility
+5. Database auto-initialization
+6. Feature parity with file version
+7. Installers for 22 platforms
+
+### Should Have (High Priority)
+1. Performance improvements validated
+2. Comprehensive documentation
+3. User transition wizard
+4. Video tutorials
+5. Testing on all major platforms
+
+### Nice to Have (If Time Permits)
+1. Database optimization tools
+2. Advanced reporting features
+3. Cloud sync preparation
+4. Mobile app compatibility
 
 ## Conclusion
 
-This database migration strategy provides a comprehensive, incremental path to modernizing OSCAR's data storage while minimizing risk and maximizing benefits. Key points:
+This revised database migration strategy leverages OSCAR's existing rebuild capability to dramatically simplify the migration process. Key points:
 
-1. **Preserve Loader Independence**: SD card files remain external, loaders continue to parse them
-2. **Incremental Approach**: Users can migrate at their own pace
-3. **Safety First**: Multiple backup and rollback options
-4. **Significant Benefits**: 10-100x performance improvements expected
-5. **Production Ready**: 6-month timeline to fully tested release
+1. **Loader-First Approach**: Convert loaders to write to database, not migrate old data
+2. **Rebuild from Backup**: Users re-import from SD card backups (existing capability)
+3. **All Loaders Required**: All 15+ loaders must be converted before release
+4. **Single Installer**: Must work seamlessly without manual configuration
+5. **Volunteer Context**: Keep it simple, well-documented, community-friendly
+6. **Production Ready**: 6-month timeline with clear milestones
 
-The recommended approach is to start with Phase 1-2 (profile and machine metadata) as these provide immediate value with minimal risk, then proceed incrementally based on user feedback and testing results.
+**Recommended Next Step:** Start Phase 1 with ResMed loader conversion as proof of concept. Success validates the approach; failure allows us to pivot before significant investment.
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 2.0  
 **Created**: December 21, 2025  
+**Updated**: December 22, 2025  
 **Author**: OSCAR Development Team  
-**Status**: Proposal for Review
+**Status**: Revised Strategy Based on Rebuild Capability
