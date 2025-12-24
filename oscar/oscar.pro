@@ -35,7 +35,7 @@ if (equals(QT_MAJOR_VERSION,5)) {
 # get rid of the help browser, at least for now
 DEFINES += helpless
 
-QT += core gui network xml printsupport serialport widgets help
+QT += core gui network xml printsupport serialport sql widgets help
 contains(DEFINES, helpless) {
     QT -= help
 }
@@ -403,7 +403,12 @@ SOURCES += \
     SleepLib/serialoximeter.cpp \
     SleepLib/session.cpp \
     SleepLib/thirdparty/miniz.c \
-    SleepLib/xmlreplay.cpp
+    SleepLib/xmlreplay.cpp \
+    database/database_manager.cpp \
+    database/database_schema.cpp \
+    database/profile_repository.cpp \
+    database/machine_repository.cpp \
+    database/migration_manager.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -523,7 +528,12 @@ HEADERS  += \
     welcome.h \
     mytextbrowser.h \
     staticQMessageBox.h \
-    git_info.h
+    git_info.h \
+    database/database_manager.h \
+    database/database_schema.h \
+    database/profile_repository.h \
+    database/machine_repository.h \
+    database/migration_manager.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }

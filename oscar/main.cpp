@@ -59,6 +59,11 @@
 #include "SleepLib/loader_plugins/vrem_loader.h"
 #include "SleepLib/loader_plugins/bmc_loader.h"
 
+#include "database/database_manager.h"
+#include "database/profile_repository.h"
+#include "database/machine_repository.h"
+#include "database/migration_manager.h"
+
 MainWindow *mainwin = nullptr;
 extern bool openOk;
 
@@ -652,7 +657,6 @@ int main(int argc, char *argv[]) {
                              QObject::tr("Unable to write to debug log. You can still use the debug pane (Help/Troubleshooting/Show Debug Pane) but the debug log will not be written to disk."));
     }
 
-
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Initialize preferences system (Don't use p_pref before this point!)
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -675,6 +679,112 @@ int main(int argc, char *argv[]) {
     p_pref->Erase(STR_AppName);
     p_pref->Erase(STR_GEN_SkipLogin);
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Initialize database
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    QString dbPath = GetAppData() + "/oscar.db";
+    if (DatabaseManager::instance().initialize(dbPath)) {
+        qDebug() << "Database initialized successfully!";
+        qDebug() << "Database file:" << dbPath;
+    } else {
+        qWarning() << "Database initialization failed!";
+    }
+
+        // Migrate ALL profiles at once
+    MigrationManager migrator;
+    QString profilesPath = GetAppData() + "/Profiles";
+
+    int count = migrator.migrateAllProfiles(profilesPath);
+    qDebug() << "Successfully migrated" << count << "profiles";
+
+    // Verify in database
+    ProfileRepository profileRepo;
+    QList<ProfileData> profiles = profileRepo.findAll();
+    qDebug() << "Database has" << profiles.size() << "profiles";
+
+    MachineRepository machineRepo;
+    for (const ProfileData& p : profiles) {
+        int machines = machineRepo.count(p.id);
+        qDebug() << "  Profile" << p.username << "has" << machines << "machines";
+    }
+
+/****
+    // After DatabaseManager::instance().initialize(...) succeeds:
+
+    ProfileRepository repo;
+
+    // Test 1: Create a profile
+    ProfileData data;
+    data.username = "TestUser";
+    data.dataFolder = GetAppData() + "/Profiles/TestUser";
+    qint64 id = repo.create(data);
+    qDebug() << "Created profile with ID:" << id;
+
+    // Test 2: Find by username
+    ProfileData found = repo.findByUsername("TestUser");
+    if (found.id > 0) {
+        qDebug() << "Found profile:" << found.username << "at" << found.dataFolder;
+    }
+
+    // Test 3: Count profiles
+    int count = repo.count();
+    qDebug() << "Total profiles in database:" << count;
+
+    // Test 4: Get all profiles
+    QList<ProfileData> all = repo.findAll();
+    for (const ProfileData& p : all) {
+        qDebug() << "Profile:" << p.id << p.username;
+    }
+
+    // After database and profile initialization:
+    MachineRepository machineRepo;
+
+    // Create a test machine
+    MachineData machine;
+    machine.profileId = 1;  // TestUser's ID
+    machine.machineId = 0x12345678;
+    machine.loaderName = "ResMed";
+    machine.machineType = 0;  // MT_CPAP
+    machine.brand = "ResMed";
+    machine.model = "AirSense 10 AutoSet";
+    machine.series = "AirSense 10";
+    machine.serialNumber = "12345678";
+    machine.modelNumber = "37212";
+    machine.lastImported = QDateTime::currentDateTime().toString(Qt::ISODate);
+    machine.dataVersion = 2;
+
+    qint64 machineId = machineRepo.create(machine);
+    qDebug() << "Created machine with ID:" << machineId;
+
+    // Find machines for profile
+    QList<MachineData> machines = machineRepo.findByProfile(1);
+    qDebug() << "Profile has" << machines.size() << "machines";
+
+    // Point to your actual OSCAR profile
+    QString profilePath = GetAppData()+"/Profiles/Blue Dragon";
+
+    MigrationManager migrator;
+
+    if (migrator.isMigrationNeeded(profilePath)) {
+        qDebug() << "Migrating profile...";
+
+        if (migrator.migrateProfile(profilePath)) {
+            qDebug() << "✅ Migration successful!";
+
+            // Verify results
+            MachineRepository repo;
+            QList<MachineData> machines = repo.findAll();
+            qDebug() << "Database has" << machines.size() << "machines";
+
+            for (const MachineData& m : machines) {
+                qDebug() << " -" << m.brand << m.model << "S/N:" << m.serialNumber;
+            }
+        } else {
+            qWarning() << "❌ Migration failed:" << migrator.lastError();
+        }
+    }
+****/
 #ifndef NO_CHECKUPDATES
     ////////////////////////////////////////////////////////////////////////////////////////////
     // Check when last checked for updates..
