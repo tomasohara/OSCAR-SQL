@@ -24,8 +24,8 @@
  * the OSCAR database schema. It handles schema creation, versioning,
  * and future upgrades.
  *
- * Current schema version: 1
- * Tables: profiles, machines, schema_version
+ * Current schema version: 2
+ * Tables: profiles, machines, user_info, doctor_info, profile_preferences, schema_version
  */
 class DatabaseSchema
 {
@@ -36,7 +36,7 @@ public:
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
      */
-    static const int CURRENT_SCHEMA_VERSION = 1;
+    static const int CURRENT_SCHEMA_VERSION = 2;
 
     /*!
      * \brief Create the complete database schema
@@ -71,6 +71,9 @@ private:
     static bool createSchemaVersionTable(QSqlDatabase& db);
     static bool createProfilesTable(QSqlDatabase& db);
     static bool createMachinesTable(QSqlDatabase& db);
+    static bool createUserInfoTable(QSqlDatabase& db);
+    static bool createDoctorInfoTable(QSqlDatabase& db);
+    static bool createProfilePreferencesTable(QSqlDatabase& db);
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);
 };

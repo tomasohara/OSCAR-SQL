@@ -45,6 +45,21 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
+    if (!createUserInfoTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create user_info table";
+        return false;
+    }
+
+    if (!createDoctorInfoTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create doctor_info table";
+        return false;
+    }
+
+    if (!createProfilePreferencesTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create profile_preferences table";
+        return false;
+    }
+
     // Create indexes
     if (!createIndexes(db)) {
         qCritical() << "DatabaseSchema: Failed to create indexes";
@@ -244,6 +259,17 @@ bool DatabaseSchema::createIndexes(QSqlDatabase& db)
     // Index for machine lookups by loader name
     indexes << "CREATE INDEX IF NOT EXISTS idx_machines_loader ON machines(loader_name)";
 
+    // Index for user_info lookups by profile
+    indexes << "CREATE INDEX IF NOT EXISTS idx_user_info_profile ON user_info(profile_id)";
+
+    // Index for doctor_info lookups by profile
+    indexes << "CREATE INDEX IF NOT EXISTS idx_doctor_info_profile ON doctor_info(profile_id)";
+
+    // Index for preference lookups by profile and category
+    indexes << "CREATE INDEX IF NOT EXISTS idx_preferences_profile ON profile_preferences(profile_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_preferences_category ON profile_preferences(profile_id, category)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_preferences_key ON profile_preferences(profile_id, category, key)";
+
     // Execute each index creation
     for (const QString& sql : indexes) {
         if (!query.exec(sql)) {
@@ -283,5 +309,128 @@ bool DatabaseSchema::setSchemaVersion(QSqlDatabase& db, int version)
     }
 
     qDebug() << "DatabaseSchema: Schema version set to" << version;
+    return true;
+}
+
+/*
+ * Create the user_info table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The user_info table stores detailed user personal information.
+ */
+bool DatabaseSchema::createUserInfoTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS user_info ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    profile_id INTEGER NOT NULL UNIQUE,"
+        "    dob TEXT,"
+        "    first_name TEXT,"
+        "    last_name TEXT,"
+        "    address TEXT,"
+        "    phone TEXT,"
+        "    email TEXT,"
+        "    country TEXT,"
+        "    height REAL,"
+        "    gender INTEGER,"
+        "    timezone TEXT,"
+        "    dst_enabled INTEGER,"
+        "    password_hash TEXT,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create user_info table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: user_info table created";
+    return true;
+}
+
+/*
+ * Create the doctor_info table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The doctor_info table stores doctor/medical provider information.
+ */
+bool DatabaseSchema::createDoctorInfoTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS doctor_info ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    profile_id INTEGER NOT NULL UNIQUE,"
+        "    name TEXT,"
+        "    phone TEXT,"
+        "    email TEXT,"
+        "    practice_name TEXT,"
+        "    address TEXT,"
+        "    patient_id TEXT,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create doctor_info table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: doctor_info table created";
+    return true;
+}
+
+/*
+ * Create the profile_preferences table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The profile_preferences table stores all profile settings as key-value pairs.
+ * This includes CPAP settings, oximetry settings, session settings, etc.
+ */
+bool DatabaseSchema::createProfilePreferencesTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS profile_preferences ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    profile_id INTEGER NOT NULL,"
+        "    category TEXT NOT NULL,"
+        "    key TEXT NOT NULL,"
+        "    value TEXT,"
+        "    data_type TEXT,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,"
+        "    UNIQUE(profile_id, category, key)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create profile_preferences table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: profile_preferences table created";
     return true;
 }

@@ -1,0 +1,508 @@
+/* Preferences Repository Implementation
+ *
+ * Copyright (c) 2026 The OSCAR Team
+ *
+ * This file implements the PreferencesRepository class for database
+ * access to profile preferences (key-value storage).
+ *
+ * This file is subject to the terms and conditions of the GNU General Public
+ * License. See the file COPYING in the main directory of the source code
+ * for more details. */
+
+#include "preferences_repository.h"
+#include "database_manager.h"
+#include "../SleepLib/profiles.h"
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QVariant>
+#include <QDebug>
+#include <QDate>
+#include <QTime>
+
+PreferencesRepository::PreferencesRepository()
+{
+}
+
+PreferencesRepository::~PreferencesRepository()
+{
+}
+
+qint64 PreferencesRepository::create(const PreferenceData& data)
+{
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "PreferencesRepository::create() - Database not open";
+        return -1;
+    }
+
+    QSqlQuery query(db);
+    query.prepare(
+        "INSERT INTO profile_preferences "
+        "(profile_id, category, key, value, data_type) "
+        "VALUES (?, ?, ?, ?, ?)"
+    );
+
+    query.addBindValue(data.profileId);
+    query.addBindValue(data.category);
+    query.addBindValue(data.key);
+    query.addBindValue(data.value);
+    query.addBindValue(data.dataType);
+
+    if (!query.exec()) {
+        qWarning() << "PreferencesRepository::create() failed:" << query.lastError().text();
+        return -1;
+    }
+
+    return query.lastInsertId().toLongLong();
+}
+
+bool PreferencesRepository::update(const PreferenceData& data)
+{
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "PreferencesRepository::update() - Database not open";
+        return false;
+    }
+
+    QSqlQuery query(db);
+    query.prepare(
+        "UPDATE profile_preferences SET "
+        "value = ?, data_type = ?, updated_at = CURRENT_TIMESTAMP "
+        "WHERE id = ?"
+    );
+
+    query.addBindValue(data.value);
+    query.addBindValue(data.dataType);
+    query.addBindValue(data.id);
+
+    if (!query.exec()) {
+        qWarning() << "PreferencesRepository::update() failed:" << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+PreferenceData PreferencesRepository::find(qint64 profileId, const QString& category, const QString& key)
+{
+    PreferenceData data;
+    
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "PreferencesRepository::find() - Database not open";
+        return data;
+    }
+
+    QSqlQuery query(db);
+    query.prepare(
+        "SELECT id, profile_id, category, key, value, data_type "
+        "FROM profile_preferences WHERE profile_id = ? AND category = ? AND key = ?"
+    );
+    query.addBindValue(profileId);
+    query.addBindValue(category);
+    query.addBindValue(key);
+
+    if (!query.exec()) {
+        qWarning() << "PreferencesRepository::find() failed:" << query.lastError().text();
+        return data;
+    }
+
+    if (query.next()) {
+        data.id = query.value(0).toLongLong();
+        data.profileId = query.value(1).toLongLong();
+        data.category = query.value(2).toString();
+        data.key = query.value(3).toString();
+        data.value = query.value(4).toString();
+        data.dataType = query.value(5).toString();
+    }
+
+    return data;
+}
+
+QList<PreferenceData> PreferencesRepository::findByProfile(qint64 profileId)
+{
+    QList<PreferenceData> result;
+    
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "PreferencesRepository::findByProfile() - Database not open";
+        return result;
+    }
+
+    QSqlQuery query(db);
+    query.prepare(
+        "SELECT id, profile_id, category, key, value, data_type "
+        "FROM profile_preferences WHERE profile_id = ?"
+    );
+    query.addBindValue(profileId);
+
+    if (!query.exec()) {
+        qWarning() << "PreferencesRepository::findByProfile() failed:" << query.lastError().text();
+        return result;
+    }
+
+    while (query.next()) {
+        PreferenceData data;
+        data.id = query.value(0).toLongLong();
+        data.profileId = query.value(1).toLongLong();
+        data.category = query.value(2).toString();
+        data.key = query.value(3).toString();
+        data.value = query.value(4).toString();
+        data.dataType = query.value(5).toString();
+        result.append(data);
+    }
+
+    return result;
+}
+
+QList<PreferenceData> PreferencesRepository::findByCategory(qint64 profileId, const QString& category)
+{
+    QList<PreferenceData> result;
+    
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "PreferencesRepository::findByCategory() - Database not open";
+        return result;
+    }
+
+    QSqlQuery query(db);
+    query.prepare(
+        "SELECT id, profile_id, category, key, value, data_type "
+        "FROM profile_preferences WHERE profile_id = ? AND category = ?"
+    );
+    query.addBindValue(profileId);
+    query.addBindValue(category);
+
+    if (!query.exec()) {
+        qWarning() << "PreferencesRepository::findByCategory() failed:" << query.lastError().text();
+        return result;
+    }
+
+    while (query.next()) {
+        PreferenceData data;
+        data.id = query.value(0).toLongLong();
+        data.profileId = query.value(1).toLongLong();
+        data.category = query.value(2).toString();
+        data.key = query.value(3).toString();
+        data.value = query.value(4).toString();
+        data.dataType = query.value(5).toString();
+        result.append(data);
+    }
+
+    return result;
+}
+
+bool PreferencesRepository::remove(qint64 profileId)
+{
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "PreferencesRepository::remove() - Database not open";
+        return false;
+    }
+
+    QSqlQuery query(db);
+    query.prepare("DELETE FROM profile_preferences WHERE profile_id = ?");
+    query.addBindValue(profileId);
+
+    if (!query.exec()) {
+        qWarning() << "PreferencesRepository::remove() failed:" << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+bool PreferencesRepository::removeCategory(qint64 profileId, const QString& category)
+{
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "PreferencesRepository::removeCategory() - Database not open";
+        return false;
+    }
+
+    QSqlQuery query(db);
+    query.prepare("DELETE FROM profile_preferences WHERE profile_id = ? AND category = ?");
+    query.addBindValue(profileId);
+    query.addBindValue(category);
+
+    if (!query.exec()) {
+        qWarning() << "PreferencesRepository::removeCategory() failed:" << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+bool PreferencesRepository::savePreference(qint64 profileId, const QString& category, 
+                                          const QString& key, const QVariant& value)
+{
+    PreferenceData data;
+    data.profileId = profileId;
+    data.category = category;
+    data.key = key;
+    data.value = value.toString();
+    data.dataType = dataTypeFromVariant(value);
+
+    // Check if preference exists
+    PreferenceData existing = find(profileId, category, key);
+    
+    if (existing.id > 0) {
+        // Update existing
+        data.id = existing.id;
+        return update(data);
+    } else {
+        // Create new
+        return create(data) > 0;
+    }
+}
+
+bool PreferencesRepository::saveAllPreferences(qint64 profileId,
+                                               CPAPSettings* cpap,
+                                               OxiSettings* oxi,
+                                               SessionSettings* session,
+                                               AppearanceSettings* appearance,
+                                               UserSettings* general)
+{
+    bool success = true;
+    
+    if (cpap) {
+        success &= saveCPAPSettings(profileId, cpap);
+    }
+    
+    if (oxi) {
+        success &= saveOxiSettings(profileId, oxi);
+    }
+    
+    if (session) {
+        success &= saveSessionSettings(profileId, session);
+    }
+    
+    if (appearance) {
+        success &= saveAppearanceSettings(profileId, appearance);
+    }
+    
+    if (general) {
+        success &= saveUserSettings(profileId, general);
+    }
+    
+    return success;
+}
+
+bool PreferencesRepository::loadAllPreferences(qint64 profileId,
+                                               CPAPSettings* cpap,
+                                               OxiSettings* oxi,
+                                               SessionSettings* session,
+                                               AppearanceSettings* appearance,
+                                               UserSettings* general)
+{
+    bool success = true;
+    
+    if (cpap) {
+        success &= loadCPAPSettings(profileId, cpap);
+    }
+    
+    if (oxi) {
+        success &= loadOxiSettings(profileId, oxi);
+    }
+    
+    if (session) {
+        success &= loadSessionSettings(profileId, session);
+    }
+    
+    if (appearance) {
+        success &= loadAppearanceSettings(profileId, appearance);
+    }
+    
+    if (general) {
+        success &= loadUserSettings(profileId, general);
+    }
+    
+    return success;
+}
+
+// Private helper methods
+
+QString PreferencesRepository::dataTypeFromVariant(const QVariant& value)
+{
+    switch (value.type()) {
+        case QVariant::Bool:
+            return "bool";
+        case QVariant::Int:
+        case QVariant::LongLong:
+            return "int";
+        case QVariant::Double:
+            return "float";
+        case QVariant::Date:
+            return "date";
+        case QVariant::Time:
+            return "time";
+        case QVariant::DateTime:
+            return "datetime";
+        default:
+            return "string";
+    }
+}
+
+QVariant PreferencesRepository::variantFromString(const QString& value, const QString& dataType)
+{
+    if (dataType == "bool") {
+        return QVariant(value.toLower() == "true" || value == "1");
+    } else if (dataType == "int") {
+        return QVariant(value.toLongLong());
+    } else if (dataType == "float") {
+        return QVariant(value.toDouble());
+    } else if (dataType == "date") {
+        return QVariant(QDate::fromString(value, Qt::ISODate));
+    } else if (dataType == "time") {
+        return QVariant(QTime::fromString(value, Qt::ISODate));
+    } else if (dataType == "datetime") {
+        return QVariant(QDateTime::fromString(value, Qt::ISODate));
+    } else {
+        return QVariant(value);
+    }
+}
+
+bool PreferencesRepository::saveCPAPSettings(qint64 profileId, CPAPSettings* cpap)
+{
+    if (!cpap) return false;
+    
+    // Iterate over all preferences using QHash iterators
+    for (auto it = cpap->m_pref->begin(); it != cpap->m_pref->end(); ++it) {
+        if (!savePreference(profileId, "cpap", it.key(), it.value())) {
+            qWarning() << "Failed to save CPAP preference:" << it.key();
+        }
+    }
+    
+    return true;
+}
+
+bool PreferencesRepository::saveOxiSettings(qint64 profileId, OxiSettings* oxi)
+{
+    if (!oxi) return false;
+    
+    // Iterate over all preferences using QHash iterators
+    for (auto it = oxi->m_pref->begin(); it != oxi->m_pref->end(); ++it) {
+        if (!savePreference(profileId, "oxi", it.key(), it.value())) {
+            qWarning() << "Failed to save Oxi preference:" << it.key();
+        }
+    }
+    
+    return true;
+}
+
+bool PreferencesRepository::saveSessionSettings(qint64 profileId, SessionSettings* session)
+{
+    if (!session) return false;
+    
+    // Iterate over all preferences using QHash iterators
+    for (auto it = session->m_pref->begin(); it != session->m_pref->end(); ++it) {
+        if (!savePreference(profileId, "session", it.key(), it.value())) {
+            qWarning() << "Failed to save Session preference:" << it.key();
+        }
+    }
+    
+    return true;
+}
+
+bool PreferencesRepository::saveAppearanceSettings(qint64 profileId, AppearanceSettings* appearance)
+{
+    if (!appearance) return false;
+    
+    // Iterate over all preferences using QHash iterators
+    for (auto it = appearance->m_pref->begin(); it != appearance->m_pref->end(); ++it) {
+        if (!savePreference(profileId, "appearance", it.key(), it.value())) {
+            qWarning() << "Failed to save Appearance preference:" << it.key();
+        }
+    }
+    
+    return true;
+}
+
+bool PreferencesRepository::saveUserSettings(qint64 profileId, UserSettings* general)
+{
+    if (!general) return false;
+    
+    // Iterate over all preferences using QHash iterators
+    for (auto it = general->m_pref->begin(); it != general->m_pref->end(); ++it) {
+        if (!savePreference(profileId, "general", it.key(), it.value())) {
+            qWarning() << "Failed to save General preference:" << it.key();
+        }
+    }
+    
+    return true;
+}
+
+bool PreferencesRepository::loadCPAPSettings(qint64 profileId, CPAPSettings* cpap)
+{
+    if (!cpap) return false;
+    
+    QList<PreferenceData> prefs = findByCategory(profileId, "cpap");
+    
+    for (const PreferenceData& pref : prefs) {
+        QVariant value = variantFromString(pref.value, pref.dataType);
+        cpap->setPref(pref.key, value);
+    }
+    
+    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "CPAP preferences";
+    return true;
+}
+
+bool PreferencesRepository::loadOxiSettings(qint64 profileId, OxiSettings* oxi)
+{
+    if (!oxi) return false;
+    
+    QList<PreferenceData> prefs = findByCategory(profileId, "oxi");
+    
+    for (const PreferenceData& pref : prefs) {
+        QVariant value = variantFromString(pref.value, pref.dataType);
+        oxi->setPref(pref.key, value);
+    }
+    
+    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "Oxi preferences";
+    return true;
+}
+
+bool PreferencesRepository::loadSessionSettings(qint64 profileId, SessionSettings* session)
+{
+    if (!session) return false;
+    
+    QList<PreferenceData> prefs = findByCategory(profileId, "session");
+    
+    for (const PreferenceData& pref : prefs) {
+        QVariant value = variantFromString(pref.value, pref.dataType);
+        session->setPref(pref.key, value);
+    }
+    
+    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "Session preferences";
+    return true;
+}
+
+bool PreferencesRepository::loadAppearanceSettings(qint64 profileId, AppearanceSettings* appearance)
+{
+    if (!appearance) return false;
+    
+    QList<PreferenceData> prefs = findByCategory(profileId, "appearance");
+    
+    for (const PreferenceData& pref : prefs) {
+        QVariant value = variantFromString(pref.value, pref.dataType);
+        appearance->setPref(pref.key, value);
+    }
+    
+    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "Appearance preferences";
+    return true;
+}
+
+bool PreferencesRepository::loadUserSettings(qint64 profileId, UserSettings* general)
+{
+    if (!general) return false;
+    
+    QList<PreferenceData> prefs = findByCategory(profileId, "general");
+    
+    for (const PreferenceData& pref : prefs) {
+        QVariant value = variantFromString(pref.value, pref.dataType);
+        general->setPref(pref.key, value);
+    }
+    
+    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "General preferences";
+    return true;
+}

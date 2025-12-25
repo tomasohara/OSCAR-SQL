@@ -408,7 +408,10 @@ SOURCES += \
     database/database_schema.cpp \
     database/profile_repository.cpp \
     database/machine_repository.cpp \
-    database/migration_manager.cpp
+    database/migration_manager.cpp \
+    database/user_info_repository.cpp \
+    database/doctor_info_repository.cpp \
+    database/preferences_repository.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -533,7 +536,10 @@ HEADERS  += \
     database/database_schema.h \
     database/profile_repository.h \
     database/machine_repository.h \
-    database/migration_manager.h
+    database/migration_manager.h \
+    database/user_info_repository.h \
+    database/doctor_info_repository.h \
+    database/preferences_repository.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }

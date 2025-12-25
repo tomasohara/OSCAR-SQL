@@ -687,17 +687,20 @@ int main(int argc, char *argv[]) {
     if (DatabaseManager::instance().initialize(dbPath)) {
         qDebug() << "Database initialized successfully!";
         qDebug() << "Database file:" << dbPath;
-    } else {
-        qWarning() << "Database initialization failed!";
-    }
 
         // Migrate ALL profiles at once
-    MigrationManager migrator;
-    QString profilesPath = GetAppData() + "/Profiles";
+        MigrationManager migrator;
+        QString profilesPath = GetAppData() + "/Profiles";
 
-    int count = migrator.migrateAllProfiles(profilesPath);
-    qDebug() << "Successfully migrated" << count << "profiles";
+        if (QDir(profilesPath).exists()) {
+            int count = migrator.migrateAllProfiles(profilesPath);
+            qDebug() << "Auto-migrated" << count << "profiles to database";
+        } else {
+            qWarning() << "Database initialization failed!";
+        }
+    }
 
+/****
     // Verify in database
     ProfileRepository profileRepo;
     QList<ProfileData> profiles = profileRepo.findAll();
@@ -709,7 +712,6 @@ int main(int argc, char *argv[]) {
         qDebug() << "  Profile" << p.username << "has" << machines << "machines";
     }
 
-/****
     // After DatabaseManager::instance().initialize(...) succeeds:
 
     ProfileRepository repo;

@@ -12,6 +12,9 @@
 #include "migration_manager.h"
 #include "profile_repository.h"
 #include "machine_repository.h"
+#include "user_info_repository.h"
+#include "doctor_info_repository.h"
+#include "preferences_repository.h"
 #include "../SleepLib/profiles.h"
 #include <QFile>
 #include <QFileInfo>
@@ -139,6 +142,24 @@ bool MigrationManager::migrateProfile(const QString& profilePath)
         return false;
     }
 
+    emit progressChanged(80, 100, "Loading profile for extended data...");
+
+    // Load profile to migrate extended data (user_info, doctor_info, preferences)
+    Profile* tempProfile = new Profile(profilePath, true);
+    if (tempProfile && tempProfile->isOpen()) {
+        emit progressChanged(90, 100, "Migrating extended profile data...");
+        
+        // Migrate extended data
+        bool extendedSuccess = migrateExtendedData(tempProfile, profileId);
+        if (!extendedSuccess) {
+            qWarning() << "MigrationManager: Extended data migration had errors (continuing)";
+        }
+    } else {
+        qWarning() << "MigrationManager: Could not load profile for extended data migration";
+    }
+    
+    delete tempProfile;
+
     emit progressChanged(100, 100, "Migration complete!");
     emit migrationComplete(true);
 
@@ -164,7 +185,34 @@ bool MigrationManager::migrateProfile(Profile* profile)
         return false;
     }
 
-    return migrateProfile(profile->path());
+    // First migrate basic profile and machines
+    bool basicSuccess = migrateProfile(profile->path());
+    
+    if (!basicSuccess) {
+        return false;
+    }
+    
+    // Get profile ID for extended data migration
+    QString username = profile->user->userName();
+    ProfileData profileData = m_profileRepo->findByUsername(username);
+    
+    if (profileData.id == 0) {
+        m_lastError = "Profile not found in database after migration";
+        qWarning() << "MigrationManager:" << m_lastError;
+        return false;
+    }
+    
+    // Migrate extended data (user info, doctor info, preferences)
+    emit progressChanged(90, 100, "Migrating extended profile data...");
+    bool extendedSuccess = migrateExtendedData(profile, profileData.id);
+    
+    if (!extendedSuccess) {
+        qWarning() << "MigrationManager: Extended data migration failed:" << m_lastError;
+        // Don't fail the entire migration if extended data fails
+    }
+    
+    emit progressChanged(100, 100, "Migration complete!");
+    return true;
 }
 
 /*
@@ -420,4 +468,71 @@ bool MigrationManager::parseMachinesXml(const QString& machinesXmlPath, qint64 p
 
     qDebug() << "MigrationManager: Successfully migrated" << machineCount << "machines";
     return (machineCount > 0 || errorCount == 0);
+}
+
+/*
+ * Migrate extended profile data
+ *
+ * Parameters:
+ *   profile - Pointer to Profile object with loaded data
+ *   profileId - Database ID of the profile
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * This migrates user info, doctor info, and all preferences from
+ * the Profile object into the extended database tables.
+ */
+bool MigrationManager::migrateExtendedData(Profile* profile, qint64 profileId)
+{
+    if (!profile) {
+        m_lastError = "Invalid profile pointer for extended data migration";
+        return false;
+    }
+    
+    bool success = true;
+    
+    // Migrate user info
+    if (profile->user) {
+        UserInfoRepository userRepo;
+        if (!userRepo.saveFromUserInfo(profileId, profile->user)) {
+            qWarning() << "MigrationManager: Failed to migrate user info";
+            m_lastError = "Failed to migrate user info";
+            success = false;
+        } else {
+            qDebug() << "MigrationManager: Migrated user info";
+        }
+    }
+    
+    // Migrate doctor info
+    if (profile->doctor) {
+        DoctorInfoRepository doctorRepo;
+        if (!doctorRepo.saveFromDoctorInfo(profileId, profile->doctor)) {
+            qWarning() << "MigrationManager: Failed to migrate doctor info";
+            m_lastError = "Failed to migrate doctor info";
+            success = false;
+        } else {
+            qDebug() << "MigrationManager: Migrated doctor info";
+        }
+    }
+    
+    // Migrate all preferences
+    PreferencesRepository prefRepo;
+    if (!prefRepo.saveAllPreferences(profileId, 
+                                     profile->cpap,
+                                     profile->oxi,
+                                     profile->session,
+                                     profile->appearance,
+                                     profile->general)) {
+        qWarning() << "MigrationManager: Failed to migrate preferences";
+        m_lastError = "Failed to migrate preferences";
+        success = false;
+    } else {
+        qDebug() << "MigrationManager: Migrated all preferences";
+    }
+    
+    if (success) {
+        qDebug() << "MigrationManager: Successfully migrated extended data";
+    }
+    
+    return success;
 }

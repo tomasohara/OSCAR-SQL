@@ -48,9 +48,29 @@ class Profile : public Preferences
 
     virtual ~Profile();
 
-    //! \brief Parse machines.xml
+    //! \brief Parse machines.xml (tries database first, falls back to XML)
     bool OpenMachines();
     bool StoreMachines();
+
+  private:
+    //! \brief Load machines from database
+    bool loadMachinesFromDatabase();
+    
+    //! \brief Load machines from XML file (original implementation)
+    bool loadMachinesFromXML();
+
+    //! \brief Store machines from XML file (original implementation)
+    bool storeMachinesToXML();
+
+  public:
+    //! \brief Store machines to database
+    bool storeMachinesToDatabase();
+
+    //! \brief Save extended data (user_info, doctor_info, preferences) to database
+    bool saveExtendedDataToDatabase();
+
+    //! \brief Load extended data (user_info, doctor_info, preferences) from database
+    bool loadExtendedDataFromDatabase();
 
     qint64 diskSpaceSummaries();
     qint64 diskSpaceEvents();
@@ -837,4 +857,3 @@ class UserSettings : public PrefSettings
 
 
 #endif // PROFILES_H
-

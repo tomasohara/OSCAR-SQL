@@ -129,6 +129,17 @@ private:
      */
     qint64 getOrCreateProfile(const QString& profilePath, const QString& username);
 
+    /*!
+     * \brief Migrate extended profile data (user info, doctor info, preferences)
+     * \param profile Pointer to Profile object with loaded data
+     * \param profileId Database ID of the profile
+     * \return true if successful, false otherwise
+     *
+     * This migrates user info, doctor info, and all preferences from
+     * the Profile object into the extended database tables.
+     */
+    bool migrateExtendedData(Profile* profile, qint64 profileId);
+
     QString m_lastError;        ///< Last error message
     ProfileRepository* m_profileRepo;   ///< Profile repository
     MachineRepository* m_machineRepo;   ///< Machine repository

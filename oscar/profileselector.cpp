@@ -24,6 +24,9 @@
 #include "newprofile.h"
 //#include "version.h"
 
+// Database includes
+#include "database/profile_repository.h"
+
 extern MainWindow * mainwin;
 
 MySortFilterProxyModel2::MySortFilterProxyModel2(QObject *parent)
@@ -444,6 +447,17 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
             mainwin->CloseProfile();
         }
         Profiles::profiles.remove(name);
+
+        // Delete from database (CASCADE will delete machines, user_info, doctor_info, preferences)
+        ProfileRepository profileRepo;
+        ProfileData profileData = profileRepo.findByUsername(name);
+        if (profileData.id > 0) {
+            if (profileRepo.remove(profileData.id)) {
+                qDebug() << "Deleted profile from database:" << name << "id:" << profileData.id;
+            } else {
+                qWarning() << "Failed to delete profile from database:" << name;
+            }
+        }
 
         if (!path.isEmpty()) {
             if (!removeDir(path)) {
