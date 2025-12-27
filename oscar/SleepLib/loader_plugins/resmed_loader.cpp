@@ -819,6 +819,9 @@ void edfDebugInit();
     qDebug() << "About to call finishAddingSessions()";
     finishAddingSessions();
     qDebug() << "Finshed finishedAddingSessions() with" << sessionCount << "new sessions";
+    
+    // Save machine and all sessions to database
+    mach->Save();
 
 #ifdef DEBUG_EFFICIENCY
     {
@@ -1377,7 +1380,7 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
             }
             if ( ! validday) {
                 // There are no mask on/off events, so this STR day is useless.
-                qDebug() << "Skipping" << date.toString() << "No mask events";
+                qDebug() << "Skipping" << date.toString() << "o mask events";
                 continue;
             }
 
@@ -3994,5 +3997,3 @@ void setupResMedTranslationMap()
 //    26104, 26105, 26125, 26126 S8 Auto 25
 //    26102, 26103, 26106, 26107, 26108, 26109, 26123, 26127 VPAP IV
 //    26112, 26113, 26114, 26115, 26116, 26117, 26118, 26124 VPAP IV ST
-
-

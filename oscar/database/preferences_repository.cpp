@@ -366,10 +366,25 @@ bool PreferencesRepository::saveCPAPSettings(qint64 profileId, CPAPSettings* cpa
 {
     if (!cpap) return false;
     
-    // Iterate over all preferences using QHash iterators
-    for (auto it = cpap->m_pref->begin(); it != cpap->m_pref->end(); ++it) {
-        if (!savePreference(profileId, "cpap", it.key(), it.value())) {
-            qWarning() << "Failed to save CPAP preference:" << it.key();
+    // CPAP settings have specific keys defined in profiles.h
+    // Save only keys that are documented CPAP settings
+    QStringList cpapKeys = {
+        "ComplianceHours", "ClinicalMode", "ShowLeaksMode", "MaskStartDate",
+        "MaskDescription", "MaskType", "CPAPPrescribedMode", "CPAPPrescribedMinPressure",
+        "CPAPPrescribedMaxPressure", "UntreatedAHI", "CPAPNotes", "DateDiagnosed",
+        "UserEventFlagging", "AutoImport", "BrickWarning", "UserFlowRestriction",
+        "UserEventDuration", "UserFlowRestriction2", "UserEventDuration2",
+        "UserEventDuplicates", "ResyncFromUserFlagging", "AHIWindow", "AHIReset",
+        "ClockDrift", "LeakRedline", "ShowLeakRedline", "CalculateUnintentionalLeaks",
+        "Custom4cmH2OLeaks", "Custom20cmH2OLeaks", "EventPostcontext", "ConsolidateEvents"
+    };
+    
+    for (const QString& key : cpapKeys) {
+        if (cpap->m_pref->contains(key)) {
+            QVariant value = (*cpap->m_pref)[key];
+            if (!savePreference(profileId, "cpap", key, value)) {
+                qWarning() << "Failed to save CPAP preference:" << key;
+            }
         }
     }
     
@@ -380,10 +395,20 @@ bool PreferencesRepository::saveOxiSettings(qint64 profileId, OxiSettings* oxi)
 {
     if (!oxi) return false;
     
-    // Iterate over all preferences using QHash iterators
-    for (auto it = oxi->m_pref->begin(); it != oxi->m_pref->end(); ++it) {
-        if (!savePreference(profileId, "oxi", it.key(), it.value())) {
-            qWarning() << "Failed to save Oxi preference:" << it.key();
+    // Oximetry settings keys defined in profiles.h (STR_OS_*)
+    QStringList oxiKeys = {
+        "EnableOximetry", "DefaultOxiDevice", "SyncOximeterClock", "OximeterType",
+        "SkipOxiIntroScreen", "SPO2DropDuration", "SPO2DropPercentage",
+        "PulseChangeDuration", "PulseChangeBPM", "OxiDiscardThreshold",
+        "oxiDesaturationThreshold", "flagPulseAbove", "flagPulseBelow"
+    };
+    
+    for (const QString& key : oxiKeys) {
+        if (oxi->m_pref->contains(key)) {
+            QVariant value = (*oxi->m_pref)[key];
+            if (!savePreference(profileId, "oxi", key, value)) {
+                qWarning() << "Failed to save Oxi preference:" << key;
+            }
         }
     }
     
@@ -394,10 +419,20 @@ bool PreferencesRepository::saveSessionSettings(qint64 profileId, SessionSetting
 {
     if (!session) return false;
     
-    // Iterate over all preferences using QHash iterators
-    for (auto it = session->m_pref->begin(); it != session->m_pref->end(); ++it) {
-        if (!savePreference(profileId, "session", it.key(), it.value())) {
-            qWarning() << "Failed to save Session preference:" << it.key();
+    // Session/Import settings keys defined in profiles.h (STR_IS_*)
+    QStringList sessionKeys = {
+        "DaySplitTime", "PreloadSummaries", "CombineCloserSessions", 
+        "IgnoreShorterSessions", "BackupCardData", "CompressBackupData",
+        "CompressSessionData", "IgnoreOlderSessions", "IgnoreOlderSessionsDate",
+        "LockSummarySessions", "WarnOnUntestedMachine", "WarnOnUnexpectedData"
+    };
+    
+    for (const QString& key : sessionKeys) {
+        if (session->m_pref->contains(key)) {
+            QVariant value = (*session->m_pref)[key];
+            if (!savePreference(profileId, "session", key, value)) {
+                qWarning() << "Failed to save Session preference:" << key;
+            }
         }
     }
     
@@ -408,10 +443,17 @@ bool PreferencesRepository::saveAppearanceSettings(qint64 profileId, AppearanceS
 {
     if (!appearance) return false;
     
-    // Iterate over all preferences using QHash iterators
-    for (auto it = appearance->m_pref->begin(); it != appearance->m_pref->end(); ++it) {
-        if (!savePreference(profileId, "appearance", it.key(), it.value())) {
-            qWarning() << "Failed to save Appearance preference:" << it.key();
+    // Appearance settings keys defined in profiles.h (STR_AS_*)
+    QStringList appearanceKeys = {
+        "EventFlagSessionBar", "ZombieMode"
+    };
+    
+    for (const QString& key : appearanceKeys) {
+        if (appearance->m_pref->contains(key)) {
+            QVariant value = (*appearance->m_pref)[key];
+            if (!savePreference(profileId, "appearance", key, value)) {
+                qWarning() << "Failed to save Appearance preference:" << key;
+            }
         }
     }
     
@@ -422,10 +464,21 @@ bool PreferencesRepository::saveUserSettings(qint64 profileId, UserSettings* gen
 {
     if (!general) return false;
     
-    // Iterate over all preferences using QHash iterators
-    for (auto it = general->m_pref->begin(); it != general->m_pref->end(); ++it) {
-        if (!savePreference(profileId, "general", it.key(), it.value())) {
-            qWarning() << "Failed to save General preference:" << it.key();
+    // User/General settings keys defined in profiles.h (STR_US_*)
+    QStringList generalKeys = {
+        "UnitSystem", "EventWindowSize", "SkipEmptyDays", "RebuildCache",
+        "LinkGroups", "CalculateRDI", "PrefCalcMiddle", "PrefCalcPercentile",
+        "PrefCalcMax", "ShowUnknownFlags", "StatReportMode", "StatReportDate",
+        "StatReportRangeStart", "StatReportRangeEnd", "LastOverviewRange",
+        "CustomOverviewRangeStart", "CustomOverviewRangeEnd"
+    };
+    
+    for (const QString& key : generalKeys) {
+        if (general->m_pref->contains(key)) {
+            QVariant value = (*general->m_pref)[key];
+            if (!savePreference(profileId, "general", key, value)) {
+                qWarning() << "Failed to save General preference:" << key;
+            }
         }
     }
     

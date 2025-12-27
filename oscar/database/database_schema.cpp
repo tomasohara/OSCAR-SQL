@@ -60,6 +60,37 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
+    // Session data tables (schema version 3)
+    if (!createSessionsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create sessions table";
+        return false;
+    }
+
+    if (!createSessionSettingsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create session_settings table";
+        return false;
+    }
+
+    if (!createSessionChannelsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create session_channels table";
+        return false;
+    }
+
+    if (!createRespiratoryEventsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create respiratory_events table";
+        return false;
+    }
+
+    if (!createSessionSummariesTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create session_summaries table";
+        return false;
+    }
+
+    if (!createSessionSlicesTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create session_slices table";
+        return false;
+    }
+
     // Create indexes
     if (!createIndexes(db)) {
         qCritical() << "DatabaseSchema: Failed to create indexes";
@@ -114,12 +145,84 @@ int DatabaseSchema::getSchemaVersion(QSqlDatabase& db)
  */
 bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
 {
-    qDebug() << "DatabaseSchema: Upgrading schema from version" << fromVersion;
+    qDebug() << "DatabaseSchema: Upgrading schema from version" << fromVersion << "to" << CURRENT_SCHEMA_VERSION;
 
-    // Future schema upgrades will be implemented here
-    // For now, just return true as we're at version 1
+    // Upgrade from version 2 to version 3: Add session tables
+    if (fromVersion < 3) {
+        qDebug() << "DatabaseSchema: Applying version 3 upgrade (session tables)";
+        
+        if (!createSessionsTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create sessions table during upgrade";
+            return false;
+        }
+
+        if (!createSessionSettingsTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create session_settings table during upgrade";
+            return false;
+        }
+
+        if (!createSessionChannelsTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create session_channels table during upgrade";
+            return false;
+        }
+
+        if (!createRespiratoryEventsTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create respiratory_events table during upgrade";
+            return false;
+        }
+
+        if (!createSessionSummariesTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create session_summaries table during upgrade";
+            return false;
+        }
+
+        if (!createSessionSlicesTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create session_slices table during upgrade";
+            return false;
+        }
+        
+        // Recreate indexes to include new session indexes
+        if (!createIndexes(db)) {
+            qCritical() << "DatabaseSchema: Failed to create indexes during upgrade";
+            return false;
+        }
+        
+        // Update schema version
+        if (!setSchemaVersion(db, 3)) {
+            qCritical() << "DatabaseSchema: Failed to update schema version to 3";
+            return false;
+        }
+        
+        qDebug() << "DatabaseSchema: Successfully upgraded to version 3";
+    }
     
-    Q_UNUSED(db);
+    // Upgrade from version 3 to version 4: Add status field to profiles table
+    if (fromVersion < 4) {
+        qDebug() << "DatabaseSchema: Applying version 4 upgrade (profile status tracking)";
+        
+        QSqlQuery query(db);
+        
+        // Add status column (defaults to 'active' for existing profiles)
+        if (!query.exec("ALTER TABLE profiles ADD COLUMN status TEXT DEFAULT 'active' CHECK(status IN ('active', 'missing', 'archived'))")) {
+            qCritical() << "DatabaseSchema: Failed to add status column:" << query.lastError().text();
+            return false;
+        }
+        
+        // Add status_changed_at column
+        if (!query.exec("ALTER TABLE profiles ADD COLUMN status_changed_at TEXT")) {
+            qCritical() << "DatabaseSchema: Failed to add status_changed_at column:" << query.lastError().text();
+            return false;
+        }
+        
+        // Update schema version
+        if (!setSchemaVersion(db, 4)) {
+            qCritical() << "DatabaseSchema: Failed to update schema version to 4";
+            return false;
+        }
+        
+        qDebug() << "DatabaseSchema: Successfully upgraded to version 4";
+    }
+    
     return true;
 }
 
@@ -172,6 +275,8 @@ bool DatabaseSchema::createProfilesTable(QSqlDatabase& db)
         "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "    username TEXT UNIQUE NOT NULL,"
         "    data_folder TEXT NOT NULL,"
+        "    status TEXT DEFAULT 'active' CHECK(status IN ('active', 'missing', 'archived')),"
+        "    status_changed_at TEXT,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP"
         ")";
@@ -269,6 +374,28 @@ bool DatabaseSchema::createIndexes(QSqlDatabase& db)
     indexes << "CREATE INDEX IF NOT EXISTS idx_preferences_profile ON profile_preferences(profile_id)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_preferences_category ON profile_preferences(profile_id, category)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_preferences_key ON profile_preferences(profile_id, category, key)";
+
+    // Session indexes (schema version 3)
+    indexes << "CREATE INDEX IF NOT EXISTS idx_sessions_machine ON sessions(machine_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_sessions_time ON sessions(start_time, end_time)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_sessions_enabled ON sessions(machine_id, enabled)";
+    
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_settings_session ON session_settings(session_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_settings_channel ON session_settings(session_id, channel_id)";
+    
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_channels_session ON session_channels(session_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_channels_channel ON session_channels(channel_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_channels_lookup ON session_channels(session_id, channel_id)";
+    
+    indexes << "CREATE INDEX IF NOT EXISTS idx_respiratory_events_session ON respiratory_events(session_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_respiratory_events_type ON respiratory_events(session_id, event_type)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_respiratory_events_time ON respiratory_events(start_time, end_time)";
+    
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_summaries_session ON session_summaries(session_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_summaries_ahi ON session_summaries(ahi)";
+    
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_slices_session ON session_slices(session_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_slices_time ON session_slices(start_time, end_time)";
 
     // Execute each index creation
     for (const QString& sql : indexes) {
@@ -432,5 +559,263 @@ bool DatabaseSchema::createProfilePreferencesTable(QSqlDatabase& db)
     }
 
     qDebug() << "DatabaseSchema: profile_preferences table created";
+    return true;
+}
+
+/*
+ * Create the sessions table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The sessions table stores core session metadata and timing information.
+ * Waveform data continues to be stored in separate files.
+ */
+bool DatabaseSchema::createSessionsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS sessions ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    session_id INTEGER NOT NULL,"
+        "    machine_id INTEGER NOT NULL,"
+        "    start_time INTEGER NOT NULL,"
+        "    end_time INTEGER NOT NULL,"
+        "    duration INTEGER NOT NULL,"
+        "    enabled INTEGER DEFAULT 1,"
+        "    summary_only INTEGER DEFAULT 0,"
+        "    no_settings INTEGER DEFAULT 0,"
+        "    events_loaded INTEGER DEFAULT 0,"
+        "    events_file TEXT,"
+        "    summary_file TEXT,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE CASCADE,"
+        "    UNIQUE(machine_id, session_id)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create sessions table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: sessions table created";
+    return true;
+}
+
+/*
+ * Create the session_settings table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The session_settings table stores machine configuration for each session
+ * (CPAP mode, pressures, comfort settings, etc.)
+ */
+bool DatabaseSchema::createSessionSettingsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS session_settings ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    session_id INTEGER NOT NULL,"
+        "    channel_id INTEGER NOT NULL,"
+        "    value REAL NOT NULL,"
+        "    data_type TEXT,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,"
+        "    UNIQUE(session_id, channel_id)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create session_settings table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: session_settings table created";
+    return true;
+}
+
+/*
+ * Create the session_channels table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The session_channels table stores summary statistics for each channel
+ * in a session (count, avg, min, max, percentiles, etc.)
+ */
+bool DatabaseSchema::createSessionChannelsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS session_channels ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    session_id INTEGER NOT NULL,"
+        "    channel_id INTEGER NOT NULL,"
+        "    count INTEGER DEFAULT 0,"
+        "    sum REAL DEFAULT 0,"
+        "    avg REAL DEFAULT 0,"
+        "    wavg REAL DEFAULT 0,"
+        "    min REAL DEFAULT 0,"
+        "    max REAL DEFAULT 0,"
+        "    median REAL DEFAULT 0,"
+        "    p90 REAL DEFAULT 0,"
+        "    p95 REAL DEFAULT 0,"
+        "    phys_min REAL DEFAULT 0,"
+        "    phys_max REAL DEFAULT 0,"
+        "    cph REAL DEFAULT 0,"
+        "    sph REAL DEFAULT 0,"
+        "    first_time INTEGER,"
+        "    last_time INTEGER,"
+        "    gain REAL DEFAULT 1.0,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,"
+        "    UNIQUE(session_id, channel_id)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create session_channels table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: session_channels table created";
+    return true;
+}
+
+/*
+ * Create the respiratory_events table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The respiratory_events table stores individual respiratory events
+ * (apneas, hypopneas, RERAs, etc.)
+ */
+bool DatabaseSchema::createRespiratoryEventsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS respiratory_events ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    session_id INTEGER NOT NULL,"
+        "    event_type INTEGER NOT NULL,"
+        "    start_time INTEGER NOT NULL,"
+        "    end_time INTEGER NOT NULL,"
+        "    duration INTEGER NOT NULL,"
+        "    desaturation REAL,"
+        "    severity INTEGER,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create respiratory_events table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: respiratory_events table created";
+    return true;
+}
+
+/*
+ * Create the session_summaries table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The session_summaries table stores cached high-level session summaries
+ * (AHI, event counts, pressure/leak statistics, etc.)
+ */
+bool DatabaseSchema::createSessionSummariesTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS session_summaries ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    session_id INTEGER NOT NULL UNIQUE,"
+        "    ahi REAL DEFAULT 0,"
+        "    rdi REAL DEFAULT 0,"
+        "    obstructive_count INTEGER DEFAULT 0,"
+        "    central_count INTEGER DEFAULT 0,"
+        "    hypopnea_count INTEGER DEFAULT 0,"
+        "    rera_count INTEGER DEFAULT 0,"
+        "    pressure_avg REAL,"
+        "    pressure_min REAL,"
+        "    pressure_max REAL,"
+        "    pressure_95th REAL,"
+        "    leak_total_avg REAL,"
+        "    leak_total_95th REAL,"
+        "    leak_total_max REAL,"
+        "    spo2_avg REAL,"
+        "    spo2_min REAL,"
+        "    pulse_avg REAL,"
+        "    hours_used REAL DEFAULT 0,"
+        "    mask_on_hours REAL DEFAULT 0,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create session_summaries table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: session_summaries table created";
+    return true;
+}
+
+/*
+ * Create the session_slices table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The session_slices table stores mask-on/mask-off periods within sessions.
+ */
+bool DatabaseSchema::createSessionSlicesTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS session_slices ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    session_id INTEGER NOT NULL,"
+        "    start_time INTEGER NOT NULL,"
+        "    end_time INTEGER NOT NULL,"
+        "    status INTEGER NOT NULL,"
+        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create session_slices table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: session_slices table created";
     return true;
 }

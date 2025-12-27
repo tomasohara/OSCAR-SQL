@@ -117,7 +117,31 @@ bool DatabaseManager::initialize(const QString& databasePath)
         }
     } else {
         qDebug() << "DatabaseManager: Using existing database";
-        // TODO: In future, check schema version and upgrade if needed
+        
+        // Check schema version and upgrade if needed
+        int currentVersion = DatabaseSchema::getSchemaVersion(m_database);
+        qDebug() << "DatabaseManager: Current schema version:" << currentVersion;
+        
+        if (currentVersion < DatabaseSchema::CURRENT_SCHEMA_VERSION) {
+            qDebug() << "DatabaseManager: Upgrading schema from version" << currentVersion 
+                     << "to" << DatabaseSchema::CURRENT_SCHEMA_VERSION;
+            
+            if (!DatabaseSchema::upgradeSchema(m_database, currentVersion)) {
+                qCritical() << "DatabaseManager: Failed to upgrade database schema";
+                close();
+                return false;
+            }
+            
+            qDebug() << "DatabaseManager: Schema upgrade complete";
+        } else if (currentVersion > DatabaseSchema::CURRENT_SCHEMA_VERSION) {
+            qCritical() << "DatabaseManager: Database schema version" << currentVersion 
+                        << "is newer than supported version" << DatabaseSchema::CURRENT_SCHEMA_VERSION;
+            qCritical() << "DatabaseManager: Please upgrade OSCAR to the latest version";
+            close();
+            return false;
+        } else {
+            qDebug() << "DatabaseManager: Schema is up to date";
+        }
     }
 
     m_initialized = true;

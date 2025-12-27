@@ -26,6 +26,8 @@
 
 // Database includes
 #include "database/profile_repository.h"
+#include "database/machine_repository.h"
+#include "database/user_info_repository.h"
 
 extern MainWindow * mainwin;
 
@@ -128,55 +130,114 @@ void ProfileSelector::updateProfileList()
     ui->profileView->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->profileView->setSelectionMode(QAbstractItemView::SingleSelection);
 
-
-    QMap<QString, Profile *>::iterator pi;
-    for (pi = Profiles::profiles.begin(); pi != Profiles::profiles.end(); pi++) {
-        Profile *prof = pi.value();
-        name = pi.key();
-
-//        if (AppSetting->profileName() == name) {
-//            sel = row;
-//        }
-
-        Machine * mach = prof->GetMachine(MT_CPAP);  // only interested in last cpap machine...
-        if (!mach) {
-            qDebug() << "Couldn't find device info for" << name;
+    // Try database first for fast profile list display
+    ProfileRepository profileRepo;
+    MachineRepository machineRepo;
+    UserInfoRepository userRepo;
+    
+    QList<ProfileData> dbProfiles = profileRepo.findAll();
+    
+    if (!dbProfiles.isEmpty()) {
+        qDebug() << "ProfileSelector: Loading profile list from database (" << dbProfiles.size() << "profiles)";
+        
+        for (const ProfileData& profileData : dbProfiles) {
+            name = profileData.username;
+            
+            model->insertRows(row, 1, QModelIndex());
+            model->setData(model->index(row, 0, QModelIndex()), name);
+            model->setData(model->index(row, 0, QModelIndex()), name, Qt::UserRole+2);
+            
+            // Get user info from database
+            UserInfoData userInfo = userRepo.findByProfile(profileData.id);
+            QString usersname;
+            if (!userInfo.lastName.isEmpty()) {
+                usersname = QString("%1, %2").arg(userInfo.lastName, userInfo.firstName);
+            }
+            model->setData(model->index(row, 5, QModelIndex()), usersname);
+            
+            // Get most recent CPAP machine from database
+            QList<MachineData> allMachines = machineRepo.findByProfile(profileData.id);
+            
+            // Filter for CPAP machines and find most recent
+            MachineData* mostRecent = nullptr;
+            QDateTime latestImport;
+            
+            for (MachineData& mach : allMachines) {
+                if (mach.machineType == MT_CPAP) {
+                    QDateTime imported = QDateTime::fromString(mach.lastImported, Qt::ISODate);
+                    if (!mostRecent || imported > latestImport) {
+                        mostRecent = &mach;
+                        latestImport = imported;
+                    }
+                }
+            }
+            
+            if (mostRecent) {
+                model->setData(model->index(row, 1, QModelIndex()), mostRecent->brand);
+                model->setData(model->index(row, 2, QModelIndex()), mostRecent->model);
+                model->setData(model->index(row, 4, QModelIndex()), 
+                               latestImport.toString(QLocale::system().dateFormat(QLocale::ShortFormat)));
+            }
+            
+            // Highlight currently open profile
+            QBrush bg = QColor(Qt::black);
+            QFont font = QApplication::font();
+            if (p_profile && p_profile->user->userName() == name) {
+                bg = QBrush(openProfileHighlightColor);
+                font.setBold(true);
+            }
+            for (int i=0; i<columns; i++) {
+                model->setData(model->index(row, i, QModelIndex()), bg, Qt::ForegroundRole);
+            }
+            
+            QRect rect = fm.boundingRect(name);
+            if (rect.width() > w) w = rect.width();
+            
+            row++;
         }
+    } else {
+        qDebug() << "ProfileSelector: Database empty, falling back to Profiles::profiles map";
+        
+        // Fall back to old method if database is empty
+        QMap<QString, Profile *>::iterator pi;
+        for (pi = Profiles::profiles.begin(); pi != Profiles::profiles.end(); pi++) {
+            Profile *prof = pi.value();
+            name = pi.key();
 
-        model->insertRows(row, 1, QModelIndex());
-        // Problem: Can't access profile details until it's loaded.
-        QString usersname;
-        if (!prof->user->lastName().isEmpty()) {
-            usersname = QString("%1, %2").arg(prof->user->lastName(), prof->user->firstName());
+            Machine * mach = prof->GetMachine(MT_CPAP);  // only interested in last cpap machine...
+            if (!mach) {
+                qDebug() << "Couldn't find device info for" << name;
+            }
+
+            model->insertRows(row, 1, QModelIndex());
+            QString usersname;
+            if (!prof->user->lastName().isEmpty()) {
+                usersname = QString("%1, %2").arg(prof->user->lastName(), prof->user->firstName());
+            }
+
+            model->setData(model->index(row, 0, QModelIndex()), name);
+            model->setData(model->index(row, 0, QModelIndex()), name, Qt::UserRole+2);
+            model->setData(model->index(row, 5, QModelIndex()), usersname);
+            if (mach) {
+                model->setData(model->index(row, 1, QModelIndex()), mach->brand());
+                model->setData(model->index(row, 2, QModelIndex()), mach->model());
+                model->setData(model->index(row, 4, QModelIndex()), mach->lastImported().toString(QLocale::system().dateFormat(QLocale::ShortFormat)));
+            }
+            QBrush bg = QColor(Qt::black);
+            QFont font = QApplication::font();
+            if (prof == p_profile) {
+                bg = QBrush(openProfileHighlightColor);
+                font.setBold(true);
+            }
+            for (int i=0; i<columns; i++) {
+                model->setData(model->index(row, i, QModelIndex()), bg, Qt::ForegroundRole);
+            }
+
+            QRect rect = fm.boundingRect(name);
+            if (rect.width() > w) w = rect.width();
+
+            row++;
         }
-
-        model->setData(model->index(row, 0, QModelIndex()), name);
-
-        model->setData(model->index(row, 0, QModelIndex()), name, Qt::UserRole+2);
-        model->setData(model->index(row, 5, QModelIndex()), usersname);
-        if (mach) {
-            model->setData(model->index(row, 1, QModelIndex()), mach->brand());
-            model->setData(model->index(row, 2, QModelIndex()), mach->model());
-            model->setData(model->index(row, 4, QModelIndex()), mach->lastImported().toString(QLocale::system().dateFormat(QLocale::ShortFormat)));
-        }
-        QBrush bg = QColor(Qt::black);
-        QFont font = QApplication::font();
-        if (prof == p_profile) {
-            bg = QBrush(openProfileHighlightColor);
-            font.setBold(true);
-        }
-        for (int i=0; i<columns; i++) {
-            model->setData(model->index(row, i, QModelIndex()), bg, Qt::ForegroundRole);
-            //model->setData(model->index(row, i, QModelIndex()), font, Qt::FontRole);
-        }
-
-        QRect rect = fm.boundingRect(name);
-        if (rect.width() > w) w = rect.width();
-
-        // Profile fonts arern't loaded yet.. Using generic font.
-        //item->setFont(font);
-        //model->appendRow(item);
-        row++;
     }
     w+=20;
 //    ui->profileView->setMinimumWidth(w);

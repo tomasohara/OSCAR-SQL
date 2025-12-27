@@ -26,6 +26,13 @@
 #include "SleepLib/calcs.h"
 #include "SleepLib/profiles.h"
 
+// Database repositories
+#include "../database/session_repository.h"
+#include "../database/session_settings_repository.h"
+#include "../database/session_channels_repository.h"
+#include "../database/session_slices_repository.h"
+#include "../database/session_summaries_repository.h"
+
 using namespace std;
 #define FIX_FOR_SINGLE_EVENT            // fixes ibreeze "No valuesummary for channel" error during import.
 
@@ -55,6 +62,8 @@ Session::Session(Machine *m, SessionID session)
     s_evchecksum_checked = false;
 
     s_noSettings = s_summaryOnly = false;
+    
+    m_database_id = 0;  // Initialize database ID to 0 (not in database)
 
     destroyed = false;
 }
@@ -2424,6 +2433,232 @@ void Session::offsetSession(qint64 offset)
     qDebug() << "Session now starts" << QDateTime::fromSecsSinceEpoch(s_first /
              1000).toString("yyyy-MM-dd HH:mm:ss");
 
+}
+
+bool Session::StoreToDatabase()
+{
+    if (s_first == 0) {
+        qWarning() << "Session::StoreToDatabase(): Skipping session" << s_session << "with first=0";
+        return false;
+    }
+
+    // Get machine's database ID
+    SessionRepository sessionRepo;
+    SessionSettingsRepository settingsRepo;
+    SessionChannelsRepository channelsRepo;
+    SessionSlicesRepository slicesRepo;
+    SessionSummariesRepository summariesRepo;
+    
+    qint64 machineDbId = s_machine->getDatabaseId();
+    if (machineDbId == 0) {
+        qDebug() << "Session::StoreToDatabase(): Machine not in database yet, using file storage";
+        return false;
+    }
+    
+    // 1. Create or update session record
+    SessionData sessionData;
+    sessionData.machineId = machineDbId;
+    sessionData.sessionId = s_session;
+    sessionData.startTime = s_first;
+    sessionData.endTime = s_last;
+    sessionData.duration = s_last - s_first;
+    sessionData.enabled = s_enabled;
+    sessionData.summaryOnly = s_summaryOnly;
+    sessionData.noSettings = s_noSettings;
+    sessionData.summaryFile = toHexid(s_session) + ".000";
+    sessionData.eventsFile = toHexid(s_session) + ".001";
+    
+    if (m_database_id == 0) {
+        // Create new session
+        m_database_id = sessionRepo.create(sessionData);
+        if (m_database_id < 0) {
+            qWarning() << "Session::StoreToDatabase(): Failed to create session" << s_session;
+            return false;
+        }
+    } else {
+        // Update existing session
+        sessionData.id = m_database_id;
+        if (!sessionRepo.update(sessionData)) {
+            qWarning() << "Session::StoreToDatabase(): Failed to update session" << s_session;
+            return false;
+        }
+    }
+    
+    // 2. Save settings
+    if (!settings.isEmpty()) {
+        QList<SessionSettingData> settingsList;
+        for (auto it = settings.begin(); it != settings.end(); ++it) {
+            SessionSettingData setting;
+            setting.channelId = it.key();
+            setting.value = it.value().toDouble();
+            settingsList.append(setting);
+        }
+        
+        if (!settingsRepo.saveBatch(m_database_id, settingsList)) {
+            qWarning() << "Session::StoreToDatabase(): Failed to save settings";
+        }
+    }
+    
+    // 3. Save channel statistics
+    if (!m_availableChannels.isEmpty()) {
+        QList<SessionChannelData> channelsList;
+        for (ChannelID id : m_availableChannels) {
+            SessionChannelData channel;
+            channel.channelId = id;
+            channel.count = m_cnt.value(id, 0);
+            channel.sum = m_sum.value(id, 0);
+            channel.avg = m_avg.value(id, 0);
+            channel.wavg = m_wavg.value(id, 0);
+            channel.min = m_min.value(id, 0);
+            channel.max = m_max.value(id, 0);
+            channel.median = 0; // Would need to calculate
+            channel.p90 = 0;    // Would need to calculate
+            channel.p95 = 0;    // Would need to calculate
+            channel.cph = m_cph.value(id, 0);
+            channel.sph = m_sph.value(id, 0);
+            channel.gain = m_gain.value(id, 1.0);
+            channel.firstTime = m_firstchan.value(id, 0);
+            channel.lastTime = m_lastchan.value(id, 0);
+            channelsList.append(channel);
+        }
+        
+        if (!channelsRepo.saveBatch(m_database_id, channelsList)) {
+            qWarning() << "Session::StoreToDatabase(): Failed to save channels";
+        }
+    }
+    
+    // 4. Save slices
+    if (!m_slices.isEmpty()) {
+        QList<SessionSliceData> slicesList;
+        for (const SessionSlice& slice : m_slices) {
+            SessionSliceData data;
+            data.sessionId = m_database_id;
+            data.startTime = slice.start;
+            data.endTime = slice.end;
+            data.status = slice.status;
+            slicesList.append(data);
+        }
+        
+        if (!slicesRepo.saveBatch(slicesList)) {
+            qWarning() << "Session::StoreToDatabase(): Failed to save slices";
+        }
+    }
+    
+    // 5. Save summary statistics to session_summaries table
+    // Now that m_database_id is set, we can store the calculated summary data
+    StoreSummaryToDatabase();
+    
+    qDebug() << "Session::StoreToDatabase(): Saved session" << s_session << "to database with ID" << m_database_id;
+    return true;
+}
+
+bool Session::LoadFromDatabase()
+{
+    // TODO: Implement database loading
+    // For now, return false to use file loading
+    return false;
+}
+
+bool Session::StoreSummaryToDatabase()
+{
+    if (m_database_id == 0) {
+        qWarning() << "Session::StoreSummaryToDatabase() - session not in database";
+        return false;
+    }
+    
+    SessionSummariesRepository repo;
+    SessionSummaryData data;
+    
+    data.sessionId = m_database_id;
+    
+    // Calculate hours used
+    data.hoursUsed = hours();
+    
+    // Calculate mask-on hours if we have slices
+    if (!m_slices.isEmpty()) {
+        double maskOnTime = 0;
+        for (const SessionSlice& slice : m_slices) {
+            if (slice.status == MaskOn) {
+                maskOnTime += (slice.end - slice.start) / 3600000.0;
+            }
+        }
+        data.maskOnHours = maskOnTime;
+    } else {
+        data.maskOnHours = data.hoursUsed;
+    }
+    
+    // Get AHI and RDI from cached values
+    if (m_wavg.contains(CPAP_AHI)) {
+        data.ahi = m_wavg[CPAP_AHI];
+    }
+    if (m_wavg.contains(CPAP_RDI)) {
+        data.rdi = m_wavg[CPAP_RDI];
+    }
+    
+    // Event counts from cached values
+    if (m_cnt.contains(CPAP_Obstructive)) {
+        data.obstructiveCount = m_cnt[CPAP_Obstructive];
+    }
+    if (m_cnt.contains(CPAP_ClearAirway)) {
+        data.centralCount = m_cnt[CPAP_ClearAirway];
+    }
+    if (m_cnt.contains(CPAP_Hypopnea)) {
+        data.hypopneaCount = m_cnt[CPAP_Hypopnea];
+    }
+    if (m_cnt.contains(CPAP_RERA)) {
+        data.reraCount = m_cnt[CPAP_RERA];
+    }
+    
+    // Pressure statistics from cached values
+    if (m_wavg.contains(CPAP_Pressure)) {
+        data.pressureAvg = m_wavg[CPAP_Pressure];
+        if (m_min.contains(CPAP_Pressure)) {
+            data.pressureMin = m_min[CPAP_Pressure];
+        }
+        if (m_max.contains(CPAP_Pressure)) {
+            data.pressureMax = m_max[CPAP_Pressure];
+        }
+        // For 95th percentile, we need to calculate it if events are loaded
+        // Otherwise leave at 0
+        if (s_events_loaded) {
+            data.pressure95th = percentile(CPAP_Pressure, 0.95);
+        }
+    }
+    
+    // Leak statistics from cached values
+    if (m_wavg.contains(CPAP_LeakTotal)) {
+        data.leakTotalAvg = m_wavg[CPAP_LeakTotal];
+        if (m_max.contains(CPAP_LeakTotal)) {
+            data.leakTotalMax = m_max[CPAP_LeakTotal];
+        }
+        // For 95th percentile
+        if (s_events_loaded) {
+            data.leakTotal95th = percentile(CPAP_LeakTotal, 0.95);
+        }
+    }
+    
+    // Oximetry data from cached values if available
+    if (m_wavg.contains(OXI_SPO2)) {
+        data.spo2Avg = m_wavg[OXI_SPO2];
+        if (m_min.contains(OXI_SPO2)) {
+            data.spo2Min = m_min[OXI_SPO2];
+        }
+    }
+    if (m_wavg.contains(OXI_Pulse)) {
+        data.pulseAvg = m_wavg[OXI_Pulse];
+    }
+    
+    // Create or update the summary
+    bool success = repo.createOrUpdate(data);
+    
+    if (success) {
+        qDebug() << "Session::StoreSummaryToDatabase() - Saved summary for session" << s_session 
+                 << "AHI:" << data.ahi << "hours:" << data.hoursUsed;
+    } else {
+        qWarning() << "Session::StoreSummaryToDatabase() - Failed to save summary for session" << s_session;
+    }
+    
+    return success;
 }
 
 qint64 Session::first()

@@ -201,6 +201,14 @@ class Machine
     inline void setPurgeDate(QDate value) {info.purgeDate = value; }
     inline void clearPurgeDate() {info.purgeDate = QDate(); }
 
+    //! \brief Returns the database primary key for this machine
+    inline qint64 getDatabaseId() const { return m_database_id; }
+    //! \brief Sets the database primary key for this machine
+    inline void setDatabaseId(qint64 id) { m_database_id = id; }
+    
+    //! \brief Save this machine to the database
+    bool SaveToDatabase();
+
     bool saveSessionInfo();
     bool loadSessionInfo();
 
@@ -276,6 +284,9 @@ class Machine
     MachineType m_type;
     QString m_path;
 
+    //! \brief Database primary key (0 if not in database)
+    qint64 m_database_id;
+
     MachineLoader * m_loader;
 
     bool changed;
@@ -347,4 +358,3 @@ class PositionSensor: public Machine
 };
 
 #endif // MACHINE_H
-

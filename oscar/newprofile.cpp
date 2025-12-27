@@ -8,7 +8,7 @@
  * for more details. */
 
 #define TEST_MACROS_ENABLEDoff
-#include <test_macros.h>
+#include "test_macros.h"
 
 #include <QMessageBox>
 #include <QFile>
@@ -18,6 +18,9 @@
 #include <QFile>
 #include <QDesktopServices>
 #include <QSettings>
+#include <QComboBox>
+#include <QTimeZone>
+
 #include "SleepLib/profiles.h"
 
 #include "newprofile.h"
@@ -61,44 +64,69 @@ NewProfile::NewProfile(QWidget *parent, const QString *user) :
     ui->heightEdit->setSuffix(QString(" %1").arg(STR_UNIT_CM));
 
     {
-        // process countries list
-        QFile f(":/docs/countries.txt");
-        openOk = f.open(QFile::ReadOnly);
-        QTextStream cnt(&f);
-        QString a;
-        ui->countryCombo->clear();
-        ui->countryCombo->addItem(tr("Select Country"));
+        // Get all available countries
+//        QList<QLocale::Country> countries = QLocale::Country::allCountries();
+        QMap<QString, QLocale::Country> countryMap;
 
-        do {
-            a = cnt.readLine();
+        for (int i = QLocale::AnyCountry; i <= QLocale::LastCountry; ++i) {
+            QLocale::Country country = static_cast<QLocale::Country>(i);
+            if (country != QLocale::AnyCountry) {
+                QString countryName = QLocale::countryToString(country);
+                if (!countryName.isEmpty()) {
+                    countryMap.insert(countryName, country);
+                }
+            }
+        }
 
-            if (a.isEmpty()) { break; }
+        // Populate combo box (already sorted by map key)
+        for (auto it = countryMap.constBegin(); it != countryMap.constEnd(); ++it) {
+            ui->countryCombo->addItem(it.key(), static_cast<int>(it.value()));
+        }
 
-            ui->countryCombo->addItem(a);
-        } while (1);
-
-        f.close();
+        // Set default to system locale country
+        QLocale systemLocale = QLocale::system();
+        QString systemCountryName = QLocale::countryToString(systemLocale.country());
+        int systemIndex = ui->countryCombo->findText(systemCountryName);
+        if (systemIndex != -1) {
+            ui->countryCombo->setCurrentIndex(systemIndex);
+        }
     }
+
     {
         // timezone list
-        QFile f(":/docs/tz.txt");
-        openOk = f.open(QFile::ReadOnly);
-        QTextStream cnt(&f);
-        QString a;
-        ui->timezoneCombo->clear();
+        // Get system's current time zone
+        QTimeZone systemTimeZone = QTimeZone::systemTimeZone();
 
-        //ui->countryCombo->addItem("Select TimeZone");
-        do {
-            a = cnt.readLine();
+        // Populate a combo box with all available time zones
 
-            if (a.isEmpty()) { break; }
+        QList<QByteArray> availableTimeZoneIds = QTimeZone::availableTimeZoneIds();
+        for (const QByteArray& tzId : availableTimeZoneIds) {
+            QTimeZone tz(tzId);
+            QDateTime now = QDateTime::currentDateTime();
 
-            QStringList l;
-            l = a.split("=");
-            ui->timezoneCombo->addItem(l[1], l[0]);
-        } while (1);
+            // Get abbreviation - handle both Qt5 (QByteArray) and Qt6 (QString)
+            QString abbr;
+            auto abbreviation = tz.abbreviation(now);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            abbr = abbreviation;
+#else
+            abbr = QString::fromLatin1(abbreviation);
+#endif
 
-        f.close();
+            // Display format: "America/New_York (EST, UTC-05:00)"
+            QString displayText = QString("%1 (%2, UTC%3)")
+                                      .arg(QString::fromLatin1(tzId))
+                                      .arg(abbr)
+                                      .arg(tz.offsetFromUtc(now) / 3600.0, 0, 'f', 2);
+
+            ui->timezoneCombo->addItem(displayText, tzId);
+        }
+
+        // Set the default to system time zone
+        int systemIndex = ui->timezoneCombo->findData(systemTimeZone.id());
+        if (systemIndex != -1) {
+            ui->timezoneCombo->setCurrentIndex(systemIndex);
+        }
     }
     ui->versionLabel->setText("");
 
@@ -262,8 +290,7 @@ void NewProfile::on_nextButton_clicked()
             profile->doctor->setPhone(ui->doctorPhoneEdit->text());
             profile->doctor->setEmail(ui->doctorEmailEdit->text());
             profile->doctor->setPatientID(ui->doctorPatientIDEdit->text());
-            profile->user->setTimeZone(ui->timezoneCombo->itemData(
-                                           ui->timezoneCombo->currentIndex()).toString());
+            profile->user->setTimeZone(ui->timezoneCombo->currentText());
             profile->user->setCountry(ui->countryCombo->currentText());
             profile->user->setDaylightSaving(ui->DSTcheckbox->isChecked());
 
@@ -421,9 +448,24 @@ void NewProfile::edit(const QString name)
     ui->doctorPatientIDEdit->setText(profile->doctor->patientID());
 
     ui->DSTcheckbox->setChecked(profile->user->daylightSaving());
-    int i = ui->timezoneCombo->findData(profile->user->timeZone());
-    ui->timezoneCombo->setCurrentIndex(i);
+    // If we can't find the timezone (old data), just set the local time zone as a best guess
+    int i = ui->timezoneCombo->findText(profile->user->timeZone());
+    if (i == -1) {
+        QTimeZone systemTimeZone = QTimeZone::systemTimeZone();
+        int systemIndex = ui->timezoneCombo->findData(systemTimeZone.id());
+        if (systemIndex != -1) {
+            ui->timezoneCombo->setCurrentIndex(systemIndex);
+        }
+    }
+    else
+        ui->timezoneCombo->setCurrentIndex(i);
     i = ui->countryCombo->findText(profile->user->country());
+    if (i == -1) {
+        // Set default to system locale country
+        QString systemCountryName = tr("Select Country");
+        ui->countryCombo->addItem(systemCountryName);
+        i = ui->countryCombo->findText(systemCountryName);
+    }
     ui->countryCombo->setCurrentIndex(i);
 
     UnitSystem us = profile->general->unitSystem();

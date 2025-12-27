@@ -32,11 +32,14 @@ struct ProfileData
     qint64 id;              ///< Database primary key
     QString username;       ///< Unique username
     QString dataFolder;     ///< Path to profile data folder
+    QString status;         ///< Profile status: 'active', 'missing', or 'archived'
+    QString statusChangedAt;///< When status last changed
     QString createdAt;      ///< Creation timestamp
     QString updatedAt;      ///< Last update timestamp
 
     ProfileData()
         : id(0)
+        , status("active")
     {}
 };
 
@@ -92,6 +95,28 @@ public:
      * \return List of all profile records
      */
     QList<ProfileData> findAll();
+
+    /*!
+     * \brief Get only active profiles from database
+     * \return List of active profile records (status='active')
+     */
+    QList<ProfileData> findActive();
+
+    /*!
+     * \brief Get profiles with missing directories
+     * \return List of missing profile records (status='missing')
+     */
+    QList<ProfileData> findMissing();
+
+    /*!
+     * \brief Update profile status
+     * \param id Profile database ID
+     * \param status New status ('active', 'missing', or 'archived')
+     * \return true if successful, false otherwise
+     *
+     * Also sets statusChangedAt to current timestamp.
+     */
+    bool updateStatus(qint64 id, const QString& status);
 
     /*!
      * \brief Update an existing profile

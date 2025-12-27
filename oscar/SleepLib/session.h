@@ -75,6 +75,15 @@ class Session
     //! \brief Stores the session in the directory supplied by path
     bool Store(QString path);
 
+    //! \brief Saves session summary data to database
+    bool StoreToDatabase();
+    
+    //! \brief Loads session summary data from database
+    bool LoadFromDatabase();
+    
+    //! \brief Saves session summary statistics to database (AHI, event counts, pressure stats, etc.)
+    bool StoreSummaryToDatabase();
+
     //! \brief Writes the Sessions Summary Indexes to filename, in SleepLibs custom data format.
     bool StoreSummary();
 
@@ -440,6 +449,10 @@ protected:
     qint64 s_first;
     //! \brief Time session ends (in ms since epoch)
     qint64 s_last;
+    
+    //! \brief Database primary key (0 if not in database)
+    qint64 m_database_id;
+    
     bool s_changed;
     bool s_lonesession;
     bool s_evchecksum_checked;

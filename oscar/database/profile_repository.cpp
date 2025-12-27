@@ -88,7 +88,7 @@ ProfileData ProfileRepository::findById(qint64 id)
     QSqlQuery query(database());
     
     query.prepare(
-        "SELECT id, username, data_folder, created_at, updated_at "
+        "SELECT id, username, data_folder, status, status_changed_at, created_at, updated_at "
         "FROM profiles WHERE id = :id"
     );
     
@@ -119,7 +119,7 @@ ProfileData ProfileRepository::findByUsername(const QString& username)
     QSqlQuery query(database());
     
     query.prepare(
-        "SELECT id, username, data_folder, created_at, updated_at "
+        "SELECT id, username, data_folder, status, status_changed_at, created_at, updated_at "
         "FROM profiles WHERE username = :username"
     );
     
@@ -148,7 +148,7 @@ QList<ProfileData> ProfileRepository::findAll()
     
     QSqlQuery query(database());
     
-    if (!query.exec("SELECT id, username, data_folder, created_at, updated_at "
+    if (!query.exec("SELECT id, username, data_folder, status, status_changed_at, created_at, updated_at "
                     "FROM profiles ORDER BY username")) {
         qWarning() << "ProfileRepository::findAll() failed:" << query.lastError().text();
         return profiles;
@@ -161,6 +161,102 @@ QList<ProfileData> ProfileRepository::findAll()
     qDebug() << "ProfileRepository: Found" << profiles.size() << "profiles";
     
     return profiles;
+}
+
+/*
+ * Get only active profiles from database
+ *
+ * Returns: List of active profile records (status='active'), ordered by username
+ */
+QList<ProfileData> ProfileRepository::findActive()
+{
+    QList<ProfileData> profiles;
+    
+    QSqlQuery query(database());
+    
+    if (!query.exec("SELECT id, username, data_folder, status, status_changed_at, created_at, updated_at "
+                    "FROM profiles WHERE status = 'active' ORDER BY username")) {
+        qWarning() << "ProfileRepository::findActive() failed:" << query.lastError().text();
+        return profiles;
+    }
+    
+    while (query.next()) {
+        profiles.append(recordToData(query));
+    }
+    
+    qDebug() << "ProfileRepository: Found" << profiles.size() << "active profiles";
+    
+    return profiles;
+}
+
+/*
+ * Get profiles with missing directories
+ *
+ * Returns: List of missing profile records (status='missing'), ordered by username
+ */
+QList<ProfileData> ProfileRepository::findMissing()
+{
+    QList<ProfileData> profiles;
+    
+    QSqlQuery query(database());
+    
+    if (!query.exec("SELECT id, username, data_folder, status, status_changed_at, created_at, updated_at "
+                    "FROM profiles WHERE status = 'missing' ORDER BY username")) {
+        qWarning() << "ProfileRepository::findMissing() failed:" << query.lastError().text();
+        return profiles;
+    }
+    
+    while (query.next()) {
+        profiles.append(recordToData(query));
+    }
+    
+    qDebug() << "ProfileRepository: Found" << profiles.size() << "missing profiles";
+    
+    return profiles;
+}
+
+/*
+ * Update profile status
+ *
+ * Parameters:
+ *   id - Profile database ID
+ *   status - New status ('active', 'missing', or 'archived')
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * Also sets statusChangedAt to current timestamp.
+ */
+bool ProfileRepository::updateStatus(qint64 id, const QString& status)
+{
+    if (id == 0) {
+        qWarning() << "ProfileRepository::updateStatus() - invalid id (0)";
+        return false;
+    }
+    
+    if (status != "active" && status != "missing" && status != "archived") {
+        qWarning() << "ProfileRepository::updateStatus() - invalid status:" << status;
+        return false;
+    }
+    
+    QSqlQuery query(database());
+    query.prepare("UPDATE profiles SET status = :status, "
+                  "status_changed_at = datetime('now'), "
+                  "updated_at = datetime('now') WHERE id = :id");
+    query.bindValue(":status", status);
+    query.bindValue(":id", id);
+    
+    if (!query.exec()) {
+        qWarning() << "ProfileRepository::updateStatus() failed:" << query.lastError().text();
+        return false;
+    }
+    
+    if (query.numRowsAffected() == 0) {
+        qWarning() << "ProfileRepository::updateStatus() - no profile found with id" << id;
+        return false;
+    }
+    
+    qDebug() << "ProfileRepository: Updated profile" << id << "status to" << status;
+    return true;
 }
 
 /*
@@ -339,7 +435,7 @@ QString ProfileRepository::resolvePath(const QString& portablePath, const QStrin
  *
  * Returns: ProfileData populated from current row
  *
- * Expected column order: id, username, data_folder, created_at, updated_at
+ * Expected column order: id, username, data_folder, status, status_changed_at, created_at, updated_at
  */
 ProfileData ProfileRepository::recordToData(QSqlQuery& query)
 {
@@ -348,8 +444,10 @@ ProfileData ProfileRepository::recordToData(QSqlQuery& query)
     data.id = query.value(0).toLongLong();
     data.username = query.value(1).toString();
     data.dataFolder = query.value(2).toString();
-    data.createdAt = query.value(3).toString();
-    data.updatedAt = query.value(4).toString();
+    data.status = query.value(3).toString();
+    data.statusChangedAt = query.value(4).toString();
+    data.createdAt = query.value(5).toString();
+    data.updatedAt = query.value(6).toString();
     
     return data;
 }

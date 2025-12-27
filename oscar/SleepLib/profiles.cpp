@@ -236,6 +236,9 @@ bool Profile::loadMachinesFromDatabase()
         info.lastimported = QDateTime::fromString(data.lastImported, Qt::ISODate);
         info.purgeDate = QDate::fromString(data.purgeDate, Qt::ISODate);
         info.version = data.dataVersion;
+        
+        qDebug() << "Profile: Loading machine" << data.brand << data.model << "serial" << data.serialNumber 
+                 << "with dataVersion" << data.dataVersion;
 
         // Parse properties from JSON
         if (!data.properties.isEmpty()) {
@@ -250,8 +253,13 @@ bool Profile::loadMachinesFromDatabase()
 
         // Create machine
         Machine* m = CreateMachine(info, data.machineId);
-        if (m && !data.properties.isEmpty()) {
-            // Properties already set via info.properties
+        if (m) {
+            // Set the database ID so sessions can reference it
+            m->setDatabaseId(data.id);
+            
+            if (!data.properties.isEmpty()) {
+                // Properties already set via info.properties
+            }
         }
     }
 
@@ -394,6 +402,12 @@ bool Profile::storeMachinesToDatabase()
 
     // Update/insert each machine
     for (Machine* m : m_machlist) {
+        // Skip if machine already has a database ID (already saved by Machine::SaveToDatabase)
+        if (m->getDatabaseId() > 0) {
+            qDebug() << "Profile: Machine" << m->serial() << "already in database with ID" << m->getDatabaseId();
+            continue;
+        }
+        
         // Check if machine exists in database
         MachineData existing = machineRepo.findByProfileAndMachineId(profileId, m->id());
 
@@ -409,7 +423,17 @@ bool Profile::storeMachinesToDatabase()
         machineData.modelNumber = m->modelnumber();
         machineData.lastImported = m->lastImported().toString(Qt::ISODate);
         machineData.purgeDate = m->purgeDate().toString(Qt::ISODate);
-        machineData.dataVersion = m->version();
+        
+        // Get current loader version if machine version is 0 (uninitialized)
+        int machineVersion = m->version();
+        if (machineVersion == 0) {
+            MachineLoader* loader = GetLoader(m->loaderName());
+            if (loader) {
+                machineVersion = loader->Version();
+                qDebug() << "Profile: Setting" << m->loaderName() << "version from loader:" << machineVersion;
+            }
+        }
+        machineData.dataVersion = machineVersion;
 
         // Convert properties to JSON
         if (!m->info.properties.isEmpty()) {
@@ -425,9 +449,14 @@ bool Profile::storeMachinesToDatabase()
             // Update existing
             machineData.id = existing.id;
             machineRepo.update(machineData);
+            // IMPORTANT: Set the database ID so the machine knows it's already in DB
+            m->setDatabaseId(existing.id);
         } else {
             // Insert new
-            machineRepo.create(machineData);
+            qint64 newId = machineRepo.create(machineData);
+            if (newId > 0) {
+                m->setDatabaseId(newId);
+            }
         }
     }
 
@@ -1176,6 +1205,33 @@ Profile *Get(QString name)
 
 Profile *Create(QString name, const QString* in_path)
 {
+    // Check if profile name already exists in database (including missing profiles)
+    ProfileRepository profileRepo;
+    ProfileData existing = profileRepo.findByUsername(name);
+    
+    if (existing.id != 0) {
+        // Profile name already exists in database
+        if (existing.status == "missing") {
+            // Profile is marked as missing - cannot reuse name
+            QMessageBox::critical(nullptr, QObject::tr("Profile Name Conflict"),
+                QObject::tr("A profile named '%1' already exists in the database but its directory is missing.").arg(name) + "\n\n" +
+                QObject::tr("You cannot create a new profile with this name.") + "\n\n" +
+                QObject::tr("Options:") + "\n" +
+                QObject::tr("1. Choose a different profile name") + "\n" +
+                QObject::tr("2. Restore the missing profile directory") + "\n" +
+                QObject::tr("3. Use OSCAR's profile management tools to permanently remove the old profile"),
+                QMessageBox::Ok);
+            return nullptr;
+        } else if (existing.status == "active") {
+            // Active profile - this shouldn't happen if UI is working correctly
+            QMessageBox::warning(nullptr, QObject::tr("Profile Already Exists"),
+                QObject::tr("A profile named '%1' already exists and is active.").arg(name) + "\n\n" +
+                QObject::tr("Please choose a different name."),
+                QMessageBox::Ok);
+            return nullptr;
+        }
+    }
+    
     QString path;
     if (in_path == nullptr) {
         path = p_pref->Get("{home}/Profiles/") + name;
@@ -1205,11 +1261,7 @@ Profile *Create(QString name, const QString* in_path)
 
     p_profile->Save();
 
-    // Also save to database
-    ProfileRepository profileRepo;
-    
-    // Check if profile already exists
-    ProfileData existing = profileRepo.findByUsername(name);
+    // Save to database (we already checked it doesn't exist above)
     if (existing.id == 0) {
         ProfileData newProfile;
         newProfile.username = name;
@@ -1348,7 +1400,21 @@ void Scan()
             QDir dir(profilePath);
             if (!dir.exists()) {
                 qWarning() << "Profile directory does not exist:" << profilePath;
-                continue;
+                qWarning() << "Skipping profile" << data.username << "- directory was deleted";
+                
+                // Mark profile as missing in database
+                if (data.status != "missing") {
+                    profileRepo.updateStatus(data.id, "missing");
+                    qWarning() << "Marked profile" << data.username << "as 'missing' in database";
+                }
+                
+                continue;  // Don't load into memory
+            }
+            
+            // Directory exists - if profile was marked missing, reactivate it
+            if (data.status == "missing") {
+                profileRepo.updateStatus(data.id, "active");
+                qDebug() << "Profile" << data.username << "directory restored - marked as 'active'";
             }
             
             // Create Profile object

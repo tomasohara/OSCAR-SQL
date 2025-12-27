@@ -411,7 +411,12 @@ SOURCES += \
     database/migration_manager.cpp \
     database/user_info_repository.cpp \
     database/doctor_info_repository.cpp \
-    database/preferences_repository.cpp
+    database/preferences_repository.cpp \
+    database/session_repository.cpp \
+    database/session_settings_repository.cpp \
+    database/session_channels_repository.cpp \
+    database/session_slices_repository.cpp \
+    database/session_summaries_repository.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -539,7 +544,12 @@ HEADERS  += \
     database/migration_manager.h \
     database/user_info_repository.h \
     database/doctor_info_repository.h \
-    database/preferences_repository.h
+    database/preferences_repository.h \
+    database/session_repository.h \
+    database/session_settings_repository.h \
+    database/session_channels_repository.h \
+    database/session_slices_repository.h \
+    database/session_summaries_repository.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }
