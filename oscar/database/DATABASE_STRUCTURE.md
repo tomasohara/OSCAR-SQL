@@ -389,8 +389,28 @@ Integer codes representing different data channels (pressure, flow, SpO2, etc.)
 Defined in OSCAR channel schema.
 
 ### Machine Types
-Integer codes for different machine types:
-- CPAP, Auto CPAP, BiPAP, ASV, etc.
+Integer codes for different machine types stored in `machines.machine_type`:
+
+| Code | Type | Description |
+|------|------|-------------|
+| 1 | CPAP | Continuous Positive Airway Pressure devices |
+| 2 | OXI | Oximetry devices (pulse oximeters) |
+| 3 | SLEEP | Sleep stage tracking devices |
+| 4 | JOUR | Journal/diary entries |
+| 5 | POS | Body position sensors |
+| Other | (Number) | Display the number as-is |
+
+**SQL Conversion Example:**
+```sql
+CASE machine_type
+    WHEN 1 THEN 'CPAP'
+    WHEN 2 THEN 'OXI'
+    WHEN 3 THEN 'SLEEP'
+    WHEN 4 THEN 'JOUR'
+    WHEN 5 THEN 'POS'
+    ELSE CAST(machine_type AS TEXT)
+END as machine_type_name
+```
 
 ---
 

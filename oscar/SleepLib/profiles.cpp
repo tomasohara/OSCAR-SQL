@@ -128,8 +128,32 @@ Profile::~Profile()
 bool Profile::Save(QString filename)
 {
     if (m_opened) {
+        // IMPORTANT: Save profile to database FIRST so machines can reference it
+        ProfileRepository profileRepo;
+        ProfileData profileData = profileRepo.findByUsername(user->userName());
+        
+        if (profileData.id == 0) {
+            // Create profile record first
+            ProfileData newProfile;
+            newProfile.username = user->userName();
+            newProfile.dataFolder = QString("%PROFDIR%/") + user->userName();
+            
+            qint64 profileId = profileRepo.create(newProfile);
+            if (profileId > 0) {
+                qDebug() << "Profile::Save() - Created profile in database with ID" << profileId;
+            } else {
+                qWarning() << "Profile::Save() - Failed to create profile in database";
+            }
+        }
+        
+        // Now save XML and machines (machines can now find the profile in database)
         bool xmlSuccess = Preferences::Save(filename);
         bool machinesSuccess = StoreMachines();
+        
+        // IMPORTANT: Save each machine's session data
+        for (Machine* m : m_machlist) {
+            m->Save();  // This will save sessions to database
+        }
         
         // Save extended data to database
         saveExtendedDataToDatabase();
@@ -404,7 +428,7 @@ bool Profile::storeMachinesToDatabase()
     for (Machine* m : m_machlist) {
         // Skip if machine already has a database ID (already saved by Machine::SaveToDatabase)
         if (m->getDatabaseId() > 0) {
-            qDebug() << "Profile: Machine" << m->serial() << "already in database with ID" << m->getDatabaseId();
+            qDebug() << "Profile: Machine" << m->serial() << m->brand() << m->model() << "already in database with ID" << m->getDatabaseId();
             continue;
         }
         

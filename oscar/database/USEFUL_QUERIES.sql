@@ -2,6 +2,29 @@
 -- Queries to inspect profiles, machines, sessions, and summaries
 
 -- ============================================
+-- MACHINE TYPE CONVERSION
+-- ============================================
+-- The machines.machine_type field is an integer. Use this CASE statement
+-- to convert it to a readable string in your queries:
+--
+-- CASE machine_type
+--     WHEN 1 THEN 'CPAP'
+--     WHEN 2 THEN 'OXI'
+--     WHEN 3 THEN 'SLEEP'
+--     WHEN 4 THEN 'JOUR'
+--     WHEN 5 THEN 'POS'
+--     ELSE CAST(machine_type AS TEXT)
+-- END as machine_type_name
+--
+-- Machine Type Codes:
+--   1 = CPAP (Continuous Positive Airway Pressure devices)
+--   2 = OXI (Oximetry devices)
+--   3 = SLEEP (Sleep stage tracking devices)
+--   4 = JOUR (Journal/diary entries)
+--   5 = POS (Body position sensors)
+--   Other = Display the number as-is
+
+-- ============================================
 -- PROFILES AND MACHINES
 -- ============================================
 
@@ -24,6 +47,14 @@ SELECT
     model_name,
     brand,
     machine_type,
+    CASE machine_type
+        WHEN 1 THEN 'CPAP'
+        WHEN 2 THEN 'OXI'
+        WHEN 3 THEN 'SLEEP'
+        WHEN 4 THEN 'JOUR'
+        WHEN 5 THEN 'POS'
+        ELSE CAST(machine_type AS TEXT)
+    END as machine_type_name,
     created_at
 FROM machines
 ORDER BY profile_id, created_at;
@@ -37,7 +68,14 @@ SELECT
     m.serial_number,
     m.model_name,
     m.brand,
-    m.machine_type,
+    CASE m.machine_type
+        WHEN 1 THEN 'CPAP'
+        WHEN 2 THEN 'OXI'
+        WHEN 3 THEN 'SLEEP'
+        WHEN 4 THEN 'JOUR'
+        WHEN 5 THEN 'POS'
+        ELSE CAST(m.machine_type AS TEXT)
+    END as machine_type,
     m.created_at as machine_added
 FROM profiles p
 LEFT JOIN machines m ON p.id = m.profile_id

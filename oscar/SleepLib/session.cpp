@@ -182,11 +182,17 @@ bool Session::Store(QString path)
     }
 
     //qDebug() << "Storing Session: " << base;
-    bool a;
+    bool a = true;
 
-    a = StoreSummary(); // if actually has events
+    // ===== SUMMARY FILE STORAGE DISABLED - NOW IN DATABASE =====
+    // .000 summary files are no longer saved - data is in database
+    // Uncomment this line to re-enable summary file storage:
+    //a = StoreSummary();
+    // ===== END SUMMARY FILE STORAGE =====
 
     //qDebug() << " Summary done";
+    
+    // Events and waveforms STILL saved to .001 files (too large for database)
     if (eventlist.size() > 0) {
         StoreEvents();
     } else { // who cares..
@@ -200,6 +206,12 @@ bool Session::Store(QString path)
     //} else {
     //    qDebug() << "Session::Store() No event data saved" << s_session;
     //}
+    
+    // Database-only storage
+    // This ensures sessions get into database as soon as machine has a database ID
+    if (s_machine->getDatabaseId() > 0) {
+        a = StoreToDatabase();  // Save to database only
+    }
 
     return a;
 }
@@ -410,6 +422,20 @@ bool Session::LoadSummary(bool debug)
 
     scLoad.restart();
     if (s_summary_loaded) return true;
+    
+    // Try loading from database first (Phase 1 - Database Integration)
+    // Skip database loading if machine doesn't have a database ID yet (during initial scan/rebuild)
+    if (s_machine->getDatabaseId() > 0) {
+        if (LoadFromDatabase()) {
+            qDebug() << "Session::LoadSummary() - Loaded session" << s_session << "from database";
+            return true;
+        }
+        qDebug() << "Session::LoadSummary() - Database load failed, falling back to file for session" << s_session;
+    }
+    
+    // Fall back to loading from file (or initial load if machine not in database yet)
+    // TESTING: Comment out the code below to force database-only loading
+    
     QString filename = s_machine->getSummariesPath() + toHexid(s_session) + ".000";
 
     scLoad.setMsg("Session::LoadSummary processing " + filename);
@@ -2511,14 +2537,34 @@ bool Session::StoreToDatabase()
             channel.wavg = m_wavg.value(id, 0);
             channel.min = m_min.value(id, 0);
             channel.max = m_max.value(id, 0);
-            channel.median = 0; // Would need to calculate
-            channel.p90 = 0;    // Would need to calculate
-            channel.p95 = 0;    // Would need to calculate
+            
+            // Calculate percentiles only if events are currently in memory
+            // Check if eventlist actually contains data for this channel
+            bool hasEventData = (eventlist.find(id) != eventlist.end()) && 
+                                !eventlist[id].isEmpty() && 
+                                eventlist[id][0]->count() > 0;
+            
+            if (hasEventData) {
+                channel.median = percentile(id, 0.5);  // 50th percentile
+                channel.p90 = percentile(id, 0.90);    // 90th percentile
+                channel.p95 = percentile(id, 0.95);    // 95th percentile
+            } else {
+                // Events not loaded or channel has no events - leave at 0
+                channel.median = 0;
+                channel.p90 = 0;
+                channel.p95 = 0;
+            }
+            
             channel.cph = m_cph.value(id, 0);
             channel.sph = m_sph.value(id, 0);
             channel.gain = m_gain.value(id, 1.0);
             channel.firstTime = m_firstchan.value(id, 0);
             channel.lastTime = m_lastchan.value(id, 0);
+            
+            // Physical min/max from cached values
+            channel.physMin = m_physmin.value(id, 0);
+            channel.physMax = m_physmax.value(id, 0);
+            
             channelsList.append(channel);
         }
         
@@ -2554,9 +2600,114 @@ bool Session::StoreToDatabase()
 
 bool Session::LoadFromDatabase()
 {
-    // TODO: Implement database loading
-    // For now, return false to use file loading
-    return false;
+    // Get machine's database ID
+    qint64 machineDbId = s_machine->getDatabaseId();
+    if (machineDbId == 0) {
+        qDebug() << "Session::LoadFromDatabase(): Machine not in database yet";
+        return false;
+    }
+    
+    SessionRepository sessionRepo;
+    SessionSettingsRepository settingsRepo;
+    SessionChannelsRepository channelsRepo;
+    SessionSlicesRepository slicesRepo;
+    SessionSummariesRepository summariesRepo;
+    
+    // 1. Find and load session record
+    SessionData sessionData = sessionRepo.findByMachineAndSessionId(machineDbId, s_session);
+    if (sessionData.id == 0) {
+        qDebug() << "Session::LoadFromDatabase(): Session" << s_session << "not found in database";
+        return false;
+    }
+    
+    // Store database ID for future updates
+    m_database_id = sessionData.id;
+    
+    // Load basic session data
+    s_first = sessionData.startTime;
+    s_last = sessionData.endTime;
+    s_enabled = sessionData.enabled;
+    s_summaryOnly = sessionData.summaryOnly;
+    s_noSettings = sessionData.noSettings;
+    
+    qDebug() << "Session::LoadFromDatabase(): Loading session" << s_session 
+             << "from database ID" << m_database_id;
+    
+    // 2. Load settings
+    QList<SessionSettingData> settingsList = settingsRepo.findBySession(m_database_id);
+    settings.clear();
+    for (const SessionSettingData& setting : settingsList) {
+        settings[setting.channelId] = setting.value;
+    }
+    
+    qDebug() << "Session::LoadFromDatabase(): Loaded" << settingsList.size() << "settings";
+    
+    // 3. Load channel statistics
+    QList<SessionChannelData> channelsList = channelsRepo.findBySession(m_database_id);
+    
+    // Clear existing channel data
+    m_cnt.clear();
+    m_sum.clear();
+    m_avg.clear();
+    m_wavg.clear();
+    m_min.clear();
+    m_max.clear();
+    m_cph.clear();
+    m_sph.clear();
+    m_gain.clear();
+    m_firstchan.clear();
+    m_lastchan.clear();
+    m_availableChannels.clear();
+    
+    // Populate channel data from database
+    for (const SessionChannelData& channel : channelsList) {
+        ChannelID id = channel.channelId;
+        m_availableChannels.push_back(id);
+        m_cnt[id] = channel.count;
+        m_sum[id] = channel.sum;
+        m_avg[id] = channel.avg;
+        m_wavg[id] = channel.wavg;
+        m_min[id] = channel.min;
+        m_max[id] = channel.max;
+        m_cph[id] = channel.cph;
+        m_sph[id] = channel.sph;
+        m_gain[id] = channel.gain;
+        m_firstchan[id] = channel.firstTime;
+        m_lastchan[id] = channel.lastTime;
+    }
+    
+    qDebug() << "Session::LoadFromDatabase(): Loaded" << channelsList.size() << "channels";
+    
+    // 4. Load slices
+    QList<SessionSliceData> slicesList = slicesRepo.findBySession(m_database_id);
+    m_slices.clear();
+    
+    for (const SessionSliceData& sliceData : slicesList) {
+        SessionSlice slice;
+        slice.start = sliceData.startTime;
+        slice.end = sliceData.endTime;
+        slice.status = (SliceStatus)sliceData.status;
+        m_slices.append(slice);
+    }
+    
+    qDebug() << "Session::LoadFromDatabase(): Loaded" << slicesList.size() << "slices";
+    
+    // 5. Load summary data (optional - contains computed values)
+    SessionSummaryData summaryData = summariesRepo.findBySession(m_database_id);
+    if (summaryData.id > 0) {
+        // Summary data is available - we could use it to pre-populate
+        // some calculated values, but for now we'll just log it
+        qDebug() << "Session::LoadFromDatabase(): Found summary data - AHI:" 
+                 << summaryData.ahi << "Hours:" << summaryData.hoursUsed;
+    }
+    
+    // Mark summary as loaded since we have the cached statistics
+    s_summary_loaded = true;
+    
+    qDebug() << "Session::LoadFromDatabase(): Successfully loaded session" << s_session 
+             << "from database";
+    
+    return true;
 }
 
 bool Session::StoreSummaryToDatabase()

@@ -1,7 +1,7 @@
 /* SleepLib Device Class Implementation
  *
  * Copyright (c) 2019-2025 The OSCAR Team
- * Copyright (c) 2011-2018 Mark Watkins 
+ * Copyright (c) 2011-2018 Mark Watkins
  *
  * This file is subject to the terms and conditions of the GNU General Public
  * License. See the file COPYING in the main directory of the source code
@@ -95,7 +95,7 @@ Machine::Machine(Profile *_profile, MachineID id) : profile(_profile)
     highest_sessionid = 0;
     m_suppressUntestedWarning = false;
     m_database_id = 0;  // Initialize database ID to 0 (not in database)
-    
+
     // TODO: Have the device write m_suppressUntestedWarning and m_previousUnexpected
     // to XML (along with the current OSCAR version number) so that they persist across
     // application launches (but reset with each new OSCAR version).
@@ -949,7 +949,7 @@ bool Machine::LoadSummary(ProgressDialog * progress)
 #else
     auto result = doc.setContent(uncompressed) ;
     if (!result) {
-        qWarning() << "Invalid XML Content in" << filename 
+        qWarning() << "Invalid XML Content in" << filename
                    << "at line:" << result.errorLine << ", column: " <<  result.errorColumn
                    << ":" << result.errorMessage;
         file.close();
@@ -1197,7 +1197,7 @@ bool Machine::Save()
     if (!dir.exists()) {
         dir.mkdir(path);
     }
-    
+
     // IMPORTANT: Save machine to database FIRST so it has a database ID
     // This must happen before sessions are saved
     if (m_database_id == 0) {
@@ -1218,7 +1218,7 @@ bool Machine::Save()
     }
 
     runTasks();
-    
+
     // NOW save all sessions to database (machine now has a database ID)
     if (m_database_id > 0) {
         qDebug() << "Machine::Save(): Saving" << sessionlist.size() << "sessions to database";
@@ -1274,22 +1274,22 @@ bool Machine::SaveToDatabase()
         qDebug() << "Machine::SaveToDatabase(): Machine already in database with ID" << m_database_id;
         return true;  // Already saved
     }
-    
+
     if (info.serial.isEmpty() && info.model.isEmpty()) {
         qDebug() << "Machine::SaveToDatabase(): Cannot save machine without serial or model";
         return false;
     }
-    
+
     MachineRepository repo;
     ProfileRepository profileRepo;
-    
+
     // Get the profile ID for this machine's profile
     ProfileData profileData = profileRepo.findByUsername(profile->user->userName());
     if (profileData.id == 0) {
         qWarning() << "Machine::SaveToDatabase(): Profile not in database yet";
         return false;
     }
-    
+
     // Check if this machine already exists in THIS PROFILE's database
     // IMPORTANT: We check by profile_id AND machine_id (OSCAR's internal ID)
     // NOT by serial number, since the same device could be used by different profiles
@@ -1297,15 +1297,15 @@ bool Machine::SaveToDatabase()
     if (existing.id > 0) {
         // Machine already exists in this profile, reuse the existing ID
         m_database_id = existing.id;
-        qDebug() << "Machine::SaveToDatabase(): Found existing machine" 
-                 << info.serial << "in profile" << profile->user->userName() 
+        qDebug() << "Machine::SaveToDatabase(): Found existing machine"
+                 << info.serial << "in profile" << profile->user->userName()
                  << "with ID" << m_database_id;
         return true;
     }
-    
+
     // No existing machine found, create a new one
     MachineData data;
-    
+
     // Use the actual profile ID we just looked up
     data.profileId = profileData.id;
     data.machineId = m_id;  // OSCAR's internal machine ID
@@ -1317,19 +1317,19 @@ bool Machine::SaveToDatabase()
     data.series = info.series;
     data.loaderName = info.loadername;
     data.lastImported = info.lastimported.toString(Qt::ISODate);
-    
+
     // Store capabilities in properties field (JSON format)
     data.properties = QString("{\"capabilities\":%1}").arg(info.cap);
-    
+
     qint64 newId = repo.create(data);
     if (newId < 0) {
         qWarning() << "Machine::SaveToDatabase(): Failed to save machine to database";
         return false;
     }
-    
+
     m_database_id = newId;
     qDebug() << "Machine::SaveToDatabase(): Saved machine" << info.serial << "to database with ID" << m_database_id;
-    
+
     return true;
 }
 
