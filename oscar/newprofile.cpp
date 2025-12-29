@@ -104,12 +104,10 @@ NewProfile::NewProfile(QWidget *parent, const QString *user) :
             QTimeZone tz(tzId);
             QDateTime now = QDateTime::currentDateTime();
 
-            QString abbr = tz.abbreviation(now);
-
             // Display format: "America/New_York (EST, UTC-05:00)"
             QString displayText = QString("%1 (%2, UTC%3)")
                                       .arg(QString::fromLatin1(tzId))
-                                      .arg(abbr)
+                                      .arg(tz.abbreviation(now))
                                       .arg(tz.offsetFromUtc(now) / 3600.0, 0, 'f', 2);
 
             ui->timezoneCombo->addItem(displayText, tzId);

@@ -2803,7 +2803,7 @@ bool Session::StoreSummaryToDatabase()
     bool success = repo.createOrUpdate(data);
     
     if (success) {
-        qDebug() << "Session::StoreSummaryToDatabase() - Saved summary for session" << s_session 
+        qDebug() << "Session::StoreSummaryToDatabase() - Saved or updated summary for session" << s_session
                  << "AHI:" << data.ahi << "hours:" << data.hoursUsed;
     } else {
         qWarning() << "Session::StoreSummaryToDatabase() - Failed to save summary for session" << s_session;
