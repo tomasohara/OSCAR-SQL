@@ -304,6 +304,7 @@ int MigrationManager::migrateAllProfiles(const QString& profilesPath)
  */
 qint64 MigrationManager::getOrCreateProfile(const QString& profilePath, const QString& username)
 {
+    Q_UNUSED(profilePath)
     // Check if profile already exists
     ProfileData existing = m_profileRepo->findByUsername(username);
     if (existing.id > 0) {

@@ -459,6 +459,7 @@ int DailySummaryRepository::countDays(qint64 profileId, const QDate& startDate, 
 
 QString DailySummaryRepository::generateSessionsHash(qint64 profileId, const QDate& date)
 {
+    Q_UNUSED(profileId)
     // Generate a hash based on date for basic cache invalidation
     QCryptographicHash hash(QCryptographicHash::Md5);
     hash.addData(date.toString(Qt::ISODate).toUtf8());

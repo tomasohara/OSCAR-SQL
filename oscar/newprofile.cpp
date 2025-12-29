@@ -104,14 +104,7 @@ NewProfile::NewProfile(QWidget *parent, const QString *user) :
             QTimeZone tz(tzId);
             QDateTime now = QDateTime::currentDateTime();
 
-            // Get abbreviation - handle both Qt5 (QByteArray) and Qt6 (QString)
-            QString abbr;
-            auto abbreviation = tz.abbreviation(now);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            abbr = abbreviation;
-#else
-            abbr = QString::fromLatin1(abbreviation);
-#endif
+            QString abbr = tz.abbreviation(now);
 
             // Display format: "America/New_York (EST, UTC-05:00)"
             QString displayText = QString("%1 (%2, UTC%3)")
