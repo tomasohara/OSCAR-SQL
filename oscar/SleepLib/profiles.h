@@ -103,6 +103,9 @@ class Profile : public Preferences
     //! \brief Unloads all device (summary) data for this profile to free up memory;
     void UnloadMachineData();
 
+    //! \brief Calculate and store daily summaries for all loaded days
+    void calculateDailySummaries();
+
     //! \brief Barf because data format has changed. This does a purge of CPAP data for machine *m
     void DataFormatError(Machine *m);
 
@@ -237,6 +240,13 @@ class Profile : public Preferences
     void loadChannels();
     void saveChannels();
     void resetOxiChannelPref();
+    
+    // Database integration for channels
+    bool loadChannelsFromDatabase();
+    bool saveChannelsToDatabase();
+    void loadChannelsFromDat();  // Original file-based implementation
+    void saveChannelsToDat();    // Original file-based implementation
+    bool migrateChannelsToDatabase();  // One-time migration from channels.dat to database
 
 
     bool is_first_day;

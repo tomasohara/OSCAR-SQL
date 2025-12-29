@@ -188,7 +188,12 @@ bool Preferences::Open(QString filename)
 
     if (!file.open(QIODevice::ReadOnly)) {
 //        qWarning() << "Could not open" << p_filename.toLocal8Bit().data() << " Error: " << file.error();
-        qWarning() << "Could not open preferences file for reading, error code" << file.error() << file.errorString();
+        if (file.error() == 5) {
+            qDebug() << "Preferences file not found -- normal on first use of OSCAR";
+        }
+        else {
+            qWarning() << "Could not open preferences file for reading, error code" << file.error() << file.errorString();
+        }
         return false;
     }
 

@@ -40,6 +40,9 @@
 #include "../database/user_info_repository.h"
 #include "../database/doctor_info_repository.h"
 #include "../database/preferences_repository.h"
+#include "../database/channel_repository.h"
+#include "../database/channel_options_repository.h"
+#include "../database/daily_summary_repository.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -281,6 +284,28 @@ bool Profile::loadMachinesFromDatabase()
             // Set the database ID so sessions can reference it
             m->setDatabaseId(data.id);
             
+            // IMPORTANT: If database has version 0, get correct version from loader
+            int correctVersion = data.dataVersion;
+            if (correctVersion == 0) {
+                MachineLoader* loader = GetLoader(data.loaderName);
+                if (loader) {
+                    correctVersion = loader->Version();
+                    qDebug() << "Profile: Database has version 0 for" << data.loaderName 
+                             << ", updating to loader version" << correctVersion;
+                    
+                    // Update database with correct version
+                    MachineData updatedData = data;
+                    updatedData.dataVersion = correctVersion;
+                    machineRepo.update(updatedData);
+                }
+            }
+            
+            // Ensure in-memory version matches what it should be
+            if (m->version() != correctVersion) {
+                qDebug() << "Profile: Correcting machine version from" << m->version() << "to" << correctVersion;
+                m->info.version = correctVersion;
+            }
+            
             if (!data.properties.isEmpty()) {
                 // Properties already set via info.properties
             }
@@ -455,6 +480,8 @@ bool Profile::storeMachinesToDatabase()
             if (loader) {
                 machineVersion = loader->Version();
                 qDebug() << "Profile: Setting" << m->loaderName() << "version from loader:" << machineVersion;
+                // IMPORTANT: Also update the machine object's version to prevent rebuild prompts
+                m->info.version = machineVersion;
             }
         }
         machineData.dataVersion = machineVersion;
@@ -885,6 +912,10 @@ void Profile::LoadMachineData(ProgressDialog *progress)
     }
     progress->setMessage("Loading Channel Information");
     loadChannels();
+    
+    // Calculate daily summaries for fast reporting
+    progress->setMessage("Calculating Daily Summaries");
+    calculateDailySummaries();
 }
 
 void Profile::removeMachine(Machine * mach)
@@ -1285,8 +1316,10 @@ Profile *Create(QString name, const QString* in_path)
 
     p_profile->Save();
 
-    // Save to database (we already checked it doesn't exist above)
-    if (existing.id == 0) {
+    // Check again after Save() - Profile::Save() may have already created it in database
+    ProfileData checkAgain = profileRepo.findByUsername(name);
+    if (checkAgain.id == 0) {
+        // Profile::Save() didn't create it, so we create it here
         ProfileData newProfile;
         newProfile.username = name;
         newProfile.dataFolder = QString("%PROFDIR%/") + name;  // Portable path
@@ -2340,12 +2373,22 @@ bool Profile::hasChannel(ChannelID code)
 }
 
 const quint16 chandata_version = 1;
+
+// New wrapper method - tries database first, keeps file as backup
 void Profile::saveChannels()
 {
-    // First save the XML version for Mobile versions
-    // Profile/User/chanels.xml is not read so it does not need to be saved
-    // schema::channel.Save(Get("{DataFolder}/") + "channels.xml");
+    // Try database first
+    if (saveChannelsToDatabase()) {
+        qDebug() << "Profile: Channels saved to database";
+    }
+    
+    // Keep file backup during migration period
+    saveChannelsToDat();
+}
 
+// Original file-based implementation
+void Profile::saveChannelsToDat()
+{
     QString filename = Get("{DataFolder}/") + "channels.dat";
     QFile f(filename);
     qDebug() << "Saving Channel States";
@@ -2383,7 +2426,189 @@ void Profile::saveChannels()
 
 }
 
+// New database implementation
+bool Profile::saveChannelsToDatabase()
+{
+    ProfileRepository profileRepo;
+    ProfileData profileData = profileRepo.findByUsername(user->userName());
+    
+    if (profileData.id == 0) {
+        qWarning() << "Profile: Cannot save channels, profile not in database";
+        return false;
+    }
+    
+    ChannelRepository channelRepo;
+    ChannelOptionsRepository optionsRepo;
+    
+    QList<ChannelData> channels;
+    
+    // Convert schema::channel to ChannelData
+    for (auto it = schema::channel.channels.begin(); 
+         it != schema::channel.channels.end(); ++it) {
+        schema::Channel* chan = it.value();
+        
+        ChannelData data;
+        data.profileId = profileData.id;
+        data.channelId = chan->id();
+        data.channelCode = chan->code();
+        data.enabled = chan->enabled();
+        data.defaultColor = chan->defaultColor();
+        data.fullname = chan->fullname();
+        data.label = chan->label();
+        data.description = chan->description();
+        data.lowerThreshold = chan->lowerThreshold();
+        data.lowerThresholdColor = chan->lowerThresholdColor();
+        data.upperThreshold = chan->upperThreshold();
+        data.upperThresholdColor = chan->upperThresholdColor();
+        data.showInOverview = chan->showInOverview();
+        
+        channels.append(data);
+        
+        // Save channel options if present
+        if (!chan->m_options.isEmpty()) {
+            optionsRepo.saveBatch(chan->id(), chan->m_options);
+        }
+    }
+    
+    return channelRepo.saveBatch(profileData.id, channels);
+}
+
+// New database implementation
+bool Profile::loadChannelsFromDatabase()
+{
+    ProfileRepository profileRepo;
+    ProfileData profileData = profileRepo.findByUsername(user->userName());
+    
+    if (profileData.id == 0) {
+        return false;
+    }
+    
+    ChannelRepository channelRepo;
+    ChannelOptionsRepository optionsRepo;
+    
+    QList<ChannelData> channels = channelRepo.findByProfile(profileData.id);
+    
+    if (channels.isEmpty()) {
+        return false;  // No channels in database yet
+    }
+    
+    qDebug() << "Profile: Loading" << channels.size() << "channels from database";
+    
+    // Detect language changes
+    bool changing_language = false;
+    QSettings settings;
+    QString language = Get(STR_PREF_Language);
+    if (settings.value(LangSetting, "").toString() != language) {
+        qDebug() << "Language change detected, using default channel names";
+        changing_language = true;
+    }
+    
+    // Apply channel data from database
+    for (const ChannelData& data : channels) {
+        schema::Channel* chan = &schema::channel[data.channelId];
+        
+        if (chan->isNull()) {
+            // Try lookup by name
+            chan = &schema::channel[data.channelCode];
+            if (chan->isNull()) {
+                qDebug() << "Unknown channel:" << data.channelCode;
+                continue;
+            }
+        }
+        
+        chan->setEnabled(data.enabled);
+        chan->setDefaultColor(data.defaultColor);
+        
+        if (!changing_language) {
+            chan->setFullname(data.fullname);
+            chan->setLabel(data.label);
+            chan->setDescription(data.description);
+        }
+        
+        chan->setLowerThreshold(data.lowerThreshold);
+        chan->setLowerThresholdColor(data.lowerThresholdColor);
+        chan->setUpperThreshold(data.upperThreshold);
+        chan->setUpperThresholdColor(data.upperThresholdColor);
+        chan->setShowInOverview(data.showInOverview);
+        
+        // Load channel options
+        if (optionsRepo.hasOptions(data.channelId)) {
+            chan->m_options = optionsRepo.getOptionsHash(data.channelId);
+        }
+    }
+    
+    return true;
+}
+
+// One-time migration from channels.dat to database
+bool Profile::migrateChannelsToDatabase()
+{
+    ProfileRepository profileRepo;
+    ProfileData profileData = profileRepo.findByUsername(user->userName());
+    
+    if (profileData.id == 0) {
+        qDebug() << "Profile: Cannot migrate channels, profile not in database yet";
+        return false;
+    }
+    
+    // Check if channels table already has data for this profile
+    ChannelRepository channelRepo;
+    QList<ChannelData> existing = channelRepo.findByProfile(profileData.id);
+    
+    if (!existing.isEmpty()) {
+        qDebug() << "Profile: Channels already migrated to database (" << existing.size() << "channels found), skipping migration";
+        return false;  // Already migrated
+    }
+    
+    // Check if channels.dat file exists
+    QString filename = Get("{DataFolder}/") + "channels.dat";
+    QFile f(filename);
+    if (!f.exists()) {
+        qDebug() << "Profile: No channels.dat file to migrate";
+        return false;
+    }
+    
+    qDebug() << "Profile: Migrating channels from channels.dat to database...";
+    
+    // Load from file
+    loadChannelsFromDat();
+    
+    // Save to database
+    if (saveChannelsToDatabase()) {
+        qDebug() << "Profile: Successfully migrated channels to database";
+        return true;
+    } else {
+        qWarning() << "Profile: Failed to migrate channels to database";
+        return false;
+    }
+}
+
+// New wrapper - tries database first, falls back to file, handles migration
 void Profile::loadChannels()
+{
+    // Try database first
+    if (loadChannelsFromDatabase()) {
+        qDebug() << "Profile: Channels loaded from database";
+        resetOxiChannelPref();
+        return;
+    }
+    
+    // Database doesn't have data - try one-time migration from file
+    qDebug() << "Profile: No channels in database, attempting migration from channels.dat";
+    if (migrateChannelsToDatabase()) {
+        qDebug() << "Profile: Migration complete, channels now in database";
+        resetOxiChannelPref();
+        return;
+    }
+    
+    // Migration failed or no file - fall back to loading from file
+    qDebug() << "Profile: Loading channels from channels.dat (no migration)";
+    loadChannelsFromDat();
+    resetOxiChannelPref();
+}
+
+// Original file-based implementation
+void Profile::loadChannelsFromDat()
 {
     bool changing_language = false;
 
@@ -2487,6 +2712,56 @@ void Profile::resetOxiChannelPref() {
     schema::channel[OXI_Pulse].setUpperThreshold(oxi->flagPulseAbove());
     schema::channel[OXI_SPO2].setLowerThreshold(oxi->oxiDesaturationThreshold());
 };
+
+// Calculate and store daily summaries for all loaded days
+void Profile::calculateDailySummaries()
+{
+    ProfileRepository profileRepo;
+    ProfileData profileData = profileRepo.findByUsername(user->userName());
+    
+    if (profileData.id == 0) {
+        qWarning() << "Profile::calculateDailySummaries() - Profile not in database";
+        return;
+    }
+    
+    qint64 profileId = profileData.id;
+    DailySummaryRepository summaryRepo;
+    
+    int calculatedCount = 0;
+    int totalDays = 0;
+    
+    qDebug() << "Profile::calculateDailySummaries() - Scanning machines for days...";
+    
+    // Iterate through all machines and their days
+    for (Machine* mach : m_machlist) {
+        if (!mach || mach->type() != MT_CPAP) {
+            continue;  // Only process CPAP machines
+        }
+        
+        qDebug() << "Profile::calculateDailySummaries() - Processing machine" << mach->brand() << mach->model() 
+                 << "with" << mach->day.size() << "days";
+        
+        // Get machine's database ID
+        qint64 machineId = mach->getDatabaseId();
+        
+        // Iterate through machine's days
+        for (auto it = mach->day.begin(); it != mach->day.end(); ++it) {
+            Day* day = it.value();
+            totalDays++;
+            
+            if (!day || !day->hasEnabledSessions()) {
+                continue;  // Skip days without enabled sessions
+            }
+            
+            // Calculate and store this day's summary
+            if (summaryRepo.calculateAndStoreFromDay(day, profileId, machineId)) {
+                calculatedCount++;
+            }
+        }
+    }
+    
+    qDebug() << "Profile::calculateDailySummaries() - Calculated" << calculatedCount << "days out of" << totalDays << "total days";
+}
 
 // Database integration: Save extended profile data
 bool Profile::saveExtendedDataToDatabase()

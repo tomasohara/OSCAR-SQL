@@ -1380,7 +1380,7 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
             }
             if ( ! validday) {
                 // There are no mask on/off events, so this STR day is useless.
-                qDebug() << "Skipping" << date.toString() << "o mask events";
+                qDebug() << "Skipping" << date.toString() << "no mask events";
                 continue;
             }
 

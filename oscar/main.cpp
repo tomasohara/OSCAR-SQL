@@ -696,7 +696,7 @@ int main(int argc, char *argv[]) {
             int count = migrator.migrateAllProfiles(profilesPath);
             qDebug() << "Auto-migrated" << count << "profiles to database";
         } else {
-            qWarning() << "Database initialization failed!";
+            qDebug() << "No Profiles directory found - normal on first use of OSCAR";
         }
     }
 

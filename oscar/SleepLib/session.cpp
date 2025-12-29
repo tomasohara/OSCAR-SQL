@@ -427,10 +427,10 @@ bool Session::LoadSummary(bool debug)
     // Skip database loading if machine doesn't have a database ID yet (during initial scan/rebuild)
     if (s_machine->getDatabaseId() > 0) {
         if (LoadFromDatabase()) {
-            qDebug() << "Session::LoadSummary() - Loaded session" << s_session << "from database";
+            qDebug() << "Session::LoadSummary() - Loaded summary ession" << s_session << "from database";
             return true;
         }
-        qDebug() << "Session::LoadSummary() - Database load failed, falling back to file for session" << s_session;
+        qWarning() << "Session::LoadSummary() - Database load failed, falling back to file for session" << s_session;
     }
     
     // Fall back to loading from file (or initial load if machine not in database yet)

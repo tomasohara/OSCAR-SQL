@@ -91,6 +91,23 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
+    // Channel tables (schema version 5)
+    if (!createChannelsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create channels table";
+        return false;
+    }
+
+    if (!createChannelOptionsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create channel_options table";
+        return false;
+    }
+
+    // Daily summaries table (schema version 6)
+    if (!createDailySummariesTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create daily_summaries table";
+        return false;
+    }
+
     // Create indexes
     if (!createIndexes(db)) {
         qCritical() << "DatabaseSchema: Failed to create indexes";
@@ -221,6 +238,59 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         }
         
         qDebug() << "DatabaseSchema: Successfully upgraded to version 4";
+    }
+    
+    // Upgrade from version 4 to version 5: Add channels tables
+    if (fromVersion < 5) {
+        qDebug() << "DatabaseSchema: Applying version 5 upgrade (channels tables)";
+        
+        if (!createChannelsTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create channels table during upgrade";
+            return false;
+        }
+
+        if (!createChannelOptionsTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create channel_options table during upgrade";
+            return false;
+        }
+        
+        // Recreate indexes to include new channels indexes
+        if (!createIndexes(db)) {
+            qCritical() << "DatabaseSchema: Failed to create indexes during upgrade";
+            return false;
+        }
+        
+        // Update schema version
+        if (!setSchemaVersion(db, 5)) {
+            qCritical() << "DatabaseSchema: Failed to update schema version to 5";
+            return false;
+        }
+        
+        qDebug() << "DatabaseSchema: Successfully upgraded to version 5";
+    }
+    
+    // Upgrade from version 5 to version 6: Add daily_summaries table
+    if (fromVersion < 6) {
+        qDebug() << "DatabaseSchema: Applying version 6 upgrade (daily summaries table)";
+        
+        if (!createDailySummariesTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create daily_summaries table during upgrade";
+            return false;
+        }
+        
+        // Recreate indexes to include new daily_summaries indexes
+        if (!createIndexes(db)) {
+            qCritical() << "DatabaseSchema: Failed to create indexes during upgrade";
+            return false;
+        }
+        
+        // Update schema version
+        if (!setSchemaVersion(db, 6)) {
+            qCritical() << "DatabaseSchema: Failed to update schema version to 6";
+            return false;
+        }
+        
+        qDebug() << "DatabaseSchema: Successfully upgraded to version 6";
     }
     
     return true;
@@ -396,6 +466,21 @@ bool DatabaseSchema::createIndexes(QSqlDatabase& db)
     
     indexes << "CREATE INDEX IF NOT EXISTS idx_session_slices_session ON session_slices(session_id)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_session_slices_time ON session_slices(start_time, end_time)";
+
+    // Channels indexes (schema version 5)
+    indexes << "CREATE INDEX IF NOT EXISTS idx_channels_profile ON channels(profile_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_channels_code ON channels(channel_code)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_channels_lookup ON channels(profile_id, channel_id)";
+    
+    indexes << "CREATE INDEX IF NOT EXISTS idx_channel_options_channel ON channel_options(channel_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_channel_options_lookup ON channel_options(channel_id, option_key)";
+
+    // Daily summaries indexes (schema version 6)
+    indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_profile_date ON daily_summaries(profile_id, date)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_profile_machine ON daily_summaries(profile_id, machine_id, date)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_ahi ON daily_summaries(ahi)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_compliance ON daily_summaries(profile_id, is_compliant)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_date_range ON daily_summaries(profile_id, date DESC)";
 
     // Execute each index creation
     for (const QString& sql : indexes) {
@@ -817,5 +902,160 @@ bool DatabaseSchema::createSessionSlicesTable(QSqlDatabase& db)
     }
 
     qDebug() << "DatabaseSchema: session_slices table created";
+    return true;
+}
+
+/*
+ * Create the channels table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The channels table stores per-profile channel customizations
+ * (enabled state, colors, labels, thresholds, etc.)
+ */
+bool DatabaseSchema::createChannelsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS channels ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    profile_id INTEGER NOT NULL,"
+        "    channel_id INTEGER NOT NULL,"
+        "    channel_code TEXT NOT NULL,"
+        "    enabled INTEGER NOT NULL DEFAULT 1,"
+        "    default_color TEXT,"
+        "    fullname TEXT,"
+        "    label TEXT,"
+        "    description TEXT,"
+        "    lower_threshold REAL,"
+        "    lower_threshold_color TEXT,"
+        "    upper_threshold REAL,"
+        "    upper_threshold_color TEXT,"
+        "    show_in_overview INTEGER DEFAULT 0,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,"
+        "    UNIQUE(profile_id, channel_id)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create channels table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: channels table created";
+    return true;
+}
+
+/*
+ * Create the channel_options table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The channel_options table stores lookup values for LOOKUP-type channels
+ * (e.g., CPAP_Mode: 0="CPAP", 1="APAP", 2="Bi-Level")
+ */
+bool DatabaseSchema::createChannelOptionsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS channel_options ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    channel_id INTEGER NOT NULL,"
+        "    option_key INTEGER NOT NULL,"
+        "    option_value TEXT NOT NULL,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    UNIQUE(channel_id, option_key)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create channel_options table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: channel_options table created";
+    return true;
+}
+
+/*
+ * Create the daily_summaries table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The daily_summaries table stores cached daily aggregate statistics
+ * for fast report generation without loading individual sessions.
+ */
+bool DatabaseSchema::createDailySummariesTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS daily_summaries ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    profile_id INTEGER NOT NULL,"
+        "    date TEXT NOT NULL,"
+        "    machine_id INTEGER,"
+        "    "
+        "    session_count INTEGER DEFAULT 0,"
+        "    enabled_session_count INTEGER DEFAULT 0,"
+        "    "
+        "    total_hours REAL DEFAULT 0,"
+        "    mask_on_hours REAL DEFAULT 0,"
+        "    "
+        "    ahi REAL DEFAULT 0,"
+        "    rdi REAL DEFAULT 0,"
+        "    obstructive_count INTEGER DEFAULT 0,"
+        "    central_count INTEGER DEFAULT 0,"
+        "    hypopnea_count INTEGER DEFAULT 0,"
+        "    rera_count INTEGER DEFAULT 0,"
+        "    clear_airway_count INTEGER DEFAULT 0,"
+        "    "
+        "    pressure_avg REAL,"
+        "    pressure_min REAL,"
+        "    pressure_max REAL,"
+        "    pressure_95th REAL,"
+        "    "
+        "    leak_total_avg REAL,"
+        "    leak_total_95th REAL,"
+        "    leak_total_max REAL,"
+        "    leak_unintentional_avg REAL,"
+        "    "
+        "    spo2_avg REAL,"
+        "    spo2_min REAL,"
+        "    pulse_avg REAL,"
+        "    pulse_min REAL,"
+        "    pulse_max REAL,"
+        "    "
+        "    is_compliant INTEGER DEFAULT 0,"
+        "    has_oximetry INTEGER DEFAULT 0,"
+        "    "
+        "    calculated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    sessions_hash TEXT,"
+        "    "
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,"
+        "    FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE SET NULL,"
+        "    UNIQUE(profile_id, date, machine_id)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create daily_summaries table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: daily_summaries table created";
     return true;
 }

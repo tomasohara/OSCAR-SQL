@@ -416,7 +416,10 @@ SOURCES += \
     database/session_settings_repository.cpp \
     database/session_channels_repository.cpp \
     database/session_slices_repository.cpp \
-    database/session_summaries_repository.cpp
+    database/session_summaries_repository.cpp \
+    database/channel_repository.cpp \
+    database/channel_options_repository.cpp \
+    database/daily_summary_repository.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -549,7 +552,10 @@ HEADERS  += \
     database/session_settings_repository.h \
     database/session_channels_repository.h \
     database/session_slices_repository.h \
-    database/session_summaries_repository.h
+    database/session_summaries_repository.h \
+    database/channel_repository.h \
+    database/channel_options_repository.h \
+    database/daily_summary_repository.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }

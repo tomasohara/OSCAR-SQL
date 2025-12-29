@@ -36,7 +36,7 @@ public:
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
      */
-    static const int CURRENT_SCHEMA_VERSION = 4;
+    static const int CURRENT_SCHEMA_VERSION = 6;
 
     /*!
      * \brief Create the complete database schema
@@ -82,6 +82,13 @@ private:
     static bool createRespiratoryEventsTable(QSqlDatabase& db);
     static bool createSessionSummariesTable(QSqlDatabase& db);
     static bool createSessionSlicesTable(QSqlDatabase& db);
+    
+    // Channel tables (schema version 5)
+    static bool createChannelsTable(QSqlDatabase& db);
+    static bool createChannelOptionsTable(QSqlDatabase& db);
+    
+    // Daily summaries table (schema version 6)
+    static bool createDailySummariesTable(QSqlDatabase& db);
     
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);
