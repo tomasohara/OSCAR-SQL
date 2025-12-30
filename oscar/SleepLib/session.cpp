@@ -717,6 +717,7 @@ const quint16 compress_method = 1;
 
 bool Session::StoreEvents()
 {
+#ifdef SAVE_EVENTS
     QString path = s_machine->getEventsPath();
     QDir dir;
     dir.mkpath(path);
@@ -856,6 +857,7 @@ bool Session::StoreEvents()
     file.write(headerbytes);
     file.write(data);
     file.close();
+#endif
     return true;
 }
 
@@ -2273,61 +2275,71 @@ bool sortfunction(EventStoreType i, EventStoreType j) { return (i < j); }
 
 EventDataType Session::percentile(ChannelID id, EventDataType percent)
 {
-    QHash<ChannelID, QVector<EventList *> >::iterator jj = eventlist.find(id);
+    // Find the event lists for this channel
+    QHash<ChannelID, QVector<EventList *> >::iterator eventListIterator = eventlist.find(id);
 
-    if (jj == eventlist.end()) {
+    if (eventListIterator == eventlist.end()) {
         return 0;
     }
 
-    QVector<EventList *> &evec = jj.value();
+    QVector<EventList *> &eventLists = eventListIterator.value();
 
     if (percent > 1.0) {
         qWarning() << "Session::percentile() called with > 1.0";
         return 0;
     }
 
-    int evec_size = evec.size();
+    int eventListCount = eventLists.size();
 
-    if (evec_size == 0) {
+    if (eventListCount == 0) {
         return 0;
     }
 
-    QVector<EventStoreType> array;
+    QVector<EventStoreType> combinedData;
 
-    EventDataType gain = evec[0]->gain();
+    EventDataType gain = eventLists[0]->gain();
 
-    EventStoreType *dptr, * sptr, *eptr;
+    EventStoreType *arrayPtr, *sourcePtr, *sourceEndPtr;
 
-    int tt = 0, cnt = 0;
+    int totalSampleCount = 0;
+    int currentCount = 0;
 
-    for (int i = 0; i < evec_size; ++i) {
-        EventList &ev = *evec[i];
-        cnt = ev.count();
-        tt += cnt;
+    // First pass: calculate total number of samples across all event lists
+    for (int i = 0; i < eventListCount; ++i) {
+        EventList &eventList = *eventLists[i];
+        currentCount = eventList.count();
+        totalSampleCount += currentCount;
     }
 
-    array.resize(tt);
+    combinedData.resize(totalSampleCount);
 
-    for (int i = 0; i < evec_size; ++i) {
-        EventList &ev = *evec[i];
-        sptr = ev.rawData();
-        dptr = array.data();
+    // Second pass: copy all data into the combined array
+    for (int i = 0; i < eventListCount; ++i) {
+        EventList &eventList = *eventLists[i];
+        sourcePtr = eventList.rawData();
+        arrayPtr = combinedData.data();
 
-        eptr = sptr + cnt;
+        currentCount = eventList.count();  // Get count for THIS EventList (bug fix)
+        sourceEndPtr = sourcePtr + currentCount;
 
-        for (; sptr < eptr; sptr++) {
-            *dptr++ = * sptr;
+        for (; sourcePtr < sourceEndPtr; sourcePtr++) {
+            *arrayPtr++ = *sourcePtr;
         }
     }
 
-    int n = array.size() * percent;
+    // Calculate the index for the requested percentile
+    int percentileIndex = combinedData.size() * percent;
 
-    if (n > array.size() - 1) { n--; }
+    if (percentileIndex > combinedData.size() - 1) { 
+        percentileIndex--; 
+    }
 
-    nth_element(array.begin(), array.begin() + n, array.end());
+    // Use partial sort to find the nth element efficiently
+    nth_element(combinedData.begin(), combinedData.begin() + percentileIndex, combinedData.end());
 
-    // slack, no averaging.. fixme if this function is ever used..
-    return array[n] * gain;
+    // Note: This is a simple implementation without averaging adjacent values
+    // Could be improved to average the surrounding values for more accuracy
+    return combinedData[percentileIndex] * gain;
 }
 
 EventDataType Session::wavg(ChannelID id)
