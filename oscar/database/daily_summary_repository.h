@@ -1,5 +1,4 @@
-/* Daily Summary Repository Header
- *
+/* Daily Summary Repository Header*
  * Copyright (c) 2025 The OSCAR Team
  *
  * This file is subject to the terms and conditions of the GNU General Public

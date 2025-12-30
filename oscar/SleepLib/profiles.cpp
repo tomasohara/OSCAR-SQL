@@ -2741,9 +2741,6 @@ void Profile::calculateDailySummaries()
         qDebug() << "Profile::calculateDailySummaries() - Processing machine" << mach->brand() << mach->model() 
                  << "with" << mach->day.size() << "days";
         
-        // Get machine's database ID
-        qint64 machineId = mach->getDatabaseId();
-        
         // Iterate through machine's days
         for (auto it = mach->day.begin(); it != mach->day.end(); ++it) {
             Day* day = it.value();
@@ -2753,8 +2750,10 @@ void Profile::calculateDailySummaries()
                 continue;  // Skip days without enabled sessions
             }
             
-            // Calculate and store this day's summary
-            if (summaryRepo.calculateAndStoreFromDay(day, profileId, machineId)) {
+            // Calculate and store combined daily summary (machineId = 0)
+            // This ensures successive imports update the same daily summary entry
+            // rather than creating separate entries per machine
+            if (summaryRepo.calculateAndStoreFromDay(day, profileId, 0)) {
                 calculatedCount++;
             }
         }

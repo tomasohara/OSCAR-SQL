@@ -2503,7 +2503,7 @@ bool Session::StoreToDatabase()
     sessionData.enabled = s_enabled;
     sessionData.summaryOnly = s_summaryOnly;
     sessionData.noSettings = s_noSettings;
-    sessionData.summaryFile = toHexid(s_session) + ".000";
+    sessionData.summaryFile = "";  // No longer using .000 summary files - data is in database
     sessionData.eventsFile = toHexid(s_session) + ".001";
     
     if (m_database_id == 0) {
