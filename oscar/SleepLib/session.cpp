@@ -717,7 +717,6 @@ const quint16 compress_method = 1;
 
 bool Session::StoreEvents()
 {
-#ifdef SAVE_EVENTS
     QString path = s_machine->getEventsPath();
     QDir dir;
     dir.mkpath(path);
@@ -857,7 +856,6 @@ bool Session::StoreEvents()
     file.write(headerbytes);
     file.write(data);
     file.close();
-#endif
     return true;
 }
 
@@ -2314,14 +2312,16 @@ EventDataType Session::percentile(ChannelID id, EventDataType percent)
     combinedData.resize(totalSampleCount);
 
     // Second pass: copy all data into the combined array
+    arrayPtr = combinedData.data();  // Start at beginning of destination array
+    
     for (int i = 0; i < eventListCount; ++i) {
         EventList &eventList = *eventLists[i];
         sourcePtr = eventList.rawData();
-        arrayPtr = combinedData.data();
 
         currentCount = eventList.count();  // Get count for THIS EventList (bug fix)
         sourceEndPtr = sourcePtr + currentCount;
 
+        // Copy this EventList's data and advance the destination pointer
         for (; sourcePtr < sourceEndPtr; sourcePtr++) {
             *arrayPtr++ = *sourcePtr;
         }
@@ -2681,6 +2681,8 @@ bool Session::LoadFromDatabase()
         m_wavg[id] = channel.wavg;
         m_min[id] = channel.min;
         m_max[id] = channel.max;
+        m_physmin[id] = channel.physMin;
+        m_physmax[id] = channel.physMax;
         m_cph[id] = channel.cph;
         m_sph[id] = channel.sph;
         m_gain[id] = channel.gain;

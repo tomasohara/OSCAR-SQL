@@ -602,6 +602,11 @@ void gLineChart::paint(QPainter &painter, gGraph &w, const QRegion &region)
 
             if (!sess->enabled()) { continue; }
 
+            // Ensure events are loaded before trying to plot them
+            if (!sess->eventsLoaded()) {
+                sess->OpenEvents();
+            }
+
             schema::Channel ch = schema::channel[code];
             bool fndbetter = false;
 
