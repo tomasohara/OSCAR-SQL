@@ -130,6 +130,7 @@ Profile::~Profile()
 
 bool Profile::Save(QString filename)
 {
+    Q_UNUSED(filename)
     if (m_opened) {
         // IMPORTANT: Save profile to database FIRST so machines can reference it
         ProfileRepository profileRepo;
