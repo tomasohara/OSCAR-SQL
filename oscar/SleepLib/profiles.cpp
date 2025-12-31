@@ -149,9 +149,10 @@ bool Profile::Save(QString filename)
             }
         }
         
-        // Now save XML and machines (machines can now find the profile in database)
-        bool xmlSuccess = Preferences::Save(filename);
+        // Now save to database (XML files commented out - data is in database)
+        // bool xmlSuccess = Preferences::Save(filename);  // Disabled - profile.xml not needed
         bool machinesSuccess = StoreMachines();
+        bool xmlSuccess = true;  // Return success since database save is what matters
         
         // IMPORTANT: Save each machine's session data
         for (Machine* m : m_machlist) {
@@ -421,10 +422,11 @@ bool Profile::loadMachinesFromXML()
 
 bool Profile::StoreMachines()
 {
-    bool xmlSuccess = storeMachinesToXML();    // Keep XML for backup
-    bool dbSuccess = storeMachinesToDatabase(); // Also save to database
+    // bool xmlSuccess = storeMachinesToXML();    // Disabled - machines.xml not needed (data in database)
+    bool dbSuccess = storeMachinesToDatabase(); // Save to database
+    bool xmlSuccess = true;  // Return success since database save is what matters
 
-    return xmlSuccess || dbSuccess;  // Success if either works
+    return xmlSuccess && dbSuccess;  // Success if database works
 }
 
 bool Profile::storeMachinesToDatabase()
@@ -2374,16 +2376,17 @@ bool Profile::hasChannel(ChannelID code)
 
 const quint16 chandata_version = 1;
 
-// New wrapper method - tries database first, keeps file as backup
+// New wrapper method - saves to database only
 void Profile::saveChannels()
 {
-    // Try database first
+    // Save to database only - channels.dat file no longer created
     if (saveChannelsToDatabase()) {
         qDebug() << "Profile: Channels saved to database";
+    } else {
+        qWarning() << "Profile: Failed to save channels to database";
     }
     
-    // Keep file backup during migration period
-    saveChannelsToDat();
+    // saveChannelsToDat();  // Disabled - channels.dat not needed (data in database)
 }
 
 // Original file-based implementation
