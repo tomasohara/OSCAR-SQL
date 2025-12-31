@@ -1123,8 +1123,9 @@ bool Machine::SaveSummaryCache()
 
     doc.appendChild(root);
 
-    if (!QDir().exists(getSummariesPath()))
-        QDir().mkpath(getSummariesPath());
+// No longer used as data is in database
+//    if (!QDir().exists(getSummariesPath()))
+//        QDir().mkpath(getSummariesPath());
 
     QHash<SessionID, Session *>::iterator s;
     QHash<SessionID, Session *>::iterator sess_end = sessionlist.end();

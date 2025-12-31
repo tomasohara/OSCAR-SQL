@@ -1099,19 +1099,20 @@ void Session::destroyEvent(ChannelID code)
         eventlist.erase(it);
     }
 
-    m_gain.erase(m_gain.find(code));
-    m_firstchan.erase(m_firstchan.find(code));
-    m_lastchan.erase(m_lastchan.find(code));
-    m_sph.erase(m_sph.find(code));
-    m_cph.erase(m_cph.find(code));
-    m_min.erase(m_min.find(code));
-    m_max.erase(m_max.find(code));
-    m_avg.erase(m_avg.find(code));
-    m_wavg.erase(m_wavg.find(code));
-    m_sum.erase(m_sum.find(code));
-    m_cnt.erase(m_cnt.find(code));
-    m_valuesummary.erase(m_valuesummary.find(code));
-    m_timesummary.erase(m_timesummary.find(code));
+    // Use remove() instead of erase(find()) to avoid GCC 7.1+ ABI warnings
+    m_gain.remove(code);
+    m_firstchan.remove(code);
+    m_lastchan.remove(code);
+    m_sph.remove(code);
+    m_cph.remove(code);
+    m_min.remove(code);
+    m_max.remove(code);
+    m_avg.remove(code);
+    m_wavg.remove(code);
+    m_sum.remove(code);
+    m_cnt.remove(code);
+    m_valuesummary.remove(code);
+    m_timesummary.remove(code);
     // does not trash settings..
 }
 
