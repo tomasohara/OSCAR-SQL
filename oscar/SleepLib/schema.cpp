@@ -167,15 +167,15 @@ void init()
     schema::channel.add(GRP_CPAP, new Channel(CPAP_ClearAirway   = 0x1001, FLAG,        MT_CPAP, SESSION, "ClearAirway",
             QObject::tr("Clear Airway (CA)"), QObject::tr("An apnea where the airway is open"), QObject::tr("CA"),       STR_UNIT_EventsPerHour,    DEFAULT,    QColor("purple")));
     schema::channel.add(GRP_CPAP, new Channel(CPAP_Obstructive   = 0x1002, FLAG,        MT_CPAP, SESSION, "Obstructive",
-            QObject::tr("Obstructive Apnea (OA)"), QObject::tr("An apnea caused by airway obstruction"), QObject::tr("OA"), STR_UNIT_EventsPerHour,    DEFAULT,    QColor("#40c0ff")));
+            QObject::tr("Obstructive Apnea (OA)"), QObject::tr("An apnea caused by airway obstruction"), QObject::tr("OA"), STR_UNIT_EventsPerHour,    DEFAULT,    QColor(64, 192, 255)));
     schema::channel.add(GRP_CPAP, new Channel(CPAP_Hypopnea      = 0x1003, FLAG,        MT_CPAP, SESSION, "Hypopnea",
             QObject::tr("Hypopnea (H)"), QObject::tr("A partially obstructed airway"), QObject::tr("H"),        STR_UNIT_EventsPerHour,    DEFAULT,    QColor("blue")));
     schema::channel.add(GRP_CPAP, new Channel(CPAP_Apnea         = 0x1004, FLAG,        MT_CPAP, SESSION, "Apnea",
             QObject::tr("Unclassified Apnea (UA)"), QObject::tr("An apnea that couldn't be determined as Central or Obstructive."),QObject::tr("UA"),       STR_UNIT_EventsPerHour,    DEFAULT,    QColor("dark green")));
     schema::channel.add(GRP_CPAP, new Channel(CPAP_AllApnea      = 0x1010, FLAG,        MT_CPAP, SESSION, "AllApnea",
-            QObject::tr("Apnea (A)"), QObject::tr("An apnea reported by your CPAP device."),QObject::tr("A"),       STR_UNIT_EventsPerHour,    DEFAULT,    QColor("#40c0ff")));
+            QObject::tr("Apnea (A)"), QObject::tr("An apnea reported by your CPAP device."),QObject::tr("A"),       STR_UNIT_EventsPerHour,    DEFAULT,    QColor(64, 192, 255)));
     schema::channel.add(GRP_CPAP, new Channel(CPAP_FlowLimit     = 0x1005, FLAG,        MT_CPAP, SESSION, "FlowLimit",
-            QObject::tr("Flow Limitation (FL)"), QObject::tr("A restriction in breathing from normal, causing a flattening of the flow waveform."), QObject::tr("FL"), STR_UNIT_EventsPerHour,    DEFAULT,    QColor("#404040")));
+            QObject::tr("Flow Limitation (FL)"), QObject::tr("A restriction in breathing from normal, causing a flattening of the flow waveform."), QObject::tr("FL"), STR_UNIT_EventsPerHour,    DEFAULT,    QColor(64, 64, 64)));
     schema::channel.add(GRP_CPAP, new Channel(CPAP_RERA          = 0x1006, FLAG,        MT_CPAP, SESSION, "RERA",
             QObject::tr("RERA (RE)"),QObject::tr("Respiratory Effort Related Arousal: A restriction in breathing that causes either awakening or sleep disturbance."), QObject::tr("RE"),       STR_UNIT_EventsPerHour,    DEFAULT,    COLOR_Gold));
     schema::channel.add(GRP_CPAP, new Channel(CPAP_VSnore        = 0x1007, FLAG,        MT_CPAP, SESSION, "VSnore",
@@ -216,7 +216,7 @@ void init()
             QString("SpO2 %"), QObject::tr("Blood-oxygen saturation percentage"), QString("SpO2"),       STR_UNIT_Percentage,          DEFAULT,    QColor("blue")));
 
     schema::channel.add(GRP_OXI, new Channel(OXI_Plethy          = 0x1802, WAVEFORM,    MT_OXIMETER, SESSION, STR_GRAPH_Oxi_Plethy,
-            QObject::tr("Plethysomogram"), QObject::tr("An optical Photo-plethysomogram showing heart rhythm"), QObject::tr("Plethy"),     STR_UNIT_Hz,           DEFAULT,    QColor("#404040")));
+            QObject::tr("Plethysomogram"), QObject::tr("An optical Photo-plethysomogram showing heart rhythm"), QObject::tr("Plethy"),     STR_UNIT_Hz,           DEFAULT,    QColor(64, 64, 64)));
 
     schema::channel.add(GRP_OXI, new Channel(OXI_Perf             = 0x1805, WAVEFORM,   MT_OXIMETER, SESSION, STR_GRAPH_Oxi_Perf,
             QObject::tr("Perfusion Index"), QObject::tr("A relative assessment of the pulse strength at the monitoring site"), QObject::tr("Perf. Index %"), STR_UNIT_Percentage,     DEFAULT,   QColor("magenta")));
@@ -272,7 +272,7 @@ void init()
             QObject::tr("Respiratory Event"), QObject::tr("A ResMed data item: Trigger Cycle Event"),  QObject::tr("Resp. Event"), STR_UNIT_CMH2O,   DEFAULT,    QColor("black")));
 
     schema::channel.add(GRP_CPAP, new Channel(CPAP_FLG               = 0x1113, WAVEFORM,   MT_CPAP,  SESSION, STR_GRAPH_FlowLimitation,
-            QObject::tr("Flow Limitation"), QObject::tr("Graph showing severity of flow limitations"),   QObject::tr("Flow Limit."), STR_UNIT_Severity,      DEFAULT,    QColor("#585858")));
+            QObject::tr("Flow Limitation"), QObject::tr("Graph showing severity of flow limitations"),   QObject::tr("Flow Limit."), STR_UNIT_Severity,      DEFAULT,    QColor(88, 88, 88)));
 
     schema::channel.add(GRP_CPAP, new Channel(CPAP_TgMV              = 0x1114, WAVEFORM,  MT_CPAP,   SESSION, "TgMV",
             QObject::tr("Target Minute Ventilation"), QObject::tr("Target Minute Ventilation"), QObject::tr("Target Vent."), STR_UNIT_LPM,       DEFAULT,    QColor("dark red")));
@@ -335,33 +335,33 @@ void init()
     // Old Journal system crap
     /////////////////////////////////////////////////////////////////
 
-    schema::channel.add(GRP_JOURNAL, ch = new Channel(Journal_Weight = 0x0803, DATA,   MT_JOURNAL,  DAY, "Weight",      QObject::tr("Weight"), QObject::tr("Weight"), QObject::tr("Weight"),  STR_UNIT_KG, DOUBLE,  Qt::black));
-    schema::channel.add(GRP_JOURNAL, ch = new Channel(0x0804, DATA,   MT_JOURNAL,  DAY, "Height", QObject::tr("Height"), QObject::tr("Physical Height"), QObject::tr("Height"),  STR_UNIT_CM, DOUBLE,  Qt::black));
-    schema::channel.add(GRP_JOURNAL, ch = new Channel(Bookmark_Notes=0x0805, DATA,   MT_JOURNAL,  DAY, "BookmarkNotes",      QObject::tr("Notes"), QObject::tr("Bookmark Notes"), QObject::tr("Notes"),  QString(), STRING,  Qt::black));
+    schema::channel.add(GRP_JOURNAL, new Channel(Journal_Weight = 0x0803, DATA,   MT_JOURNAL,  DAY, "Weight",      QObject::tr("Weight"), QObject::tr("Weight"), QObject::tr("Weight"),  STR_UNIT_KG, DOUBLE,  Qt::black));
+    schema::channel.add(GRP_JOURNAL, new Channel(0x0804, DATA,   MT_JOURNAL,  DAY, "Height", QObject::tr("Height"), QObject::tr("Physical Height"), QObject::tr("Height"),  STR_UNIT_CM, DOUBLE,  Qt::black));
+    schema::channel.add(GRP_JOURNAL, new Channel(Bookmark_Notes=0x0805, DATA,   MT_JOURNAL,  DAY, "BookmarkNotes",      QObject::tr("Notes"), QObject::tr("Bookmark Notes"), QObject::tr("Notes"),  QString(), STRING,  Qt::black));
     // This may as well be calculated
-    schema::channel.add(GRP_JOURNAL, ch = new Channel(Journal_BMI = 0x0806, DATA,   MT_JOURNAL,  DAY, "BMI",      QObject::tr("BMI"), QObject::tr("Body Mass Index"), QObject::tr("BMI"),  QString(), DOUBLE,  Qt::black));
-    schema::channel.add(GRP_JOURNAL, ch = new Channel(Journal_ZombieMeter = 0x0807, DATA,   MT_JOURNAL,  DAY, "FeelingMeter", QObject::tr("Feeling"), QObject::tr("How you feel (1 = like crap, 10 = unstoppable)"), QObject::tr("Feeling"),  QString(), DOUBLE,  Qt::black));
-    schema::channel.add(GRP_JOURNAL, ch = new Channel(Bookmark_Start=0x0808, DATA,   MT_JOURNAL,  DAY, "BookmarkStart",      QObject::tr("Start"), QObject::tr("Bookmark Start"), QObject::tr("Start"),  QString(), INTEGER,  Qt::black));
-    schema::channel.add(GRP_JOURNAL, ch = new Channel(Bookmark_End=0x0809, DATA,   MT_JOURNAL,  DAY, "BookmarkEnd",      QObject::tr("End"), QObject::tr("Bookmark End"), QObject::tr("End"),  QString(), DOUBLE,  Qt::black));
-    schema::channel.add(GRP_JOURNAL, ch = new Channel(LastUpdated=0x080a, DATA,   MT_JOURNAL,  DAY, "LastUpdated", QObject::tr("Last Updated"), QObject::tr("Last Updated"), QObject::tr("Last Updated"),  QString(), DATETIME,  Qt::black));
-    schema::channel.add(GRP_JOURNAL, ch = new Channel(Journal_Notes = 0xd000, DATA,   MT_JOURNAL,  DAY, "Journal",      QObject::tr("Journal Notes"), QObject::tr("Journal Notes"), QObject::tr("Journal"),  QString(), RICHTEXT,  Qt::black));
+    schema::channel.add(GRP_JOURNAL, new Channel(Journal_BMI = 0x0806, DATA,   MT_JOURNAL,  DAY, "BMI",      QObject::tr("BMI"), QObject::tr("Body Mass Index"), QObject::tr("BMI"),  QString(), DOUBLE,  Qt::black));
+    schema::channel.add(GRP_JOURNAL, new Channel(Journal_ZombieMeter = 0x0807, DATA,   MT_JOURNAL,  DAY, "FeelingMeter", QObject::tr("Feeling"), QObject::tr("How you feel (1 = like crap, 10 = unstoppable)"), QObject::tr("Feeling"),  QString(), DOUBLE,  Qt::black));
+    schema::channel.add(GRP_JOURNAL, new Channel(Bookmark_Start=0x0808, DATA,   MT_JOURNAL,  DAY, "BookmarkStart",      QObject::tr("Start"), QObject::tr("Bookmark Start"), QObject::tr("Start"),  QString(), INTEGER,  Qt::black));
+    schema::channel.add(GRP_JOURNAL, new Channel(Bookmark_End=0x0809, DATA,   MT_JOURNAL,  DAY, "BookmarkEnd",      QObject::tr("End"), QObject::tr("Bookmark End"), QObject::tr("End"),  QString(), DOUBLE,  Qt::black));
+    schema::channel.add(GRP_JOURNAL, new Channel(LastUpdated=0x080a, DATA,   MT_JOURNAL,  DAY, "LastUpdated", QObject::tr("Last Updated"), QObject::tr("Last Updated"), QObject::tr("Last Updated"),  QString(), DATETIME,  Qt::black));
+    schema::channel.add(GRP_JOURNAL, new Channel(Journal_Notes = 0xd000, DATA,   MT_JOURNAL,  DAY, "Journal",      QObject::tr("Journal Notes"), QObject::tr("Journal Notes"), QObject::tr("Journal"),  QString(), RICHTEXT,  Qt::black));
 
 
     //////////////////////////////////////////////////////////////////////
     // Sleep Stage Channels
     //////////////////////////////////////////////////////////////////////
-    schema::channel.add(GRP_SLEEP, ch = new Channel(ZEO_SleepStage = 0x2000, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "SleepStage",
+    schema::channel.add(GRP_SLEEP, new Channel(ZEO_SleepStage = 0x2000, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "SleepStage",
             QObject::tr("Sleep Stage"), QObject::tr("1=Awake 2=REM 3=Light Sleep 4=Deep Sleep"), QObject::tr("Sleep Stage"),  QString(), INTEGER,  Qt::darkGray));
-    schema::channel.add(GRP_SLEEP, ch = new Channel(0x2001, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "ZeoBW",
+    schema::channel.add(GRP_SLEEP, new Channel(0x2001, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "ZeoBW",
             QObject::tr("Brain Wave"), QObject::tr("Brain Wave"), QObject::tr("BrainWave"),  QString(), INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, ch = new Channel(ZEO_Awakenings = 0x2002, DATA,   MT_SLEEPSTAGE,  SESSION, "Awakenings",  QObject::tr("Awakenings"), QObject::tr("Number of Awakenings"), QObject::tr("Awakenings"),  QString(), INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, ch = new Channel(ZEO_MorningFeel= 0x2003, DATA,   MT_SLEEPSTAGE,  SESSION, "MorningFeel", QObject::tr("Morning Feel"), QObject::tr("How you felt in the morning"), QObject::tr("Morning Feel"),  QString(), INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, ch = new Channel(ZEO_TimeInWake = 0x2004, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInWake",  QObject::tr("Time Awake"), QObject::tr("Time spent awake"), QObject::tr("Time Awake"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, ch = new Channel(ZEO_TimeInREM  = 0x2005, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInREM",    QObject::tr("Time In REM Sleep"), QObject::tr("Time spent in REM Sleep"), QObject::tr("Time in REM Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, ch = new Channel(ZEO_TimeInLight= 0x2006, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInLight",QObject::tr("Time In Light Sleep"), QObject::tr("Time spent in light sleep"), QObject::tr("Time in Light Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, ch = new Channel(ZEO_TimeInDeep = 0x2007, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInDeep",   QObject::tr("Time In Deep Sleep"), QObject::tr("Time spent in deep sleep"), QObject::tr("Time in Deep Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, ch = new Channel(ZEO_TimeToZ    = 0x2008, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeToZ",      QObject::tr("Time to Sleep"), QObject::tr("Time taken to get to sleep"), QObject::tr("Time to Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, ch = new Channel(ZEO_ZQ         = 0x2009, DATA,   MT_SLEEPSTAGE,  SESSION, "ZeoZQ", QObject::tr("Zeo ZQ"), QObject::tr("Zeo sleep quality measurement"), QObject::tr("ZEO ZQ"),  QString(), INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(ZEO_Awakenings = 0x2002, DATA,   MT_SLEEPSTAGE,  SESSION, "Awakenings",  QObject::tr("Awakenings"), QObject::tr("Number of Awakenings"), QObject::tr("Awakenings"),  QString(), INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(ZEO_MorningFeel= 0x2003, DATA,   MT_SLEEPSTAGE,  SESSION, "MorningFeel", QObject::tr("Morning Feel"), QObject::tr("How you felt in the morning"), QObject::tr("Morning Feel"),  QString(), INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeInWake = 0x2004, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInWake",  QObject::tr("Time Awake"), QObject::tr("Time spent awake"), QObject::tr("Time Awake"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeInREM  = 0x2005, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInREM",    QObject::tr("Time In REM Sleep"), QObject::tr("Time spent in REM Sleep"), QObject::tr("Time in REM Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeInLight= 0x2006, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInLight",QObject::tr("Time In Light Sleep"), QObject::tr("Time spent in light sleep"), QObject::tr("Time in Light Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeInDeep = 0x2007, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInDeep",   QObject::tr("Time In Deep Sleep"), QObject::tr("Time spent in deep sleep"), QObject::tr("Time in Deep Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeToZ    = 0x2008, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeToZ",      QObject::tr("Time to Sleep"), QObject::tr("Time taken to get to sleep"), QObject::tr("Time to Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(ZEO_ZQ         = 0x2009, DATA,   MT_SLEEPSTAGE,  SESSION, "ZeoZQ", QObject::tr("Zeo ZQ"), QObject::tr("Zeo sleep quality measurement"), QObject::tr("ZEO ZQ"),  QString(), INTEGER,  Qt::black));
 
     //////////////////////////////////////////////////////////////////////
     // Manufacturer-specific channels
@@ -386,8 +386,8 @@ void init()
 //  <channel id="0x111e" class="data" name="TestChan1" details="Debugging Channel #1" label="Test #1" unit="" color="pink"/>
 //  <channel id="0x111f" class="data" name="TestChan2" details="Debugging Channel #2" label="Test #2" unit="" color="blue"/>
 
-    schema::channel.add(GRP_CPAP, ch=new Channel(CPAP_Test1 = 0x111e, DATA, MT_CPAP, SESSION, STR_GRAPH_TestChan1, QObject::tr("Debugging channel #1"), QObject::tr("For internal use only"), QObject::tr("Test #1"),  QString(), INTEGER,  QColor("pink")));
-    schema::channel.add(GRP_CPAP, ch=new Channel(CPAP_Test2 = 0x111f, DATA, MT_CPAP, SESSION, STR_GRAPH_TestChan2, QObject::tr("Debugging channel #2"), QObject::tr("For internal use only"), QObject::tr("Test #2"),  QString(), INTEGER,  Qt::blue));
+    schema::channel.add(GRP_CPAP, new Channel(CPAP_Test1 = 0x111e, DATA, MT_CPAP, SESSION, STR_GRAPH_TestChan1, QObject::tr("Debugging channel #1"), QObject::tr("For internal use only"), QObject::tr("Test #1"),  QString(), INTEGER,  QColor("pink")));
+    schema::channel.add(GRP_CPAP, new Channel(CPAP_Test2 = 0x111f, DATA, MT_CPAP, SESSION, STR_GRAPH_TestChan2, QObject::tr("Debugging channel #2"), QObject::tr("For internal use only"), QObject::tr("Test #2"),  QString(), INTEGER,  Qt::blue));
 
     RMS9_E01 = schema::channel["RMS9_E01"].id();
     RMS9_E02 = schema::channel["RMS9_E02"].id();
