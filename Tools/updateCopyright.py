@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Copyright (c) 2023-2024 The OSCAR Team
+Copyright (c) 2023-2026 The OSCAR Team
 
 Find text files with the word "Copyright" ending with a year (4 digits) range like 2019-2022 and then
 followed by a string containing OSCAR. The script changes the 2 year to the current year.

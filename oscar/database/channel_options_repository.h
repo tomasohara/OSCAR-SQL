@@ -1,6 +1,6 @@
 /* Channel Options Repository Header
  *
- * Copyright (c) 2025 The OSCAR Team
+ * Copyright (c) 2025-2026 The OSCAR Team
  *
  * This file is subject to the terms and conditions of the GNU General Public
  * License. See the file COPYING in the main directory of the source code

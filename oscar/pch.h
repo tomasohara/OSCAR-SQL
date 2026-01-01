@@ -1,6 +1,6 @@
 #if defined __cplusplus
 /* Add C++ includes here */
-/* Copyright (c) 2023-2025 The OSCAR Team */
+/* Copyright (c) 2023-2026 The OSCAR Team */
 
 #include <iostream>
 #include <QMap>

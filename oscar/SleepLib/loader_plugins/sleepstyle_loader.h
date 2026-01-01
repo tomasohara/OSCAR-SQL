@@ -1,6 +1,6 @@
 /* SleepLib Fisher & Paykel SleepStyle Loader Implementation
  *
- * Copyright (c) 2020-2025 The Oscar Team (info@oscar-team.org)
+ * Copyright (c) 2020-2026 The OSCAR Team
  * Copyright (C) 2011-2018 Mark Watkins 
  *
  * This file is subject to the terms and conditions of the GNU General Public

@@ -1,6 +1,6 @@
 /* SleepLib Fisher & Paykel SleepStyle Loader Implementation
  *
- * Copyright (c) 2020-2025 The Oscar Team
+ * Copyright (c) 2020-2026 The OSCAR Team
  *
  * Derived from icon_loader.cpp
  * Copyright (c) 2011-2018 Mark Watkins 

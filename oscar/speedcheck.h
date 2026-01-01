@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The OSCAR Team
+ * Copyright (c) 2025-2026 The OSCAR Team
  *
  * SpeedCheck - Performance monitoring and logging class
  * Tests whether portions of the application are performing as expected
