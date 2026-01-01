@@ -77,6 +77,7 @@
 #include "SleepLib/calcs.h"
 #include "SleepLib/progressdialog.h"
 #include "SleepLib/importcontext.h"
+#include "database/database_manager.h"
 
 #include "reports.h"
 #include "statistics.h"
@@ -769,11 +770,22 @@ int MainWindow::importCPAP(ImportPath import, const QString &message)
     connect(import.loader, &MachineLoader::deviceIsUntested, &importui, &ImportUI::onDeviceIsUntested);
     connect(import.loader, &MachineLoader::deviceIsUnsupported, &importui, &ImportUI::onDeviceIsUnsupported);
 
+    // Start a single transaction for the entire import to dramatically improve performance
+    DatabaseManager& dbMgr = DatabaseManager::instance();
+    if (!dbMgr.transaction()) {
+        qWarning() << "MainWindow::importCPAP() - Failed to start database transaction";
+    }
+
     int c = import.loader->Open(import.path);
 
     progdlg->setMessage(QObject::tr("Finishing up..."));
     QCoreApplication::processEvents();
     ctx->Commit();
+
+    // Commit the transaction after all import operations are complete
+    if (!dbMgr.commit()) {
+        qWarning() << "MainWindow::importCPAP() - Failed to commit database transaction";
+    }
 
     import.loader->SetContext(nullptr);
     delete ctx;

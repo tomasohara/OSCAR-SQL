@@ -213,14 +213,16 @@ SessionChannelData SessionChannelsRepository::findByChannel(qint64 sessionId, in
 
 bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionChannelData>& channels)
 {
-    QSqlDatabase db = DatabaseManager::instance().database();
+    DatabaseManager& dbMgr = DatabaseManager::instance();
+    QSqlDatabase db = dbMgr.database();
     if (!db.isOpen()) {
         qWarning() << "SessionChannelsRepository::saveBatch() - Database not open";
         return false;
     }
 
-    // Start transaction for batch operation
-    if (!db.transaction()) {
+    // Only start transaction if not already in one
+    bool needTransaction = !dbMgr.inTransaction();
+    if (needTransaction && !dbMgr.transaction()) {
         qWarning() << "SessionChannelsRepository::saveBatch() - Failed to start transaction";
         return false;
     }
@@ -255,12 +257,15 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionC
 
         if (!query.exec()) {
             qWarning() << "SessionChannelsRepository::saveBatch() failed:" << query.lastError().text();
-            db.rollback();
+            if (needTransaction) {
+                dbMgr.rollback();
+            }
             return false;
         }
     }
 
-    if (!db.commit()) {
+    // Only commit if we started the transaction
+    if (needTransaction && !dbMgr.commit()) {
         qWarning() << "SessionChannelsRepository::saveBatch() - Failed to commit transaction";
         return false;
     }

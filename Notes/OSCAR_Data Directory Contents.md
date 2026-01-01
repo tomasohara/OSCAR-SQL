@@ -15,5 +15,5 @@ Profile Folder - each folder has the name of the profile
 | ---------------------------------------- | ------------------------------------------------------------ |
 | Journal_0000000                          | Contains journal data. One journal folder per profile. May be converted to a database table later. |
 | ResMed_21323213...                       | One of these for each machine used. There can be any number of these machine folders. |
-| daily.shg, overview.shg, rxchanges.cache | Performance enhancement files. All can be recreated as needed, so need not be saved. |
+| daily.shg, overview.shg, rxchanges.cache | Performance enhancement files. All are recreated if missing, so need not be saved. |
 

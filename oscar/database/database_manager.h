@@ -102,6 +102,15 @@ public:
     bool rollback();
 
     /*!
+     * \brief Check if currently in a transaction
+     * \return true if transaction is active
+     *
+     * This allows nested calls to avoid starting a new transaction
+     * when one is already active.
+     */
+    bool inTransaction() const;
+
+    /*!
      * \brief Get the last database error
      * \return QSqlError object with error details
      */
@@ -132,6 +141,7 @@ private:
     QString m_connectionName;
     QString m_databasePath;
     bool m_initialized;
+    bool m_inTransaction;
     mutable QMutex m_mutex;
 };
 

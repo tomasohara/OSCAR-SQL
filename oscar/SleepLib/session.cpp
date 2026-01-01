@@ -2556,7 +2556,7 @@ bool Session::StoreToDatabase()
             bool hasEventData = (eventlist.find(id) != eventlist.end()) && 
                                 !eventlist[id].isEmpty() && 
                                 eventlist[id][0]->count() > 0;
-            
+
             if (hasEventData) {
                 channel.median = percentile(id, 0.5);  // 50th percentile
                 channel.p90 = percentile(id, 0.90);    // 90th percentile

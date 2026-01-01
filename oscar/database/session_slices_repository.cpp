@@ -117,13 +117,16 @@ QList<SessionSliceData> SessionSlicesRepository::findBySession(qint64 sessionId)
 
 bool SessionSlicesRepository::saveBatch(const QList<SessionSliceData>& slices)
 {
-    QSqlDatabase db = DatabaseManager::instance().database();
+    DatabaseManager& dbMgr = DatabaseManager::instance();
+    QSqlDatabase db = dbMgr.database();
     if (!db.isOpen()) {
         qWarning() << "SessionSlicesRepository::saveBatch() - Database not open";
         return false;
     }
 
-    if (!db.transaction()) {
+    // Only start transaction if not already in one
+    bool needTransaction = !dbMgr.inTransaction();
+    if (needTransaction && !dbMgr.transaction()) {
         qWarning() << "SessionSlicesRepository::saveBatch() - Failed to start transaction";
         return false;
     }
@@ -143,12 +146,15 @@ bool SessionSlicesRepository::saveBatch(const QList<SessionSliceData>& slices)
 
         if (!query.exec()) {
             qWarning() << "SessionSlicesRepository::saveBatch() failed:" << query.lastError().text();
-            db.rollback();
+            if (needTransaction) {
+                dbMgr.rollback();
+            }
             return false;
         }
     }
 
-    if (!db.commit()) {
+    // Only commit if we started the transaction
+    if (needTransaction && !dbMgr.commit()) {
         qWarning() << "SessionSlicesRepository::saveBatch() - Failed to commit transaction";
         return false;
     }

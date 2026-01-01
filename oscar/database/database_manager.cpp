@@ -37,6 +37,7 @@ DatabaseManager& DatabaseManager::instance()
 DatabaseManager::DatabaseManager()
     : QObject(nullptr)
     , m_initialized(false)
+    , m_inTransaction(false)
 {
     // Create unique connection name for this thread
     m_connectionName = QString("OSCAR_DB_%1").arg(quintptr(QThread::currentThread()));
@@ -200,13 +201,22 @@ bool DatabaseManager::isOpen() const
  *
  * All database modifications between transaction() and commit() will
  * be atomic. If an error occurs, call rollback() to undo changes.
+ * 
+ * If already in a transaction, returns true without starting a new one.
  */
 bool DatabaseManager::transaction()
 {
+    if (m_inTransaction) {
+        // Already in a transaction, don't nest
+        return true;
+    }
+    
     if (!m_database.transaction()) {
         qWarning() << "DatabaseManager: Failed to start transaction:" << m_database.lastError().text();
         return false;
     }
+    
+    m_inTransaction = true;
     return true;
 }
 
@@ -219,10 +229,18 @@ bool DatabaseManager::transaction()
  */
 bool DatabaseManager::commit()
 {
+    if (!m_inTransaction) {
+        // Not in a transaction, nothing to commit
+        return true;
+    }
+    
     if (!m_database.commit()) {
         qWarning() << "DatabaseManager: Failed to commit transaction:" << m_database.lastError().text();
+        m_inTransaction = false;  // Clear flag even on error
         return false;
     }
+    
+    m_inTransaction = false;
     return true;
 }
 
@@ -235,11 +253,31 @@ bool DatabaseManager::commit()
  */
 bool DatabaseManager::rollback()
 {
+    if (!m_inTransaction) {
+        // Not in a transaction, nothing to rollback
+        return true;
+    }
+    
     if (!m_database.rollback()) {
         qWarning() << "DatabaseManager: Failed to rollback transaction:" << m_database.lastError().text();
+        m_inTransaction = false;  // Clear flag even on error
         return false;
     }
+    
+    m_inTransaction = false;
     return true;
+}
+
+/*
+ * Check if currently in a transaction
+ *
+ * Returns: true if transaction is active, false otherwise
+ *
+ * This allows repositories to avoid starting nested transactions.
+ */
+bool DatabaseManager::inTransaction() const
+{
+    return m_inTransaction;
 }
 
 /*
