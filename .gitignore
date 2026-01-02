@@ -14,6 +14,7 @@
 build/*
 oscar/build/*
 git_info.h
+.github
 
 notes/temp/*
 
