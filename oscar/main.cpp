@@ -58,6 +58,7 @@
 #include "SleepLib/loader_plugins/resvent_loader.h"
 #include "SleepLib/loader_plugins/vrem_loader.h"
 #include "SleepLib/loader_plugins/bmc_loader.h"
+#include "SleepLib/loader_plugins/yuwell_loader.h"
 
 #include "database/database_manager.h"
 #include "database/profile_repository.h"
@@ -775,7 +776,7 @@ int main(int argc, char *argv[]) {
     ResventLoader::Register();
     BmcLoader::Register();
     VREMLoader::Register();
-
+    YuwellLoader::Register();
 
     // Begin logging device connection activity.
     QString connectionsLogDir = GetLogDir() + "/connections";
