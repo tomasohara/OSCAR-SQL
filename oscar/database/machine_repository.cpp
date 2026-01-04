@@ -197,6 +197,49 @@ MachineData MachineRepository::findBySerialAndLoader(const QString& serialNumber
 }
 
 /*
+ * Find a machine by serial number, loader name, and profile ID
+ *
+ * Parameters:
+ *   serialNumber - Device serial number
+ *   loaderName - Loader plugin name
+ *   profileId - Profile database ID
+ *
+ * Returns: MachineData if found, or null MachineData (id=0) if not found
+ *
+ * This method is profile-aware and prevents machine record collisions
+ * across profiles. It's especially important during backup restoration
+ * when a machine's internal ID may change but we need to find the
+ * existing database record by its physical identity (serial + loader).
+ */
+MachineData MachineRepository::findBySerialLoaderAndProfile(const QString& serialNumber, const QString& loaderName, qint64 profileId)
+{
+    QSqlQuery query(database());
+    
+    query.prepare(
+        "SELECT id, profile_id, machine_id, loader_name, machine_type, "
+        "brand, model, series, serial_number, model_number, "
+        "last_imported, purge_date, data_version, properties, created_at "
+        "FROM machines WHERE serial_number = :serial_number "
+        "AND loader_name = :loader_name AND profile_id = :profile_id"
+    );
+    
+    query.bindValue(":serial_number", serialNumber);
+    query.bindValue(":loader_name", loaderName);
+    query.bindValue(":profile_id", profileId);
+    
+    if (!query.exec()) {
+        qWarning() << "MachineRepository::findBySerialLoaderAndProfile() failed:" << query.lastError().text();
+        return MachineData();
+    }
+    
+    if (query.next()) {
+        return recordToData(query);
+    }
+    
+    return MachineData();
+}
+
+/*
  * Get all machines for a specific profile
  *
  * Parameters:

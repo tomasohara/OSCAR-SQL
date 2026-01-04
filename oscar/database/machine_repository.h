@@ -114,6 +114,18 @@ public:
     MachineData findBySerialAndLoader(const QString& serialNumber, const QString& loaderName);
 
     /*!
+     * \brief Find a machine by serial number, loader name, and profile ID
+     * \param serialNumber Device serial number
+     * \param loaderName Loader plugin name
+     * \param profileId Profile database ID
+     * \return MachineData if found, or null MachineData (id=0) if not found
+     *
+     * This method is profile-aware and prevents machine record collisions
+     * across profiles, especially important during backup restoration.
+     */
+    MachineData findBySerialLoaderAndProfile(const QString& serialNumber, const QString& loaderName, qint64 profileId);
+
+    /*!
      * \brief Get all machines for a specific profile
      * \param profileId Profile database ID
      * \return List of machine records for this profile

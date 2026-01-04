@@ -30,6 +30,7 @@
 #include "../database/session_repository.h"
 #include "../database/session_settings_repository.h"
 #include "../database/session_channels_repository.h"
+#include "../database/session_channel_values_repository.h"
 #include "../database/session_slices_repository.h"
 #include "../database/session_summaries_repository.h"
 
@@ -2538,9 +2539,11 @@ bool Session::StoreToDatabase()
         }
     }
     
-    // 3. Save channel statistics
+    // 3. Save channel statistics and value/time summaries
     if (!m_availableChannels.isEmpty()) {
         QList<SessionChannelData> channelsList;
+        SessionChannelValuesRepository valuesRepo;
+        
         for (ChannelID id : m_availableChannels) {
             SessionChannelData channel;
             channel.channelId = id;
@@ -2583,6 +2586,29 @@ bool Session::StoreToDatabase()
         
         if (!channelsRepo.saveBatch(m_database_id, channelsList)) {
             qWarning() << "Session::StoreToDatabase(): Failed to save channels";
+        }
+        
+        // 3b. Save value/time summaries for each channel (NEW - fixes bug)
+        // This saves the m_valuesummary and m_timesummary data structures
+        for (const SessionChannelData& channelData : channelsList) {
+            ChannelID id = channelData.channelId;
+            
+            // Check if we have value/time summaries for this channel
+            auto valueSummaryIt = m_valuesummary.find(id);
+            auto timeSummaryIt = m_timesummary.find(id);
+            
+            if (valueSummaryIt != m_valuesummary.end() && timeSummaryIt != m_timesummary.end()) {
+                // Get the session_channel_id for this channel
+                SessionChannelData foundChannel = channelsRepo.findByChannel(m_database_id, id);
+                if (foundChannel.id > 0) {
+                    // Save the value/time summaries to database
+                    if (!valuesRepo.saveChannelSummaries(foundChannel.id, 
+                                                         valueSummaryIt.value(), 
+                                                         timeSummaryIt.value())) {
+                        qWarning() << "Session::StoreToDatabase(): Failed to save value/time summaries for channel" << id;
+                    }
+                }
+            }
         }
     }
     
@@ -2655,7 +2681,7 @@ bool Session::LoadFromDatabase()
     
     qDebug() << "Session::LoadFromDatabase(): Loaded" << settingsList.size() << "settings";
     
-    // 3. Load channel statistics
+    // 3. Load channel statistics and value/time summaries
     QList<SessionChannelData> channelsList = channelsRepo.findBySession(m_database_id);
     
     // Clear existing channel data
@@ -2671,6 +2697,8 @@ bool Session::LoadFromDatabase()
     m_firstchan.clear();
     m_lastchan.clear();
     m_availableChannels.clear();
+    m_valuesummary.clear();  // NEW - clear value summaries
+    m_timesummary.clear();   // NEW - clear time summaries
     
     // Populate channel data from database
     for (const SessionChannelData& channel : channelsList) {
@@ -2692,6 +2720,30 @@ bool Session::LoadFromDatabase()
     }
     
     qDebug() << "Session::LoadFromDatabase(): Loaded" << channelsList.size() << "channels";
+    
+    // 3b. Load value/time summaries for each channel (NEW - fixes bug)
+    // This restores the m_valuesummary and m_timesummary data structures
+    SessionChannelValuesRepository valuesRepo;
+    int valuesLoadedCount = 0;
+    
+    for (const SessionChannelData& channel : channelsList) {
+        ChannelID id = channel.channelId;
+        
+        // Try to load value/time summaries for this channel
+        QHash<EventStoreType, EventStoreType> valueSummary;
+        QHash<EventStoreType, quint32> timeSummary;
+        
+        if (valuesRepo.loadChannelSummaries(channel.id, valueSummary, timeSummary)) {
+            // Successfully loaded summaries
+            m_valuesummary[id] = valueSummary;
+            m_timesummary[id] = timeSummary;
+            valuesLoadedCount++;
+        }
+    }
+    
+    if (valuesLoadedCount > 0) {
+        qDebug() << "Session::LoadFromDatabase(): Loaded value/time summaries for" << valuesLoadedCount << "channels";
+    }
     
     // 4. Load slices
     QList<SessionSliceData> slicesList = slicesRepo.findBySession(m_database_id);

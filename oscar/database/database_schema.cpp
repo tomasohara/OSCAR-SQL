@@ -76,6 +76,11 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
+    if (!createSessionChannelValuesTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create session_channel_values table";
+        return false;
+    }
+
     if (!createRespiratoryEventsTable(db)) {
         qCritical() << "DatabaseSchema: Failed to create respiratory_events table";
         return false;
@@ -291,6 +296,31 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         }
         
         qDebug() << "DatabaseSchema: Successfully upgraded to version 6";
+    }
+    
+    // Upgrade from version 6 to version 7: Add session_channel_values table
+    if (fromVersion < 7) {
+        qDebug() << "DatabaseSchema: Applying version 7 upgrade (session_channel_values table - fixes bug)";
+        
+        if (!createSessionChannelValuesTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create session_channel_values table during upgrade";
+            return false;
+        }
+        
+        // Create index for session_channel_values
+        QSqlQuery query(db);
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_session_channel_values_lookup ON session_channel_values(session_channel_id, value)")) {
+            qWarning() << "DatabaseSchema: Failed to create session_channel_values index:" << query.lastError().text();
+        }
+        
+        // Update schema version
+        if (!setSchemaVersion(db, 7)) {
+            qCritical() << "DatabaseSchema: Failed to update schema version to 7";
+            return false;
+        }
+        
+        qDebug() << "DatabaseSchema: Successfully upgraded to version 7";
+        qDebug() << "DatabaseSchema: NOTE - Existing sessions will need to be re-saved to populate value/time summaries";
     }
     
     return true;
@@ -777,6 +807,46 @@ bool DatabaseSchema::createSessionChannelsTable(QSqlDatabase& db)
     }
 
     qDebug() << "DatabaseSchema: session_channels table created";
+    return true;
+}
+
+/*
+ * Create the session_channel_values table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The session_channel_values table stores detailed value/time summary data
+ * for each channel. This data is used to calculate weighted averages and
+ * other statistics that require knowledge of how long each distinct value
+ * was held. This fixes a critical bug where m_valuesummary and m_timesummary
+ * were not being persisted to the database.
+ */
+bool DatabaseSchema::createSessionChannelValuesTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS session_channel_values ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    session_channel_id INTEGER NOT NULL,"
+        "    value INTEGER NOT NULL,"
+        "    count INTEGER DEFAULT 0,"
+        "    time_ms INTEGER DEFAULT 0,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (session_channel_id) REFERENCES session_channels(id) ON DELETE CASCADE,"
+        "    UNIQUE(session_channel_id, value)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create session_channel_values table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: session_channel_values table created";
     return true;
 }
 

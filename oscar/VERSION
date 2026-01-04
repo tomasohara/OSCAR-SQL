@@ -1,5 +1,5 @@
 // Update the string below to set OSCAR's version and release status.
 // See https://semver.org/spec/v2.0.0.html for details on format.
 
-#define VERSION "1.7.1-alpha"
+#define VERSION "1.9.0-alpha-1"
 

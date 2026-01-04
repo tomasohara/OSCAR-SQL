@@ -397,6 +397,9 @@ private:
     void purgeDay(MachineType type);
     void importNonCPAP(MachineLoader &loader);
 
+    //! \brief Ensure database has no uncommitted transactions (profile switching safety)
+    void ensureCleanDatabaseState();
+
 //    QString getWelcomeHTML();
     void FreeSessions();
 

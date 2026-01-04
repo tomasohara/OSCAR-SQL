@@ -1,6 +1,6 @@
 # OSCAR Database Schema Reference
-**Version:** Schema Version 6  
-**Last Updated:** 2025 Q4  
+**Version:** Schema Version 7  
+**Last Updated:** 2026 Q1  
 **Database Type:** SQLite  
 
 ---
@@ -29,6 +29,7 @@ The OSCAR database uses SQLite to store user profiles, machine configurations, s
 | 4 | 2025 Q4 | Added profile status tracking (status, status_changed_at) |
 | 5 | 2025 Q4 | Added channels tables (channels, channel_options) |
 | 6 | 2025 Q4 | Added daily_summaries table for fast reporting |
+| 7 | 2026 Q1 | 🐛 **BUG FIX**: Added session_channel_values table to persist value/time summaries (fixes incorrect weighted averages) |
 
 ---
 
@@ -218,7 +219,25 @@ CREATE TABLE session_channels (
 )
 ```
 
-### 10. respiratory_events
+### 10. session_channel_values 🐛 **NEW IN v7 - BUG FIX**
+Detailed value/time summary data for each channel.
+
+```sql
+CREATE TABLE session_channel_values (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_channel_id INTEGER NOT NULL,
+    value INTEGER NOT NULL,
+    count INTEGER DEFAULT 0,
+    time_ms INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_channel_id) REFERENCES session_channels(id) ON DELETE CASCADE,
+    UNIQUE(session_channel_id, value)
+)
+```
+
+**Purpose:** Stores the `m_valuesummary` and `m_timesummary` hash data from the Session class. This data tracks how many times each distinct value occurred (`count`) and for how long (`time_ms`) for each channel. This information is critical for calculating weighted averages and other time-based statistics. **This table fixes a critical bug where this data was not being persisted to the database, causing incorrect statistics when sessions were loaded.**
+
+### 11. respiratory_events
 Individual respiratory events (apneas, hypopneas, RERAs).
 
 ```sql
@@ -519,6 +538,19 @@ CREATE TABLE daily_summaries (
 | gain | REAL | | NO | Scale factor |
 | created_at | TEXT | | NO | Creation timestamp |
 
+### session_channel_values 🐛 **NEW IN v7**
+
+| Field | Type | Key | Null | Description |
+|-------|------|-----|------|-------------|
+| id | INTEGER | PK | NO | Auto-increment ID |
+| session_channel_id | INTEGER | FK | NO | → session_channels(id) |
+| value | INTEGER | | NO | The distinct value that occurred |
+| count | INTEGER | | NO | Number of occurrences of this value |
+| time_ms | INTEGER | | NO | Total time in milliseconds this value was held |
+| created_at | TEXT | | NO | Creation timestamp |
+
+**Critical for:** Weighted averages, time-based statistics. Without this data, weighted averages default to simple averages, causing significant inaccuracies in pressure and other metrics.
+
 ### respiratory_events
 
 | Field | Type | Key | Null | Description |
@@ -799,8 +831,18 @@ The daily_summaries table (new in v6) provides:
 - **Machine-specific or combined** summaries via optional machine_id
 - **Cache invalidation** via sessions_hash field
 
+## Schema v7 Highlights 🐛 **BUG FIX**
+
+The session_channel_values table (new in v7) provides:
+- **Fixes critical bug** where value/time summaries were not persisted to database
+- **Stores m_valuesummary and m_timesummary** hash data for each channel
+- **Enables accurate weighted averages** and time-based statistics
+- **Impact**: Without this table, weighted averages defaulted to simple averages, causing significant inaccuracies in pressure statistics and other metrics
+- **Automatic migration** from schema version 6 to 7
+- **Note**: Existing sessions will need to be re-saved to populate this data (happens automatically on next import)
+
 ---
 
-**Document Version:** 2.0  
-**Schema Version:** 6  
-**Generated:** 2025 Q4
+**Document Version:** 3.0  
+**Schema Version:** 7  
+**Generated:** 2026 Q1

@@ -1202,7 +1202,12 @@ bool Machine::Save()
     // IMPORTANT: Save machine to database FIRST so it has a database ID
     // This must happen before sessions are saved
     if (m_database_id == 0) {
-        SaveToDatabase();
+        qDebug() << "Machine::Save(): Machine not in database, calling SaveToDatabase()";
+        if (!SaveToDatabase()) {
+            qWarning() << "Machine::Save(): Failed to save machine to database, sessions will not be saved";
+        } else {
+            qDebug() << "Machine::Save(): Machine saved successfully with database ID" << m_database_id;
+        }
     }
 
     QHash<SessionID, Session *>::iterator s;
@@ -1221,18 +1226,25 @@ bool Machine::Save()
     runTasks();
 
     // NOW save all sessions to database (machine now has a database ID)
+    // Check again after SaveToDatabase() call above
     if (m_database_id > 0) {
-        qDebug() << "Machine::Save(): Saving" << sessionlist.size() << "sessions to database";
+        qDebug() << "Machine::Save(): Machine database ID is" << m_database_id 
+                 << "- saving" << sessionlist.size() << "sessions to database";
         int savedCount = 0;
+        int skippedCount = 0;
         for (s = sessionlist.begin(); s != sessionlist.end(); s++) {
             Session *sess = s.value();
             if (sess->first() != 0) {  // Only save valid sessions
                 if (sess->StoreToDatabase()) {
                     savedCount++;
+                } else {
+                    skippedCount++;
                 }
             }
         }
-        qDebug() << "Machine::Save(): Saved" << savedCount << "sessions to database";
+        qDebug() << "Machine::Save(): Saved" << savedCount << "sessions to database," << skippedCount << "skipped/failed";
+    } else {
+        qWarning() << "Machine::Save(): Machine database ID is 0, cannot save" << sessionlist.size() << "sessions to database";
     }
 
     return true;
@@ -1285,22 +1297,40 @@ bool Machine::SaveToDatabase()
     ProfileRepository profileRepo;
 
     // Get the profile ID for this machine's profile
-    ProfileData profileData = profileRepo.findByUsername(profile->user->userName());
+    QString profileName = profile->user->userName();
+    qDebug() << "Machine::SaveToDatabase(): Looking up profile" << profileName 
+             << "for machine" << info.serial << info.loadername;
+    
+    ProfileData profileData = profileRepo.findByUsername(profileName);
     if (profileData.id == 0) {
-        qWarning() << "Machine::SaveToDatabase(): Profile not in database yet";
+        qWarning() << "Machine::SaveToDatabase(): Profile" << profileName << "not in database yet";
         return false;
     }
+    
+    qDebug() << "Machine::SaveToDatabase(): Found profile" << profileName 
+             << "with database ID" << profileData.id;
 
     // Check if this machine already exists in THIS PROFILE's database
-    // IMPORTANT: We check by profile_id AND machine_id (OSCAR's internal ID)
-    // NOT by serial number, since the same device could be used by different profiles
-    MachineData existing = repo.findByProfileAndMachineId(profileData.id, m_id);
+    // We search by serial+loader+profile to handle cases where machine internal ID changes
+    // (e.g., during rebuild from backup when a new random ID is generated)
+    MachineData existing = repo.findBySerialLoaderAndProfile(info.serial, info.loadername, profileData.id);
     if (existing.id > 0) {
         // Machine already exists in this profile, reuse the existing ID
         m_database_id = existing.id;
+        
+        // IMPORTANT: Update the stored machine_id to match current internal ID
+        // This ensures consistency if the internal ID changed (e.g., rebuild)
+        if (existing.machineId != m_id) {
+            qDebug() << "Machine::SaveToDatabase(): Updating machine_id from"
+                     << existing.machineId << "to" << m_id << "for machine" << info.serial;
+            MachineData updateData = existing;
+            updateData.machineId = m_id;
+            repo.update(updateData);
+        }
+        
         qDebug() << "Machine::SaveToDatabase(): Found existing machine"
                  << info.serial << "in profile" << profile->user->userName()
-                 << "with ID" << m_database_id;
+                 << "with database ID" << m_database_id;
         return true;
     }
 

@@ -416,6 +416,7 @@ SOURCES += \
     database/session_repository.cpp \
     database/session_settings_repository.cpp \
     database/session_channels_repository.cpp \
+    database/session_channel_values_repository.cpp \
     database/session_slices_repository.cpp \
     database/session_summaries_repository.cpp \
     database/channel_repository.cpp \
@@ -553,6 +554,7 @@ HEADERS  += \
     database/session_repository.h \
     database/session_settings_repository.h \
     database/session_channels_repository.h \
+    database/session_channel_values_repository.h \
     database/session_slices_repository.h \
     database/session_summaries_repository.h \
     database/channel_repository.h \

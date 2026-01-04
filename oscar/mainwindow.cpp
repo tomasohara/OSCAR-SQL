@@ -481,6 +481,9 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     qDebug() << "Opening profile" << profileName;
     SpeedCheck scOpen(10000, "opened profile " + profileName); // Log if over 10 seconds to open
 
+    // Ensure database is in clean state before opening new profile
+    ensureCleanDatabaseState();
+
     auto pit = Profiles::profiles.find(profileName);
     if (pit == Profiles::profiles.end())
         return false;
@@ -679,6 +682,10 @@ void MainWindow::CloseProfile()
         p_profile->removeLock();
         p_profile = nullptr;
     }
+
+    // Ensure any pending database transaction is committed before profile close
+    // This prevents data loss when switching between profiles
+    ensureCleanDatabaseState();
 }
 
 
@@ -823,9 +830,15 @@ void MainWindow::finishCPAPImport()
     if (daily)
         daily->Unload(daily->getDate());
 
+    // IMPORTANT: Save machines first so they have database IDs
     p_profile->StoreMachines();
+    
+    // CRITICAL: Now save all sessions to database
+    // This was missing - sessions were never being saved!
     QList<Machine *> machines = p_profile->GetMachines(MT_CPAP);
     for (Machine * mach : machines) {
+        qDebug() << "finishCPAPImport: Saving" << mach->sessionlist.size() << "sessions for machine" << mach->serial();
+        mach->Save();  // This saves sessions to database
         mach->saveSessionInfo();
         mach->SaveSummaryCache();
     }
@@ -3066,4 +3079,30 @@ void MainWindow::on_recordsBox_anchorClicked(const QUrl &linkurl)
 void MainWindow::on_statisticsView_anchorClicked(const QUrl &url)
 {
     on_recordsBox_anchorClicked(url);
+}
+
+/*
+ * Ensure database has no uncommitted transactions
+ * 
+ * This helper method checks if there's an active database transaction
+ * and commits or rolls it back to ensure a clean state. This prevents
+ * data loss when switching between profiles, as uncommitted transactions
+ * can cause data to be lost or corrupted during profile switches.
+ * 
+ * Called by OpenProfile() and CloseProfile() to maintain database integrity.
+ */
+void MainWindow::ensureCleanDatabaseState()
+{
+    DatabaseManager& dbMgr = DatabaseManager::instance();
+    
+    if (dbMgr.inTransaction()) {
+        qWarning() << "ensureCleanDatabaseState: Uncommitted transaction detected, attempting to commit...";
+        
+        if (!dbMgr.commit()) {
+            qCritical() << "ensureCleanDatabaseState: Failed to commit pending transaction, rolling back...";
+            dbMgr.rollback();
+        } else {
+            qDebug() << "ensureCleanDatabaseState: Successfully committed pending transaction";
+        }
+    }
 }
