@@ -167,6 +167,13 @@ libopenw=$PKGNAME
 getPkg libqt6xml
 libxml=$PKGNAME
 
+libSQL=""
+getPkg libqt6sql6t
+libSQL=$PKGNAME
+if [ -z "$libSQL" ]; then
+    libSQL="libqt6sql6"
+fi
+
 # clean folders need to create the package
 if [ -d "${temp_folder}" ]; then
     rm -r ${temp_folder}
@@ -258,6 +265,7 @@ fpm --input-type dir --output-type deb  \
     --depends ${libopenw} \
     --depends ${libxml} \
     --depends libqt6serialport6 \
+    --depends $libSQL \
     -C ${temp_folder} \
     -p ${deb_file} \
     .

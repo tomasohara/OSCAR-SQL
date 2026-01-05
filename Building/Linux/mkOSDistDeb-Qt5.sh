@@ -165,6 +165,13 @@ dblPkg=$PKGNAME
 getPkg libpcre
 libpcrePkg=$PKGNAME
 
+libSQL=""
+getPkg libqt5sql5t
+libSQL=$PKGNAME
+if [ -z "$libSQL" ]; then
+    libSQL="libqt5sql5"
+fi
+
 echo "QT name version " $corePkg $qtver
 echo "DblConv package " $dblPkg
 echo "libcrePkg package " $libpcrePkg
@@ -269,6 +276,7 @@ fpm --input-type dir --output-type deb  \
     --depends libglu1-mesa          \
     --depends libgl1                \
     --depends libc6                 \
+    --depends $libSQL        \
     --no-deb-generate-changes \
     -C ${temp_folder} \
     -p ${deb_file} \
