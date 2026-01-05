@@ -16,6 +16,7 @@
 #include <QThreadPool>
 
 #include "machine_loader.h"
+#include "profiles.h"  // For p_profile global
 
 // GLOBALS:
 bool genpixmapinit = false;
@@ -50,12 +51,34 @@ void MachineLoader::addSession(Session * sess)
 
 void MachineLoader::finishAddingSessions()
 {
+    // CRITICAL: Ensure machine is saved to database BEFORE adding sessions
+    // Sessions need the machine's database_id for foreign key relationship
+    if (!new_sessions.empty()) {
+        Machine * mach = new_sessions.begin().value()->machine();
+        if (mach && mach->getDatabaseId() == 0) {
+            qDebug() << "MachineLoader::finishAddingSessions: Saving machine to database before adding sessions";
+            if (!mach->SaveToDatabase()) {
+                qWarning() << "MachineLoader::finishAddingSessions: Failed to save machine to database - sessions will not be saved to database";
+            } else {
+                qDebug() << "MachineLoader::finishAddingSessions: Machine saved to database with ID" << mach->getDatabaseId();
+            }
+        }
+    }
+    
     // Using a map specifically so they are inserted in order.
     for (auto it=new_sessions.begin(), end=new_sessions.end(); it != end; ++it) {
         Session * sess = it.value();
         Machine * mach = sess->machine();
         mach->AddSession(sess);
     }
+    
+    // Calculate daily summaries for imported sessions (PERFORMANCE FIX)
+    // This runs during import, not on every profile load
+    if (!new_sessions.empty() && p_profile) {
+        p_profile->calculateDailySummaries();
+        qDebug() << "MachineLoader::finishAddingSessions: Calculated daily summaries for imported data";
+    }
+    
     new_sessions.clear();
 }
 

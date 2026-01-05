@@ -36,7 +36,7 @@ public:
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
      */
-    static const int CURRENT_SCHEMA_VERSION = 7;
+    static const int CURRENT_SCHEMA_VERSION = 8;
 
     /*!
      * \brief Create the complete database schema
@@ -90,6 +90,10 @@ private:
     
     // Daily summaries table (schema version 6)
     static bool createDailySummariesTable(QSqlDatabase& db);
+    
+    // Event data tables (schema version 8)
+    static bool createEventListsTable(QSqlDatabase& db);
+    static bool createEventDataTable(QSqlDatabase& db);
     
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);

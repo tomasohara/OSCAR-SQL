@@ -222,9 +222,9 @@ bool Profile::OpenMachines()
         return true;
     }
 
-    // Fall back to XML
-    qDebug() << "Profile: Falling back to XML for machines";
-    return loadMachinesFromXML();
+    // Unable to read machines (maybe there aren't any?)
+    qWarning() << "Profile: Could not read machines from database";
+    return false; // loadMachinesFromXML();
 }
 
 bool Profile::loadMachinesFromDatabase()
@@ -316,7 +316,7 @@ bool Profile::loadMachinesFromDatabase()
 
     return !m_machlist.isEmpty();
 }
-
+/***
 bool Profile::loadMachinesFromXML()
 {
     if (m_machlist.size() > 0) {
@@ -420,6 +420,7 @@ bool Profile::loadMachinesFromXML()
 
     return true;
 }
+***/
 
 bool Profile::StoreMachines()
 {
@@ -516,7 +517,7 @@ bool Profile::storeMachinesToDatabase()
 
     return true;
 }
-
+/***
 bool Profile::storeMachinesToXML()
 {
     QDomDocument doc("Machines");
@@ -587,7 +588,7 @@ bool Profile::storeMachinesToXML()
     file.write(doc.toByteArray());
     return true;
 }
-
+***/
 qint64 Profile::diskSpaceSummaries()
 {
     qint64 size = 0;
@@ -889,7 +890,43 @@ void Profile::LoadMachineData(ProgressDialog *progress)
 {
     addLock();
 
+    // IMPORTANT: Ensure profile is in database BEFORE loading machines
+    // This is required because Machine::SaveToDatabase() needs a valid profile ID
+    ProfileRepository profileRepo;
+    QString name = user->userName();
+    ProfileData profileData = profileRepo.findByUsername(name);
+    
+    if (profileData.id == 0) {
+        // Profile not in database yet, create it now
+        qDebug() << "Profile::LoadMachineData() - Profile" << name << "not in database, creating it";
+        
+        ProfileData newProfile;
+        newProfile.username = name;
+        newProfile.dataFolder = QString("%PROFDIR%/") + name;
+        newProfile.status = "active";
+        
+        qint64 profileId = profileRepo.create(newProfile);
+        if (profileId > 0) {
+            qDebug() << "Profile::LoadMachineData() - Created profile in database with ID" << profileId;
+        } else {
+            qWarning() << "Profile::LoadMachineData() - Failed to create profile" << name << "in database";
+        }
+    } else {
+        qDebug() << "Profile::LoadMachineData() - Profile" << name << "already in database with ID" << profileData.id;
+    }
+
     for (auto & mach : m_machlist) {
+        // IMPORTANT: Save machine to database BEFORE Load() so sessions can reference it
+        if (mach->getDatabaseId() == 0) {
+            if (!mach->SaveToDatabase()) {
+                qWarning() << "Profile::LoadMachineData() - Failed to save machine"
+                          << mach->loaderName() << mach->serial() << "to database";
+            } else {
+                qDebug() << "Profile::LoadMachineData() - Saved machine" << mach->loaderName()
+                        << mach->serial() << "to database with ID" << mach->getDatabaseId();
+            }
+        }
+        
         MachineLoader *loader = lookupLoader(mach);
 
         if (loader) {
@@ -916,9 +953,9 @@ void Profile::LoadMachineData(ProgressDialog *progress)
     progress->setMessage("Loading Channel Information");
     loadChannels();
     
-    // Calculate daily summaries for fast reporting
-    progress->setMessage("Calculating Daily Summaries");
-    calculateDailySummaries();
+    // NOTE: Daily summaries are calculated during import, not during profile load
+    // This avoids recalculating on every profile open
+    // See: Session::StoreToDatabase() and Machine::finishAddingSessions()
 }
 
 void Profile::removeMachine(Machine * mach)

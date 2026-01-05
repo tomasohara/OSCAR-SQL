@@ -924,6 +924,10 @@ int PRS1Loader::OpenMachine(const QString & path)
 
     runTasks(AppSetting->multithreading());
 
+    // IMPORTANT: Set machine_id on all sessions that were just added
+    // This is required so event data can be saved to database
+    finishAddingSessions();
+
     return tasks;
 }
 

@@ -1102,6 +1102,20 @@ QByteArray uncompressed = gUncompress(data);
     progress->setProgressValue(sess_order.size());
     QApplication::processEvents();
 
+    // IMPORTANT: Ensure all sessions loaded from files know their machine's database ID
+    // This is required so sessions can be saved to database correctly on profile reopen
+    if (m_database_id > 0) {
+        qDebug() << "Machine::LoadSummary(): Setting machine_id=" << m_database_id 
+                 << "on" << this->sessionlist.size() << "sessions loaded from files";
+        QHash<SessionID, Session *>::iterator sess_it;
+        for (sess_it = this->sessionlist.begin(); sess_it != this->sessionlist.end(); ++sess_it) {
+            Session* sess = sess_it.value();
+            if (sess && sess->first() != 0) {
+                sess->setMachineId(m_database_id);
+            }
+        }
+    }
+
     qDebug() << "Loaded" << info.model.toLocal8Bit().data() << "data in" << time.elapsed() << "ms";
 
     return true;

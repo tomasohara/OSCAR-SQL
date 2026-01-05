@@ -113,6 +113,17 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
+    // Event data tables (schema version 8)
+    if (!createEventListsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create event_lists table";
+        return false;
+    }
+
+    if (!createEventDataTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create event_data table";
+        return false;
+    }
+
     // Create indexes
     if (!createIndexes(db)) {
         qCritical() << "DatabaseSchema: Failed to create indexes";
@@ -323,6 +334,49 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         qDebug() << "DatabaseSchema: NOTE - Existing sessions will need to be re-saved to populate value/time summaries";
     }
     
+    // Upgrade from version 7 to version 8: Add event_lists and event_data tables
+    if (fromVersion < 8) {
+        qDebug() << "DatabaseSchema: Applying version 8 upgrade (event data tables)";
+        
+        if (!createEventListsTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create event_lists table during upgrade";
+            return false;
+        }
+
+        if (!createEventDataTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create event_data table during upgrade";
+            return false;
+        }
+        
+        // Create indexes for event tables
+        QSqlQuery query(db);
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_event_lists_session ON event_lists(session_id)")) {
+            qWarning() << "DatabaseSchema: Failed to create event_lists session index:" << query.lastError().text();
+        }
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_event_lists_channel ON event_lists(session_id, channel_id)")) {
+            qWarning() << "DatabaseSchema: Failed to create event_lists channel index:" << query.lastError().text();
+        }
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_event_lists_type ON event_lists(event_type)")) {
+            qWarning() << "DatabaseSchema: Failed to create event_lists type index:" << query.lastError().text();
+        }
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_event_lists_time ON event_lists(session_id, first_time, last_time)")) {
+            qWarning() << "DatabaseSchema: Failed to create event_lists time index:" << query.lastError().text();
+        }
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_event_data_eventlist ON event_data(eventlist_id)")) {
+            qWarning() << "DatabaseSchema: Failed to create event_data index:" << query.lastError().text();
+        }
+        
+        // Update schema version
+        if (!setSchemaVersion(db, 8)) {
+            qCritical() << "DatabaseSchema: Failed to update schema version to 8";
+            return false;
+        }
+        
+        qDebug() << "DatabaseSchema: Successfully upgraded to version 8";
+        qDebug() << "DatabaseSchema: Event/waveform data will now be stored in database";
+        qDebug() << "DatabaseSchema: Re-import CPAP data to populate event data tables";
+    }
+    
     return true;
 }
 
@@ -511,6 +565,13 @@ bool DatabaseSchema::createIndexes(QSqlDatabase& db)
     indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_ahi ON daily_summaries(ahi)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_compliance ON daily_summaries(profile_id, is_compliant)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_date_range ON daily_summaries(profile_id, date DESC)";
+
+    // Event data indexes (schema version 8)
+    indexes << "CREATE INDEX IF NOT EXISTS idx_event_lists_session ON event_lists(session_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_event_lists_channel ON event_lists(session_id, channel_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_event_lists_type ON event_lists(event_type)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_event_lists_time ON event_lists(session_id, first_time, last_time)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_event_data_eventlist ON event_data(eventlist_id)";
 
     // Execute each index creation
     for (const QString& sql : indexes) {
@@ -1127,5 +1188,98 @@ bool DatabaseSchema::createDailySummariesTable(QSqlDatabase& db)
     }
 
     qDebug() << "DatabaseSchema: daily_summaries table created";
+    return true;
+}
+
+/*
+ * Create the event_lists table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The event_lists table stores metadata for each EventList (one row per EventList).
+ * This includes timing, scaling, and dimensional information but not the actual data arrays.
+ */
+bool DatabaseSchema::createEventListsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS event_lists ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    session_id INTEGER NOT NULL,"
+        "    channel_id INTEGER NOT NULL,"
+        "    eventlist_index INTEGER NOT NULL DEFAULT 0,"
+        "    event_type INTEGER NOT NULL,"
+        "    first_time INTEGER NOT NULL,"
+        "    last_time INTEGER NOT NULL,"
+        "    count INTEGER NOT NULL,"
+        "    rate REAL NOT NULL DEFAULT 0,"
+        "    gain REAL NOT NULL DEFAULT 1.0,"
+        "    offset REAL NOT NULL DEFAULT 0.0,"
+        "    min_value REAL NOT NULL DEFAULT 0.0,"
+        "    max_value REAL NOT NULL DEFAULT 0.0,"
+        "    dimension TEXT,"
+        "    has_second_field INTEGER NOT NULL DEFAULT 0,"
+        "    min2_value REAL,"
+        "    max2_value REAL,"
+        "    data_size INTEGER NOT NULL DEFAULT 0,"
+        "    compressed_size INTEGER,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,"
+        "    UNIQUE(session_id, channel_id, eventlist_index)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create event_lists table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: event_lists table created";
+    return true;
+}
+
+/*
+ * Create the event_data table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The event_data table stores actual binary data for each EventList (one row per EventList).
+ * Data is stored as compressed BLOBs for efficiency, with checksums for integrity verification.
+ */
+bool DatabaseSchema::createEventDataTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS event_data ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    eventlist_id INTEGER NOT NULL,"
+        "    data_blob BLOB,"
+        "    data_compressed BLOB,"
+        "    data2_blob BLOB,"
+        "    data2_compressed BLOB,"
+        "    time_blob BLOB,"
+        "    time_compressed BLOB,"
+        "    compression_method INTEGER NOT NULL DEFAULT 0,"
+        "    checksum INTEGER,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (eventlist_id) REFERENCES event_lists(id) ON DELETE CASCADE,"
+        "    UNIQUE(eventlist_id)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create event_data table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: event_data table created";
     return true;
 }

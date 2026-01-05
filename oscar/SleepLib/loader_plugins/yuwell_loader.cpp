@@ -155,12 +155,18 @@ int YuwellLoader::Open(const QString & dirPath) {
     int c = 0;
     for (int i = 0; i < serialNumbers.size(); i++) {
         MachineInfo info = newInfo();
-        info.brand = "Yuwell";
         info.serial = serialNumbers[i];
-        info.version = 1;
-        info.loadername = "YuwellLoader";
-        info.type = MachineType::MT_CPAP;
         m = p_profile->CreateMachine(info);
+        
+        // IMPORTANT: Save machine to database immediately so sessions can reference it
+        if (m && m->getDatabaseId() == 0) {
+            if (!m->SaveToDatabase()) {
+                qWarning() << "YuwellLoader::Open() - Failed to save machine to database";
+            } else {
+                qDebug() << "YuwellLoader::Open() - Saved machine to database with ID" << m->getDatabaseId();
+            }
+        }
+        
         QString serialPath = dirPath + "/" + info.serial;
         try {
             if (m) {

@@ -421,7 +421,9 @@ SOURCES += \
     database/session_summaries_repository.cpp \
     database/channel_repository.cpp \
     database/channel_options_repository.cpp \
-    database/daily_summary_repository.cpp
+    database/daily_summary_repository.cpp \
+    database/event_list_repository.cpp \
+    database/event_data_repository.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -559,7 +561,9 @@ HEADERS  += \
     database/session_summaries_repository.h \
     database/channel_repository.h \
     database/channel_options_repository.h \
-    database/daily_summary_repository.h
+    database/daily_summary_repository.h \
+    database/event_list_repository.h \
+    database/event_data_repository.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }

@@ -57,10 +57,10 @@ class Profile : public Preferences
     bool loadMachinesFromDatabase();
     
     //! \brief Load machines from XML file (original implementation)
-    bool loadMachinesFromXML();
+//    bool loadMachinesFromXML();
 
     //! \brief Store machines from XML file (original implementation)
-    bool storeMachinesToXML();
+//    bool storeMachinesToXML();
 
   public:
     //! \brief Store machines to database

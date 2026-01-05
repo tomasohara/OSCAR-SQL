@@ -92,6 +92,12 @@ class Session
 
     //! \brief Writes the Sessions EventLists to filename, in SleepLibs custom data format.
     bool StoreEvents();
+    
+    //! \brief Writes the Sessions EventLists to database (NEW - database storage)
+    bool StoreEventsToDatabase();
+    
+    //! \brief Loads the Sessions EventLists from database (NEW - database storage)
+    bool LoadEventsFromDatabase();
 
     //bool Load(QString path);
 
@@ -426,6 +432,12 @@ class Session
         s_events_loaded = b;
         s_summary_loaded = b;
     }
+    
+    //! \brief Set the machine database ID for this session
+    void setMachineId(qint64 id) { m_database_id = id; }
+    
+    //! \brief Get the machine database ID for this session
+    qint64 machineId() const { return m_database_id; }
 
     //! \brief Completely purges Session from memory and disk.
     bool Destroy();

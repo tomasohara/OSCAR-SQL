@@ -404,6 +404,7 @@ int FPIconLoader::OpenMachine(Machine *mach, const QString & path)
         //    }
 
     int c = Sessions.size();
+
     finishAddingSessions();
     mach->Save();
 

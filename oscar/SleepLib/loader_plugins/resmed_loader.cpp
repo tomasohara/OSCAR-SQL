@@ -802,6 +802,17 @@ void edfDebugInit();
     sessionCount = 0;
     emit updateMessage(QObject::tr("Importing Sessions..."));
 
+    // IMPORTANT: Save machine to database BEFORE runTasks()
+    // ResMed stores sessions DURING runTasks(), so machine must have database_id first
+    if (mach->getDatabaseId() == 0) {
+        qDebug() << "ResMed: Saving machine to database before runTasks()";
+        if (!mach->SaveToDatabase()) {
+            qWarning() << "ResMed: Failed to save machine to database - sessions will not be saved to database";
+        } else {
+            qDebug() << "ResMed: Machine saved to database with ID" << mach->getDatabaseId();
+        }
+    }
+
     // Walk down the resDay list
     qDebug() << "About to call runTasks()";
     runTasks();
@@ -1267,6 +1278,7 @@ QString ResmedLoader::Backup(const QString & fullname, const QString & backup_pa
 bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap, QDate firstImport)
 {
     bool AS_eleven = (mach->info.modelnumber.toInt() >= 39000);
+    int numMaskEvents = 0;
 
 //  QDateTime ignoreBefore = p_profile->session->ignoreOlderSessionsDate();
 //  bool ignoreOldSessions = p_profile->session->ignoreOlderSessions();
@@ -1380,7 +1392,8 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
             }
             if ( ! validday) {
                 // There are no mask on/off events, so this STR day is useless.
-                qDebug() << "Skipping" << date.toString() << "no mask events";
+//                qDebug() << "Skipping" << date.toString() << "no mask events";
+                numMaskEvents++;
                 continue;
             }
 
@@ -2098,6 +2111,9 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
 #ifdef STR_DEBUG
         qDebug() << "Finished" << strfile;
 #endif
+    }
+    if (numMaskEvents > 0) {
+        qDebug() << "Skipped" << numMaskEvents << "days with no mask events";
     }
     qDebug() << "Finished ProcessSTR";
     return true;

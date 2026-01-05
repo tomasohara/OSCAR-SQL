@@ -135,6 +135,20 @@ Machine* ProfileImportContext::CreateMachineFromInfo(const MachineInfo & info)
     }
     m_machineInfo = info;
     m_machine = m_profile->CreateMachine(m_machineInfo);
+    
+    // IMPORTANT: Save machine to database immediately so it has a database ID
+    // This must happen BEFORE any sessions are added, so finishAddingSessions()
+    // can set the machine_id on all sessions correctly
+    if (m_machine && m_machine->getDatabaseId() == 0) {
+        if (!m_machine->SaveToDatabase()) {
+            qWarning() << "ProfileImportContext::CreateMachineFromInfo() - Failed to save machine to database";
+        } else {
+            qDebug() << "ProfileImportContext::CreateMachineFromInfo() - Saved machine" 
+                     << m_machine->loaderName() << m_machine->serial() 
+                     << "to database with ID" << m_machine->getDatabaseId();
+        }
+    }
+    
     return m_machine;
 }
 

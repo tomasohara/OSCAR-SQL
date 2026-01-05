@@ -33,9 +33,12 @@
 #include "../database/session_channel_values_repository.h"
 #include "../database/session_slices_repository.h"
 #include "../database/session_summaries_repository.h"
+#include "../database/event_list_repository.h"
+#include "../database/event_data_repository.h"
 
 using namespace std;
 #define FIX_FOR_SINGLE_EVENT            // fixes ibreeze "No valuesummary for channel" error during import.
+//#define DBDEBUG                       // for maximum diagnostics
 
 // This is the uber important database version for OSCAR's internal storage
 // Increment this after stuffing with Session's save & load code.
@@ -193,26 +196,23 @@ bool Session::Store(QString path)
 
     //qDebug() << " Summary done";
     
-    // Events and waveforms STILL saved to .001 files (too large for database)
-    if (eventlist.size() > 0) {
-        StoreEvents();
-    } else { // who cares..
-        //qDebug() << "Trying to save empty events file";
+    // Database-only storage
+    // IMPORTANT: Must call StoreToDatabase() FIRST to get m_database_id
+    // Then StoreEvents() can use that ID to store event data
+    if (s_machine->getDatabaseId() > 0) {
+        a = StoreToDatabase();  // Save session metadata first - sets m_database_id
+        
+        // Now store events to database (m_database_id is now set)
+        if (eventlist.size() > 0) {
+            StoreEvents();  // This will now work because m_database_id is set
+        }
+    } else {
+        qWarning() << "Session::Store() - Machine not in database yet, skipping database storage";
     }
 
     //qDebug() << " Events done";
     s_changed = false;
     s_events_loaded = true;
-
-    //} else {
-    //    qDebug() << "Session::Store() No event data saved" << s_session;
-    //}
-    
-    // Database-only storage
-    // This ensures sessions get into database as soon as machine has a database ID
-    if (s_machine->getDatabaseId() > 0) {
-        a = StoreToDatabase();  // Save to database only
-    }
 
     return a;
 }
@@ -428,14 +428,22 @@ bool Session::LoadSummary(bool debug)
     // Skip database loading if machine doesn't have a database ID yet (during initial scan/rebuild)
     if (s_machine->getDatabaseId() > 0) {
         if (LoadFromDatabase()) {
-            qDebug() << "Session::LoadSummary() - Loaded summary ession" << s_session << "from database";
+#ifdef DBDEBUG
+            qDebug() << "Session::LoadSummary() - Loaded summary session" << s_session << "from database";
+#endif
             return true;
         }
-        qWarning() << "Session::LoadSummary() - Database load failed, falling back to file for session" << s_session;
+        qWarning() << "Session::LoadSummary() - Database load failed for session" << s_session;
+        return false;  // Database-only mode - no file fallback
     }
     
-    // Fall back to loading from file (or initial load if machine not in database yet)
-    // TESTING: Comment out the code below to force database-only loading
+    // Database not available - session not in database
+    qDebug() << "Session::LoadSummary() - Session not in database";
+    return false;
+    
+    /* ===== FILE-BASED LOADING (DISABLED - DATABASE ONLY) =====
+    // This code is kept for reference but disabled for database-only operation
+    // Uncomment to re-enable file loading fallback
     
     QString filename = s_machine->getSummariesPath() + toHexid(s_session) + ".000";
 
@@ -712,12 +720,33 @@ bool Session::LoadSummary(bool debug)
 
     s_summary_loaded = true;
     return true;
+    ===== END FILE-BASED LOADING (DISABLED) ===== */
 }
 
 const quint16 compress_method = 1;
 
 bool Session::StoreEvents()
 {
+    // ===== NEW: Database-Only Storage =====
+    // Try storing to database if machine is in database
+    if (s_machine->getDatabaseId() > 0 && m_database_id > 0) {
+        bool dbSuccess = StoreEventsToDatabase();
+        if (dbSuccess) {
+#ifdef DBDEBUG
+            qDebug() << "Session::StoreEvents() - Successfully stored to database";
+#endif
+            return true;
+        } else {
+            qWarning() << "Session::StoreEvents() - Database storage failed";
+            // Continue to return false since we're database-only now
+            return false;
+        }
+    }
+    
+    qWarning() << "Session::StoreEvents() - Machine or session not in database yet, skipping";
+    return false;
+    
+    /* ===== OLD FILE-BASED STORAGE (COMMENTED OUT FOR RECOVERY) =====
     QString path = s_machine->getEventsPath();
     QDir dir;
     dir.mkpath(path);
@@ -858,10 +887,37 @@ bool Session::StoreEvents()
     file.write(data);
     file.close();
     return true;
+    ===== END OLD FILE-BASED STORAGE (COMMENTED OUT) ===== */
 }
 
 bool Session::LoadEvents(QString filename, bool debug)
 {
+    // ===== NEW: Try Database First =====
+    // Try loading from database if machine and session are in database
+    if (s_machine->getDatabaseId() > 0 && m_database_id > 0) {
+        if (LoadEventsFromDatabase()) {
+#ifdef DBDEBUG
+            qDebug() << "Session::LoadEvents() - Successfully loaded from database";
+#endif
+            return true;
+        } else {
+            qWarning() << "Session::LoadEvents() - Database load failed for machine" << m_database_id;
+            return false;  // Database-only mode - no file fallback
+        }
+    }
+    
+    // Database not available - session not in database
+    qWarning() << "Session::LoadEvents() - Session not in database (machine_id="
+             << s_machine->getDatabaseId() << ", session_id=" << m_database_id << ")";
+    return false;
+    
+    /* ===== FILE-BASED LOADING (DISABLED - DATABASE ONLY) =====
+    // This code is kept for reference but disabled for database-only operation
+    // Uncomment to re-enable file loading fallback
+    
+    qDebug() << "Session::LoadEvents() - Attempting to load from .001 file";
+    
+    // ===== FILE-BASED LOADING (FALLBACK FOR EXISTING DATA) =====
     quint32 magicnum, machid, sessid;
     quint16 version, type, crc16, machtype, compmethod;
     quint8 t8;
@@ -1086,6 +1142,7 @@ bool Session::LoadEvents(QString filename, bool debug)
     }
 
     return true;
+    ===== END FILE-BASED LOADING (DISABLED) ===== */
 }
 
 void Session::destroyEvent(ChannelID code)
@@ -1640,7 +1697,7 @@ bool Session::channelDataExists(ChannelID id)
 
         return true;
     } else {
-        qDebug() << "Calling channelDataExists without open eventdata!";
+        qDebug() << "Calling channelDataExists without open eventdata! id=" << id;
     }
 
     return false;
@@ -2491,7 +2548,7 @@ bool Session::StoreToDatabase()
     
     qint64 machineDbId = s_machine->getDatabaseId();
     if (machineDbId == 0) {
-        qDebug() << "Session::StoreToDatabase(): Machine not in database yet, using file storage";
+        qWarning() << "Session::StoreToDatabase(): Machine not in database yet, data not saved!";
         return false;
     }
     
@@ -2506,7 +2563,7 @@ bool Session::StoreToDatabase()
     sessionData.summaryOnly = s_summaryOnly;
     sessionData.noSettings = s_noSettings;
     sessionData.summaryFile = "";  // No longer using .000 summary files - data is in database
-    sessionData.eventsFile = toHexid(s_session) + ".001";
+    sessionData.eventsFile = "";  // No longer using .001 event files - data is in database
     
     if (m_database_id == 0) {
         // Create new session
@@ -2632,8 +2689,10 @@ bool Session::StoreToDatabase()
     // 5. Save summary statistics to session_summaries table
     // Now that m_database_id is set, we can store the calculated summary data
     StoreSummaryToDatabase();
-    
+
+#ifdef DBDEBUG
     qDebug() << "Session::StoreToDatabase(): Saved session" << s_session << "to database with ID" << m_database_id;
+#endif
     return true;
 }
 
@@ -2642,7 +2701,7 @@ bool Session::LoadFromDatabase()
     // Get machine's database ID
     qint64 machineDbId = s_machine->getDatabaseId();
     if (machineDbId == 0) {
-        qDebug() << "Session::LoadFromDatabase(): Machine not in database yet";
+        qWarning() << "Session::LoadFromDatabase(): Machine not in database yet";
         return false;
     }
     
@@ -2655,7 +2714,7 @@ bool Session::LoadFromDatabase()
     // 1. Find and load session record
     SessionData sessionData = sessionRepo.findByMachineAndSessionId(machineDbId, s_session);
     if (sessionData.id == 0) {
-        qDebug() << "Session::LoadFromDatabase(): Session" << s_session << "not found in database";
+        qWarning() << "Session::LoadFromDatabase(): Session" << s_session << "not found in database";
         return false;
     }
     
@@ -2669,9 +2728,11 @@ bool Session::LoadFromDatabase()
     s_summaryOnly = sessionData.summaryOnly;
     s_noSettings = sessionData.noSettings;
     
-    qDebug() << "Session::LoadFromDatabase(): Loading session" << s_session 
+#ifdef DBDEBUG
+    qDebug() << "Session::LoadFromDatabase(): Loading session" << s_session
              << "from database ID" << m_database_id;
-    
+#endif
+
     // 2. Load settings
     QList<SessionSettingData> settingsList = settingsRepo.findBySession(m_database_id);
     settings.clear();
@@ -2679,8 +2740,10 @@ bool Session::LoadFromDatabase()
         settings[setting.channelId] = setting.value;
     }
     
+#ifdef DBDEBUG
     qDebug() << "Session::LoadFromDatabase(): Loaded" << settingsList.size() << "settings";
-    
+#endif
+
     // 3. Load channel statistics and value/time summaries
     QList<SessionChannelData> channelsList = channelsRepo.findBySession(m_database_id);
     
@@ -2719,8 +2782,10 @@ bool Session::LoadFromDatabase()
         m_lastchan[id] = channel.lastTime;
     }
     
+#ifdef DBDEBUG
     qDebug() << "Session::LoadFromDatabase(): Loaded" << channelsList.size() << "channels";
-    
+#endif
+
     // 3b. Load value/time summaries for each channel (NEW - fixes bug)
     // This restores the m_valuesummary and m_timesummary data structures
     SessionChannelValuesRepository valuesRepo;
@@ -2741,10 +2806,12 @@ bool Session::LoadFromDatabase()
         }
     }
     
+#ifdef DBDEBUG
     if (valuesLoadedCount > 0) {
         qDebug() << "Session::LoadFromDatabase(): Loaded value/time summaries for" << valuesLoadedCount << "channels";
     }
-    
+#endif
+
     // 4. Load slices
     QList<SessionSliceData> slicesList = slicesRepo.findBySession(m_database_id);
     m_slices.clear();
@@ -2757,23 +2824,28 @@ bool Session::LoadFromDatabase()
         m_slices.append(slice);
     }
     
+#ifdef DBDEBUG
     qDebug() << "Session::LoadFromDatabase(): Loaded" << slicesList.size() << "slices";
-    
+#endif
+
     // 5. Load summary data (optional - contains computed values)
     SessionSummaryData summaryData = summariesRepo.findBySession(m_database_id);
+#ifdef DBDEBUG
     if (summaryData.id > 0) {
         // Summary data is available - we could use it to pre-populate
         // some calculated values, but for now we'll just log it
         qDebug() << "Session::LoadFromDatabase(): Found summary data - AHI:" 
                  << summaryData.ahi << "Hours:" << summaryData.hoursUsed;
     }
-    
+#endif
+
     // Mark summary as loaded since we have the cached statistics
     s_summary_loaded = true;
     
-    qDebug() << "Session::LoadFromDatabase(): Successfully loaded session" << s_session 
+#ifdef DBDEBUG
+    qDebug() << "Session::LoadFromDatabase(): Successfully loaded session" << s_session
              << "from database";
-    
+#endif
     return true;
 }
 
@@ -2870,8 +2942,10 @@ bool Session::StoreSummaryToDatabase()
     bool success = repo.createOrUpdate(data);
     
     if (success) {
+#ifdef DBDEBUG
         qDebug() << "Session::StoreSummaryToDatabase() - Saved or updated summary for session" << s_session
                  << "AHI:" << data.ahi << "hours:" << data.hoursUsed;
+#endif
     } else {
         qWarning() << "Session::StoreSummaryToDatabase() - Failed to save summary for session" << s_session;
     }
@@ -2900,3 +2974,194 @@ qint64 Session::last()
 
     return last;
 }
+
+// ===== NEW DATABASE STORAGE FOR EVENTS/WAVEFORMS =====
+
+bool Session::StoreEventsToDatabase()
+{
+    if (m_database_id == 0) {
+        qWarning() << "Session::StoreEventsToDatabase() - session not in database";
+        return false;
+    }
+    
+    if (eventlist.isEmpty()) {
+        qDebug() << "Session::StoreEventsToDatabase() - no events to store";
+        return true;
+    }
+    
+    EventListRepository eventListRepo;
+    EventDataRepository eventDataRepo;
+    
+    int totalEventLists = 0;
+    int totalSaved = 0;
+    qint64 totalUncompressed = 0;
+    qint64 totalCompressed = 0;
+    
+#ifdef DBDEBUG
+    qDebug() << "Session::StoreEventsToDatabase() - Storing events for session" << s_session;
+#endif
+
+    // Iterate through all channels
+    QHash<ChannelID, QVector<EventList *> >::iterator channelIt;
+    for (channelIt = eventlist.begin(); channelIt != eventlist.end(); ++channelIt) {
+        ChannelID channelId = channelIt.key();
+        QVector<EventList *> &eventLists = channelIt.value();
+        
+        // Iterate through all EventLists for this channel
+        for (int index = 0; index < eventLists.size(); ++index) {
+            EventList* eventList = eventLists[index];
+            
+            if (!eventList || eventList->count() == 0) {
+                continue;  // Skip empty EventLists
+            }
+            
+            totalEventLists++;
+            
+            // 1. Create EventListData from EventList
+            EventListData listData;
+            listData.sessionId = m_database_id;
+            listData.channelId = channelId;
+            listData.eventlistIndex = index;
+            listData.eventType = (int)eventList->type();
+            listData.firstTime = eventList->first();
+            listData.lastTime = eventList->last();
+            listData.count = eventList->count();
+            listData.rate = eventList->rate();
+            listData.gain = eventList->gain();
+            listData.offset = eventList->offset();
+            listData.minValue = eventList->Min();
+            listData.maxValue = eventList->Max();
+            listData.dimension = eventList->dimension();
+            listData.hasSecondField = eventList->hasSecondField();
+            
+            if (listData.hasSecondField) {
+                listData.min2Value = eventList->min2();
+                listData.max2Value = eventList->max2();
+            }
+            
+            // Calculate uncompressed data size
+            listData.dataSize = eventList->count() * sizeof(EventStoreType);
+            if (listData.hasSecondField) {
+                listData.dataSize += eventList->count() * sizeof(EventStoreType);
+            }
+            if (eventList->type() != EVL_Waveform) {
+                listData.dataSize += eventList->count() * sizeof(quint32);
+            }
+            
+            totalUncompressed += listData.dataSize;
+            
+            // 2. Create EventList metadata record in database
+            qint64 eventListId = eventListRepo.create(listData);
+            if (eventListId < 0) {
+                qWarning() << "Session::StoreEventsToDatabase() - Failed to create event_list for channel"
+                          << channelId << "index" << index;
+                continue;
+            }
+            
+            // 3. Store binary data
+            if (!eventDataRepo.storeEventListData(eventListId, eventList)) {
+                qWarning() << "Session::StoreEventsToDatabase() - Failed to store event data for channel"
+                          << channelId << "index" << index;
+                // Delete the metadata record since data storage failed
+                eventListRepo.deleteById(eventListId);
+                continue;
+            }
+            
+            totalSaved++;
+            
+            // Get compressed size from database (if available)
+            EventListData savedData = eventListRepo.findByIndex(m_database_id, channelId, index);
+            if (savedData.compressedSize > 0) {
+                totalCompressed += savedData.compressedSize;
+            } else {
+                totalCompressed += savedData.dataSize;
+            }
+        }
+    }
+    
+#ifdef DBDEBUG
+    // Log overall compression statistics for all EventLists combined
+    if (totalCompressed > 0 && totalUncompressed > 0) {
+        double ratio = (100.0 * totalCompressed / totalUncompressed);
+        qDebug() << "Session" << s_session << "stored" << totalSaved << "EventLists:"
+                 << totalUncompressed << "bytes ->" << totalCompressed << "bytes"
+                 << "(" << QString::number(ratio, 'f', 1) << "%)";
+    }
+#endif
+    return (totalSaved == totalEventLists);
+}
+
+bool Session::LoadEventsFromDatabase()
+{
+    if (m_database_id == 0) {
+        qWarning() << "Session::LoadEventsFromDatabase() - session not in database";
+        return false;
+    }
+    
+    EventListRepository eventListRepo;
+    EventDataRepository eventDataRepo;
+    
+    // Get all EventList metadata for this session
+    QList<EventListData> eventListsData = eventListRepo.findBySession(m_database_id);
+    
+    if (eventListsData.isEmpty()) {
+#ifdef DBDEBUG
+        qDebug() << "Session::LoadEventsFromDatabase() - No events found for session" << s_session;
+#endif
+        return false;
+    }
+    
+#ifdef DBDEBUG
+    qDebug() << "Session::LoadEventsFromDatabase() - Loading" << eventListsData.size()
+             << "EventLists for session" << s_session;
+#endif
+
+    int loaded = 0;
+    
+    // Create EventLists from database data
+    for (const EventListData& listData : eventListsData) {
+        // Create the EventList object
+        EventListType type = (EventListType)listData.eventType;
+        EventList* eventList = AddEventList(
+            listData.channelId,
+            type,
+            listData.gain,
+            listData.offset,
+            listData.minValue,
+            listData.maxValue,
+            listData.rate,
+            listData.hasSecondField
+        );
+        
+        // Set metadata
+        eventList->setFirst(listData.firstTime);
+        eventList->setLast(listData.lastTime);
+        eventList->m_count = listData.count;
+        eventList->setDimension(listData.dimension);
+        
+        if (listData.hasSecondField) {
+            eventList->setMin2(listData.min2Value);
+            eventList->setMax2(listData.max2Value);
+        }
+        
+        // Load binary data from database
+        if (!eventDataRepo.loadEventListData(listData.id, eventList)) {
+            qWarning() << "Session::LoadEventsFromDatabase() - Failed to load event data for channel"
+                      << listData.channelId << "index" << listData.eventlistIndex;
+            // Remove the partially loaded EventList
+            eventlist[listData.channelId].removeLast();
+            continue;
+        }
+        
+        loaded++;
+    }
+    
+#ifdef DBDEBUG
+    qDebug() << "Session::LoadEventsFromDatabase() - Successfully loaded" << loaded
+             << "EventLists for session" << s_session;
+#endif
+
+    return (loaded == eventListsData.size());
+}
+
+// ===== END NEW DATABASE STORAGE =====
