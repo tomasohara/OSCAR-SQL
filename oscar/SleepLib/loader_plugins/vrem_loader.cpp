@@ -1,4 +1,3 @@
-
 #define TEST_MACROS_ENABLEDoff
 #include <test_macros.h>
 
@@ -316,10 +315,10 @@ QPair<QByteArray, int> reduce7BBytes(const QByteArray &byteArray) {
 }
 
 void flowParser(const QByteArray &flowArray,EventList* flow,qint64 time){
-    QByteArray flowValuesArray = flowArray.mid(2, 50);
+    QByteArray flowValuesArray = flowArray.mid(2, 25);
     qint64 flowTime = (time);
-    qint16* waveformValues = new qint16[50];
-    qint16* averageValues = new qint16[50];
+    qint16* waveformValues = new qint16[25];
+    qint16* averageValues = new qint16[25];
     for (int i = 0; i < flowValuesArray.size(); ++i) {
         uint8_t currentByte = static_cast<uint8_t>(flowValuesArray[i]);
         int8_t signedByte = static_cast<int8_t>(currentByte);
@@ -339,7 +338,7 @@ void flowParser(const QByteArray &flowArray,EventList* flow,qint64 time){
         averageValues[i] = sum / valueQueue.size();
         
     }
-    flow->AddWaveform(flowTime, averageValues,50 , 40);
+    flow->AddWaveform(flowTime, averageValues,25 , 40);
 }
 void updatePressure(qint64 time ,EventList* pressure){
     if (intPressure != 0)
@@ -666,4 +665,3 @@ void VREMLoader::initChannels() {
     chan->addOption(true, STR_TR_On);
     chan->setShowInOverview(true);
 }
-
