@@ -17,6 +17,7 @@
 
 #include "machine_loader.h"
 #include "profiles.h"  // For p_profile global
+#include "performance_timer.h"
 
 // GLOBALS:
 bool genpixmapinit = false;
@@ -51,6 +52,11 @@ void MachineLoader::addSession(Session * sess)
 
 void MachineLoader::finishAddingSessions()
 {
+    PERF_TIMER_SCOPE("MachineLoader::finishAddingSessions");
+    
+    // Track session count for the report
+    int sessionCount = new_sessions.size();
+    
     // CRITICAL: Ensure machine is saved to database BEFORE adding sessions
     // Sessions need the machine's database_id for foreign key relationship
     if (!new_sessions.empty()) {
@@ -80,6 +86,13 @@ void MachineLoader::finishAddingSessions()
     }
     
     new_sessions.clear();
+    
+    // Report performance metrics when import completes
+    qDebug() << "========================================";
+    qDebug() << "SD Card Import Completed -" << sessionCount << "sessions imported";
+    qDebug() << "========================================";
+    PERF_TIMER_REPORT();
+    qDebug() << "========================================";
 }
 
 QPixmap & MachineLoader::getPixmap(QString series)

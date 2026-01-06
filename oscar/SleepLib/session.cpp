@@ -25,6 +25,7 @@
 #include "SleepLib/machine_common.h"
 #include "SleepLib/calcs.h"
 #include "SleepLib/profiles.h"
+#include "SleepLib/performance_timer.h"
 
 // Database repositories
 #include "../database/session_repository.h"
@@ -2538,17 +2539,24 @@ void Session::offsetSession(qint64 offset)
 
 bool Session::StoreToDatabase()
 {
+    PERF_TIMER_SCOPE("Session::StoreToDatabase");
+    
     if (s_first == 0) {
         qWarning() << "Session::StoreToDatabase(): Skipping session" << s_session << "with first=0";
         return false;
     }
+    
+    // Track that we're storing a session
+    PerformanceTimer::instance().increment("SessionsImported");
 
     // Get machine's database ID
+    PERF_TIMER_START("Session::StoreDB::CreateRepos");
     SessionRepository sessionRepo;
     SessionSettingsRepository settingsRepo;
     SessionChannelsRepository channelsRepo;
     SessionSlicesRepository slicesRepo;
     SessionSummariesRepository summariesRepo;
+    PERF_TIMER_STOP("Session::StoreDB::CreateRepos");
     
     qint64 machineDbId = s_machine->getDatabaseId();
     if (machineDbId == 0) {
@@ -2557,6 +2565,7 @@ bool Session::StoreToDatabase()
     }
     
     // 1. Create or update session record
+    PERF_TIMER_START("Session::StoreDB::SessionRecord");
     SessionData sessionData;
     sessionData.machineId = machineDbId;
     sessionData.sessionId = s_session;
@@ -2574,6 +2583,7 @@ bool Session::StoreToDatabase()
         m_database_id = sessionRepo.create(sessionData);
         if (m_database_id < 0) {
             qWarning() << "Session::StoreToDatabase(): Failed to create session" << s_session;
+            PERF_TIMER_STOP("Session::StoreDB::SessionRecord");
             return false;
         }
     } else {
@@ -2581,11 +2591,14 @@ bool Session::StoreToDatabase()
         sessionData.id = m_database_id;
         if (!sessionRepo.update(sessionData)) {
             qWarning() << "Session::StoreToDatabase(): Failed to update session" << s_session;
+            PERF_TIMER_STOP("Session::StoreDB::SessionRecord");
             return false;
         }
     }
+    PERF_TIMER_STOP("Session::StoreDB::SessionRecord");
     
     // 2. Save settings
+    PERF_TIMER_START("Session::StoreDB::Settings");
     if (!settings.isEmpty()) {
         QList<SessionSettingData> settingsList;
         for (auto it = settings.begin(); it != settings.end(); ++it) {
@@ -2599,8 +2612,10 @@ bool Session::StoreToDatabase()
             qWarning() << "Session::StoreToDatabase(): Failed to save settings";
         }
     }
+    PERF_TIMER_STOP("Session::StoreDB::Settings");
     
     // 3. Save channel statistics and value/time summaries
+    PERF_TIMER_START("Session::StoreDB::Channels");
     if (!m_availableChannels.isEmpty()) {
         QList<SessionChannelData> channelsList;
         SessionChannelValuesRepository valuesRepo;
@@ -2648,8 +2663,10 @@ bool Session::StoreToDatabase()
         if (!channelsRepo.saveBatch(m_database_id, channelsList)) {
             qWarning() << "Session::StoreToDatabase(): Failed to save channels";
         }
+        PERF_TIMER_STOP("Session::StoreDB::Channels");
         
         // 3b. Save value/time summaries for each channel (NEW - fixes bug)
+        PERF_TIMER_START("Session::StoreDB::ValueSummaries");
         // This saves the m_valuesummary and m_timesummary data structures
         for (const SessionChannelData& channelData : channelsList) {
             ChannelID id = channelData.channelId;
@@ -2671,9 +2688,11 @@ bool Session::StoreToDatabase()
                 }
             }
         }
+        PERF_TIMER_STOP("Session::StoreDB::ValueSummaries");
     }
     
     // 4. Save slices
+    PERF_TIMER_START("Session::StoreDB::Slices");
     if (!m_slices.isEmpty()) {
         QList<SessionSliceData> slicesList;
         for (const SessionSlice& slice : m_slices) {
@@ -2689,10 +2708,13 @@ bool Session::StoreToDatabase()
             qWarning() << "Session::StoreToDatabase(): Failed to save slices";
         }
     }
+    PERF_TIMER_STOP("Session::StoreDB::Slices");
     
     // 5. Save summary statistics to session_summaries table
+    PERF_TIMER_START("Session::StoreDB::Summaries");
     // Now that m_database_id is set, we can store the calculated summary data
     StoreSummaryToDatabase();
+    PERF_TIMER_STOP("Session::StoreDB::Summaries");
 
 #ifdef DBDEBUG
     qDebug() << "Session::StoreToDatabase(): Saved session" << s_session << "to database with ID" << m_database_id;
@@ -2983,6 +3005,8 @@ qint64 Session::last()
 
 bool Session::StoreEventsToDatabase()
 {
+    PERF_TIMER_SCOPE("Session::StoreEventsToDatabase");
+    
     if (m_database_id == 0) {
         qWarning() << "Session::StoreEventsToDatabase() - session not in database";
         return false;

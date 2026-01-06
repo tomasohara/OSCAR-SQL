@@ -12,6 +12,8 @@
 #include "event_data_repository.h"
 #include "database_manager.h"
 #include "SleepLib/event.h"
+#include "SleepLib/performance_timer.h"
+#include "SleepLib/profiles.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QVariant>
@@ -57,15 +59,20 @@ QSqlDatabase EventDataRepository::getDatabase()
  */
 bool EventDataRepository::storeEventListData(qint64 eventlistId, EventList* eventList)
 {
+    PERF_TIMER_SCOPE("EventDataRepository::storeEventListData");
+    
     if (!eventList || eventList->count() == 0) {
         qWarning() << "EventDataRepository: Cannot store empty EventList";
         return false;
     }
     
     // Serialize the EventList data to binary format
+    PERF_TIMER_START("EventDataRepository::Serialize");
     EventBinaryData binaryData = serializeEventList(eventList);
+    PERF_TIMER_STOP("EventDataRepository::Serialize");
     
     // Compress each data array if beneficial
+    PERF_TIMER_START("EventDataRepository::Compress");
     QByteArray primaryCompressed;
     bool primaryUsesCompression = compressIfBeneficial(binaryData.primaryData, primaryCompressed);
     
@@ -80,6 +87,7 @@ bool EventDataRepository::storeEventListData(qint64 eventlistId, EventList* even
     if (!binaryData.timeData.isEmpty()) {
         timeUsesCompression = compressIfBeneficial(binaryData.timeData, timeCompressed);
     }
+    PERF_TIMER_STOP("EventDataRepository::Compress");
     
     // Determine overall compression method (1 if any array used compression)
     int compressionMethod = (primaryUsesCompression || secondaryUsesCompression || timeUsesCompression) ? 1 : 0;
@@ -146,11 +154,14 @@ bool EventDataRepository::storeEventListData(qint64 eventlistId, EventList* even
     query.bindValue(":compression_method", compressionMethod);
     query.bindValue(":checksum", binaryData.checksum);
     
+    PERF_TIMER_START("EventDataRepository::DBInsert");
     if (!query.exec()) {
+        PERF_TIMER_STOP("EventDataRepository::DBInsert");
         qCritical() << "EventDataRepository: Failed to store event data:"
                     << query.lastError().text();
         return false;
     }
+    PERF_TIMER_STOP("EventDataRepository::DBInsert");
     
     // Calculate total compressed size for reporting
     qint64 compressedSize = 0;
@@ -442,12 +453,23 @@ quint16 EventDataRepository::calculateChecksum(const QByteArray& data)
  */
 bool EventDataRepository::compressIfBeneficial(const QByteArray& data, QByteArray& compressedData)
 {
-    if (data.isEmpty()) {
+    // Check user's compression preference first
+    if (p_profile && !p_profile->session->compressSessionData()) {
+        // User has disabled compression
         return false;
     }
     
-    // Compress with maximum compression level
-    compressedData = qCompress(data, 9);
+    // Don't compress empty data
+    if (data.isEmpty()) {
+        return false;
+    }
+
+    // Don't bother if data size is "small"
+    if (data.size() < 500)
+        return false;
+    
+    // Compress with greater compression level for larger data amounts (like waveforms)
+    compressedData = qCompress(data, data.size() > 10000 ? 9 : -1);
     
     // Only use compression if it saves more than 10%
     if (compressedData.size() < data.size() * 0.9) {

@@ -442,6 +442,7 @@ optimize.commands = $${QMAKE_CXX} -c $(CXXFLAGS) -O3 $(INCPATH) -o ${QMAKE_FILE_
 QMAKE_EXTRA_COMPILERS += optimize
 
 HEADERS  += \
+    SleepLib/performance_timer.h \
     checkupdates.h \
     notifyMessageBox.h \
     highresolution.h \
