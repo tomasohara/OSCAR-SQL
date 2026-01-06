@@ -24,6 +24,8 @@
 #include "SleepLib/session.h"
 #include "SleepLib/profiles.h"
 #include "mainwindow.h"
+#include "../database/session_repository.h"
+#include "../database/session_settings_repository.h"
 
 extern MainWindow * mainwin;
 const QString OLD_ZOMBIE = QString("zombie");
@@ -430,3 +432,214 @@ bool Journal::RestoreJournal(QString filename)
     return true;
 }
 
+bool Journal::NeedsMigration(Profile* profile)
+{
+    qDebug() << "Journal::NeedsMigration() - Start";
+    
+    if (!profile) {
+        qDebug() << "Journal::NeedsMigration() - NULL profile";
+        return false;
+    }
+    
+    // Check if journal machine exists
+    Machine* journalMachine = profile->GetMachine(MT_JOURNAL);
+    if (!journalMachine) {
+        qDebug() << "Journal::NeedsMigration() - No journal machine";
+        return false;  // No journal machine, no migration needed
+    }
+    
+    // Check if machine is in database
+    if (journalMachine->getDatabaseId() == 0) {
+        qDebug() << "Journal::NeedsMigration() - Machine not in database yet";
+        return false;  // Machine not in database yet, can't migrate
+    }
+    
+    // IMPORTANT: Check for .000 files FIRST before accessing database
+    // This prevents unnecessary database access if there's nothing to migrate
+    QString summariesPath = journalMachine->getSummariesPath();
+    QDir dir(summariesPath);
+    
+    if (!dir.exists()) {
+        qDebug() << "Journal::NeedsMigration() - No summaries directory";
+        return false;  // No summaries directory
+    }
+    
+    QStringList filters;
+    filters << "*.000";
+    dir.setNameFilters(filters);
+    QStringList files = dir.entryList(QDir::Files);
+    
+    if (files.isEmpty()) {
+        qDebug() << "Journal::NeedsMigration() - No .000 files found";
+        return false;  // No .000 files to migrate
+    }
+    
+    qDebug() << "Journal::NeedsMigration() - Found" << files.size() << ".000 files, checking if already migrated";
+    
+    // Now check database to see if already migrated
+    // IMPORTANT: Only do this if we found .000 files
+    try {
+        SessionRepository sessionRepo;
+        QList<SessionData> sessions = sessionRepo.findByMachine(journalMachine->getDatabaseId());
+        
+        if (!sessions.isEmpty()) {
+            qDebug() << "Journal::NeedsMigration() - Found" << sessions.size() << "sessions in database, already migrated";
+            return false;  // Already have sessions in database, no migration needed
+        }
+    } catch (...) {
+        qWarning() << "Journal::NeedsMigration() - Exception while checking database, will attempt migration anyway";
+        // If we can't check database but have .000 files, try to migrate
+    }
+    
+    qDebug() << "Journal::NeedsMigration() - Migration needed";
+    return true;  // Have .000 files but no database sessions, migration needed
+}
+
+bool Journal::MigrateToDatabase(Profile* profile)
+{
+    if (!profile) {
+        qWarning() << "Journal::MigrateToDatabase() - NULL profile";
+        return false;
+    }
+    
+    qDebug() << "Journal::MigrateToDatabase() - Starting migration for" << profile->user->userName();
+    
+    // 1. Get journal machine
+    Machine* journalMachine = profile->GetMachine(MT_JOURNAL);
+    if (!journalMachine) {
+        qWarning() << "Journal::MigrateToDatabase() - No journal machine found";
+        return false;
+    }
+    
+    // 2. Verify machine is in database
+    qint64 machineDbId = journalMachine->getDatabaseId();
+    if (machineDbId == 0) {
+        qWarning() << "Journal::MigrateToDatabase() - Journal machine not in database";
+        return false;
+    }
+    
+    qDebug() << "Journal::MigrateToDatabase() - Journal machine database ID:" << machineDbId;
+    
+    // 3. Find all .000 files in Summaries directory
+    QString summariesPath = journalMachine->getSummariesPath();
+    QDir dir(summariesPath);
+    
+    if (!dir.exists()) {
+        qWarning() << "Journal::MigrateToDatabase() - Summaries directory does not exist:" << summariesPath;
+        return false;
+    }
+    
+    QStringList filters;
+    filters << "*.000";
+    dir.setNameFilters(filters);
+    QStringList files = dir.entryList(QDir::Files);
+    
+    qDebug() << "Journal::MigrateToDatabase() - Found" << files.size() << ".000 files to migrate";
+    
+    if (files.isEmpty()) {
+        qDebug() << "Journal::MigrateToDatabase() - No .000 files to migrate";
+        return true;  // No files to migrate is success
+    }
+    
+    // 4. Migrate each file
+    int migratedCount = 0;
+    int errorCount = 0;
+    
+    for (const QString& filename : files) {
+        // Parse date from filename (format: XXXXXXXX.000 where X is hex SessionID)
+        QString baseName = filename.section(".", 0, -2);  // Remove .000 extension
+        bool ok;
+        SessionID sessionId = baseName.toLongLong(&ok, 16);
+        
+        if (!ok) {
+            qWarning() << "Journal::MigrateToDatabase() - Invalid filename format:" << filename;
+            errorCount++;
+            continue;
+        }
+        
+        QDateTime dateTime = QDateTime::fromSecsSinceEpoch(sessionId);
+        QDate date = dateTime.date();
+        if (!date.isValid()) {
+            qWarning() << "Journal::MigrateToDatabase() - Invalid date for session:" << sessionId;
+            errorCount++;
+            continue;
+        }
+        
+        // Load the .000 file as a session
+        QString fullPath = summariesPath + "/" + filename;
+        
+        // Create session and set it to load from file (not database)
+        Session* sess = new Session(journalMachine, sessionId);
+        sess->setMachineId(machineDbId);
+        
+        // IMPORTANT: Load from the .000 FILE on disk, not from database
+        // Read the summary file format to extract settings
+        QFile file(fullPath);
+        if (!file.open(QIODevice::ReadOnly)) {
+            qWarning() << "Journal::MigrateToDatabase() - Failed to open file" << fullPath;
+            delete sess;
+            errorCount++;
+            continue;
+        }
+        
+        QDataStream in(&file);
+        in.setByteOrder(QDataStream::LittleEndian);
+        in.setVersion(QDataStream::Qt_4_6);
+        
+        // Read the .000 file header (same format as Session::LoadSummary)
+        quint32 mag, machId, sessId;
+        quint16 version, fileType;
+        qint64 first, last;
+        
+        in >> mag;          // magic number
+        in >> version;      // DB version
+        in >> fileType;     // file type
+        in >> machId;       // machine ID
+        in >> sessId;       // session ID
+        in >> first;        // start time
+        in >> last;         // duration
+        
+        // Now read the settings hash
+        QHash<ChannelID, QVariant> settings;
+        in >> settings;
+        
+        file.close();
+        
+        // Set the session data using public methods
+        sess->set_first(first);
+        sess->set_last(last);
+        sess->settings = settings;
+        
+        // Store to database with JSON serialization for bookmarks
+        if (!sess->StoreToDatabase()) {
+            qWarning() << "Journal::MigrateToDatabase() - Failed to store to database for" << date.toString();
+            delete sess;
+            errorCount++;
+            continue;
+        }
+        
+        qDebug() << "Journal::MigrateToDatabase() - Migrated" << date.toString() << "to database";
+        migratedCount++;
+        
+        delete sess;
+    }
+    
+    qDebug() << "Journal::MigrateToDatabase() - Migration complete:"
+             << migratedCount << "sessions migrated,"
+             << errorCount << "errors";
+    
+    // Show result to user
+    if (migratedCount > 0) {
+        QString message = QObject::tr("Journal Migration Complete:\n"
+                                    "%1 journal entries migrated to database\n"
+                                    "%2 errors").arg(migratedCount).arg(errorCount);
+        
+        if (errorCount > 0) {
+            QMessageBox::warning(nullptr, STR_MessageBox_Warning, message, QMessageBox::Ok);
+        } else {
+            QMessageBox::information(nullptr, STR_MessageBox_Information, message, QMessageBox::Ok);
+        }
+    }
+    
+    return (errorCount == 0);
+}

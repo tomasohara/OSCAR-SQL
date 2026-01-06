@@ -15,6 +15,7 @@
 #define EVENT_DATA_REPOSITORY_H
 
 #include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QByteArray>
 #include <QVector>
 #include "SleepLib/machine_common.h"
@@ -60,6 +61,14 @@ class EventDataRepository
 public:
     EventDataRepository();
     ~EventDataRepository();
+    
+    /*!
+     * \brief Reset cached prepared statements
+     *
+     * Call this if you need to force re-preparation of statements
+     * (e.g., after database reconnection)
+     */
+    void resetPreparedStatements();
     
     /*!
      * \brief Store EventList binary data in database
@@ -140,6 +149,19 @@ public:
 
 private:
     QSqlDatabase getDatabase();
+    
+    // Prepared statement caching for performance
+    QSqlQuery m_insertQuery;
+    QSqlQuery m_updateQuery;
+    bool m_statementsPrepared;
+    
+    /*!
+     * \brief Prepare cached SQL statements
+     *
+     * Prepares INSERT and UPDATE statements once for reuse.
+     * Called automatically on first use.
+     */
+    void prepareStatements();
     
     /*!
      * \brief Serialize qint16 vector to binary

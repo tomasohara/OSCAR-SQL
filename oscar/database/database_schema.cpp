@@ -377,6 +377,29 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         qDebug() << "DatabaseSchema: Re-import CPAP data to populate event data tables";
     }
     
+    // Upgrade from version 8 to version 9: Add json_value column to session_settings
+    if (fromVersion < 9) {
+        qDebug() << "DatabaseSchema: Applying version 9 upgrade (journal migration support)";
+        
+        QSqlQuery query(db);
+        
+        // Add json_value column for complex data types (bookmarks, etc.)
+        if (!query.exec("ALTER TABLE session_settings ADD COLUMN json_value TEXT")) {
+            qCritical() << "DatabaseSchema: Failed to add json_value column:" << query.lastError().text();
+            return false;
+        }
+        
+        // Update schema version
+        if (!setSchemaVersion(db, 9)) {
+            qCritical() << "DatabaseSchema: Failed to update schema version to 9";
+            return false;
+        }
+        
+        qDebug() << "DatabaseSchema: Successfully upgraded to version 9";
+        qDebug() << "DatabaseSchema: Journal data can now be migrated to database";
+        qDebug() << "DatabaseSchema: Journal migration will occur automatically on profile load";
+    }
+    
     return true;
 }
 
@@ -805,6 +828,7 @@ bool DatabaseSchema::createSessionSettingsTable(QSqlDatabase& db)
         "    channel_id INTEGER NOT NULL,"
         "    value REAL NOT NULL,"
         "    data_type TEXT,"
+        "    json_value TEXT,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,"
         "    UNIQUE(session_id, channel_id)"

@@ -25,6 +25,7 @@
  * \brief Constructor
  */
 EventDataRepository::EventDataRepository()
+    : m_statementsPrepared(false)
 {
 }
 
@@ -33,6 +34,70 @@ EventDataRepository::EventDataRepository()
  */
 EventDataRepository::~EventDataRepository()
 {
+}
+
+/*!
+ * \brief Reset cached prepared statements
+ *
+ * Forces re-preparation of SQL statements on next use.
+ * Call this after database reconnection or schema changes.
+ */
+void EventDataRepository::resetPreparedStatements()
+{
+    m_statementsPrepared = false;
+    m_insertQuery = QSqlQuery();
+    m_updateQuery = QSqlQuery();
+}
+
+/*!
+ * \brief Prepare cached SQL statements
+ *
+ * Prepares INSERT and UPDATE statements once for reuse across
+ * multiple storeEventListData() calls. This eliminates the overhead
+ * of re-parsing and re-compiling SQL for each EventList.
+ *
+ * Performance Impact: Saves small amount of database operation time during
+ * import by preparing statements once instead of hundreds of times.
+ */
+void EventDataRepository::prepareStatements()
+{
+    if (m_statementsPrepared) {
+        return;
+    }
+    
+    QSqlDatabase db = getDatabase();
+    
+    // Prepare INSERT statement for new event data
+    m_insertQuery = QSqlQuery(db);
+    if (!m_insertQuery.prepare(
+        "INSERT INTO event_data ("
+        "    eventlist_id,"
+        "    data_blob, data_compressed,"
+        "    data2_blob, data2_compressed,"
+        "    time_blob, time_compressed,"
+        "    compression_method, checksum"
+        ") VALUES ("
+        "    :eventlist_id,"
+        "    :data_blob, :data_compressed,"
+        "    :data2_blob, :data2_compressed,"
+        "    :time_blob, :time_compressed,"
+        "    :compression_method, :checksum"
+        ")")) {
+        qCritical() << "EventDataRepository: Failed to prepare INSERT statement:"
+                    << m_insertQuery.lastError().text();
+        return;
+    }
+    
+    // Prepare UPDATE statement for compressed_size
+    m_updateQuery = QSqlQuery(db);
+    if (!m_updateQuery.prepare(
+        "UPDATE event_lists SET compressed_size = :size WHERE id = :id")) {
+        qCritical() << "EventDataRepository: Failed to prepare UPDATE statement:"
+                    << m_updateQuery.lastError().text();
+        return;
+    }
+    
+    m_statementsPrepared = true;
 }
 
 /*!
@@ -92,73 +157,62 @@ bool EventDataRepository::storeEventListData(qint64 eventlistId, EventList* even
     // Determine overall compression method (1 if any array used compression)
     int compressionMethod = (primaryUsesCompression || secondaryUsesCompression || timeUsesCompression) ? 1 : 0;
     
-    // Prepare database insert
-    QSqlDatabase db = getDatabase();
-    QSqlQuery query(db);
+    // Prepare cached statements on first use (eliminates re-parsing SQL for each EventList)
+    prepareStatements();
     
-    query.prepare(
-        "INSERT INTO event_data ("
-        "    eventlist_id,"
-        "    data_blob, data_compressed,"
-        "    data2_blob, data2_compressed,"
-        "    time_blob, time_compressed,"
-        "    compression_method, checksum"
-        ") VALUES ("
-        "    :eventlist_id,"
-        "    :data_blob, :data_compressed,"
-        "    :data2_blob, :data2_compressed,"
-        "    :time_blob, :time_compressed,"
-        "    :compression_method, :checksum"
-        ")"
-    );
+    if (!m_statementsPrepared) {
+        qCritical() << "EventDataRepository: Prepared statements not available";
+        return false;
+    }
     
-    query.bindValue(":eventlist_id", eventlistId);
+    // Use the cached prepared INSERT statement (much faster than preparing each time)
+    m_insertQuery.bindValue(":eventlist_id", eventlistId);
     
     // Store primary data (use compressed or uncompressed)
     if (primaryUsesCompression) {
-        query.bindValue(":data_blob", QVariant());
-        query.bindValue(":data_compressed", primaryCompressed);
+        m_insertQuery.bindValue(":data_blob", QVariant());
+        m_insertQuery.bindValue(":data_compressed", primaryCompressed);
     } else {
-        query.bindValue(":data_blob", binaryData.primaryData);
-        query.bindValue(":data_compressed", QVariant());
+        m_insertQuery.bindValue(":data_blob", binaryData.primaryData);
+        m_insertQuery.bindValue(":data_compressed", QVariant());
     }
     
     // Store secondary data if present
     if (!binaryData.secondaryData.isEmpty()) {
         if (secondaryUsesCompression) {
-            query.bindValue(":data2_blob", QVariant());
-            query.bindValue(":data2_compressed", secondaryCompressed);
+            m_insertQuery.bindValue(":data2_blob", QVariant());
+            m_insertQuery.bindValue(":data2_compressed", secondaryCompressed);
         } else {
-            query.bindValue(":data2_blob", binaryData.secondaryData);
-            query.bindValue(":data2_compressed", QVariant());
+            m_insertQuery.bindValue(":data2_blob", binaryData.secondaryData);
+            m_insertQuery.bindValue(":data2_compressed", QVariant());
         }
     } else {
-        query.bindValue(":data2_blob", QVariant());
-        query.bindValue(":data2_compressed", QVariant());
+        m_insertQuery.bindValue(":data2_blob", QVariant());
+        m_insertQuery.bindValue(":data2_compressed", QVariant());
     }
     
     // Store time data if present
     if (!binaryData.timeData.isEmpty()) {
         if (timeUsesCompression) {
-            query.bindValue(":time_blob", QVariant());
-            query.bindValue(":time_compressed", timeCompressed);
+            m_insertQuery.bindValue(":time_blob", QVariant());
+            m_insertQuery.bindValue(":time_compressed", timeCompressed);
         } else {
-            query.bindValue(":time_blob", binaryData.timeData);
-            query.bindValue(":time_compressed", QVariant());
+            m_insertQuery.bindValue(":time_blob", binaryData.timeData);
+            m_insertQuery.bindValue(":time_compressed", QVariant());
         }
     } else {
-        query.bindValue(":time_blob", QVariant());
-        query.bindValue(":time_compressed", QVariant());
+        m_insertQuery.bindValue(":time_blob", QVariant());
+        m_insertQuery.bindValue(":time_compressed", QVariant());
     }
     
-    query.bindValue(":compression_method", compressionMethod);
-    query.bindValue(":checksum", binaryData.checksum);
+    m_insertQuery.bindValue(":compression_method", compressionMethod);
+    m_insertQuery.bindValue(":checksum", binaryData.checksum);
     
     PERF_TIMER_START("EventDataRepository::DBInsert");
-    if (!query.exec()) {
+    if (!m_insertQuery.exec()) {
         PERF_TIMER_STOP("EventDataRepository::DBInsert");
         qCritical() << "EventDataRepository: Failed to store event data:"
-                    << query.lastError().text();
+                    << m_insertQuery.lastError().text();
         return false;
     }
     PERF_TIMER_STOP("EventDataRepository::DBInsert");
@@ -173,15 +227,13 @@ bool EventDataRepository::storeEventListData(qint64 eventlistId, EventList* even
         compressedSize += timeUsesCompression ? timeCompressed.size() : binaryData.timeData.size();
     }
     
-    // Update event_lists table with compressed size
-    QSqlQuery updateQuery(db);
-    updateQuery.prepare("UPDATE event_lists SET compressed_size = :size WHERE id = :id");
-    updateQuery.bindValue(":size", compressedSize);
-    updateQuery.bindValue(":id", eventlistId);
+    // Update event_lists table with compressed size using cached prepared statement
+    m_updateQuery.bindValue(":size", compressedSize);
+    m_updateQuery.bindValue(":id", eventlistId);
     
-    if (!updateQuery.exec()) {
+    if (!m_updateQuery.exec()) {
         qWarning() << "EventDataRepository: Failed to update compressed_size:"
-                   << updateQuery.lastError().text();
+                   << m_updateQuery.lastError().text();
         // Don't fail the whole operation, just log the warning
     }
     

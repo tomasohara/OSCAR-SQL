@@ -35,14 +35,15 @@ qint64 SessionSettingsRepository::create(const SessionSettingData& data)
     QSqlQuery query(db);
     query.prepare(
         "INSERT INTO session_settings "
-        "(session_id, channel_id, value, data_type) "
-        "VALUES (?, ?, ?, ?)"
+        "(session_id, channel_id, value, data_type, json_value) "
+        "VALUES (?, ?, ?, ?, ?)"
     );
 
     query.addBindValue(data.sessionId);
     query.addBindValue(data.channelId);
     query.addBindValue(data.value);
     query.addBindValue(data.dataType);
+    query.addBindValue(data.jsonValue.isNull() ? QVariant(QVariant::String) : data.jsonValue);
 
     if (!query.exec()) {
         qWarning() << "SessionSettingsRepository::create() failed:" << query.lastError().text();
@@ -63,12 +64,13 @@ bool SessionSettingsRepository::update(const SessionSettingData& data)
     QSqlQuery query(db);
     query.prepare(
         "UPDATE session_settings SET "
-        "value = ?, data_type = ? "
+        "value = ?, data_type = ?, json_value = ? "
         "WHERE id = ?"
     );
 
     query.addBindValue(data.value);
     query.addBindValue(data.dataType);
+    query.addBindValue(data.jsonValue.isNull() ? QVariant(QVariant::String) : data.jsonValue);
     query.addBindValue(data.id);
 
     if (!query.exec()) {
@@ -91,7 +93,7 @@ QList<SessionSettingData> SessionSettingsRepository::findBySession(qint64 sessio
 
     QSqlQuery query(db);
     query.prepare(
-        "SELECT id, session_id, channel_id, value, data_type, created_at "
+        "SELECT id, session_id, channel_id, value, data_type, json_value, created_at "
         "FROM session_settings WHERE session_id = ?"
     );
     query.addBindValue(sessionId);
@@ -108,7 +110,8 @@ QList<SessionSettingData> SessionSettingsRepository::findBySession(qint64 sessio
         data.channelId = query.value(2).toInt();
         data.value = query.value(3).toDouble();
         data.dataType = query.value(4).toString();
-        data.createdAt = query.value(5).toDateTime();
+        data.jsonValue = query.value(5).toString();
+        data.createdAt = query.value(6).toDateTime();
         result.append(data);
     }
 
@@ -127,7 +130,7 @@ SessionSettingData SessionSettingsRepository::findBySetting(qint64 sessionId, in
 
     QSqlQuery query(db);
     query.prepare(
-        "SELECT id, session_id, channel_id, value, data_type, created_at "
+        "SELECT id, session_id, channel_id, value, data_type, json_value, created_at "
         "FROM session_settings WHERE session_id = ? AND channel_id = ?"
     );
     query.addBindValue(sessionId);
@@ -144,7 +147,8 @@ SessionSettingData SessionSettingsRepository::findBySetting(qint64 sessionId, in
         data.channelId = query.value(2).toInt();
         data.value = query.value(3).toDouble();
         data.dataType = query.value(4).toString();
-        data.createdAt = query.value(5).toDateTime();
+        data.jsonValue = query.value(5).toString();
+        data.createdAt = query.value(6).toDateTime();
     }
 
     return data;
@@ -169,8 +173,8 @@ bool SessionSettingsRepository::saveBatch(qint64 sessionId, const QList<SessionS
     QSqlQuery query(db);
     query.prepare(
         "INSERT OR REPLACE INTO session_settings "
-        "(session_id, channel_id, value, data_type) "
-        "VALUES (?, ?, ?, ?)"
+        "(session_id, channel_id, value, data_type, json_value) "
+        "VALUES (?, ?, ?, ?, ?)"
     );
 
     for (const SessionSettingData& data : settings) {
@@ -178,6 +182,7 @@ bool SessionSettingsRepository::saveBatch(qint64 sessionId, const QList<SessionS
         query.addBindValue(data.channelId);
         query.addBindValue(data.value);
         query.addBindValue(data.dataType);
+        query.addBindValue(data.jsonValue.isNull() ? QVariant(QVariant::String) : data.jsonValue);
 
         if (!query.exec()) {
             qWarning() << "SessionSettingsRepository::saveBatch() failed:" << query.lastError().text();

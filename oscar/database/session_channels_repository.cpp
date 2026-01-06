@@ -11,6 +11,8 @@
 
 #include "session_channels_repository.h"
 #include "database_manager.h"
+#include "SleepLib/performance_timer.h"
+
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QVariant>
@@ -213,6 +215,8 @@ SessionChannelData SessionChannelsRepository::findByChannel(qint64 sessionId, in
 
 bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionChannelData>& channels)
 {
+    PERF_TIMER_SCOPE("Session::StoreDB::Channels::SaveBatch");
+    
     DatabaseManager& dbMgr = DatabaseManager::instance();
     QSqlDatabase db = dbMgr.database();
     if (!db.isOpen()) {
@@ -227,36 +231,47 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionC
         return false;
     }
 
+    // Prepare statement once for the entire batch - this is the key optimization!
+    // The statement is compiled once and reused for all channel inserts
     QSqlQuery query(db);
-    query.prepare(
+    if (!query.prepare(
         "INSERT OR REPLACE INTO session_channels "
         "(session_id, channel_id, count, sum, avg, wavg, min, max, median, p90, p95, "
         " phys_min, phys_max, cph, sph, first_time, last_time, gain) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    );
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        qWarning() << "SessionChannelsRepository::saveBatch() - Failed to prepare statement:" 
+                   << query.lastError().text();
+        if (needTransaction) {
+            dbMgr.rollback();
+        }
+        return false;
+    }
 
+    // Execute the prepared statement for each channel
     for (const SessionChannelData& data : channels) {
-        query.addBindValue(sessionId);
-        query.addBindValue(data.channelId);
-        query.addBindValue(data.count);
-        query.addBindValue(data.sum);
-        query.addBindValue(data.avg);
-        query.addBindValue(data.wavg);
-        query.addBindValue(data.min);
-        query.addBindValue(data.max);
-        query.addBindValue(data.median);
-        query.addBindValue(data.p90);
-        query.addBindValue(data.p95);
-        query.addBindValue(data.physMin);
-        query.addBindValue(data.physMax);
-        query.addBindValue(data.cph);
-        query.addBindValue(data.sph);
-        query.addBindValue(data.firstTime);
-        query.addBindValue(data.lastTime);
-        query.addBindValue(data.gain);
+        // Bind values using positional parameters (much faster than re-preparing)
+        query.bindValue(0, sessionId);
+        query.bindValue(1, data.channelId);
+        query.bindValue(2, data.count);
+        query.bindValue(3, data.sum);
+        query.bindValue(4, data.avg);
+        query.bindValue(5, data.wavg);
+        query.bindValue(6, data.min);
+        query.bindValue(7, data.max);
+        query.bindValue(8, data.median);
+        query.bindValue(9, data.p90);
+        query.bindValue(10, data.p95);
+        query.bindValue(11, data.physMin);
+        query.bindValue(12, data.physMax);
+        query.bindValue(13, data.cph);
+        query.bindValue(14, data.sph);
+        query.bindValue(15, data.firstTime);
+        query.bindValue(16, data.lastTime);
+        query.bindValue(17, data.gain);
 
         if (!query.exec()) {
             qWarning() << "SessionChannelsRepository::saveBatch() failed:" << query.lastError().text();
+            qWarning() << "Channel ID:" << data.channelId;
             if (needTransaction) {
                 dbMgr.rollback();
             }

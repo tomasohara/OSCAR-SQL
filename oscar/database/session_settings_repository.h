@@ -26,7 +26,8 @@ struct SessionSettingData
     qint64 sessionId = 0;               // Foreign key to sessions table
     int channelId = 0;                  // Channel ID (e.g., CPAP_Pressure)
     double value = 0.0;                 // Setting value
-    QString dataType;                   // 'int', 'float', 'bool', 'string'
+    QString dataType;                   // 'int', 'float', 'bool', 'string', 'datetime', 'richtext', 'json'
+    QString jsonValue;                  // JSON-encoded data for complex types (bookmarks, etc.)
     QDateTime createdAt;
 };
 

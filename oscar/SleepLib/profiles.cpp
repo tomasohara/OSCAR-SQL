@@ -27,6 +27,7 @@
 #include "profiles.h"
 #include "machine.h"
 #include "machine_common.h"
+#include "journal.h"
 
 #include "machine_loader.h"
 
@@ -952,6 +953,13 @@ void Profile::LoadMachineData(ProgressDialog *progress)
     }
     progress->setMessage("Loading Channel Information");
     loadChannels();
+    
+    // Check if journal data needs to be migrated from .000 files to database
+    if (Journal::NeedsMigration(this)) {
+        qDebug() << "Profile::LoadMachineData() - Journal data needs migration";
+        progress->setMessage("Migrating Journal Data to Database");
+        Journal::MigrateToDatabase(this);
+    }
     
     // NOTE: Daily summaries are calculated during import, not during profile load
     // This avoids recalculating on every profile open
