@@ -301,3 +301,10 @@ SELECT
     'Session Channels', 
     COUNT(*) 
 FROM session_channels;
+
+-- ============================================
+-- ADDITIONAL QUERY FILES
+-- ============================================
+-- For more specialized queries, see:
+--   - QUERY_RECENT_SESSION_SETTINGS.sql - Detailed queries for session settings with channel names
+--   - HOW_TO_USE_QUERIES.md - Guide for using SQL queries with OSCAR database

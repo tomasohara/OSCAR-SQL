@@ -455,7 +455,7 @@ CREATE TABLE event_data (
 )
 ```
 
-**Purpose:** Stores actual binary data arrays for each EventList (one row per EventList). Data is stored in compressed BLOB format using qCompress (level 9). Replaces .001 file data sections.
+**Purpose:** Stores actual binary data arrays for each EventList (one row per EventList). Data is stored in compressed BLOB format using qCompress. Replaces .001 file data sections.
 
 **Compression:** Data is compressed only if it saves >10% space. Either `data_blob` OR `data_compressed` is populated (not both).
 

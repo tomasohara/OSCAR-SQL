@@ -419,6 +419,7 @@ bool Session::StoreSummary()
 SpeedCheck scLoad(50); // Keep outside function so number of messages is limited
 bool Session::LoadSummary(bool debug)
 {
+    Q_UNUSED(debug)
 //    static int sumcnt = 0;
 
     scLoad.restart();
@@ -831,7 +832,7 @@ bool Session::StoreEvents()
             EventStoreType *ptr = e.m_data.data();
             out.writeRawData((char *)ptr, e.count() << 1);
 
-            //*** Don't delete these comments ***
+            // *** Don't delete these comments ***
             //            for (quint32 c=0;c<e.count();c++) {
             //                out << *ptr++;//e.raw(c);
             //            }
@@ -840,7 +841,7 @@ bool Session::StoreEvents()
             if (e.hasSecondField()) {
                 ptr = e.m_data2.data();
                 out.writeRawData((char *)ptr, e.count() << 1);
-                //*** Don't delete these comments ***
+                // *** Don't delete these comments ***
                 //                for (quint32 c=0;c<e.count();c++) {
                 //                    out << *ptr++; //e.raw2(c);
                 //                }
@@ -850,7 +851,7 @@ bool Session::StoreEvents()
             if (e.type() != EVL_Waveform) {
                 quint32 *tptr = e.m_time.data();
                 out.writeRawData((char *)tptr, e.count() << 2);
-                //*** Don't delete these comments ***
+                // *** Don't delete these comments ***
                 //                for (quint32 c=0;c<e.count();c++) {
                 //                    out << *tptr++; //e.getTime()[c];
                 //                }
@@ -892,6 +893,9 @@ bool Session::StoreEvents()
 
 bool Session::LoadEvents(QString filename, bool debug)
 {
+    Q_UNUSED(filename)
+    Q_UNUSED(debug)
+
     // ===== NEW: Try Database First =====
     // Try loading from database if machine and session are in database
     if (s_machine->getDatabaseId() > 0 && m_database_id > 0) {
@@ -1102,8 +1106,8 @@ bool Session::LoadEvents(QString filename, bool debug)
 
             in.readRawData((char *)ptr, evec.m_count << 1);
 
-            //*** Don't delete these comments ***
-            //*** They explain what the above ReadRawData is doing!
+            // *** Don't delete these comments ***
+            // *** They explain what the above ReadRawData is doing!
             //            for (quint32 c=0;c<evec.m_count;c++) {
             //                in >> t;
             //                *ptr++=t;
@@ -1113,8 +1117,8 @@ bool Session::LoadEvents(QString filename, bool debug)
                 ptr = evec.m_data2.data();
 
                 in.readRawData((char *)ptr, evec.m_count << 1);
-                //*** Don't delete these comments ***
-                //*** They explain what the above ReadRawData is doing!
+                // *** Don't delete these comments ***
+                // *** They explain what the above ReadRawData is doing!
                 //                for (quint32 c=0;c<evec.m_count;c++) {
                 //                    in >> t;
                 //                    *ptr++=t;
@@ -1126,7 +1130,7 @@ bool Session::LoadEvents(QString filename, bool debug)
                 quint32 *tptr = evec.m_time.data();
 
                 in.readRawData((char *)tptr, evec.m_count << 2);
-                //*** Don't delete these comments ***
+                // *** Don't delete these comments ***
                 //                for (quint32 c=0;c<evec.m_count;c++) {
                 //                    in >> x;
                 //                    *tptr++=x;
