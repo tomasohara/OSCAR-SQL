@@ -2736,9 +2736,9 @@ bool Session::StoreToDatabase()
                 setting.dataType = "text";
                 setting.jsonValue = it.value().toString();  // Store as text in json_value field
             } else {
-                // Standard numeric value
+                // Standard numeric value (including Journal_Weight, Journal_ZombieMeter)
                 setting.value = it.value().toDouble();
-                setting.dataType = ""; // Will be inferred by repository
+                setting.dataType = "numeric"; // Explicitly mark as numeric
                 setting.jsonValue = QString();
             }
             
@@ -2960,8 +2960,14 @@ bool Session::LoadFromDatabase()
         } else if (setting.dataType == "text" && !setting.jsonValue.isEmpty()) {
             // Handle text values (like Journal_Notes)
             settings[setting.channelId] = setting.jsonValue;
+        } else if (setting.dataType == "numeric" || setting.dataType.isEmpty()) {
+            // Standard numeric value (including Journal_Weight, Journal_ZombieMeter)
+            // Empty dataType is treated as numeric for backwards compatibility
+            settings[setting.channelId] = setting.value;
         } else {
-            // Standard numeric value
+            // Fallback: treat as numeric value
+            qWarning() << "Session::LoadFromDatabase(): Unknown dataType" << setting.dataType 
+                      << "for channel" << setting.channelId << "- treating as numeric";
             settings[setting.channelId] = setting.value;
         }
     }

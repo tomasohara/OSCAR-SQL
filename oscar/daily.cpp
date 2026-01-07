@@ -2349,6 +2349,11 @@ Session * Daily::CreateJournalSession(QDate date)
         m->setInfo(info);
         m->setType(MT_JOURNAL);
         p_profile->AddMachine(m);
+        
+        // CRITICAL: Save the journal machine to database so sessions can be stored
+        if (!m->SaveToDatabase()) {
+            qWarning() << "Daily::CreateJournalSession(): Failed to save journal machine to database!";
+        }
     }
 
     Session *sess=new Session(m,0);
