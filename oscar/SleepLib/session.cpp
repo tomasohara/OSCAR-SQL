@@ -2934,14 +2934,15 @@ bool Session::LoadFromDatabase()
                 QJsonArray array = doc.array();
                 
                 // Deserialize based on channel type
-                if (setting.channelId == Bookmark_Start || setting.channelId == Bookmark_End) {
+                if (static_cast<ChannelID>(setting.channelId) == Bookmark_Start || 
+                    static_cast<ChannelID>(setting.channelId) == Bookmark_End) {
                     // Convert JSON array to QVariantList
                     QVariantList list;
                     for (const QJsonValue& val : array) {
                         list.append(val.toVariant());
                     }
                     settings[setting.channelId] = list;
-                } else if (setting.channelId == Bookmark_Notes) {
+                } else if (static_cast<ChannelID>(setting.channelId) == Bookmark_Notes) {
                     // Convert JSON array to QStringList
                     QStringList list;
                     for (const QJsonValue& val : array) {

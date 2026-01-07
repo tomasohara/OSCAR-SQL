@@ -77,7 +77,8 @@ public:
         auto it = m_activeTimers.find(name);
         if (it != m_activeTimers.end()) {
             qint64 elapsed = it.value().nsecsElapsed();
-            m_activeTimers.erase(it);
+            // Use remove() instead of erase() to avoid GCC 7.1 ABI warnings with iterators
+            m_activeTimers.remove(name);
             
             // Accumulate timing data
             TimingData& data = m_timings[name];
