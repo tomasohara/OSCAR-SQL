@@ -104,8 +104,12 @@ appli_name="OSCAR"
 package_name="oscar"
 pre_inst="tst_user.sh"
 
-# build folder (absolute path is better)
-build_folder=${PWD%/*/*/*}/build
+#Build Directory name change if needed
+if [ -z "$OSCAR_BUILD_DIRECTORY" ] ; then
+    OSCAR_BUILD_DIRECTORY="build"
+fi
+echo "Build Directory: "$OSCAR_BUILD_DIRECTORY
+build_folder=${PWD%/*/*/*}/$OSCAR_BUILD_DIRECTORY
 
 if [[ -n ${PRERELEASE}  && -z ${RC} ]] ; then
     appli_name=${appli_name}-test
