@@ -2481,29 +2481,38 @@ Session::PercentilesResult Session::calculatePercentiles(ChannelID id)
     int idx50 = static_cast<int>(dataSize * 0.50);   // Median
     int idx90 = static_cast<int>(dataSize * 0.90);   // 90th
     int idx95 = static_cast<int>(dataSize * 0.95);   // 95th
-    
+    int idx995 = static_cast<int>(dataSize * 0.995);   // 99.55th
+
     // Bounds checking
     if (idx50 >= dataSize) idx50 = dataSize - 1;
     if (idx90 >= dataSize) idx90 = dataSize - 1;
     if (idx95 >= dataSize) idx95 = dataSize - 1;
+    if (idx995 >= dataSize) idx995 = dataSize - 1;
+
+    // Use nth_element strategically - partition from lowest to highest
+    // This is O(n) per call and reuses prior partitioning work for better efficiency
+    // Total work: O(n + (n-idx50) + (n-idx90)) instead of O(n + idx95 + idx90)
+    // For typical data sizes (e.g., n=100, idx50=50, idx90=90, idx95=95):
+    //   Old order: 100 + 95 + 90 = 285 element comparisons
+    //   New order: 100 + 50 + 10 = 160 element comparisons (44% fewer)
     
-    // Use nth_element strategically - partition from highest to lowest
-    // This is O(n) per call and reuses prior partitioning work
-    
-    // First partition at 95th percentile
-    std::nth_element(combinedData.begin(), combinedData.begin() + idx95, combinedData.end());
-    result.p95 = combinedData[idx95] * gain;
-    
-    // Now partition the lower portion at 90th percentile (only needs to check up to idx95)
-    std::nth_element(combinedData.begin(), combinedData.begin() + idx90, combinedData.begin() + idx95);
-    result.p90 = combinedData[idx90] * gain;
-    
-    // Finally partition the lower portion at 50th percentile (only needs to check up to idx90)
-    std::nth_element(combinedData.begin(), combinedData.begin() + idx50, combinedData.begin() + idx90);
+    // First partition at 50th percentile (median)
+    std::nth_element(combinedData.begin(), combinedData.begin() + idx50, combinedData.end());
     result.median = combinedData[idx50] * gain;
     
-    // We don't actually need p995 for the database, so just set it to p95 as an approximation
-    result.p995 = result.p95;
+    // Now partition the upper portion at 90th percentile (only needs to check from idx50 onwards)
+    std::nth_element(combinedData.begin() + idx50, combinedData.begin() + idx90, combinedData.end());
+    result.p90 = combinedData[idx90] * gain;
+    
+    // Finally partition the upper portion at 95th percentile (only needs to check from idx90 onwards)
+    std::nth_element(combinedData.begin() + idx90, combinedData.begin() + idx95, combinedData.end());
+    result.p95 = combinedData[idx95] * gain;
+    
+    // Finally partition the upper portion at 99.55th percentile (only needs to check from idx95 onwards)
+    std::nth_element(combinedData.begin() + idx95, combinedData.begin() + idx995, combinedData.end());
+    result.p995 = combinedData[idx995] * gain;
+
+//    result.p995 = result.p95;
     result.valid = true;
     
     return result;
