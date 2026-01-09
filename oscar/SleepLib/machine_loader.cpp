@@ -78,9 +78,11 @@ void MachineLoader::finishAddingSessions()
         mach->AddSession(sess);
     }
     
-    // Calculate daily summaries for imported sessions (PERFORMANCE FIX)
+    // Calculate daily summaries for all sessions that have been added to machines
     // This runs during import, not on every profile load
-    if (!new_sessions.empty() && p_profile) {
+    // Note: Some loaders add sessions directly to machines (not via new_sessions map),
+    // so we always call calculateDailySummaries() regardless of new_sessions state
+    if (p_profile) {
         p_profile->calculateDailySummaries();
         qDebug() << "MachineLoader::finishAddingSessions: Calculated daily summaries for imported data";
     }

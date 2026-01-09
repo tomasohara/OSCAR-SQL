@@ -831,13 +831,6 @@ void edfDebugInit();
     finishAddingSessions();
     qDebug() << "Finshed finishedAddingSessions() with" << sessionCount << "new sessions";
     
-    // IMPORTANT: Calculate daily summaries after all sessions are saved to database
-    // This ensures the daily_summaries table is populated after import
-    if (sessionCount > 0) {
-        qDebug() << "ResMed: Calling calculateDailySummaries() after saving" << sessionCount << "sessions";
-        p_profile->calculateDailySummaries();
-    }
-    
     // Save machine and all sessions to database
     mach->Save();
 
