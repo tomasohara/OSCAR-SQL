@@ -238,9 +238,9 @@ bool DailySummaryRepository::calculateAndStoreFromDay(Day* day, qint64 profileId
         data.machineId = machineId;
     }
     
-    // Check if we got any meaningful data
+    // Check if we got any meaningful data (CPAP or oximetry)
     if (data.totalHours <= 0) {
-        qDebug() << "DailySummaryRepository: Skipping" << data.date << "- no CPAP hours";
+        qDebug() << "DailySummaryRepository: Skipping" << data.date << "- no session hours";
         return false;
     }
     
@@ -289,13 +289,27 @@ DailySummaryData DailySummaryRepository::calculateFromDay(Day* day, qint64 machi
     }
     
     // Use Day's hours() method for accurate time calculation
+    // Include hours from all therapy machines, not just CPAP
     data.totalHours = day->hours(MT_CPAP);
     data.maskOnHours = data.totalHours;  // For CPAP, mask-on time is total time
     
+    // Also check for oximetry hours if CPAP hours are 0
+    if (data.totalHours <= 0 && day->hasMachine(MT_OXIMETER)) {
+        data.totalHours = day->hours(MT_OXIMETER);
+    }
+    
     // Use Day's built-in AHI/RDI calculation methods
+    // These may return NaN if hours are 0, so check for validity
     if (day->hasMachine(MT_CPAP) && data.totalHours > 0) {
-        data.ahi = day->calcAHI();
-        data.rdi = day->calcRDI();
+        EventDataType ahi = day->calcAHI();
+        EventDataType rdi = day->calcRDI();
+        // Only set if valid numbers (not NaN or inf)
+        if (!qIsNaN(ahi) && !qIsInf(ahi)) {
+            data.ahi = ahi;
+        }
+        if (!qIsNaN(rdi) && !qIsInf(rdi)) {
+            data.rdi = rdi;
+        }
     }
     
     // Event counts using Day's count() method

@@ -179,7 +179,7 @@ const QString STR_PREF_Language = "Language";
 const QString STR_AppName = "OSCAR";
 const QString STR_DeveloperName = "OSCAR_Team";
 const QString STR_DeveloperDomain = "oscar-team.org";
-const QString STR_AppData = "OSCAR_Data";
+const QString STR_AppData = "OSCAR20_Data";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Commonly used translatable text strings

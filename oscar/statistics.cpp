@@ -36,6 +36,7 @@ server= red 30+
 #include "SleepLib/common.h"
 #include "version.h"
 #include "SleepLib/profiles.h"
+#include "SleepLib/performance_timer.h"
 
 #include "speedcheck.h"
 
@@ -238,6 +239,7 @@ QDate lastGoodDay() {
 }
 
 void Statistics::adjustRange(QDate& start , QDate& last) {
+    PERF_TIMER_SCOPE("Statistics::adjustRange()");
     // this method reduces the size of the available to meet the statistics pages requirements.
     if (p_profile->general->statReportMode() == STAT_MODE_RANGE) {
         start = qMax(start,p_profile->general->statReportRangeStart());
@@ -253,6 +255,7 @@ void Statistics::adjustRange(QDate& start , QDate& last) {
 SpeedCheck scUpdate(500); // Keep outside function so we can limit number of log messages
 void SummaryInfo::update(QDate earliestDate , QDate latestDate)
 {
+    PERF_TIMER_SCOPE("Statistics::SummaryInfo::update()");
     if  ( (!latestDate.isValid()) ||  (!earliestDate.isValid()) ) return;
     if  ( (latestDate == last()) &&  (earliestDate == start()) ) return;
     scUpdate.restart(scUpdate.getLimit(), "SummaryInfo::update(" + earliestDate.toString() + " - " + latestDate.toString() + ")");
@@ -1347,6 +1350,7 @@ QString Statistics::getRDIorAHIText() {
 // Create the HTML for CPAP and Oximetry usage
 QString Statistics::GenerateCPAPUsage()
 {
+    PERF_TIMER_SCOPE("Statistics::GenerateCPAPUsage()");
 
     summaryInfo.clear(p_profile->FirstDay(),p_profile->LastDay());
     QList<Machine *> cpap_machines = p_profile->GetMachines(MT_CPAP);
@@ -1367,6 +1371,7 @@ QString Statistics::GenerateCPAPUsage()
     }
 
     QString html = "";
+    html.reserve(10000);
 
     // If we don't have any data, return HTML that says that and we are done
     if (!havedata) {
@@ -1567,8 +1572,10 @@ QString Statistics::GenerateCPAPUsage()
             }
             name = calcnames[row.calc].arg(schema::channel[id].fullname());
         }
+
         // Defined percentages for columns for diffent modes.
         QString line;
+        line.reserve(500);
         int np = periods.size();
         int width;
         // both create header column and 5 data columns for a total of 100
@@ -1582,6 +1589,8 @@ QString Statistics::GenerateCPAPUsage()
         }
         QString bgColor = alternatingColor(alternatingColorCounter);
         line += QString("<tr class=datarow bgcolor='%3'><td width='%1%'>%2</td>").arg(headerWidth).arg(name).arg(bgColor);
+
+        PERF_TIMER_START("Statistics::GenerateCPAPUsage::Phase 3");
         for (int j=0; j < np; j++) {
             width = j < np-1 ? dataWidth : 100 - (headerWidth + dataWidth*(np-1));
             line += QString("<td width='%1%'>").arg(width);
@@ -1592,12 +1601,15 @@ QString Statistics::GenerateCPAPUsage()
             }
             line += "</td>";
         }
+        PERF_TIMER_STOP("Statistics::GenerateCPAPUsage::Phase 3");
+//        qDebug() << "line" << line.size();
         html += line;
         html += "</tr>";
     }
 
     html += "</table>";
     html += "</div>";
+//    qDebug() << "html" << html.size();
 
     return html;
 }
@@ -1605,6 +1617,7 @@ QString Statistics::GenerateCPAPUsage()
 // Create the HTML that will be the Statistics page.
 QString Statistics::GenerateHTML()
 {
+    PERF_TIMER_SCOPE("Statistics::GenerateHTML()");
     initAlternatingColor();
     htmlReportHeader = generateHeader(true);
     htmlReportHeaderPrint = generateHeader(false);
@@ -1985,18 +1998,21 @@ QString Statistics::UpdateRecordsBox()
 
 QString StatisticsRow::value(QDate start, QDate end)
 {
+    PERF_TIMER_SCOPE("StatisticsRow::value()");
+
     const int decimals=2;
     QString value;
     float percentile=p_profile->general->prefCalcPercentile()/100.0;    // Pholynyk, 10Mar2016
     EventDataType percent = percentile;                                 // was 0.90F
 
+    PERF_TIMER_START("StatisticsRow::value::Phase 1");
     float  daysUsed=0;
     { // hide days to prevent divide by zero crashes.
         // Use integer values here
         int  days = p_profile->countDays(type, start, end);
 
         //  HAndle number of days
-        //  with no divide - avoid divide by zero
+       //  with no divide - avoid divide by zero
         if (calc == SC_TOTAL_DAYS) {
             //Always return value immediately
             return  QString::number(1+start.daysTo(end));
@@ -2011,6 +2027,7 @@ QString StatisticsRow::value(QDate start, QDate end)
         if (days==0) return "-";
     }
     // daysUsed is always non-zero ;
+    PERF_TIMER_STOP("StatisticsRow::value::Phase 1");
 
     // Handle special data sources first
     if (calc == SC_AHI_RDI) {
@@ -2049,6 +2066,7 @@ QString StatisticsRow::value(QDate start, QDate end)
     } else if ((calc == SC_COLUMNHEADERS) || (calc == SC_SUBHEADING) || (calc == SC_UNDEFINED))  {
     } else {
         //
+        PERF_TIMER_START("StatisticsRow::value::Phase 2");
         ChannelID code=channel();
 
         EventDataType val = 0;
@@ -2082,11 +2100,15 @@ QString StatisticsRow::value(QDate start, QDate end)
                 break;
             case SC_ABOVE:
                 fmt += "%";
+                PERF_TIMER_START("StatisticsRow::value::Phase 2::SC_ABOVE");
                 val = 100.0 / p_profile->calcHours(type, start, end) * (p_profile->calcAboveThreshold(code, schema::channel[code].upperThreshold(), type, start, end) / 60.0);
+                PERF_TIMER_STOP("StatisticsRow::value::Phase 2::SC_ABOVE");
                 break;
             case SC_BELOW:
                 fmt += "%";
+                PERF_TIMER_START("StatisticsRow::value::Phase 2::SC_BELOW");
                 val = 100.0 / p_profile->calcHours(type, start, end) * (p_profile->calcBelowThreshold(code, schema::channel[code].lowerThreshold(), type, start, end) / 60.0);
+                PERF_TIMER_STOP("StatisticsRow::value::Phase 2::SC_BELOW");
                 break;
             default:
                 break;
@@ -2098,6 +2120,7 @@ QString StatisticsRow::value(QDate start, QDate end)
         } else {
             value = fmt.arg(val, 0, 'f', decimals);
         }
+        PERF_TIMER_STOP("StatisticsRow::value::Phase 2");
     }
     return value;
 }

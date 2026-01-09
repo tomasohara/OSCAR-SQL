@@ -232,7 +232,7 @@ void CheckUpdates::checkForUpdates(bool showWhenCurrent)
     showIfCurrent = showWhenCurrent;
     showTestVersion = false;
 
-    // If running a test version of OSCAR, try reading versions.xml from OSCAR_Data directory
+    // If running a test version of OSCAR, try reading versions.xml from OSCAR20_Data directory
     // and force display of any new test version
     if (!getVersion().IsReleaseVersion()) {
         showTestVersion = true;

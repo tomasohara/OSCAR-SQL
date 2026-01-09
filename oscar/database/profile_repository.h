@@ -158,7 +158,7 @@ public:
      * \return Resolved absolute path
      *
      * Replaces %PROFDIR% with the actual profiles base path.
-     * Example: "%PROFDIR%/John" -> "C:/Users/.../OSCAR_Data/Profiles/John"
+     * Example: "%PROFDIR%/John" -> "C:/Users/.../OSCAR20_Data/Profiles/John"
      */
     static QString resolvePath(const QString& portablePath, const QString& profilesBasePath);
 

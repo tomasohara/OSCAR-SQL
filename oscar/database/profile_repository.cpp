@@ -404,8 +404,8 @@ int ProfileRepository::count()
  *
  * Example:
  *   Input:  "%PROFDIR%/John"
- *   Base:   "C:/Users/Guy/Documents/OSCAR_Data/Profiles"
- *   Output: "C:/Users/Guy/Documents/OSCAR_Data/Profiles/John"
+ *   Base:   "C:/Users/Guy/Documents/OSCAR20_Data/Profiles"
+ *   Output: "C:/Users/Guy/Documents/OSCAR20_Data/Profiles/John"
  */
 QString ProfileRepository::resolvePath(const QString& portablePath, const QString& profilesBasePath)
 {

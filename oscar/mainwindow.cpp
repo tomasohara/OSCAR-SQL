@@ -78,7 +78,7 @@
 #include "SleepLib/progressdialog.h"
 #include "SleepLib/importcontext.h"
 #include "database/database_manager.h"
-
+#include "SleepLib/performance_timer.h"
 #include "reports.h"
 #include "statistics.h"
 #include "zip.h"
@@ -479,6 +479,7 @@ void MainWindow::firstRunMessage()
 bool MainWindow::OpenProfile(QString profileName, bool skippassword)
 {
     qDebug() << "Opening profile" << profileName;
+    PERF_TIMER_SCOPE("MainWindow::OpenProfile");
     SpeedCheck scOpen(10000, "opened profile " + profileName); // Log if over 10 seconds to open
 
     // Ensure database is in clean state before opening new profile
@@ -564,7 +565,9 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
         p_profile->p_preferences[STR_PREF_ReimportBackup]=false;
     }
 
+    PERF_TIMER_START("MW::OP::LoadMachineData");
     p_profile->LoadMachineData(progress);
+    PERF_TIMER_STOP("MW::OP::LoadMachineData");
 
     if (!p_profile->LastDay(MT_CPAP).isValid() ) { // quick test if new profile or not.
         // Override default value of clinicalMode if new profile.
@@ -589,14 +592,19 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
         return false;
     }
     SpeedCheck sc(500);
+    PERF_TIMER_START("MW::OP::Welcome");
     welcome = new Welcome(ui->tabWidget);
     ui->tabWidget->insertTab(1, welcome, tr("Welcome"));
     sc.check("created Welcome page");
+    PERF_TIMER_STOP("MW::OP::Welcome");
 
+    PERF_TIMER_START("MW::OP::Daily");
     daily = new Daily(ui->tabWidget, nullptr);
     ui->tabWidget->insertTab(2, daily, STR_TR_Daily);
     sc.check("created Daily page");
+    PERF_TIMER_STOP("MW::OP::Daily");
 
+    PERF_TIMER_START("MW::OP::ReloadDailyGraphs");
     daily->ReloadGraphs();
 
     if (overview) {
@@ -605,12 +613,17 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
         return false;
     }
     sc.check("loaded Daily graphs");
+    PERF_TIMER_STOP("MW::OP::ReloadDailyGraphs");
 
+    PERF_TIMER_START("MW::OP::Overview");
     overview = new Overview(ui->tabWidget, daily->graphView());
     ui->tabWidget->insertTab(3, overview, STR_TR_Overview);
     sc.check("created Overview page");
+    PERF_TIMER_STOP("MW::OP::Overview");
 
+    PERF_TIMER_START("MW::OP::ReloadOverviewGraphs");
     overview->ReloadGraphs();
+    PERF_TIMER_STOP("MW::OP::ReloadOverviewGraphs");
 
     // Should really create welcome and statistics here, but they need redoing later anyway to kill off webkit
     ui->tabWidget->setCurrentIndex(AppSetting->openTabAtStart());
@@ -618,10 +631,14 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     // always use last user setting - so don't reset. // p_profile->general->setStatReportMode(STAT_MODE_STANDARD);
     sc.check("loaded Overview graphs");
 
+    // Daily() takes care of this
+/****
+    PERF_TIMER_START("MW::OP::GenerateStatistics()");
     GenerateStatistics();
     qDebug() << "Creating Purge menu";
     sc.check("created Statistics page");
-
+    PERF_TIMER_STOP("MW::OP::GenerateStatistics()");
+****/
     PopulatePurgeMenu();
 
     AppSetting->setProfileName(p_profile->user->userName());
@@ -649,11 +666,15 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
         updateChecker->showMessage();
 
     ui->actionExport_CSV->setEnabled(true);
+    PERF_TIMER_REPORT();
+    PERF_TIMER_RESET();
+
     return true;
 }
 
 void MainWindow::CloseProfile()
 {
+    PERF_TIMER_SCOPE("MainWindow::CloseProfile");
     ui->actionExport_CSV->setEnabled(false);
 
     if (updateChecker != nullptr)
@@ -686,6 +707,8 @@ void MainWindow::CloseProfile()
     // Ensure any pending database transaction is committed before profile close
     // This prevents data loss when switching between profiles
     ensureCleanDatabaseState();
+    PERF_TIMER_REPORT();
+    PERF_TIMER_RESET();
 }
 
 

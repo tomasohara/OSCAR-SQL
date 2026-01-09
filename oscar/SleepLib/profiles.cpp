@@ -34,10 +34,12 @@
 #include "mainwindow.h"
 #include "translation.h"
 #include "version.h"
+#include "performance_timer.h"
 
 // Database integration
 #include "../database/profile_repository.h"
 #include "../database/machine_repository.h"
+#include "../database/database_manager.h"
 #include "../database/user_info_repository.h"
 #include "../database/doctor_info_repository.h"
 #include "../database/preferences_repository.h"
@@ -46,6 +48,7 @@
 #include "../database/daily_summary_repository.h"
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSqlQuery>
 
 extern MainWindow *mainwin;
 extern bool openOk;
@@ -961,9 +964,26 @@ void Profile::LoadMachineData(ProgressDialog *progress)
         Journal::MigrateToDatabase(this);
     }
     
-    // NOTE: Daily summaries are calculated during import, not during profile load
-    // This avoids recalculating on every profile open
+    // Calculate daily summaries for existing profile data if not already populated
+    // This ensures the daily_summaries table has data when loading existing profiles
     // See: Session::StoreToDatabase() and Machine::finishAddingSessions()
+    DailySummaryRepository summaryRepo;
+    profileData = profileRepo.findByUsername(user->userName());
+    
+    if (profileData.id > 0) {
+        // Check if we have any daily summaries for this profile
+        int existingCount = summaryRepo.countDays(profileData.id, QDate(2000, 1, 1), QDate(2100, 12, 31));
+        
+        if (existingCount == 0) {
+            qDebug() << "Profile::LoadMachineData() - No daily summaries found, calculating from existing data...";
+            progress->setMessage("Calculating Daily Summaries");
+            calculateDailySummaries();
+        } else {
+            qDebug() << "Profile::LoadMachineData() - Found" << existingCount << "existing daily summaries";
+        }
+    } else {
+        qWarning() << "Profile::LoadMachineData() - Cannot check daily summaries, profile not in database";
+    }
 }
 
 void Profile::removeMachine(Machine * mach)
@@ -1141,6 +1161,7 @@ Day *Profile::FindGoodDay(QDate date, MachineType type)
 
 Day *Profile::GetDay(QDate date, MachineType type)
 {
+    PERF_TIMER_SCOPE("Profile::GetDay()");
     auto di = daylist.find(date);
     if (di == daylist.end()) return nullptr;
 
@@ -1671,6 +1692,7 @@ int Profile::countDays(MachineType mt, QDate start, QDate end)
 
 int Profile::countCompliantDays(MachineType mt, QDate start, QDate end)
 {
+    PERF_TIMER_SCOPE("Profile::countCompliantDays()");
     EventDataType compliance = cpap->complianceHours();
 
     if (!start.isValid()) {
@@ -1764,6 +1786,7 @@ double Profile::calcSum(ChannelID code, MachineType mt, QDate start, QDate end)
 
 EventDataType Profile::calcHours(MachineType mt, QDate start, QDate end)
 {
+    PERF_TIMER_SCOPE("Profile::calcHours()");
     if (!start.isValid()) {
         start = LastGoodDay(mt);
     }
@@ -1796,6 +1819,8 @@ EventDataType Profile::calcHours(MachineType mt, QDate start, QDate end)
 EventDataType Profile::calcAboveThreshold(ChannelID code, EventDataType threshold, MachineType mt,
                                  QDate start, QDate end)
 {
+    PERF_TIMER_SCOPE("Profile::calcAboveThreshold");
+//    qDebug() << "Profile::calcAboveThreshold, channel" << code << "threshold" << threshold;
     if (!start.isValid()) {
         start = LastGoodDay(mt);
     }
@@ -1810,6 +1835,57 @@ EventDataType Profile::calcAboveThreshold(ChannelID code, EventDataType threshol
         return 0;
     }
 
+    // Convert dates to milliseconds since epoch for SQL comparison
+    qint64 startMs = start.startOfDay().toMSecsSinceEpoch();
+    qint64 endMs = end.addDays(1).startOfDay().toMSecsSinceEpoch();  // Exclusive end
+
+    // Try SQL optimization using pre-computed value/time summaries
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (db.isOpen()) {
+        QSqlQuery query(db);
+        
+        // Single query to sum time above threshold across all sessions in date range
+        // Uses the pre-computed session_channel_values table (value -> time_ms mappings)
+        query.prepare(R"(
+            SELECT COALESCE(SUM(scv.time_ms), 0) as total_ms
+            FROM session_channel_values scv
+            INNER JOIN session_channels sc ON scv.session_channel_id = sc.id
+            INNER JOIN sessions s ON sc.session_id = s.id
+            INNER JOIN machines m ON s.machine_id = m.id
+            WHERE s.start_time >= :start_ms
+              AND s.start_time < :end_ms
+              AND sc.channel_id = :channel_id
+              AND m.machine_type = :machine_type
+              AND (CAST(scv.value AS REAL) * sc.gain) >= :threshold
+        )");
+        
+        query.bindValue(":start_ms", startMs);
+        query.bindValue(":end_ms", endMs);
+        query.bindValue(":channel_id", (int)code);
+        query.bindValue(":machine_type", (int)mt);
+        query.bindValue(":threshold", threshold);
+        
+        if (query.exec()) {
+            if (query.next()) {
+                double totalMs = query.value(0).toDouble();
+                if (totalMs > 0) {
+                    // Convert milliseconds to minutes and return
+                    return totalMs / 60000.0;
+                }
+                // SQL returned 0 - this is a valid result (no time above threshold)
+                // No need to fall back, just return 0
+                return 0;
+            } else {
+                qWarning() << "calcAboveThreshold SQL query returned no rows";
+            }
+        } else {
+            qWarning() << "calcAboveThreshold SQL query failed:" << query.lastError().text();
+        }
+        // Only fall back on actual query failure
+    }
+    
+    PERF_TIMER_START("Profile::calcAboveThreshold::original");
+    // Original implementation: iterate through days/sessions
     EventDataType val = 0;
 
     do {
@@ -1821,6 +1897,7 @@ EventDataType Profile::calcAboveThreshold(ChannelID code, EventDataType threshol
 
         date = date.addDays(1);
     } while (date <= end);
+    PERF_TIMER_STOP("Profile::calcAboveThreshold::original");
 
     return val;
 }
@@ -2765,6 +2842,8 @@ void Profile::resetOxiChannelPref() {
 // Calculate and store daily summaries for all loaded days
 void Profile::calculateDailySummaries()
 {
+    qDebug() << "Profile::calculateDailySummaries() - CALLED";
+    
     ProfileRepository profileRepo;
     ProfileData profileData = profileRepo.findByUsername(user->userName());
     
@@ -2777,38 +2856,72 @@ void Profile::calculateDailySummaries()
     DailySummaryRepository summaryRepo;
     
     int calculatedCount = 0;
+    int skippedNoDay = 0;
+    int skippedNoSessions = 0;
+    int skippedNotCPAP = 0;
     int totalDays = 0;
     
-    qDebug() << "Profile::calculateDailySummaries() - Scanning machines for days...";
+    qDebug() << "Profile::calculateDailySummaries() - Starting, m_machlist.size() =" << m_machlist.size();
+    qDebug() << "Profile::calculateDailySummaries() - daylist.size() =" << daylist.size();
     
     // Iterate through all machines and their days
     for (Machine* mach : m_machlist) {
-        if (!mach || mach->type() != MT_CPAP) {
-            continue;  // Only process CPAP machines
+        if (!mach) {
+            qDebug() << "Profile::calculateDailySummaries() - Skipping null machine";
+            continue;
+        }
+        
+        qDebug() << "Profile::calculateDailySummaries() - Machine" << mach->brand() << mach->model() 
+                 << "type" << mach->type() << "day.size() =" << mach->day.size();
+        
+        // Process CPAP and other therapy machines
+        if (mach->type() != MT_CPAP && mach->type() != MT_OXIMETER && mach->type() != MT_SLEEPSTAGE && mach->type() != MT_POSITION) {
+            skippedNotCPAP++;
+            continue;
         }
         
         qDebug() << "Profile::calculateDailySummaries() - Processing machine" << mach->brand() << mach->model() 
-                 << "with" << mach->day.size() << "days";
+                 << "type" << mach->type() << "with" << mach->day.size() << "days";
         
         // Iterate through machine's days
         for (auto it = mach->day.begin(); it != mach->day.end(); ++it) {
             Day* day = it.value();
             totalDays++;
             
-            if (!day || !day->hasEnabledSessions()) {
+            if (!day) {
+                qDebug() << "Profile::calculateDailySummaries() - Skipping null day";
+                skippedNoDay++;
+                continue;
+            }
+            
+            qDebug() << "Profile::calculateDailySummaries() - Day" << day->date() << "has" << day->sessions.size() << "sessions";
+            
+            if (!day->hasEnabledSessions()) {
+                skippedNoSessions++;
+                qDebug() << "Profile::calculateDailySummaries() - Skipping day" << day->date() << "- no enabled sessions";
                 continue;  // Skip days without enabled sessions
             }
+            
+            qDebug() << "Profile::calculateDailySummaries() - Calculating for day" << day->date();
+            
+            // Ensure summaries are loaded before calculating
+            day->OpenSummary();
             
             // Calculate and store combined daily summary (machineId = 0)
             // This ensures successive imports update the same daily summary entry
             // rather than creating separate entries per machine
             if (summaryRepo.calculateAndStoreFromDay(day, profileId, 0)) {
                 calculatedCount++;
+                qDebug() << "Profile::calculateDailySummaries() - SUCCESS for day" << day->date();
+            } else {
+                qWarning() << "Profile::calculateDailySummaries() - Failed to store summary for day" << day->date();
             }
         }
     }
     
-    qDebug() << "Profile::calculateDailySummaries() - Calculated" << calculatedCount << "days out of" << totalDays << "total days";
+    qDebug() << "Profile::calculateDailySummaries() - Summary: calculated" << calculatedCount 
+             << "days, totalDays" << totalDays << "skipped(noDay" << skippedNoDay 
+             << ", noSessions" << skippedNoSessions << ", notCPAP" << skippedNotCPAP << ")";
 }
 
 // Database integration: Save extended profile data
@@ -2888,3 +3001,4 @@ bool Profile::loadExtendedDataFromDatabase()
     
     return true;
 }
+            

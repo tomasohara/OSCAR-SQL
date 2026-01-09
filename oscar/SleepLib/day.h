@@ -252,6 +252,7 @@ class Day
     EventDataType calcAHI() {
         EventDataType c = count(AllAhiChannels);
         EventDataType minutes = hours(MT_CPAP) * 60.0;
+        if (minutes <= 0) return 0;
         return (c * 60.0) / minutes;
     }
 
@@ -259,6 +260,7 @@ class Day
     EventDataType calcRDI() {
         EventDataType c = count(AllAhiChannels) + count(CPAP_RERA);
         EventDataType minutes = hours(MT_CPAP) * 60.0;
+        if (minutes <= 0) return 0;
         return (c * 60.0) / minutes;
     }
 

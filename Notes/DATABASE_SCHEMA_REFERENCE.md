@@ -1,5 +1,5 @@
 # OSCAR Database Schema Reference
-**Version:** Schema Version 8  
+**Version:** Schema Version 9  
 **Last Updated:** 2026 Q1  
 **Database Type:** SQLite  
 
@@ -7,7 +7,7 @@
 
 ## Overview
 
-The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 8.
+The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 9.
 
 **Key Design Principles:**
 - **Profile-centric**: All data organized around user profiles
@@ -32,6 +32,7 @@ The OSCAR database uses SQLite to store user profiles, machine configurations, s
 | 6 | 2025 Q4 | Added daily_summaries table for fast reporting |
 | 7 | 2026 Q1 | 🐛 **BUG FIX**: Added session_channel_values table to persist value/time summaries (fixes incorrect weighted averages) |
 | 8 | 2026 Q1 | ⚡ **MAJOR CHANGE**: Added event_lists and event_data tables - waveform/event data now stored in database instead of .001 files |
+| 9 | 2026 Q1 | 📝 **ENHANCEMENT**: Added json_value column to session_settings for journal migration and complex data types |
 
 ---
 
@@ -185,11 +186,14 @@ CREATE TABLE session_settings (
     channel_id INTEGER NOT NULL,
     value REAL NOT NULL,
     data_type TEXT,
+    json_value TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
     UNIQUE(session_id, channel_id)
 )
 ```
+
+**Note:** The `json_value` column (added in v9) stores complex data types as JSON for journal migration support.
 
 ### 9. session_channels
 Summary statistics for each channel in a session.
@@ -574,6 +578,7 @@ CREATE TABLE event_data (
 | channel_id | INTEGER | | NO | Channel ID |
 | value | REAL | | NO | Setting value |
 | data_type | TEXT | | YES | Data type hint |
+| json_value | TEXT | | YES | JSON value for complex data types (NEW IN v9) |
 | created_at | TEXT | | NO | Creation timestamp |
 
 ### session_channels
@@ -1012,8 +1017,34 @@ The event_lists and event_data tables (new in v8) provide revolutionary database
 
 **Note**: Re-import CPAP data after upgrade to migrate from .001 files to database storage.
 
+## Schema v9 Highlights 📝 **ENHANCEMENT**
+
+The `json_value` column in `session_settings` (added in v9) provides:
+
+**What Changed:**
+- **New column**: Added `json_value TEXT` column to `session_settings` table
+- **Complex data support**: Enables storing structured/complex data as JSON
+- **Journal migration**: Supports migrating journal-type data to the database
+
+**Use Cases:**
+- **Bookmark data**: User-created bookmarks with timestamps and descriptions
+- **Session notes**: Rich text or structured notes attached to sessions
+- **Custom fields**: Any complex settings that don't fit the simple value model
+- **Inter-session data**: Data spanning multiple sessions (e.g., sleep diary entries)
+
+**Benefits:**
+- **Flexibility**: JSON format accommodates diverse data structures
+- **Future-proofing**: Supports new data types without schema changes
+- **Consolidation**: Moves more data from files into the database
+- **Query capability**: JSON fields can be queried using SQLite's JSON functions
+
+**Migration Impact:**
+- **Automatic upgrade**: Existing databases get the new column added
+- **Backward compatible**: Old data without json_value continues to work
+- **No data loss**: Existing session_settings records remain unchanged
+
 ---
 
-**Document Version:** 4.0  
-**Schema Version:** 8  
+**Document Version:** 5.0  
+**Schema Version:** 9  
 **Generated:** 2026 Q1

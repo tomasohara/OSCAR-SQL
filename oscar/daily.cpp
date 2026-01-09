@@ -43,6 +43,8 @@
 #include "common_gui.h"
 #include "SleepLib/profiles.h"
 #include "SleepLib/session.h"
+#include "SleepLib/performance_timer.h"
+
 #include "Graphs/gLineOverlay.h"
 #include "Graphs/gFlagsLine.h"
 #include "Graphs/gFooBar.h"
@@ -724,6 +726,8 @@ void Daily::Link_clicked(const QUrl &url)
 
 void Daily::ReloadGraphs()
 {
+    PERF_TIMER_SCOPE("ReloadGraphs");
+
 //    qDebug() << "Start ReloadGraphs  Daily object";
 //    sleep(3);
     GraphView->setDay(nullptr);
@@ -792,6 +796,7 @@ void Daily::on_calendar_currentPageChanged(int year, int month)
 
 void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
 {
+    PERF_TIMER_SCOPE("Daily::UpdateEventsTree");
     DEBUGXD O("Daily::UpdateEventsTree") O(tree) O(day);
     tree->clear();
     if (!day) return;
@@ -1844,6 +1849,7 @@ QVariant MyTextBrowser::loadResource(int type, const QUrl &url)
 
 void Daily::Load(QDate date)
 {
+    PERF_TIMER_SCOPE("Daily::Load()");
     qDebug() << "Daily::Load called for" << date.toString() << "using" << QApplication::font().toString();
 
     qDebug() << "Setting App font in Daily::Load";
@@ -1868,6 +1874,7 @@ void Daily::Load(QDate date)
         qDebug() << "Warning: unable to load day";
     }
 
+    PERF_TIMER_START("Daily::Load::Sessions");
     if (!AppSetting->cacheSessions()) {
         // Getting trashed on purge last day...
 
@@ -1883,6 +1890,7 @@ void Daily::Load(QDate date)
             }
         }
     }
+    PERF_TIMER_STOP("Daily::Load::Sessions");
 
     lastcpapday=day;
 
@@ -1902,19 +1910,23 @@ void Daily::Load(QDate date)
     "</head>"
     "<body leftmargin=0 rightmargin=0 topmargin=0 marginwidth=0 marginheight=0>";
 
+    PERF_TIMER_START("Daily::Load::OpenEvents");
     if (day) {
         day->OpenEvents();
     }
     GraphView->setDay(day);
+    PERF_TIMER_STOP("Daily::Load::OpenEvents");
 
 
     UpdateEventsTree(ui->treeWidget, day);
 
     // FIXME:
     // Generating entire statistics because bookmarks may have changed.. (This updates the side panel too)
+    PERF_TIMER_START("Daily::Load::GenerateStatistics");
     if (mainwin) {
         mainwin->GenerateStatistics();
     }
+    PERF_TIMER_STOP("Daily::Load::GenerateStatistics");
 
     snapGV->setDay(day);
 
@@ -1923,9 +1935,12 @@ void Daily::Load(QDate date)
     QString a;
     bool isBrick=false;
 
+    PERF_TIMER_START("Daily::Load::UpdateCombos");
+
     updateGraphCombo();
 
     updateEventsCombo(day);
+    PERF_TIMER_STOP("Daily::Load::UpdateCombos");
 
     if (!cpap) {
         GraphView->setEmptyImage(QPixmap(":/icons/logo-md.png"));
@@ -1951,6 +1966,7 @@ void Daily::Load(QDate date)
 
         mode=(CPAPMode)(int)day->settings_max(CPAP_Mode);
 
+        PERF_TIMER_START("Daily::Load::LeftPanel");
         modestr=schema::channel[CPAP_Mode].m_options[mode];
         if (hours>0) {
             htmlLeftAHI= getAHI(day,isBrick);
@@ -1995,6 +2011,7 @@ void Daily::Load(QDate date)
 
         htmlLeftSleepTime = getSleepTime(day);
     }
+    PERF_TIMER_STOP("Daily::Load::LeftPanel");
     if (day) {
         htmlLeftOximeter = getOximeterInformation(day);
         htmlLeftMachineSettings = getMachineSettings(day);
@@ -2032,6 +2049,7 @@ void Daily::Load(QDate date)
     }
 
     htmlLeftFooter ="</body></html>";
+    PERF_TIMER_STOP("Daily::Load::LeftPanel");
 
     // SessionBar colors.  Colors alternate.
     QColor cols[]={

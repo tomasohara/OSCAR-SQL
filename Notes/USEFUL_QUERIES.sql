@@ -300,7 +300,22 @@ UNION ALL
 SELECT 
     'Session Channels', 
     COUNT(*) 
-FROM session_channels;
+FROM session_channels
+UNION ALL
+SELECT 
+    'Daily Summaries', 
+    COUNT(*) 
+FROM daily_summaries
+UNION ALL
+SELECT 
+    'Event Data', 
+    COUNT(*) 
+FROM event_data
+UNION ALL
+SELECT 
+    'Event Lists', 
+    COUNT(*) 
+FROM event_lists;
 
 -- ============================================
 -- ADDITIONAL QUERY FILES

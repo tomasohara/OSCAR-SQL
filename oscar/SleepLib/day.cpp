@@ -19,6 +19,7 @@
 
 #include "day.h"
 #include "profiles.h"
+#include "SleepLib/performance_timer.h"
 
 Day::Day()
 {
@@ -220,6 +221,7 @@ EventDataType Day::lookupValue(ChannelID code, qint64 time, bool square)
 
 EventDataType Day::timeAboveThreshold(ChannelID code, EventDataType threshold)
 {
+    PERF_TIMER_SCOPE("Day::timeAboveThreshold");
     EventDataType val = 0;
 
     for (auto & sess : sessions) {
@@ -1183,6 +1185,7 @@ bool Day::settingExists(ChannelID id)
 
 bool Day::eventsLoaded()
 {
+    PERF_TIMER_SCOPE("Day::eventsLoaded()");
     for (auto & sess : sessions) {
         if (sess->eventsLoaded()) {
             return true;
@@ -1232,6 +1235,7 @@ bool Day::channelHasData(ChannelID id)
 
 void Day::OpenEvents()
 {
+    PERF_TIMER_SCOPE("Day::OpenEvents()");
     for (auto & sess : sessions) {
         if (sess->type() != MT_JOURNAL)
             sess->OpenEvents();
