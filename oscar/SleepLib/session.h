@@ -280,10 +280,30 @@ class Session
     void destroyEvent(ChannelID code);
 
     // UpdateSummaries may recalculate all these, but it may be faster setting upfront
-    void setCount(ChannelID id, EventDataType val) { m_cnt[id] = val; }
-    void setSum(ChannelID id, EventDataType val) { m_sum[id] = val; }
-    void setMin(ChannelID id, EventDataType val) { m_min[id] = val; }
-    void setMax(ChannelID id, EventDataType val) { m_max[id] = val; }
+    void setCount(ChannelID id, EventDataType val) { 
+        m_cnt[id] = val; 
+        if (!m_availableChannels.contains(id)) {
+            m_availableChannels.push_back(id);
+        }
+    }
+    void setSum(ChannelID id, EventDataType val) { 
+        m_sum[id] = val; 
+        if (!m_availableChannels.contains(id)) {
+            m_availableChannels.push_back(id);
+        }
+    }
+    void setMin(ChannelID id, EventDataType val) { 
+        m_min[id] = val; 
+        if (!m_availableChannels.contains(id)) {
+            m_availableChannels.push_back(id);
+        }
+    }
+    void setMax(ChannelID id, EventDataType val) { 
+        m_max[id] = val; 
+        if (!m_availableChannels.contains(id)) {
+            m_availableChannels.push_back(id);
+        }
+    }
     void setPhysMin(ChannelID id, EventDataType val) { m_physmin[id] = val; }
     void setPhysMax(ChannelID id, EventDataType val) { m_physmax[id] = val; }
     void updateMin(ChannelID id, EventDataType val) {
@@ -305,12 +325,27 @@ class Session
         }
     }
 
-    void setAvg(ChannelID id, EventDataType val) { m_avg[id] = val; }
-    void setWavg(ChannelID id, EventDataType val) { m_wavg[id] = val; }
+    void setAvg(ChannelID id, EventDataType val) { 
+        m_avg[id] = val; 
+        if (!m_availableChannels.contains(id)) {
+            m_availableChannels.push_back(id);
+        }
+    }
+    void setWavg(ChannelID id, EventDataType val) { 
+        m_wavg[id] = val; 
+        if (!m_availableChannels.contains(id)) {
+            m_availableChannels.push_back(id);
+        }
+    }
     //    void setMedian(ChannelID id,EventDataType val) { m_med[id]=val; }
     //    void set90p(ChannelID id,EventDataType val) { m_90p[id]=val; }
     //    void set95p(ChannelID id,EventDataType val) { m_95p[id]=val; }
-    void setCph(ChannelID id, EventDataType val) { m_cph[id] = val; }
+    void setCph(ChannelID id, EventDataType val) { 
+        m_cph[id] = val; 
+        if (!m_availableChannels.contains(id)) {
+            m_availableChannels.push_back(id);
+        }
+    }
     void setSph(ChannelID id, EventDataType val) { m_sph[id] = val; }
     void setFirst(ChannelID id, qint64 val) { m_firstchan[id] = val; }
     void setLast(ChannelID id, qint64 val) { m_lastchan[id] = val; }

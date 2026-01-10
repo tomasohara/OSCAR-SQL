@@ -2525,51 +2525,75 @@ void StoreSummaryStatistics(Session * sess, STRRecord & R)
 //      sess->setp95(CPAP_Leak, R.leak95);
 //      sess->setp50(CPAP_Leak, R.leak50);
         sess->setMax(CPAP_Leak, R.leakmax);
+        // Store the median (50th percentile) as wavg for summary-only sessions
+        // This is used by the statistics report for leak averages
+        if (R.leak50 > 0) {
+            sess->setWavg(CPAP_Leak, R.leak50);
+        }
     }
 
     if (R.rr50 >= 0) {
 //      sess->setp95(CPAP_RespRate, R.rr95);
 //      sess->setp50(CPAP_RespRate, R.rr50);
         sess->setMax(CPAP_RespRate, R.rrmax);
+        if (R.rr50 > 0) {
+            sess->setWavg(CPAP_RespRate, R.rr50);
+        }
     }
 
     if (R.mv50 >= 0) {
 //      sess->setp95(CPAP_MinuteVent, R.mv95);
 //      sess->setp50(CPAP_MinuteVent, R.mv50);
         sess->setMax(CPAP_MinuteVent, R.mvmax);
+        if (R.mv50 > 0) {
+            sess->setWavg(CPAP_MinuteVent, R.mv50);
+        }
     }
 
     if (R.tv50 >= 0) {
 //      sess->setp95(CPAP_TidalVolume, R.tv95);
 //      sess->setp50(CPAP_TidalVolume, R.tv50);
         sess->setMax(CPAP_TidalVolume, R.tvmax);
+        if (R.tv50 > 0) {
+            sess->setWavg(CPAP_TidalVolume, R.tv50);
+        }
     }
 
     if (R.mp50 >= 0) {
 //      sess->setp95(CPAP_MaskPressure, R.mp95);
 //      sess->seTTtp50(CPAP_MaskPressure, R.mp50);
         sess->setMax(CPAP_MaskPressure, R.mpmax);
+        if (R.mp50 > 0) {
+            sess->setWavg(CPAP_MaskPressure, R.mp50);
+        }
     }
 
     if (R.oai > 0) {
         sess->setCph(CPAP_Obstructive, R.oai);
-        sess->setCount(CPAP_Obstructive, R.oai * sess->hours());
+        // Use raw session times for hours calculation to avoid clock drift issues
+        // with summary-only sessions that don't have detailed event data
+        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
+        sess->setCount(CPAP_Obstructive, R.oai * sessionHours);
     }
     if (R.hi > 0) {
         sess->setCph(CPAP_Hypopnea, R.hi);
-        sess->setCount(CPAP_Hypopnea, R.hi * sess->hours());
+        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
+        sess->setCount(CPAP_Hypopnea, R.hi * sessionHours);
     }
     if (R.cai > 0) {
         sess->setCph(CPAP_ClearAirway, R.cai);
-        sess->setCount(CPAP_ClearAirway, R.cai * sess->hours());
+        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
+        sess->setCount(CPAP_ClearAirway, R.cai * sessionHours);
     }
     if (R.uai > 0) {
         sess->setCph(CPAP_Apnea, R.uai);
-        sess->setCount(CPAP_Apnea, R.uai * sess->hours());
+        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
+        sess->setCount(CPAP_Apnea, R.uai * sessionHours);
     }
     if (R.csr > 0) {
         sess->setCph(CPAP_CSR, R.csr);
-        sess->setCount(CPAP_CSR, R.csr * sess->hours());
+        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
+        sess->setCount(CPAP_CSR, R.csr * sessionHours);
     }
 }
 
@@ -2736,6 +2760,8 @@ void ResDayTask::run()
                 sess->set_first(quint64(maskon) * 1000L);
                 sess->set_last(quint64(maskoff) * 1000L);
                 StoreSettings(sess, R);         // Process the STR.edf settings
+                // StoreSummaryStatistics must be called AFTER set_first/set_last
+                // because it uses sess->hours() to calculate event counts
                 StoreSummaryStatistics(sess, R);  // We want the summary information too
 
                 sess->setSummaryOnly(true);

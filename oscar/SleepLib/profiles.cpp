@@ -1836,8 +1836,15 @@ EventDataType Profile::calcAboveThreshold(ChannelID code, EventDataType threshol
     }
 
     // Convert dates to milliseconds since epoch for SQL comparison
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     qint64 startMs = start.startOfDay().toMSecsSinceEpoch();
-    qint64 endMs = end.addDays(1).startOfDay().toMSecsSinceEpoch();  // Exclusive end
+    qint64 endMs = end.startOfDay().toMSecsSinceEpoch();
+#else
+    qint64 startMs = QDateTime(start).toMSecsSinceEpoch();
+    qint64 endMs = QDateTime(end).toMSecsSinceEpoch();
+#endif
+//    qint64 startMs = start.startOfDay().toMSecsSinceEpoch();
+//    qint64 endMs = end.addDays(1).startOfDay().toMSecsSinceEpoch();  // Exclusive end
 
     // Try SQL optimization using pre-computed value/time summaries
     QSqlDatabase db = DatabaseManager::instance().database();

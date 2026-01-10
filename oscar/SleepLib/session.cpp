@@ -3081,6 +3081,58 @@ bool Session::LoadFromDatabase()
     }
 #endif
 
+    // For summary-only sessions, restore m_cnt from session_summaries
+    // This is necessary because summary-only sessions don't have event data
+    // stored in session_channels, but the event counts are stored in session_summaries
+    if (summaryData.id > 0) {
+        double sessionHours = summaryData.hoursUsed;
+        
+        // Restore event counts from summary data
+        // Use cph * hours to calculate count (since cph is preserved correctly as REAL,
+        // while count was truncated to INTEGER in session_channels)
+        if (summaryData.obstructiveCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_Obstructive))) {
+            // Calculate count from cph * hours (more accurate than stored integer)
+            if (m_cph.contains(CPAP_Obstructive) && sessionHours > 0) {
+                m_cnt[CPAP_Obstructive] = m_cph[CPAP_Obstructive] * sessionHours;
+            } else if (summaryData.obstructiveCount > 0) {
+                m_cnt[CPAP_Obstructive] = summaryData.obstructiveCount;
+            }
+            if (!m_availableChannels.contains(CPAP_Obstructive)) {
+                m_availableChannels.push_back(CPAP_Obstructive);
+            }
+        }
+        if (summaryData.centralCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_ClearAirway))) {
+            if (m_cph.contains(CPAP_ClearAirway) && sessionHours > 0) {
+                m_cnt[CPAP_ClearAirway] = m_cph[CPAP_ClearAirway] * sessionHours;
+            } else if (summaryData.centralCount > 0) {
+                m_cnt[CPAP_ClearAirway] = summaryData.centralCount;
+            }
+            if (!m_availableChannels.contains(CPAP_ClearAirway)) {
+                m_availableChannels.push_back(CPAP_ClearAirway);
+            }
+        }
+        if (summaryData.hypopneaCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_Hypopnea))) {
+            if (m_cph.contains(CPAP_Hypopnea) && sessionHours > 0) {
+                m_cnt[CPAP_Hypopnea] = m_cph[CPAP_Hypopnea] * sessionHours;
+            } else if (summaryData.hypopneaCount > 0) {
+                m_cnt[CPAP_Hypopnea] = summaryData.hypopneaCount;
+            }
+            if (!m_availableChannels.contains(CPAP_Hypopnea)) {
+                m_availableChannels.push_back(CPAP_Hypopnea);
+            }
+        }
+        if (summaryData.reraCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_RERA))) {
+            if (m_cph.contains(CPAP_RERA) && sessionHours > 0) {
+                m_cnt[CPAP_RERA] = m_cph[CPAP_RERA] * sessionHours;
+            } else if (summaryData.reraCount > 0) {
+                m_cnt[CPAP_RERA] = summaryData.reraCount;
+            }
+            if (!m_availableChannels.contains(CPAP_RERA)) {
+                m_availableChannels.push_back(CPAP_RERA);
+            }
+        }
+    }
+
     // Mark summary as loaded since we have the cached statistics
     s_summary_loaded = true;
     
@@ -3120,8 +3172,21 @@ bool Session::StoreSummaryToDatabase()
     }
     
     // Get AHI and RDI from cached values
+    // For summary-only sessions, calculate AHI from event counts since m_wavg[CPAP_AHI] won't be set
     if (m_wavg.contains(CPAP_AHI)) {
         data.ahi = m_wavg[CPAP_AHI];
+    } else {
+        // Calculate AHI from event counts for summary-only sessions
+        double totalEvents = 0;
+        if (m_cnt.contains(CPAP_Obstructive)) totalEvents += m_cnt[CPAP_Obstructive];
+        if (m_cnt.contains(CPAP_ClearAirway)) totalEvents += m_cnt[CPAP_ClearAirway];
+        if (m_cnt.contains(CPAP_Hypopnea)) totalEvents += m_cnt[CPAP_Hypopnea];
+        if (m_cnt.contains(CPAP_RERA)) totalEvents += m_cnt[CPAP_RERA];
+        if (m_cnt.contains(CPAP_Apnea)) totalEvents += m_cnt[CPAP_Apnea];  // Include unknown apneas
+        
+        if (data.hoursUsed > 0) {
+            data.ahi = totalEvents / data.hoursUsed;
+        }
     }
     if (m_wavg.contains(CPAP_RDI)) {
         data.rdi = m_wavg[CPAP_RDI];
@@ -3139,6 +3204,13 @@ bool Session::StoreSummaryToDatabase()
     }
     if (m_cnt.contains(CPAP_RERA)) {
         data.reraCount = m_cnt[CPAP_RERA];
+    }
+    // Also handle CPAP_Apnea (unknown apnea) and CPAP_CSR (Cheyne-Stokes respiration)
+    // These are set by ResMed loader for summary-only sessions
+    // We'll store unknown apnea count in obstructiveCount (as an approximation) since there's no dedicated field
+    if (m_cnt.contains(CPAP_Apnea)) {
+        // Add to obstructive count as an approximation
+        data.obstructiveCount += m_cnt[CPAP_Apnea];
     }
     
     // Pressure statistics from cached values
