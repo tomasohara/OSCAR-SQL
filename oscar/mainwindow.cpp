@@ -71,6 +71,7 @@
 #include "aboutdialog.h"
 #include "newprofile.h"
 #include "exportcsv.h"
+#include "importprofile.h"
 #include "SleepLib/schema.h"
 #include "Graphs/glcommon.h"
 #include "checkupdates.h"
@@ -1120,6 +1121,28 @@ void MainWindow::on_action_Import_Data_triggered()
     }
 
     in_import=false;
+}
+
+void MainWindow::on_action_Import_OSCAR_Data_triggered()
+{
+    // Show import dialog
+    ImportProfile dialog(this);
+    
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    
+    QString sourcePath = dialog.selectedProfilePath();
+    QString newName = dialog.newProfileName();
+    
+    // For now, just show a message that the feature is not yet fully implemented
+    QMessageBox::information(this, tr("Import Profile"),
+        tr("Profile import UI is complete.\n\n"
+           "Selected source: %1\n"
+           "New profile name: %2\n\n"
+           "Note: The actual import functionality (ProfileImporter) "
+           "is not yet implemented. This will be added in the next phase.")
+        .arg(sourcePath).arg(newName));
 }
 
 

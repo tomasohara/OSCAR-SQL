@@ -317,6 +317,7 @@ SOURCES += \
     dailySearchTab.cpp \
     exportcsv.cpp \
     highresolution.cpp \
+    importprofile.cpp \
     logger.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -453,6 +454,7 @@ HEADERS  += \
     common_gui.h \
     cprogressbar.h \
     exportcsv.h \
+    importprofile.h \
     mainwindow.h \
     newprofile.h \
     preferencesdialog.h \
@@ -578,6 +580,7 @@ FORMS += \
     newprofile.ui \
     exportcsv.ui \
 #    UpdaterWindow.ui \
+    importprofile.ui \
     oximeterimport.ui \
     profileselector.ui \
     aboutdialog.ui \

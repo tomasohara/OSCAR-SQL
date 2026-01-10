@@ -2402,8 +2402,9 @@ p, li { white-space: pre-wrap; }
      <addaction name="actionExport_CSV"/>
      <addaction name="separator"/>
      <addaction name="actionExport_Review"/>
-    </widget>
+   </widget>
     <addaction name="action_Import_Data"/>
+    <addaction name="action_Import_OSCAR_Data"/>
     <addaction name="action_Preferences"/>
     <addaction name="action_Edit_Profile"/>
     <addaction name="separator"/>
@@ -2541,6 +2542,14 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="shortcut">
     <string notr="true">Shift+F2</string>
+   </property>
+  </action>
+  <action name="action_Import_OSCAR_Data">
+   <property name="text">
+    <string>Import from OSCAR...</string>
+   </property>
+   <property name="toolTip">
+    <string>Import profile from file-based OSCAR</string>
    </property>
   </action>
   <action name="action_Preferences">

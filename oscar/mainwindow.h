@@ -201,6 +201,11 @@ class MainWindow : public QMainWindow
         */
     void on_action_Import_Data_triggered();
 
+    /*! \fn void on_action_Import_OSCAR_Data_triggered();
+        \brief Opens the Import Profile dialog for importing from file-based OSCAR
+        */
+    void on_action_Import_OSCAR_Data_triggered();
+
     //! \brief Toggle Fullscreen (currently F11)
     void on_action_Fullscreen_triggered();
 
