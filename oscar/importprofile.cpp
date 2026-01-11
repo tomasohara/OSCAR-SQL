@@ -86,9 +86,21 @@ void ImportProfile::on_sourcePathButton_clicked()
     
     if (path.isEmpty()) return;
     
+    // Show message box during validation and size calculation
+    QString folderName = QFileInfo(path).fileName();
+    QMessageBox* examiningBox = new QMessageBox(this);
+    examiningBox->setWindowTitle(tr("Examining Profile"));
+    examiningBox->setText(tr("Examining %1...\n\nPlease wait...").arg(folderName));
+    examiningBox->setStandardButtons(QMessageBox::NoButton);
+    examiningBox->setModal(true);
+    examiningBox->show();
+    QApplication::processEvents();  // Update UI immediately
+    
     // Validate that this looks like a profile folder
     QDir dir(path);
     if (!dir.exists("machines.xml")) {
+        examiningBox->close();
+        delete examiningBox;
         QMessageBox::warning(this, tr("Invalid Profile"),
             tr("The selected folder does not appear to be a valid OSCAR profile.\n"
                "Please select a folder that contains machines.xml"));
@@ -97,6 +109,10 @@ void ImportProfile::on_sourcePathButton_clicked()
     
     // Check profile size and warn if > 2GB
     qint64 sizeBytes = calculateProfileSize(path);
+    
+    // Close the examining message box
+    examiningBox->close();
+    delete examiningBox;
     double sizeGB = sizeBytes / 1073741824.0;
     if (sizeGB > 2.0) {  // 2GB
         int ret = QMessageBox::warning(this, tr("Large Profile"),
@@ -111,8 +127,7 @@ void ImportProfile::on_sourcePathButton_clicked()
     
     m_selectedPath = path;
     
-    // Extract profile name from folder name
-    QString folderName = QFileInfo(path).fileName();
+    // Update UI with selected profile
     ui->profileName->setText(folderName);
     
     ui->sourcePathLabel->setText(tr("Source: %1").arg(path));
