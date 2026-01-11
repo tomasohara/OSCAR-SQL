@@ -325,7 +325,7 @@ void optionExit(int exitCode, QString error) {
 
 int main(int argc, char *argv[]) {
     QString homeDocs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)+"/";
-    QCoreApplication::setApplicationName(getAppName());
+    QCoreApplication::setApplicationName(getAppName() + " 2.0"); // add major version so that QSettings separates this from prior version.
     QCoreApplication::setOrganizationName(getDeveloperName());
     QCoreApplication::setOrganizationDomain(getDeveloperDomain());
 

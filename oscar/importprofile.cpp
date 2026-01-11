@@ -36,14 +36,14 @@ ImportProfile::~ImportProfile()
 
 void ImportProfile::loadSettings()
 {
-    QSettings settings("OSCAR", "OSCAR");
+    QSettings settings;
     m_lastImportPath = settings.value("ImportProfile/LastPath", "").toString();
 }
 
 void ImportProfile::saveSettings()
 {
     if (!m_selectedPath.isEmpty()) {
-        QSettings settings("OSCAR", "OSCAR");
+        QSettings settings;
         // Save the parent directory of the selected profile folder
         QFileInfo fi(m_selectedPath);
         settings.setValue("ImportProfile/LastPath", fi.absolutePath());
@@ -95,14 +95,14 @@ void ImportProfile::on_sourcePathButton_clicked()
         return;
     }
     
-    // Check profile size and warn if > 4GB
+    // Check profile size and warn if > 2GB
     qint64 sizeBytes = calculateProfileSize(path);
-    if (sizeBytes > 4294967296LL) {  // 4GB
-        double sizeGB = sizeBytes / 1073741824.0;
+    double sizeGB = sizeBytes / 1073741824.0;
+    if (sizeGB > 2.0) {  // 2GB
         int ret = QMessageBox::warning(this, tr("Large Profile"),
-            tr("This profile is %.1f GB in size.\n"
+            tr("This profile is %1 GB in size.\n"
                "Import may take a significant amount of time.\n\n"
-               "Do you want to continue?").arg(sizeGB),
+               "Do you want to continue?").arg(QString::number(sizeGB, 'f', 1)),
             QMessageBox::Yes | QMessageBox::No);
         if (ret != QMessageBox::Yes) {
             return;
