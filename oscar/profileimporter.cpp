@@ -275,7 +275,13 @@ bool ProfileImporter::copyJournalFolders(const QString& oldPath,
     
     for (const QString& entry : entries) {
         if (entry.startsWith("Journal_")) {
-            QDir().mkpath(newPath + "/" + entry);
+            // Create empty journal folder structure (files will be read from source and migrated to database)
+            QString newJournalPath = newPath + "/" + entry;
+            QDir().mkpath(newJournalPath);
+            
+            // Create Summaries subdirectory (empty - journal data goes to database)
+            QString newSummariesPath = newJournalPath + "/Summaries";
+            QDir().mkpath(newSummariesPath);
         }
     }
     
@@ -284,8 +290,6 @@ bool ProfileImporter::copyJournalFolders(const QString& oldPath,
 
 bool ProfileImporter::migrateMetadata(Profile* profile, const QString& oldPath)
 {
-    Q_UNUSED(oldPath);
-    
     // machines.xml was already copied to profile folder before Profile creation
     // Now use MigrationManager to migrate it to the database
     MigrationManager migrator;
@@ -306,11 +310,131 @@ bool ProfileImporter::migrateMetadata(Profile* profile, const QString& oldPath)
         return false;
     }
     
-    // Migrate journal if needed
-    // Note: Journal migration is handled separately and may not be implemented yet
-    // This is a non-critical feature for basic import
+    // Migrate journal data from source directory (read directly, don't copy files)
+    if (!migrateJournalFromSource(profile, oldPath)) {
+        qWarning() << "ProfileImporter::migrateMetadata() - Journal migration failed, but continuing";
+        // Don't fail the import - journal is not critical
+    }
     
     return true;
+}
+
+bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& sourcePath)
+{
+    qDebug() << "ProfileImporter::migrateJournalFromSource() - Starting";
+    
+    // Get journal machine
+    Machine* journalMachine = profile->GetMachine(MT_JOURNAL);
+    if (!journalMachine) {
+        qDebug() << "ProfileImporter::migrateJournalFromSource() - No journal machine";
+        return true;  // Not an error - profile may not have journal
+    }
+    
+    // Verify machine is in database
+    qint64 machineDbId = journalMachine->getDatabaseId();
+    if (machineDbId == 0) {
+        qWarning() << "ProfileImporter::migrateJournalFromSource() - Journal machine not in database";
+        return false;
+    }
+    
+    qDebug() << "ProfileImporter::migrateJournalFromSource() - Journal machine database ID:" << machineDbId;
+    
+    // Find journal folder in source directory
+    QDir sourceDir(sourcePath);
+    QStringList entries = sourceDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    
+    QString journalFolderName;
+    for (const QString& entry : entries) {
+        if (entry.startsWith("Journal_")) {
+            journalFolderName = entry;
+            break;
+        }
+    }
+    
+    if (journalFolderName.isEmpty()) {
+        qDebug() << "ProfileImporter::migrateJournalFromSource() - No journal folder in source";
+        return true;  // Not an error - no journal to migrate
+    }
+    
+    // Read journal .000 files from SOURCE directory
+    QString sourceSummariesPath = sourcePath + "/" + journalFolderName + "/Summaries";
+    QDir dir(sourceSummariesPath);
+    
+    if (!dir.exists()) {
+        qDebug() << "ProfileImporter::migrateJournalFromSource() - No summaries directory in source";
+        return true;  // Not an error
+    }
+    
+    QStringList filters;
+    filters << "*.000";
+    dir.setNameFilters(filters);
+    QStringList files = dir.entryList(QDir::Files);
+    
+    if (files.isEmpty()) {
+        qDebug() << "ProfileImporter::migrateJournalFromSource() - No .000 files found in source";
+        return true;  // Not an error
+    }
+    
+    qDebug() << "ProfileImporter::migrateJournalFromSource() - Found" << files.size() << ".000 files to migrate";
+    
+    // Migrate each file
+    int migratedCount = 0;
+    int errorCount = 0;
+    
+    for (const QString& filename : files) {
+        // Parse date from filename
+        QString baseName = filename.section(".", 0, -2);  // Remove .000 extension
+        bool ok;
+        SessionID sessionId = baseName.toLongLong(&ok, 16);
+        
+        if (!ok) {
+            qWarning() << "ProfileImporter::migrateJournalFromSource() - Invalid filename format:" << filename;
+            errorCount++;
+            continue;
+        }
+        
+        QDateTime dateTime = QDateTime::fromSecsSinceEpoch(sessionId);
+        QDate date = dateTime.date();
+        if (!date.isValid()) {
+            qWarning() << "ProfileImporter::migrateJournalFromSource() - Invalid date for session:" << sessionId;
+            errorCount++;
+            continue;
+        }
+        
+        // Load the .000 file from SOURCE directory
+        QString fullPath = sourceSummariesPath + "/" + filename;
+        
+        // Create session object
+        Session* sess = new Session(journalMachine, sessionId);
+        
+        // Load the session data from the file (this populates settings, first, last, etc.)
+        if (!sess->LoadSummaryFromFile(fullPath)) {
+            qWarning() << "ProfileImporter::migrateJournalFromSource() - Failed to load file" << fullPath;
+            delete sess;
+            errorCount++;
+            continue;
+        }
+        
+        // IMPORTANT: Store session to database with the machine's database ID
+        // The session must be associated with the correct machine_id for foreign keys to work
+        if (!sess->StoreToDatabase()) {
+            qWarning() << "ProfileImporter::migrateJournalFromSource() - Failed to store to database for" << date.toString();
+            delete sess;
+            errorCount++;
+            continue;
+        }
+        
+        qDebug() << "ProfileImporter::migrateJournalFromSource() - Migrated" << date.toString() << "to database";
+        migratedCount++;
+        
+        delete sess;
+    }
+    
+    qDebug() << "ProfileImporter::migrateJournalFromSource() - Migration complete:"
+             << migratedCount << "sessions migrated,"
+             << errorCount << "errors";
+    
+    return (errorCount == 0);
 }
 
 bool ProfileImporter::loadSessionsFromFiles(Profile* profile, 

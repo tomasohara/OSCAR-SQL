@@ -79,7 +79,7 @@ void ImportProfile::on_sourcePathButton_clicked()
     
     QString path = QFileDialog::getExistingDirectory(
         this,
-        tr("Select Profile Folder from File-Based OSCAR"),
+        tr("Select Profile Folder from OSCAR 1.x"),
         startPath,
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
     );

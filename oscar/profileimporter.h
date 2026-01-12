@@ -92,6 +92,7 @@ private:
     
     // Phase 3: Migrate metadata
     bool migrateMetadata(Profile* profile, const QString& oldPath);
+    bool migrateJournalFromSource(Profile* profile, const QString& sourcePath);
     
     // Phase 4: Calculate summaries
     bool calculateSummaries(Profile* profile);
