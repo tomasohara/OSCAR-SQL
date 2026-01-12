@@ -3538,9 +3538,9 @@ bool Session::LoadSummaryFromFile(const QString& filename)
     quint32 ts32;
     in >> ts32;      // MachineID (dont need this result)
 
-    bool upgrade = false;
+//    bool upgrade = false;
     if ( ts32 != s_machine->id()) {
-        upgrade = true;
+//        upgrade = true;
         qWarning() << "Machine ID does not match in" << filename <<
                    " I will try to load anyway in case you know what your doing.";
     }
