@@ -230,6 +230,9 @@ class Profile : public Preferences
     //! \brief Return if this profile has been opened or not
     bool isOpen() { return m_opened; }
 
+    //! \brief Set the opened state (used by profile importer)
+    void setOpened(bool opened) { m_opened = opened; }
+
     //! \brief QMap of day records (iterates in order).
     QMap<QDate, Day *> daylist;
 

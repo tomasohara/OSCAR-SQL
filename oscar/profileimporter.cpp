@@ -72,13 +72,29 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     // Create profile object - this initializes the database
     Profile* profile = new Profile(newPath, false);
     
-    reportProgress(25, 100, tr("Copying user information..."));
+    // Set username first, before migration
+    profile->user->setUserName(newProfileName);
     
+    reportProgress(25, 100, tr("Migrating profile metadata..."));
+    
+    if (!migrateMetadata(profile, sourcePath)) {
+        rollbackImport(newPath);
+        delete profile;
+        return false;
+    }
+    
+    reportProgress(30, 100, tr("Copying user information..."));
+    
+    // IMPORTANT: Copy user data AFTER migration to prevent MigrationManager from overwriting it
     // Load source profile to copy user data
     Profile* sourceProfile = new Profile(sourcePath, true);
     if (sourceProfile && sourceProfile->isOpen()) {
-        // Copy user info
-        profile->user->setUserName(newProfileName);
+        qDebug() << "ProfileImporter: Source profile opened successfully";
+        qDebug() << "ProfileImporter: Source user firstname:" << sourceProfile->user->firstName();
+        qDebug() << "ProfileImporter: Source user lastname:" << sourceProfile->user->lastName();
+        qDebug() << "ProfileImporter: Source doctor name:" << sourceProfile->doctor->name();
+        
+        // Copy user info (keep the new username we already set)
         profile->user->setDOB(sourceProfile->user->DOB());
         profile->user->setHeight(sourceProfile->user->height());
         profile->user->setFirstName(sourceProfile->user->firstName());
@@ -96,16 +112,17 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
         profile->doctor->setEmail(sourceProfile->doctor->email());
         profile->doctor->setPatientID(sourceProfile->doctor->patientID());
         // Note: Preferences are copied during extended data migration
+        
+        qDebug() << "ProfileImporter: After copy - user firstname:" << profile->user->firstName();
+        qDebug() << "ProfileImporter: After copy - user lastname:" << profile->user->lastName();
+        qDebug() << "ProfileImporter: After copy - doctor name:" << profile->doctor->name();
+        
+        // Note: We'll save user/doctor info in Profile::Save() below
+        // Don't save here because profile might not be in database yet
+    } else {
+        qWarning() << "ProfileImporter: Failed to open source profile or profile not open";
     }
     delete sourceProfile;
-    
-    reportProgress(30, 100, tr("Migrating profile metadata..."));
-    
-    if (!migrateMetadata(profile, sourcePath)) {
-        rollbackImport(newPath);
-        delete profile;
-        return false;
-    }
     
     reportProgress(40, 100, tr("Loading session data from files..."));
     
@@ -129,6 +146,9 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
         // Don't fail for this - summaries can be regenerated
         qWarning() << "Failed to calculate summaries, but import succeeded";
     }
+    
+    // IMPORTANT: Set opened state to true so Profile::Save() doesn't return early
+    profile->setOpened(true);
     
     // Save profile (still needs p_profile set)
     profile->Save();

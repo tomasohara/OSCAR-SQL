@@ -195,7 +195,10 @@ void ProfileSelector::updateProfileList()
             
             row++;
         }
-    } else {
+    }
+
+    /***
+      else {
         qDebug() << "ProfileSelector: Database empty, falling back to Profiles::profiles map";
         
         // Fall back to old method if database is empty
@@ -240,6 +243,7 @@ void ProfileSelector::updateProfileList()
         }
     }
     w+=20;
+***/
 //    ui->profileView->setMinimumWidth(w);
 
     if ( row == 0 ) {

@@ -103,7 +103,37 @@ Profile::Profile(QString path, bool open)
     general = new UserSettings(this);
 
     if (open) {
+        // IMPORTANT: Set username from path BEFORE loading from database
+        // loadExtendedDataFromDatabase() looks up by username, so this must be set first
+        QFileInfo pathInfo(p_path);
+        QString username = pathInfo.dir().dirName();
+        user->setUserName(username);
+
         OpenMachines();
+
+        // IMPORTANT: Handle migration from Profile.xml to database
+        // If Profile.xml exists, this is an old-style profile that needs migration
+        QString profileXmlPath = p_path + "Profile.xml";
+        bool hasProfileXml = QFile::exists(profileXmlPath);
+        
+        if (hasProfileXml) {
+            qDebug() << "Profile::Profile() - Profile.xml exists, XML data loaded - will migrate to database on Save()";
+            // XML data is already loaded by Open() above
+            // We'll save it to database when Save() is called, then delete Profile.xml
+            // Don't call loadExtendedDataFromDatabase() - would overwrite XML data with wrong profile
+        } else {
+            // No Profile.xml, so this is a database-only profile
+            ProfileRepository profileRepo;
+            ProfileData profileData = profileRepo.findByUsername(user->userName());
+            if (profileData.id > 0) {
+                // Profile is in database, load extended data from it
+                qDebug() << "Profile::Profile() - Loading extended data from database for profile ID" << profileData.id;
+                loadExtendedDataFromDatabase();
+            } else {
+                qDebug() << "Profile::Profile() - Profile not in database, using defaults";
+            }
+        }
+
         m_opened=true;
     }
 }
@@ -165,7 +195,22 @@ bool Profile::Save(QString filename)
         }
         
         // Save extended data to database
-        saveExtendedDataToDatabase();
+        if (saveExtendedDataToDatabase()) {
+            // IMPORTANT: Only delete Profile.xml from THIS profile's directory after migration
+            // Never delete from source directories during import - old OSCAR versions still need them
+            // This is safe because:
+            // 1. Import creates new directories WITHOUT Profile.xml (only machines.xml is copied)
+            // 2. Source profiles opened during import are never saved (no Save() call)
+            // 3. This only deletes Profile.xml from in-place migrations of existing profiles
+            QString profileXmlPath = p_path + "Profile.xml";
+            if (QFile::exists(profileXmlPath)) {
+                if (QFile::remove(profileXmlPath)) {
+                    qDebug() << "Profile::Save() - Deleted Profile.xml after migrating to database";
+                } else {
+                    qWarning() << "Profile::Save() - Failed to delete Profile.xml after migration";
+                }
+            }
+        }
         
         return xmlSuccess && machinesSuccess;
     } else return false;
@@ -2954,16 +2999,26 @@ bool Profile::saveExtendedDataToDatabase()
     
     qint64 profileId = profileData.id;
     
+    // Debug: Check what data we're trying to save
+    qDebug() << "Profile::saveExtendedDataToDatabase() - Saving for profile ID" << profileId;
+    qDebug() << "Profile::saveExtendedDataToDatabase() - User firstName:" << user->firstName();
+    qDebug() << "Profile::saveExtendedDataToDatabase() - User lastName:" << user->lastName();
+    qDebug() << "Profile::saveExtendedDataToDatabase() - Doctor name:" << doctor->name();
+    
     // Save user info
     UserInfoRepository userRepo;
     if (!userRepo.saveFromUserInfo(profileId, user)) {
         qWarning() << "Profile::saveExtendedDataToDatabase() - Failed to save user info";
+    } else {
+        qDebug() << "Profile::saveExtendedDataToDatabase() - Successfully saved user info";
     }
     
     // Save doctor info
     DoctorInfoRepository doctorRepo;
     if (!doctorRepo.saveFromDoctorInfo(profileId, doctor)) {
         qWarning() << "Profile::saveExtendedDataToDatabase() - Failed to save doctor info";
+    } else {
+        qDebug() << "Profile::saveExtendedDataToDatabase() - Successfully saved doctor info";
     }
     
     // Save all preferences
@@ -3008,4 +3063,3 @@ bool Profile::loadExtendedDataFromDatabase()
     
     return true;
 }
-            

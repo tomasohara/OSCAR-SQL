@@ -1154,8 +1154,12 @@ void MainWindow::on_action_Import_OSCAR_Data_triggered()
         QMessageBox::information(this, tr("Import Complete"),
             tr("Profile '%1' has been successfully imported.\n\n"
                "You can now select it from the profile selector.").arg(newName));
-               
-        // Refresh profile list
+
+        // IMPORTANT: Rescan profiles to load the new profile into memory
+        // This adds it to Profiles::profiles map so it can be selected
+        Profiles::Scan();
+        
+        // Refresh profile list UI
         if (profileSelector) {
             profileSelector->updateProfileList();
         }
