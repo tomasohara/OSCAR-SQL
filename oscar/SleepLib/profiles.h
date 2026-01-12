@@ -419,6 +419,9 @@ const int STAT_MODE_STANDARD = 0;
 const int STAT_MODE_MONTHLY = 1;
 const int STAT_MODE_RANGE = 2;
 
+//added by Sheila 1/5/2026
+const QString STR_OS_baseSpO2Option = "baseSpO2Option";
+
 class DoctorInfo : public PrefSettings
 {
   public:
@@ -543,6 +546,9 @@ class OxiSettings : public PrefSettings
         initPref(STR_OS_flagPulseAbove, defaultValue_OS_flagPulseAbove);
         initPref(STR_OS_flagPulseBelow, defaultValue_OS_flagPulseBelow);
 
+        //added by Sheila 1/5/2026
+        initPref(STR_OS_baseSpO2Option, 0);
+
     }
 
     const double defaultValue_OS_SPO2DropDuration = 8.0;
@@ -554,6 +560,7 @@ class OxiSettings : public PrefSettings
     const double defaultValue_OS_oxiDesaturationThreshold = 88.0;
     const double defaultValue_OS_flagPulseAbove = 99.0;
     const double defaultValue_OS_flagPulseBelow = 40.0;
+
 
     bool oximetryEnabled() const { return getPref(STR_OS_EnableOximetry).toBool(); }
     QString defaultDevice() const { return getPref(STR_OS_DefaultDevice).toString(); }
@@ -588,6 +595,9 @@ class OxiSettings : public PrefSettings
     void setOxiDesaturationThreshold(double value) { setPref(STR_OS_oxiDesaturationThreshold, value); }
     void setFlagPulseAbove(double value) { setPref(STR_OS_flagPulseAbove, value); }
     void setFlagPulseBelow(double value) { setPref(STR_OS_flagPulseBelow, value); }
+    //added by Sheila
+    int baseSpO2Option() const { return getPref(STR_OS_baseSpO2Option).toInt(); }
+    void setBaseSpO2Option(int val) { setPref(STR_OS_baseSpO2Option, val); }
 };
 
 /*! \class CPAPSettings

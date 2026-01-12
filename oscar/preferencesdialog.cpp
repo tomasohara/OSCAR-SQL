@@ -46,14 +46,14 @@ QHash<schema::ChanType, QString> channeltype;
 
 QString PreferencesDialog::clinicalHelp() {
     QStringList str; str
-    <<tr("Clinical Mode:")
-    <<tr("Reports what is on the data card, all of it including any and all data deselected in the Permissive mode.")
-    <<tr("Basically replicates the reports and data stored on the devices data card.")
-    <<tr("This includes pap devices, oximeters, etc. Compliance reports fall under this mode.")
-    <<tr("Compliance reports always include all data within the chosen Compliance period, even if otherwise deselected.")
-    <<""
-    <<tr("Permissive Mode:")
-    <<tr("Allows user to select which data sets/ sessions to be used for calculations and display.")
+            <<tr("Clinical Mode:")
+           <<tr("Reports what is on the data card, all of it including any and all data deselected in the Permissive mode.")
+          <<tr("Basically replicates the reports and data stored on the devices data card.")
+         <<tr("This includes pap devices, oximeters, etc. Compliance reports fall under this mode.")
+        <<tr("Compliance reports always include all data within the chosen Compliance period, even if otherwise deselected.")
+       <<""
+      <<tr("Permissive Mode:")
+     <<tr("Allows user to select which data sets/ sessions to be used for calculations and display.")
     <<tr("Additional charts and calculations may be available that are not available from the vendor data.")
     <<tr("Enables Custom UserFlags displayed in the statistics Therapy Efficacy section")
     <<tr("Enables Steady Breathing Event Flags and Waveform (see CPAP tab)")
@@ -75,7 +75,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     channeltype[schema::UNKNOWN] = tr("Always Minor");
     bool haveResMed = false;
     QList<Machine *> machines = profile->GetMachines(MT_CPAP);
-//  qDebug() << "Machine list size is" << machines.size();
+    //  qDebug() << "Machine list size is" << machines.size();
     if ( machines.size() > 0 ) {
         for (QList<Machine *>::iterator it = machines.begin(); it != machines.end(); ++it) {
             const QString & mclass=(*it)->loaderName();
@@ -86,8 +86,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
         }
     } else {
         if (QMessageBox::question(this, tr("No CPAP devices detected"),
-                tr("Will you be using a ResMed brand device?"),
-                QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes )
+                                  tr("Will you be using a ResMed brand device?"),
+                                  QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes )
             haveResMed = true;
     }
 
@@ -118,7 +118,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
         if (gfxEgnineIsSupported((GFXEngine) i)) {
             ui->gfxEngineCombo->addItem(GFXEngineNames[i], i);
             if (i==gfxEngine) {
-                 selIdx = j;
+                selIdx = j;
             }
             ++j;
         }
@@ -135,10 +135,10 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
         shortformat.replace("yy", "yyyy");
     }
 
-//    Qt::DayOfWeek dow = firstDayOfWeekFromLocale();
+    //    Qt::DayOfWeek dow = firstDayOfWeekFromLocale();
 
-//    QTextCharFormat format = ui->startedUsingMask->calendarWidget()->weekdayTextFormat(Qt::Saturday);
-//    format.setForeground(QBrush(Qt::black, Qt::SolidPattern));
+    //    QTextCharFormat format = ui->startedUsingMask->calendarWidget()->weekdayTextFormat(Qt::Saturday);
+    //    format.setForeground(QBrush(Qt::black, Qt::SolidPattern));
 
     if (profile == nullptr) {
         qCritical() << "Preferences dialog created without legit profile object";
@@ -206,28 +206,28 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     ui->applicationFontSize->setValue(QApplication::font().pointSize());
     ui->applicationFontBold->setChecked(QApplication::font().weight() == QFont::Bold);
     ui->applicationFontItalic->setChecked(QApplication::font().italic());
-//    ui->applicationFont->setEditable(false);
+    //    ui->applicationFont->setEditable(false);
 
     ui->graphFont->setCurrentFont(*defaultfont);
     //ui->graphFont->setFont(*defaultfont);
     ui->graphFontSize->setValue(defaultfont->pointSize());
     ui->graphFontBold->setChecked(defaultfont->weight() == QFont::Bold);
     ui->graphFontItalic->setChecked(defaultfont->italic());
-//    ui->graphFont->setEditable(false);
+    //    ui->graphFont->setEditable(false);
 
     ui->titleFont->setCurrentFont(*mediumfont);
     //ui->titleFont->setFont(*mediumfont);
     ui->titleFontSize->setValue(mediumfont->pointSize());
     ui->titleFontBold->setChecked(mediumfont->weight() == QFont::Bold);
     ui->titleFontItalic->setChecked(mediumfont->italic());
-//    ui->titleFont->setEditable(false);
+    //    ui->titleFont->setEditable(false);
 
     ui->bigFont->setCurrentFont(*bigfont);
     //ui->bigFont->setFont(*bigfont);
     ui->bigFontSize->setValue(bigfont->pointSize());
     ui->bigFontBold->setChecked(bigfont->weight() == QFont::Bold);
     ui->bigFontItalic->setChecked(bigfont->italic());
-//    ui->bigFont->setEditable(false);
+    //    ui->bigFont->setEditable(false);
 
     ui->lineThicknessSlider->setValue(AppSetting->lineThickness()*2.0);
 
@@ -236,7 +236,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     ui->useAntiAliasing->setChecked(AppSetting->antiAliasing());
     ui->usePixmapCaching->setChecked(AppSetting->usePixmapCaching());
     ui->useSquareWavePlots->setChecked(AppSetting->squareWavePlots());
-//    ui->enableGraphSnapshots->setChecked(AppSetting->graphSnapshots());
+    //    ui->enableGraphSnapshots->setChecked(AppSetting->graphSnapshots());
     ui->graphTooltips->setChecked(AppSetting->graphTooltips());
     ui->allowYAxisScaling->setChecked(AppSetting->allowYAxisScaling());
     ui->includeSerial->setChecked(AppSetting->includeSerial());
@@ -244,7 +244,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     ui->eventFlagSessionBar->setChecked(profile->appearance->eventFlagSessionBar());
     ui->disableDailyGraphTitles->setChecked(AppSetting->disableDailyGraphTitles());
 
-    #if defined(STEADY_BREATHING)
+#if defined(STEADY_BREATHING)
     SteadyBreathingState sbState = AppSetting->steadyBreathing();
     ui->steadyBreathing->setChecked(sbState!=SB_OFF);
     if (profile->cpap->clinicalMode()) {
@@ -255,15 +255,15 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
         ui->steadyBreathing->setTitle(tr("Must enable Permissive Mode (see Clinical Tab)"));
         ui->steadyBreathing->setDisabled(true);
     }
-    #if defined(STEADY_BREATHING_ENHANCED_TESTING)
+#if defined(STEADY_BREATHING_ENHANCED_TESTING)
     // Ui MUST BE MANUALLY ENABLED. was commented out
     ui->steadyBreathingDuration->setValue( AppSetting->steadyBreathingDuration());
     ui->steadyBreathingThreshold->setValue(AppSetting->steadyBreathingThreshold());
     ui->steadyBreathingDuration->show();
     ui->steadyBreathingThreshold->show();
     ui->resetSteadyBreathingDefaults->show();
-    #endif
-    #endif
+#endif
+#endif
 
     ui->complianceHours->setValue(profile->cpap->complianceHours());
     ui->clinicalMode->setChecked(profile->cpap->clinicalMode());
@@ -271,12 +271,12 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     // clinicalMode and permissiveMode are radio buttons and must be set to opposite values. Once clinicalMode is used.
     // Radio Buttons illustrate the operating mode.
     ui->permissiveMode->setChecked(!profile->cpap->clinicalMode());
-    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     HighResolution::checkBox(false,ui->highResolution);
-    #else
+#else
     ui->highResolution->setChecked(true);
     ui->highResolution->setEnabled(false);
-    #endif
+#endif
     ui->alternatingColorsCombo->setCurrentIndex(AppSetting->alternatingColorsCombo());
     ui->autoLaunchImporter->setChecked(AppSetting->autoLaunchImport());
 #ifndef NO_CHECKUPDATES
@@ -312,7 +312,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
 
     ui->skipEmptyDays->setChecked(profile->general->skipEmptyDays());
     ui->showUnknownFlags->setChecked(profile->general->showUnknownFlags());
-//  ui->enableMultithreading->setChecked(AppSetting->multithreading());
+    //  ui->enableMultithreading->setChecked(AppSetting->multithreading());
     ui->enableMultithreading->setVisible(false);
     ui->removeCardNotificationCheckbox->setChecked(AppSetting->removeCardReminder());
     ui->notifyMessageBoxCheckbox->setChecked(AppSetting->notifyMessagBoxOption());
@@ -354,12 +354,12 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
 #endif
 
     ui->overlayFlagsCombo->setCurrentIndex(AppSetting->overlayType());
-    #ifndef REMOVE_FITNESS
+#ifndef REMOVE_FITNESS
     ui->overviewLinecharts->setCurrentIndex(AppSetting->overviewLinechartMode());
-    #else
+#else
     ui->overviewLinecharts->hide();
     ui->overviewLinechartsLabel->hide();
-    #endif
+#endif
 
     ui->ahiGraphWindowSize->setEnabled(false);
     ui->ahiGraphWindowSize->setValue(profile->cpap->AHIWindow());
@@ -415,10 +415,31 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
 
     ui->waveView->sortByColumn(0, Qt::AscendingOrder);
     ui->chanView->sortByColumn(0, Qt::AscendingOrder);
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     ui->highResolution->setChecked(true);
     ui->highResolution->setEnabled(false);
-    #endif
+#endif
+    //added by Sheila 1/5/2026
+
+    if(ui->baseSpO2Option->count()<1)
+    {
+        ui->baseSpO2Option->clear();
+        // First option
+        ui->baseSpO2Option->addItem("Default (Calculated from Hour 1)", -1);
+
+        // Add 99 down to 85
+        for (int i = 99; i >= 85; --i) {
+            ui->baseSpO2Option->addItem(QString::number(i), i);
+        }
+    }
+    int _baseoption_data = profile->oxi->baseSpO2Option();
+    if(_baseoption_data==-1)
+        ui->baseSpO2Option->setCurrentIndex(0);
+    else
+        ui->baseSpO2Option->setCurrentIndex(100-_baseoption_data);
+
+
+
 
 }
 
@@ -901,25 +922,25 @@ bool PreferencesDialog::Save()
     bool clicicalModeChanged = profile->cpap->clinicalMode() != ui->clinicalMode->isChecked() ;
     p_profile->cpap->setClinicalMode(ui->clinicalMode->isChecked());
 
-    #if defined(STEADY_BREATHING)
+#if defined(STEADY_BREATHING)
     // SetSteadyBreathing must be after setting clinical mode
     SteadyBreathingState sbState= ui->steadyBreathing->isChecked() ? SB_ACTIVE : SB_OFF;
     if (profile->cpap->clinicalMode() && sbState==SB_ACTIVE) sbState=SB_INACTIVE;
     bool steadyBreathingGraphDIsplayChanged = (AppSetting->steadyBreathing()==SB_ACTIVE) != (sbState==SB_ACTIVE);
     AppSetting->setSteadyBreathing(sbState);
 
-    #if defined(STEADY_BREATHING_ENHANCED_TESTING)
+#if defined(STEADY_BREATHING_ENHANCED_TESTING)
     AppSetting->setSteadyBreathingDuration(ui->steadyBreathingDuration->value());
     AppSetting->setSteadyBreathingThreshold(ui->steadyBreathingThreshold->value());
-    #endif
-    #endif
+#endif
+#endif
 
-    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if (HighResolution::checkBox(true,ui->highResolution) ) {
         QTimer::singleShot(0, mainwin, SLOT(RestartApplication(true, "-p")));
         return true; // save profile
     }
-    #endif
+#endif
 
     if (ui->alternatingColorsCombo->currentIndex() != AppSetting->alternatingColorsCombo()) {
         AppSetting->setAlternatingColorsCombo(ui->alternatingColorsCombo->currentIndex());
@@ -931,7 +952,7 @@ bool PreferencesDialog::Save()
     AppSetting->setAntiAliasing(ui->useAntiAliasing->isChecked());
     AppSetting->setUsePixmapCaching(ui->usePixmapCaching->isChecked());
     AppSetting->setSquareWavePlots(ui->useSquareWavePlots->isChecked());
-//    AppSetting->setGraphSnapshots(ui->enableGraphSnapshots->isChecked());
+    //    AppSetting->setGraphSnapshots(ui->enableGraphSnapshots->isChecked());
     AppSetting->setLineThickness(float(ui->lineThicknessSlider->value()) / 2.0);
 
     profile->general->setSkipEmptyDays(ui->skipEmptyDays->isChecked());
@@ -979,9 +1000,9 @@ bool PreferencesDialog::Save()
     profile->cpap->setClockDrift(s);
 
     AppSetting->setOverlayType((OverlayDisplayType)ui->overlayFlagsCombo->currentIndex());
-    #ifndef REMOVE_FITNESS
+#ifndef REMOVE_FITNESS
     AppSetting->setOverviewLinechartMode((OverviewLinechartModes)ui->overviewLinecharts->currentIndex());
-    #endif
+#endif
 
     profile->oxi->setSpO2DropPercentage(ui->spo2Drop->value());
     profile->oxi->setSpO2DropDuration(ui->spo2DropDuration->value());
@@ -992,6 +1013,12 @@ bool PreferencesDialog::Save()
     profile->oxi->setOxiDesaturationThreshold(ui->oxiDesaturationThreshold->value());
     profile->oxi->setFlagPulseAbove(ui->flagPulseAbove->value());
     profile->oxi->setFlagPulseBelow(ui->flagPulseBelow->value());
+    //added by Sheila 1/5/2026
+    QString combo_string = ui->baseSpO2Option->currentText();
+    if(combo_string==QString("Default (Calculated from Hour 1)"))
+        profile->oxi->setBaseSpO2Option(-1);
+    else
+        profile->oxi->setBaseSpO2Option(combo_string.toInt());
 
     profile->cpap->setAHIWindow(ui->ahiGraphWindowSize->value());
     profile->cpap->setAHIReset(ui->ahiGraphZeroReset->isChecked());
@@ -1012,9 +1039,9 @@ bool PreferencesDialog::Save()
 
 
     if ((ui->calculateUnintentionalLeaks->isChecked() != profile->cpap->calculateUnintentionalLeaks())
-      || (fabs((ui->maskLeaks4Slider->value()/10.0)-profile->cpap->custom4cmH2OLeaks())>.1)
-      || (fabs((ui->maskLeaks20Slider->value()/10.0)-profile->cpap->custom20cmH2OLeaks())>.1)) {
-           recalc_events = true;
+            || (fabs((ui->maskLeaks4Slider->value()/10.0)-profile->cpap->custom4cmH2OLeaks())>.1)
+            || (fabs((ui->maskLeaks20Slider->value()/10.0)-profile->cpap->custom20cmH2OLeaks())>.1)) {
+        recalc_events = true;
     }
 
     profile->cpap->setCalculateUnintentionalLeaks(ui->calculateUnintentionalLeaks->isChecked());
@@ -1082,12 +1109,12 @@ bool PreferencesDialog::Save()
     profile->resetOxiChannelPref();
 
 #if defined(STEADY_BREATHING)
-        ui->steadyBreathing->setDisabled(profile->cpap->clinicalMode());
-        if (steadyBreathingGraphDIsplayChanged) {
-            mainwin->reloadProfile();
-        }
+    ui->steadyBreathing->setDisabled(profile->cpap->clinicalMode());
+    if (steadyBreathingGraphDIsplayChanged) {
+        mainwin->reloadProfile();
+    }
 #endif
-        // steady Breathing
+    // steady Breathing
     if (clicicalModeChanged) {
 
         // this fails - causing duplicate reload.
@@ -1095,21 +1122,21 @@ bool PreferencesDialog::Save()
         // while this one works.
         mainwin->reloadProfile();
     } else
-    if (recompress_events) {
-        mainwin->recompressEvents();
-    } else if (recalc_events) {
-        // send a signal instead?
-        mainwin->reprocessEvents(needs_restart);
-    } else if (needs_reload) {
-        QTimer::singleShot(0, mainwin, SLOT(reloadProfile()));
-    } else if (needs_restart) {
-        mainwin->RestartApplication(true,"-l");
-    } else {
-        mainwin->getDaily()->LoadDate(mainwin->getDaily()->getDate());
-        // Save early.. just in case..
-        mainwin->getDaily()->graphView()->SaveSettings("Daily");
-        mainwin->getOverview()->graphView()->SaveSettings("Overview");
-    }
+        if (recompress_events) {
+            mainwin->recompressEvents();
+        } else if (recalc_events) {
+            // send a signal instead?
+            mainwin->reprocessEvents(needs_restart);
+        } else if (needs_reload) {
+            QTimer::singleShot(0, mainwin, SLOT(reloadProfile()));
+        } else if (needs_restart) {
+            mainwin->RestartApplication(true,"-l");
+        } else {
+            mainwin->getDaily()->LoadDate(mainwin->getDaily()->getDate());
+            // Save early.. just in case..
+            mainwin->getDaily()->graphView()->SaveSettings("Daily");
+            mainwin->getOverview()->graphView()->SaveSettings("Overview");
+        }
 
     return true;
 }
@@ -1214,7 +1241,7 @@ MySortFilterProxyModel::MySortFilterProxyModel(QObject *parent)
 }
 
 bool MySortFilterProxyModel::filterAcceptsRow(int source_row,
-        const QModelIndex &source_parent) const
+                                              const QModelIndex &source_parent) const
 {
     if (source_parent == qobject_cast<QStandardItemModel *>
             (sourceModel())->invisibleRootItem()->index()) {
@@ -1281,12 +1308,12 @@ void PreferencesDialog::on_createSDBackups_toggled(bool checked)
         }
 
         if (haveS9 && QMessageBox::question(this,
-                tr("This may not be a good idea"),
-                tr("ResMed S9 devices routinely delete certain data from your SD card older than 7 and 30 days (depending on resolution).") +
-                tr(" If you ever need to reimport this data again (whether in OSCAR or ResScan) this data won't come back.") +
-                tr(" If you need to conserve disk space, please remember to carry out manual backups.") +
-                tr(" Are you sure you want to disable these backups?"),
-                QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) {
+                                            tr("This may not be a good idea"),
+                                            tr("ResMed S9 devices routinely delete certain data from your SD card older than 7 and 30 days (depending on resolution).") +
+                                            tr(" If you ever need to reimport this data again (whether in OSCAR or ResScan) this data won't come back.") +
+                                            tr(" If you need to conserve disk space, please remember to carry out manual backups.") +
+                                            tr(" Are you sure you want to disable these backups?"),
+                                            QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) {
             ui->createSDBackups->setChecked(true);
             return;
         }
@@ -1341,34 +1368,34 @@ void PreferencesDialog::on_resetOxiMetryDefaults_clicked()
 
     if (QMessageBox::question(this, STR_MessageBox_Warning, QObject::tr("Are you sure you want to reset all your oximetry settings to defaults?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
 
-            // reset ui with defaul values
-            ui->spo2Drop->setValue(           profile->oxi->defaultValue_OS_SPO2DropPercentage);
-            ui->spo2DropDuration->setValue(   profile->oxi->defaultValue_OS_SPO2DropDuration);
-            ui->pulseChange->setValue(        profile->oxi->defaultValue_OS_PulseChangeBPM);
-            ui->pulseChangeDuration->setValue(profile->oxi->defaultValue_OS_PulseChangeDuration);
+        // reset ui with defaul values
+        ui->spo2Drop->setValue(           profile->oxi->defaultValue_OS_SPO2DropPercentage);
+        ui->spo2DropDuration->setValue(   profile->oxi->defaultValue_OS_SPO2DropDuration);
+        ui->pulseChange->setValue(        profile->oxi->defaultValue_OS_PulseChangeBPM);
+        ui->pulseChangeDuration->setValue(profile->oxi->defaultValue_OS_PulseChangeDuration);
 
-            ui->oxiDiscardThreshold->setValue(profile->oxi->defaultValue_OS_OxiDiscardThreshold);
-            ui->oxiDesaturationThreshold->setValue(  profile->oxi->defaultValue_OS_oxiDesaturationThreshold);
-            ui->flagPulseAbove->setValue(     profile->oxi->defaultValue_OS_flagPulseAbove );
-            ui->flagPulseBelow->setValue(     profile->oxi->defaultValue_OS_flagPulseBelow );
+        ui->oxiDiscardThreshold->setValue(profile->oxi->defaultValue_OS_OxiDiscardThreshold);
+        ui->oxiDesaturationThreshold->setValue(  profile->oxi->defaultValue_OS_oxiDesaturationThreshold);
+        ui->flagPulseAbove->setValue(     profile->oxi->defaultValue_OS_flagPulseAbove );
+        ui->flagPulseBelow->setValue(     profile->oxi->defaultValue_OS_flagPulseBelow );
 
-            if (Save() ) {
-                // comment accept out to return to the preference tab
-                // other wise the preference tab will close and return
-                accept();
-            }
-        } else {
-            // restore values changed
-            ui->spo2Drop->setValue(profile->oxi->spO2DropPercentage());
-            ui->spo2DropDuration->setValue(profile->oxi->spO2DropDuration());
-            ui->pulseChange->setValue(profile->oxi->pulseChangeBPM());
-            ui->pulseChangeDuration->setValue(profile->oxi->pulseChangeDuration());
-
-            ui->oxiDiscardThreshold->setValue(profile->oxi->oxiDiscardThreshold());
-            ui->oxiDesaturationThreshold->setValue(profile->oxi->defaultValue_OS_oxiDesaturationThreshold);
-            ui->flagPulseAbove->setValue( profile->oxi->defaultValue_OS_flagPulseAbove );
-            ui->flagPulseBelow->setValue(  profile->oxi->defaultValue_OS_flagPulseBelow );
+        if (Save() ) {
+            // comment accept out to return to the preference tab
+            // other wise the preference tab will close and return
+            accept();
         }
+    } else {
+        // restore values changed
+        ui->spo2Drop->setValue(profile->oxi->spO2DropPercentage());
+        ui->spo2DropDuration->setValue(profile->oxi->spO2DropDuration());
+        ui->pulseChange->setValue(profile->oxi->pulseChangeBPM());
+        ui->pulseChangeDuration->setValue(profile->oxi->pulseChangeDuration());
+
+        ui->oxiDiscardThreshold->setValue(profile->oxi->oxiDiscardThreshold());
+        ui->oxiDesaturationThreshold->setValue(profile->oxi->defaultValue_OS_oxiDesaturationThreshold);
+        ui->flagPulseAbove->setValue( profile->oxi->defaultValue_OS_flagPulseAbove );
+        ui->flagPulseBelow->setValue(  profile->oxi->defaultValue_OS_flagPulseBelow );
+    }
 
 }
 
@@ -1376,8 +1403,8 @@ void PreferencesDialog::on_createSDBackups_clicked(bool checked)
 {
     if (!checked && p_profile->session->backupCardData()) {
         if (QMessageBox::question(this,
-                STR_MessageBox_Warning, tr("Switching off backups is not a good idea, because OSCAR needs these to rebuild the database if errors are found.\n\n") +
-                tr("Are you really sure you want to do this?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
+                                  STR_MessageBox_Warning, tr("Switching off backups is not a good idea, because OSCAR needs these to rebuild the database if errors are found.\n\n") +
+                                  tr("Are you really sure you want to do this?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
             // do nothing
         } else {
             ui->createSDBackups->setChecked(true);

@@ -48,6 +48,14 @@
       <bool>true</bool>
      </property>
      <widget class="QWidget" name="content">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>922</width>
+        <height>974</height>
+       </rect>
+      </property>
       <layout class="QGridLayout" name="gridLayout_17">
        <item row="0" column="0" rowspan="2" colspan="4">
         <widget class="QWidget" name="widget_2" native="true">
@@ -73,7 +81,7 @@
              </sizepolicy>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>3</number>
             </property>
             <widget class="QWidget" name="importTab">
              <attribute name="title">
@@ -1475,15 +1483,14 @@ as this is the only value available on summary-only days.</string>
                   </layout>
                  </widget>
                 </item>
-                <!-- START STEADY_BREATHING part1 -->
                 <item>
                  <widget class="QGroupBox" name="steadyBreathingOverview">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
-                   <property name="toolTip">
-                    <string>Permissive Mode MUST be enabled.  See Clinical Tab </string>
-                   </property>
+                  <property name="toolTip">
+                   <string>Permissive Mode MUST be enabled.  See Clinical Tab </string>
+                  </property>
                   <property name="title">
                    <string>Steady Breathing event flags and waveform - Experimental</string>
                   </property>
@@ -1503,15 +1510,6 @@ as this is the only value available on summary-only days.</string>
                    <property name="bottomMargin">
                     <number>5</number>
                    </property>
-                   <!--
-                   <item>
-                    <widget class="QLabel" name="label_60">
-                     <property name="text">
-                      <string> Permissive Mode MUST be enabled.  See Clinical Tab</string>
-                     </property>
-                    </widget>
-                   </item>
-                   -->
                    <item>
                     <widget class="QGroupBox" name="steadyBreathing">
                      <property name="styleSheet">
@@ -1545,99 +1543,55 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </st
                         </property>
                        </widget>
                       </item>
-                      <!--   END   STEADY_BREATHING part1 -->
-                      <!--   START STEADY_BREATHING_ENHANCED_TESTING -->
-                      <!--
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_6">
-                        <item>
-                         <widget class="QSpinBox" name="steadyBreathingDuration">
-                          <property name="suffix">
-                           <string> Seconds</string>
-                          </property>
-                          <property name="value">
-                           <number>20</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QDoubleSpinBox" name="steadyBreathingThreshold">
-                          <property name="minimum">
-                           <double>0.500000000000000</double>
-                          </property>
-                          <property name="maximum">
-                           <double>10.000000000000000</double>
-                          </property>
-                          <property name="singleStep">
-                           <double>0.500000000000000</double>
-                          </property>
-                          <property name="value">
-                           <double>1.510000000000000</double>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="resetSteadyBreathingDefaults">
-                          <property name="text">
-                           <string>Reset Defaults</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      -->
-                      <!--   END STEADY_BREATHING_ENHANCED_TESTING -->
-                      <!-- START STEADY_BREATHING part2 -->
                      </layout>
                     </widget>
                    </item>
                   </layout>
                  </widget>
                 </item>
-                <!--  END STEADY_BREATHING part2 -->
                 <item>
                  <widget class="QGroupBox" name="groupBox_EventTab">
                   <property name="title">
-                    <string>Settings for Events Tab</string>
+                   <string>Settings for Events Tab</string>
                   </property>
                   <layout class="QGridLayout" name="gridLayout_EventTab">
                    <item row="0" column="0">
                     <widget class="QLabel" name="eventPostcontextLabel">
-                      <property name="text">
-                        <string>Event postcontext size</string>
-                      </property>
+                     <property name="text">
+                      <string>Event postcontext size</string>
+                     </property>
                     </widget>
                    </item>
                    <item row="0" column="1">
                     <widget class="QDoubleSpinBox" name="eventPostcontext">
                      <property name="toolTip">
-                       <string>Extra context shown after occurrence under Daily view Events tab</string>
+                      <string>Extra context shown after occurrence under Daily view Events tab</string>
                      </property>
                      <property name="suffix">
-                       <string> Seconds</string>
+                      <string> Seconds</string>
                      </property>
                      <property name="decimals">
-                       <number>1</number>
+                      <number>1</number>
                      </property>
                      <property name="maximum">
-                       <double>14400.000000000000000</double>
+                      <double>14400.000000000000000</double>
                      </property>
                      <property name="singleStep">
-                       <double>30.000000000000000</double>
+                      <double>30.000000000000000</double>
                      </property>
                      <property name="value">
-                       <double>0.000000000000000</double>
+                      <double>0.000000000000000</double>
                      </property>
                     </widget>
-                   </item>                  
+                   </item>
                    <item row="1" column="0">
                     <widget class="QCheckBox" name="consolidateEvents">
-                      <property name="toolTip">
-                        <string>Combine events into consolidated node in tree under Daily view Events tab</string>
-                      </property>
-                      <property name="text">
-                        <string>Consolidate event types</string>
-                      </property>
+                     <property name="toolTip">
+                      <string>Combine events into consolidated node in tree under Daily view Events tab</string>
+                     </property>
+                     <property name="text">
+                      <string>Consolidate event types</string>
+                     </property>
                     </widget>
                    </item>
                   </layout>
@@ -1864,6 +1818,71 @@ Disabled Sessions are used for graphing and Statistics.</string>
                  <property name="spacing">
                   <number>5</number>
                  </property>
+                 <item row="0" column="0" colspan="2">
+                  <widget class="QGroupBox" name="experimental_group">
+                   <property name="title">
+                    <string>Experimental Options</string>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout">
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_6">
+                      <item>
+                       <widget class="QLabel" name="label_47">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="text">
+                         <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Baseline SpO&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="horizontalSpacer_4">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item>
+                       <widget class="QComboBox" name="baseSpO2Option">
+                        <property name="toolTip">
+                         <string>By default, OSCAR uses a calculation from the first hour of oximetry data as baseline.
+This setting allows you to override that with a static value.
+This may be useful when the first hour is not typical of the whole dataset.
+It may also be useful to provide easier comparison between days.</string>
+                        </property>
+                        <property name="currentText">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="horizontalSpacer_8">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
                  <item row="2" column="0" colspan="2">
                   <widget class="QGroupBox" name="groupBox_3">
                    <property name="sizePolicy">
@@ -1968,6 +1987,19 @@ Disabled Sessions are used for graphing and Statistics.</string>
                     <string>Flag rapid changes in oximetry stats</string>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_4">
+                    <item row="1" column="2">
+                     <widget class="QDoubleSpinBox" name="spo2DropDuration">
+                      <property name="toolTip">
+                       <string>Minimum duration of drop in oxygen saturation</string>
+                      </property>
+                      <property name="suffix">
+                       <string>s</string>
+                      </property>
+                      <property name="decimals">
+                       <number>0</number>
+                      </property>
+                     </widget>
+                    </item>
                     <item row="1" column="0">
                      <widget class="QLabel" name="label_24">
                       <property name="sizePolicy">
@@ -1981,10 +2013,23 @@ Disabled Sessions are used for graphing and Statistics.</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="1" column="2">
-                     <widget class="QDoubleSpinBox" name="spo2DropDuration">
+                    <item row="3" column="0">
+                     <widget class="QLabel" name="label_25">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Pulse</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="2">
+                     <widget class="QDoubleSpinBox" name="pulseChangeDuration">
                       <property name="toolTip">
-                       <string>Minimum duration of drop in oxygen saturation</string>
+                       <string>Minimum duration of pulse change event.</string>
                       </property>
                       <property name="suffix">
                        <string>s</string>
@@ -2007,32 +2052,6 @@ Disabled Sessions are used for graphing and Statistics.</string>
                       </property>
                       <property name="minimum">
                        <double>1.000000000000000</double>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="3" column="2">
-                     <widget class="QDoubleSpinBox" name="pulseChangeDuration">
-                      <property name="toolTip">
-                       <string>Minimum duration of pulse change event.</string>
-                      </property>
-                      <property name="suffix">
-                       <string>s</string>
-                      </property>
-                      <property name="decimals">
-                       <number>0</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="3" column="0">
-                     <widget class="QLabel" name="label_25">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>Pulse</string>
                       </property>
                      </widget>
                     </item>
@@ -2102,8 +2121,8 @@ Disabled Sessions are used for graphing and Statistics.</string>
                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt; &lt;/p&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Ubuntu'; font-size:11pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans'; font-size:10pt; font-weight:600;&quot;&gt;Syncing Oximetry and CPAP Data&lt;/span&gt;&lt;/p&gt;
 &lt;p align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans'; font-size:10pt;&quot;&gt;CMS50 data imported from SpO2Review (from .spoR files) or the serial import method do &lt;/span&gt;&lt;span style=&quot; font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;&quot;&gt;not&lt;/span&gt;&lt;span style=&quot; font-family:'Sans'; font-size:10pt;&quot;&gt; have the correct timestamp needed to sync.&lt;/span&gt;&lt;/p&gt;
 &lt;p align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans'; font-size:10pt;&quot;&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
