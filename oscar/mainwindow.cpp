@@ -72,6 +72,7 @@
 #include "newprofile.h"
 #include "exportcsv.h"
 #include "importprofile.h"
+#include "profileimporter.h"
 #include "SleepLib/schema.h"
 #include "Graphs/glcommon.h"
 #include "checkupdates.h"
@@ -1135,14 +1136,33 @@ void MainWindow::on_action_Import_OSCAR_Data_triggered()
     QString sourcePath = dialog.selectedProfilePath();
     QString newName = dialog.newProfileName();
     
-    // For now, just show a message that the feature is not yet fully implemented
-    QMessageBox::information(this, tr("Import Profile"),
-        tr("Profile import UI is complete.\n\n"
-           "Selected source: %1\n"
-           "New profile name: %2\n\n"
-           "Note: The actual import functionality (ProfileImporter) "
-           "is not yet implemented. This will be added in the next phase.")
-        .arg(sourcePath).arg(newName));
+    // Create progress dialog
+    ProgressDialog progress(this);
+    progress.setWindowTitle(tr("Importing Profile"));
+    progress.show();
+    
+    // Perform import
+    ProfileImporter importer;
+    connect(&importer, &ProfileImporter::progressChanged,
+            &progress, &ProgressDialog::setProgressValue);
+    
+    bool success = importer.importProfile(sourcePath, newName, &progress);
+    
+    progress.close();
+    
+    if (success) {
+        QMessageBox::information(this, tr("Import Complete"),
+            tr("Profile '%1' has been successfully imported.\n\n"
+               "You can now select it from the profile selector.").arg(newName));
+               
+        // Refresh profile list
+        if (profileSelector) {
+            profileSelector->updateProfileList();
+        }
+    } else {
+        QMessageBox::critical(this, tr("Import Failed"),
+            tr("Failed to import profile:\n%1").arg(importer.lastError()));
+    }
 }
 
 

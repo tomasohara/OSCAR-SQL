@@ -318,6 +318,7 @@ SOURCES += \
     exportcsv.cpp \
     highresolution.cpp \
     importprofile.cpp \
+    profileimporter.cpp \
     logger.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -455,6 +456,7 @@ HEADERS  += \
     cprogressbar.h \
     exportcsv.h \
     importprofile.h \
+    profileimporter.h \
     mainwindow.h \
     newprofile.h \
     preferencesdialog.h \

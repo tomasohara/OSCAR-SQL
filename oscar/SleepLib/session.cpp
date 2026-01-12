@@ -3481,3 +3481,471 @@ bool Session::LoadEventsFromDatabase()
 }
 
 // ===== END NEW DATABASE STORAGE =====
+
+// ===== IMPORT-SPECIFIC FILE LOADERS =====
+// These methods are used during profile import to load data from .000 and .001 files
+// They bypass database checks and load directly from files
+
+bool Session::LoadSummaryFromFile(const QString& filename)
+{
+    qDebug() << "Session::LoadSummaryFromFile() - Loading from" << filename;
+    
+    if (filename.isEmpty()) {
+        qDebug() << "Empty summary filename";
+        return false;
+    }
+
+    QFile file(filename);
+
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Could not open summary file" << filename << "for reading, error code" << file.error() << file.errorString();
+        return false;
+    }
+
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_4_6);
+    in.setByteOrder(QDataStream::LittleEndian);
+
+    quint32 t32;
+    quint16 t16;
+
+    in >> t32;
+
+    if (t32 != magic) {
+        qDebug() << "Wrong magic number in " << filename;
+        file.close();
+        return false;
+    }
+
+    quint16 version;
+    in >> version;      // DB Version
+
+    if (version < 6) {
+        qWarning() << "Old dbversion " << version <<
+                   "summary file.. Sorry, you need to purge and reimport";
+        file.close();
+        return false;
+    }
+
+    in >> t16;      // File Type
+
+    if (t16 != filetype_summary) {
+        qDebug() << "Wrong file type"; //wrong file type
+        file.close();
+        return false;
+    }
+
+    quint32 ts32;
+    in >> ts32;      // MachineID (dont need this result)
+
+    bool upgrade = false;
+    if ( ts32 != s_machine->id()) {
+        upgrade = true;
+        qWarning() << "Machine ID does not match in" << filename <<
+                   " I will try to load anyway in case you know what your doing.";
+    }
+
+    in >> t32;      // Sessionid;
+    s_session = t32;
+
+    in >> s_first;  // Start time
+    in >> s_last;   // Duration
+
+    QHash<ChannelID, EventDataType> cruft;
+
+    if (version < 7) {
+        // This code is deprecated.. just here incase anyone tries anything crazy...
+        QHash<QString, QVariant> v1;
+        in >> v1;
+        settings.clear();
+        ChannelID code;
+
+        for (QHash<QString, QVariant>::iterator i = v1.begin(); i != v1.end(); i++) {
+            code = schema::channel[i.key()].id();
+            settings[code] = i.value();
+        }
+
+        QHash<QString, int> zcnt;
+        in >> zcnt;
+        for (QHash<QString, int>::iterator i = zcnt.begin(); i != zcnt.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_cnt[code] = i.value();
+        }
+
+        QHash<QString, double> zsum;
+        in >> zsum;
+
+        for (QHash<QString, double>::iterator i = zsum.begin(); i != zsum.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_sum[code] = i.value();
+        }
+
+        QHash<QString, EventDataType> ztmp;
+        in >> ztmp; // avg
+
+        for (QHash<QString, EventDataType>::iterator i = ztmp.begin(); i != ztmp.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_avg[code] = i.value();
+        }
+
+        ztmp.clear();
+        in >> ztmp; // wavg
+
+        for (QHash<QString, EventDataType>::iterator i = ztmp.begin(); i != ztmp.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_wavg[code] = i.value();
+        }
+
+        ztmp.clear();
+        in >> ztmp; // 90p
+        ztmp.clear();
+        in >> ztmp; // min
+
+        for (QHash<QString, EventDataType>::iterator i = ztmp.begin(); i != ztmp.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_min[code] = i.value();
+        }
+
+        ztmp.clear();
+        in >> ztmp; // max
+
+        for (QHash<QString, EventDataType>::iterator i = ztmp.begin(); i != ztmp.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_max[code] = i.value();
+        }
+
+        ztmp.clear();
+        in >> ztmp; // cph
+
+        for (QHash<QString, EventDataType>::iterator i = ztmp.begin(); i != ztmp.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_cph[code] = i.value();
+        }
+
+        ztmp.clear();
+        in >> ztmp; // sph
+
+        for (QHash<QString, EventDataType>::iterator i = ztmp.begin(); i != ztmp.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_sph[code] = i.value();
+        }
+
+        QHash<QString, quint64> ztim;
+        in >> ztim; //firstchan
+
+        for (QHash<QString, quint64>::iterator i = ztim.begin(); i != ztim.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_firstchan[code] = i.value();
+        }
+
+        ztim.clear();
+        in >> ztim; // lastchan
+
+        for (QHash<QString, quint64>::iterator i = ztim.begin(); i != ztim.end(); i++) {
+            code = schema::channel[i.key()].id();
+            m_lastchan[code] = i.value();
+        }
+    } else {
+        // version >= 7
+
+        in >> settings;
+        if (version < 13) {
+            QHash<ChannelID, int> cnt2;
+            in >> cnt2;
+
+            QHash<ChannelID, int>::iterator it;
+
+            for (it = cnt2.begin(); it != cnt2.end(); ++it) {
+                m_cnt[it.key()] = it.value();
+            }
+        } else {
+            in >> m_cnt;
+        }
+        in >> m_sum;
+        in >> m_avg;
+        in >> m_wavg;
+
+        if (version < 11) {
+            cruft.clear();
+            in >> cruft; // 90%
+
+            if (version >= 10) {
+                cruft.clear();
+                in >> cruft;// med
+                cruft.clear();
+                in >> cruft; //p95
+            }
+        }
+
+        in >> m_min;
+        in >> m_max;
+
+        // Added 24/10/2013 by MW to support physical graph min/max values
+        if (version >= 12) {
+            in >> m_physmin;
+            in >> m_physmax;
+        }
+
+        in >> m_cph;
+        in >> m_sph;
+        in >> m_firstchan;
+        in >> m_lastchan;
+
+        if (version >= 8) {
+            in >> m_valuesummary;
+            in >> m_timesummary;
+
+            if (version >= 9) {
+                in >> m_gain;
+            }
+        }
+
+        // screwed up with version 14
+        if (version >= 15) {
+            in >> m_availableChannels;
+            in >> m_timeAboveTheshold;
+            in >> m_upperThreshold;
+            in >> m_timeBelowTheshold;
+            in >> m_lowerThreshold;
+        }
+
+        if (version == 13) {
+            QHash<ChannelID, QVariant>::iterator it = settings.find(CPAP_SummaryOnly);
+            if (it != settings.end()) {
+                s_summaryOnly = (*it).toBool();
+            } else s_summaryOnly = false;
+        } else if (version > 13) {
+            in >> s_summaryOnly;
+        }
+        
+        if (version >= 18) {
+            in >> s_noSettings;
+        } else {
+            s_noSettings = (settings.size() == 0);
+        }
+
+        if (version == 16) {
+            QList<SessionSlice> slices;
+            in >> slices;
+            m_slices.clear();
+            for (int i=0;i<slices.size(); ++i) {
+                m_slices.append(slices[i]);
+            }
+        } else if (version >= 17) {
+            in >> m_slices;
+        }
+    }
+
+    file.close();
+
+    s_summary_loaded = true;
+    s_enabled = 1;
+    
+    qDebug() << "Session::LoadSummaryFromFile() - Successfully loaded session" << s_session
+             << "from" << filename;
+    
+    return true;
+}
+
+bool Session::LoadEventsFromFile(const QString& filename)
+{
+    qDebug() << "Session::LoadEventsFromFile() - Loading from" << filename;
+    
+    // Skip event loading for journal machines - they only have settings
+    if (s_machine->type() == MT_JOURNAL) {
+        return true;  // No events to load for journals
+    }
+    
+    quint32 magicnum, machid, sessid;
+    quint16 version, type, crc16, machtype, compmethod;
+    quint8 t8;
+    qint32 datasize;
+
+    if (filename.isEmpty()) {
+        qDebug() << "Session::LoadEventsFromFile() Filename is empty";
+        return false;
+    }
+
+    QFile file(filename);
+
+    if ( ! file.open(QIODevice::ReadOnly)) {
+        qDebug() << "No Event/Waveform data available for" << s_session << "filename" << filename;
+        return false;  // Not an error - many sessions may not have .001 files
+    }
+
+    QByteArray headerbytes = file.read(42);
+
+    QDataStream header(headerbytes);
+    header.setVersion(QDataStream::Qt_4_6);
+    header.setByteOrder(QDataStream::LittleEndian);
+
+    header >> magicnum;         // Magic Number (quint32)
+    header >> version;          // Version (quint16)
+    header >> type;             // File type (quint16)
+    header >> machid;           // Device ID (quint32)
+    header >> sessid;           //(quint32)
+    header >> s_first;          //(qint64)
+    header >> s_last;           //(qint64)
+
+    if (type != filetype_data) {
+        qDebug() << "Wrong File Type in " << filename;
+        file.close();
+        return false;
+    }
+
+    if (magicnum != magic) {
+        qWarning() << "Wrong Magic number in " << filename;
+        file.close();
+        return false;
+    }
+
+    if (version < 6) {  // prior to version 6 is too old to deal with
+        qDebug() << "Old File Version, can't open file";
+        file.close();
+        return false;
+    }
+
+    if (version < 10) {
+        file.seek(32);
+    } else {
+        header >> compmethod;   // Compression Method (quint16)
+        header >> machtype;     // Device Type (quint16)
+        header >> datasize;     // Size of Uncompressed Data (quint32)
+        header >> crc16;        // CRC16 of Uncompressed Data (quint16)
+    }
+
+    QByteArray databytes, temp = file.readAll();
+    file.close();
+
+    if (version >= 10) {
+        if (compmethod > 0) {
+            databytes = qUncompress(temp);
+
+            if (!s_evchecksum_checked) {
+                if (databytes.size() != datasize) {
+                    qDebug() << "File" << filename << "has returned wrong datasize";
+                    return false;
+                }
+
+                quint16 crc = 0;
+                #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+                    crc = qChecksum(databytes.data(), databytes.size());
+                #else
+                    crc = qChecksum(QByteArrayView(databytes));
+                #endif
+
+                if (crc != crc16) {
+                    qDebug() << "CRC Doesn't match in" << filename;
+                    return false;
+                }
+
+                s_evchecksum_checked = true;
+            }
+        } else {
+            databytes = temp;
+        }
+    } else { 
+        databytes = temp; 
+    }
+
+    QDataStream in(databytes);
+    in.setVersion(QDataStream::Qt_4_6);
+    in.setByteOrder(QDataStream::LittleEndian);
+
+    qint16 mcsize;
+    in >> mcsize;   // number of Device Code lists
+
+    ChannelID code;
+    qint64 ts1, ts2;
+    qint32 evcount;
+    EventListType elt;
+    EventDataType rate, gain, offset, mn, mx;
+    qint16 size2;
+    QVector<ChannelID> mcorder;
+    QVector<qint16> sizevec;
+    QString dim;
+
+    for (int i = 0; i < mcsize; i++) {
+        if (version < 8) {
+            QString txt;
+            in >> txt;
+            code = schema::channel[txt].id();
+        } else {
+            in >> code;
+        }
+
+        mcorder.push_back(code);
+        in >> size2;
+        sizevec.push_back(size2);
+
+        for (int j = 0; j < size2; j++) {
+            in >> ts1;
+            in >> ts2;
+            in >> evcount;
+            in >> t8;
+            elt = (EventListType)t8;
+            in >> rate;
+            in >> gain;
+            in >> offset;
+            in >> mn;
+            in >> mx;
+            in >> dim;
+            bool second_field = false;
+
+            if (version >= 7) { // version 7 added this field
+                in >> second_field;
+            }
+
+            EventList *elist = AddEventList(code, elt, gain, offset, mn, mx, rate, second_field);
+            elist->setDimension(dim);
+
+            elist->m_count = evcount;
+            elist->m_first = ts1;
+            elist->m_last = ts2;
+
+            if (second_field) {
+                EventDataType min, max;
+                in >> min;
+                in >> max;
+                elist->setMin2(min);
+                elist->setMax2(max);
+            }
+        }
+    }
+
+    for (int i = 0; i < mcsize; i++) {
+        code = mcorder[i];
+        size2 = sizevec[i];
+
+        for (int j = 0; j < size2; j++) {
+            EventList &evec = *eventlist[code][j];
+            evec.m_data.resize(evec.m_count);
+            EventStoreType *ptr = evec.m_data.data();
+
+            in.readRawData((char *)ptr, evec.m_count << 1);
+
+            if (evec.hasSecondField()) {
+                evec.m_data2.resize(evec.m_count);
+                ptr = evec.m_data2.data();
+
+                in.readRawData((char *)ptr, evec.m_count << 1);
+            }
+
+            if (evec.type() != EVL_Waveform) {
+                evec.m_time.resize(evec.m_count);
+                quint32 *tptr = evec.m_time.data();
+
+                in.readRawData((char *)tptr, evec.m_count << 2);
+            }
+        }
+    }
+
+    s_events_loaded = true;
+    
+    qDebug() << "Session::LoadEventsFromFile() - Successfully loaded events for session" << s_session
+             << "from" << filename;
+    
+    return true;
+}
+
+// ===== END IMPORT-SPECIFIC FILE LOADERS =====

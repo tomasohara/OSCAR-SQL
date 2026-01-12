@@ -115,6 +115,9 @@ class Machine
     bool Load(ProgressDialog *progress);
 
     bool LoadSummary(ProgressDialog *progress);
+    
+    //! \brief Load sessions from database (for imported profiles)
+    bool LoadSessionsFromDatabase(ProgressDialog *progress);
 
     //! \brief Save all Sessions where changed bit is set.
     bool Save();

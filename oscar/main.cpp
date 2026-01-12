@@ -688,7 +688,7 @@ int main(int argc, char *argv[]) {
     if (DatabaseManager::instance().initialize(dbPath)) {
         qDebug() << "Database initialized successfully!";
         qDebug() << "Database file:" << dbPath;
-
+/**** We no longer migrate from the current directory, automatically or not.
         // Migrate ALL profiles at once
         MigrationManager migrator;
         QString profilesPath = GetAppData() + "/Profiles";
@@ -699,6 +699,7 @@ int main(int argc, char *argv[]) {
         } else {
             qDebug() << "No Profiles directory found - normal on first use of OSCAR";
         }
+****/
     }
 
 #ifndef NO_CHECKUPDATES

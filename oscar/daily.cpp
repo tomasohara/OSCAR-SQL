@@ -1850,6 +1850,7 @@ QVariant MyTextBrowser::loadResource(int type, const QUrl &url)
 void Daily::Load(QDate date)
 {
     PERF_TIMER_SCOPE("Daily::Load()");
+
     qDebug() << "Daily::Load called for" << date.toString() << "using" << QApplication::font().toString();
 
     qDebug() << "Setting App font in Daily::Load";
@@ -1871,7 +1872,7 @@ void Daily::Load(QDate date)
         posit = day->machine(MT_POSITION);
     }
     else {
-        qDebug() << "Warning: unable to load day";
+        qDebug() << "Warning: unable to load day" << date.toString(QLocale::system().dateFormat(QLocale::ShortFormat));
     }
 
     PERF_TIMER_START("Daily::Load::Sessions");

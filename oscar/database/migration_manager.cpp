@@ -110,12 +110,21 @@ bool MigrationManager::migrateProfile(const QString& profilePath)
 
     emit progressChanged(0, 100, "Starting migration...");
 
-    // Extract username from path
-    QFileInfo pathInfo(profilePath);
+    // Extract username from path - remove any trailing slashes first
+    QString cleanPath = profilePath;
+    while (cleanPath.endsWith('/') || cleanPath.endsWith('\\')) {
+        cleanPath.chop(1);
+    }
+    
+    QFileInfo pathInfo(cleanPath);
     QString username = pathInfo.fileName();
     
+    qDebug() << "MigrationManager: profilePath=" << profilePath;
+    qDebug() << "MigrationManager: cleanPath=" << cleanPath;
+    qDebug() << "MigrationManager: username=" << username;
+    
     if (username.isEmpty()) {
-        m_lastError = "Could not determine username from path";
+        m_lastError = "Could not determine username from path: " + profilePath;
         qWarning() << "MigrationManager:" << m_lastError;
         emit migrationComplete(false);
         return false;
@@ -192,8 +201,17 @@ bool MigrationManager::migrateProfile(Profile* profile)
         return false;
     }
     
+    // Extract username from profile path
+    QString cleanPath = profile->path();
+    while (cleanPath.endsWith('/') || cleanPath.endsWith('\\')) {
+        cleanPath.chop(1);
+    }
+    QFileInfo pathInfo(cleanPath);
+    QString username = pathInfo.fileName();
+    
+    qDebug() << "MigrationManager: Looking up profile by username:" << username;
+    
     // Get profile ID for extended data migration
-    QString username = profile->user->userName();
     ProfileData profileData = m_profileRepo->findByUsername(username);
     
     if (profileData.id == 0) {

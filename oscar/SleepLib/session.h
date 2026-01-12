@@ -115,6 +115,12 @@ class Session
     //! \brief Loads the events for this session when requested (only the summaries are loaded at startup)
     // debug option is set to false because file errors are normal when there is summary but no details data
     bool OpenEvents(bool debug=false);
+    
+    //! \brief Loads session summary from .000 file for import (bypasses database)
+    bool LoadSummaryFromFile(const QString& filename);
+    
+    //! \brief Loads session events from .001 file for import (bypasses database)
+    bool LoadEventsFromFile(const QString& filename);
 
     //! \brief Put the events away until needed again, freeing memory
     void TrashEvents();

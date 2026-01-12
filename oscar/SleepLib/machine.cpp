@@ -41,6 +41,7 @@
 #include "mainwindow.h"
 #include "../database/machine_repository.h"
 #include "../database/profile_repository.h"
+#include "../database/session_repository.h"
 
 extern MainWindow * mainwin;
 
@@ -708,6 +709,19 @@ bool Machine::Load(ProgressDialog *progress)
     }
 #endif
     progress->setMessage(QObject::tr("Loading %1 data for %2...").arg(info.brand).arg(profile->user->userName()));
+    
+    // IMPORTANT: Try loading from database first (for imported profiles)
+    // If machine has a database ID and sessions exist in DB, load them
+    if (m_database_id > 0 && LoadSessionsFromDatabase(progress)) {
+        qDebug() << "Loaded" << sessionlist.size() << "sessions from database for machine" << info.serial;
+        
+        progress->setMessage("Loading Session Info");
+        qDebug() << "Loading Session Info";
+        QApplication::processEvents();
+        loadSessionInfo();
+        
+        return true;
+    }
 
     if (loader()) {
         mainwin->connect(loader(), SIGNAL(updateMessage(QString)), progress, SLOT(setMessage(QString)));
@@ -1293,6 +1307,56 @@ QList<ChannelID> Machine::availableChannels(quint32 chantype)
         }
     }
     return list;
+}
+
+bool Machine::LoadSessionsFromDatabase(ProgressDialog *progress)
+{
+    if (m_database_id == 0) {
+        qDebug() << "Machine::LoadSessionsFromDatabase(): Machine not in database";
+        return false;
+    }
+
+    SessionRepository repo;
+    QList<SessionData> sessions = repo.findByMachine(m_database_id);
+    
+    if (sessions.isEmpty()) {
+        qDebug() << "Machine::LoadSessionsFromDatabase(): No sessions found in database for machine" << m_database_id;
+        return false;
+    }
+    
+    qDebug() << "Machine::LoadSessionsFromDatabase(): Loading" << sessions.size() << "sessions from database";
+    
+    progress->setProgressMax(sessions.size());
+    progress->setMessage(QObject::tr("Loading %1 sessions from database...").arg(sessions.size()));
+    
+    int loaded = 0;
+    for (const SessionData& data : sessions) {
+        if ((loaded % 20) == 0) {
+            progress->setProgressValue(loaded);
+            QApplication::processEvents();
+        }
+        
+        // Create session object
+        Session* sess = new Session(this, data.sessionId);
+        
+        // Load from database
+        if (sess->LoadFromDatabase()) {
+            // Add to machine (this creates Day objects)
+            if (AddSession(sess, true)) {
+                loaded++;
+            } else {
+                delete sess;
+            }
+        } else {
+            qWarning() << "Failed to load session" << data.sessionId << "from database";
+            delete sess;
+        }
+    }
+    
+    progress->setProgressValue(loaded);
+    qDebug() << "Machine::LoadSessionsFromDatabase(): Loaded" << loaded << "sessions successfully";
+    
+    return loaded > 0;
 }
 
 bool Machine::SaveToDatabase()
