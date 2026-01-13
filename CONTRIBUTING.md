@@ -67,7 +67,7 @@ Setting aside the religious wars that can arise over any development methodology
 
 9. Once the branch has been merged, you can delete your local branch. Assuming you checked the "Delete source branch..." option above (which will only delete the branch on gitlab):
 
-        get checkout master
+        git checkout master
         git pull
         git fetch --prune
         git branch -d my-branch
