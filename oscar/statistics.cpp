@@ -302,7 +302,7 @@ void SummaryInfo::update(QDate earliestDate , QDate latestDate)
             numDaysWithDisabledsessions++;
         };
     }
-    // convect ms to minutes
+    // convert ms to minutes
     maxDurationOfaDisabledsession/=60000 ;
     totalDurationOfDisabledSessions/=60000 ;
     scUpdate.check();
@@ -995,25 +995,27 @@ enum class RDI_MODE {RM_RDI=1,RM_AHI=0};
 
 EventDataType calcAHIorRDI(QDate start, QDate end , RDI_MODE mode)
 {
-    EventDataType val = 0;
+    EventDataType cnt = 0;
+    EventDataType ahi = 0;
 
     for (int i = 0; i < ahiChannels.size(); i++)
     {
-        val += p_profile->calcCount(ahiChannels.at(i), MT_CPAP, start, end);
+        cnt += p_profile->calcCount(ahiChannels.at(i), MT_CPAP, start, end);
     }
     if (mode == RDI_MODE::RM_RDI) {
-        val += p_profile->calcCount(CPAP_RERA, MT_CPAP, start, end);
+        cnt += p_profile->calcCount(CPAP_RERA, MT_CPAP, start, end);
     }
 
     EventDataType hours = p_profile->calcHours(MT_CPAP, start, end);
 
     if (hours > 0) {
-        val /= hours;
+        ahi = cnt / hours;
     } else {
-        val = 0;
+        ahi = 0;
     }
+//    qDebug() << "calcAHIorRDI: count" << cnt << "hours" << hours << "AHI" << ahi << "rounded" <<  QString("%1").arg(ahi, 0, 'f', 2);
 
-    return val;
+    return ahi;
 }
 
 EventDataType calcAHI(QDate start, QDate end) {
@@ -1590,7 +1592,6 @@ QString Statistics::GenerateCPAPUsage()
         QString bgColor = alternatingColor(alternatingColorCounter);
         line += QString("<tr class=datarow bgcolor='%3'><td width='%1%'>%2</td>").arg(headerWidth).arg(name).arg(bgColor);
 
-        PERF_TIMER_START("Statistics::GenerateCPAPUsage::Phase 3");
         for (int j=0; j < np; j++) {
             width = j < np-1 ? dataWidth : 100 - (headerWidth + dataWidth*(np-1));
             line += QString("<td width='%1%'>").arg(width);
@@ -1601,7 +1602,6 @@ QString Statistics::GenerateCPAPUsage()
             }
             line += "</td>";
         }
-        PERF_TIMER_STOP("Statistics::GenerateCPAPUsage::Phase 3");
 //        qDebug() << "line" << line.size();
         html += line;
         html += "</tr>";
@@ -1998,14 +1998,11 @@ QString Statistics::UpdateRecordsBox()
 
 QString StatisticsRow::value(QDate start, QDate end)
 {
-    PERF_TIMER_SCOPE("StatisticsRow::value()");
-
     const int decimals=2;
     QString value;
     float percentile=p_profile->general->prefCalcPercentile()/100.0;    // Pholynyk, 10Mar2016
     EventDataType percent = percentile;                                 // was 0.90F
 
-    PERF_TIMER_START("StatisticsRow::value::Phase 1");
     float  daysUsed=0;
     { // hide days to prevent divide by zero crashes.
         // Use integer values here
@@ -2027,7 +2024,6 @@ QString StatisticsRow::value(QDate start, QDate end)
         if (days==0) return "-";
     }
     // daysUsed is always non-zero ;
-    PERF_TIMER_STOP("StatisticsRow::value::Phase 1");
 
     // Handle special data sources first
     if (calc == SC_AHI_RDI) {
@@ -2066,7 +2062,6 @@ QString StatisticsRow::value(QDate start, QDate end)
     } else if ((calc == SC_COLUMNHEADERS) || (calc == SC_SUBHEADING) || (calc == SC_UNDEFINED))  {
     } else {
         //
-        PERF_TIMER_START("StatisticsRow::value::Phase 2");
         ChannelID code=channel();
 
         EventDataType val = 0;
@@ -2100,15 +2095,11 @@ QString StatisticsRow::value(QDate start, QDate end)
                 break;
             case SC_ABOVE:
                 fmt += "%";
-                PERF_TIMER_START("StatisticsRow::value::Phase 2::SC_ABOVE");
                 val = 100.0 / p_profile->calcHours(type, start, end) * (p_profile->calcAboveThreshold(code, schema::channel[code].upperThreshold(), type, start, end) / 60.0);
-                PERF_TIMER_STOP("StatisticsRow::value::Phase 2::SC_ABOVE");
                 break;
             case SC_BELOW:
                 fmt += "%";
-                PERF_TIMER_START("StatisticsRow::value::Phase 2::SC_BELOW");
                 val = 100.0 / p_profile->calcHours(type, start, end) * (p_profile->calcBelowThreshold(code, schema::channel[code].lowerThreshold(), type, start, end) / 60.0);
-                PERF_TIMER_STOP("StatisticsRow::value::Phase 2::SC_BELOW");
                 break;
             default:
                 break;
@@ -2120,7 +2111,6 @@ QString StatisticsRow::value(QDate start, QDate end)
         } else {
             value = fmt.arg(val, 0, 'f', decimals);
         }
-        PERF_TIMER_STOP("StatisticsRow::value::Phase 2");
     }
     return value;
 }

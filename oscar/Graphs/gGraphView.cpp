@@ -581,7 +581,6 @@ gGraphView::gGraphView(QWidget *parent, gGraphView *shared, QWidget *caller)
     lines_menu = context_menu->addMenu(tr("Dotted Lines"));
     connect(lines_menu, SIGNAL(triggered(QAction*)), this, SLOT(onLinesClicked(QAction*)));
 
-
 #if !defined(Q_OS_MAC)
     context_menu->setStyleSheet("QMenu {\
                               background-color: #f0f0f0; /* sets background of the menu */\

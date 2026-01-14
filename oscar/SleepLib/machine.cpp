@@ -42,6 +42,7 @@
 #include "../database/machine_repository.h"
 #include "../database/profile_repository.h"
 #include "../database/session_repository.h"
+#include "../database/database_manager.h"
 
 extern MainWindow * mainwin;
 
@@ -1253,13 +1254,35 @@ bool Machine::Save()
 
     runTasks();
 
-    // NOW save all sessions to database (machine now has a database ID)
+    // NOW save all sessions to database in a SINGLE TRANSACTION (machine now has a database ID)
     // Check again after SaveToDatabase() call above
     if (m_database_id > 0) {
         qDebug() << "Machine::Save(): Machine database ID is" << m_database_id 
                  << "- saving" << sessionlist.size() << "sessions to database";
+        
+        // Check if we're already in a transaction (e.g., during profile import)
+        // If so, don't create a nested transaction - just save the sessions
+        DatabaseManager& dbMgr = DatabaseManager::instance();
+        bool alreadyInTransaction = dbMgr.inTransaction();
+        bool ownTransaction = false;
+        
+        if (!alreadyInTransaction) {
+            // Begin our own transaction for batch session save
+            SessionRepository sessionRepo;
+            if (!sessionRepo.beginTransaction()) {
+                qWarning() << "Machine::Save(): Failed to begin transaction for batch session save";
+            } else {
+                ownTransaction = true;
+                qDebug() << "Machine::Save(): Started transaction for batch session save";
+            }
+        } else {
+            qDebug() << "Machine::Save(): Already in transaction - skipping nested transaction";
+        }
+        
         int savedCount = 0;
         int skippedCount = 0;
+        
+        // Save all sessions (within existing or new transaction)
         for (s = sessionlist.begin(); s != sessionlist.end(); s++) {
             Session *sess = s.value();
             if (sess->first() != 0) {  // Only save valid sessions
@@ -1267,10 +1290,26 @@ bool Machine::Save()
                     savedCount++;
                 } else {
                     skippedCount++;
+                    // Don't fail the entire batch for one session failure
+                    qWarning() << "Machine::Save(): Failed to save session" << sess->session() << "- continuing";
                 }
+            } else {
+                skippedCount++;
             }
         }
-        qDebug() << "Machine::Save(): Saved" << savedCount << "sessions to database," << skippedCount << "skipped/failed";
+        
+        // Commit our transaction if we started one
+        if (ownTransaction) {
+            SessionRepository sessionRepo;
+            if (sessionRepo.commitTransaction()) {
+                qDebug() << "Machine::Save(): Transaction committed -" << savedCount << "sessions saved to database," << skippedCount << "skipped/failed";
+            } else {
+                qWarning() << "Machine::Save(): Failed to commit transaction - rolling back";
+                sessionRepo.rollbackTransaction();
+            }
+        } else {
+            qDebug() << "Machine::Save(): Saved" << savedCount << "sessions to database," << skippedCount << "skipped/failed (parent transaction will commit)";
+        }
     } else {
         qWarning() << "Machine::Save(): Machine database ID is 0, cannot save" << sessionlist.size() << "sessions to database";
     }

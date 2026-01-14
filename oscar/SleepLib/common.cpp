@@ -35,8 +35,10 @@
 #include <QFontDatabase>
 #include <QStandardPaths>
 #include <QMenuBar>
+#include <QDirIterator>
 
 #include "SleepLib/common.h"
+#include "cprogressbar.h"
 
 #ifdef _MSC_VER
 #include <QtZlib/zlib.h>
@@ -469,8 +471,10 @@ void setApplicationFont () {
 
 bool removeDir(const QString &path)
 {
-    bool result = true;
     QDir dir(path);
+    bool result = dir.removeRecursively();
+    return result;
+/***
 
     if (dir.exists(path)) {
         Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  |
@@ -483,6 +487,67 @@ bool removeDir(const QString &path)
 
             if (!result) {
                 return result;
+            }
+        }
+        result = dir.rmdir(path);
+    }
+    return result;
+***/
+}
+
+int countDirItems(const QString &path)
+{
+    QDirIterator it(path, QDir::AllEntries | QDir::NoDotAndDotDot,
+                    QDirIterator::Subdirectories);
+    int count = 0;
+    while (it.hasNext()) {
+        it.next();
+        count++;
+    }
+    return count;
+
+/***
+    int count = 0;
+    QDir dir(path);
+
+    if (dir.exists(path)) {
+        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  |
+                  QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+            count++; // Count this item
+            if (info.isDir()) {
+                // Recursively count items in subdirectories
+                count += countDirItems(info.absoluteFilePath());
+            }
+        }
+    }
+***/
+}
+
+bool removeDirWithProgress(const QString &path, class CProgressBar *progress, int *itemsProcessed)
+{
+    bool result = true;
+    QDir dir(path);
+
+    if (dir.exists(path)) {
+        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  |
+                  QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+            if (info.isDir()) {
+                // Use removeRecursively() on each subdirectory for faster deletion
+                QDir subDir(info.absoluteFilePath());
+                result = subDir.removeRecursively();
+            } else {
+                // File
+                result = QFile::remove(info.absoluteFilePath());
+            }
+
+            if (!result) {
+                return result;
+            }
+
+            // Update progress if progress bar provided
+            if (progress && itemsProcessed) {
+                (*itemsProcessed)++;
+                progress->add(1);
             }
         }
         result = dir.rmdir(path);

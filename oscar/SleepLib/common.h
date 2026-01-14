@@ -100,6 +100,12 @@ QString formatRelief (QString relief);
 //! \brief Mercilessly trash a directory
 bool removeDir(const QString &path);
 
+//! \brief Count files and directories in a path (for progress tracking)
+int countDirItems(const QString &path);
+
+//! \brief Mercilessly trash a directory with progress tracking
+bool removeDirWithProgress(const QString &path, class CProgressBar *progress = nullptr, int *itemsProcessed = nullptr);
+
 ///Represents the exception for taking the median of an empty list
 class median_of_empty_list_exception:public std::exception{
   virtual const char* what() const throw() {

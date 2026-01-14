@@ -147,13 +147,9 @@ bool SessionChannelValuesRepository::saveChannelSummaries(qint64 sessionChannelI
         return false;
     }
 
-    // Only start transaction if not already in one
-    bool needTransaction = !dbMgr.inTransaction();
-    if (needTransaction && !dbMgr.transaction()) {
-        qWarning() << "SessionChannelValuesRepository::saveChannelSummaries() - Failed to start transaction";
-        return false;
-    }
-
+    // NOTE: Transaction management removed - caller (Session::StoreToDatabase) is responsible
+    // This method is always called within Machine::Save()'s outer transaction
+    
     // First, delete existing values for this channel
     QSqlQuery deleteQuery(db);
     deleteQuery.prepare("DELETE FROM session_channel_values WHERE session_channel_id = ?");
@@ -161,9 +157,6 @@ bool SessionChannelValuesRepository::saveChannelSummaries(qint64 sessionChannelI
     
     if (!deleteQuery.exec()) {
         qWarning() << "SessionChannelValuesRepository::saveChannelSummaries() - Delete failed:" << deleteQuery.lastError().text();
-        if (needTransaction) {
-            dbMgr.rollback();
-        }
         return false;
     }
 
@@ -188,17 +181,8 @@ bool SessionChannelValuesRepository::saveChannelSummaries(qint64 sessionChannelI
 
         if (!query.exec()) {
             qWarning() << "SessionChannelValuesRepository::saveChannelSummaries() - Insert failed:" << query.lastError().text();
-            if (needTransaction) {
-                dbMgr.rollback();
-            }
             return false;
         }
-    }
-
-    // Only commit if we started the transaction
-    if (needTransaction && !dbMgr.commit()) {
-        qWarning() << "SessionChannelValuesRepository::saveChannelSummaries() - Failed to commit transaction";
-        return false;
     }
 
     return true;

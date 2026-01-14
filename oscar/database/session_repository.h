@@ -136,6 +136,24 @@ public:
      * \return true if exists, false otherwise
      */
     bool exists(qint64 machineId, qint64 sessionId);
+    
+    /*!
+     * \brief Begin a database transaction
+     * \return true if successful, false otherwise
+     */
+    bool beginTransaction();
+    
+    /*!
+     * \brief Commit the current database transaction
+     * \return true if successful, false otherwise
+     */
+    bool commitTransaction();
+    
+    /*!
+     * \brief Rollback the current database transaction
+     * \return true if successful, false otherwise
+     */
+    bool rollbackTransaction();
 };
 
 #endif // SESSION_REPOSITORY_H

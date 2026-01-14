@@ -163,13 +163,9 @@ bool SessionSettingsRepository::saveBatch(qint64 sessionId, const QList<SessionS
         return false;
     }
 
-    // Only start transaction if not already in one
-    bool needTransaction = !dbMgr.inTransaction();
-    if (needTransaction && !dbMgr.transaction()) {
-        qWarning() << "SessionSettingsRepository::saveBatch() - Failed to start transaction";
-        return false;
-    }
-
+    // NOTE: Transaction management removed - caller (Session::StoreToDatabase) is responsible
+    // This method is always called within Machine::Save()'s outer transaction
+    
     QSqlQuery query(db);
     query.prepare(
         "INSERT OR REPLACE INTO session_settings "
@@ -186,17 +182,8 @@ bool SessionSettingsRepository::saveBatch(qint64 sessionId, const QList<SessionS
 
         if (!query.exec()) {
             qWarning() << "SessionSettingsRepository::saveBatch() failed:" << query.lastError().text();
-            if (needTransaction) {
-                dbMgr.rollback();
-            }
             return false;
         }
-    }
-
-    // Only commit if we started the transaction
-    if (needTransaction && !dbMgr.commit()) {
-        qWarning() << "SessionSettingsRepository::saveBatch() - Failed to commit transaction";
-        return false;
     }
 
     return true;

@@ -22,6 +22,7 @@
 //#include "statistics.h"
 #include "mainwindow.h"
 #include "newprofile.h"
+#include "cprogressbar.h"
 //#include "version.h"
 
 // Database includes
@@ -525,13 +526,29 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
         }
 
         if (!path.isEmpty()) {
-            if (!removeDir(path)) {
+            // Count items for progress tracking
+            qDebug() << "Counting items in" << path;
+            int totalItems = countDirItems(path);
+            qDebug() << "Total items to delete:" << totalItems;
+            
+            // Create progress bar that will show only if deletion takes > 2 seconds
+            CProgressBar *progressBar = new CProgressBar(tr("Deleting profile..."), this, totalItems);
+            progressBar->start();
+            
+            int itemsProcessed = 0;
+            bool deleteSuccess = removeDirWithProgress(path, progressBar, &itemsProcessed);
+            
+            progressBar->close();
+            delete progressBar;
+            
+            if (!deleteSuccess) {
                 QMessageBox::information(this, STR_MessageBox_Error,
                                          tr("There was an error deleting the profile directory, you need to manually remove it.")+QString("\n\n%1").arg(path),
                                          QMessageBox::Ok);
+            } else {
+                qDebug() << "Deleted" << itemsProcessed << "items from" << path;
+                QMessageBox::information(this, STR_MessageBox_Information, tr("Profile '%1' was succesfully deleted").arg(name),QMessageBox::Ok);
             }
-            qDebug() << "Delete" << path;
-            QMessageBox::information(this, STR_MessageBox_Information, tr("Profile '%1' was succesfully deleted").arg(name),QMessageBox::Ok);
         }
 
         updateProfileList();

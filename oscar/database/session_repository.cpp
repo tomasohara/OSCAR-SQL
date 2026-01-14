@@ -417,3 +417,51 @@ bool SessionRepository::exists(qint64 machineId, qint64 sessionId)
 
     return false;
 }
+
+bool SessionRepository::beginTransaction()
+{
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "SessionRepository::beginTransaction() - Database not open";
+        return false;
+    }
+
+    if (!db.transaction()) {
+        qWarning() << "SessionRepository::beginTransaction() failed:" << db.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+bool SessionRepository::commitTransaction()
+{
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "SessionRepository::commitTransaction() - Database not open";
+        return false;
+    }
+
+    if (!db.commit()) {
+        qWarning() << "SessionRepository::commitTransaction() failed:" << db.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+bool SessionRepository::rollbackTransaction()
+{
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "SessionRepository::rollbackTransaction() - Database not open";
+        return false;
+    }
+
+    if (!db.rollback()) {
+        qWarning() << "SessionRepository::rollbackTransaction() failed:" << db.lastError().text();
+        return false;
+    }
+
+    return true;
+}

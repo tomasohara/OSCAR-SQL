@@ -224,13 +224,9 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionC
         return false;
     }
 
-    // Only start transaction if not already in one
-    bool needTransaction = !dbMgr.inTransaction();
-    if (needTransaction && !dbMgr.transaction()) {
-        qWarning() << "SessionChannelsRepository::saveBatch() - Failed to start transaction";
-        return false;
-    }
-
+    // NOTE: Transaction management removed - caller (Session::StoreToDatabase) is responsible
+    // This method is always called within Machine::Save()'s outer transaction
+    
     // Prepare statement once for the entire batch - this is the key optimization!
     // The statement is compiled once and reused for all channel inserts
     QSqlQuery query(db);
@@ -241,9 +237,6 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionC
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
         qWarning() << "SessionChannelsRepository::saveBatch() - Failed to prepare statement:" 
                    << query.lastError().text();
-        if (needTransaction) {
-            dbMgr.rollback();
-        }
         return false;
     }
 
@@ -272,17 +265,8 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionC
         if (!query.exec()) {
             qWarning() << "SessionChannelsRepository::saveBatch() failed:" << query.lastError().text();
             qWarning() << "Channel ID:" << data.channelId;
-            if (needTransaction) {
-                dbMgr.rollback();
-            }
             return false;
         }
-    }
-
-    // Only commit if we started the transaction
-    if (needTransaction && !dbMgr.commit()) {
-        qWarning() << "SessionChannelsRepository::saveBatch() - Failed to commit transaction";
-        return false;
     }
 
     return true;

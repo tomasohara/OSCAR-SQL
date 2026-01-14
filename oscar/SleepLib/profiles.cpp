@@ -2913,8 +2913,8 @@ void Profile::calculateDailySummaries()
     int skippedNotCPAP = 0;
     int totalDays = 0;
     
-    qDebug() << "Profile::calculateDailySummaries() - Starting, m_machlist.size() =" << m_machlist.size();
-    qDebug() << "Profile::calculateDailySummaries() - daylist.size() =" << daylist.size();
+//    qDebug() << "Profile::calculateDailySummaries() - Starting, m_machlist.size() =" << m_machlist.size();
+//    qDebug() << "Profile::calculateDailySummaries() - daylist.size() =" << daylist.size();
     
     // Iterate through all machines and their days
     for (Machine* mach : m_machlist) {
@@ -2923,8 +2923,8 @@ void Profile::calculateDailySummaries()
             continue;
         }
         
-        qDebug() << "Profile::calculateDailySummaries() - Machine" << mach->brand() << mach->model() 
-                 << "type" << mach->type() << "day.size() =" << mach->day.size();
+//        qDebug() << "Profile::calculateDailySummaries() - Machine" << mach->brand() << mach->model()
+//                 << "type" << mach->type() << "day.size() =" << mach->day.size();
         
         // Process CPAP and other therapy machines
         if (mach->type() != MT_CPAP && mach->type() != MT_OXIMETER && mach->type() != MT_SLEEPSTAGE && mach->type() != MT_POSITION) {
@@ -2932,8 +2932,8 @@ void Profile::calculateDailySummaries()
             continue;
         }
         
-        qDebug() << "Profile::calculateDailySummaries() - Processing machine" << mach->brand() << mach->model() 
-                 << "type" << mach->type() << "with" << mach->day.size() << "days";
+//        qDebug() << "Profile::calculateDailySummaries() - Processing machine" << mach->brand() << mach->model()
+//                 << "type" << mach->type() << "with" << mach->day.size() << "days";
         
         // Iterate through machine's days
         for (auto it = mach->day.begin(); it != mach->day.end(); ++it) {
@@ -2946,7 +2946,7 @@ void Profile::calculateDailySummaries()
                 continue;
             }
             
-            qDebug() << "Profile::calculateDailySummaries() - Day" << day->date() << "has" << day->sessions.size() << "sessions";
+//            qDebug() << "Profile::calculateDailySummaries() - Day" << day->date() << "has" << day->sessions.size() << "sessions";
             
             if (!day->hasEnabledSessions()) {
                 skippedNoSessions++;
@@ -2954,7 +2954,7 @@ void Profile::calculateDailySummaries()
                 continue;  // Skip days without enabled sessions
             }
             
-            qDebug() << "Profile::calculateDailySummaries() - Calculating for day" << day->date();
+//            qDebug() << "Profile::calculateDailySummaries() - Calculating for day" << day->date();
             
             // Ensure summaries are loaded before calculating
             day->OpenSummary();
@@ -2964,15 +2964,15 @@ void Profile::calculateDailySummaries()
             // rather than creating separate entries per machine
             if (summaryRepo.calculateAndStoreFromDay(day, profileId, 0)) {
                 calculatedCount++;
-                qDebug() << "Profile::calculateDailySummaries() - SUCCESS for day" << day->date();
+//                qDebug() << "Profile::calculateDailySummaries() - SUCCESS for day" << day->date();
             } else {
                 qWarning() << "Profile::calculateDailySummaries() - Failed to store summary for day" << day->date();
             }
         }
     }
     
-    qDebug() << "Profile::calculateDailySummaries() - Summary: calculated" << calculatedCount 
-             << "days, totalDays" << totalDays << "skipped(noDay" << skippedNoDay 
+    qDebug() << "Profile::calculateDailySummaries() - Summary: calculated" << calculatedCount
+             << "days, totalDays" << totalDays << "skipped (noDay" << skippedNoDay
              << ", noSessions" << skippedNoSessions << ", notCPAP" << skippedNotCPAP << ")";
 }
 

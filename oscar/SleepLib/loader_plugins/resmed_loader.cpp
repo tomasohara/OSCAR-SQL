@@ -2522,78 +2522,54 @@ void StoreSummaryStatistics(Session * sess, STRRecord & R)
     }
 
     if (R.leak50 >= 0) {
-//      sess->setp95(CPAP_Leak, R.leak95);
-//      sess->setp50(CPAP_Leak, R.leak50);
+        //      sess->setp95(CPAP_Leak, R.leak95);
+        //      sess->setp50(CPAP_Leak, R.leak50);
         sess->setMax(CPAP_Leak, R.leakmax);
-        // Store the median (50th percentile) as wavg for summary-only sessions
-        // This is used by the statistics report for leak averages
-        if (R.leak50 > 0) {
-            sess->setWavg(CPAP_Leak, R.leak50);
-        }
     }
 
     if (R.rr50 >= 0) {
-//      sess->setp95(CPAP_RespRate, R.rr95);
-//      sess->setp50(CPAP_RespRate, R.rr50);
+        //      sess->setp95(CPAP_RespRate, R.rr95);
+        //      sess->setp50(CPAP_RespRate, R.rr50);
         sess->setMax(CPAP_RespRate, R.rrmax);
-        if (R.rr50 > 0) {
-            sess->setWavg(CPAP_RespRate, R.rr50);
-        }
     }
 
     if (R.mv50 >= 0) {
-//      sess->setp95(CPAP_MinuteVent, R.mv95);
-//      sess->setp50(CPAP_MinuteVent, R.mv50);
+        //      sess->setp95(CPAP_MinuteVent, R.mv95);
+        //      sess->setp50(CPAP_MinuteVent, R.mv50);
         sess->setMax(CPAP_MinuteVent, R.mvmax);
-        if (R.mv50 > 0) {
-            sess->setWavg(CPAP_MinuteVent, R.mv50);
-        }
     }
 
     if (R.tv50 >= 0) {
-//      sess->setp95(CPAP_TidalVolume, R.tv95);
-//      sess->setp50(CPAP_TidalVolume, R.tv50);
+        //      sess->setp95(CPAP_TidalVolume, R.tv95);
+        //      sess->setp50(CPAP_TidalVolume, R.tv50);
         sess->setMax(CPAP_TidalVolume, R.tvmax);
-        if (R.tv50 > 0) {
-            sess->setWavg(CPAP_TidalVolume, R.tv50);
-        }
     }
 
     if (R.mp50 >= 0) {
-//      sess->setp95(CPAP_MaskPressure, R.mp95);
-//      sess->seTTtp50(CPAP_MaskPressure, R.mp50);
+        //      sess->setp95(CPAP_MaskPressure, R.mp95);
+        //      sess->seTTtp50(CPAP_MaskPressure, R.mp50);
         sess->setMax(CPAP_MaskPressure, R.mpmax);
-        if (R.mp50 > 0) {
-            sess->setWavg(CPAP_MaskPressure, R.mp50);
-        }
     }
 
     if (R.oai > 0) {
         sess->setCph(CPAP_Obstructive, R.oai);
-        // Use raw session times for hours calculation to avoid clock drift issues
-        // with summary-only sessions that don't have detailed event data
-        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
-        sess->setCount(CPAP_Obstructive, R.oai * sessionHours);
+        sess->setCount(CPAP_Obstructive, R.oai * sess->hours());
     }
     if (R.hi > 0) {
         sess->setCph(CPAP_Hypopnea, R.hi);
-        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
-        sess->setCount(CPAP_Hypopnea, R.hi * sessionHours);
+        sess->setCount(CPAP_Hypopnea, R.hi * sess->hours());
     }
     if (R.cai > 0) {
         sess->setCph(CPAP_ClearAirway, R.cai);
-        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
-        sess->setCount(CPAP_ClearAirway, R.cai * sessionHours);
+        sess->setCount(CPAP_ClearAirway, R.cai * sess->hours());
     }
     if (R.uai > 0) {
         sess->setCph(CPAP_Apnea, R.uai);
-        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
-        sess->setCount(CPAP_Apnea, R.uai * sessionHours);
+        sess->setCount(CPAP_Apnea, R.uai * sess->hours());
     }
     if (R.csr > 0) {
         sess->setCph(CPAP_CSR, R.csr);
-        EventDataType sessionHours = EventDataType(sess->realLast() - sess->realFirst()) / 3600000.0L;
-        sess->setCount(CPAP_CSR, R.csr * sessionHours);
+        sess->setCount(CPAP_CSR, R.csr * sess->hours());
     }
 }
 

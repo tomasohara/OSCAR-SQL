@@ -163,6 +163,7 @@ void Daily::setSidebarVisible(bool visible)
 Daily::Daily(QWidget *parent,gGraphView * shared)
     :QWidget(parent), ui(new Ui::Daily)
 {
+    PERF_TIMER_SCOPE("Daily::Daily");
     qDebug() << "Creating new Daily object";
     ui->setupUi(this);
 
@@ -228,18 +229,21 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
 
     ui->graphMainArea->setAutoFillBackground(false);
 
+    PERF_TIMER_START("Daily::Daily::Phase 3");
+
+    PERF_TIMER_START("Daily::Daily::Phase 3D");
     GraphView=new gGraphView(ui->graphFrame,shared);
 //    qDebug() << "New GraphView object created in Daily";
 //    sleep(3);
     GraphView->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
 
     GraphView->setEmptyImage(QPixmap(":/icons/logo-md.png"));
+    PERF_TIMER_STOP("Daily::Daily::Phase 3D");
 
     snapGV=new gGraphView(GraphView);
     snapGV->setMinimumSize(172,172);
     snapGV->hideSplitter();
     snapGV->hide();
-
     scrollbar=new MyScrollBar(ui->graphFrame);
     scrollbar->setOrientation(Qt::Vertical);
     scrollbar->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Expanding);
@@ -253,6 +257,8 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     GraphView->setScrollBar(scrollbar);
     layout->addWidget(GraphView,1);
     layout->addWidget(scrollbar,0);
+
+    PERF_TIMER_STOP("Daily::Daily::Phase 3");
 
     int default_height = AppSetting->graphHeight();
 
@@ -271,7 +277,6 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     graphlist[STR_GRAPH_SleepFlags] = SF = new gGraph(STR_GRAPH_SleepFlags, GraphView, STR_TR_EventFlags, STR_TR_EventFlags, default_height);
     sleepFlags = SF;
     SF->setPinned(true);
-
 
     //============================================
     // Create graphs from 'interesting' CPAP codes

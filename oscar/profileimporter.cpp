@@ -13,6 +13,7 @@
 #include "SleepLib/journal.h"
 #include "SleepLib/progressdialog.h"
 #include "database/migration_manager.h"
+#include "database/database_manager.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -47,6 +48,17 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
         return false;
     }
     
+    // ===== BEGIN SINGLE TRANSACTION FOR ENTIRE IMPORT =====
+    // Wrap the entire import process in one transaction for maximum performance
+    // If anything fails, everything rolls back cleanly
+    DatabaseManager& dbMgr = DatabaseManager::instance();
+    if (!dbMgr.transaction()) {
+        m_lastError = tr("Failed to begin database transaction: %1").arg(dbMgr.lastError().text());
+        return false;
+    }
+    
+    qDebug() << "ProfileImporter: Started database transaction for entire import";
+    
     // Create new profile folder
     QString newPath = GetAppData() + "/Profiles/" + newProfileName;
     QDir().mkpath(newPath);
@@ -54,6 +66,8 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     reportProgress(10, 100, tr("Copying profile structure..."));
     
     if (!copyProfileStructure(sourcePath, newPath)) {
+        dbMgr.rollback();
+        qDebug() << "ProfileImporter: Rolled back transaction due to copyProfileStructure failure";
         rollbackImport(newPath);
         return false;
     }
@@ -63,6 +77,8 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     QString destMachinesXml = newPath + "/machines.xml";
     if (!QFile::copy(sourceMachinesXml, destMachinesXml)) {
         m_lastError = tr("Failed to copy machines.xml");
+        dbMgr.rollback();
+        qDebug() << "ProfileImporter: Rolled back transaction due to machines.xml copy failure";
         rollbackImport(newPath);
         return false;
     }
@@ -78,6 +94,8 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     reportProgress(25, 100, tr("Migrating profile metadata..."));
     
     if (!migrateMetadata(profile, sourcePath)) {
+        dbMgr.rollback();
+        qDebug() << "ProfileImporter: Rolled back transaction due to migrateMetadata failure";
         rollbackImport(newPath);
         delete profile;
         return false;
@@ -135,6 +153,8 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     
     if (!sessionsLoaded) {
         p_profile = savedProfile;  // Restore before failing
+        dbMgr.rollback();
+        qDebug() << "ProfileImporter: Rolled back transaction due to loadSessionsFromFiles failure";
         rollbackImport(newPath);
         delete profile;
         return false;
@@ -152,6 +172,21 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     
     // Save profile (still needs p_profile set)
     profile->Save();
+    
+    // ===== COMMIT THE ENTIRE TRANSACTION =====
+    // All database operations succeeded - commit everything at once
+    if (!dbMgr.commit()) {
+        m_lastError = tr("Failed to commit database transaction: %1").arg(dbMgr.lastError().text());
+        qWarning() << "ProfileImporter: Failed to commit transaction - rolling back";
+        dbMgr.rollback();
+        p_profile = savedProfile;
+        rollbackImport(newPath);
+        delete profile;
+        return false;
+    }
+    
+    qDebug() << "ProfileImporter: Successfully committed entire import transaction";
+    qDebug() << "ProfileImporter: Import completed - all data saved to database";
     
     reportProgress(100, 100, tr("Import complete!"));
     
@@ -457,6 +492,10 @@ bool ProfileImporter::loadSessionsFromFiles(Profile* profile,
         }
         machineCount++;
     }
+
+    // Prevent possible divide by zero error if this should-be-impossible condition occurs
+    if (machineCount == 0)
+        return false;
     
     int currentMachine = 0;
     

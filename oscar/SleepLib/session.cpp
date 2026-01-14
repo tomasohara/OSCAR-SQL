@@ -3512,7 +3512,7 @@ bool Session::LoadSummaryFromFile(const QString& filename)
     in >> t32;
 
     if (t32 != magic) {
-        qDebug() << "Wrong magic number in " << filename;
+        qWarning() << "Wrong magic number in " << filename;
         file.close();
         return false;
     }
