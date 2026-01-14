@@ -1279,6 +1279,7 @@ void PRS1Loader::ScanFiles(const QStringList & paths, int sessionid_base)
                     break;
                 default:
                     qWarning() << path << "unexpected file";
+                    delete chunk;
                     break;
                 }
             }
