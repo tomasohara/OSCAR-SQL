@@ -2096,6 +2096,8 @@ QString StatisticsRow::value(QDate start, QDate end)
             case SC_ABOVE:
                 fmt += "%";
                 val = 100.0 / p_profile->calcHours(type, start, end) * (p_profile->calcAboveThreshold(code, schema::channel[code].upperThreshold(), type, start, end) / 60.0);
+//                qDebug() << "channel" << code << "hours" << p_profile->calcHours(type, start, end)
+//                         << "above threshold" << p_profile->calcAboveThreshold(code, schema::channel[code].upperThreshold(), type, start, end);
                 break;
             case SC_BELOW:
                 fmt += "%";

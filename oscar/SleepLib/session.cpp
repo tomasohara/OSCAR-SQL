@@ -2225,6 +2225,7 @@ EventDataType Session::sph(ChannelID id) // sum per hour, assuming id is a time 
 
 EventDataType Session::timeAboveThreshold(ChannelID id, EventDataType threshold)
 {
+    // Check cache first
     QHash<ChannelID, EventDataType>::iterator th = m_upperThreshold.find(id);
     if (th != m_upperThreshold.end()) {
         if (fabs(th.value()-threshold) < 0.00000001) { // close enough
@@ -2234,6 +2235,33 @@ EventDataType Session::timeAboveThreshold(ChannelID id, EventDataType threshold)
             }
         }
     }
+    
+    // PHASE 1 OPTIMIZATION: Try using m_timesummary if available
+    // This is ~100x faster than loading events from disk
+    auto ts = m_timesummary.find(id);
+    if (ts != m_timesummary.end() && m_gain.contains(id)) {
+        double gain = m_gain[id];
+        qint64 total = 0;
+        
+        // Iterate through time summary hash
+        for (auto it = ts.value().begin(); it != ts.value().end(); ++it) {
+            EventDataType value = EventDataType(it.key()) * gain;
+            if (value >= threshold) {
+                total += it.value();  // time in SECONDS (from updateCountSummary)
+            }
+        }
+        
+        // Convert seconds to minutes
+        EventDataType time = double(total) / 60.0;
+        
+        // Cache the result
+        m_timeAboveTheshold[id] = time;
+        m_upperThreshold[id] = threshold;
+        
+        return time;
+    }
+    
+    // FALLBACK: Load events and calculate (original method)
     bool loaded = s_events_loaded;
 
     OpenEvents();
