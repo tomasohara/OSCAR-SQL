@@ -999,13 +999,13 @@ void Profile::LoadMachineData(ProgressDialog *progress)
             mach->Load(progress);
         }
     }
-    progress->setMessage("Loading Channel Information");
+    progress->setMessage(QObject::tr("Loading Channel Information"));
     loadChannels();
     
     // Check if journal data needs to be migrated from .000 files to database
     if (Journal::NeedsMigration(this)) {
         qDebug() << "Profile::LoadMachineData() - Journal data needs migration";
-        progress->setMessage("Migrating Journal Data to Database");
+        progress->setMessage(QObject::tr("Migrating Journal Data to Database"));
         Journal::MigrateToDatabase(this);
     }
     
@@ -1021,7 +1021,7 @@ void Profile::LoadMachineData(ProgressDialog *progress)
         
         if (existingCount == 0) {
             qDebug() << "Profile::LoadMachineData() - No daily summaries found, calculating from existing data...";
-            progress->setMessage("Calculating Daily Summaries");
+            progress->setMessage(QObject::tr("Calculating Daily Summaries"));
             calculateDailySummaries();
         } else {
             qDebug() << "Profile::LoadMachineData() - Found" << existingCount << "existing daily summaries";

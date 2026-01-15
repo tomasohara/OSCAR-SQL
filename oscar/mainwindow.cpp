@@ -2298,7 +2298,7 @@ void MainWindow::doReprocessEvents()
     if (!p_profile) return;
 
     ProgressDialog progress(this);
-    progress.setMessage("Recalculating summaries");
+    progress.setMessage(tr("Recalculating summaries"));
     progress.setProgressMax(p_profile->daylist.size());
     QPixmap icon = QPixmap(":/icons/logo-md.png").scaled(64,64);
     progress.setPixmap(icon);

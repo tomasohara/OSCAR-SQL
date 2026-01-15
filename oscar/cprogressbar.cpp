@@ -30,9 +30,12 @@ CProgressBar::CProgressBar(QString title, QWidget * parent, long maxValue)
     this->parent = parent;
 }
 
-void CProgressBar::start () {
+void CProgressBar::start (long overrideTimerLimit) {
     timeChecked = false;
+    timerLimit = overrideTimerLimit;
     timer.start();
+    if (timerLimit == 0) // if limit is zero, force progress dialog to display (i.e., not be conditional)
+        add(0);
 }
 
 void CProgressBar::setMaximum (long value) {
@@ -66,6 +69,8 @@ void CProgressBar::add (long count) {
         progress->setValue(0);
         progress->setMinimumWidth(width);
         progress->show();
+
+        qDebug() << "CProgressBar numDone =" << numDone << "of" << maxSteps;
 
         QCoreApplication::processEvents();
         showProgress = true;

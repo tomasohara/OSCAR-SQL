@@ -716,7 +716,7 @@ bool Machine::Load(ProgressDialog *progress)
     if (m_database_id > 0 && LoadSessionsFromDatabase(progress)) {
         qDebug() << "Loaded" << sessionlist.size() << "sessions from database for machine" << info.serial;
         
-        progress->setMessage("Loading Session Info");
+        progress->setMessage(QObject::tr("Loading Session Info"));
         qDebug() << "Loading Session Info";
         QApplication::processEvents();
         loadSessionInfo();
@@ -794,7 +794,7 @@ bool Machine::Load(ProgressDialog *progress)
         filelist = dir.entryList();
         size = filelist.size();
 
-        progress->setMessage("Reading summary files");
+        progress->setMessage(QObject::tr("Reading summary files"));
         qDebug() << "Reading summary files (.000)";
         progress->setProgressValue(0);
         QApplication::processEvents();
@@ -831,7 +831,7 @@ bool Machine::Load(ProgressDialog *progress)
         qDebug() << "Loaded" << info.model.toLocal8Bit().data() << "data in" << time.elapsed() << "ms";
         progress->setProgressValue(size);
     }
-    progress->setMessage("Loading Session Info");
+    progress->setMessage(QObject::tr("Loading Session Info"));
     qDebug() << "Loading Session Info";
     QApplication::processEvents();
 

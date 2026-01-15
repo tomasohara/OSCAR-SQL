@@ -15,9 +15,20 @@
 #include <QString>
 #include <QList>
 #include <QSqlDatabase>
+#include <functional>
 
 // Forward declarations to avoid circular dependencies
 class Profile;
+
+/*!
+ * \typedef ProgressCallback
+ * \brief Callback function for progress reporting during long operations
+ *
+ * Parameters:
+ *   - int: Progress percentage (0-100)
+ *   - QString: Status message describing current operation
+ */
+typedef std::function<void(int, const QString&)> ProgressCallback;
 
 /*!
  * \struct ProfileData
@@ -137,6 +148,22 @@ public:
      * all machines associated with this profile.
      */
     bool remove(qint64 id);
+
+    /*!
+     * \brief Delete a profile with progress reporting (Phase 1.5 optimized)
+     * \param id Database primary key of profile to delete
+     * \param progressCallback Function called to report progress (0-100%)
+     * \return true if successful, false otherwise
+     *
+     * This method uses batch deletion for improved performance:
+     * - Deletes sessions in batches of 100 for optimal performance
+     * - Manually handles large child tables (session_channel_values, event_data)
+     * - Reports progress throughout the operation
+     * - Uses Phase 1 optimizations (WAL checkpoint, deferred FK, large cache)
+     *
+     * Expected performance: 50-60% faster than original (15 min → 6-7 min)
+     */
+    bool removeWithProgress(qint64 id, ProgressCallback progressCallback);
 
     /*!
      * \brief Check if a profile with given username exists

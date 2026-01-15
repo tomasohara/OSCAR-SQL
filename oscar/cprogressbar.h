@@ -34,7 +34,7 @@ public:
     void setWidth (int width);
     void setTitle (QString title);
 
-    void start ();
+    void start (long overrideTimeLimit = 2000);
     void close ();
 
 private:

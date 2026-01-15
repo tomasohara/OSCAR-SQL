@@ -291,6 +291,60 @@ QSqlError DatabaseManager::lastError() const
 }
 
 /*
+ * Checkpoint the WAL (Write-Ahead Log) file
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * This method forces SQLite to merge the WAL file back into the main
+ * database and truncate the WAL. This is particularly useful before
+ * and after large delete operations to:
+ * - Start with a smaller WAL (faster processing)
+ * - Immediately reclaim disk space after deletion
+ * - Reduce memory pressure
+ */
+bool DatabaseManager::checkpointWAL()
+{
+    QMutexLocker locker(&m_mutex);
+    
+    if (!m_initialized || !m_database.isOpen()) {
+        qWarning() << "DatabaseManager::checkpointWAL() - Database not initialized";
+        return false;
+    }
+    
+    QSqlQuery query(m_database);
+    
+    qDebug() << "DatabaseManager: Checkpointing WAL...";
+    
+    // PRAGMA wal_checkpoint(TRUNCATE) forces WAL to merge and truncate
+    // This blocks until complete, ensuring all changes are committed
+    if (!query.exec("PRAGMA wal_checkpoint(TRUNCATE)")) {
+        qWarning() << "DatabaseManager: WAL checkpoint failed:" << query.lastError().text();
+        return false;
+    }
+    
+    // Query returns three values: (busy, log_frames, checkpointed_frames)
+    // busy: 0 if successful, 1 if blocked
+    // log_frames: Number of frames in WAL after checkpoint
+    // checkpointed_frames: Number of frames checkpointed
+    if (query.next()) {
+        int busy = query.value(0).toInt();
+        int logFrames = query.value(1).toInt();
+        int checkpointedFrames = query.value(2).toInt();
+        
+        if (busy == 0) {
+            qDebug() << "DatabaseManager: WAL checkpoint complete -" 
+                     << checkpointedFrames << "frames checkpointed,"
+                     << logFrames << "frames remain in WAL";
+        } else {
+            qWarning() << "DatabaseManager: WAL checkpoint blocked by another process";
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/*
  * Configure database connection settings
  *
  * Returns: true if successful, false otherwise

@@ -116,6 +116,18 @@ public:
      */
     QSqlError lastError() const;
 
+    /*!
+     * \brief Checkpoint the WAL (Write-Ahead Log) file
+     * \return true if successful
+     *
+     * Forces SQLite to merge the WAL file back into the main database
+     * and truncate the WAL. This is useful before/after large operations
+     * to improve performance and reclaim disk space.
+     *
+     * Uses PRAGMA wal_checkpoint(TRUNCATE) which blocks until complete.
+     */
+    bool checkpointWAL();
+
 signals:
     /*!
      * \brief Emitted when a database error occurs

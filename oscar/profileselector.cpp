@@ -507,6 +507,7 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
             QMessageBox::information(NULL, tr("Sorry"), tr("You need to enter DELETE in capital letters."), QMessageBox::Ok);
             return;
         }
+        
         qDebug() << "Deleting Profile" << name;
         if (profile == p_profile) {
             // Shut down if active
@@ -514,32 +515,67 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
         }
         Profiles::profiles.remove(name);
 
-        // Delete from database (CASCADE will delete machines, user_info, doctor_info, preferences)
+        // Create progress dialog for database deletion (Phase 1.5)
+        // Using QProgressDialog directly for percentage-based progress
+        QProgressDialog *dbProgress = new QProgressDialog(
+            tr("Preparing database for deletion..."), 
+            QString(), 0, 100, this,
+            Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
+        dbProgress->setWindowModality(Qt::WindowModal);
+        dbProgress->setMinimumWidth(400);
+        dbProgress->setValue(0);
+        dbProgress->show();
+        QCoreApplication::processEvents();
+        
+        // Delete from database with progress reporting (Phase 1.5)
         ProfileRepository profileRepo;
         ProfileData profileData = profileRepo.findByUsername(name);
+        bool dbDeleteSuccess = false;
+        
         if (profileData.id > 0) {
-            if (profileRepo.remove(profileData.id)) {
+            // Use Phase 1.5 optimized deletion with progress callbacks
+            dbDeleteSuccess = profileRepo.removeWithProgress(profileData.id, 
+                [dbProgress](int percent, const QString& message) {
+                    // Update progress dialog with database deletion progress
+                    dbProgress->setValue(percent);
+                    dbProgress->setLabelText(message);
+                    QCoreApplication::processEvents();  // Keep UI responsive
+                }
+            );
+            
+            dbProgress->close();
+            delete dbProgress;
+            
+            if (dbDeleteSuccess) {
                 qDebug() << "Deleted profile from database:" << name << "id:" << profileData.id;
             } else {
                 qWarning() << "Failed to delete profile from database:" << name;
+                QMessageBox::warning(this, STR_MessageBox_Error,
+                                   tr("Failed to delete profile from database. The operation has been rolled back."),
+                                   QMessageBox::Ok);
+                updateProfileList();
+                return;
             }
+        } else {
+            dbProgress->close();
+            delete dbProgress;
         }
 
+        // Now delete files from disk using CProgressBar
         if (!path.isEmpty()) {
-            // Count items for progress tracking
             qDebug() << "Counting items in" << path;
             int totalItems = countDirItems(path);
             qDebug() << "Total items to delete:" << totalItems;
-            
-            // Create progress bar that will show only if deletion takes > 2 seconds
-            CProgressBar *progressBar = new CProgressBar(tr("Deleting profile..."), this, totalItems);
-            progressBar->start();
-            
+
+            // Use CProgressBar for file deletion (incremental progress)
+            CProgressBar *fileProgress = new CProgressBar(tr("Deleting profile files..."), this, totalItems);
+            fileProgress->start(0);  // Show immediately
+
             int itemsProcessed = 0;
-            bool deleteSuccess = removeDirWithProgress(path, progressBar, &itemsProcessed);
+            bool deleteSuccess = removeDirWithProgress(path, fileProgress, &itemsProcessed);
             
-            progressBar->close();
-            delete progressBar;
+            fileProgress->close();
+            delete fileProgress;
             
             if (!deleteSuccess) {
                 QMessageBox::information(this, STR_MessageBox_Error,
@@ -547,8 +583,11 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
                                          QMessageBox::Ok);
             } else {
                 qDebug() << "Deleted" << itemsProcessed << "items from" << path;
-                QMessageBox::information(this, STR_MessageBox_Information, tr("Profile '%1' was succesfully deleted").arg(name),QMessageBox::Ok);
+                QMessageBox::information(this, STR_MessageBox_Information, tr("Profile '%1' was successfully deleted").arg(name),QMessageBox::Ok);
             }
+        } else {
+            // No files to delete
+            QMessageBox::information(this, STR_MessageBox_Information, tr("Profile '%1' was successfully deleted").arg(name),QMessageBox::Ok);
         }
 
         updateProfileList();
