@@ -18,6 +18,7 @@
  */
 
 #include <QCoreApplication>
+#include <QDebug>
 
 #include "cprogressbar.h"
 
