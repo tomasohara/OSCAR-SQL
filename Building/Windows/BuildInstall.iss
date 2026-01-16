@@ -19,31 +19,32 @@ SetupLogging=yes
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 ; Now using separate AppID for Win32 and Win64 and for test builds -- GTS 4/6/2019
+; New set of AppIDs for OSCAR 2.0
 #if MyPlatform == "Win64"
     ArchitecturesAllowed=x64
     ArchitecturesInstallIn64BitMode=x64
     #if MyReleaseStatus == "r" || MyReleaseStatus == "rc"
-      AppId={{FC6F08E6-69BF-4469-ADE3-78199288D305}
-      #define MyGroupName "OSCAR"
-      #define MyDirName "OSCAR"
+      AppId={{4868B5EF-AFEE-45C1-BBE6-3C8AB37E1F7D}
+      #define MyGroupName "OSCAR 2.0"
+      #define MyDirName "OSCAR20"
     #else
-      AppId={{C5E23210-4BC5-499D-A0E4-81192748D322}
-      #define MyGroupName "OSCAR (test)"
-      #define MyDirName "OSCAR-test"
+      AppId={{C76C13F4-8A9A-40AA-9F37-C906C949E04A}
+      #define MyGroupName "OSCAR 2.0 (test)"
+      #define MyDirName "OSCAR20-test"
     #endif
-;    DefaultDirName={%PROGRAMFILES|{pf}}\OSCAR
+;    DefaultDirName={%PROGRAMFILES|{pf}}\OSCAR20
 ; above doesn't work.  Always returns x86 directory
 #else  // 32-bit
     #if MyReleaseStatus == "r" || MyReleaseStatus == "rc"
-      AppId={{4F3EB81B-1866-4124-B388-5FB5DA34FFDD}
-      #define MyGroupName "OSCAR 32-bit"
-      #define MyDirName "OSCAR"
+      AppId={{DC3F4885-3313-4D39-9157-25AC102706D4}
+      #define MyGroupName "OSCAR 2.0 32-bit"
+      #define MyDirName "OSCAR20"
     #else
-      AppId={{B0382AB3-ECB4-4F9D-ABB1-F6EF73D4E3DB}
-      #define MyGroupName "OSCAR 32-bit (test)"
-      #define MyDirName "OSCAR-test"
+      AppId={{80F41783-6A66-4D0A-B1B7-CB19130B7E2E}
+      #define MyGroupName "OSCAR 2.0 32-bit (test)"
+      #define MyDirName "OSCAR20-test"
     #endif
-;    DefaultDirName={%PROGRAMFILES(X86)|{pf}}\OSCAR
+;    DefaultDirName={%PROGRAMFILES(X86)|{pf}}\OSCAR20
 #endif
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}-{#MyPlatform}-{#MyGitRevision}{#MySuffix}
