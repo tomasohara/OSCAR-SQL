@@ -6,7 +6,6 @@
  * This file is subject to the terms and conditions of the GNU General Public
  * License. See the file COPYING in the main directory of the source code
  * for more details. */
- 
 
 #define TEST_MACROS_ENABLEDoff
 #include <test_macros.h>
@@ -420,7 +419,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     ui->highResolution->setChecked(true);
     ui->highResolution->setEnabled(false);
 #endif
-    //added by Sheila 1/5/2026
+    //added by Sheila 1/5/2026 for marks1
 
     if(ui->baseSpO2Option->count()<1)
     {
@@ -434,7 +433,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
         }
     }
     int _baseoption_data = profile->oxi->baseSpO2Option();
-    if(_baseoption_data==-1)
+    qWarning()<<"_baseoption_data"<<_baseoption_data;
+    if(_baseoption_data==-1 || _baseoption_data==0)
         ui->baseSpO2Option->setCurrentIndex(0);
     else
         ui->baseSpO2Option->setCurrentIndex(100-_baseoption_data);
