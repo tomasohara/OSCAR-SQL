@@ -1549,17 +1549,17 @@ int calcSPO2Drop(Session *session)
     EventDataType current;
     qDebug() << "Calculated baseline" << baseline;
     
-    //added by Sheila 1/5/2026 (Sheila for marks1)//////
-    int experiment_baseline = p_profile->oxi->baseSpO2Option();
+    //added by Sheila for marks1 1/5/2026 //////////////
+    int override_baseline_spo2_value = p_profile->oxi->baseSpO2Option();
         
-    qDebug() << "Override Baseline SpO2 Value from Preference (zero if not found - then we use the traditional calculation): " << experiment_baseline;   
+    qDebug() << "Override Baseline SpO2 Value from Preference (zero if preference is not set): " << override_baseline_spo2_value;   
        
     // marks1 1/6/26 Fix Sheila issue, change || to && 
     // Add debug to confirm whether we are using the Default traditional (calculated) SpO2 baseline or overriding it.
-    if (experiment_baseline != -1 && experiment_baseline != 0)      
+    if (override_baseline_spo2_value != -1 && override_baseline_spo2_value != 0)      
     {
-		qDebug() << "Overriding the calculated baseline and instead using the Baseline SpO2 value from the preference: " << experiment_baseline;  
-        baseline = experiment_baseline; //case:85~99
+		qDebug() << "Overriding the calculated baseline and instead using the Baseline SpO2 value from the preference: " << override_baseline_spo2_value;  
+        baseline = override_baseline_spo2_value; //case:85~99
         session->settings[OXI_SPO2Drop] = baseline;
         session->SetChanged(true);
     }
