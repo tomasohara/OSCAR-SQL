@@ -7,7 +7,6 @@
  * License. See the file COPYING in the main directory of the source code
  * for more details. */
 
-
 #define TEST_MACROS_ENABLEDoff
 #include <test_macros.h>
 
@@ -1549,15 +1548,24 @@ int calcSPO2Drop(Session *session)
     //EventDataType baseline=round(tmp/EventDataType(cnt));
     EventDataType current;
     qDebug() << "Calculated baseline" << baseline;
-    //added by Sheila 1/5/2026
+    
+    //added by Sheila 1/5/2026 (Sheila for marks1)//////
     int experiment_baseline = p_profile->oxi->baseSpO2Option();
-    if (experiment_baseline != -1)      //case:Default (Calculated from Hour 1)
+        
+    qDebug() << "Override Baseline SpO2 Value from Preference (zero if not found - then we use the traditional calculation): " << experiment_baseline;   
+       
+    // marks1 1/6/26 Fix Sheila issue, change || to && 
+    // Add debug to confirm whether we are using the Default traditional (calculated) SpO2 baseline or overriding it.
+    if (experiment_baseline != -1 && experiment_baseline != 0)      
     {
+		qDebug() << "Overriding the calculated baseline and instead using the Baseline SpO2 value from the preference: " << experiment_baseline;  
         baseline = experiment_baseline; //case:85~99
         session->settings[OXI_SPO2Drop] = baseline;
         session->SetChanged(true);
     }
-    /////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    
+    
     for (auto & el : it.value()) {
         elcount = el->count();
         for (int i = 0; i < elcount; ++i) {
