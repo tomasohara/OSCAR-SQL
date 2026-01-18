@@ -75,7 +75,6 @@ function getPkg () {
         done <<< $(dpkg -l | grep $1)
 }
 
-
 # generate the script from sources
 gene_script
 
@@ -100,17 +99,24 @@ fi
 GIT_REVISION=`awk '/#define GIT_REVISION / { gsub(/"/, "", $3); print $3 }' ${SRC}/git_info.h`
 echo Version: ${VERSION}
 
-# application name
-appli_name="OSCAR"
-package_name="oscar"
-pre_inst="tst_user.sh"
-
 #Build Directory name change if needed
 if [ -z "$OSCAR_BUILD_DIRECTORY" ] ; then
     OSCAR_BUILD_DIRECTORY="build"
 fi
 echo "Build Directory: "$OSCAR_BUILD_DIRECTORY
 build_folder=${PWD%/*/*/*}/$OSCAR_BUILD_DIRECTORY
+
+# Original application name code
+# appli_name="OSCAR"
+# package_name="oscar"
+
+# Modified application name code
+PROGNAME=$(sed -n 's/^TARGET *= *//p' $SRC/oscar.pro)
+echo "Program Name: "$PROGNAME
+lwrcasePROGNAME=${PROGNAME,,}
+appli_name=$PROGNAME
+package_name=$lwrcasePROGNAME
+pre_inst="tst_user.sh"
 
 if [[ -n ${PRERELEASE}  && -z ${RC} ]] ; then
     appli_name=${appli_name}-test
