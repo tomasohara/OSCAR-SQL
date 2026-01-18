@@ -114,11 +114,14 @@ build_folder=${PWD%/*/*/*}/$OSCAR_BUILD_DIRECTORY
 PROGNAME=$(sed -n 's/^TARGET *= *//p' $SRC/oscar.pro)
 echo "Program Name: "$PROGNAME
 lwrcasePROGNAME=${PROGNAME,,}
+icon_name="OSCAR" 
 appli_name=$PROGNAME
+base_name=$PROGNAME
 package_name=$lwrcasePROGNAME
 pre_inst="tst_user.sh"
 
 if [[ -n ${PRERELEASE}  && -z ${RC} ]] ; then
+icon_name="OSCAR-test" 
     appli_name=${appli_name}-test
     package_name=${package_name}-test
     post_inst="ln_usrbin-result-NN-test.sh"
@@ -214,16 +217,16 @@ mkdir ${temp_folder}/share/icons/hicolor/scalable
 mkdir ${temp_folder}/share/icons/hicolor/scalable/apps
 mkdir ${temp_folder}/share/applications
 
-# must delete debug symbol in OSCAR binary file
-strip -s -o ${temp_folder}/bin/${appli_name} ${build_folder}/oscar/OSCAR
+# must delete debug symbol in OSCAR binary file - This was replaced with 'base_name'
+#strip -s -o ${temp_folder}/bin/${appli_name} ${build_folder}/oscar/${appli_name}
 
 # 2>/dev/null : errors does not appear : we don't care about them
-cp -r ${build_folder}/oscar/Help ${temp_folder}/share/${appli_name} 2>/dev/null
-cp -r ${build_folder}/oscar/Html ${temp_folder}/share/${appli_name} 2>/dev/null
-cp -r ${build_folder}/oscar/Translations ${temp_folder}/share/${appli_name} 2>/dev/null
-cp ./${appli_name}.png ${temp_folder}/share/icons/hicolor/48x48/apps/${appli_name}.png
-cp ./${appli_name}.svg ${temp_folder}/share/icons/hicolor/scalable/apps/${appli_name}.svg
-cp ./${appli_name}.desktop ${temp_folder}/share/applications/${appli_name}.desktop
+cp -r ${build_folder}/oscar/Help ${temp_folder}/share/${base_name} 2>/dev/null
+cp -r ${build_folder}/oscar/Html ${temp_folder}/share/${base_name} 2>/dev/null
+cp -r ${build_folder}/oscar/Translations ${temp_folder}/share/${base_name} 2>/dev/null
+cp ./${icon_name}.png ${temp_folder}/share/icons/hicolor/48x48/apps/${icon_name}.png
+cp ./${icon_name}.svg ${temp_folder}/share/icons/hicolor/scalable/apps/${icon_name}.svg
+cp ./${icon_name}.desktop ${temp_folder}/share/applications/${icon_name}.desktop
 
 #echo "Copyright 2019-2020 oscar-team.org <oscar@oscar-team.org>" > $share_doc_folder/copyright
 #echo "Licensed under /usr/share/common-licenses/GPL-3" >> $share_doc_folder/copyright
@@ -251,7 +254,8 @@ description='Open Source CPAP Analysis Reporter\nProvides graphical and statisti
 # trick for dummies : need to use echo -e to take care of \n (cariage return to slipt description and extra one)
 description=$(echo -e $description)
 
-echo "appli (replaces) : '${package_name}'"
+echo "base_name  : '${base_name}'"
+echo "appli_name (replaces) : '${package_name}'"
 
 # restore umask value
 umask $current_value
