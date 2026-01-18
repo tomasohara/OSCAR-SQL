@@ -219,6 +219,9 @@ mkdir ${temp_folder}/share/applications
 
 # must delete debug symbol in OSCAR binary file - This was replaced with 'base_name'
 #strip -s -o ${temp_folder}/bin/${appli_name} ${build_folder}/oscar/${appli_name}
+# strip must be present : it copies the exe ftom the temp folder to the build folder
+#  without the debug symbol : it is not a simple copy.
+strip -s -o ${temp_folder}/bin/${base_name} ${build_folder}/oscar/${base_name}
 
 # 2>/dev/null : errors does not appear : we don't care about them
 cp -r ${build_folder}/oscar/Help ${temp_folder}/share/${base_name} 2>/dev/null
