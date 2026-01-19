@@ -40,50 +40,6 @@ if [ -f $translate_file ]; then
     fi
 fi
 
-# clean destination folders (bin + shortcut) + move from /opt/OSCAR (if exists)
-
-if [ -d "/opt/${appli_name}" ]; then
-    # --- old folder exists : move files to the new folder ---
-    # Help folder
-    folder_from="/opt/${appli_name}/Help"
-    folder_to="/usr/share/${appli_name}"
-    if [ -d "$folder_from" ]; then
-        mkdir -p $folder_to
-        mv $folder_from $folder_to
-    fi
-    # Html folder
-    folder_from="/opt/${appli_name}/Html"
-    folder_to="/usr/share/${appli_name}"
-    if [ -d "$folder_from" ]; then
-        mkdir -p $folder_to
-        mv $folder_from $folder_to
-    fi
-    # Translations folder
-    folder_from="/opt/${appli_name}/Translations"
-    folder_to="/usr/share/${appli_name}"
-    if [ -d "$folder_from" ]; then
-        mkdir -p $folder_to
-        mv $folder_from $folder_to
-    fi
-    # icon file : OSCAR.png
-    file="/opt/${appli_name}/OSCAR.png"
-    folder_to="/usr/share/icons/${appli_name}"
-    if [ -f "$file" ]; then
-        mkdir -p $folder_to
-        mv $file ${folder_to}/${appli_name}.png
-    fi
-    # shortcut file : OSCAR.desktop
-    file="/opt/${appli_name}/OSCAR.desktop"
-    folder_to="/usr/share/applications/${appli_name}"
-    if [ -f "$file" ]; then
-        mkdir -p $folder_to
-        mv $file ${folder_to}/${appli_name}.desktop
-    fi
-
-    # folder /opt can be deleted
-    rm -R /opt/${appli_name}
-fi
-
 # clean the destination folder
 file="/usr/bin/${appli_name}"
 if [ -f "$file" ]; then
