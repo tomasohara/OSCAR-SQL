@@ -287,6 +287,7 @@ Session* ViatomLoader::ParseFileViatom(const QString & filename, bool *existing)
     switch (sig) {
     case 0x0003:
     case 0x0005:
+    case 0x0006:
         v = std::unique_ptr<ViatomFile>(new ViatomFile(file));
         break;
     case 0x0301:
@@ -537,10 +538,13 @@ bool ViatomFile::ParseHeader()
     int hour  = header[6];
     int min   = header[7];
     int sec   = header[8];
-
+    
     switch (sig) { //Viatom database version number  - Crimson Nape
     case 0x0003:
     case 0x0005:
+        break;
+    case 0x0006:
+        sig = 0x0005;
         break;
     default:
         qDebug() << m_file.fileName() << "Unrecognized DB version number in Viatom data file" << sig;
