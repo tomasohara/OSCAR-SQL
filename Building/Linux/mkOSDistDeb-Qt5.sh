@@ -15,7 +15,7 @@ function gene_script () {
   if [ -f "clean_rm-result-NN-test.sh" ]; then
     rm clean_rm-result-NN-test.sh
   fi
-  cat clean_rm-NN-test1.sh clean_rm-common-NN.sh clean_rm-NN-test2.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
+  cat clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
   chmod +x clean_rm-result-NN-test.sh
 
   # ln_usrbin
