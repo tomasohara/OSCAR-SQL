@@ -121,7 +121,7 @@ package_name=$lwrcasePROGNAME
 pre_inst="tst_user.sh"
 
 if [[ -n ${PRERELEASE}  && -z ${RC} ]] ; then
-icon_name="OSCAR-test" 
+    icon_name="OSCAR-test" 
     appli_name=${appli_name}-test
     package_name=${package_name}-test
     post_inst="ln_usrbin-result-NN-test.sh"
@@ -223,7 +223,7 @@ mkdir ${temp_folder}/share/applications
 #  without the debug symbol : it is not a simple copy.
 
 # Notice : ${appli_name} must be use : it is ${base_name} added with -test suffix if necessary
-strip -s -o ${temp_folder}/bin/${appli_name}} ${build_folder}/oscar/${appli_name}
+strip -s -o ${temp_folder}/bin/${appli_name} ${build_folder}/oscar/${appli_name}
 
 # 2>/dev/null : errors does not appear : we don't care about them
 cp -r ${build_folder}/oscar/Help ${temp_folder}/share/${appli_name} 2>/dev/null
