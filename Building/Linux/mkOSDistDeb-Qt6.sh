@@ -222,9 +222,9 @@ mkdir ${temp_folder}/share/applications
 strip -s -o ${temp_folder}/bin/${appli_name} ${build_folder}/oscar/${base_name}
 
 # 2>/dev/null : errors does not appear : we don't care about them
-cp -r ${build_folder}/oscar/Help ${temp_folder}/share/${base_name} 2>/dev/null
-cp -r ${build_folder}/oscar/Html ${temp_folder}/share/${base_name} 2>/dev/null
-cp -r ${build_folder}/oscar/Translations ${temp_folder}/share/${base_name} 2>/dev/null
+cp -r ${build_folder}/oscar/Help ${temp_folder}/share/${appli_name} 2>/dev/null
+cp -r ${build_folder}/oscar/Html ${temp_folder}/share/${appli_name} 2>/dev/null
+cp -r ${build_folder}/oscar/Translations ${temp_folder}/share/${appli_name} 2>/dev/null
 cp ./${icon_name}.png ${temp_folder}/share/icons/hicolor/48x48/apps/${icon_name}.png
 cp ./${icon_name}.svg ${temp_folder}/share/icons/hicolor/scalable/apps/${icon_name}.svg
 cp ./${icon_name}.desktop ${temp_folder}/share/applications/${icon_name}.desktop
