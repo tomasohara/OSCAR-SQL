@@ -541,7 +541,6 @@ bool ViatomFile::ParseHeader()
     switch (sig) { //Viatom database version number  - Crimson Nape
     case 0x0003:
     case 0x0005:
-    case 0x0006:
         break;
     default:
         qDebug() << m_file.fileName() << "Unrecognized DB version number in Viatom data file" << sig;
@@ -549,7 +548,7 @@ bool ViatomFile::ParseHeader()
         break;
     }
     m_sig = sig;
-    CHECK_VALUES(m_sig, 3, 5, 6);
+    CHECK_VALUES(m_sig, 3, 5);
 
     if ((year < 2015 || year > 2059) || (month < 1 || month > 12) || (day < 1 || day > 31) ||
         (hour > 23) || (min > 59) || (sec > 59)) {
