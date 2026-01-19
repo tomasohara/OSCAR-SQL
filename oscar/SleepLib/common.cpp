@@ -497,6 +497,17 @@ bool removeDir(const QString &path)
 
 int countDirItems(const QString &path)
 {
+    QDirIterator it(path, QDir::AllEntries | QDir::NoDotAndDotDot);
+    int count = 0;
+    while (it.hasNext()) {
+        it.next();
+        count++;
+    }
+    return count;
+}
+
+int countDirTotalItems(const QString &path)
+{
     QDirIterator it(path, QDir::AllEntries | QDir::NoDotAndDotDot,
                     QDirIterator::Subdirectories);
     int count = 0;
@@ -505,28 +516,14 @@ int countDirItems(const QString &path)
         count++;
     }
     return count;
-
-/***
-    int count = 0;
-    QDir dir(path);
-
-    if (dir.exists(path)) {
-        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  |
-                  QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
-            count++; // Count this item
-            if (info.isDir()) {
-                // Recursively count items in subdirectories
-                count += countDirItems(info.absoluteFilePath());
-            }
-        }
-    }
-***/
 }
 
-bool removeDirWithProgress(const QString &path, class CProgressBar *progress, int *itemsProcessed)
+bool removeDirWithProgress(const QString &path, class QProgressDialog *progress, int start, int end)
 {
     bool result = true;
     QDir dir(path);
+    int numItems = countDirItems(path);
+    int itemsProcessed = 0;
 
     if (dir.exists(path)) {
         Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  |
@@ -545,9 +542,10 @@ bool removeDirWithProgress(const QString &path, class CProgressBar *progress, in
             }
 
             // Update progress if progress bar provided
-            if (progress && itemsProcessed) {
-                (*itemsProcessed)++;
-                progress->add(1);
+            if (progress && (numItems > 0)) {
+                itemsProcessed++;
+                int newProgress = start + (itemsProcessed * ((end-start) / numItems));
+                progress->setValue(newProgress);
             }
         }
         result = dir.rmdir(path);

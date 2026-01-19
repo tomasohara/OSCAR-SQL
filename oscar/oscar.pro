@@ -12,7 +12,7 @@ message(Platform is $$QMAKESPEC )
 # crash was used since debug mode is always used to identify the cause of crashes.
 # a better name might be possible.
 # this can be enabled by CONFIG += crash in the qmake make.
-# qmake <buldFolderPath> OSCAR-code/OSCAR_QT.pro "CONFIG+=crash"  
+# qmake <buldFolderPath> OSCAR-code/OSCAR_QT.pro "CONFIG+=crash"
 contains(CONFIG, crash) {
     message("DEBUG BUILDS - set by OPTION  'crash' ")
 }
@@ -125,7 +125,12 @@ DEFINES += STEADY_BREATHING
 ####  DEFINES += STEADY_BREATHING_ENHANCED_TESTING
 
 
-TARGET = OSCAR
+win32 {
+    TARGET = OSCAR
+} else {
+    TARGET = OSCAR20
+}
+
 unix:!macx:!haiku {
     TARGET.path=/usr/bin
 }

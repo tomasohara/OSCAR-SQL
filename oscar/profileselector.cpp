@@ -8,9 +8,10 @@
  * for more details. */
 
 #define TEST_MACROS_ENABLEDoff
-#include <test_macros.h>
+#include "test_macros.h"
 
 #include <QMessageBox>
+#include <QProgressDialog>
 
 #include "profileselector.h"
 #include "ui_profileselector.h"
@@ -524,6 +525,7 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
         dbProgress->setWindowModality(Qt::WindowModal);
         dbProgress->setMinimumWidth(400);
         dbProgress->setValue(0);
+        dbProgress->setWindowTitle(tr("Deleting profile"));
         dbProgress->show();
         QCoreApplication::processEvents();
         
@@ -543,9 +545,6 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
                 }
             );
             
-            dbProgress->close();
-            delete dbProgress;
-            
             if (dbDeleteSuccess) {
                 qDebug() << "Deleted profile from database:" << name << "id:" << profileData.id;
             } else {
@@ -554,28 +553,29 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
                                    tr("Failed to delete profile from database. The operation has been rolled back."),
                                    QMessageBox::Ok);
                 updateProfileList();
+                dbProgress->close();
+                delete dbProgress;
                 return;
             }
-        } else {
-            dbProgress->close();
-            delete dbProgress;
+//        } else {
+//            dbProgress->close();
+//            delete dbProgress;
         }
 
-        // Now delete files from disk using CProgressBar
+        // Now delete files from disk
         if (!path.isEmpty()) {
             qDebug() << "Counting items in" << path;
-            int totalItems = countDirItems(path);
-            qDebug() << "Total items to delete:" << totalItems;
-
-            // Use CProgressBar for file deletion (incremental progress)
-            CProgressBar *fileProgress = new CProgressBar(tr("Deleting profile files..."), this, totalItems);
-            fileProgress->start(0);  // Show immediately
 
             int itemsProcessed = 0;
-            bool deleteSuccess = removeDirWithProgress(path, fileProgress, &itemsProcessed);
+            dbProgress->setLabelText(tr("Deleting backup files..."));
+            QCoreApplication::processEvents();  // Keep UI responsive
+//            if (progressCallback) {
+//                progressCallback(80, QObject::tr("Deleting backup files..."));
+//            }
+            bool deleteSuccess = removeDirWithProgress(path, dbProgress, 75, 100);
             
-            fileProgress->close();
-            delete fileProgress;
+//            fileProgress->close();
+//            delete fileProgress;
             
             if (!deleteSuccess) {
                 QMessageBox::information(this, STR_MessageBox_Error,
@@ -583,12 +583,17 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
                                          QMessageBox::Ok);
             } else {
                 qDebug() << "Deleted" << itemsProcessed << "items from" << path;
+                dbProgress->setValue(100);
+                QCoreApplication::processEvents();
                 QMessageBox::information(this, STR_MessageBox_Information, tr("Profile '%1' was successfully deleted").arg(name),QMessageBox::Ok);
             }
         } else {
             // No files to delete
             QMessageBox::information(this, STR_MessageBox_Information, tr("Profile '%1' was successfully deleted").arg(name),QMessageBox::Ok);
         }
+
+        dbProgress->close();
+        delete dbProgress;
 
         updateProfileList();
 

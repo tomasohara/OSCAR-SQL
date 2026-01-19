@@ -973,8 +973,41 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
     }
 }
 
+// Sets font appearence in calendar to reflect what data is present for that day.
 void Daily::UpdateCalendarDay(QDate date)
 {
+    QTextCharFormat charAttr;
+
+    bool hascpap = p_profile->FindDay(date, MT_CPAP)!=nullptr;
+    bool hasoxi = p_profile->FindDay(date, MT_OXIMETER)!=nullptr;
+    bool hasjournal = p_profile->FindDay(date, MT_JOURNAL)!=nullptr;
+    bool hasstage = p_profile->FindDay(date, MT_SLEEPSTAGE)!=nullptr;
+    bool haspos = p_profile->FindDay(date, MT_POSITION)!=nullptr;
+
+    if (hascpap) {
+        if (hasoxi) {
+            charAttr.setForeground(QBrush(COLOR_Purple, Qt::SolidPattern)); // CPAP + Oxi
+        } else {
+            charAttr.setForeground(QBrush(COLOR_Blue, Qt::SolidPattern)); // CPAP, no Oxi
+        }
+    } else if (hasoxi) {
+        charAttr.setForeground(QBrush(COLOR_Red, Qt::SolidPattern)); // Oxi, no CPAP
+    }
+
+    if (hasjournal) {
+        charAttr.setFontWeight(QFont::Bold);        // Journal data present
+    }
+
+    if (hasstage) {
+        charAttr.setBackground(QBrush(COLOR_Cyan, Qt::SolidPattern)); // has staging
+    }
+
+    if (haspos) {
+        charAttr.setFontUnderline(true);            // has sleep position info
+    }
+
+    ui->calendar->setDateTextFormat(date, charAttr);
+/***
     QTextCharFormat nodata;
     QTextCharFormat cpaponly;
     QTextCharFormat cpapjour;
@@ -987,7 +1020,7 @@ void Daily::UpdateCalendarDay(QDate date)
     cpaponly.setFontWeight(QFont::Normal);
     cpapjour.setForeground(QBrush(COLOR_Blue, Qt::SolidPattern));
     cpapjour.setFontWeight(QFont::Bold);
-//    cpapjour.setFontUnderline(true);
+    cpapjour.setFontUnderline(true);
     oxiday.setForeground(QBrush(COLOR_Red, Qt::SolidPattern));
     oxiday.setFontWeight(QFont::Normal);
     oxicpap.setForeground(QBrush(COLOR_Red, Qt::SolidPattern));
@@ -1028,6 +1061,7 @@ void Daily::UpdateCalendarDay(QDate date)
 //    if (hasjournal) {
 //        ui->calendar->setDateTextFormat(date, cpapjour);
 //    }
+***/
     ui->calendar->setHorizontalHeaderFormat(QCalendarWidget::ShortDayNames);
 }
 void Daily::LoadDate(QDate date)

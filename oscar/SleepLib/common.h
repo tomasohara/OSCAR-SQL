@@ -14,6 +14,7 @@
 #include <QColor>
 #include <QObject>
 #include <QThread>
+#include <qprogressdialog.h>>
 
 // #define DEBUG_EFFICIENCY 1   // Developers can define this for qmake if they want it
 
@@ -100,11 +101,14 @@ QString formatRelief (QString relief);
 //! \brief Mercilessly trash a directory
 bool removeDir(const QString &path);
 
-//! \brief Count files and directories in a path (for progress tracking)
+//! \brief Count files and directories in a path, including any subdirectories (for progress tracking)
+int countDirTotalItems(const QString &path);
+
+//! \brief Count files and directories in a path, excluding any subdirectories (for progress tracking)
 int countDirItems(const QString &path);
 
 //! \brief Mercilessly trash a directory with progress tracking
-bool removeDirWithProgress(const QString &path, class CProgressBar *progress = nullptr, int *itemsProcessed = nullptr);
+bool removeDirWithProgress(const QString &path, QProgressDialog *progress = nullptr, int start = 0, int end = 100);
 
 ///Represents the exception for taking the median of an empty list
 class median_of_empty_list_exception:public std::exception{

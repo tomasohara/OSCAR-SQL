@@ -464,7 +464,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     query.exec("PRAGMA cache_size = -256000");  // 256 MB
     
     if (progressCallback) {
-        progressCallback(10, QObject::tr("Collecting session information..."));
+        progressCallback(5, QObject::tr("Collecting session information..."));
     }
     
     // PHASE 1.5: Get all session IDs for this profile
@@ -505,7 +505,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
         if (success) {
             db.commit();
             if (progressCallback) {
-                progressCallback(100, QObject::tr("Profile deleted"));
+                progressCallback(70, QObject::tr("Profile deleted"));
             }
         } else {
             db.rollback();
@@ -522,7 +522,10 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     const int batchSize = 100;
     int totalBatches = (totalSessions + batchSize - 1) / batchSize;
     int processedSessions = 0;
-    
+    if (progressCallback) {
+        progressCallback(10, QObject::tr("Deleting session channel data..."));
+    }
+
     qDebug() << "ProfileRepository: Deleting" << totalSessions << "sessions in" << totalBatches << "batches";
     
     for (int batchNum = 0; batchNum < totalBatches; batchNum++) {
@@ -535,7 +538,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
             batch.append(QString::number(sessionIds[i]));
         }
         QString inClause = batch.join(",");
-        
+/***
         // Progress: 10% to 50% is for session_channel_values deletion
         int progress = 10 + (batchNum * 40 / totalBatches);
         if (progressCallback) {
@@ -544,7 +547,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
                 .arg(processedSessions + batch.size())
                 .arg(totalSessions));
         }
-        
+***/
         // Delete session_channel_values (largest table) for this batch
         QString sql = QString(
             "DELETE FROM session_channel_values "
@@ -570,7 +573,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     
     // Progress: 50% to 70% is for event_data deletion (large BLOBs)
     if (progressCallback) {
-        progressCallback(50, QObject::tr("Deleting waveform data..."));
+        progressCallback(30, QObject::tr("Deleting waveform data..."));
     }
     
     // Delete event_data (large BLOBs) in batches
@@ -584,15 +587,15 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
             batch.append(QString::number(sessionIds[i]));
         }
         QString inClause = batch.join(",");
-        
-        int progress = 50 + (batchNum * 20 / totalBatches);
+
+        int progress = 30 + (batchNum * 20 / totalBatches);
         if (progressCallback) {
             progressCallback(progress, 
                 QObject::tr("Deleting waveform data (%1 of %2 sessions)...")
                 .arg(processedSessions + batch.size())
                 .arg(totalSessions));
         }
-        
+
         QString sql = QString(
             "DELETE FROM event_data "
             "WHERE eventlist_id IN ("
@@ -617,7 +620,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     
     // Progress: 70% to 80% is for deleting sessions (CASCADE handles smaller tables)
     if (progressCallback) {
-        progressCallback(70, QObject::tr("Deleting session records..."));
+        progressCallback(50, QObject::tr("Deleting session records..."));
     }
     
     // Delete all sessions (CASCADE will handle remaining child tables)
@@ -641,7 +644,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     
     // Progress: 80% to 90% is for deleting profile record (CASCADE handles profile-level tables)
     if (progressCallback) {
-        progressCallback(80, QObject::tr("Deleting profile record..."));
+        progressCallback(60, QObject::tr("Deleting profile record..."));
     }
     
     // Delete the profile (CASCADE handles machines, user_info, doctor_info, etc.)
@@ -659,7 +662,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     
     // Progress: 90% to 95% is for committing transaction
     if (progressCallback) {
-        progressCallback(90, QObject::tr("Committing changes..."));
+        progressCallback(70, QObject::tr("Committing database changes..."));
     }
     
     // Commit transaction
@@ -679,7 +682,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     
     // Progress: 95% to 100% is for final WAL checkpoint
     if (progressCallback) {
-        progressCallback(95, QObject::tr("Reclaiming disk space..."));
+        progressCallback(75, QObject::tr("Reclaiming database disk space..."));
     }
     
     // PHASE 1 OPTIMIZATION: Checkpoint WAL after deletion
@@ -687,7 +690,7 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     DatabaseManager::instance().checkpointWAL();
     
     if (progressCallback) {
-        progressCallback(100, QObject::tr("Profile deleted successfully"));
+        progressCallback(75, QObject::tr("Profile deleted successfully"));
     }
     
     qDebug() << "ProfileRepository: Phase 1.5 profile deletion complete for id" << id;

@@ -1879,126 +1879,12 @@ EventDataType Profile::calcAboveThreshold(ChannelID code, EventDataType threshol
         return 0;
     }
 /***
- *
  *   SQL approach cannot work because the database stores EventList value summaries as hash keys (0-4) for efficiency,
  *   not actual physical values (200-300). This makes threshold queries impossible at the SQL level.
  *   The in-memory optimization achieves the same goal with superior performance.
+ ***/
 
-    // Try SQL optimization for WAVEFORM and DATA channels
-    // For these channel types, time_ms is correctly stored in milliseconds
-    // EVENT channels store time in seconds, so they must use iterative calculation
-    schema::ChanType chanType = schema::channel[code].type();
-    if (chanType == schema::WAVEFORM || chanType == schema::DATA) {
-        PERF_TIMER_START("Profile::calcAboveThreshold::SQL");
-
-        // Convert dates to milliseconds since epoch for SQL comparison
-        #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-            qint64 startMs = start.startOfDay().toMSecsSinceEpoch();
-            qint64 endMs = end.addDays(1).startOfDay().toMSecsSinceEpoch();  // Exclusive end
-        #else
-            qint64 startMs = QDateTime(start).toMSecsSinceEpoch();
-            qint64 endMs = QDateTime(end.addDays(1)).toMSecsSinceEpoch();
-        #endif
-
-        QSqlDatabase db = DatabaseManager::instance().database();
-        if (db.isOpen()) {
-            QSqlQuery query(db);
-            
-            // Query sums time_ms from session_channel_values where value >= threshold
-            // For waveforms, time_ms is correctly in milliseconds
-            // IMPORTANT: Use session overlap, not just start time, to catch sessions that cross midnight
-            query.prepare(R"(
-                SELECT COALESCE(SUM(scv.time_ms), 0) as total_ms
-                FROM session_channel_values scv
-                INNER JOIN session_channels sc ON scv.session_channel_id = sc.id
-                INNER JOIN sessions s ON sc.session_id = s.id
-                INNER JOIN machines m ON s.machine_id = m.id
-                WHERE s.start_time < :end_ms
-                  AND s.end_time > :start_ms
-                  AND sc.channel_id = :channel_id
-                  AND m.machine_type = :machine_type
-                  AND s.enabled = 1
-                  AND (CAST(scv.value AS REAL) * sc.gain) >= :threshold
-            )");
-            
-            query.bindValue(":start_ms", startMs);
-            query.bindValue(":end_ms", endMs);
-            query.bindValue(":channel_id", (int)code);
-            query.bindValue(":machine_type", (int)mt);
-            query.bindValue(":threshold", threshold);
-            
-            if (query.exec()) {
-                if (query.next()) {
-                    // Check if we actually found any session_channel_values data
-                    // If query returns 0, it could mean:
-                    // 1. No sessions in date range (SQL worked, legitimately 0)
-                    // 2. session_channel_values table is empty (need fallback)
-                    // 
-                    // To distinguish: check if we have ANY rows in session_channel_values
-                    // for this channel/machine/date range (without threshold filter)
-                    double totalMs = query.value(0).toDouble();
-                    
-                    if (totalMs == 0) {
-                        // Verify this isn't due to missing session_channel_values data
-                        // Quick check: do we have ANY value summaries for this channel?
-                        QSqlQuery checkQuery(db);
-                        checkQuery.prepare(R"(
-                            SELECT COUNT(*)
-                            FROM session_channel_values scv
-                            INNER JOIN session_channels sc ON scv.session_channel_id = sc.id
-                            INNER JOIN sessions s ON sc.session_id = s.id
-                            INNER JOIN machines m ON s.machine_id = m.id
-                            WHERE s.start_time < :end_ms
-                              AND s.end_time > :start_ms
-                              AND sc.channel_id = :channel_id
-                              AND m.machine_type = :machine_type
-                              AND s.enabled = 1
-                        )");
-                        checkQuery.bindValue(":start_ms", startMs);
-                        checkQuery.bindValue(":end_ms", endMs);
-                        checkQuery.bindValue(":channel_id", (int)code);
-                        checkQuery.bindValue(":machine_type", (int)mt);
-                        
-                        if (checkQuery.exec() && checkQuery.next()) {
-                            int rowCount = checkQuery.value(0).toInt();
-                            if (rowCount == 0) {
-                                // No session_channel_values data at all - table is empty!
-                                // Fall back to iterative calculation
-                                qDebug() << "calcAboveThreshold: session_channel_values empty for channel" << code << "- using iterative method";
-                                PERF_TIMER_STOP("Profile::calcAboveThreshold::SQL");
-                                // Fall through to iterative calculation below
-                            } else {
-                                // We have data but SUM returned 0 - debug why
-                                qDebug() << "calcAboveThreshold: Found" << rowCount << "rows but SUM=0 for channel" << code << "threshold" << threshold;
-                                
-                                // Fall back to iterative - values don't meet threshold or other issue
-                                PERF_TIMER_STOP("Profile::calcAboveThreshold::SQL");
-                                // Fall through to iterative calculation below
-                            }
-                        } else {
-                            // Check query failed, fall back to iterative
-                            PERF_TIMER_STOP("Profile::calcAboveThreshold::SQL");
-                        }
-                    } else {
-                        // Non-zero result, SQL worked!
-                        PERF_TIMER_STOP("Profile::calcAboveThreshold::SQL");
-                        qDebug() << "calcAboveThreshold() working SQL returning" << totalMs << "ms";
-                        return totalMs / 60000.0;
-                    }
-                } else {
-                    qDebug() << "calcAboveThreshold SQL query returned no rows for channel" << code;
-                }
-            } else {
-                qDebug() << "calcAboveThreshold SQL query failed:" << query.lastError().text();
-            }
-        }
-        PERF_TIMER_STOP("Profile::calcAboveThreshold::SQL");
-        // Fall through to iterative calculation if SQL fails or data is missing
-    }
-    // Fallback to iterative calculation for EVENT channels or if SQL fails
-***/
-
-    PERF_TIMER_START("Profile::calcAboveThreshold::iterative");
+//    PERF_TIMER_START("Profile::calcAboveThreshold::iterative");
     EventDataType val = 0;
 
     do {
@@ -2010,7 +1896,7 @@ EventDataType Profile::calcAboveThreshold(ChannelID code, EventDataType threshol
 
         date = date.addDays(1);
     } while (date <= end);
-    PERF_TIMER_STOP("Profile::calcAboveThreshold::iterative");
+//    PERF_TIMER_STOP("Profile::calcAboveThreshold::iterative");
 //    qDebug() << "calcAboveThreshold() returning" << val;
 
     return val;
