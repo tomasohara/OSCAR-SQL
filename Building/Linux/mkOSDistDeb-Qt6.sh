@@ -46,6 +46,13 @@ function gene_script () {
   chmod +x rm_usrbin-result-NN-test.sh
 }
 
+function getTarget(){
+OSCARPRO=${PWD%/*/*}/oscar/"oscar.pro"
+assignmentcnt=$(($(grep -cE '(^|[[:space:]])TARGET[[:space:]]*=' $OSCARPRO)-1))
+PROGNAME=$(awk -F'=' -v n=$assignmentcnt '/TARGET[[:space:]]*=/{count++; if(count==n){gsub(/^[ \t]+|[ \t]+$/,"",$2); print $2}}' $OSCARPRO)
+}
+
+
 function getOS () {
   rel=$(lsb_release -r | awk '{print $2}')
   os=$(lsb_release -i | awk '{print $3}')
@@ -111,7 +118,11 @@ build_folder=${PWD%/*/*/*}/$OSCAR_BUILD_DIRECTORY
 # package_name="oscar"
 
 # Modified application name code
-PROGNAME=$(sed -n 's/^TARGET *= *//p' $SRC/oscar.pro)
+# PROGNAME=$(sed -n 's/^TARGET *= *//p' $SRC/oscar.pro) - original
+
+#updated to: - CN
+getTarget
+
 echo "Program Name: "$PROGNAME
 lwrcasePROGNAME=${PROGNAME,,}
 icon_name="OSCAR" 
