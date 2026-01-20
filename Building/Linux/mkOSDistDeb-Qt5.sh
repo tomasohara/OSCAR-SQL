@@ -1,7 +1,9 @@
 #! /bin/bash
-# No parameter is not required
+# No parameter is required
 # This script will identify the distribution and release version
 #
+
+. ./retrieve_appliname.sh
 
 function gene_script () {
   # generate script shell from 2 files
@@ -9,13 +11,15 @@ function gene_script () {
   if [ -f "clean_rm-result-NN.sh" ]; then
     rm clean_rm-result-NN.sh
   fi
-  cat clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
+  #cat clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
+  cat headers.sh retrieve_appliname.sh clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
   chmod +x clean_rm-result-NN.sh
 
   if [ -f "clean_rm-result-NN-test.sh" ]; then
     rm clean_rm-result-NN-test.sh
   fi
-  cat clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
+  #cat clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
+  cat headers.sh retrieve_appliname.sh clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
   chmod +x clean_rm-result-NN-test.sh
 
   # ln_usrbin
@@ -23,26 +27,30 @@ function gene_script () {
   if [ -f "ln_usrbin-result-NN.sh" ]; then
     rm ln_usrbin-result-NN.sh
   fi
-  cat ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
+  #cat ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
+  cat headers.sh retrieve_appliname.sh ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
   chmod +x ln_usrbin-result-NN.sh
 
   if [ -f "ln_usrbin-result-NN-test.sh" ]; then
     rm ln_usrbin-result-NN-test.sh
   fi
-  cat ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
+  #cat ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
+  cat headers.sh retrieve_appliname.sh ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
   chmod +x ln_usrbin-result-NN-test.sh
 
   # rm_usrbin
   if [ -f "rm_usrbin-result-NN.sh" ]; then
     rm rm_usrbin-result-NN.sh
   fi
-  cat rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
+  #cat rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
+  cat headers.sh retrieve_appliname.sh rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
   chmod +x rm_usrbin-result-NN.sh
 
   if [ -f "rm_usrbin-result-NN-test.sh" ]; then
     rm rm_usrbin-result-NN-test.sh
   fi
-  cat rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
+  #cat rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
+  cat headers.sh retrieve_appliname.sh rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
   chmod +x rm_usrbin-result-NN-test.sh
 }
 
@@ -110,18 +118,40 @@ build_folder=${PWD%/*/*/*}/$OSCAR_BUILD_DIRECTORY
 # appli_name="OSCAR"
 # package_name="oscar"
 
+# replace by an external function
 # Modified application name code
-PROGNAME=$(sed -n 's/^TARGET *= *//p' $SRC/oscar.pro)
-echo "Program Name: "$PROGNAME
+#PROGNAME=$(sed -n 's/^TARGET *= *//p' $SRC/oscar.pro)
+#if [ -z "$PROGNAME" ]; then
+#    tmpPGM=$(sed -n 's/^    TARGET *= *//p' $SRC/oscar.pro)
+#fi
+
+#if [ -n "$tmpPGM" ]; then
+#    tstPGM=$(echo $tmpPGM | grep "OSCAR20")
+#    if [ -n "$tstPGM" ]; then
+#      PROGNAME="OSCAR20"
+#      icon_name="OSCAR20"
+#    else
+#      PROGNAME="OSCAR"
+#      icon_name="OSCAR"
+#    fi
+#else
+#    PROGNAME="OSCAR"
+#    icon_name="OSCAR"
+#fi
+
+# call an external function
+retrieve_names
+
+echo "Program Name: '$PROGNAME', Icon name: '$icon_name'"
 lwrcasePROGNAME=${PROGNAME,,}
-icon_name="OSCAR" 
+#icon_name="OSCAR" 
 appli_name=$PROGNAME
 base_name=$PROGNAME
 package_name=$lwrcasePROGNAME
 pre_inst="tst_user.sh"
 
 if [[ -n ${PRERELEASE}  && -z ${RC} ]] ; then
-    icon_name="OSCAR-test" 
+    icon_name="${icon_name}-test"
     appli_name=${appli_name}-test
     package_name=${package_name}-test
     post_inst="ln_usrbin-result-NN-test.sh"

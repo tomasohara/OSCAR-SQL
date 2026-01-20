@@ -1,11 +1,8 @@
-#! /bin/bash
+#--! /bin/bash
 #
 # no error is permitted
-set -e
+#set -e
 
 # application name
-appli_name="OSCAR"
-
-
-
-
+#appli_name="OSCAR"
+aplli_name=$PROGNAME
