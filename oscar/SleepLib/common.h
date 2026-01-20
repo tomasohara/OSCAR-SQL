@@ -14,7 +14,7 @@
 #include <QColor>
 #include <QObject>
 #include <QThread>
-#include <qprogressdialog.h>>
+#include <qprogressdialog.h>
 
 // #define DEBUG_EFFICIENCY 1   // Developers can define this for qmake if they want it
 
