@@ -584,24 +584,38 @@ int main(int argc, char *argv[]) {
                         return 0;
                     } else {                        // We have a folder, see if is already an OSCAR folder
                         QDir dir(datadir);
-                        QFile file(datadir + "/Preferences.xml");
-                        QDir  dirP(datadir + "/Profiles");
+                        QFile prefFile(datadir + "/Preferences.xml");
+                        QDir  dirProfiles(datadir + "/Profiles");
+                        QFile dbFile(datadir + "/oscar.db");
 
-                        if (!file.exists() || !dirP.exists()) {       // It doesn't have a Preferences.xml file or a Profiles directory in it
+                        if (dbFile.exists() && dirProfiles.exists()) {     // It has a database file and a Profiles directory
+                            settings.setValue("Settings/AppData", datadir);
+                            qDebug() << "Changing data folder to" << datadir;
+                            break;       // It is an OSCAR 2.0 folder. Use it.
+                        }
+
+                        if (prefFile.exists() && dirProfiles.exists()) {     // It has a Preferences.xml file and a Profiles directory
+                            // It's an OSCAR 1.x directory -- cannot use it
+                            QMessageBox::question(nullptr, STR_MessageBox_Warning,
+                                                      QObject::tr("The folder you chose is for OSCAR 1.x. You must use a different folder for OSCAR 2.0.") +
+                                                          +"\n\n" + datadir, QMessageBox::Ok);
+                            continue;   // Nope, don't use it, go around the loop again
+                        }
+
+                        if (!dirProfiles.exists() || !dbFile.exists()) {       // It doesn't have a database or a Profiles directory in it
                             if (dir.count() > 2) {  // but it has more than dot and dotdot
-                                // Not a new directory.. nag the user.
+                                // Not a new OSCAR 2.0 directory.. nag the user.
                                 if (QMessageBox::question(nullptr, STR_MessageBox_Warning,
                                                           QObject::tr("The folder you chose is not empty, nor does it already contain valid OSCAR data.") +
                                                           "\n\n"+QObject::tr("Are you sure you want to use this folder?")+"\n\n" +
                                                           datadir, QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) {
-                                    continue;   // Nope, don't use it, go around the loop again
-                                }
+                                    continue;   // If no, don't use it, go around the loop again
+                                } // User responded "yes"
+                                settings.setValue("Settings/AppData", datadir);
+                                qDebug() << "Changing data folder to" << datadir;
+                                break;
                             }
                         }
-
-                        settings.setValue("Settings/AppData", datadir);
-                        qDebug() << "Changing data folder to" << datadir;
-                        change_data_dir = false;
                     }
                 }           // the while loop
             }           // user wants a different folder
