@@ -201,10 +201,11 @@ bool process_a_Profile( QString path ) {
     return success;
 }
 ***/
-
+/****
 // Returns name of new profile or empty string if import failed
 QString importProfile(QString sourcePath, QString profileName, QString destPath)
 {
+    Q_UNUSED(sourcePath)
     QString newName = profileName;
 
     // append a copy number if needed to obtain uniqueness in the destination directory
@@ -213,7 +214,9 @@ QString importProfile(QString sourcePath, QString profileName, QString destPath)
         newName += "_copy" + QString::number(copyNum);
         copyNum++;
     }
-
+    return newName;
+}
+****/
 /****
     // Create progress dialog
     ProgressDialog progress(this);
@@ -245,7 +248,7 @@ QString importProfile(QString sourcePath, QString profileName, QString destPath)
         return "";
     }
 ***/
-}
+
 
 // Return a QList of all profile directories in a data directory (sourcePath)
 QList<QString> enumerateProfiles(QString sourcePath){    // Find all profiles in that directory
@@ -372,6 +375,8 @@ bool migrateFromOSCAR(QString destDir) {
         // Connect ProfileImporter progress to update the overall progress dialog's message
         QObject::connect(&importer, &ProfileImporter::progressChanged,
                         [&progress, profileDir, i, &profileList](int current, int total, const QString& message) {
+                            Q_UNUSED(current)
+                            Q_UNUSED(total)
                             // Update the label with profile info + current step
                             progress.setLabelText(QObject::tr("Migrating profile: %1\n(%2 of %3)\n\n%4")
                                                 .arg(profileDir)
