@@ -1138,7 +1138,7 @@ void MainWindow::on_action_Import_OSCAR_Data_triggered()
     
     // Create progress dialog
     ProgressDialog progress(this);
-    progress.setWindowTitle(tr("Importing Profile"));
+    progress.setWindowTitle(tr("Importing Profile ") + newName);
     progress.show();
     
     // Perform import

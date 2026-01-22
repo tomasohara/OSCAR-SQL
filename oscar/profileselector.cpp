@@ -12,6 +12,7 @@
 
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <QFileInfo>
 
 #include "profileselector.h"
 #include "ui_profileselector.h"
@@ -612,19 +613,44 @@ QString ProfileSelector::formatSize(qint64 size)
     return QString("%0 %1").arg(outputSize, 0, 'f', 2).arg(units[i]);
 }
 
+qint64 getDatabaseTotalSize() {
+    QString dbPath = GetAppData() + "/oscar.db";
+    qint64 totalSize = 0;
 
+    // Main database file
+    QFileInfo dbFile(dbPath);
+    if (dbFile.exists()) {
+        totalSize += dbFile.size();
+    }
+
+    // WAL file
+    QFileInfo walFile(dbPath + "-wal");
+    if (walFile.exists()) {
+        totalSize += walFile.size();
+    }
+
+    // Shared memory file
+    QFileInfo shmFile(dbPath + "-shm");
+    if (shmFile.exists()) {
+        totalSize += shmFile.size();
+    }
+
+    return totalSize;
+}
 QString ProfileSelector::getProfileDiskInfo(Profile *profile)
 {
     QString html;
     if (profile) {
-        qint64 sizeSummaries = profile->diskSpaceSummaries();
-        qint64 sizeEvents = profile->diskSpaceEvents();
+//        qint64 sizeSummaries = profile->diskSpaceSummaries(); // Remove for OSCAR 2.0
+//        qint64 sizeEvents = profile->diskSpaceEvents();
+        qint64 sizeDatabase = getDatabaseTotalSize();
         qint64 sizeBackups = profile->diskSpaceBackups();
 
         html += "<table>"
-                "<tr><td align=right>"+tr("Summaries:")+"</td><td>"+formatSize(sizeSummaries)+"</td></tr>"
-                "<tr><td align=right>"+tr("Events:")+"</td><td>"+formatSize(sizeEvents)+"</td></tr>"
+//                "<tr><td align=right>"+tr("Summaries:")+"</td><td>"+formatSize(sizeSummaries)+"</td></tr>"
+//                "<tr><td align=right>"+tr("Events:")+"</td><td>"+formatSize(sizeEvents)+"</td></tr>"
                 "<tr><td align=right>"+tr("Backups:")+"</td><td>"+formatSize(sizeBackups)+"</td></tr>"
+                "<tr><td align=right>"+tr("Database (all profiles):")+"</td><td>"+formatSize(sizeDatabase)+"</td></tr>"
                 "</table>";
     }
     return html;

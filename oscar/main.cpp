@@ -828,7 +828,7 @@ int main(int argc, char *argv[]) {
     // Begin logging to file now that there's a data folder.
     if (!logger->logToFile()) {
         QMessageBox::warning(nullptr, STR_MessageBox_Warning,
-                             QObject::tr("Unable to write to debug log. You can still use the debug pane (Help/Troubleshooting/Show Debug Pane) but the debug log will not be written to disk."));
+             QObject::tr("Unable to write to debug log. You can still use the debug pane (Help/Troubleshooting/Show Debug Pane) but the debug log will not be written to disk."));
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -856,7 +856,6 @@ int main(int argc, char *argv[]) {
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Initialize database (MUST be before migration)
     ///////////////////////////////////////////////////////////////////////////////////////////
-
     QString dbPath = GetAppData() + "/oscar.db";
     if (!DatabaseManager::instance().initialize(dbPath)) {
         QMessageBox::critical(nullptr, STR_MessageBox_Error,
@@ -870,11 +869,6 @@ int main(int argc, char *argv[]) {
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Migrate from OSCAR 1.x if needed
     ///////////////////////////////////////////////////////////////////////////////////////////
-#if QT_VERSION < QT_VERSION_CHECK(5,9,0)
-//    if (newDir.count() <= 2 )      // directory is empty (only . and ..), try to migrate old data
-#else
-//    if (newDir.isEmpty() )         // directory is empty, try to migrate old data
-#endif
     if (haveNewFolder)
     {
         if (QMessageBox::question(nullptr, QObject::tr("Migrate Data from OSCAR 1.x?"),

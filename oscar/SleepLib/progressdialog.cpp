@@ -11,7 +11,7 @@
 #include <QDebug>
 
 ProgressDialog::ProgressDialog(QWidget * parent):
-    QDialog(parent, Qt::Tool | Qt::FramelessWindowHint)
+    QDialog(parent /*, Qt::Tool | Qt::FramelessWindowHint*/)
 {
     qDebug() << "Progress Dialog opened";
     statusMsg = new QLabel(QObject::tr("Please Wait..."));
