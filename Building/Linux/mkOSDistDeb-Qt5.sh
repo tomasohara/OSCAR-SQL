@@ -49,6 +49,9 @@ function gene_script () {
 function getTarget(){
 OSCARPRO=${PWD%/*/*}/oscar/"oscar.pro"
 assignmentcnt=$(($(grep -cE '(^|[[:space:]])TARGET[[:space:]]*=' $OSCARPRO)-1))
+if [[ $assignmentcnt -lt 1 ]]; then
+assignmentcnt=1
+fi
 PROGNAME=$(awk -F'=' -v n=$assignmentcnt '/TARGET[[:space:]]*=/{count++; if(count==n){gsub(/^[ \t]+|[ \t]+$/,"",$2); print $2}}' $OSCARPRO)
 }
 
