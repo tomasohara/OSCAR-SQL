@@ -64,12 +64,15 @@
 #include "database/profile_repository.h"
 #include "database/machine_repository.h"
 #include "database/migration_manager.h"
+#include "profileimporter.h"
+#include "SleepLib/progressdialog.h"
 
 MainWindow *mainwin = nullptr;
 extern bool openOk;
 
-int numFilesCopied = 0;
+//int numFilesCopied = 0;
 
+/****
 // Count the number of files in this directory and all subdirectories
 int countRecursively(QString sourceFolder) {
     QDir sourceDir(sourceFolder);
@@ -87,7 +90,8 @@ int countRecursively(QString sourceFolder) {
 
     return numFiles;
 }
-
+****/
+/****
 bool copyRecursively(QString sourceFolder, QString destFolder, QProgressDialog& progress) {
     bool success = false;
     QDir sourceDir(sourceFolder);
@@ -128,7 +132,8 @@ bool copyRecursively(QString sourceFolder, QString destFolder, QProgressDialog& 
 
     return true;
 }
-
+****/
+/****
 bool processPreferenceFile( QString path ) {
     bool success = true;
     QString fullpath = path + "/Preferences.xml";
@@ -157,7 +162,8 @@ bool processPreferenceFile( QString path ) {
 
     return success;
 }
-
+****/
+/***
 bool processFile( QString fullpath ) {
     bool success = true;
     qDebug() << "Process " + fullpath ;
@@ -182,7 +188,8 @@ bool processFile( QString fullpath ) {
 
     return success;
 }
-
+***/
+/****
 bool process_a_Profile( QString path ) {
     bool success = true;
     qDebug() << "Entering profile directory " + path;
@@ -193,13 +200,89 @@ bool process_a_Profile( QString path ) {
     }
     return success;
 }
+***/
 
-bool migrateFromSH(QString destDir) {
+// Returns name of new profile or empty string if import failed
+QString importProfile(QString sourcePath, QString profileName, QString destPath)
+{
+    QString newName = profileName;
+
+    // append a copy number if needed to obtain uniqueness in the destination directory
+    int copyNum = 1;
+    while (QFile(destPath + "/" + newName).exists()) {
+        newName += "_copy" + QString::number(copyNum);
+        copyNum++;
+    }
+
+/****
+    // Create progress dialog
+    ProgressDialog progress(this);
+    progress.setWindowTitle(tr("Importing Profile"));
+    progress.show();
+
+    // Perform import
+    ProfileImporter importer;
+    connect(&importer, &ProfileImporter::progressChanged,
+            &progress, &ProgressDialog::setProgressValue);
+
+    bool success = importer.importProfile(sourcePath, destPath + "/" + newName, &progress);
+
+    progress.close();
+
+    if (success) {
+        // IMPORTANT: Rescan profiles to load the new profile into memory
+        // This adds it to Profiles::profiles map so it can be selected
+        Profiles::Scan();
+
+        // Refresh profile list UI
+        if (profileSelector) {
+            profileSelector->updateProfileList();
+        }
+        return newName;
+    } else {
+        QMessageBox::critical(this, tr("Import Failed"),
+                              tr("Failed to import profile:\n%1").arg(importer.lastError()));
+        return "";
+    }
+***/
+}
+
+// Return a QList of all profile directories in a data directory (sourcePath)
+QList<QString> enumerateProfiles(QString sourcePath){    // Find all profiles in that directory
+    QDir dir(sourcePath);
+    QList<QString> goodProfiles;
+
+    // Just a double check this is not an OSCAR 2.0 data directory
+    QFile dbFile(sourcePath + "/oscar.db");
+    if (dbFile.exists()) {
+        return goodProfiles;
+    }
+
+    // Look through the Profiles subdirectory for all profiles present
+    QDir profilesDir(sourcePath + "/Profiles");
+    QFileInfoList entries = profilesDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
+
+    for (const QFileInfo &fileInfo : entries) {
+        if (fileInfo.isDir()) {
+            QString profilePath = fileInfo.absoluteFilePath();
+            QFile  machinesXml(profilePath + "/machines.xml");
+
+            if (machinesXml.exists()) {
+                // Looks like an OSCAR 1.x profile, keep the name
+                goodProfiles.append(fileInfo.fileName());
+            }
+        }
+    }
+
+    return goodProfiles;
+}
+
+bool migrateFromOSCAR(QString destDir) {
     QString homeDocs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)+"/";
-    QString datadir;
+    QString sourcePath;
     bool selectingFolder = true;
     bool success = false;
-//  long int startTime, countDone, allDone;
+    QList<QString> profileList;
 
     if (destDir.isEmpty()) {
         qDebug() << "Migration path is empty string";
@@ -207,64 +290,150 @@ bool migrateFromSH(QString destDir) {
     }
 
     while (selectingFolder) {
-        datadir = QFileDialog::getExistingDirectory(nullptr,
-                  QObject::tr("Choose the SleepyHead or OSCAR data folder to migrate")+" "+
+        sourcePath = QFileDialog::getExistingDirectory(nullptr,
+                  QObject::tr("Choose the OSCAR 1.x data folder to migrate")+" "+
                   QObject::tr("or CANCEL to skip migration."),
                   homeDocs, QFileDialog::ShowDirsOnly);
-        qDebug() << "Migration folder selected: " + datadir;
-        if (datadir.isEmpty()) {
+        qDebug() << "Migration source folder selected: " + sourcePath;
+        if (sourcePath.isEmpty()) {
             qDebug() << "No migration source directory selected";
             return false;
-        } else {                        // We have a folder, see if is a SleepyHead folder
-            QDir dir(datadir);
-            QFile file(datadir + "/Preferences.xml");
-            QDir  dirP(datadir + "/Profiles");
+        } else {                        // We have a source folder, see if is an OSCAR 1.x folder
+            QDir  sourceDir(sourcePath);
+            QFile sourcePrefsFile(sourcePath + "/Preferences.xml");
+            QDir  sourceDirProfiles(sourcePath + "/Profiles");
+            QFile sourceDatabase(sourcePath + "/oscar.db");
 
-            if (!file.exists() || !dirP.exists()) {       // It doesn't have a Preferences.xml file or a Profiles directory in it
-                // Not a new directory.. nag the user.
+            if (!sourcePrefsFile.exists() || !sourceDirProfiles.exists() || sourceDatabase.exists()) {       // It doesn't have a Preferences.xml file or a Profiles directory or has a database in it
+                // Not an OSCAR 1.x directory or maybe an OSCAR 2.x directory.. nag the user.
                 QMessageBox::warning(nullptr, STR_MessageBox_Error,
-                                     QObject::tr("The folder you chose does not contain valid SleepyHead or OSCAR data.") +
-                                     "\n\n"+QObject::tr("You cannot use this folder:")+" " + datadir,
+                                     QObject::tr("The folder you chose does not contain valid OSCAR 1.x data.") +
+                                     "\n\n"+QObject::tr("You cannot migrate from this folder:")+" " + sourcePath,
                                      QMessageBox::Ok);
                 continue;   // Nope, don't use it, go around the loop again
             }
 
-            qDebug() << "Migration folder is" << datadir;
+            profileList = enumerateProfiles(sourcePath);    // Find all profiles in that directory
+
+            if (profileList.size() == 0) {      // are there not any profiles?
+                QMessageBox::warning(nullptr, STR_MessageBox_Error,
+                                     QObject::tr("The folder you chose does not contain any OSCAR profiles.") +
+                                                 "\n\n"+QObject::tr("You cannot migrate from this folder:")+" " + sourcePath,
+                                     QMessageBox::Ok);
+                qDebug() << "No profiles found in" << sourcePath;
+                continue;
+            }
+            qDebug() << "Migration folder is" << sourcePath;
             selectingFolder = false;
         }
     }
 
-    auto startTime = std::chrono::steady_clock::now();
-    int numFiles = countRecursively(datadir);       // count number of files to be copied
-    auto countDone = std::chrono::steady_clock::now();
-    qDebug() << "Number of files to migrate: " << numFiles;
-
-    QProgressDialog progress (QObject::tr("Migrating ") + QString::number(numFiles) + QObject::tr(" files")+"\n"+
-    QObject::tr("from ") + QDir(datadir).dirName() + "\n"+QObject::tr("to ") +
-    QDir(destDir).dirName(), QString(), 0, numFiles, 0, Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
-    progress.setValue(0);
-    progress.setMinimumWidth(300);
+    // Create a progress dialog for the migration
+    QProgressDialog progress(QObject::tr("Migrating Profiles"),
+                            QObject::tr("Cancel"),
+                            0, profileList.size() * 100,
+                            nullptr,
+                            Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
+    progress.setWindowModality(Qt::ApplicationModal);
+    progress.setMinimumWidth(400);
+    progress.setWindowTitle(QObject::tr("Migrating OSCAR data"));
     progress.show();
+    QApplication::processEvents();
 
-    success = copyRecursively(datadir, destDir, progress);
-    if (success) {
-        qDebug() << "Finished copying " + datadir;
+    int profilesSucceeded = 0;
+    int profilesFailed = 0;
+    QStringList failedProfiles;
+    QStringList successfulProfiles;
+    auto startTime = std::chrono::steady_clock::now();
+
+    for (int i = 0; i < profileList.size(); i++) {
+        const QString& profileDir = profileList[i];
+        
+        if (progress.wasCanceled()) {
+            qDebug() << "Migration cancelled by user";
+            break;
+        }
+
+        qDebug() << "Migrating profile" << profileDir << "(" << (i+1) << "of" << profileList.size() << ")";
+        
+        QString profileSourcePath = sourcePath + "/Profiles/" + profileDir;
+        
+        // Update progress dialog with current profile
+        progress.setLabelText(QObject::tr("Migrating profile: %1\n(%2 of %3)\n\nStarting import...")
+                            .arg(profileDir)
+                            .arg(i + 1)
+                            .arg(profileList.size()));
+        progress.setValue(i * 100);
+        QApplication::processEvents();
+
+        // Create ProfileImporter and connect to our existing progress dialog
+        ProfileImporter importer;
+        
+        // Connect ProfileImporter progress to update the overall progress dialog's message
+        QObject::connect(&importer, &ProfileImporter::progressChanged,
+                        [&progress, profileDir, i, &profileList](int current, int total, const QString& message) {
+                            // Update the label with profile info + current step
+                            progress.setLabelText(QObject::tr("Migrating profile: %1\n(%2 of %3)\n\n%4")
+                                                .arg(profileDir)
+                                                .arg(i + 1)
+                                                .arg(profileList.size())
+                                                .arg(message));
+                            QApplication::processEvents();
+                        });
+
+        bool migrationSuccess = importer.importProfile(profileSourcePath, profileDir, nullptr);
+
+        if (migrationSuccess) {
+            profilesSucceeded++;
+            successfulProfiles.append(profileDir);
+            qDebug() << "Successfully migrated profile:" << profileDir;
+        } else {
+            profilesFailed++;
+            failedProfiles.append(profileDir);
+            qWarning() << "Failed to migrate profile:" << profileDir;
+            qWarning() << "Error:" << importer.lastError();
+        }
+        
+        progress.setValue((i + 1) * 100);
+        QApplication::processEvents();
     }
 
-    success = processPreferenceFile( destDir );
+    auto endTime = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime);
+    
+    progress.close();
 
-    QDir profDir(destDir+"/Profiles");
-    QStringList names = profDir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot);
-    for (int i = 0; success && (i < names.count()); i++) {
-        success = process_a_Profile( destDir+"/Profiles/"+names[i] );
+    // Report results
+    QString resultMessage;
+    if (profilesSucceeded > 0 && profilesFailed == 0) {
+        resultMessage = QObject::tr("Successfully migrated %1 profile(s) in %2 seconds.")
+                       .arg(profilesSucceeded)
+                       .arg(elapsed.count());
+        resultMessage += "\n\n" + QObject::tr("Imported profiles:") + "\n" + successfulProfiles.join("\n");
+        qDebug() << resultMessage;
+        QMessageBox::information(nullptr, QObject::tr("Migration Complete"), resultMessage);
+        success = true;
+    } else if (profilesSucceeded > 0 && profilesFailed > 0) {
+        resultMessage = QObject::tr("Migrated %1 profile(s) successfully, but %2 profile(s) failed in %3 seconds.")
+                       .arg(profilesSucceeded)
+                       .arg(profilesFailed)
+                       .arg(elapsed.count());
+        if (!successfulProfiles.isEmpty()) {
+            resultMessage += "\n\n" + QObject::tr("Imported profiles:") + "\n" + successfulProfiles.join("\n");
+        }
+        if (!failedProfiles.isEmpty()) {
+            resultMessage += "\n\n" + QObject::tr("Failed profiles:") + "\n" + failedProfiles.join("\n");
+        }
+        qWarning() << resultMessage;
+        QMessageBox::warning(nullptr, QObject::tr("Migration Partially Complete"), resultMessage);
+        success = true; // Partial success
+    } else if (profilesFailed > 0) {
+        resultMessage = QObject::tr("Failed to migrate any profiles. All %1 profile(s) failed.")
+                       .arg(profilesFailed);
+        qCritical() << resultMessage;
+        QMessageBox::critical(nullptr, QObject::tr("Migration Failed"), resultMessage);
+        success = false;
     }
-
-    progress.setValue(numFiles);
-    auto allDone = std::chrono::steady_clock::now();
-    auto elapsedCount = std::chrono::duration_cast<std::chrono::microseconds>(countDone - startTime);
-    auto elapsedCopy  = std::chrono::duration_cast<std::chrono::microseconds>(allDone - countDone);
-    qDebug() << "Counting files took " << elapsedCount.count() << " microsecs";
-    qDebug() << "Migrating files took " << elapsedCopy.count() << " microsecs";
 
     return success;
 }
@@ -549,7 +718,7 @@ int main(int argc, char *argv[]) {
     ////////////////////////////////////////////////////////////////////////////////////////////
 //  bool change_data_dir = force_data_dir;
 //
-//  bool havefolder = false;
+    bool haveNewFolder = false;
 
     if (!settings.contains("Settings/AppData")) {       // This is first time execution
         if ( settings.contains("Settings/AppRoot") ) {  // allow for old AppRoot here - not really first time
@@ -566,10 +735,10 @@ int main(int argc, char *argv[]) {
         if ( ! force_data_dir ) {       // unless they explicitly selected it by --datadir param
             if (QMessageBox::question(nullptr, STR_MessageBox_Question,
                                       QObject::tr("OSCAR will set up a folder for your data.")+"\n"+
-                                      QObject::tr("If you have been using SleepyHead or an older version of OSCAR,") + "\n" +
+                                      QObject::tr("If you have been using an older version of OSCAR 1.x,") + "\n" +
                                       QObject::tr("OSCAR can copy your old data to this folder later.")+"\n"+
                                       QObject::tr("We suggest you use this folder: ")+QDir::toNativeSeparators(GetAppData())+"\n"+
-                                      QObject::tr("Click Ok to accept this, or No if you want to use a different folder."),
+                                      QObject::tr("Click Ok to accept this, or No if you want to use a different folder.") + "\n",
                                       QMessageBox::Ok | QMessageBox::No, QMessageBox::Ok) == QMessageBox::No) {
                 // User wants a different folder for data
                 bool change_data_dir = true;
@@ -629,20 +798,7 @@ int main(int argc, char *argv[]) {
     addBuildInfo(QObject::tr("Data directory:") + " <a href=\"file:///" + path + "\">" + path + "</a>");
 
     QDir newDir(GetAppData());
-#if QT_VERSION < QT_VERSION_CHECK(5,9,0)
-    if ( ! newDir.exists() || newDir.count() == 0 )      // directory doesn't exist yet or is empty, try to migrate old data
-#else
-    if ( ! newDir.exists() || newDir.isEmpty() )         // directory doesn't exist yet or is empty, try to migrate old data
-#endif
-    {
-        if (QMessageBox::question(nullptr, QObject::tr("Migrate SleepyHead or OSCAR Data?"),
-                                  QObject::tr("On the next screen OSCAR will ask you to select a folder with SleepyHead or OSCAR data") +"\n" +
-                                  QObject::tr("Click [OK] to go to the next screen or [No] if you do not wish to use any SleepyHead or OSCAR data."),
-                                  QMessageBox::Ok|QMessageBox::No, QMessageBox::Ok) == QMessageBox::Ok) {
-            migrateFromSH( GetAppData() );              // doesn't matter if no migration
-        }
-    }
-
+    
     // Make sure the data directory exists.
     if (!newDir.mkpath(".")) {
         QMessageBox::warning(nullptr, QObject::tr("Exiting"),
@@ -650,6 +806,9 @@ int main(int argc, char *argv[]) {
                              GetAppData());
         return 0;
     }
+
+    if (newDir.isEmpty())
+        haveNewFolder = true;
 
     // Make sure we can write to the data directory
     QFile testFile(GetAppData()+"/testfile.txt");
@@ -695,25 +854,35 @@ int main(int argc, char *argv[]) {
     p_pref->Erase(STR_GEN_SkipLogin);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    // Initialize database
+    // Initialize database (MUST be before migration)
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     QString dbPath = GetAppData() + "/oscar.db";
-    if (DatabaseManager::instance().initialize(dbPath)) {
-        qDebug() << "Database initialized successfully!";
-        qDebug() << "Database file:" << dbPath;
-/**** We no longer migrate from the current directory, automatically or not.
-        // Migrate ALL profiles at once
-        MigrationManager migrator;
-        QString profilesPath = GetAppData() + "/Profiles";
+    if (!DatabaseManager::instance().initialize(dbPath)) {
+        QMessageBox::critical(nullptr, STR_MessageBox_Error,
+                             QObject::tr("Unable to initialize database at")+"\n"+dbPath+"\n\n"+
+                             QObject::tr("OSCAR cannot continue and is exiting."));
+        return 0;
+    }
+    qDebug() << "Database initialized successfully!";
+    qDebug() << "Database file:" << dbPath;
 
-        if (QDir(profilesPath).exists()) {
-            int count = migrator.migrateAllProfiles(profilesPath);
-            qDebug() << "Auto-migrated" << count << "profiles to database";
-        } else {
-            qDebug() << "No Profiles directory found - normal on first use of OSCAR";
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Migrate from OSCAR 1.x if needed
+    ///////////////////////////////////////////////////////////////////////////////////////////
+#if QT_VERSION < QT_VERSION_CHECK(5,9,0)
+//    if (newDir.count() <= 2 )      // directory is empty (only . and ..), try to migrate old data
+#else
+//    if (newDir.isEmpty() )         // directory is empty, try to migrate old data
+#endif
+    if (haveNewFolder)
+    {
+        if (QMessageBox::question(nullptr, QObject::tr("Migrate Data from OSCAR 1.x?"),
+                                  QObject::tr("On the next screen OSCAR will ask you to select a folder with OSCAR 1.x data") +"\n" +
+                                  QObject::tr("Click [OK] to go to the next screen or [No] if you do not wish to use any OSCAR 1.x data."),
+                                  QMessageBox::Ok|QMessageBox::No, QMessageBox::Ok) == QMessageBox::Ok) {
+            migrateFromOSCAR( GetAppData() );              // doesn't matter if no migration
         }
-****/
     }
 
 #ifndef NO_CHECKUPDATES
