@@ -152,7 +152,7 @@ void Daily::setSidebarVisible(bool visible)
 
 
     int panel_width = visible ? AppSetting->dailyPanelWidth() : 0;
-    qDebug() << "Daily Left Panel Width is " << panel_width;
+    qDebug() << "Daily::setSidebarVisible(): Daily Left Panel Width is " << panel_width;
     a.push_back(panel_width);
     a.push_back(this->width() - panel_width);
     ui->splitter_2->setStretchFactor(1,1);
@@ -164,7 +164,7 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     :QWidget(parent), ui(new Ui::Daily)
 {
     PERF_TIMER_SCOPE("Daily::Daily");
-    qDebug() << "Creating new Daily object";
+    qDebug() << "Daily::Daily(): Creating new Daily object";
     ui->setupUi(this);
 
     ui->JournalNotesBold->setShortcut(QKeySequence::Bold);
@@ -909,7 +909,7 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
     for (QHash<ChannelID,QTreeWidgetItem *>::iterator m=mcroot.begin();m!=mcroot.end();m++) {
         tree->insertTopLevelItem(cnt++,m.value());
     }
-    qDebug() << "max_t_post_context:" << max_t_post_context;
+//    qDebug() << "Daily::UpdateEventsTree(): max_t_post_context:" << max_t_post_context;
 
     // Sort the top-level nodes (i.e., event types)
     // note: Done here so that UA occurs before Session Start/End
@@ -940,7 +940,7 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
     // Note: The test for consolidation is based on debugging output, so make
     // sure changes here are reflected in tests/eventstabtests.cpp. In addition,
     // mainwin is undefined during tests and access should be guarded elsewhere.
-    qDebug() << "consolidate:" << p_profile->cpap->consolidateEvents();
+    qDebug() << "Daily::UpdateEventsTree(): consolidate:" << p_profile->cpap->consolidateEvents();
     if (p_profile->cpap->consolidateEvents()) {
 
         // Sort all items by date (e.g., so CA's interleaved w/ OA's, etc.)
@@ -955,7 +955,7 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
             EventTreeWidgetItem child = all_events.at(event_num);
             QString label = child.text(0);
             QString new_label=QString("#%1: %2").arg((int)event_num + 1,(int)numDigits_all,(int)10,QChar('0')).arg(label);
-            qDebug() << "new_label:" << new_label;
+            qDebug() << "Daily::UpdateEventsTree(): new_label:" << new_label;
             child.setText(0, new_label);
             all_numbered_events->addChild(new EventTreeWidgetItem(child));
         }
@@ -967,9 +967,9 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
     }
 
     // Trace out event-type nodes
-    qDebug() << "final top-level items:";
+    qDebug() << "Daily::UpdateEventsTree(): final top-level items:";
     for (int level = 0; level < tree->topLevelItemCount(); level++) {
-        qDebug() << tree->topLevelItem(level)->text(0);
+        qDebug() << "Daily::UpdateEventsTree(): " << tree->topLevelItem(level)->text(0);
     }
 }
 
@@ -1068,7 +1068,7 @@ void Daily::LoadDate(QDate date)
 {
     DEBUGXD O("Daily::LoadDate") O(date);
     if (!date.isValid()) {
-        qDebug() << "LoadDate called with invalid date";
+        qDebug() << "Daily::LoadDate(): LoadDate called with invalid date";
         return;
     }
     ui->calendar->blockSignals(true);
@@ -1090,7 +1090,7 @@ void Daily::on_ReloadDay()
     static volatile bool inReload = false;
 
     if (inReload) {
-        qDebug() << "attempt to renter on_ReloadDay()";
+        qDebug() << "Daily::on_ReloadDay(): attempt to renter on_ReloadDay()";
     }
     inReload = true;
     graphView()->releaseKeyboard();
@@ -1120,7 +1120,7 @@ void Daily::on_ReloadDay()
     this->setCursor(Qt::ArrowCursor);
     other_time=time.restart();
 
-    qDebug() << "Page change time (in ms): Unload ="<<unload_time<<"Load =" << load_time << "Other =" << other_time;
+    qDebug() << "Daily::on_ReloadDay(): Page change time (in ms): Unload ="<<unload_time<<"Load =" << load_time << "Other =" << other_time;
     inReload = false;
 }
 void Daily::ResetGraphLayout()
@@ -1133,7 +1133,7 @@ void Daily::ResetGraphOrder(int type)
         Day * day = p_profile->GetDay(previous_date,MT_CPAP);
 
         int cpapMode = day->getCPAPMode();
-        //    qDebug() << "Daily::ResetGraphOrder cpapMode" << cpapMode;
+        //    qDebug() << "Daily::ResetGraphOrder(): cpapMode" << cpapMode;
 
         if (useAdvancedGraphs.contains(cpapMode))
             GraphView->resetGraphOrder(true, advancedGraphOrder);
@@ -1890,9 +1890,9 @@ void Daily::Load(QDate date)
 {
     PERF_TIMER_SCOPE("Daily::Load()");
 
-    qDebug() << "Daily::Load called for" << date.toString() << "using" << QApplication::font().toString();
+    qDebug() << "Daily::Load(): Called for" << date.toString() << "using" << QApplication::font().toString();
 
-    qDebug() << "Setting App font in Daily::Load";
+//    qDebug() << "Setting App font in Daily::Load";
     setApplicationFont();
 
     dateDisplay->setText("<i>"+date.toString(QLocale::system().dateFormat(QLocale::ShortFormat))+"</i>");
@@ -1911,7 +1911,7 @@ void Daily::Load(QDate date)
         posit = day->machine(MT_POSITION);
     }
     else {
-        qDebug() << "Warning: unable to load day" << date.toString(QLocale::system().dateFormat(QLocale::ShortFormat));
+        qWarning() << "Daily::Load(): Warning: unable to load day" << date.toString(QLocale::system().dateFormat(QLocale::ShortFormat));
     }
 
     PERF_TIMER_START("Daily::Load::Sessions");

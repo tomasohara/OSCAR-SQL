@@ -862,7 +862,7 @@ void MainWindow::finishCPAPImport()
     // This was missing - sessions were never being saved!
     QList<Machine *> machines = p_profile->GetMachines(MT_CPAP);
     for (Machine * mach : machines) {
-        qDebug() << "finishCPAPImport: Saving" << mach->sessionlist.size() << "sessions for machine" << mach->serial();
+        qDebug() << "MainWindow::finishCPAPImport(): Saving" << mach->sessionlist.size() << "sessions for machine" << mach->serial();
         mach->Save();  // This saves sessions to database
         mach->saveSessionInfo();
         mach->SaveSummaryCache();

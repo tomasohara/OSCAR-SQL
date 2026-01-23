@@ -496,7 +496,7 @@ bool PreferencesRepository::loadCPAPSettings(qint64 profileId, CPAPSettings* cpa
         cpap->setPref(pref.key, value);
     }
     
-    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "CPAP preferences";
+//    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "CPAP preferences";
     return true;
 }
 
@@ -511,7 +511,7 @@ bool PreferencesRepository::loadOxiSettings(qint64 profileId, OxiSettings* oxi)
         oxi->setPref(pref.key, value);
     }
     
-    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "Oxi preferences";
+//    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "Oxi preferences";
     return true;
 }
 
@@ -526,7 +526,7 @@ bool PreferencesRepository::loadSessionSettings(qint64 profileId, SessionSetting
         session->setPref(pref.key, value);
     }
     
-    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "Session preferences";
+//    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "Session preferences";
     return true;
 }
 
@@ -541,7 +541,7 @@ bool PreferencesRepository::loadAppearanceSettings(qint64 profileId, AppearanceS
         appearance->setPref(pref.key, value);
     }
     
-    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "Appearance preferences";
+//    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "Appearance preferences";
     return true;
 }
 
@@ -556,6 +556,6 @@ bool PreferencesRepository::loadUserSettings(qint64 profileId, UserSettings* gen
         general->setPref(pref.key, value);
     }
     
-    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "General preferences";
+//    qDebug() << "PreferencesRepository: Loaded" << prefs.size() << "General preferences";
     return true;
 }

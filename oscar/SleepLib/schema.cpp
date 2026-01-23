@@ -512,16 +512,16 @@ bool ChannelList::Load(QString filename)
 {
     QDomDocument doc(m_doctype);
     QFile file(filename);
-    qDebug() << "Opening " << filename;
+    qDebug() << "Schema::ChannelList::Load(): Opening " << filename;
 
     if (!file.open(QIODevice::ReadOnly)) {
 //        qWarning() << "Could not open" << filename;
-        qWarning() << "Could not open" << filename << "for reading, error code" << file.error() << file.errorString();
+        qWarning() << "Schema::ChannelList::Load(): Could not open" << filename << "for reading, error code" << file.error() << file.errorString();
         return false;
     }
 
     if (! doc.setContent(&file) ){
-        qWarning() << "Invalid XML Content in" << filename;
+        qWarning() << "Schema::ChannelList::Load(): Invalid XML Content in" << filename;
         return false;
     }
     file.close();
@@ -536,11 +536,11 @@ bool ChannelList::Load(QString filename)
     QString version = root.attribute("version", "");
 
     if (version.isEmpty()) {
-        qWarning() << "No Version Field in" << m_doctype << "Schema, assuming 1.0" << filename;
+        qWarning() << "Schema::ChannelList::Load(): No Version Field in" << m_doctype << "Schema, assuming 1.0" << filename;
         version = "1.0";
     }
 
-    qDebug() << "Processing xml file:" << m_doctype << language << version;
+    qDebug() << "Schema::ChannelList::Load(): Processing xml file:" << m_doctype << language << version;
     QDomNodeList grp = root.elementsByTagName("group");
     QDomNode node, n, ch;
     QDomElement e;
@@ -733,7 +733,7 @@ bool ChannelList::Save(QString filename)
     if (filename.isEmpty())
         return false;
 
-    qDebug() << "In ChannelList::Save() saving " << filename;;
+    qDebug() << "Schema::ChannelList::Save() saving " << filename;;
 
     QDomDocument doc("channels");
 

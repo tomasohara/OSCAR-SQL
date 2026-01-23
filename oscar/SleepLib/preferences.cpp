@@ -184,21 +184,22 @@ bool Preferences::Open(QString filename)
 
     QDomDocument doc(p_name);
     QFile file(p_filename);
-    qDebug() << "Opening " << p_filename.toLocal8Bit().data();
+//    qDebug() << "Opening " << p_filename.toLocal8Bit().data();        // Not in OSCAR 2.0
 
     if (!file.open(QIODevice::ReadOnly)) {
 //        qWarning() << "Could not open" << p_filename.toLocal8Bit().data() << " Error: " << file.error();
         if (file.error() == 5) {
-            qDebug() << "Preferences file not found -- normal on first use of OSCAR";
+//  Normal in OSCAR 2.0
+//            qDebug() << "Preferences file not found -- normal on first use of OSCAR";
         }
         else {
-            qWarning() << "Could not open preferences file for reading, error code" << file.error() << file.errorString();
+            qWarning() << "Preferences::Open(): Could not open preferences file for reading, error code" << file.error() << file.errorString();
         }
         return false;
     }
 
     if (! doc.setContent(&file)) {
-        qWarning() << "Invalid XML Content in" << p_filename.toLocal8Bit().data();
+        qWarning() << "Preferences::Open(): Invalid XML Content in" << p_filename.toLocal8Bit().data();
         return false;
     }
     file.close();
@@ -241,7 +242,7 @@ bool Preferences::Open(QString filename)
                 if (ok) {
                     p_preferences[name] = d;
                 } else {
-                    qDebug() << "XML Error:" << name << "=" << value << "??";
+                    qDebug() << "Preferences::Open(): XML Error:" << name << "=" << value << "??";
                 }
             } else if (type == "qlonglong") {
                 qint64 d;
@@ -250,7 +251,7 @@ bool Preferences::Open(QString filename)
                 if (ok) {
                     p_preferences[name] = d;
                 } else {
-                    qDebug() << "XML Error:" << name << "=" << value << "??";
+                    qDebug() << "Preferences::Open(): XML Error:" << name << "=" << value << "??";
                 }
             } else if (type == "int") {
                 int d;
@@ -259,7 +260,7 @@ bool Preferences::Open(QString filename)
                 if (ok) {
                     p_preferences[name] = d;
                 } else {
-                    qDebug() << "XML Error:" << name << "=" << value << "??";
+                    qDebug() << "Preferences::Open(): XML Error:" << name << "=" << value << "??";
                 }
             } else if (type == "bool") {
                 QString v = value.toLower();
@@ -275,7 +276,7 @@ bool Preferences::Open(QString filename)
                     if (ok) {
                         p_preferences[name] = d != 0;
                     } else {
-                        qDebug() << "XML Error:" << name << "=" << value << "??";
+                        qDebug() << "Preferences::Open(): XML Error:" << name << "=" << value << "??";
                     }
                 }
             } else if (type == "qdatetime") {
@@ -285,7 +286,7 @@ bool Preferences::Open(QString filename)
                 if (d.isValid()) {
                     p_preferences[name] = d;
                 } else {
-                    qWarning() << "XML Error: Invalid DateTime record" << name << value;
+                    qWarning() << "Preferences::Open(): XML Error: Invalid DateTime record" << name << value;
                 }
 
             } else if (type == "qtime") {
@@ -295,7 +296,7 @@ bool Preferences::Open(QString filename)
                 if (d.isValid()) {
                     p_preferences[name] = d;
                 } else {
-                    qWarning() << "XML Error: Invalid Time record" << name << value;
+                    qWarning() << "Preferences::Open(): XML Error: Invalid Time record" << name << value;
                 }
 
             } else  {
@@ -327,7 +328,7 @@ bool Preferences::Open(QString filename)
         // Don't do anything if machines.xml already exists.. the user ran the old version!
         if (!file.exists()) {
             if (!file.open(QFile::WriteOnly)) {
-                qWarning() << "Could not open" << filename << "for writing, error code" << file.error() << file.errorString();
+                qWarning() << "Preferences::Open(): Could not open" << filename << "for writing, error code" << file.error() << file.errorString();
             } else {
                 file.write(doc.toByteArray());
                 file.close();
@@ -393,7 +394,7 @@ bool Preferences::Save(QString filename)
     QFile file(p_filename);
 
     if (!file.open(QIODevice::WriteOnly)) {
-        qWarning() << "Could not open" << p_filename << "for writing, error code" << file.error() << file.errorString();
+        qWarning() << "Preferences::Save(): Could not open" << p_filename << "for writing, error code" << file.error() << file.errorString();
         return false;
     }
 

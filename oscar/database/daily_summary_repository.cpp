@@ -248,9 +248,9 @@ bool DailySummaryRepository::calculateAndStoreFromDay(Day* day, qint64 profileId
     qint64 id = create(data);
     
     if (id > 0) {
-        qDebug() << "DailySummaryRepository: Stored daily summary for" << data.date 
-                 << "AHI:" << data.ahi << "Hours:" << data.totalHours 
-                 << "Machine:" << data.machineId;
+//        qDebug() << "DailySummaryRepository: Stored daily summary for" << data.date
+//                 << "AHI:" << data.ahi << "Hours:" << data.totalHours
+//                 << "Machine:" << data.machineId;
         return true;
     } else {
         qWarning() << "DailySummaryRepository: Failed to store daily summary for" << data.date;

@@ -117,7 +117,7 @@ Profile::Profile(QString path, bool open)
         bool hasProfileXml = QFile::exists(profileXmlPath);
         
         if (hasProfileXml) {
-            qDebug() << "Profile::Profile() - Profile.xml exists, XML data loaded - will migrate to database on Save()";
+            qDebug() << "Profile::Profile(): Profile.xml exists, XML data loaded - will migrate to database on Save()";
             // XML data is already loaded by Open() above
             // We'll save it to database when Save() is called, then delete Profile.xml
             // Don't call loadExtendedDataFromDatabase() - would overwrite XML data with wrong profile
@@ -127,7 +127,7 @@ Profile::Profile(QString path, bool open)
             ProfileData profileData = profileRepo.findByUsername(user->userName());
             if (profileData.id > 0) {
                 // Profile is in database, load extended data from it
-                qDebug() << "Profile::Profile() - Loading extended data from database for profile ID" << profileData.id;
+//                qDebug() << "Profile::Profile() - Loading extended data from database for profile ID" << profileData.id;
                 loadExtendedDataFromDatabase();
             } else {
                 qDebug() << "Profile::Profile() - Profile not in database, using defaults";
@@ -267,12 +267,12 @@ bool Profile::OpenMachines()
 
     // Try database first
     if (loadMachinesFromDatabase()) {
-        qDebug() << "Profile: Loaded machines from database";
+//        qDebug() << "Profile::OpenMachines(): Loaded machines from database";
         return true;
     }
 
     // Unable to read machines (maybe there aren't any?)
-    qWarning() << "Profile: Could not read machines from database";
+    qWarning() << "Profile::OpenMachines(): Could not read machines from database";
     return false; // loadMachinesFromXML();
 }
 
@@ -288,18 +288,18 @@ bool Profile::loadMachinesFromDatabase()
     // Find this profile in database
     ProfileData profileData = profileRepo.findByUsername(username);
     if (profileData.id == 0) {
-        qDebug() << "Profile: Profile" << username << "not in database";
+        qDebug() << "Profile::loadMachinesFromDatabase(): Profile" << username << "not in database";
         return false;  // Profile not in database yet
     }
 
     // Get all machines for this profile
     QList<MachineData> machines = machineRepo.findByProfile(profileData.id);
     if (machines.isEmpty()) {
-        qDebug() << "Profile: No machines in database for this profile";
+        qDebug() << "Profile::loadMachinesFromDatabase(): No machines in database for this profile";
         return false;  // No machines in database
     }
 
-    qDebug() << "Profile: Loading" << machines.size() << "machines from database";
+//    qDebug() << "Profile::loadMachinesFromDatabase(): Loading" << machines.size() << "machines from database";
 
     // Create Machine objects from database
     for (const MachineData& data : machines) {
@@ -315,8 +315,8 @@ bool Profile::loadMachinesFromDatabase()
         info.purgeDate = QDate::fromString(data.purgeDate, Qt::ISODate);
         info.version = data.dataVersion;
         
-        qDebug() << "Profile: Loading machine" << data.brand << data.model << "serial" << data.serialNumber 
-                 << "with dataVersion" << data.dataVersion;
+//        qDebug() << "Profile::loadMachinesFromDatabase(): Loading machine" << data.brand << data.model << "serial" << data.serialNumber
+//                 << "with dataVersion" << data.dataVersion;
 
         // Parse properties from JSON
         if (!data.properties.isEmpty()) {
@@ -340,20 +340,22 @@ bool Profile::loadMachinesFromDatabase()
             if (correctVersion == 0) {
                 MachineLoader* loader = GetLoader(data.loaderName);
                 if (loader) {
-                    correctVersion = loader->Version();
-                    qDebug() << "Profile: Database has version 0 for" << data.loaderName 
-                             << ", updating to loader version" << correctVersion;
+                    if (loader->Version() != correctVersion) { // Some loaders have their version number set to 0!
+                        correctVersion = loader->Version();
+                        qDebug() << "Profile::loadMachinesFromDatabase(): Database has version 0 for" << data.loaderName
+                                << ", updating to loader version" << correctVersion;
                     
-                    // Update database with correct version
-                    MachineData updatedData = data;
-                    updatedData.dataVersion = correctVersion;
-                    machineRepo.update(updatedData);
+                        // Update database with correct version
+                        MachineData updatedData = data;
+                        updatedData.dataVersion = correctVersion;
+                        machineRepo.update(updatedData);
+                    }
                 }
             }
             
             // Ensure in-memory version matches what it should be
             if (m->version() != correctVersion) {
-                qDebug() << "Profile: Correcting machine version from" << m->version() << "to" << correctVersion;
+                qDebug() << "Profile::loadMachinesFromDatabase(): Correcting machine version from" << m->version() << "to" << correctVersion;
                 m->info.version = correctVersion;
             }
             
@@ -1585,7 +1587,7 @@ void Scan()
             // Directory exists - if profile was marked missing, reactivate it
             if (data.status == "missing") {
                 profileRepo.updateStatus(data.id, "active");
-                qDebug() << "Profile" << data.username << "directory restored - marked as 'active'";
+                qDebug() << "Profiles::scan(): " << data.username << "directory restored - marked as 'active'";
             }
             
             // Create Profile object
@@ -1595,7 +1597,7 @@ void Scan()
             QString dbUsername = data.username;
             QString profUsername = prof->user->userName();
             if (dbUsername != profUsername) {
-                qDebug() << "Updating profile username from" << profUsername << "to" << dbUsername;
+                qDebug() << "Profiles::scan(): Updating profile username from" << profUsername << "to" << dbUsername;
                 prof->user->setUserName(dbUsername);
             }
             
@@ -1618,7 +1620,7 @@ void Scan()
     }
 
     if (!dir.isReadable()) {
-        qWarning() << "Can't open " << path;
+        qWarning() << "Profiles::scan(): Can't open " << path;
         return;
     }
 
@@ -1641,7 +1643,7 @@ void Scan()
         QString fname = QFileInfo(fi).fileName();
         if (fname != dbname) {
             prof->user->setUserName(fname);
-            QString message = QString("%1 %2 %3 %4").arg("Changing Profile Name").arg(dbname).arg("==>").arg(fname);
+            QString message = "Profiles::scan(): " + QString("%1 %2 %3 %4").arg("Changing Profile Name").arg(dbname).arg("==>").arg(fname);
             qDebug() << message;
         }
 
@@ -1652,7 +1654,7 @@ void Scan()
     }
 
     if (cleanup > 0) {
-        qDebug() << "Saving preferences after migration";
+        qDebug() << "Profiles::scan(): Saving preferences after migration";
         p_pref->Save();
     }
 }
@@ -2948,17 +2950,17 @@ bool Profile::saveExtendedDataToDatabase()
     qint64 profileId = profileData.id;
     
     // Debug: Check what data we're trying to save
-    qDebug() << "Profile::saveExtendedDataToDatabase() - Saving for profile ID" << profileId;
-    qDebug() << "Profile::saveExtendedDataToDatabase() - User firstName:" << user->firstName();
-    qDebug() << "Profile::saveExtendedDataToDatabase() - User lastName:" << user->lastName();
-    qDebug() << "Profile::saveExtendedDataToDatabase() - Doctor name:" << doctor->name();
+//    qDebug() << "Profile::saveExtendedDataToDatabase() - Saving for profile ID" << profileId;
+//    qDebug() << "Profile::saveExtendedDataToDatabase() - User firstName:" << user->firstName();
+//    qDebug() << "Profile::saveExtendedDataToDatabase() - User lastName:" << user->lastName();
+//    qDebug() << "Profile::saveExtendedDataToDatabase() - Doctor name:" << doctor->name();
     
     // Save user info
     UserInfoRepository userRepo;
     if (!userRepo.saveFromUserInfo(profileId, user)) {
         qWarning() << "Profile::saveExtendedDataToDatabase() - Failed to save user info";
     } else {
-        qDebug() << "Profile::saveExtendedDataToDatabase() - Successfully saved user info";
+//        qDebug() << "Profile::saveExtendedDataToDatabase() - Successfully saved user info for profile" << profileId;
     }
     
     // Save doctor info
@@ -2966,7 +2968,7 @@ bool Profile::saveExtendedDataToDatabase()
     if (!doctorRepo.saveFromDoctorInfo(profileId, doctor)) {
         qWarning() << "Profile::saveExtendedDataToDatabase() - Failed to save doctor info";
     } else {
-        qDebug() << "Profile::saveExtendedDataToDatabase() - Successfully saved doctor info";
+//        qDebug() << "Profile::saveExtendedDataToDatabase() - Successfully saved doctor info";
     }
     
     // Save all preferences

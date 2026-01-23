@@ -188,14 +188,14 @@ bool UserInfoRepository::saveFromUserInfo(qint64 profileId, UserInfo* userInfo)
 bool UserInfoRepository::loadIntoUserInfo(qint64 profileId, UserInfo* userInfo)
 {
     if (!userInfo) {
-        qWarning() << "UserInfoRepository::loadIntoUserInfo() - userInfo is null";
+        qWarning() << "UserInfoRepository::loadIntoUserInfo(): UserInfo is null";
         return false;
     }
 
     UserInfoData data = findByProfile(profileId);
     
     if (data.id == 0) {
-        qDebug() << "UserInfoRepository: No user_info found for profile" << profileId;
+        qDebug() << "UserInfoRepository::loadIntoUserInfo(): No user_info found for profile" << profileId;
         return false;
     }
 
@@ -219,7 +219,7 @@ bool UserInfoRepository::loadIntoUserInfo(qint64 profileId, UserInfo* userInfo)
         userInfo->setPref("Password", data.passwordHash);
     }
 
-    qDebug() << "UserInfoRepository: Loaded user_info for profile" << profileId;
+//    qDebug() << "UserInfoRepository: Loaded user_info for profile" << profileId;
     return true;
 }
 

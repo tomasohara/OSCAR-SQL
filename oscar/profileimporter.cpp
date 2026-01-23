@@ -67,7 +67,7 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     
     if (!copyProfileStructure(sourcePath, newPath)) {
         dbMgr.rollback();
-        qDebug() << "ProfileImporter: Rolled back transaction due to copyProfileStructure failure";
+        qWarning() << "ProfileImporter: Rolled back transaction due to copyProfileStructure failure";
         rollbackImport(newPath);
         return false;
     }
@@ -78,7 +78,7 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     if (!QFile::copy(sourceMachinesXml, destMachinesXml)) {
         m_lastError = tr("Failed to copy machines.xml");
         dbMgr.rollback();
-        qDebug() << "ProfileImporter: Rolled back transaction due to machines.xml copy failure";
+        qWarning() << "ProfileImporter: Rolled back transaction due to machines.xml copy failure";
         rollbackImport(newPath);
         return false;
     }
@@ -95,7 +95,7 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     
     if (!migrateMetadata(profile, sourcePath)) {
         dbMgr.rollback();
-        qDebug() << "ProfileImporter: Rolled back transaction due to migrateMetadata failure";
+        qWarning() << "ProfileImporter: Rolled back transaction due to migrateMetadata failure";
         rollbackImport(newPath);
         delete profile;
         return false;
@@ -107,10 +107,10 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     // Load source profile to copy user data
     Profile* sourceProfile = new Profile(sourcePath, true);
     if (sourceProfile && sourceProfile->isOpen()) {
-        qDebug() << "ProfileImporter: Source profile opened successfully";
-        qDebug() << "ProfileImporter: Source user firstname:" << sourceProfile->user->firstName();
-        qDebug() << "ProfileImporter: Source user lastname:" << sourceProfile->user->lastName();
-        qDebug() << "ProfileImporter: Source doctor name:" << sourceProfile->doctor->name();
+//        qDebug() << "ProfileImporter: Source profile opened successfully";
+//        qDebug() << "ProfileImporter: Source user firstname:" << sourceProfile->user->firstName();
+//        qDebug() << "ProfileImporter: Source user lastname:" << sourceProfile->user->lastName();
+//        qDebug() << "ProfileImporter: Source doctor name:" << sourceProfile->doctor->name();
         
         // Copy user info (keep the new username we already set)
         profile->user->setDOB(sourceProfile->user->DOB());
@@ -131,9 +131,9 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
         profile->doctor->setPatientID(sourceProfile->doctor->patientID());
         // Note: Preferences are copied during extended data migration
         
-        qDebug() << "ProfileImporter: After copy - user firstname:" << profile->user->firstName();
-        qDebug() << "ProfileImporter: After copy - user lastname:" << profile->user->lastName();
-        qDebug() << "ProfileImporter: After copy - doctor name:" << profile->doctor->name();
+//        qDebug() << "ProfileImporter: After copy - user firstname:" << profile->user->firstName();
+//        qDebug() << "ProfileImporter: After copy - user lastname:" << profile->user->lastName();
+//        qDebug() << "ProfileImporter: After copy - doctor name:" << profile->doctor->name();
         
         // Note: We'll save user/doctor info in Profile::Save() below
         // Don't save here because profile might not be in database yet
@@ -154,7 +154,7 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     if (!sessionsLoaded) {
         p_profile = savedProfile;  // Restore before failing
         dbMgr.rollback();
-        qDebug() << "ProfileImporter: Rolled back transaction due to loadSessionsFromFiles failure";
+        qWarning() << "ProfileImporter: Rolled back transaction due to loadSessionsFromFiles failure";
         rollbackImport(newPath);
         delete profile;
         return false;
@@ -185,8 +185,8 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
         return false;
     }
     
-    qDebug() << "ProfileImporter: Successfully committed entire import transaction";
-    qDebug() << "ProfileImporter: Import completed - all data saved to database";
+//    qDebug() << "ProfileImporter: Successfully committed entire import transaction";
+//    qDebug() << "ProfileImporter: Import completed - all data saved to database";
     
     reportProgress(100, 100, tr("Import complete!"));
     
@@ -251,7 +251,7 @@ bool ProfileImporter::copyProfileStructure(const QString& oldPath,
         QString oldBackupPath = oldMachinePath + "/Backup";
         if (QDir(oldBackupPath).exists()) {
             QString newBackupPath = newMachinePath + "/Backup";
-            qDebug() << "Copying Backup folder recursively:" << oldBackupPath << "to" << newBackupPath;
+//            qDebug() << "Copying Backup folder recursively:" << oldBackupPath << "to" << newBackupPath;
             if (!copyDirectoryRecursively(oldBackupPath, newBackupPath)) {
                 qWarning() << "Failed to copy Backup folder recursively:" << oldBackupPath;
                 // Don't fail - Backup is optional
@@ -356,7 +356,7 @@ bool ProfileImporter::migrateMetadata(Profile* profile, const QString& oldPath)
 
 bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& sourcePath)
 {
-    qDebug() << "ProfileImporter::migrateJournalFromSource() - Starting";
+//    qDebug() << "ProfileImporter::migrateJournalFromSource() - Starting";
     
     // Get journal machine
     Machine* journalMachine = profile->GetMachine(MT_JOURNAL);
@@ -372,7 +372,7 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
         return false;
     }
     
-    qDebug() << "ProfileImporter::migrateJournalFromSource() - Journal machine database ID:" << machineDbId;
+//    qDebug() << "ProfileImporter::migrateJournalFromSource() - Journal machine database ID:" << machineDbId;
     
     // Find journal folder in source directory
     QDir sourceDir(sourcePath);
@@ -406,11 +406,11 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
     QStringList files = dir.entryList(QDir::Files);
     
     if (files.isEmpty()) {
-        qDebug() << "ProfileImporter::migrateJournalFromSource() - No .000 files found in source";
+//        qDebug() << "ProfileImporter::migrateJournalFromSource() - No .000 files found in source";
         return true;  // Not an error
     }
     
-    qDebug() << "ProfileImporter::migrateJournalFromSource() - Found" << files.size() << ".000 files to migrate";
+//    qDebug() << "ProfileImporter::migrateJournalFromSource() - Found" << files.size() << ".000 files to migrate";
     
     // Migrate each file
     int migratedCount = 0;
@@ -459,15 +459,15 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
             continue;
         }
         
-        qDebug() << "ProfileImporter::migrateJournalFromSource() - Migrated" << date.toString() << "to database";
+//        qDebug() << "ProfileImporter::migrateJournalFromSource() - Migrated" << date.toString() << "to database";
         migratedCount++;
         
         delete sess;
     }
     
-    qDebug() << "ProfileImporter::migrateJournalFromSource() - Migration complete:"
-             << migratedCount << "sessions migrated,"
-             << errorCount << "errors";
+//    qDebug() << "ProfileImporter::migrateJournalFromSource() - Migration complete:"
+//             << migratedCount << "sessions migrated,"
+//             << errorCount << "errors";
     
     return (errorCount == 0);
 }
@@ -524,21 +524,21 @@ bool ProfileImporter::loadSessionsFromFiles(Profile* profile,
             continue;
         }
         
-        qDebug() << "Loading sessions for machine:" << machine->hexid() << "from folder:" << entry;
+//        qDebug() << "Loading sessions for machine:" << machine->hexid() << "from folder:" << entry;
         
         if (!loadMachineSessions(machine, oldMachinePath)) {
             return false;
         }
         
-        qDebug() << "Machine now has" << machine->sessionlist.size() << "sessions";
-        qDebug() << "Machine day list size:" << machine->day.size();
+//        qDebug() << "Machine now has" << machine->sessionlist.size() << "sessions";
+//        qDebug() << "Machine day list size:" << machine->day.size();
     }
     
     // Debug: Check profile's overall daylist
-    qDebug() << "ProfileImporter: Total sessions loaded:" << m_loadedSessions;
-    qDebug() << "ProfileImporter: Profile daylist size:" << profile->daylist.size();
-    qDebug() << "ProfileImporter: Profile first day:" << profile->FirstDay();
-    qDebug() << "ProfileImporter: Profile last day:" << profile->LastDay();
+//    qDebug() << "ProfileImporter: Total sessions loaded:" << m_loadedSessions;
+//    qDebug() << "ProfileImporter: Profile daylist size:" << profile->daylist.size();
+//    qDebug() << "ProfileImporter: Profile first day:" << profile->FirstDay();
+//    qDebug() << "ProfileImporter: Profile last day:" << profile->LastDay();
     
     return true;
 }
@@ -612,10 +612,10 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
         }
         
         // Add to machine
-        qDebug() << "ProfileImporter: Adding session" << sessionId << "to machine";
+//        qDebug() << "ProfileImporter: Adding session" << sessionId << "to machine";
         machine->AddSession(session);
-        qDebug() << "ProfileImporter: Machine now has" << machine->sessionlist.size() << "sessions";
-        qDebug() << "ProfileImporter: Machine day list size:" << machine->day.size();
+//        qDebug() << "ProfileImporter: Machine now has" << machine->sessionlist.size() << "sessions";
+//        qDebug() << "ProfileImporter: Machine day list size:" << machine->day.size();
         
         m_loadedSessions++;
         

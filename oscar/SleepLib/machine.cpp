@@ -147,12 +147,12 @@ bool Machine::saveSessionInfo()
     if (info.type == MT_JOURNAL) return false;
     if (sessionlist.size() == 0) return false;
 
-    qDebug() << "Saving" << info.brand << "session info" << info.loadername;
+    qDebug() << "Machine::saveSessionInfo(): Saving" << info.brand << "session info" << info.loadername;
     QString filename = getDataPath() + "Sessions.info";
     QFile file(filename);
     if (!file.open(QFile::WriteOnly)) {
-//        qDebug() << "Couldn't open" << filename << "for writing";
-        qWarning() << "Couldn't open" << filename << "for writing, error code" << file.error() << file.errorString();
+//        qDebug() << "Machine::saveSessionInfo(): Couldn't open" << filename << "for writing";
+        qWarning() << "Machine::saveSessionInfo(): Couldn't open" << filename << "for writing, error code" << file.error() << file.errorString();
         return false;
     }
 
@@ -173,14 +173,14 @@ bool Machine::saveSessionInfo()
             out << (quint32) sess->session();
             out << (quint8)(sess->enabled(true));
         } else {
-            qWarning() << "Machine::SaveSessionInfo discarding session" << sess->s_session
+            qWarning() << "Machine::SaveSessionInfo(): discarding session" << sess->s_session
                        << "["+QDateTime::fromSecsSinceEpoch(sess->s_session).toString("MMM dd, yyyy hh:mm:ss")+"]"
                        << "from machine" << serial() << "with first=0";
         }
 
         //out << sess->m_availableChannels;
     }
-    qDebug() << "Done Saving" << info.brand << "session info";
+//    qDebug() << "Machine::saveSessionInfo(): Done Saving" << info.brand << "session info";
 
     return true;
 }
@@ -887,10 +887,10 @@ void Machine::queTask(ImportTask * task)
 void Machine::runTasks()
 {
     if (m_tasklist.isEmpty()) {
-        qDebug() << "No tasks in m_tasklist";
+        qDebug() << "Machine::runTasks(): No tasks in m_tasklist";
         return;
     }
-    qDebug() << "m_tasklist size is" << m_tasklist.size();
+    qDebug() << "Machine::runTasks(): m_tasklist size is" << m_tasklist.size();
 
     QThreadPool * threadpool = QThreadPool::globalInstance();
 /***********************************************************
@@ -1276,7 +1276,7 @@ bool Machine::Save()
                 qDebug() << "Machine::Save(): Started transaction for batch session save";
             }
         } else {
-            qDebug() << "Machine::Save(): Already in transaction - skipping nested transaction";
+//            qDebug() << "Machine::Save(): Already in transaction - skipping nested transaction";
         }
         
         int savedCount = 0;
@@ -1406,7 +1406,7 @@ bool Machine::SaveToDatabase()
     }
 
     if (info.serial.isEmpty() && info.model.isEmpty()) {
-        qDebug() << "Machine::SaveToDatabase(): Cannot save machine without serial or model";
+        qWarning() << "Machine::SaveToDatabase(): Cannot save machine without serial or model";
         return false;
     }
 

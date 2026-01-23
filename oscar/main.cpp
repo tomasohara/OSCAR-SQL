@@ -70,186 +70,6 @@
 MainWindow *mainwin = nullptr;
 extern bool openOk;
 
-//int numFilesCopied = 0;
-
-/****
-// Count the number of files in this directory and all subdirectories
-int countRecursively(QString sourceFolder) {
-    QDir sourceDir(sourceFolder);
-
-    if(!sourceDir.exists())
-        return 0;
-
-    int numFiles = sourceDir.count();
-
-    QStringList dirs = sourceDir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot);
-    for(int i = 0; i< dirs.count(); i++) {
-        QString srcName = sourceFolder + QDir::separator() + dirs[i];
-        numFiles += countRecursively(srcName);
-    }
-
-    return numFiles;
-}
-****/
-/****
-bool copyRecursively(QString sourceFolder, QString destFolder, QProgressDialog& progress) {
-    bool success = false;
-    QDir sourceDir(sourceFolder);
-
-    if(!sourceDir.exists())
-        return false;
-
-    QDir destDir(destFolder);
-    if(!destDir.exists())
-        destDir.mkdir(destFolder);
-
-    QStringList files = sourceDir.entryList(QDir::Files);
-    for(int i = 0; i< files.count(); i++) {
-        QString srcName = sourceFolder + QDir::separator() + files[i];
-        QString destName = destFolder + QDir::separator() + files[i];
-        success = QFile::copy(srcName, destName);
-        numFilesCopied++;
-        if ((numFilesCopied % 20) == 1) { // Update progress bar every 20 files
-            progress.setValue(numFilesCopied);
-            QCoreApplication::processEvents();
-        }
-        if(!success) {
-            qWarning() << "copyRecursively: Unable to copy" << srcName << "to" << destName;
-            return false;
-        }
-    }
-
-    files.clear();
-    files = sourceDir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot);
-    for(int i = 0; i< files.count(); i++) {
-        QString srcName = sourceFolder + QDir::separator() + files[i];
-        QString destName = destFolder + QDir::separator() + files[i];
-//      qDebug() << "Copy from "+srcName+" to "+destName;
-        success = copyRecursively(srcName, destName, progress);
-        if(!success)
-            return false;
-    }
-
-    return true;
-}
-****/
-/****
-bool processPreferenceFile( QString path ) {
-    bool success = true;
-    QString fullpath = path + "/Preferences.xml";
-    qDebug() << "Process " + fullpath;
-    QFile fl(fullpath);
-    QFile tmp(fullpath+".tmp");
-    QString line;
-    openOk = fl.open(QIODevice::ReadOnly);
-    openOk = tmp.open(QIODevice::WriteOnly);
-    QTextStream instr(&fl);
-    QTextStream outstr(&tmp);
-    bool isSleepyHead = false;
-    while (instr.readLineInto(&line)) {
-        if (line.contains("<SleepyHead>"))  // Is this SleepyHead or OSCAR preferences file?
-            isSleepyHead = true;
-        line.replace("SleepyHead","OSCAR");
-        if (isSleepyHead && line.contains("VersionString")) {
-            int rtAngle = line.indexOf(">", 0);
-            int lfAngle = line.indexOf("<", rtAngle);
-            line.replace(rtAngle+1, lfAngle-rtAngle-1, "1.0.0-beta");
-        }
-        outstr << line;
-    }
-    fl.remove();
-    success = tmp.rename(fullpath);
-
-    return success;
-}
-****/
-/***
-bool processFile( QString fullpath ) {
-    bool success = true;
-    qDebug() << "Process " + fullpath ;
-    QFile fl(fullpath);
-    QFile tmp(fullpath+".tmp");
-    QString line;
-    openOk = fl.open(QIODevice::ReadOnly);
-    openOk = tmp.open(QIODevice::WriteOnly);
-    QTextStream instr(&fl);
-    QTextStream outstr(&tmp);
-    while (instr.readLineInto(&line)) {
-        if (line.contains("EnableMultithreading")) {
-            if (line.contains("true")) {
-                line.replace("true","false");
-            }
-        }
-        line.replace("SleepyHead","OSCAR");
-        outstr << line;
-    }
-    fl.remove();
-    success = tmp.rename(fullpath);
-
-    return success;
-}
-***/
-/****
-bool process_a_Profile( QString path ) {
-    bool success = true;
-    qDebug() << "Entering profile directory " + path;
-    QDir dir(path);
-    QStringList files = dir.entryList(QStringList("*.xml"), QDir::Files);
-    for ( int i = 0; success && (i<files.count()); i++) {
-        success = processFile( path + "/" + files[i] );
-    }
-    return success;
-}
-***/
-/****
-// Returns name of new profile or empty string if import failed
-QString importProfile(QString sourcePath, QString profileName, QString destPath)
-{
-    Q_UNUSED(sourcePath)
-    QString newName = profileName;
-
-    // append a copy number if needed to obtain uniqueness in the destination directory
-    int copyNum = 1;
-    while (QFile(destPath + "/" + newName).exists()) {
-        newName += "_copy" + QString::number(copyNum);
-        copyNum++;
-    }
-    return newName;
-}
-****/
-/****
-    // Create progress dialog
-    ProgressDialog progress(this);
-    progress.setWindowTitle(tr("Importing Profile"));
-    progress.show();
-
-    // Perform import
-    ProfileImporter importer;
-    connect(&importer, &ProfileImporter::progressChanged,
-            &progress, &ProgressDialog::setProgressValue);
-
-    bool success = importer.importProfile(sourcePath, destPath + "/" + newName, &progress);
-
-    progress.close();
-
-    if (success) {
-        // IMPORTANT: Rescan profiles to load the new profile into memory
-        // This adds it to Profiles::profiles map so it can be selected
-        Profiles::Scan();
-
-        // Refresh profile list UI
-        if (profileSelector) {
-            profileSelector->updateProfileList();
-        }
-        return newName;
-    } else {
-        QMessageBox::critical(this, tr("Import Failed"),
-                              tr("Failed to import profile:\n%1").arg(importer.lastError()));
-        return "";
-    }
-***/
-
-
 // Return a QList of all profile directories in a data directory (sourcePath)
 QList<QString> enumerateProfiles(QString sourcePath){    // Find all profiles in that directory
     QDir dir(sourcePath);
@@ -280,6 +100,9 @@ QList<QString> enumerateProfiles(QString sourcePath){    // Find all profiles in
     return goodProfiles;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+// Migrate OSCAR 1.x data to OSCAR 2.0
+////////////////////////////////////////////////////////////////////////////////////////////
 bool migrateFromOSCAR(QString destDir) {
     QString homeDocs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)+"/";
     QString sourcePath;
@@ -497,6 +320,9 @@ void optionExit(int exitCode, QString error) {
     exit (exitCode);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+// Main()
+////////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[]) {
     QString homeDocs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)+"/";
     QCoreApplication::setApplicationName(getAppName() + " 2.0"); // add major version so that QSettings separates this from prior version.
@@ -526,6 +352,9 @@ int main(int argc, char *argv[]) {
 
     QSettings settings;
 
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    // Handle graphics mode change, including change after crash
+    ////////////////////////////////////////////////////////////////////////////////////////////
     // If shift key was held down when OSCAR was launched, force Software graphics Engine (aka LegacyGFX)
     QString forcedEngine = "";
 #ifndef Q_OS_LINUX
@@ -581,14 +410,20 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
-    initializeLogger();
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    // Initialize logger
+    ////////////////////////////////////////////////////////////////////////////////////////////
     // After initializing the logger, any qDebug() messages will be queued but not written to console
     // until MainWindow is constructed below. In spite of that, we initialize the logger here so that
     // the intervening messages show up in the debug pane.
     //
     // The only time this is really noticeable is when initTranslations() presents its language
     // selection QDialog, which waits indefinitely for user input before MainWindow is constructed.
+    initializeLogger();
 
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    // Handle command line options
+    ////////////////////////////////////////////////////////////////////////////////////////////
     bool force_data_dir = false;
     QString load_profile; // null profile means no --profile param
     for (int i = 1; i < args.size(); i++) {
@@ -663,9 +498,6 @@ int main(int argc, char *argv[]) {
 
     initializeStrings(); // This must be called AFTER translator is installed, but before mainwindow is setup
 
-//    QFontDatabase::addApplicationFont("://fonts/FreeSans.ttf");
-//    a.setFont(QFont("FreeSans", 11, QFont::Normal, false));
-
     mainwin = new MainWindow;
 
 // Moved buildInfo calls to after translation is available as makeBuildInfo includes tr() calls
@@ -681,48 +513,9 @@ int main(int argc, char *argv[]) {
     getOpenGLVersion();
     getOpenGLVersionString();
 
-    //bool opengl2supported = glversion >= 2.0;
-    //bool bad_graphics = !opengl2supported;
-    //bool intel_graphics = false;
-//#ifndef NO_OPENGL_BUILD
-
-//#endif
-
-    /*************************************************************************************
-    #ifdef BROKEN_OPENGL_BUILD
-        Q_UNUSED(bad_graphics)
-        Q_UNUSED(intel_graphics)
-
-        const QString BetterBuild = "Settings/BetterBuild";
-
-        if (opengl2supported) {
-            if (!settings.value(BetterBuild, false).toBool()) {
-                QMessageBox::information(nullptr, QObject::tr("A faster build of OSCAR may be available"),
-                    QObject::tr("This build of OSCAR is a compatability version that also works on computers lacking OpenGL 2.0 support.")+"<br/><br/>"+
-                    QObject::tr("However it looks like your computer has full support for OpenGL 2.0!") + "<br/><br/>"+
-                    QObject::tr("This version will run fine, but a \"<b>%1</b>\" tagged build of OSCAR will likely run a bit faster on your computer.").arg("-OpenGL")+"<br/><br/>"+
-                    QObject::tr("You will not be bothered with this message again."), QMessageBox::Ok, QMessageBox::Ok);
-                settings.setValue(BetterBuild, true);
-            }
-        }
-    #else
-        if (bad_graphics) {
-            QMessageBox::warning(nullptr, QObject::tr("Incompatible Graphics Hardware"),
-                QObject::tr("This build of OSCAR requires OpenGL 2.0 support to function correctly, and unfortunately your computer lacks this capability.") + "<br/><br/>"+
-                QObject::tr("You may need to update your computers graphics drivers from the GPU makers website. %1").
-                    arg(intel_graphics ? QObject::tr("(<a href='http://intel.com/support'>Intel's support site</a>)") : "")+"<br/><br/>"+
-                QObject::tr("Because graphs will not render correctly, and it may cause crashes, this build will now exit.")+"<br/><br/>"+
-                QObject::tr("There is another build available tagged \"<b>-BrokenGL</b>\" that should work on your computer."),
-                QMessageBox::Ok, QMessageBox::Ok);
-            exit(1);
-        }
-    #endif
-    ****************************************************************************************************************/
     ////////////////////////////////////////////////////////////////////////////////////////////
     // Datafolder location Selection
     ////////////////////////////////////////////////////////////////////////////////////////////
-//  bool change_data_dir = force_data_dir;
-//
     bool haveNewFolder = false;
 
     if (!settings.contains("Settings/AppData")) {       // This is first time execution
@@ -965,15 +758,15 @@ int main(int argc, char *argv[]) {
     QString connectionsLogDir = GetLogDir() + "/connections";
     rotateLogs(connectionsLogDir);  // keep a limited set of previous logs
     if (!QDir(connectionsLogDir).mkpath(".")) {
-        qWarning().noquote() << "Unable to create directory" << connectionsLogDir;
+        qWarning().noquote() << "Main: Unable to create directory" << connectionsLogDir;
     }
 
     QFile deviceLog(connectionsLogDir + "/devices.xml");
     if (deviceLog.open(QFile::ReadWrite)) {
-        qDebug().noquote() << "Logging device connections to" << deviceLog.fileName();
+        qDebug().noquote() << "Main: Logging device connections to" << deviceLog.fileName();
         DeviceConnectionManager::getInstance().record(&deviceLog);
     } else {
-        qWarning().noquote() << "Unable to start device connection logging to" << deviceLog.fileName();
+        qWarning().noquote() << "Main: Unable to start device connection logging to" << deviceLog.fileName();
     }
 
     schema::setOrders(); // could be called in init...

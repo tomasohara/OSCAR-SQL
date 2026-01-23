@@ -29,7 +29,7 @@ qint64 DoctorInfoRepository::create(const DoctorInfoData& data)
 {
     QSqlDatabase db = DatabaseManager::instance().database();
     if (!db.isOpen()) {
-        qWarning() << "DoctorInfoRepository::create() - Database not open";
+        qWarning() << "DoctorInfoRepository::create(): Database not open";
         return -1;
     }
 
@@ -54,7 +54,7 @@ qint64 DoctorInfoRepository::create(const DoctorInfoData& data)
     }
 
     qint64 id = query.lastInsertId().toLongLong();
-    qDebug() << "DoctorInfoRepository: Created doctor_info record with id" << id;
+//    qDebug() << "DoctorInfoRepository: Created doctor_info record with id" << id;
     return id;
 }
 
@@ -180,7 +180,7 @@ bool DoctorInfoRepository::loadIntoDoctorInfo(qint64 profileId, DoctorInfo* doct
     doctorInfo->setAddress(data.address);
     doctorInfo->setPatientID(data.patientId);
 
-    qDebug() << "DoctorInfoRepository: Loaded doctor_info for profile" << profileId;
+//    qDebug() << "DoctorInfoRepository: Loaded doctor_info for profile" << profileId;
     return true;
 }
 

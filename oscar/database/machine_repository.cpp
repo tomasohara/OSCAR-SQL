@@ -87,7 +87,7 @@ qint64 MachineRepository::create(const MachineData& data)
     }
     
     qint64 id = query.lastInsertId().toLongLong();
-    qDebug() << "MachineRepository: Created machine" << data.brand << data.model 
+    qDebug() << "MachineRepository::create(): Created machine" << data.brand << data.model
              << "serial" << data.serialNumber << "with id" << id;
     
     return id;
@@ -272,7 +272,7 @@ QList<MachineData> MachineRepository::findByProfile(qint64 profileId)
         machines.append(recordToData(query));
     }
     
-    qDebug() << "MachineRepository: Found" << machines.size() << "machines for profile" << profileId;
+//    qDebug() << "MachineRepository: Found" << machines.size() << "machines for profile" << profileId;
     
     return machines;
 }
@@ -302,7 +302,7 @@ QList<MachineData> MachineRepository::findAll()
         machines.append(recordToData(query));
     }
     
-    qDebug() << "MachineRepository: Found" << machines.size() << "machines total";
+    qDebug() << "MachineRepository::findAll(): Found" << machines.size() << "machines total";
     
     return machines;
 }
@@ -363,7 +363,7 @@ bool MachineRepository::update(const MachineData& data)
         return false;
     }
     
-    qDebug() << "MachineRepository: Updated machine id" << data.id;
+    qDebug() << "MachineRepository::update(): Updated database for machine id" << data.id;
     return true;
 }
 
@@ -397,7 +397,7 @@ bool MachineRepository::remove(qint64 id)
         return false;
     }
     
-    qDebug() << "MachineRepository: Removed machine id" << id;
+    qDebug() << "MachineRepository::remove(): Removed machine id" << id;
     return true;
 }
 

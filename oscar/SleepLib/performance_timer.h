@@ -20,7 +20,7 @@
 
 // Enable/disable performance instrumentation
 // Define ENABLE_PERFORMANCE_INSTRUMENTATION in the .pro file or here
-#define ENABLE_PERFORMANCE_INSTRUMENTATION
+//#define ENABLE_PERFORMANCE_INSTRUMENTATION
 
 #ifdef ENABLE_PERFORMANCE_INSTRUMENTATION
     #define PERF_TIMER_START(name) PerformanceTimer::instance().start(name)

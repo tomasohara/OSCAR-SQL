@@ -3516,7 +3516,7 @@ bool Session::LoadEventsFromDatabase()
 
 bool Session::LoadSummaryFromFile(const QString& filename)
 {
-    qDebug() << "Session::LoadSummaryFromFile() - Loading from" << filename;
+//    qDebug() << "Session::LoadSummaryFromFile() - Loading from" << filename;
     
     if (filename.isEmpty()) {
         qDebug() << "Empty summary filename";
@@ -3769,15 +3769,15 @@ bool Session::LoadSummaryFromFile(const QString& filename)
     s_summary_loaded = true;
     s_enabled = 1;
     
-    qDebug() << "Session::LoadSummaryFromFile() - Successfully loaded session" << s_session
-             << "from" << filename;
+//    qDebug() << "Session::LoadSummaryFromFile() - Successfully loaded session" << s_session
+//             << "from" << filename;
     
     return true;
 }
 
 bool Session::LoadEventsFromFile(const QString& filename)
 {
-    qDebug() << "Session::LoadEventsFromFile() - Loading from" << filename;
+//    qDebug() << "Session::LoadEventsFromFile() - Loading from" << filename;
     
     // Skip event loading for journal machines - they only have settings
     if (s_machine->type() == MT_JOURNAL) {
@@ -3970,8 +3970,8 @@ bool Session::LoadEventsFromFile(const QString& filename)
 
     s_events_loaded = true;
     
-    qDebug() << "Session::LoadEventsFromFile() - Successfully loaded events for session" << s_session
-             << "from" << filename;
+//    qDebug() << "Session::LoadEventsFromFile() - Successfully loaded events for session" << s_session
+//             << "from" << filename;
     
     return true;
 }
