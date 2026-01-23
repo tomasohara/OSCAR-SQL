@@ -15,8 +15,14 @@
 #include <QMessageBox>
 #include <QCalendarWidget>
 #include <QTextCharFormat>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlRecord>
+#include <QStandardItemModel>
 #include "SleepLib/profiles.h"
 #include "SleepLib/day.h"
+#include "database/database_manager.h"
+#include "database/profile_repository.h"
 #include "exportcsv.h"
 #include "ui_exportcsv.h"
 #include "mainwindow.h"
@@ -28,7 +34,7 @@ ExportCSV::ExportCSV(QWidget *parent) :
     ui(new Ui::ExportCSV)
 {
     ui->setupUi(this);
-    ui->rb1_Summary->setChecked(true);
+    ui->resolutionCombo->setCurrentIndex(0);
     ui->quickRangeCombo->setCurrentIndex(0);
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
@@ -42,6 +48,7 @@ ExportCSV::ExportCSV(QWidget *parent) :
 
     ui->startDate->setDisplayFormat(shortformat);
     ui->endDate->setDisplayFormat(shortformat);
+
     // Stop both calendar drop downs highlighting weekends in red
     QTextCharFormat format = ui->startDate->calendarWidget()->weekdayTextFormat(Qt::Saturday);
     format.setForeground(QBrush(Qt::black, Qt::SolidPattern));
@@ -61,10 +68,20 @@ ExportCSV::ExportCSV(QWidget *parent) :
     connect(ui->endDate->calendarWidget(), SIGNAL(currentPageChanged(int, int)),
             SLOT(endDate_currentPageChanged(int, int)));
 
-    on_quickRangeCombo_activated(tr("Most Recent Day"));
-    ui->rb1_details->clearFocus();
+    on_quickRangeCombo_currentTextChanged(tr("Most Recent Day"));
     ui->quickRangeCombo->setFocus();
     ui->exportButton->setEnabled(false);
+
+    // Get list of available reports and load the report list
+    QStandardItemModel *model = new QStandardItemModel();
+    model->appendRow(new QStandardItem(tr("Daily Summaries")));
+    model->appendRow(new QStandardItem(tr("Session Statistics")));
+    model->appendRow(new QStandardItem(tr("Device Settings")));
+    ui->reportList->setModel(model);
+    ui->reportList->setSelectionMode(QAbstractItemView::SingleSelection);
+    
+    // Select first report by default
+    ui->reportList->setCurrentIndex(model->index(0, 0));
 }
 
 ExportCSV::~ExportCSV()
@@ -75,17 +92,24 @@ ExportCSV::~ExportCSV()
 void ExportCSV::on_filenameBrowseButton_clicked()
 {
     QString timestamp = QString("OSCAR_");
+
     timestamp += p_profile->Get("UserName") + "_";
-
-    if (ui->rb1_details->isChecked()) { timestamp += tr("Details_"); }
-
-    if (ui->rb1_Sessions->isChecked()) { timestamp += tr("Sessions_"); }
-
-    if (ui->rb1_Summary->isChecked()) { timestamp += tr("Summary_"); }
-
+    
+    // Get selected report name
+    QModelIndex index = ui->reportList->currentIndex();
+    if (index.isValid()) {
+        QStandardItemModel *model = qobject_cast<QStandardItemModel*>(ui->reportList->model());
+        if (model) {
+            QString reportName = model->itemFromIndex(index)->text();
+            timestamp += reportName.replace(" ", "_") + "_";
+        }
+    }
+    
     timestamp += ui->startDate->date().toString(Qt::ISODate);
 
-    if (ui->startDate->date() != ui->endDate->date()) { timestamp += "_" + ui->endDate->date().toString(Qt::ISODate); }
+    if (ui->startDate->date() != ui->endDate->date()) { 
+        timestamp += "_" + ui->endDate->date().toString(Qt::ISODate); 
+    }
 
     timestamp += ".csv";
     QString folder = mainwin->profilePath(STR_PREF_LastExportCsvPath);
@@ -107,7 +131,7 @@ void ExportCSV::on_filenameBrowseButton_clicked()
     mainwin->saveProfilePath(STR_PREF_LastExportCsvPath,folder);
 }
 
-void ExportCSV::on_quickRangeCombo_activated(const QString &arg1)
+void ExportCSV::on_quickRangeCombo_currentTextChanged(const QString &arg1)
 {
     QDate first = p_profile->FirstDay();
     QDate last = p_profile->LastDay();
@@ -150,232 +174,207 @@ void ExportCSV::on_quickRangeCombo_activated(const QString &arg1)
 
 void ExportCSV::on_exportButton_clicked()
 {
-    QFile file(ui->filenameEdit->text());
-    if (!file.open(QFile::WriteOnly)) {
-        qWarning() << "Could not open" << ui->filenameEdit->text() << "for writing, error code" << file.error() << file.errorString();
+    // Get the selected report
+    QModelIndex index = ui->reportList->currentIndex();
+    if (!index.isValid()) {
+        QMessageBox::warning(this, tr("Export CSV"), tr("Please select a report to export."));
         return;
     }
-    QString header;
+    
+    QStandardItemModel *model = qobject_cast<QStandardItemModel*>(ui->reportList->model());
+    if (!model) {
+        qWarning() << "ExportCSV: Could not get report list model";
+        return;
+    }
+    
+    QString reportName = model->itemFromIndex(index)->text();
+    
+    QFile file(ui->filenameEdit->text());
+    if (!file.open(QFile::WriteOnly)) {
+        qWarning() << "ExportCSV: Could not open" << ui->filenameEdit->text() 
+                   << "for writing, error code" << file.error() << file.errorString();
+        QMessageBox::critical(this, tr("Export CSV"), 
+                            tr("Could not open file for writing: %1").arg(file.errorString()));
+        return;
+    }
+
+    // Get database connection
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "ExportCSV: Database is not open";
+        QMessageBox::critical(this, tr("Export CSV"), tr("Database is not open."));
+        file.close();
+        return;
+    }
+
+    // Get profile ID from profile repository
+    ProfileRepository profileRepo;
+    QString username = p_profile->user->userName();
+    ProfileData profileData = profileRepo.findByUsername(username);
+    
+    if (profileData.id == 0) {
+        qWarning() << "ExportCSV: Could not find profile in database for username:" << username;
+        QMessageBox::critical(this, tr("Export CSV"), 
+                            tr("Could not find profile in database."));
+        file.close();
+        return;
+    }
+    
+    qint64 profile_id = profileData.id;
+    
+    // Convert QDate to SQL format (yyyy-MM-dd)
+    QString startDateStr = ui->startDate->date().toString(Qt::ISODate);
+    QString endDateStr = ui->endDate->date().toString(Qt::ISODate);
+    
     const QString sep = ",";
     const QString newline = "\n";
-
-    //    if (ui->rb1_details->isChecked()) {
-    //        fields.append(DumpField(NoChannel,MT_CPAP,ST_DATE));
-    //    } else {
-    //        header=tr("DateTime")+sep+tr("Session")+sep+tr("Event")+sep+tr("Data/Duration");
-    //    } else {
-    //        if (ui->rb1_Summary->isChecked()) {
-    //            header=tr("Date")+sep+tr("Session Count")+sep+tr("Start")+sep+tr("End")+sep+tr("Total Time")+sep+tr("AHI");
-    //        } else if (ui->rb1_Sessions->isChecked()) {
-    //            header=tr("Date")+sep+tr("Session")+sep+tr("Start")+sep+tr("End")+sep+tr("Total Time")+sep+tr("AHI");
-    //        }
-    //    }
-    //    fields.append(DumpField(NoChannel,MT_CPAP,ST_SESSIONS));
-
-
-    QList<ChannelID> countlist, avglist, p90list, maxlist;
-    for (int i = 0; i < ahiChannels.size(); i++)
-        countlist.append(ahiChannels.at(i));
-
-//    countlist.append(CPAP_Hypopnea);
-//    countlist.append(CPAP_Obstructive);
-//    countlist.append(CPAP_Apnea);
-//    countlist.append(CPAP_ClearAirway);
-//    countlist.append(CPAP_AllApnea);
-    countlist.append(CPAP_VSnore);
-    countlist.append(CPAP_VSnore2);
-    countlist.append(CPAP_RERA);
-    countlist.append(CPAP_FlowLimit);
-    countlist.append(CPAP_SensAwake);
-    countlist.append(CPAP_NRI);
-    countlist.append(CPAP_ExP);
-    countlist.append(CPAP_LeakFlag);
-    countlist.append(CPAP_UserFlag1);
-    countlist.append(CPAP_UserFlag2);
-    countlist.append(CPAP_PressurePulse);
-
-    QVector<ChannelID> statChannels = { CPAP_Pressure, CPAP_PressureSet, CPAP_IPAP, CPAP_IPAPSet, CPAP_EPAP, CPAP_EPAPSet, CPAP_FLG };
-    for (auto & chan : statChannels) {
-        avglist.append(chan);
-        p90list.append(chan);
-        maxlist.append(chan);
-    }
-
-    float percentile=p_profile->general->prefCalcPercentile()/100.0;                   // Pholynyk, 18Aug2015
-    EventDataType percent = percentile;                                                // was 0.90F
-
-    // Not sure this section should be translateable.. :-/
-    if (ui->rb1_details->isChecked()) {
-        header = tr("DateTime") + sep + tr("Session") + sep + tr("Event") + sep + tr("Data/Duration");
+    QString sqlQuery;
+    
+    // Determine which report to run based on selected report name
+    if (reportName == tr("Daily Summaries")) {
+        // Hard-coded SQL query for Daily Summaries report
+        sqlQuery = QString(
+            "SELECT "
+            "  ds.date, "
+            "  ROUND(ds.ahi, 2) as AHI, "
+            "  ROUND(ds.rdi, 2) as RDI, "
+            "  ds.obstructive_count as OA, "
+            "  ds.clear_airway_count as CA, "
+            "  ds.hypopnea_count as H, "
+            "  ds.rera_count as RERA, "
+            "  ROUND(ds.pressure_avg, 2) as Pressure_Avg, "
+            "  ROUND(ds.pressure_95th, 2) as Pressure_95th, "
+            "  ROUND(ds.leak_total_avg, 2) as Leak_Avg, "
+            "  ROUND(ds.leak_total_95th, 2) as Leak_95th, "
+            "  ROUND(ds.mask_on_hours, 2) as Hours "
+            "FROM daily_summaries ds "
+            "WHERE ds.profile_id = %1 "
+            "  AND ds.date >= '%2' "
+            "  AND ds.date <= '%3' "
+            "ORDER BY ds.date"
+        ).arg(profile_id).arg(startDateStr).arg(endDateStr);
+        
+    } else if (reportName == tr("Session Statistics")) {
+        // Hard-coded SQL query for Session Statistics
+        sqlQuery = QString(
+            "SELECT "
+            "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date, "
+            "  ROUND(ss.ahi, 2) as AHI, "
+            "  ROUND(ss.mask_on_hours, 2) as Hours, "
+            "  ss.obstructive_count as OA, "
+            "  ss.clear_airway_count as CA, "
+            "  ss.hypopnea_count as H, "
+            "  m.model as Machine "
+            "FROM session_summaries ss "
+            "JOIN sessions s ON ss.session_id = s.id "
+            "JOIN machines m ON s.machine_id = m.id "
+            "WHERE m.profile_id = %1 "
+            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
+            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
+            "  AND s.enabled = 1 "
+            "ORDER BY s.start_time"
+        ).arg(profile_id).arg(startDateStr).arg(endDateStr);
+        
+    } else if (reportName == tr("Device Settings")) {
+        // Hard-coded SQL query for Device Settings
+        sqlQuery = QString(
+            "SELECT "
+            "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date, "
+            "  m.model as Machine, "
+            "  st.channel_id as Channel_ID, "
+            "  COALESCE(c.fullname, c.label, c.channel_code, 'Channel_' || st.channel_id) as Setting, "
+            "  st.value as Value, "
+            "  st.data_type as Type "
+            "FROM session_settings st "
+            "JOIN sessions s ON st.session_id = s.id "
+            "JOIN machines m ON s.machine_id = m.id "
+            "LEFT JOIN channels c ON c.profile_id = m.profile_id AND c.channel_id = st.channel_id "
+            "WHERE m.profile_id = %1 "
+            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
+            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
+            "ORDER BY s.start_time, st.channel_id"
+        ).arg(profile_id).arg(startDateStr).arg(endDateStr);
+        
     } else {
-        if (ui->rb1_Summary->isChecked()) {
-            header = tr("Date") + sep + tr("Session Count") + sep + tr("Start") + sep + tr("End") + sep +
-                     tr("Total Time") + sep + tr("AHI");
-        } else if (ui->rb1_Sessions->isChecked()) {
-            header = tr("Date") + sep + tr("Session") + sep + tr("Start") + sep + tr("End") + sep +
-                     tr("Total Time") + sep + tr("AHI");
-        }
-
-        for (int i = 0; i < countlist.size(); i++) {
-            header += sep + schema::channel[countlist[i]].label() + tr(" Count");
-        }
-
-        for (int i = 0; i < avglist.size(); i++) {
-            header += sep + Day::calcMiddleLabel(avglist[i]);        // Pholynyk, 18Aug2015
-        }
-
-        for (int i = 0; i < p90list.size(); i++) {
-            header += sep + QString("%1% ").arg(percent*100.0, 0, 'f', 0) + schema::channel[p90list[i]].label();
-        }
-
-        for (int i = 0; i < maxlist.size(); i++) {
-            header += sep + Day::calcMaxLabel(maxlist[i]);                                     // added -- Pholynyk, 18Aug2015
-        }
+        QMessageBox::warning(this, tr("Export CSV"), 
+                           tr("Unknown report type: %1").arg(reportName));
+        file.close();
+        return;
     }
-
+    
+    // Execute the query
+    QSqlQuery query(db);
+    if (!query.exec(sqlQuery)) {
+        qWarning() << "ExportCSV: SQL query failed:" << query.lastError().text();
+        QMessageBox::critical(this, tr("Export CSV"), 
+                            tr("SQL query failed: %1").arg(query.lastError().text()));
+        file.close();
+        return;
+    }
+    
+    // Write CSV header from query column names
+    QString header;
+    QSqlRecord record = query.record();
+    for (int i = 0; i < record.count(); ++i) {
+        if (i > 0) header += sep;
+        header += record.fieldName(i);
+    }
     header += newline;
-    file.write(header.toLatin1());
-    QDate date = ui->startDate->date();
-    Daily *daily = mainwin->getDaily();
-    QDate daily_date = daily->getDate();
-
+    file.write(header.toUtf8());
+    
+    // Initialize progress bar
+    // First, count total rows
+    int totalRows = 0;
+    if (query.last()) {
+        totalRows = query.at() + 1;
+        query.first();
+        query.previous(); // Position before first record
+    }
+    
     ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(p_profile->daylist.count());
-
-    do {
-        ui->progressBar->setValue(ui->progressBar->value() + 1);
-        QApplication::processEvents();
-
-        Day *day = p_profile->GetDay(date, MT_CPAP);  // Only export days with CPAP data.
-
-        if (day) {
-            QString data;
-
-            if (ui->rb1_Summary->isChecked()) {
-                QDateTime start = QDateTime::fromSecsSinceEpoch(day->first() / 1000L);
-                QDateTime end = QDateTime::fromSecsSinceEpoch(day->last() / 1000L);
-                data = date.toString(Qt::ISODate);
-                data += sep + QString::number(day->size(), 10);
-                data += sep + start.toString(Qt::ISODate);
-                data += sep + end.toString(Qt::ISODate);
-                // Given this is a CPAP specific report, just report CPAP hours
-                int time = int(day->hours(MT_CPAP) * 3600L);
-                int h = time / 3600;
-                int m = int(time / 60) % 60;
-                int s = int(time) % 60;
-                data += sep + QString::asprintf("%02i:%02i:%02i", h, m, s);
-
-                float ahi = day->calcAHI();
-                data += sep + QString::number(ahi, 'f', 3);
-
-                for (int i = 0; i < countlist.size(); i++) {
-                    data += sep + QString::number(day->count(countlist.at(i)));
+    ui->progressBar->setMaximum(totalRows > 0 ? totalRows : 100);
+    
+    // Write data rows
+    int rowCount = 0;
+    while (query.next()) {
+        QString row;
+        for (int i = 0; i < record.count(); ++i) {
+            if (i > 0) row += sep;
+            QVariant value = query.value(i);
+            
+            // Handle different data types appropriately
+            if (value.isNull()) {
+                // Empty field
+            } else if (value.type() == QVariant::String) {
+                // Escape quotes in strings and wrap in quotes if contains comma or quotes
+                QString str = value.toString();
+                if (str.contains(sep) || str.contains("\"") || str.contains("\n")) {
+                    str.replace("\"", "\"\""); // Escape quotes by doubling them
+                    row += "\"" + str + "\"";
+                } else {
+                    row += str;
                 }
-
-                for (int i = 0; i < avglist.size(); i++) {
-                    float avg = day->calcMiddle(avglist.at(i));
-                    data += sep + QString::number(avg);                // Pholynyk, 11Aug2015
-                }
-
-                for (int i = 0; i < p90list.size(); i++) {
-                    float p90 = day->percentile(p90list.at(i), percent);
-                    data += sep + QString::number(p90);                // Pholynyk, 11Aug2015
-                }
-
-                for (int i = 0; i < maxlist.size(); i++) {
-                    float max = day->calcMax(maxlist.at(i));
-                    data += sep + QString::number(max);                // added -- Pholynyk, 18Aug2015
-                }
-
-                data += newline;
-                file.write(data.toLatin1());
-
-            } else if (ui->rb1_Sessions->isChecked()) {
-                for (int i = 0; i < day->size(); i++) {
-                    Session *sess = (*day)[i];
-                    if (sess->type() != MT_CPAP) {
-                        continue;  // Not every session in a day with CPAP data will be a CPAP session.
-                    }
-                    QDateTime start = QDateTime::fromSecsSinceEpoch(sess->first() / 1000L);
-                    QDateTime end = QDateTime::fromSecsSinceEpoch(sess->last() / 1000L);
-
-                    sess->OpenEvents();
-                    data = date.toString(Qt::ISODate);
-                    data += sep + QString::number(sess->session(), 10);
-                    data += sep + start.toString(Qt::ISODate);
-                    data += sep + end.toString(Qt::ISODate);
-                    int time = sess->length() / 1000L;
-                    int h = time / 3600;
-                    int m = int(time / 60) % 60;
-                    int s = int(time) % 60;
-                    data += sep + QString::asprintf("%02i:%02i:%02i", h, m, s);
-
-                    float ahi = sess->count(AllAhiChannels);
-                                //sess->count(CPAP_AllApnea) + sess->count(CPAP_Obstructive) + sess->count(CPAP_Hypopnea)
-                                // + sess->count(CPAP_Apnea) + sess->count(CPAP_ClearAirway);
-                    ahi /= sess->hours();
-                    data += sep + QString::number(ahi, 'f', 3);
-
-                    for (int j = 0; j < countlist.size(); j++) {
-                        data += sep + QString::number(sess->count(countlist.at(j)));
-                    }
-
-                    for (int j = 0; j < avglist.size(); j++) {
-                        data += sep + QString::number(sess->calcMiddle(avglist.at(j)));                // Pholynyk, 11Aug2015
-                    }
-
-                    for (int j = 0; j < p90list.size(); j++) {
-                        data += sep + QString::number(sess->percentile(p90list.at(j), percent));               // Pholynyk, 11Aug2015
-                    }
-
-                    for (int i = 0; i < maxlist.size(); i++) {
-                        data += sep + QString::number(sess->calcMax(maxlist.at(i)));                // Pholynyk, 11Aug2015
-                    }
-
-                    data += newline;
-                    file.write(data.toLatin1());
-                }
-            } else if (ui->rb1_details->isChecked()) {
-                QList<ChannelID> all = countlist;
-                all.append(avglist);
-
-                for (int i = 0; i < day->size(); i++) {
-                    Session *sess = (*day)[i];
-                    sess->OpenEvents();
-                    QHash<ChannelID, QVector<EventList *> >::iterator fnd;
-
-                    for (int j = 0; j < all.size(); j++) {
-                        ChannelID key = all.at(j);
-                        fnd = sess->eventlist.find(key);
-
-                        if (fnd != sess->eventlist.end()) {
-                            //header="DateTime"+sep+"Session"+sep+"Event"+sep+"Data/Duration";
-                            for (int e = 0; e < fnd.value().size(); e++) {
-                                EventList *ev = fnd.value()[e];
-
-                                for (quint32 q = 0; q < ev->count(); q++) {
-                                    data = QDateTime::fromSecsSinceEpoch(ev->time(q) / 1000L).toString(Qt::ISODate);
-                                    data += sep + QString::number(sess->session());
-                                    data += sep + schema::channel[key].code();
-                                    data += sep + QString::number(ev->data(q), 'f', 2);
-                                    data += newline;
-                                    file.write(data.toLatin1());
-                                }
-                            }
-                        }
-                    }
-
-                    if (daily_date != date) {
-                        sess->TrashEvents();
-                    }
-                }
+            } else {
+                // Numbers, dates, etc. - output as-is
+                row += value.toString();
             }
         }
-
-        date = date.addDays(1);
-    } while (date <= ui->endDate->date());
-
+        row += newline;
+        file.write(row.toUtf8());
+        
+        rowCount++;
+        if (rowCount % 10 == 0) { // Update progress every 10 rows
+            ui->progressBar->setValue(rowCount);
+            QApplication::processEvents();
+        }
+    }
+    
+    ui->progressBar->setValue(totalRows);
     file.close();
+    
+    QMessageBox::information(this, tr("Export CSV"), 
+                           tr("Export completed successfully.\n%1 rows exported.").arg(rowCount));
+    
     ExportCSV::accept();
 }
 
@@ -383,33 +382,26 @@ void ExportCSV::on_exportButton_clicked()
 void ExportCSV::UpdateCalendarDay(QDateEdit *dateedit, QDate date)
 {
     QCalendarWidget *calendar = dateedit->calendarWidget();
-    QTextCharFormat bold;
-    QTextCharFormat cpapcol;
-    QTextCharFormat normal;
-    QTextCharFormat oxiday;
-    bold.setFontWeight(QFont::Bold);
-    cpapcol.setForeground(QBrush(Qt::blue, Qt::SolidPattern));
-    cpapcol.setFontWeight(QFont::Bold);
-    oxiday.setForeground(QBrush(Qt::red, Qt::SolidPattern));
-    oxiday.setFontWeight(QFont::Bold);
+
+    QTextCharFormat charAttr;
+
     bool hascpap = p_profile->GetDay(date, MT_CPAP) != nullptr;
     bool hasoxi = p_profile->GetDay(date, MT_OXIMETER) != nullptr;
-    //bool hasjournal=p_profile->GetDay(date,MT_JOURNAL)!=nullptr;
 
     if (hascpap) {
         if (hasoxi) {
-            calendar->setDateTextFormat(date, oxiday);
+            charAttr.setForeground(QBrush(COLOR_Purple, Qt::SolidPattern)); // CPAP + Oxi
         } else {
-            calendar->setDateTextFormat(date, cpapcol);
+            charAttr.setForeground(QBrush(COLOR_Blue, Qt::SolidPattern)); // CPAP, no Oxi
         }
-    } else if (p_profile->GetDay(date)) {
-        calendar->setDateTextFormat(date, bold);
-    } else {
-        calendar->setDateTextFormat(date, normal);
+    } else if (hasoxi) {
+        charAttr.setForeground(QBrush(COLOR_Red, Qt::SolidPattern)); // Oxi, no CPAP
     }
 
+    calendar->setDateTextFormat(date, charAttr);
     calendar->setHorizontalHeaderFormat(QCalendarWidget::ShortDayNames);
 }
+
 void ExportCSV::startDate_currentPageChanged(int year, int month)
 {
     QDate d(year, month, 1);
@@ -420,6 +412,7 @@ void ExportCSV::startDate_currentPageChanged(int year, int month)
         UpdateCalendarDay(ui->startDate, d);
     }
 }
+
 void ExportCSV::endDate_currentPageChanged(int year, int month)
 {
     QDate d(year, month, 1);

@@ -157,7 +157,8 @@ void ProfileSelector::updateProfileList()
                 usersname = QString("%1, %2").arg(userInfo.lastName, userInfo.firstName);
             }
             model->setData(model->index(row, 5, QModelIndex()), usersname);
-            
+            model->setData(model->index(row, 3, QModelIndex()), tr("Id: ") + QString::number(userInfo.id));
+
             // Get most recent CPAP machine from database
             QList<MachineData> allMachines = machineRepo.findByProfile(profileData.id);
             
