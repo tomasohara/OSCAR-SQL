@@ -26,6 +26,7 @@
 #include "exportcsv.h"
 #include "ui_exportcsv.h"
 #include "mainwindow.h"
+#include "sqleditor.h"
 
 extern MainWindow *mainwin;
 
@@ -82,6 +83,10 @@ ExportCSV::ExportCSV(QWidget *parent) :
     
     // Select first report by default
     ui->reportList->setCurrentIndex(model->index(0, 0));
+    
+    // Initialize custom query flags
+    m_useCustomQuery = false;
+    m_customQuery.clear();
 }
 
 ExportCSV::~ExportCSV()
@@ -230,76 +235,20 @@ void ExportCSV::on_exportButton_clicked()
     const QString newline = "\n";
     QString sqlQuery;
     
-    // Determine which report to run based on selected report name
-    if (reportName == tr("Daily Summaries")) {
-        // Hard-coded SQL query for Daily Summaries report
-        sqlQuery = QString(
-            "SELECT "
-            "  ds.date, "
-            "  ROUND(ds.ahi, 2) as AHI, "
-            "  ROUND(ds.rdi, 2) as RDI, "
-            "  ds.obstructive_count as OA, "
-            "  ds.clear_airway_count as CA, "
-            "  ds.hypopnea_count as H, "
-            "  ds.rera_count as RERA, "
-            "  ROUND(ds.pressure_avg, 2) as Pressure_Avg, "
-            "  ROUND(ds.pressure_95th, 2) as Pressure_95th, "
-            "  ROUND(ds.leak_total_avg, 2) as Leak_Avg, "
-            "  ROUND(ds.leak_total_95th, 2) as Leak_95th, "
-            "  ROUND(ds.mask_on_hours, 2) as Hours "
-            "FROM daily_summaries ds "
-            "WHERE ds.profile_id = %1 "
-            "  AND ds.date >= '%2' "
-            "  AND ds.date <= '%3' "
-            "ORDER BY ds.date"
-        ).arg(profile_id).arg(startDateStr).arg(endDateStr);
-        
-    } else if (reportName == tr("Session Statistics")) {
-        // Hard-coded SQL query for Session Statistics
-        sqlQuery = QString(
-            "SELECT "
-            "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date, "
-            "  ROUND(ss.ahi, 2) as AHI, "
-            "  ROUND(ss.mask_on_hours, 2) as Hours, "
-            "  ss.obstructive_count as OA, "
-            "  ss.clear_airway_count as CA, "
-            "  ss.hypopnea_count as H, "
-            "  m.model as Machine "
-            "FROM session_summaries ss "
-            "JOIN sessions s ON ss.session_id = s.id "
-            "JOIN machines m ON s.machine_id = m.id "
-            "WHERE m.profile_id = %1 "
-            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
-            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
-            "  AND s.enabled = 1 "
-            "ORDER BY s.start_time"
-        ).arg(profile_id).arg(startDateStr).arg(endDateStr);
-        
-    } else if (reportName == tr("Device Settings")) {
-        // Hard-coded SQL query for Device Settings
-        sqlQuery = QString(
-            "SELECT "
-            "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date, "
-            "  m.model as Machine, "
-            "  st.channel_id as Channel_ID, "
-            "  COALESCE(c.fullname, c.label, c.channel_code, 'Channel_' || st.channel_id) as Setting, "
-            "  st.value as Value, "
-            "  st.data_type as Type "
-            "FROM session_settings st "
-            "JOIN sessions s ON st.session_id = s.id "
-            "JOIN machines m ON s.machine_id = m.id "
-            "LEFT JOIN channels c ON c.profile_id = m.profile_id AND c.channel_id = st.channel_id "
-            "WHERE m.profile_id = %1 "
-            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
-            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
-            "ORDER BY s.start_time, st.channel_id"
-        ).arg(profile_id).arg(startDateStr).arg(endDateStr);
-        
+    // Use custom query if set, otherwise generate default query for selected report
+    if (m_useCustomQuery && !m_customQuery.isEmpty()) {
+        // Use the custom query edited by the user
+        sqlQuery = m_customQuery;
     } else {
-        QMessageBox::warning(this, tr("Export CSV"), 
-                           tr("Unknown report type: %1").arg(reportName));
-        file.close();
-        return;
+        // Generate default query for the selected report
+        sqlQuery = getDefaultQueryForReport(reportName, profile_id, startDateStr, endDateStr);
+        
+        if (sqlQuery.isEmpty()) {
+            QMessageBox::warning(this, tr("Export CSV"), 
+                               tr("Unknown report type: %1").arg(reportName));
+            file.close();
+            return;
+        }
     }
     
     // Execute the query
@@ -376,6 +325,131 @@ void ExportCSV::on_exportButton_clicked()
                            tr("Export completed successfully.\n%1 rows exported.").arg(rowCount));
     
     ExportCSV::accept();
+}
+
+void ExportCSV::on_editSQLButton_clicked()
+{
+    // Get profile ID and date range for generating default query
+    ProfileRepository profileRepo;
+    QString username = p_profile->user->userName();
+    ProfileData profileData = profileRepo.findByUsername(username);
+    
+    if (profileData.id == 0) {
+        QMessageBox::warning(this, tr("Edit SQL Query"), 
+                           tr("Could not find profile in database."));
+        return;
+    }
+    
+    qint64 profile_id = profileData.id;
+    QString startDateStr = ui->startDate->date().toString(Qt::ISODate);
+    QString endDateStr = ui->endDate->date().toString(Qt::ISODate);
+    
+    // Get the selected report name
+    QModelIndex index = ui->reportList->currentIndex();
+    if (!index.isValid()) {
+        QMessageBox::warning(this, tr("Edit SQL Query"), 
+                           tr("Please select a report first."));
+        return;
+    }
+    
+    QStandardItemModel *model = qobject_cast<QStandardItemModel*>(ui->reportList->model());
+    if (!model) {
+        return;
+    }
+    
+    QString reportName = model->itemFromIndex(index)->text();
+    
+    // Get the default query or use custom query if already set
+    QString query;
+    if (m_useCustomQuery && !m_customQuery.isEmpty()) {
+        query = m_customQuery;
+    } else {
+        query = getDefaultQueryForReport(reportName, profile_id, startDateStr, endDateStr);
+    }
+    
+    // Show SQL editor dialog
+    SQLEditor editor(this);
+    editor.setQuery(query);
+    
+    if (editor.exec() == QDialog::Accepted) {
+        m_customQuery = editor.getQuery();
+        m_useCustomQuery = true;
+        
+        QMessageBox::information(this, tr("Edit SQL Query"),
+                               tr("Custom SQL query has been set. Click 'Export as CSV' to run it."));
+    }
+}
+
+QString ExportCSV::getDefaultQueryForReport(const QString &reportName, qint64 profile_id,
+                                            const QString &startDate, const QString &endDate)
+{
+    QString sqlQuery;
+    
+    if (reportName == tr("Daily Summaries")) {
+        sqlQuery = QString(
+            "SELECT "
+            "  ds.date, "
+            "  ROUND(ds.ahi, 2) as AHI, "
+            "  ROUND(ds.rdi, 2) as RDI, "
+            "  ds.obstructive_count as OA, "
+            "  ds.unclassified_count as UA, "
+            "  ds.hypopnea_count as H, "
+            "  ds.clear_airway_count as CA, "
+            "  ds.rera_count as RERA, "
+            "  ROUND(ds.pressure_avg, 2) as Pressure_Avg, "
+            "  ROUND(ds.pressure_95th, 2) as Pressure_95th, "
+            "  ROUND(ds.leak_total_avg, 2) as Leak_Avg, "
+            "  ROUND(ds.leak_total_95th, 2) as Leak_95th, "
+            "  ROUND(ds.mask_on_hours, 2) as Hours "
+            "FROM daily_summaries ds "
+            "WHERE ds.profile_id = %1 "
+            "  AND ds.date >= '%2' "
+            "  AND ds.date <= '%3' "
+            "ORDER BY ds.date"
+        ).arg(profile_id).arg(startDate).arg(endDate);
+        
+    } else if (reportName == tr("Session Statistics")) {
+        sqlQuery = QString(
+            "SELECT "
+            "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date, "
+            "  ROUND(ss.ahi, 2) as AHI, "
+            "  ROUND(ss.mask_on_hours, 2) as Hours, "
+            "  ss.obstructive_count as OA, "
+            "  ss.unclassified_count as UA, "
+            "  ss.hypopnea_count as H, "
+            "  ss.clear_airway_count as CA, "
+            "  m.model as Machine "
+            "FROM session_summaries ss "
+            "JOIN sessions s ON ss.session_id = s.id "
+            "JOIN machines m ON s.machine_id = m.id "
+            "WHERE m.profile_id = %1 "
+            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
+            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
+            "  AND s.enabled = 1 "
+            "ORDER BY s.start_time"
+        ).arg(profile_id).arg(startDate).arg(endDate);
+        
+    } else if (reportName == tr("Device Settings")) {
+        sqlQuery = QString(
+            "SELECT "
+            "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date, "
+            "  m.model as Machine, "
+            "  st.channel_id as Channel_ID, "
+            "  COALESCE(c.fullname, c.label, c.channel_code, 'Channel_' || st.channel_id) as Setting, "
+            "  st.value as Value, "
+            "  st.data_type as Type "
+            "FROM session_settings st "
+            "JOIN sessions s ON st.session_id = s.id "
+            "JOIN machines m ON s.machine_id = m.id "
+            "LEFT JOIN channels c ON c.profile_id = m.profile_id AND c.channel_id = st.channel_id "
+            "WHERE m.profile_id = %1 "
+            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
+            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
+            "ORDER BY s.start_time, st.channel_id"
+        ).arg(profile_id).arg(startDate).arg(endDate);
+    }
+    
+    return sqlQuery;
 }
 
 

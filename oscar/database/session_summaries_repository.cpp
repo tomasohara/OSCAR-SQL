@@ -35,20 +35,21 @@ qint64 SessionSummariesRepository::create(const SessionSummaryData& data)
     QSqlQuery query(db);
     query.prepare(
         "INSERT INTO session_summaries "
-        "(session_id, ahi, rdi, obstructive_count, central_count, hypopnea_count, rera_count, "
-        " pressure_avg, pressure_min, pressure_max, pressure_95th, "
+        "(session_id, ahi, rdi, obstructive_count, unclassified_count, hypopnea_count, rera_count, "
+        " clear_airway_count, pressure_avg, pressure_min, pressure_max, pressure_95th, "
         " leak_total_avg, leak_total_95th, leak_total_max, "
         " spo2_avg, spo2_min, pulse_avg, hours_used, mask_on_hours) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
 
     query.addBindValue(data.sessionId);
     query.addBindValue(data.ahi);
     query.addBindValue(data.rdi);
     query.addBindValue(data.obstructiveCount);
-    query.addBindValue(data.centralCount);
+    query.addBindValue(data.unclassifiedCount);
     query.addBindValue(data.hypopneaCount);
     query.addBindValue(data.reraCount);
+    query.addBindValue(data.clearAirwayCount);
     query.addBindValue(data.pressureAvg);
     query.addBindValue(data.pressureMin);
     query.addBindValue(data.pressureMax);
@@ -81,8 +82,8 @@ bool SessionSummariesRepository::update(const SessionSummaryData& data)
     QSqlQuery query(db);
     query.prepare(
         "UPDATE session_summaries SET "
-        "ahi = ?, rdi = ?, obstructive_count = ?, central_count = ?, "
-        "hypopnea_count = ?, rera_count = ?, pressure_avg = ?, pressure_min = ?, "
+        "ahi = ?, rdi = ?, obstructive_count = ?, unclassified_count = ?, "
+        "hypopnea_count = ?, rera_count = ?, clear_airway_count = ?, pressure_avg = ?, pressure_min = ?, "
         "pressure_max = ?, pressure_95th = ?, leak_total_avg = ?, leak_total_95th = ?, "
         "leak_total_max = ?, spo2_avg = ?, spo2_min = ?, pulse_avg = ?, "
         "hours_used = ?, mask_on_hours = ?, updated_at = CURRENT_TIMESTAMP "
@@ -92,9 +93,10 @@ bool SessionSummariesRepository::update(const SessionSummaryData& data)
     query.addBindValue(data.ahi);
     query.addBindValue(data.rdi);
     query.addBindValue(data.obstructiveCount);
-    query.addBindValue(data.centralCount);
+    query.addBindValue(data.unclassifiedCount);
     query.addBindValue(data.hypopneaCount);
     query.addBindValue(data.reraCount);
+    query.addBindValue(data.clearAirwayCount);
     query.addBindValue(data.pressureAvg);
     query.addBindValue(data.pressureMin);
     query.addBindValue(data.pressureMax);
@@ -129,8 +131,8 @@ SessionSummaryData SessionSummariesRepository::findBySession(qint64 sessionId)
 
     QSqlQuery query(db);
     query.prepare(
-        "SELECT id, session_id, ahi, rdi, obstructive_count, central_count, "
-        "hypopnea_count, rera_count, pressure_avg, pressure_min, pressure_max, pressure_95th, "
+        "SELECT id, session_id, ahi, rdi, obstructive_count, unclassified_count, "
+        "hypopnea_count, rera_count, clear_airway_count, pressure_avg, pressure_min, pressure_max, pressure_95th, "
         "leak_total_avg, leak_total_95th, leak_total_max, spo2_avg, spo2_min, pulse_avg, "
         "hours_used, mask_on_hours, created_at, updated_at "
         "FROM session_summaries WHERE session_id = ?"
@@ -148,23 +150,24 @@ SessionSummaryData SessionSummariesRepository::findBySession(qint64 sessionId)
         data.ahi = query.value(2).toDouble();
         data.rdi = query.value(3).toDouble();
         data.obstructiveCount = query.value(4).toInt();
-        data.centralCount = query.value(5).toInt();
+        data.unclassifiedCount = query.value(5).toInt();
         data.hypopneaCount = query.value(6).toInt();
         data.reraCount = query.value(7).toInt();
-        data.pressureAvg = query.value(8).toDouble();
-        data.pressureMin = query.value(9).toDouble();
-        data.pressureMax = query.value(10).toDouble();
-        data.pressure95th = query.value(11).toDouble();
-        data.leakTotalAvg = query.value(12).toDouble();
-        data.leakTotal95th = query.value(13).toDouble();
-        data.leakTotalMax = query.value(14).toDouble();
-        data.spo2Avg = query.value(15).toDouble();
-        data.spo2Min = query.value(16).toDouble();
-        data.pulseAvg = query.value(17).toDouble();
-        data.hoursUsed = query.value(18).toDouble();
-        data.maskOnHours = query.value(19).toDouble();
-        data.createdAt = query.value(20).toDateTime();
-        data.updatedAt = query.value(21).toDateTime();
+        data.clearAirwayCount = query.value(8).toInt();
+        data.pressureAvg = query.value(9).toDouble();
+        data.pressureMin = query.value(10).toDouble();
+        data.pressureMax = query.value(11).toDouble();
+        data.pressure95th = query.value(12).toDouble();
+        data.leakTotalAvg = query.value(13).toDouble();
+        data.leakTotal95th = query.value(14).toDouble();
+        data.leakTotalMax = query.value(15).toDouble();
+        data.spo2Avg = query.value(16).toDouble();
+        data.spo2Min = query.value(17).toDouble();
+        data.pulseAvg = query.value(18).toDouble();
+        data.hoursUsed = query.value(19).toDouble();
+        data.maskOnHours = query.value(20).toDouble();
+        data.createdAt = query.value(21).toDateTime();
+        data.updatedAt = query.value(22).toDateTime();
     }
 
     return data;

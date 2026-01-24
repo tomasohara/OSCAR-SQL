@@ -3129,11 +3129,11 @@ bool Session::LoadFromDatabase()
                 m_availableChannels.push_back(CPAP_Obstructive);
             }
         }
-        if (summaryData.centralCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_ClearAirway))) {
+        if (summaryData.clearAirwayCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_ClearAirway))) {
             if (m_cph.contains(CPAP_ClearAirway) && sessionHours > 0) {
                 m_cnt[CPAP_ClearAirway] = m_cph[CPAP_ClearAirway] * sessionHours;
-            } else if (summaryData.centralCount > 0) {
-                m_cnt[CPAP_ClearAirway] = summaryData.centralCount;
+            } else if (summaryData.clearAirwayCount > 0) {
+                m_cnt[CPAP_ClearAirway] = summaryData.clearAirwayCount;
             }
             if (!m_availableChannels.contains(CPAP_ClearAirway)) {
                 m_availableChannels.push_back(CPAP_ClearAirway);
@@ -3225,7 +3225,7 @@ bool Session::StoreSummaryToDatabase()
         data.obstructiveCount = m_cnt[CPAP_Obstructive];
     }
     if (m_cnt.contains(CPAP_ClearAirway)) {
-        data.centralCount = m_cnt[CPAP_ClearAirway];
+        data.clearAirwayCount = m_cnt[CPAP_ClearAirway];
     }
     if (m_cnt.contains(CPAP_Hypopnea)) {
         data.hypopneaCount = m_cnt[CPAP_Hypopnea];
@@ -3233,12 +3233,9 @@ bool Session::StoreSummaryToDatabase()
     if (m_cnt.contains(CPAP_RERA)) {
         data.reraCount = m_cnt[CPAP_RERA];
     }
-    // Also handle CPAP_Apnea (unknown apnea) and CPAP_CSR (Cheyne-Stokes respiration)
-    // These are set by ResMed loader for summary-only sessions
-    // We'll store unknown apnea count in obstructiveCount (as an approximation) since there's no dedicated field
+    // Also handle CPAP_Apnea (unknown/unclassified apnea) - store in unclassifiedCount
     if (m_cnt.contains(CPAP_Apnea)) {
-        // Add to obstructive count as an approximation
-        data.obstructiveCount += m_cnt[CPAP_Apnea];
+        data.unclassifiedCount = m_cnt[CPAP_Apnea];
     }
     
     // Pressure statistics from cached values

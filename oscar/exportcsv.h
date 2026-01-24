@@ -47,6 +47,8 @@ class ExportCSV : public QDialog
     void on_quickRangeCombo_currentTextChanged(const QString &arg1);
 
     void on_exportButton_clicked();
+    
+    void on_editSQLButton_clicked();
 
     void startDate_currentPageChanged(int year, int month);
     void endDate_currentPageChanged(int year, int month);
@@ -54,9 +56,14 @@ class ExportCSV : public QDialog
 
   private:
     void UpdateCalendarDay(QDateEdit *dateedit, QDate date);
+    
+    QString getDefaultQueryForReport(const QString &reportName, qint64 profile_id, 
+                                     const QString &startDate, const QString &endDate);
 
     Ui::ExportCSV *ui;
     QList<DumpField> fields;
+    QString m_customQuery;  ///< Custom SQL query set via Edit SQL Query dialog
+    bool m_useCustomQuery;  ///< Flag indicating whether to use custom query
 };
 
 #endif // EXPORTCSV_H

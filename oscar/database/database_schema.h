@@ -36,7 +36,7 @@ public:
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
      */
-    static const int CURRENT_SCHEMA_VERSION = 9;
+    static const int CURRENT_SCHEMA_VERSION = 10;
 
     /*!
      * \brief Create the complete database schema

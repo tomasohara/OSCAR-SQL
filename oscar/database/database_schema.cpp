@@ -400,6 +400,59 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         qDebug() << "DatabaseSchema: Journal migration will occur automatically on profile load";
     }
     
+    // Upgrade from version 9 to version 10: Rename central_count to unclassified_count and add clear_airway_count
+    if (fromVersion < 10) {
+        qDebug() << "DatabaseSchema: Applying version 10 upgrade (rename central_count to unclassified_count, add clear_airway_count)";
+        
+        QSqlQuery query(db);
+        
+        // For session_summaries table:
+        // 1. Add clear_airway_count column
+        if (!query.exec("ALTER TABLE session_summaries ADD COLUMN clear_airway_count INTEGER DEFAULT 0")) {
+            qCritical() << "DatabaseSchema: Failed to add clear_airway_count to session_summaries:" << query.lastError().text();
+            return false;
+        }
+        
+        // 2. Add unclassified_count column
+        if (!query.exec("ALTER TABLE session_summaries ADD COLUMN unclassified_count INTEGER DEFAULT 0")) {
+            qCritical() << "DatabaseSchema: Failed to add unclassified_count to session_summaries:" << query.lastError().text();
+            return false;
+        }
+        
+        // 3. Copy data from central_count to unclassified_count
+        if (!query.exec("UPDATE session_summaries SET unclassified_count = central_count")) {
+            qCritical() << "DatabaseSchema: Failed to copy central_count to unclassified_count in session_summaries:" << query.lastError().text();
+            return false;
+        }
+        
+        // For daily_summaries table:
+        // 1. Add unclassified_count column
+        if (!query.exec("ALTER TABLE daily_summaries ADD COLUMN unclassified_count INTEGER DEFAULT 0")) {
+            qCritical() << "DatabaseSchema: Failed to add unclassified_count to daily_summaries:" << query.lastError().text();
+            return false;
+        }
+        
+        // 2. Copy data from central_count to unclassified_count
+        if (!query.exec("UPDATE daily_summaries SET unclassified_count = central_count")) {
+            qCritical() << "DatabaseSchema: Failed to copy central_count to unclassified_count in daily_summaries:" << query.lastError().text();
+            return false;
+        }
+        
+        // Note: We keep the old central_count columns for backward compatibility during transition
+        // They will be ignored by new code but won't break existing databases
+        
+        // Update schema version
+        if (!setSchemaVersion(db, 10)) {
+            qCritical() << "DatabaseSchema: Failed to update schema version to 10";
+            return false;
+        }
+        
+        qDebug() << "DatabaseSchema: Successfully upgraded to version 10";
+        qDebug() << "DatabaseSchema: Renamed central_count to unclassified_count (semantically correct)";
+        qDebug() << "DatabaseSchema: Added clear_airway_count to session_summaries";
+        qDebug() << "DatabaseSchema: Old central_count columns retained for compatibility";
+    }
+    
     return true;
 }
 
@@ -996,9 +1049,10 @@ bool DatabaseSchema::createSessionSummariesTable(QSqlDatabase& db)
         "    ahi REAL DEFAULT 0,"
         "    rdi REAL DEFAULT 0,"
         "    obstructive_count INTEGER DEFAULT 0,"
-        "    central_count INTEGER DEFAULT 0,"
+        "    unclassified_count INTEGER DEFAULT 0,"
         "    hypopnea_count INTEGER DEFAULT 0,"
         "    rera_count INTEGER DEFAULT 0,"
+        "    clear_airway_count INTEGER DEFAULT 0,"
         "    pressure_avg REAL,"
         "    pressure_min REAL,"
         "    pressure_max REAL,"
@@ -1173,7 +1227,7 @@ bool DatabaseSchema::createDailySummariesTable(QSqlDatabase& db)
         "    ahi REAL DEFAULT 0,"
         "    rdi REAL DEFAULT 0,"
         "    obstructive_count INTEGER DEFAULT 0,"
-        "    central_count INTEGER DEFAULT 0,"
+        "    unclassified_count INTEGER DEFAULT 0,"
         "    hypopnea_count INTEGER DEFAULT 0,"
         "    rera_count INTEGER DEFAULT 0,"
         "    clear_airway_count INTEGER DEFAULT 0,"

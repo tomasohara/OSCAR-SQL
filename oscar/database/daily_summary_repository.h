@@ -35,7 +35,7 @@ struct DailySummaryData {
     double ahi = 0.0;
     double rdi = 0.0;
     int obstructiveCount = 0;
-    int centralCount = 0;
+    int unclassifiedCount = 0;
     int hypopneaCount = 0;
     int reraCount = 0;
     int clearAirwayCount = 0;

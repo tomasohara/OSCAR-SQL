@@ -39,7 +39,7 @@ qint64 DailySummaryRepository::create(const DailySummaryData& data)
             profile_id, date, machine_id,
             session_count, enabled_session_count,
             total_hours, mask_on_hours,
-            ahi, rdi, obstructive_count, central_count, hypopnea_count, rera_count, clear_airway_count,
+            ahi, rdi, obstructive_count, unclassified_count, hypopnea_count, rera_count, clear_airway_count,
             pressure_avg, pressure_min, pressure_max, pressure_95th,
             leak_total_avg, leak_total_95th, leak_total_max, leak_unintentional_avg,
             spo2_avg, spo2_min, pulse_avg, pulse_min, pulse_max,
@@ -57,7 +57,7 @@ qint64 DailySummaryRepository::create(const DailySummaryData& data)
     query.addBindValue(data.ahi);
     query.addBindValue(data.rdi);
     query.addBindValue(data.obstructiveCount);
-    query.addBindValue(data.centralCount);
+    query.addBindValue(data.unclassifiedCount);
     query.addBindValue(data.hypopneaCount);
     query.addBindValue(data.reraCount);
     query.addBindValue(data.clearAirwayCount);
@@ -314,7 +314,7 @@ DailySummaryData DailySummaryRepository::calculateFromDay(Day* day, qint64 machi
     
     // Event counts using Day's count() method
     data.obstructiveCount = static_cast<int>(day->count(CPAP_Obstructive));
-    data.centralCount = static_cast<int>(day->count(CPAP_Apnea));
+    data.unclassifiedCount = static_cast<int>(day->count(CPAP_Apnea));
     data.hypopneaCount = static_cast<int>(day->count(CPAP_Hypopnea));
     data.reraCount = static_cast<int>(day->count(CPAP_RERA));
     data.clearAirwayCount = static_cast<int>(day->count(CPAP_ClearAirway));
@@ -499,7 +499,7 @@ DailySummaryData DailySummaryRepository::mapResultToData(const QSqlQuery& query)
     data.ahi = query.value("ahi").toDouble();
     data.rdi = query.value("rdi").toDouble();
     data.obstructiveCount = query.value("obstructive_count").toInt();
-    data.centralCount = query.value("central_count").toInt();
+    data.unclassifiedCount = query.value("unclassified_count").toInt();
     data.hypopneaCount = query.value("hypopnea_count").toInt();
     data.reraCount = query.value("rera_count").toInt();
     data.clearAirwayCount = query.value("clear_airway_count").toInt();

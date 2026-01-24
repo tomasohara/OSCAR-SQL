@@ -30,9 +30,10 @@ struct SessionSummaryData
     
     // Event counts
     int obstructiveCount = 0;
-    int centralCount = 0;
+    int unclassifiedCount = 0;
     int hypopneaCount = 0;
     int reraCount = 0;
+    int clearAirwayCount = 0;
     
     // Pressure statistics
     double pressureAvg = 0.0;

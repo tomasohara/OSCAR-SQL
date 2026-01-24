@@ -234,11 +234,6 @@
       <widget class="QComboBox" name="resolutionCombo">
        <item>
         <property name="text">
-         <string>Details</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
          <string>Sessions</string>
         </property>
        </item>
