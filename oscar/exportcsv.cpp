@@ -231,6 +231,9 @@ void ExportCSV::on_exportButton_clicked()
     QString startDateStr = ui->startDate->date().toString(Qt::ISODate);
     QString endDateStr = ui->endDate->date().toString(Qt::ISODate);
     
+    // Get resolution setting
+    QString resolution = ui->resolutionCombo->currentText();
+    
     const QString sep = ",";
     const QString newline = "\n";
     QString sqlQuery;
@@ -240,8 +243,8 @@ void ExportCSV::on_exportButton_clicked()
         // Use the custom query edited by the user
         sqlQuery = m_customQuery;
     } else {
-        // Generate default query for the selected report
-        sqlQuery = getDefaultQueryForReport(reportName, profile_id, startDateStr, endDateStr);
+        // Generate default query for the selected report with resolution
+        sqlQuery = getDefaultQueryForReport(reportName, profile_id, startDateStr, endDateStr, resolution);
         
         if (sqlQuery.isEmpty()) {
             QMessageBox::warning(this, tr("Export CSV"), 
@@ -344,6 +347,9 @@ void ExportCSV::on_editSQLButton_clicked()
     QString startDateStr = ui->startDate->date().toString(Qt::ISODate);
     QString endDateStr = ui->endDate->date().toString(Qt::ISODate);
     
+    // Get resolution setting
+    QString resolution = ui->resolutionCombo->currentText();
+    
     // Get the selected report name
     QModelIndex index = ui->reportList->currentIndex();
     if (!index.isValid()) {
@@ -364,7 +370,7 @@ void ExportCSV::on_editSQLButton_clicked()
     if (m_useCustomQuery && !m_customQuery.isEmpty()) {
         query = m_customQuery;
     } else {
-        query = getDefaultQueryForReport(reportName, profile_id, startDateStr, endDateStr);
+        query = getDefaultQueryForReport(reportName, profile_id, startDateStr, endDateStr, resolution);
     }
     
     // Show SQL editor dialog
@@ -381,53 +387,226 @@ void ExportCSV::on_editSQLButton_clicked()
 }
 
 QString ExportCSV::getDefaultQueryForReport(const QString &reportName, qint64 profile_id,
-                                            const QString &startDate, const QString &endDate)
+                                            const QString &startDate, const QString &endDate,
+                                            const QString &resolution)
 {
     QString sqlQuery;
     
     if (reportName == tr("Daily Summaries")) {
-        sqlQuery = QString(
-            "SELECT "
-            "  ds.date, "
-            "  ROUND(ds.ahi, 2) as AHI, "
-            "  ROUND(ds.rdi, 2) as RDI, "
-            "  ds.obstructive_count as OA, "
-            "  ds.unclassified_count as UA, "
-            "  ds.hypopnea_count as H, "
-            "  ds.clear_airway_count as CA, "
-            "  ds.rera_count as RERA, "
-            "  ROUND(ds.pressure_avg, 2) as Pressure_Avg, "
-            "  ROUND(ds.pressure_95th, 2) as Pressure_95th, "
-            "  ROUND(ds.leak_total_avg, 2) as Leak_Avg, "
-            "  ROUND(ds.leak_total_95th, 2) as Leak_95th, "
-            "  ROUND(ds.mask_on_hours, 2) as Hours "
-            "FROM daily_summaries ds "
-            "WHERE ds.profile_id = %1 "
-            "  AND ds.date >= '%2' "
-            "  AND ds.date <= '%3' "
-            "ORDER BY ds.date"
-        ).arg(profile_id).arg(startDate).arg(endDate);
+        // For Daily Summaries, aggregation depends on resolution
+        if (resolution == tr("Days")) {
+            // No aggregation - one row per day
+            sqlQuery = QString(
+                "SELECT "
+                "  ds.date as Period, "
+                "  ROUND(ds.ahi, 2) as AHI, "
+                "  ROUND(ds.rdi, 2) as RDI, "
+                "  ds.obstructive_count as OA, "
+                "  ds.unclassified_count as UA, "
+                "  ds.hypopnea_count as H, "
+                "  ds.clear_airway_count as CA, "
+                "  ds.rera_count as RERA, "
+                "  ROUND(ds.pressure_avg, 2) as Pressure_Avg, "
+                "  ROUND(ds.pressure_95th, 2) as Pressure_95th, "
+                "  ROUND(ds.leak_total_avg, 2) as Leak_Avg, "
+                "  ROUND(ds.leak_total_95th, 2) as Leak_95th, "
+                "  ROUND(ds.mask_on_hours, 2) as Hours "
+                "FROM daily_summaries ds "
+                "WHERE ds.profile_id = %1 "
+                "  AND ds.date >= '%2' "
+                "  AND ds.date <= '%3' "
+                "ORDER BY ds.date"
+            ).arg(profile_id).arg(startDate).arg(endDate);
+            
+        } else if (resolution == tr("Weeks")) {
+            // Aggregate by week - recalculate AHI/RDI from summed event counts and hours
+            sqlQuery = QString(
+                "SELECT "
+                "  strftime('%Y-W%W', ds.date) as Period, "
+                "  MIN(ds.date) as Week_Start, "
+                "  MAX(ds.date) as Week_End, "
+                "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as AHI, "
+                "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count) + SUM(ds.rera_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as RDI, "
+                "  SUM(ds.obstructive_count) as OA, "
+                "  SUM(ds.unclassified_count) as UA, "
+                "  SUM(ds.hypopnea_count) as H, "
+                "  SUM(ds.clear_airway_count) as CA, "
+                "  SUM(ds.rera_count) as RERA, "
+                "  ROUND(SUM(ds.pressure_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Pressure_Avg, "
+                "  ROUND(AVG(ds.pressure_95th), 2) as Pressure_95th, "
+                "  ROUND(SUM(ds.leak_total_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Leak_Avg, "
+                "  ROUND(AVG(ds.leak_total_95th), 2) as Leak_95th, "
+                "  ROUND(SUM(ds.mask_on_hours), 2) as Hours "
+                "FROM daily_summaries ds "
+                "WHERE ds.profile_id = %1 "
+                "  AND ds.date >= '%2' "
+                "  AND ds.date <= '%3' "
+                "GROUP BY strftime('%Y-W%W', ds.date) "
+                "ORDER BY Period"
+            ).arg(profile_id).arg(startDate).arg(endDate);
+            
+        } else if (resolution == tr("Months")) {
+            // Aggregate by month - recalculate AHI/RDI from summed event counts and hours
+            sqlQuery = QString(
+                "SELECT "
+                "  strftime('%Y-%m', ds.date) as Period, "
+                "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as AHI, "
+                "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count) + SUM(ds.rera_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as RDI, "
+                "  SUM(ds.obstructive_count) as OA, "
+                "  SUM(ds.unclassified_count) as UA, "
+                "  SUM(ds.hypopnea_count) as H, "
+                "  SUM(ds.clear_airway_count) as CA, "
+                "  SUM(ds.rera_count) as RERA, "
+                "  ROUND(SUM(ds.pressure_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Pressure_Avg, "
+                "  ROUND(AVG(ds.pressure_95th), 2) as Pressure_95th, "
+                "  ROUND(SUM(ds.leak_total_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Leak_Avg, "
+                "  ROUND(AVG(ds.leak_total_95th), 2) as Leak_95th, "
+                "  ROUND(SUM(ds.mask_on_hours), 2) as Hours "
+                "FROM daily_summaries ds "
+                "WHERE ds.profile_id = %1 "
+                "  AND ds.date >= '%2' "
+                "  AND ds.date <= '%3' "
+                "GROUP BY strftime('%Y-%m', ds.date) "
+                "ORDER BY Period"
+            ).arg(profile_id).arg(startDate).arg(endDate);
+        } else {
+            // Default to Days if resolution not recognized
+            sqlQuery = QString(
+                "SELECT "
+                "  ds.date as Period, "
+                "  ROUND(ds.ahi, 2) as AHI, "
+                "  ROUND(ds.rdi, 2) as RDI, "
+                "  ds.obstructive_count as OA, "
+                "  ds.unclassified_count as UA, "
+                "  ds.hypopnea_count as H, "
+                "  ds.clear_airway_count as CA, "
+                "  ds.rera_count as RERA, "
+                "  ROUND(ds.pressure_avg, 2) as Pressure_Avg, "
+                "  ROUND(ds.pressure_95th, 2) as Pressure_95th, "
+                "  ROUND(ds.leak_total_avg, 2) as Leak_Avg, "
+                "  ROUND(ds.leak_total_95th, 2) as Leak_95th, "
+                "  ROUND(ds.mask_on_hours, 2) as Hours "
+                "FROM daily_summaries ds "
+                "WHERE ds.profile_id = %1 "
+                "  AND ds.date >= '%2' "
+                "  AND ds.date <= '%3' "
+                "ORDER BY ds.date"
+            ).arg(profile_id).arg(startDate).arg(endDate);
+        }
         
     } else if (reportName == tr("Session Statistics")) {
-        sqlQuery = QString(
-            "SELECT "
-            "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date, "
-            "  ROUND(ss.ahi, 2) as AHI, "
-            "  ROUND(ss.mask_on_hours, 2) as Hours, "
-            "  ss.obstructive_count as OA, "
-            "  ss.unclassified_count as UA, "
-            "  ss.hypopnea_count as H, "
-            "  ss.clear_airway_count as CA, "
-            "  m.model as Machine "
-            "FROM session_summaries ss "
-            "JOIN sessions s ON ss.session_id = s.id "
-            "JOIN machines m ON s.machine_id = m.id "
-            "WHERE m.profile_id = %1 "
-            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
-            "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
-            "  AND s.enabled = 1 "
-            "ORDER BY s.start_time"
-        ).arg(profile_id).arg(startDate).arg(endDate);
+        // For Session Statistics, resolution determines grouping
+        if (resolution == tr("Sessions")) {
+            // No aggregation - one row per session
+            sqlQuery = QString(
+                "SELECT "
+                "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date, "
+                "  ROUND(ss.ahi, 2) as AHI, "
+                "  ROUND(ss.mask_on_hours, 2) as Hours, "
+                "  ss.obstructive_count as OA, "
+                "  ss.unclassified_count as UA, "
+                "  ss.hypopnea_count as H, "
+                "  ss.clear_airway_count as CA, "
+                "  m.model as Machine "
+                "FROM session_summaries ss "
+                "JOIN sessions s ON ss.session_id = s.id "
+                "JOIN machines m ON s.machine_id = m.id "
+                "WHERE m.profile_id = %1 "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
+                "  AND s.enabled = 1 "
+                "ORDER BY s.start_time"
+            ).arg(profile_id).arg(startDate).arg(endDate);
+            
+        } else if (resolution == tr("Days")) {
+            // Aggregate by day
+            sqlQuery = QString(
+                "SELECT "
+                "  date(s.start_time/1000, 'unixepoch', 'localtime') as Period, "
+                "  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI, "
+                "  SUM(ss.obstructive_count) as OA, "
+                "  SUM(ss.unclassified_count) as UA, "
+                "  SUM(ss.hypopnea_count) as H, "
+                "  SUM(ss.clear_airway_count) as CA, "
+                "  ROUND(SUM(ss.mask_on_hours), 2) as Hours "
+                "FROM session_summaries ss "
+                "JOIN sessions s ON ss.session_id = s.id "
+                "JOIN machines m ON s.machine_id = m.id "
+                "WHERE m.profile_id = %1 "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
+                "  AND s.enabled = 1 "
+                "GROUP BY date(s.start_time/1000, 'unixepoch', 'localtime') "
+                "ORDER BY Period"
+            ).arg(profile_id).arg(startDate).arg(endDate);
+            
+        } else if (resolution == tr("Weeks")) {
+            // Aggregate by week
+            sqlQuery = QString(
+                "SELECT "
+                "  strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period, "
+                "  MIN(date(s.start_time/1000, 'unixepoch', 'localtime')) as Week_Start, "
+                "  MAX(date(s.start_time/1000, 'unixepoch', 'localtime')) as Week_End, "
+                "  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI, "
+                "  SUM(ss.obstructive_count) as OA, "
+                "  SUM(ss.unclassified_count) as UA, "
+                "  SUM(ss.hypopnea_count) as H, "
+                "  SUM(ss.clear_airway_count) as CA, "
+                "  ROUND(SUM(ss.mask_on_hours), 2) as Hours "
+                "FROM session_summaries ss "
+                "JOIN sessions s ON ss.session_id = s.id "
+                "JOIN machines m ON s.machine_id = m.id "
+                "WHERE m.profile_id = %1 "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
+                "  AND s.enabled = 1 "
+                "GROUP BY strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime')) "
+                "ORDER BY Period"
+            ).arg(profile_id).arg(startDate).arg(endDate);
+            
+        } else if (resolution == tr("Months")) {
+            // Aggregate by month
+            sqlQuery = QString(
+                "SELECT "
+                "  strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period, "
+                "  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI, "
+                "  SUM(ss.obstructive_count) as OA, "
+                "  SUM(ss.unclassified_count) as UA, "
+                "  SUM(ss.hypopnea_count) as H, "
+                "  SUM(ss.clear_airway_count) as CA, "
+                "  ROUND(SUM(ss.mask_on_hours), 2) as Hours "
+                "FROM session_summaries ss "
+                "JOIN sessions s ON ss.session_id = s.id "
+                "JOIN machines m ON s.machine_id = m.id "
+                "WHERE m.profile_id = %1 "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
+                "  AND s.enabled = 1 "
+                "GROUP BY strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime')) "
+                "ORDER BY Period"
+            ).arg(profile_id).arg(startDate).arg(endDate);
+        } else {
+            // Default to Sessions
+            sqlQuery = QString(
+                "SELECT "
+                "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date, "
+                "  ROUND(ss.ahi, 2) as AHI, "
+                "  ROUND(ss.mask_on_hours, 2) as Hours, "
+                "  ss.obstructive_count as OA, "
+                "  ss.unclassified_count as UA, "
+                "  ss.hypopnea_count as H, "
+                "  ss.clear_airway_count as CA, "
+                "  m.model as Machine "
+                "FROM session_summaries ss "
+                "JOIN sessions s ON ss.session_id = s.id "
+                "JOIN machines m ON s.machine_id = m.id "
+                "WHERE m.profile_id = %1 "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= '%2' "
+                "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= '%3' "
+                "  AND s.enabled = 1 "
+                "ORDER BY s.start_time"
+            ).arg(profile_id).arg(startDate).arg(endDate);
+        }
         
     } else if (reportName == tr("Device Settings")) {
         sqlQuery = QString(

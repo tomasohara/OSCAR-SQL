@@ -58,7 +58,8 @@ class ExportCSV : public QDialog
     void UpdateCalendarDay(QDateEdit *dateedit, QDate date);
     
     QString getDefaultQueryForReport(const QString &reportName, qint64 profile_id, 
-                                     const QString &startDate, const QString &endDate);
+                                     const QString &startDate, const QString &endDate,
+                                     const QString &resolution);
 
     Ui::ExportCSV *ui;
     QList<DumpField> fields;

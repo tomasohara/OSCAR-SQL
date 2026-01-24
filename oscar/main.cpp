@@ -578,18 +578,19 @@ int main(int argc, char *argv[]) {
                                                           datadir, QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) {
                                     continue;   // If no, don't use it, go around the loop again
                                 } // User responded "yes"
-                                settings.setValue("Settings/AppData", datadir);
-                                qDebug() << "Changing data folder to" << datadir;
-                                break;
                             }
+                            settings.setValue("Settings/AppData", datadir);
+                            qDebug() << "Changing data folder to" << datadir;
+                            break;
                         }
                     }
                 }           // the while loop
             }           // user wants a different folder
         }           // user used --datadir folder to select a folder
     }           // The folder doesn't exist
-    else
+    else {
         qDebug() << "AppData folder already exists, so ...";
+    }
     qDebug().noquote() << "Using " + GetAppData() + " as OSCAR data folder";
 
     QString path = GetAppData();

@@ -527,6 +527,7 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
 
     p_profile = prof;
     ProgressDialog * progress = new ProgressDialog(this);
+    progress->setWindowTitle("Opening " + profileName);
 
     progress->setMessage(QObject::tr("Loading profile \"%1\"...").arg(profileName));
     progress->open();
@@ -2448,8 +2449,11 @@ QString MainWindow::profilePath(QString folderProfileName ) {
             return folderName;
         }
     }
+    // Default to standard Documents location if no remembered path or path doesn't exist
     QStringList paths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-    if (paths.size()>1) folderName = paths[0];
+    if (paths.size() > 0) {
+        folderName = paths[0];
+    }
     return folderName;
 }
 

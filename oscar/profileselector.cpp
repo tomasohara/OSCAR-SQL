@@ -527,7 +527,7 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
         dbProgress->setWindowModality(Qt::WindowModal);
         dbProgress->setMinimumWidth(400);
         dbProgress->setValue(0);
-        dbProgress->setWindowTitle(tr("Deleting profile"));
+        dbProgress->setWindowTitle(tr("Deleting profile ") + name);
         dbProgress->show();
         QCoreApplication::processEvents();
         
