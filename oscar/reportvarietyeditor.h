@@ -84,6 +84,11 @@ private slots:
      * \brief Update UI when variety name changes
      */
     void on_varietyNameEdit_textChanged(const QString &text);
+    
+    /*!
+     * \brief Update UI when query text changes
+     */
+    void on_queryEdit_textChanged();
 
 private:
     /*!

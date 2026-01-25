@@ -58,6 +58,8 @@ ReportVarietyEditor::ReportVarietyEditor(qint64 sourceVarietyId, QWidget *parent
             this, &ReportVarietyEditor::on_reportNameEdit_textChanged);
     connect(ui->varietyNameEdit, &QLineEdit::textChanged,
             this, &ReportVarietyEditor::on_varietyNameEdit_textChanged);
+    connect(ui->queryEdit, &QPlainTextEdit::textChanged,
+            this, &ReportVarietyEditor::on_queryEdit_textChanged);
     
     updateSaveButtonState();
 }
@@ -278,6 +280,11 @@ void ReportVarietyEditor::on_reportNameEdit_textChanged(const QString &text)
 void ReportVarietyEditor::on_varietyNameEdit_textChanged(const QString &text)
 {
     Q_UNUSED(text);
+    updateSaveButtonState();
+}
+
+void ReportVarietyEditor::on_queryEdit_textChanged()
+{
     updateSaveButtonState();
 }
 

@@ -264,7 +264,7 @@ CREATE TABLE respiratory_events (
 )
 ```
 
-**Event Types:** 0=Obstructive, 1=Central, 2=Hypopnea, 3=RERA, 4=Clear Airway, 5=User-flagged
+**Event Types:** 0=Obstructive, 1=Unclassified, 2=Hypopnea, 3=RERA, 4=Clear Airway, 5=User-flagged
 
 ### 11. session_summaries
 Cached high-level session summaries.
