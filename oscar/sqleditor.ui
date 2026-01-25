@@ -18,7 +18,7 @@
     <widget class="QLabel" name="label">
      <property name="text">
       <string>Edit the SQL query below. The query will be executed against the OSCAR database.
-Variables: %1 = profile_id, %2 = start_date, %3 = end_date</string>
+Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

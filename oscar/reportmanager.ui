@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ReportManager</class>
+ <widget class="QDialog" name="ReportManager">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Report Manager</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QWidget" name="leftPanel" native="true">
+      <layout class="QVBoxLayout" name="leftLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="reportsGroupBox">
+         <property name="title">
+          <string>Reports</string>
+         </property>
+         <layout class="QVBoxLayout" name="reportsLayout">
+          <item>
+           <widget class="QListView" name="reportList">
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="reportButtonsLayout">
+            <item>
+             <widget class="QPushButton" name="newReportButton">
+              <property name="text">
+               <string>New Report</string>
+              </property>
+              <property name="icon">
+               <iconset resource="Resources.qrc">
+                <normaloff>:/icons/plus.png</normaloff>:/icons/plus.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="reportButtonsSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="rightPanel" native="true">
+      <layout class="QVBoxLayout" name="rightLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="detailsGroupBox">
+         <property name="title">
+          <string>Report Details</string>
+         </property>
+         <layout class="QVBoxLayout" name="detailsLayout">
+          <item>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="nameHeaderLabel">
+              <property name="text">
+               <string>Name:</string>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="reportNameLabel">
+              <property name="text">
+               <string/>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="typeHeaderLabel">
+              <property name="text">
+               <string>Type:</string>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="reportTypeLabel">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="descHeaderLabel">
+              <property name="text">
+               <string>Description:</string>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="reportDescLabel">
+              <property name="text">
+               <string/>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="varietiesGroupBox">
+            <property name="title">
+             <string>Report Varieties</string>
+            </property>
+            <layout class="QVBoxLayout" name="varietiesLayout">
+             <item>
+              <widget class="QTableView" name="varietyTable">
+               <property name="alternatingRowColors">
+                <bool>true</bool>
+               </property>
+               <property name="selectionBehavior">
+                <enum>QAbstractItemView::SelectRows</enum>
+               </property>
+               <property name="sortingEnabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="varietyButtonsLayout">
+               <item>
+                <widget class="QPushButton" name="newVarietyButton">
+                 <property name="text">
+                  <string>New Variety</string>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="Resources.qrc">
+                   <normaloff>:/icons/plus.png</normaloff>:/icons/plus.png</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="viewQueryButton">
+                 <property name="text">
+                  <string>View Query</string>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="Resources.qrc">
+                   <normaloff>:/icons/search.png</normaloff>:/icons/search.png</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="copyVarietyButton">
+                 <property name="text">
+                  <string>Copy Variety</string>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="Resources.qrc">
+                   <normaloff>:/icons/copy.png</normaloff>:/icons/copy.png</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="varietyButtonsSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="reportActionsLayout">
+            <item>
+             <widget class="QPushButton" name="copyReportButton">
+              <property name="text">
+               <string>Copy Report</string>
+              </property>
+              <property name="icon">
+               <iconset resource="Resources.qrc">
+                <normaloff>:/icons/copy.png</normaloff>:/icons/copy.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="deleteReportButton">
+              <property name="text">
+               <string>Delete Report</string>
+              </property>
+              <property name="icon">
+               <iconset resource="Resources.qrc">
+                <normaloff>:/icons/trash.png</normaloff>:/icons/trash.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="reportActionsSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="Resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>ReportManager</receiver>
+   <slot>on_closeButton_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>399</x>
+     <y>579</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>on_closeButton_clicked()</slot>
+ </slots>
+</ui>

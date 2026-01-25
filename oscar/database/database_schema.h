@@ -36,7 +36,7 @@ public:
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
      */
-    static const int CURRENT_SCHEMA_VERSION = 10;
+    static const int CURRENT_SCHEMA_VERSION = 11;
 
     /*!
      * \brief Create the complete database schema
@@ -94,6 +94,20 @@ private:
     // Event data tables (schema version 8)
     static bool createEventListsTable(QSqlDatabase& db);
     static bool createEventDataTable(QSqlDatabase& db);
+    
+    // CSV Export Reports tables (schema version 11)
+    static bool createReportsTable(QSqlDatabase& db);
+    static bool createReportContentsTable(QSqlDatabase& db);
+    static bool createReportIndexes(QSqlDatabase& db);
+    static bool initializeDefaultReports(QSqlDatabase& db);
+    static bool updateDefaultReportQueries(QSqlDatabase& db);  // Update existing report queries
+    
+    // CSV Export Reports version tracking
+    static bool checkAndUpdateReportVersion(QSqlDatabase& db);
+    static bool reinitializeSystemReports(QSqlDatabase& db);
+    static bool initializeSystemReports(QSqlDatabase& db);
+    static QString getSavedReportVersion();
+    static void saveReportVersion(QSqlDatabase& db);
     
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);

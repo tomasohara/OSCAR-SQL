@@ -2400,6 +2400,7 @@ p, li { white-space: pre-wrap; }
       <string>Export Data</string>
      </property>
      <addaction name="actionExport_CSV"/>
+     <addaction name="actionManage_Reports"/>
      <addaction name="separator"/>
      <addaction name="actionExport_Review"/>
    </widget>
@@ -2868,6 +2869,14 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>CSV Export Wizard</string>
+   </property>
+  </action>
+  <action name="actionManage_Reports">
+   <property name="text">
+    <string>Manage Reports...</string>
+   </property>
+   <property name="toolTip">
+    <string>Manage CSV export report definitions</string>
    </property>
   </action>
   <action name="actionExport_Review">

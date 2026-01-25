@@ -71,6 +71,7 @@
 #include "aboutdialog.h"
 #include "newprofile.h"
 #include "exportcsv.h"
+#include "reportmanager.h"
 #include "importprofile.h"
 #include "profileimporter.h"
 #include "SleepLib/schema.h"
@@ -2876,6 +2877,12 @@ void MainWindow::on_actionExport_CSV_triggered()
 
     if (ex.exec() == ExportCSV::Accepted) {
     }
+}
+
+void MainWindow::on_actionManage_Reports_triggered()
+{
+    ReportManager manager(this);
+    manager.exec();
 }
 
 void MainWindow::on_actionExport_Review_triggered()

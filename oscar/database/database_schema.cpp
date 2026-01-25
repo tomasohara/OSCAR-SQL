@@ -13,6 +13,8 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
+#include <QSettings>
+#include "version.h"
 
 /*
  * Create the complete database schema
@@ -453,6 +455,42 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         qDebug() << "DatabaseSchema: Old central_count columns retained for compatibility";
     }
     
+    // Upgrade from version 10 to version 11: Add CSV export reports tables
+    if (fromVersion < 11) {
+        qDebug() << "DatabaseSchema: Applying version 11 upgrade (CSV export reports tables)";
+        
+        if (!createReportsTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create reports table during upgrade";
+            return false;
+        }
+        
+        if (!createReportContentsTable(db)) {
+            qCritical() << "DatabaseSchema: Failed to create report_contents table during upgrade";
+            return false;
+        }
+        
+        if (!createReportIndexes(db)) {
+            qCritical() << "DatabaseSchema: Failed to create report indexes during upgrade";
+            return false;
+        }
+        
+        // Initialize with default reports
+        if (!initializeDefaultReports(db)) {
+            qCritical() << "DatabaseSchema: Failed to initialize default reports during upgrade";
+            return false;
+        }
+        
+        // Update schema version
+        if (!setSchemaVersion(db, 11)) {
+            qCritical() << "DatabaseSchema: Failed to update schema version to 11";
+            return false;
+        }
+        
+        qDebug() << "DatabaseSchema: Successfully upgraded to version 11";
+        qDebug() << "DatabaseSchema: CSV export reports tables created";
+        qDebug() << "DatabaseSchema: Default reports initialized (Daily Summaries, Session Statistics, Device Settings)";
+    }
+    
     return true;
 }
 
@@ -677,8 +715,15 @@ bool DatabaseSchema::setSchemaVersion(QSqlDatabase& db, int version)
 {
     QSqlQuery query(db);
     
-    // Use INSERT OR REPLACE to handle both new and existing version records
-    query.prepare("INSERT OR REPLACE INTO schema_version (version) VALUES (?)");
+    // Delete all existing version records first
+    if (!query.exec("DELETE FROM schema_version")) {
+        qWarning() << "DatabaseSchema: Failed to clear old schema versions:" 
+                   << query.lastError().text();
+        // Continue anyway - might be empty table
+    }
+    
+    // Insert the current version
+    query.prepare("INSERT INTO schema_version (version) VALUES (?)");
     query.addBindValue(version);
 
     if (!query.exec()) {
@@ -1360,4 +1405,861 @@ bool DatabaseSchema::createEventDataTable(QSqlDatabase& db)
 
     qDebug() << "DatabaseSchema: event_data table created";
     return true;
+}
+
+/*
+ * Create the reports table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The reports table stores CSV export report definitions.
+ * These are global (not profile-specific) and support user customization.
+ */
+bool DatabaseSchema::createReportsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS reports ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    name TEXT UNIQUE NOT NULL,"
+        "    description TEXT,"
+        "    display_order INTEGER DEFAULT 0,"
+        "    is_system INTEGER DEFAULT 0,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create reports table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: reports table created";
+    return true;
+}
+
+/*
+ * Create the report_contents table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The report_contents table stores SQL query templates for each report variety.
+ * Queries contain macros like #PROFILE_ID, #START_DATE, #END_DATE for substitution.
+ */
+bool DatabaseSchema::createReportContentsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    QString sql = 
+        "CREATE TABLE IF NOT EXISTS report_contents ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    report_id INTEGER NOT NULL,"
+        "    variety TEXT NOT NULL,"
+        "    description TEXT,"
+        "    query TEXT NOT NULL,"
+        "    display_order INTEGER DEFAULT 0,"
+        "    is_system INTEGER DEFAULT 0,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,"
+        "    UNIQUE(report_id, variety)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create report_contents table:" 
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: report_contents table created";
+    return true;
+}
+
+/*
+ * Create indexes for reports tables
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * Creates indexes to optimize report queries.
+ */
+bool DatabaseSchema::createReportIndexes(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    if (!query.exec("CREATE INDEX IF NOT EXISTS idx_report_contents_report ON report_contents(report_id)")) {
+        qWarning() << "DatabaseSchema: Failed to create report_contents report index:" << query.lastError().text();
+        return false;
+    }
+    
+    if (!query.exec("CREATE INDEX IF NOT EXISTS idx_reports_name ON reports(name)")) {
+        qWarning() << "DatabaseSchema: Failed to create reports name index:" << query.lastError().text();
+        return false;
+    }
+    
+    if (!query.exec("CREATE INDEX IF NOT EXISTS idx_report_contents_variety ON report_contents(report_id, variety)")) {
+        qWarning() << "DatabaseSchema: Failed to create report_contents variety index:" << query.lastError().text();
+        return false;
+    }
+    
+    qDebug() << "DatabaseSchema: Report indexes created";
+    return true;
+}
+
+/*
+ * Initialize default CSV export reports
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * Populates reports and report_contents tables with the three default reports.
+ * This is called during schema creation and upgrades if tables are empty.
+ * 
+ * Note: Queries are placeholders for now - actual queries will be migrated from
+ * exportcsv.cpp once integration is complete.
+ */
+bool DatabaseSchema::initializeDefaultReports(QSqlDatabase& db)
+{
+    // Delegate to version checking which handles both first-time init
+    // and updates when OSCAR version changes
+    return checkAndUpdateReportVersion(db);
+}
+
+/*
+ * Check and update CSV report version
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * This is the main entry point for report version tracking.
+ * On first run, initializes reports and saves version.
+ * On subsequent runs, checks if OSCAR version changed and reinitializes system reports if needed.
+ */
+bool DatabaseSchema::checkAndUpdateReportVersion(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+    
+    // Check if reports table has any data
+    if (!query.exec("SELECT COUNT(*) FROM reports")) {
+        qWarning() << "DatabaseSchema: Failed to check reports table:" << query.lastError().text();
+        return false;
+    }
+    
+    if (query.next() && query.value(0).toInt() == 0) {
+        // Empty table - first time initialization
+        qDebug() << "DatabaseSchema: First time initialization of CSV reports";
+        
+        if (!initializeSystemReports(db)) {
+            qCritical() << "DatabaseSchema: Failed to initialize system reports";
+            return false;
+        }
+        
+        // Save current OSCAR version
+        saveReportVersion(db);
+        return true;
+    }
+    
+    // Reports exist - check if OSCAR version changed
+    QString savedVersion = getSavedReportVersion();
+    QString currentVersion = getVersion().displayString();
+    
+    if (savedVersion.isEmpty()) {
+        // No saved version (upgrading from version before version tracking)
+        qDebug() << "DatabaseSchema: No saved report version found, saving current version:" << currentVersion;
+        saveReportVersion(db);
+        return true;
+    }
+    
+    if (savedVersion != currentVersion) {
+        qDebug() << "DatabaseSchema: OSCAR version changed from" << savedVersion << "to" << currentVersion;
+        qDebug() << "DatabaseSchema: Reinitializing system reports to update queries...";
+        
+        if (!reinitializeSystemReports(db)) {
+            qCritical() << "DatabaseSchema: Failed to reinitialize system reports";
+            return false;
+        }
+        
+        // Save new version
+        saveReportVersion(db);
+        
+        qDebug() << "DatabaseSchema: System reports successfully updated for OSCAR" << currentVersion;
+        qDebug() << "DatabaseSchema: Custom user reports were preserved";
+    } else {
+        qDebug() << "DatabaseSchema: CSV reports version matches OSCAR version" << currentVersion << "- no update needed";
+    }
+    
+    return true;
+}
+
+/*
+ * Reinitialize system reports
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * Deletes all system reports and recreates them with current queries.
+ * Custom user reports (is_system=0) are preserved.
+ */
+bool DatabaseSchema::reinitializeSystemReports(QSqlDatabase& db)
+{
+    qDebug() << "DatabaseSchema: Deleting system reports...";
+    
+    QSqlQuery query(db);
+    
+    // Delete system report contents first (to satisfy foreign key constraints)
+    if (!query.exec("DELETE FROM report_contents WHERE is_system = 1")) {
+        qCritical() << "DatabaseSchema: Failed to delete system report contents:" << query.lastError().text();
+        return false;
+    }
+    
+    int contentsDeleted = query.numRowsAffected();
+    qDebug() << "DatabaseSchema: Deleted" << contentsDeleted << "system report content records";
+    
+    // Delete system reports (CASCADE will handle any remaining contents)
+    if (!query.exec("DELETE FROM reports WHERE is_system = 1")) {
+        qCritical() << "DatabaseSchema: Failed to delete system reports:" << query.lastError().text();
+        return false;
+    }
+    
+    int reportsDeleted = query.numRowsAffected();
+    qDebug() << "DatabaseSchema: Deleted" << reportsDeleted << "system report records";
+    
+    // Reinitialize with current queries
+    qDebug() << "DatabaseSchema: Recreating system reports with current queries...";
+    return initializeSystemReports(db);
+}
+
+/*
+ * Initialize system reports (moved from initializeDefaultReports)
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * Creates the default system reports with current queries.
+ * This is the extracted report creation logic from the original initializeDefaultReports().
+ */
+bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
+{
+    qDebug() << "DatabaseSchema: Initializing system reports...";
+    
+    QSqlQuery query(db);
+    
+    // Report 1: Daily Summaries
+    query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
+    query.addBindValue("Daily Summaries");
+    query.addBindValue("Aggregated daily CPAP data");
+    query.addBindValue(0);  // display_order = 0 for alphabetical sorting
+    query.addBindValue(1);  // is_system = 1
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Daily Summaries report:" << query.lastError().text();
+        return false;
+    }
+    qint64 dailySummariesId = query.lastInsertId().toLongLong();
+    
+    // Report 2: Session Statistics
+    query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
+    query.addBindValue("Session Statistics");
+    query.addBindValue("Individual session or aggregated session data");
+    query.addBindValue(0);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Session Statistics report:" << query.lastError().text();
+        return false;
+    }
+    qint64 sessionStatsId = query.lastInsertId().toLongLong();
+    
+    // Report 3: Device Settings
+    query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
+    query.addBindValue("Device Settings");
+    query.addBindValue("Machine configuration settings");
+    query.addBindValue(0);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Device Settings report:" << query.lastError().text();
+        return false;
+    }
+    qint64 deviceSettingsId = query.lastInsertId().toLongLong();
+    
+    // Add report contents (varieties)
+    // Note: These are the actual queries migrated from exportcsv.cpp with macros for substitution
+    
+    // Daily Summaries - Days (no aggregation)
+    QString dailyDaysQuery = 
+        "SELECT\n"
+        "  ds.date as Period,\n"
+        "  ROUND(ds.ahi, 2) as AHI,\n"
+        "  ROUND(ds.rdi, 2) as RDI,\n"
+        "  ds.obstructive_count as OA,\n"
+        "  ds.unclassified_count as UA,\n"
+        "  ds.hypopnea_count as H,\n"
+        "  ds.clear_airway_count as CA,\n"
+        "  ds.rera_count as RERA,\n"
+        "  ROUND(ds.pressure_avg, 2) as Pressure_Avg,\n"
+        "  ROUND(ds.pressure_95th, 2) as Pressure_95th,\n"
+        "  ROUND(ds.leak_total_avg, 2) as Leak_Avg,\n"
+        "  ROUND(ds.leak_total_95th, 2) as Leak_95th,\n"
+        "  ROUND(ds.mask_on_hours, 2) as Hours\n"
+        "FROM daily_summaries ds\n"
+        "WHERE ds.profile_id = #PROFILE_ID\n"
+        "  AND ds.date >= #START_DATE\n"
+        "  AND ds.date <= #END_DATE\n"
+        "ORDER BY ds.date";
+    
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(dailySummariesId);
+    query.addBindValue("Days");
+    query.addBindValue("Daily data (no aggregation)");
+    query.addBindValue(dailyDaysQuery);
+    query.addBindValue(1);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Daily Summaries - Days content:" << query.lastError().text();
+        return false;
+    }
+    
+    // Daily Summaries - Weeks (weekly aggregation)
+    QString dailyWeeksQuery =
+        "SELECT\n"
+        "  strftime('%Y-W%W', ds.date) as Period,\n"
+        "  MIN(ds.date) as Week_Start,\n"
+        "  MAX(ds.date) as Week_End,\n"
+        "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as AHI,\n"
+        "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count) + SUM(ds.rera_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as RDI,\n"
+        "  SUM(ds.obstructive_count) as OA,\n"
+        "  SUM(ds.unclassified_count) as UA,\n"
+        "  SUM(ds.hypopnea_count) as H,\n"
+        "  SUM(ds.clear_airway_count) as CA,\n"
+        "  SUM(ds.rera_count) as RERA,\n"
+        "  ROUND(SUM(ds.pressure_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Pressure_Avg,\n"
+        "  ROUND(AVG(ds.pressure_95th), 2) as Pressure_95th,\n"
+        "  ROUND(SUM(ds.leak_total_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Leak_Avg,\n"
+        "  ROUND(AVG(ds.leak_total_95th), 2) as Leak_95th,\n"
+        "  ROUND(SUM(ds.mask_on_hours), 2) as Hours\n"
+        "FROM daily_summaries ds\n"
+        "WHERE ds.profile_id = #PROFILE_ID\n"
+        "  AND ds.date >= #START_DATE\n"
+        "  AND ds.date <= #END_DATE\n"
+        "GROUP BY strftime('%Y-W%W', ds.date)\n"
+        "ORDER BY Period";
+    
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(dailySummariesId);
+    query.addBindValue("Weeks");
+    query.addBindValue("Weekly aggregation");
+    query.addBindValue(dailyWeeksQuery);
+    query.addBindValue(2);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Daily Summaries - Weeks content:" << query.lastError().text();
+        return false;
+    }
+    
+    // Daily Summaries - Months (monthly aggregation)
+    QString dailyMonthsQuery =
+        "SELECT\n"
+        "  strftime('%Y-%m', ds.date) as Period,\n"
+        "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as AHI,\n"
+        "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count) + SUM(ds.rera_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as RDI,\n"
+        "  SUM(ds.obstructive_count) as OA,\n"
+        "  SUM(ds.unclassified_count) as UA,\n"
+        "  SUM(ds.hypopnea_count) as H,\n"
+        "  SUM(ds.clear_airway_count) as CA,\n"
+        "  SUM(ds.rera_count) as RERA,\n"
+        "  ROUND(SUM(ds.pressure_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Pressure_Avg,\n"
+        "  ROUND(AVG(ds.pressure_95th), 2) as Pressure_95th,\n"
+        "  ROUND(SUM(ds.leak_total_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Leak_Avg,\n"
+        "  ROUND(AVG(ds.leak_total_95th), 2) as Leak_95th,\n"
+        "  ROUND(SUM(ds.mask_on_hours), 2) as Hours\n"
+        "FROM daily_summaries ds\n"
+        "WHERE ds.profile_id = #PROFILE_ID\n"
+        "  AND ds.date >= #START_DATE\n"
+        "  AND ds.date <= #END_DATE\n"
+        "GROUP BY strftime('%Y-%m', ds.date)\n"
+        "ORDER BY Period";
+    
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(dailySummariesId);
+    query.addBindValue("Months");
+    query.addBindValue("Monthly aggregation");
+    query.addBindValue(dailyMonthsQuery);
+    query.addBindValue(3);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Daily Summaries - Months content:" << query.lastError().text();
+        return false;
+    }
+    
+    // Session Statistics - Sessions (no aggregation - one row per session)
+    QString sessionStatsSessionsQuery =
+        "SELECT\n"
+        "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date,\n"
+        "  ROUND(ss.ahi, 2) as AHI,\n"
+        "  ROUND(ss.mask_on_hours, 2) as Hours,\n"
+        "  ss.obstructive_count as OA,\n"
+        "  ss.unclassified_count as UA,\n"
+        "  ss.hypopnea_count as H,\n"
+        "  ss.clear_airway_count as CA,\n"
+        "  m.model as Machine\n"
+        "FROM session_summaries ss\n"
+        "JOIN sessions s ON ss.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "  AND s.enabled = 1\n"
+        "ORDER BY s.start_time";
+    
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(sessionStatsId);
+    query.addBindValue("Sessions");
+    query.addBindValue("Individual sessions (no aggregation)");
+    query.addBindValue(sessionStatsSessionsQuery);
+    query.addBindValue(1);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Session Statistics - Sessions content:" << query.lastError().text();
+        return false;
+    }
+    
+    // Session Statistics - Days (daily aggregation)
+    QString sessionStatsDaysQuery =
+        "SELECT\n"
+        "  date(s.start_time/1000, 'unixepoch', 'localtime') as Period,\n"
+        "  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,\n"
+        "  SUM(ss.obstructive_count) as OA,\n"
+        "  SUM(ss.unclassified_count) as UA,\n"
+        "  SUM(ss.hypopnea_count) as H,\n"
+        "  SUM(ss.clear_airway_count) as CA,\n"
+        "  ROUND(SUM(ss.mask_on_hours), 2) as Hours\n"
+        "FROM session_summaries ss\n"
+        "JOIN sessions s ON ss.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "  AND s.enabled = 1\n"
+        "GROUP BY date(s.start_time/1000, 'unixepoch', 'localtime')\n"
+        "ORDER BY Period";
+    
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(sessionStatsId);
+    query.addBindValue("Days");
+    query.addBindValue("Daily aggregation");
+    query.addBindValue(sessionStatsDaysQuery);
+    query.addBindValue(2);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Session Statistics - Days content:" << query.lastError().text();
+        return false;
+    }
+    
+    // Session Statistics - Weeks (weekly aggregation)
+    QString sessionStatsWeeksQuery =
+        "SELECT\n"
+        "  strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,\n"
+        "  MIN(date(s.start_time/1000, 'unixepoch', 'localtime')) as Week_Start,\n"
+        "  MAX(date(s.start_time/1000, 'unixepoch', 'localtime')) as Week_End,\n"
+        "  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,\n"
+        "  SUM(ss.obstructive_count) as OA,\n"
+        "  SUM(ss.unclassified_count) as UA,\n"
+        "  SUM(ss.hypopnea_count) as H,\n"
+        "  SUM(ss.clear_airway_count) as CA,\n"
+        "  ROUND(SUM(ss.mask_on_hours), 2) as Hours\n"
+        "FROM session_summaries ss\n"
+        "JOIN sessions s ON ss.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "  AND s.enabled = 1\n"
+        "GROUP BY strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime'))\n"
+        "ORDER BY Period";
+    
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(sessionStatsId);
+    query.addBindValue("Weeks");
+    query.addBindValue("Weekly aggregation");
+    query.addBindValue(sessionStatsWeeksQuery);
+    query.addBindValue(3);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Session Statistics - Weeks content:" << query.lastError().text();
+        return false;
+    }
+    
+    // Session Statistics - Months (monthly aggregation)
+    QString sessionStatsMonthsQuery =
+        "SELECT\n"
+        "  strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,\n"
+        "  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,\n"
+        "  SUM(ss.obstructive_count) as OA,\n"
+        "  SUM(ss.unclassified_count) as UA,\n"
+        "  SUM(ss.hypopnea_count) as H,\n"
+        "  SUM(ss.clear_airway_count) as CA,\n"
+        "  ROUND(SUM(ss.mask_on_hours), 2) as Hours\n"
+        "FROM session_summaries ss\n"
+        "JOIN sessions s ON ss.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "  AND s.enabled = 1\n"
+        "GROUP BY strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime'))\n"
+        "ORDER BY Period";
+    
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(sessionStatsId);
+    query.addBindValue("Months");
+    query.addBindValue("Monthly aggregation");
+    query.addBindValue(sessionStatsMonthsQuery);
+    query.addBindValue(4);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Session Statistics - Months content:" << query.lastError().text();
+        return false;
+    }
+    
+    // Device Settings - All Sessions
+    QString deviceSettingsQuery =
+        "SELECT\n"
+        "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date,\n"
+        "  m.model as Machine,\n"
+        "  st.channel_id as Channel_ID,\n"
+        "  COALESCE(c.fullname, c.label, c.channel_code, 'Channel_' || st.channel_id) as Setting,\n"
+        "  st.value as Value,\n"
+        "  st.data_type as Type\n"
+        "FROM session_settings st\n"
+        "JOIN sessions s ON st.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "LEFT JOIN channels c ON c.profile_id = m.profile_id AND c.channel_id = st.channel_id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "ORDER BY s.start_time, st.channel_id";
+    
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(deviceSettingsId);
+    query.addBindValue("All Sessions");
+    query.addBindValue("All device settings (no aggregation)");
+    query.addBindValue(deviceSettingsQuery);
+    query.addBindValue(1);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Device Settings - All Sessions content:" << query.lastError().text();
+        return false;
+    }
+    
+    qDebug() << "DatabaseSchema: Default reports initialized successfully";
+    qDebug() << "DatabaseSchema: Created 3 reports with 8 content varieties total";
+    
+    return true;
+}
+
+/*
+ * Update default report queries with full SQL
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * This function updates existing report content queries with the full SQL queries.
+ * Used to migrate from placeholder queries to production queries.
+ */
+bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
+{
+    qDebug() << "DatabaseSchema: Updating default report queries...";
+    
+    QSqlQuery query(db);
+    
+    // Update queries by report name and variety
+    // We use report name and variety to find the records since those are unique
+    
+    // Daily Summaries - Days
+    QString dailyDaysQuery = 
+        "SELECT\n"
+        "  ds.date as Period,\n"
+        "  ROUND(ds.ahi, 2) as AHI,\n"
+        "  ROUND(ds.rdi, 2) as RDI,\n"
+        "  ds.obstructive_count as OA,\n"
+        "  ds.unclassified_count as UA,\n"
+        "  ds.hypopnea_count as H,\n"
+        "  ds.clear_airway_count as CA,\n"
+        "  ds.rera_count as RERA,\n"
+        "  ROUND(ds.pressure_avg, 2) as Pressure_Avg,\n"
+        "  ROUND(ds.pressure_95th, 2) as Pressure_95th,\n"
+        "  ROUND(ds.leak_total_avg, 2) as Leak_Avg,\n"
+        "  ROUND(ds.leak_total_95th, 2) as Leak_95th,\n"
+        "  ROUND(ds.mask_on_hours, 2) as Hours\n"
+        "FROM daily_summaries ds\n"
+        "WHERE ds.profile_id = #PROFILE_ID\n"
+        "  AND ds.date >= #START_DATE\n"
+        "  AND ds.date <= #END_DATE\n"
+        "ORDER BY ds.date";
+    
+    query.prepare("UPDATE report_contents SET query = ? WHERE report_id = (SELECT id FROM reports WHERE name = 'Daily Summaries') AND variety = 'Days'");
+    query.addBindValue(dailyDaysQuery);
+    if (!query.exec()) {
+        qWarning() << "DatabaseSchema: Failed to update Daily Summaries - Days:" << query.lastError().text();
+    }
+    
+    // Daily Summaries - Weeks
+    QString dailyWeeksQuery =
+        "SELECT\n"
+        "  strftime('%Y-W%W', ds.date) as Period,\n"
+        "  MIN(ds.date) as Week_Start,\n"
+        "  MAX(ds.date) as Week_End,\n"
+        "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as AHI,\n"
+        "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count) + SUM(ds.rera_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as RDI,\n"
+        "  SUM(ds.obstructive_count) as OA,\n"
+        "  SUM(ds.unclassified_count) as UA,\n"
+        "  SUM(ds.hypopnea_count) as H,\n"
+        "  SUM(ds.clear_airway_count) as CA,\n"
+        "  SUM(ds.rera_count) as RERA,\n"
+        "  ROUND(SUM(ds.pressure_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Pressure_Avg,\n"
+        "  ROUND(AVG(ds.pressure_95th), 2) as Pressure_95th,\n"
+        "  ROUND(SUM(ds.leak_total_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Leak_Avg,\n"
+        "  ROUND(AVG(ds.leak_total_95th), 2) as Leak_95th,\n"
+        "  ROUND(SUM(ds.mask_on_hours), 2) as Hours\n"
+        "FROM daily_summaries ds\n"
+        "WHERE ds.profile_id = #PROFILE_ID\n"
+        "  AND ds.date >= #START_DATE\n"
+        "  AND ds.date <= #END_DATE\n"
+        "GROUP BY strftime('%Y-W%W', ds.date)\n"
+        "ORDER BY Period";
+    
+    query.prepare("UPDATE report_contents SET query = ? WHERE report_id = (SELECT id FROM reports WHERE name = 'Daily Summaries') AND variety = 'Weeks'");
+    query.addBindValue(dailyWeeksQuery);
+    if (!query.exec()) {
+        qWarning() << "DatabaseSchema: Failed to update Daily Summaries - Weeks:" << query.lastError().text();
+    }
+    
+    // Daily Summaries - Months
+    QString dailyMonthsQuery =
+        "SELECT\n"
+        "  strftime('%Y-%m', ds.date) as Period,\n"
+        "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as AHI,\n"
+        "  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count) + SUM(ds.rera_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as RDI,\n"
+        "  SUM(ds.obstructive_count) as OA,\n"
+        "  SUM(ds.unclassified_count) as UA,\n"
+        "  SUM(ds.hypopnea_count) as H,\n"
+        "  SUM(ds.clear_airway_count) as CA,\n"
+        "  SUM(ds.rera_count) as RERA,\n"
+        "  ROUND(SUM(ds.pressure_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Pressure_Avg,\n"
+        "  ROUND(AVG(ds.pressure_95th), 2) as Pressure_95th,\n"
+        "  ROUND(SUM(ds.leak_total_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Leak_Avg,\n"
+        "  ROUND(AVG(ds.leak_total_95th), 2) as Leak_95th,\n"
+        "  ROUND(SUM(ds.mask_on_hours), 2) as Hours\n"
+        "FROM daily_summaries ds\n"
+        "WHERE ds.profile_id = #PROFILE_ID\n"
+        "  AND ds.date >= #START_DATE\n"
+        "  AND ds.date <= #END_DATE\n"
+        "GROUP BY strftime('%Y-%m', ds.date)\n"
+        "ORDER BY Period";
+    
+    query.prepare("UPDATE report_contents SET query = ? WHERE report_id = (SELECT id FROM reports WHERE name = 'Daily Summaries') AND variety = 'Months'");
+    query.addBindValue(dailyMonthsQuery);
+    if (!query.exec()) {
+        qWarning() << "DatabaseSchema: Failed to update Daily Summaries - Months:" << query.lastError().text();
+    }
+    
+    // Session Statistics - Sessions
+    QString sessionStatsSessionsQuery =
+        "SELECT\n"
+        "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date,\n"
+        "  ROUND(ss.ahi, 2) as AHI,\n"
+        "  ROUND(ss.mask_on_hours, 2) as Hours,\n"
+        "  ss.obstructive_count as OA,\n"
+        "  ss.unclassified_count as UA,\n"
+        "  ss.hypopnea_count as H,\n"
+        "  ss.clear_airway_count as CA,\n"
+        "  m.model as Machine\n"
+        "FROM session_summaries ss\n"
+        "JOIN sessions s ON ss.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "  AND s.enabled = 1\n"
+        "ORDER BY s.start_time";
+    
+    query.prepare("UPDATE report_contents SET query = ? WHERE report_id = (SELECT id FROM reports WHERE name = 'Session Statistics') AND variety = 'Sessions'");
+    query.addBindValue(sessionStatsSessionsQuery);
+    if (!query.exec()) {
+        qWarning() << "DatabaseSchema: Failed to update Session Statistics - Sessions:" << query.lastError().text();
+    }
+    
+    // Session Statistics - Days
+    QString sessionStatsDaysQuery =
+        "SELECT\n"
+        "  date(s.start_time/1000, 'unixepoch', 'localtime') as Period,\n"
+        "  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,\n"
+        "  SUM(ss.obstructive_count) as OA,\n"
+        "  SUM(ss.unclassified_count) as UA,\n"
+        "  SUM(ss.hypopnea_count) as H,\n"
+        "  SUM(ss.clear_airway_count) as CA,\n"
+        "  ROUND(SUM(ss.mask_on_hours), 2) as Hours\n"
+        "FROM session_summaries ss\n"
+        "JOIN sessions s ON ss.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "  AND s.enabled = 1\n"
+        "GROUP BY date(s.start_time/1000, 'unixepoch', 'localtime')\n"
+        "ORDER BY Period";
+    
+    query.prepare("UPDATE report_contents SET query = ? WHERE report_id = (SELECT id FROM reports WHERE name = 'Session Statistics') AND variety = 'Days'");
+    query.addBindValue(sessionStatsDaysQuery);
+    if (!query.exec()) {
+        qWarning() << "DatabaseSchema: Failed to update Session Statistics - Days:" << query.lastError().text();
+    }
+    
+    // Session Statistics - Weeks
+    QString sessionStatsWeeksQuery =
+        "SELECT\n"
+        "  strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,\n"
+        "  MIN(date(s.start_time/1000, 'unixepoch', 'localtime')) as Week_Start,\n"
+        "  MAX(date(s.start_time/1000, 'unixepoch', 'localtime')) as Week_End,\n"
+        "  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,\n"
+        "  SUM(ss.obstructive_count) as OA,\n"
+        "  SUM(ss.unclassified_count) as UA,\n"
+        "  SUM(ss.hypopnea_count) as H,\n"
+        "  SUM(ss.clear_airway_count) as CA,\n"
+        "  ROUND(SUM(ss.mask_on_hours), 2) as Hours\n"
+        "FROM session_summaries ss\n"
+        "JOIN sessions s ON ss.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "  AND s.enabled = 1\n"
+        "GROUP BY strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime'))\n"
+        "ORDER BY Period";
+    
+    query.prepare("UPDATE report_contents SET query = ? WHERE report_id = (SELECT id FROM reports WHERE name = 'Session Statistics') AND variety = 'Weeks'");
+    query.addBindValue(sessionStatsWeeksQuery);
+    if (!query.exec()) {
+        qWarning() << "DatabaseSchema: Failed to update Session Statistics - Weeks:" << query.lastError().text();
+    }
+    
+    // Session Statistics - Months
+    QString sessionStatsMonthsQuery =
+        "SELECT\n"
+        "  strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,\n"
+        "  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,\n"
+        "  SUM(ss.obstructive_count) as OA,\n"
+        "  SUM(ss.unclassified_count) as UA,\n"
+        "  SUM(ss.hypopnea_count) as H,\n"
+        "  SUM(ss.clear_airway_count) as CA,\n"
+        "  ROUND(SUM(ss.mask_on_hours), 2) as Hours\n"
+        "FROM session_summaries ss\n"
+        "JOIN sessions s ON ss.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "  AND s.enabled = 1\n"
+        "GROUP BY strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime'))\n"
+        "ORDER BY Period";
+    
+    query.prepare("UPDATE report_contents SET query = ? WHERE report_id = (SELECT id FROM reports WHERE name = 'Session Statistics') AND variety = 'Months'");
+    query.addBindValue(sessionStatsMonthsQuery);
+    if (!query.exec()) {
+        qWarning() << "DatabaseSchema: Failed to update Session Statistics - Months:" << query.lastError().text();
+    }
+    
+    // Device Settings - All Sessions
+    QString deviceSettingsQuery =
+        "SELECT\n"
+        "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date,\n"
+        "  m.model as Machine,\n"
+        "  st.channel_id as Channel_ID,\n"
+        "  COALESCE(c.fullname, c.label, c.channel_code, 'Channel_' || st.channel_id) as Setting,\n"
+        "  st.value as Value,\n"
+        "  st.data_type as Type\n"
+        "FROM session_settings st\n"
+        "JOIN sessions s ON st.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "LEFT JOIN channels c ON c.profile_id = m.profile_id AND c.channel_id = st.channel_id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "ORDER BY s.start_time, st.channel_id";
+    
+    query.prepare("UPDATE report_contents SET query = ? WHERE report_id = (SELECT id FROM reports WHERE name = 'Device Settings') AND variety = 'All Sessions'");
+    query.addBindValue(deviceSettingsQuery);
+    if (!query.exec()) {
+        qWarning() << "DatabaseSchema: Failed to update Device Settings - All Sessions:" << query.lastError().text();
+    }
+    
+    qDebug() << "DatabaseSchema: Default report queries updated successfully";
+    return true;
+}
+
+/*
+ * Get saved CSV report version
+ *
+ * Returns: Saved OSCAR version string, or empty string if not found
+ *
+ * Retrieves the OSCAR version that was active when reports were last initialized.
+ */
+QString DatabaseSchema::getSavedReportVersion()
+{
+    QSettings settings;
+    QString version = settings.value("csv_reports_version", "").toString();
+    
+    if (!version.isEmpty()) {
+        qDebug() << "DatabaseSchema: Saved CSV reports version:" << version;
+    }
+    
+    return version;
+}
+
+/*
+ * Save CSV report version
+ *
+ * Parameters:
+ *   db - Database connection (unused but kept for consistency)
+ *
+ * Saves the current OSCAR version to settings for future version checking.
+ */
+void DatabaseSchema::saveReportVersion(QSqlDatabase& db)
+{
+    Q_UNUSED(db);
+    
+    QString currentVersion = getVersion().displayString();
+    QSettings settings;
+    settings.setValue("csv_reports_version", currentVersion);
+    
+    qDebug() << "DatabaseSchema: Saved CSV reports version:" << currentVersion;
 }

@@ -322,6 +322,8 @@ SOURCES += \
     dailySearchTab.cpp \
     exportcsv.cpp \
     sqleditor.cpp \
+    reportmanager.cpp \
+    reportvarietyeditor.cpp \
     highresolution.cpp \
     importprofile.cpp \
     profileimporter.cpp \
@@ -431,7 +433,9 @@ SOURCES += \
     database/channel_options_repository.cpp \
     database/daily_summary_repository.cpp \
     database/event_list_repository.cpp \
-    database/event_data_repository.cpp
+    database/event_data_repository.cpp \
+    database/report_repository.cpp \
+    database/report_contents_repository.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -462,6 +466,8 @@ HEADERS  += \
     cprogressbar.h \
     exportcsv.h \
     sqleditor.h \
+    reportmanager.h \
+    reportvarietyeditor.h \
     importprofile.h \
     profileimporter.h \
     mainwindow.h \
@@ -575,7 +581,9 @@ HEADERS  += \
     database/channel_options_repository.h \
     database/daily_summary_repository.h \
     database/event_list_repository.h \
-    database/event_data_repository.h
+    database/event_data_repository.h \
+    database/report_repository.h \
+    database/report_contents_repository.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }
@@ -589,6 +597,8 @@ FORMS += \
     newprofile.ui \
     exportcsv.ui \
     sqleditor.ui \
+    reportmanager.ui \
+    reportvarietyeditor.ui \
 #    UpdaterWindow.ui \
     importprofile.ui \
     oximeterimport.ui \

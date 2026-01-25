@@ -54,9 +54,19 @@ class ExportCSV : public QDialog
     void endDate_currentPageChanged(int year, int month);
 
 
+  private slots:
+    void on_reportList_selectionChanged(const QModelIndex &current, const QModelIndex &previous);
+
   private:
     void UpdateCalendarDay(QDateEdit *dateedit, QDate date);
     
+    // Database-backed report loading
+    void loadReportsFromDatabase();
+    void loadReportVarieties(qint64 reportId);
+    QString substituteMacros(const QString& query, qint64 profileId, 
+                            const QString& startDate, const QString& endDate);
+    
+    // Legacy method - kept temporarily for migration reference
     QString getDefaultQueryForReport(const QString &reportName, qint64 profile_id, 
                                      const QString &startDate, const QString &endDate,
                                      const QString &resolution);
@@ -65,6 +75,8 @@ class ExportCSV : public QDialog
     QList<DumpField> fields;
     QString m_customQuery;  ///< Custom SQL query set via Edit SQL Query dialog
     bool m_useCustomQuery;  ///< Flag indicating whether to use custom query
+    qint64 m_selectedReportId;      ///< Currently selected report ID
+    qint64 m_selectedContentId;     ///< Currently selected report content ID
 };
 
 #endif // EXPORTCSV_H

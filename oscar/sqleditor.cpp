@@ -32,6 +32,32 @@ QString SQLEditor::getQuery() const
     return ui->queryEdit->toPlainText();
 }
 
+void SQLEditor::setReadOnly(bool readOnly)
+{
+    // Set query text read-only
+    ui->queryEdit->setReadOnly(readOnly);
+    
+    if (readOnly) {
+        // Change background to indicate read-only
+        ui->queryEdit->setStyleSheet("QPlainTextEdit { background-color: #f0f0f0; }");
+        
+        // Change OK button to Close button
+        ui->okButton->setText(tr("Close"));
+        
+        // Hide Cancel button in read-only mode
+        ui->cancelButton->setVisible(false);
+    } else {
+        // Reset to editable style
+        ui->queryEdit->setStyleSheet("");
+        
+        // Reset button text
+        ui->okButton->setText(tr("OK"));
+        
+        // Show Cancel button
+        ui->cancelButton->setVisible(true);
+    }
+}
+
 void SQLEditor::on_okButton_clicked()
 {
     accept();

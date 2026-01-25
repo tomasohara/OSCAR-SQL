@@ -365,6 +365,9 @@ class MainWindow : public QMainWindow
 
     void on_actionExport_CSV_triggered();
 
+    //! \brief Opens the Report Manager dialog for managing CSV export reports
+    void on_actionManage_Reports_triggered();
+
     void on_actionExport_Review_triggered();
 
     void on_mainsplitter_splitterMoved(int pos, int index);

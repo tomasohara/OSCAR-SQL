@@ -50,6 +50,17 @@ public:
      * \return Edited SQL query string
      */
     QString getQuery() const;
+    
+    /*!
+     * \brief Set read-only mode
+     * \param readOnly true for read-only, false for editable
+     * 
+     * In read-only mode:
+     * - Query text cannot be edited
+     * - OK button changes to Close button
+     * - Copy to Clipboard button available
+     */
+    void setReadOnly(bool readOnly);
 
 private slots:
     /*!
