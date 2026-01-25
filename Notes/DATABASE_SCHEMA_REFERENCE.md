@@ -1,5 +1,5 @@
 # OSCAR Database Schema Reference
-**Version:** Schema Version 9  
+**Version:** Schema Version 11  
 **Last Updated:** 2026 Q1  
 **Database Type:** SQLite  
 
@@ -7,13 +7,14 @@
 
 ## Overview
 
-The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 9.
+The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 11.
 
 **Key Design Principles:**
 - **Profile-centric**: All data organized around user profiles
 - **Machine tracking**: Each profile can have multiple CPAP/oximetry devices
 - **Session storage**: Detailed session metadata with waveform/event data in database ⚡ NEW IN v8
 - **Daily summaries**: Pre-calculated daily statistics for fast reporting
+- **CSV export reports**: Database-driven customizable reports with macro substitution 📊 NEW IN v11
 - **Flexible preferences**: Key-value storage for settings
 - **Cascade deletes**: Removing a profile removes all associated data
 - **Database-only mode**: Waveform and event data stored in database BLOBs (replaces .001 files) ⚡ NEW IN v8
@@ -33,6 +34,8 @@ The OSCAR database uses SQLite to store user profiles, machine configurations, s
 | 7 | 2026 Q1 | 🐛 **BUG FIX**: Added session_channel_values table to persist value/time summaries (fixes incorrect weighted averages) |
 | 8 | 2026 Q1 | ⚡ **MAJOR CHANGE**: Added event_lists and event_data tables - waveform/event data now stored in database instead of .001 files |
 | 9 | 2026 Q1 | 📝 **ENHANCEMENT**: Added json_value column to session_settings for journal migration and complex data types |
+| 10 | 2026 Q1 | 🔧 **SEMANTIC FIX**: Renamed central_count to unclassified_count (semantically correct) and added clear_airway_count to session_summaries |
+| 11 | 2026 Q1 | 📊 **NEW FEATURE**: Added reports and report_contents tables for CSV export report management with macro-based query templates |
 
 ---
 
@@ -273,9 +276,10 @@ CREATE TABLE session_summaries (
     ahi REAL DEFAULT 0,
     rdi REAL DEFAULT 0,
     obstructive_count INTEGER DEFAULT 0,
-    central_count INTEGER DEFAULT 0,
+    unclassified_count INTEGER DEFAULT 0,
     hypopnea_count INTEGER DEFAULT 0,
     rera_count INTEGER DEFAULT 0,
+    clear_airway_count INTEGER DEFAULT 0,
     pressure_avg REAL,
     pressure_min REAL,
     pressure_max REAL,
@@ -293,6 +297,8 @@ CREATE TABLE session_summaries (
     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 )
 ```
+
+**Note:** In schema v10, `central_count` was renamed to `unclassified_count` (semantically correct), and `clear_airway_count` was added. The old `central_count` column is retained for backward compatibility but ignored by new code.
 
 ### 12. session_slices
 Mask-on/mask-off periods within sessions.
@@ -369,7 +375,7 @@ CREATE TABLE daily_summaries (
     ahi REAL DEFAULT 0,
     rdi REAL DEFAULT 0,
     obstructive_count INTEGER DEFAULT 0,
-    central_count INTEGER DEFAULT 0,
+    unclassified_count INTEGER DEFAULT 0,
     hypopnea_count INTEGER DEFAULT 0,
     rera_count INTEGER DEFAULT 0,
     clear_airway_count INTEGER DEFAULT 0,
@@ -464,6 +470,49 @@ CREATE TABLE event_data (
 **Compression:** Data is compressed only if it saves >10% space. Either `data_blob` OR `data_compressed` is populated (not both).
 
 **Checksum:** CRC16 checksum of primary data for integrity verification.
+
+### 18. reports 📊 **NEW IN v11 - CSV EXPORT REPORTS**
+CSV export report definitions (global, not profile-specific).
+
+```sql
+CREATE TABLE reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    display_order INTEGER DEFAULT 0,
+    is_system INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+)
+```
+
+**Purpose:** Stores CSV export report definitions. System reports (is_system=1) are managed by OSCAR and updated on version changes. Custom reports (is_system=0) are user-created and preserved during upgrades.
+
+### 19. report_contents 📊 **NEW IN v11 - CSV EXPORT QUERIES**
+SQL query templates for each report variety.
+
+```sql
+CREATE TABLE report_contents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    variety TEXT NOT NULL,
+    description TEXT,
+    query TEXT NOT NULL,
+    display_order INTEGER DEFAULT 0,
+    is_system INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
+    UNIQUE(report_id, variety)
+)
+```
+
+**Purpose:** Stores SQL query templates with macro substitution. Macros like `#PROFILE_ID`, `#START_DATE`, `#END_DATE` are replaced at runtime. Each report can have multiple varieties (e.g., Days, Weeks, Months aggregations).
+
+**Default System Reports (v11):**
+- **Daily Summaries**: Days, Weeks, Months varieties
+- **Session Statistics**: Sessions, Days, Weeks, Months varieties  
+- **Device Settings**: All Sessions variety
 
 ---
 
@@ -625,7 +674,7 @@ CREATE TABLE event_data (
 |-------|------|-----|------|-------------|
 | id | INTEGER | PK | NO | Auto-increment ID |
 | session_id | INTEGER | FK | NO | → sessions(id) |
-| event_type | INTEGER | | NO | 0=OA, 1=CA, 2=H, 3=RERA, 4=CAA, 5=User |
+| event_type | INTEGER | | NO | 0=OA, 1=UA, 2=H, 3=RERA, 4=CAA, 5=User |
 | start_time | INTEGER | | NO | Start (Unix timestamp) |
 | end_time | INTEGER | | NO | End (Unix timestamp) |
 | duration | INTEGER | | NO | Duration (seconds) |
@@ -642,9 +691,10 @@ CREATE TABLE event_data (
 | ahi | REAL | | NO | Apnea-Hypopnea Index |
 | rdi | REAL | | NO | Respiratory Disturbance Index |
 | obstructive_count | INTEGER | | NO | OA count |
-| central_count | INTEGER | | NO | CA count |
+| unclassified_count | INTEGER | | NO | UA count (renamed from central_count in v10) |
 | hypopnea_count | INTEGER | | NO | Hypopnea count |
 | rera_count | INTEGER | | NO | RERA count |
+| clear_airway_count | INTEGER | | NO | CA count (added in v10) |
 | pressure_avg | REAL | | YES | Average pressure (cmH₂O) |
 | pressure_min | REAL | | YES | Min pressure |
 | pressure_max | REAL | | YES | Max pressure |
@@ -659,6 +709,8 @@ CREATE TABLE event_data (
 | mask_on_hours | REAL | | NO | Mask-on hours |
 | created_at | TEXT | | NO | Creation timestamp |
 | updated_at | TEXT | | NO | Update timestamp |
+
+**Note:** The old `central_count` column is retained in the database for backward compatibility but new code uses `unclassified_count`.
 
 ### session_slices
 
@@ -716,10 +768,10 @@ CREATE TABLE event_data (
 | ahi | REAL | | NO | Apnea-Hypopnea Index |
 | rdi | REAL | | NO | Respiratory Disturbance Index |
 | obstructive_count | INTEGER | | NO | OA count |
-| central_count | INTEGER | | NO | CA count |
+| central_count | INTEGER | | NO | UA count |
 | hypopnea_count | INTEGER | | NO | Hypopnea count |
 | rera_count | INTEGER | | NO | RERA count |
-| clear_airway_count | INTEGER | | NO | Clear airway count |
+| clear_airway_count | INTEGER | | NO | CA Clear airway count |
 | pressure_avg | REAL | | YES | Average pressure (cmH₂O) |
 | pressure_min | REAL | | YES | Min pressure |
 | pressure_max | REAL | | YES | Max pressure |
@@ -784,6 +836,36 @@ CREATE TABLE event_data (
 | created_at | TEXT | | NO | Creation timestamp |
 
 **Replaces:** .001 file data sections. **Compression:** Only one of each pair (blob/compressed) is populated. Compression used only if >10% space savings. **Typical compression:** 40-60% for CPAP waveform data.
+
+### reports 📊 **NEW IN v11**
+
+| Field | Type | Key | Null | Description |
+|-------|------|-----|------|-------------|
+| id | INTEGER | PK | NO | Auto-increment ID |
+| name | TEXT | UNIQUE | NO | Report name (unique) |
+| description | TEXT | | YES | Report description |
+| display_order | INTEGER | | NO | Sort order for UI display |
+| is_system | INTEGER | | NO | 1=system report, 0=custom user report |
+| created_at | TEXT | | NO | Creation timestamp |
+| updated_at | TEXT | | NO | Last update timestamp |
+
+**System Reports:** Managed by OSCAR, auto-updated on version changes. **Custom Reports:** User-created, preserved during upgrades.
+
+### report_contents 📊 **NEW IN v11**
+
+| Field | Type | Key | Null | Description |
+|-------|------|-----|------|-------------|
+| id | INTEGER | PK | NO | Auto-increment ID |
+| report_id | INTEGER | FK | NO | → reports(id) |
+| variety | TEXT | | NO | Report variety (e.g., "Days", "Weeks", "Months") |
+| description | TEXT | | YES | Variety description |
+| query | TEXT | | NO | SQL query template with macros |
+| display_order | INTEGER | | NO | Sort order for UI display |
+| is_system | INTEGER | | NO | 1=system content, 0=custom |
+| created_at | TEXT | | NO | Creation timestamp |
+| updated_at | TEXT | | NO | Last update timestamp |
+
+**Macro Substitution:** Queries use macros like `#PROFILE_ID`, `#START_DATE`, `#END_DATE` which are replaced at runtime with actual values.
 
 ---
 
@@ -868,6 +950,13 @@ idx_event_lists_time ON event_lists(session_id, first_time, last_time)
 idx_event_data_eventlist ON event_data(eventlist_id)
 ```
 
+### CSV Report Indexes 📊 NEW IN v11
+```sql
+idx_report_contents_report ON report_contents(report_id)
+idx_reports_name ON reports(name)
+idx_report_contents_variety ON report_contents(report_id, variety)
+```
+
 ---
 
 ## Foreign Key Relationships
@@ -896,7 +985,10 @@ event_lists (1) ─< event_data (1) ⚡ NEW IN v8
 
 session_channels (1) ─< session_channel_values (N) 🐛 NEW IN v7
 
+reports (1) ─< report_contents (N) 📊 NEW IN v11
+
 channel_options (N) - standalone (references channel_id constant)
+reports (N) - global (not profile-specific) 📊 NEW IN v11
 ```
 
 ### Foreign Key Details
@@ -919,6 +1011,7 @@ channel_options (N) - standalone (references channel_id constant)
 | session_slices | session_id | sessions | id | CASCADE |
 | event_lists | session_id | sessions | id | CASCADE |
 | event_data | eventlist_id | event_lists | id | CASCADE |
+| report_contents | report_id | reports | id | CASCADE |
 
 **Cascade Delete Behavior:**
 - Deleting **profile** removes: machines, user_info, doctor_info, preferences, channels, daily_summaries
@@ -1043,8 +1136,73 @@ The `json_value` column in `session_settings` (added in v9) provides:
 - **Backward compatible**: Old data without json_value continues to work
 - **No data loss**: Existing session_settings records remain unchanged
 
+## Schema v10 Highlights 🔧 **SEMANTIC FIX**
+
+The schema v10 changes provide semantic correctness for apnea event classification:
+
+**What Changed:**
+- **Renamed field**: `central_count` → `unclassified_count` in both `session_summaries` and `daily_summaries` tables
+- **New field**: Added `clear_airway_count` to `session_summaries` table
+- **Data preservation**: Existing `central_count` data copied to `unclassified_count` during migration
+- **Backward compatibility**: Old `central_count` column retained but ignored by new code
+
+**Why This Change:**
+- **Semantic accuracy**: Most CPAP machines cannot distinguish between true Central Apneas and other unclassified events
+- **Correct terminology**: "Unclassified Apnea" (UA) is more accurate than assuming all are "Central Apnea" (CA)
+- **Clear Airway support**: Enables proper tracking of Clear Airway Apneas (CAA) which some advanced machines can detect
+
+**Impact:**
+- **AHI calculation unchanged**: Both CA and UA events count toward AHI
+- **Better reporting**: Users see more accurate event classifications
+- **Future-proofing**: Supports advanced machines that can differentiate event types
+
+**Migration:**
+- **Automatic**: Schema upgrade copies central_count → unclassified_count
+- **No data loss**: All existing event counts preserved
+- **UI updates**: Reports and statistics screens updated to use new terminology
+
+## Schema v11 Highlights 📊 **NEW FEATURE - CSV EXPORT REPORTS**
+
+The schema v11 changes introduce database-driven CSV export reports:
+
+**What Changed:**
+- **New tables**: Added `reports` and `report_contents` tables
+- **Macro-based queries**: SQL templates with runtime substitution (#PROFILE_ID, #START_DATE, #END_DATE)
+- **Report varieties**: Each report supports multiple aggregation levels (Days, Weeks, Months)
+- **Version tracking**: System reports auto-update when OSCAR version changes
+- **User customization**: Custom user reports preserved during upgrades
+
+**Default System Reports:**
+1. **Daily Summaries** (3 varieties: Days, Weeks, Months)
+   - Pre-calculated daily aggregates from daily_summaries table
+   - Fast queries with complete CPAP metrics (AHI, pressure, leak, oximetry)
+
+2. **Session Statistics** (4 varieties: Sessions, Days, Weeks, Months)
+   - Individual session data or aggregated statistics
+   - Includes event counts, hours used, machine information
+
+3. **Device Settings** (1 variety: All Sessions)
+   - Machine configuration for each session
+   - Shows setting changes over time
+
+**Benefits:**
+- **Flexibility**: Users can create custom reports with SQL knowledge
+- **Maintainability**: System reports updated automatically with OSCAR
+- **Extensibility**: Easy to add new report types and varieties
+- **Database-driven**: Leverages SQLite's powerful query capabilities
+
+**Version Management:**
+- **First install**: System reports initialized with current OSCAR version
+- **Version change**: System reports regenerated; custom reports preserved
+- **Version tracking**: Stored in QSettings as `csv_reports_version`
+
+**Migration:**
+- **Automatic**: Reports tables created on schema upgrade to v11
+- **Seamless**: Default reports populated during first access
+- **Non-destructive**: No impact on existing data or functionality
+
 ---
 
-**Document Version:** 5.0  
-**Schema Version:** 9  
+**Document Version:** 6.0  
+**Schema Version:** 11  
 **Generated:** 2026 Q1
