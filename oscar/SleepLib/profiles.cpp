@@ -3001,24 +3001,24 @@ bool Profile::loadExtendedDataFromDatabase()
     // Load user info
     UserInfoRepository userRepo;
     if (!userRepo.loadIntoUserInfo(profileId, user)) {
-        qDebug() << "Profile::loadExtendedDataFromDatabase() - No user info in database";
+//        qDebug() << "Profile::loadExtendedDataFromDatabase() - No user info in database";
     }
     
     // Load doctor info
     DoctorInfoRepository doctorRepo;
     if (!doctorRepo.loadIntoDoctorInfo(profileId, doctor)) {
-        qDebug() << "Profile::loadExtendedDataFromDatabase() - No doctor info in database";
+//        qDebug() << "Profile::loadExtendedDataFromDatabase() - No doctor info in database";
     }
     
     // Load all preferences
     PreferencesRepository prefRepo;
     if (!prefRepo.loadAllPreferences(profileId, cpap, oxi, session, appearance, general)) {
-        qDebug() << "Profile::loadExtendedDataFromDatabase() - No preferences in database";
+//        qDebug() << "Profile::loadExtendedDataFromDatabase() - No preferences in database";
     }
     
     // Load Profile-level preferences
     if (!loadProfilePreferencesFromDatabase()) {
-        qDebug() << "Profile::loadExtendedDataFromDatabase() - No profile-level preferences in database";
+//      qDebug() << "Profile::loadExtendedDataFromDatabase() - No profile-level preferences in database";
     }
     
     return true;
@@ -3076,7 +3076,7 @@ bool Profile::loadProfilePreferencesFromDatabase()
     QList<PreferenceData> prefs = prefRepo.findByCategory(profileId, "profile");
     
     if (prefs.isEmpty()) {
-        qDebug() << "Profile::loadProfilePreferencesFromDatabase() - No profile-level preferences in database";
+//        qDebug() << "Profile::loadProfilePreferencesFromDatabase() - No profile-level preferences in database";
         return false;
     }
     
@@ -3105,6 +3105,6 @@ bool Profile::loadProfilePreferencesFromDatabase()
         p_preferences[pref.key] = value;
     }
     
-    qDebug() << "Profile::loadProfilePreferencesFromDatabase() - Loaded" << prefs.size() << "profile-level preferences";
+//    qDebug() << "Profile::loadProfilePreferencesFromDatabase() - Loaded" << prefs.size() << "profile-level preferences";
     return true;
 }
