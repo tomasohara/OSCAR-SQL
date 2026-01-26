@@ -242,23 +242,36 @@ bool PreferencesRepository::savePreference(qint64 profileId, const QString& cate
         return false;
     }
 
-    // Use INSERT OR REPLACE to handle upsert atomically
-    // This relies on the UNIQUE(profile_id, category, key) constraint
-    QSqlQuery query(db);
-    query.prepare(
-        "INSERT OR REPLACE INTO profile_preferences "
+    // IMPORTANT: Delete ALL existing entries for this (profile_id, key) 
+    // regardless of category to prevent cross-category duplicates
+    QSqlQuery deleteQuery(db);
+    deleteQuery.prepare(
+        "DELETE FROM profile_preferences WHERE profile_id = ? AND key = ?"
+    );
+    deleteQuery.addBindValue(profileId);
+    deleteQuery.addBindValue(key);
+    
+    if (!deleteQuery.exec()) {
+        qWarning() << "PreferencesRepository::savePreference() - Delete failed:" << deleteQuery.lastError().text();
+        return false;
+    }
+
+    // Now insert the new preference
+    QSqlQuery insertQuery(db);
+    insertQuery.prepare(
+        "INSERT INTO profile_preferences "
         "(profile_id, category, key, value, data_type, updated_at) "
         "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)"
     );
 
-    query.addBindValue(profileId);
-    query.addBindValue(category);
-    query.addBindValue(key);
-    query.addBindValue(value.toString());
-    query.addBindValue(dataTypeFromVariant(value));
+    insertQuery.addBindValue(profileId);
+    insertQuery.addBindValue(category);
+    insertQuery.addBindValue(key);
+    insertQuery.addBindValue(value.toString());
+    insertQuery.addBindValue(dataTypeFromVariant(value));
 
-    if (!query.exec()) {
-        qWarning() << "PreferencesRepository::savePreference() failed:" << query.lastError().text();
+    if (!insertQuery.exec()) {
+        qWarning() << "PreferencesRepository::savePreference() - Insert failed:" << insertQuery.lastError().text();
         return false;
     }
 
