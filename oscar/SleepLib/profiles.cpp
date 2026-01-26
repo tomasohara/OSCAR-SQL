@@ -2977,6 +2977,11 @@ bool Profile::saveExtendedDataToDatabase()
         qWarning() << "Profile::saveExtendedDataToDatabase() - Failed to save preferences";
     }
     
+    // Save Profile-level preferences
+    if (!saveProfilePreferencesToDatabase()) {
+        qWarning() << "Profile::saveExtendedDataToDatabase() - Failed to save profile-level preferences";
+    }
+    
     return true;
 }
 
@@ -3011,5 +3016,95 @@ bool Profile::loadExtendedDataFromDatabase()
         qDebug() << "Profile::loadExtendedDataFromDatabase() - No preferences in database";
     }
     
+    // Load Profile-level preferences
+    if (!loadProfilePreferencesFromDatabase()) {
+        qDebug() << "Profile::loadExtendedDataFromDatabase() - No profile-level preferences in database";
+    }
+    
+    return true;
+}
+
+// Save Profile-level preferences to database
+bool Profile::saveProfilePreferencesToDatabase()
+{
+    ProfileRepository profileRepo;
+    ProfileData profileData = profileRepo.findByUsername(user->userName());
+    
+    if (profileData.id == 0) {
+        qWarning() << "Profile::saveProfilePreferencesToDatabase() - Profile not in database";
+        return false;
+    }
+    
+    qint64 profileId = profileData.id;
+    PreferencesRepository prefRepo;
+    
+    // Iterate through all Profile-level preferences and save them
+    for (auto it = p_preferences.begin(); it != p_preferences.end(); ++it) {
+        const QString& key = it.key();
+        const QVariant& value = it.value();
+        
+        // Skip certain keys that shouldn't be persisted
+        // DataFolder is computed dynamically, not a stored preference
+        if (key == "DataFolder") {
+            continue;
+        }
+        
+        // Save with category "profile" to distinguish from settings object preferences
+        if (!prefRepo.savePreference(profileId, "profile", key, value)) {
+            qWarning() << "Profile::saveProfilePreferencesToDatabase() - Failed to save:" << key;
+        }
+    }
+    
+    return true;
+}
+
+// Load Profile-level preferences from database
+bool Profile::loadProfilePreferencesFromDatabase()
+{
+    ProfileRepository profileRepo;
+    ProfileData profileData = profileRepo.findByUsername(user->userName());
+    
+    if (profileData.id == 0) {
+        qDebug() << "Profile::loadProfilePreferencesFromDatabase() - Profile not in database";
+        return false;
+    }
+    
+    qint64 profileId = profileData.id;
+    PreferencesRepository prefRepo;
+    
+    // Load all preferences with category "profile"
+    QList<PreferenceData> prefs = prefRepo.findByCategory(profileId, "profile");
+    
+    if (prefs.isEmpty()) {
+        qDebug() << "Profile::loadProfilePreferencesFromDatabase() - No profile-level preferences in database";
+        return false;
+    }
+    
+    // Populate p_preferences hash
+    for (const PreferenceData& pref : prefs) {
+        // Convert string value back to QVariant based on data type
+        QVariant value;
+        
+        if (pref.dataType == "bool") {
+            value = QVariant(pref.value.toLower() == "true" || pref.value == "1");
+        } else if (pref.dataType == "int" || pref.dataType == "qlonglong") {
+            value = QVariant(pref.value.toLongLong());
+        } else if (pref.dataType == "double") {
+            value = QVariant(pref.value.toDouble());
+        } else if (pref.dataType == "date") {
+            value = QVariant(QDate::fromString(pref.value, Qt::ISODate));
+        } else if (pref.dataType == "time") {
+            value = QVariant(QTime::fromString(pref.value, Qt::ISODate));
+        } else if (pref.dataType == "datetime") {
+            value = QVariant(QDateTime::fromString(pref.value, Qt::ISODate));
+        } else {
+            // Default to string
+            value = QVariant(pref.value);
+        }
+        
+        p_preferences[pref.key] = value;
+    }
+    
+    qDebug() << "Profile::loadProfilePreferencesFromDatabase() - Loaded" << prefs.size() << "profile-level preferences";
     return true;
 }

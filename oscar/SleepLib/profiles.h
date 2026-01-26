@@ -73,6 +73,12 @@ class Profile : public Preferences
     //! \brief Load extended data (user_info, doctor_info, preferences) from database
     bool loadExtendedDataFromDatabase();
 
+    //! \brief Save Profile-level preferences to database
+    bool saveProfilePreferencesToDatabase();
+
+    //! \brief Load Profile-level preferences from database
+    bool loadProfilePreferencesFromDatabase();
+
     qint64 diskSpaceSummaries();
     qint64 diskSpaceEvents();
     qint64 diskSpaceBackups();

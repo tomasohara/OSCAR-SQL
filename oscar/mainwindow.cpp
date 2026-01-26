@@ -787,9 +787,9 @@ int MainWindow::importCPAP(ImportPath import, const QString &message)
     progdlg->addAbortButton();
 
     progdlg->setWindowModality(Qt::ApplicationModal);
+    progdlg->setWindowTitle(tr("Importing CPAP data"));
     progdlg->open();
     progdlg->setMessage(message);
-
 
     connect(import.loader, SIGNAL(updateMessage(QString)), progdlg, SLOT(setMessage(QString)));
     connect(import.loader, SIGNAL(setProgressMax(int)), progdlg, SLOT(setProgressMax(int)));
