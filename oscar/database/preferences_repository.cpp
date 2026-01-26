@@ -236,24 +236,33 @@ bool PreferencesRepository::removeCategory(qint64 profileId, const QString& cate
 bool PreferencesRepository::savePreference(qint64 profileId, const QString& category, 
                                           const QString& key, const QVariant& value)
 {
-    PreferenceData data;
-    data.profileId = profileId;
-    data.category = category;
-    data.key = key;
-    data.value = value.toString();
-    data.dataType = dataTypeFromVariant(value);
-
-    // Check if preference exists
-    PreferenceData existing = find(profileId, category, key);
-    
-    if (existing.id > 0) {
-        // Update existing
-        data.id = existing.id;
-        return update(data);
-    } else {
-        // Create new
-        return create(data) > 0;
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "PreferencesRepository::savePreference() - Database not open";
+        return false;
     }
+
+    // Use INSERT OR REPLACE to handle upsert atomically
+    // This relies on the UNIQUE(profile_id, category, key) constraint
+    QSqlQuery query(db);
+    query.prepare(
+        "INSERT OR REPLACE INTO profile_preferences "
+        "(profile_id, category, key, value, data_type, updated_at) "
+        "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)"
+    );
+
+    query.addBindValue(profileId);
+    query.addBindValue(category);
+    query.addBindValue(key);
+    query.addBindValue(value.toString());
+    query.addBindValue(dataTypeFromVariant(value));
+
+    if (!query.exec()) {
+        qWarning() << "PreferencesRepository::savePreference() failed:" << query.lastError().text();
+        return false;
+    }
+
+    return true;
 }
 
 bool PreferencesRepository::saveAllPreferences(qint64 profileId,
