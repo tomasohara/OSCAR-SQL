@@ -12,14 +12,14 @@ function gene_script () {
     rm clean_rm-result-NN.sh
   fi
   #cat clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
-  cat headers.sh retrieve_appliname.sh clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
+  cat headers.sh retrieve_appliname2.sh clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
   chmod +x clean_rm-result-NN.sh
 
   if [ -f "clean_rm-result-NN-test.sh" ]; then
     rm clean_rm-result-NN-test.sh
   fi
   #cat clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
-  cat headers.sh retrieve_appliname.sh clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
+  cat headers.sh retrieve_appliname2.sh clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
   chmod +x clean_rm-result-NN-test.sh
 
   # ln_usrbin
@@ -28,14 +28,14 @@ function gene_script () {
     rm ln_usrbin-result-NN.sh
   fi
   #cat ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
-  cat headers.sh retrieve_appliname.sh ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
+  cat headers.sh retrieve_appliname2.sh ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
   chmod +x ln_usrbin-result-NN.sh
 
   if [ -f "ln_usrbin-result-NN-test.sh" ]; then
     rm ln_usrbin-result-NN-test.sh
   fi
   #cat ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
-  cat headers.sh retrieve_appliname.sh ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
+  cat headers.sh retrieve_appliname2.sh ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
   chmod +x ln_usrbin-result-NN-test.sh
 
   # rm_usrbin
@@ -43,14 +43,14 @@ function gene_script () {
     rm rm_usrbin-result-NN.sh
   fi
   #cat rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
-  cat headers.sh retrieve_appliname.sh rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
+  cat headers.sh retrieve_appliname2.sh rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
   chmod +x rm_usrbin-result-NN.sh
 
   if [ -f "rm_usrbin-result-NN-test.sh" ]; then
     rm rm_usrbin-result-NN-test.sh
   fi
   #cat rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
-  cat headers.sh retrieve_appliname.sh rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
+  cat headers.sh retrieve_appliname2.sh rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
   chmod +x rm_usrbin-result-NN-test.sh
 }
 
@@ -114,37 +114,10 @@ fi
 echo "Build Directory: "$OSCAR_BUILD_DIRECTORY
 build_folder=${PWD%/*/*/*}/$OSCAR_BUILD_DIRECTORY
 
-# Original application name code
-# appli_name="OSCAR"
-# package_name="oscar"
-
-# replace by an external function
-# Modified application name code
-#PROGNAME=$(sed -n 's/^TARGET *= *//p' $SRC/oscar.pro)
-#if [ -z "$PROGNAME" ]; then
-#    tmpPGM=$(sed -n 's/^    TARGET *= *//p' $SRC/oscar.pro)
-#fi
-
-#if [ -n "$tmpPGM" ]; then
-#    tstPGM=$(echo $tmpPGM | grep "OSCAR20")
-#    if [ -n "$tstPGM" ]; then
-#      PROGNAME="OSCAR20"
-#      icon_name="OSCAR20"
-#    else
-#      PROGNAME="OSCAR"
-#      icon_name="OSCAR"
-#    fi
-#else
-#    PROGNAME="OSCAR"
-#    icon_name="OSCAR"
-#fi
-
-# call an external function
+# call an external function to get application name & icon name
 retrieve_names
 
-echo "Program Name: '$PROGNAME', Icon name: '$icon_name'"
 lwrcasePROGNAME=${PROGNAME,,}
-#icon_name="OSCAR" 
 appli_name=$PROGNAME
 base_name=$PROGNAME
 package_name=$lwrcasePROGNAME
@@ -254,6 +227,8 @@ mkdir ${temp_folder}/share/applications
 
 # Notice : ${appli_name} must be use : it is ${base_name} added with -test suffix if necessary
 strip -s -o ${temp_folder}/bin/${appli_name} ${build_folder}/oscar/${base_name}
+
+echo "av copie : icon_name = '${icon_name}'"
 
 # 2>/dev/null : errors does not appear : we don't care about them
 cp -r ${build_folder}/oscar/Help ${temp_folder}/share/${appli_name} 2>/dev/null

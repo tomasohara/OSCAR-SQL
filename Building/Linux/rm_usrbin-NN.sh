@@ -5,4 +5,11 @@
 
 # application name
 #appli_name="OSCAR"
-aplli_name=$PROGNAME
+
+retrieve_names
+
+appli_name=$PROGNAME
+
+
+
+

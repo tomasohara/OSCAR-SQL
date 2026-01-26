@@ -6,6 +6,8 @@
 # application name
 echo "appli_name='$appli_name', SUDO_USER='$SUDO_USER'"
 
+echo "debut : appli_name = '$appli_name', icon_name = '$icon_name'"
+
 desktop_folder_name=""
 
 if [ ! -z "$SUDO_USER" ]; then
@@ -16,7 +18,7 @@ fi
 # if doesn't exist, try to find it translated name
 translate_file="/home/$SUDO_USER/.config/user-dirs.dirs"
 if [ -f $translate_file ]; then
-    tmp_dir="" 
+    tmp_dir=""
     if [ ! -d "$desktop_folder_name" ]; then
         tmp_dir=$(cat $translate_file | grep XDG_DESKTOP_DIR | awk -F= '{print $2}' | awk -F\" '{print $2}' | awk -F\/ '{print $2}')
     fi
@@ -35,11 +37,13 @@ if [ -z "$desktop_folder_name" ]; then
    desktop_folder_name=$desktop_folder_name0
 fi
 
+echo "av cp : appli_name = '$appli_name', icon_name = '$icon_name'"
+
 if [ -n "$desktop_folder_name" ]; then
     # info : /usr/share/applications/${appli_name}.desktop
     # copy icon file to the Desktop folder (even if it has been translated)
-    file_from="/usr/share/applications/${appli_name}.desktop"
-    file_to="$desktop_folder_name/${appli_name}.desktop"
+    file_from="/usr/share/applications/${icon_name}.desktop"
+    file_to="$desktop_folder_name/${icon_name}.desktop"
 
     cp $file_from $file_to
 

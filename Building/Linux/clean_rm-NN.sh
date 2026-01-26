@@ -6,5 +6,6 @@
 # application name
 #appli_name="OSCAR"
 
-appli-name=$PROGNAME
+retrieve_names
 
+appli_name=$PROGNAME

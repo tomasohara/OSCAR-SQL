@@ -5,4 +5,8 @@
 
 # application name
 #appli_name="OSCAR-test"
-appli_name=$PROGNAME
+
+
+retrieve_names
+
+appli_name="${PROGNAME}-test"

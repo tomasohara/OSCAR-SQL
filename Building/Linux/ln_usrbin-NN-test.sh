@@ -6,6 +6,13 @@
 
 # application name
 #appli_name="OSCAR-test"
-appli_name=$PRGNAME
 
+echo "avant appel retrieve_names"
+retrieve_names
+echo "apres appel retrieve_names"
 
+appli_name="${PROGNAME}-test"
+icon_tmp=$icon_name
+icon_name="${icon_tmp}-test"
+
+echo "fin ln_*NN-test : appli_name = '$appli_name', icon_name = '$icon_name'"

@@ -1,7 +1,7 @@
 
 # begin common script shell
 # delete all the folder not deleted by the purge command
-appli_name=$PROGNAME
+#appli_name=$PROGNAME
 
 echo "appli_name=${appli_name}"
 
