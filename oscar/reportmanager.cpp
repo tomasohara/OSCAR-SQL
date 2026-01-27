@@ -134,6 +134,7 @@ void ReportManager::updateButtonStates()
     bool hasReport = (m_currentReportId != 0);
     bool hasVariety = (m_currentVarietyId != 0);
     bool isSystem = isSystemReport(m_currentReportId);
+    bool varietyIsSystem = isSystemVariety(m_currentVarietyId);
     
     // Copy Report button - always enabled if report selected
     ui->copyReportButton->setEnabled(hasReport);
@@ -149,8 +150,16 @@ void ReportManager::updateButtonStates()
     // New Variety button - enabled if report selected
     ui->newVarietyButton->setEnabled(hasReport);
     
-    // View Query button - enabled if variety selected
+    // View/Edit Query button - enabled if variety selected
+    // Change text and tooltip based on whether it's a system variety
     ui->viewQueryButton->setEnabled(hasVariety);
+    if (varietyIsSystem) {
+        ui->viewQueryButton->setText(tr("View Query"));
+        ui->viewQueryButton->setToolTip(tr("View the SQL query (read-only)"));
+    } else {
+        ui->viewQueryButton->setText(tr("Edit Query"));
+        ui->viewQueryButton->setToolTip(tr("Edit the SQL query"));
+    }
     
     // Copy Variety button - enabled if variety selected
     ui->copyVarietyButton->setEnabled(hasVariety);
@@ -186,6 +195,17 @@ bool ReportManager::isSystemReport(qint64 reportId)
     ReportRepository repo;
     ReportData report = repo.findById(reportId);
     return report.isSystem;
+}
+
+bool ReportManager::isSystemVariety(qint64 varietyId)
+{
+    if (varietyId == 0) {
+        return false;
+    }
+    
+    ReportContentsRepository repo;
+    ReportContentData content = repo.findById(varietyId);
+    return content.isSystem;
 }
 
 qint64 ReportManager::getReportId(const QModelIndex &index)
@@ -465,13 +485,39 @@ void ReportManager::on_viewQueryButton_clicked()
     ReportRepository reportRepo;
     ReportData report = reportRepo.findById(content.reportId);
     
-    // Show in SQLEditor in read-only mode
+    // Create SQL editor
     SQLEditor editor(this);
-    editor.setWindowTitle(tr("View Query: %1 - %2").arg(report.name, content.variety));
-    editor.setQuery(content.query);
-    editor.setReadOnly(true);
     
-    editor.exec();
+    // Configure based on system vs custom variety
+    if (content.isSystem) {
+        // System variety - read-only
+        editor.setWindowTitle(tr("View Query: %1 - %2").arg(report.name, content.variety));
+        editor.setQuery(content.query);
+        editor.setReadOnly(true);
+        editor.exec();
+    } else {
+        // Custom variety - editable
+        editor.setWindowTitle(tr("Edit Query: %1 - %2").arg(report.name, content.variety));
+        editor.setQuery(content.query);
+        editor.setReadOnly(false);
+        
+        if (editor.exec() == QDialog::Accepted) {
+            // Save the modified query
+            QString newQuery = editor.getQuery();
+            
+            if (newQuery != content.query) {
+                content.query = newQuery;
+                
+                if (contentsRepo.update(content)) {
+                    QMessageBox::information(this, tr("Edit Query"),
+                                           tr("Query saved successfully."));
+                } else {
+                    QMessageBox::critical(this, tr("Edit Query"),
+                                        tr("Failed to save query."));
+                }
+            }
+        }
+    }
 }
 
 void ReportManager::on_copyVarietyButton_clicked()

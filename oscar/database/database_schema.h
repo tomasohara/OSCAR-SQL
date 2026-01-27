@@ -66,6 +66,17 @@ public:
      */
     static bool upgradeSchema(QSqlDatabase& db, int fromVersion);
 
+    /*!
+     * \brief Check and update CSV report version
+     * \param db Database connection to use
+     * \return true if successful, false otherwise
+     *
+     * Checks if OSCAR version changed and reinitializes system reports if needed.
+     * This is called at every startup from DatabaseManager::initialize().
+     * Report changes don't require schema changes, so this is separate from upgradeSchema().
+     */
+    static bool checkAndUpdateReportVersion(QSqlDatabase& db);
+
 private:
     // Schema creation methods
     static bool createSchemaVersionTable(QSqlDatabase& db);
@@ -102,8 +113,7 @@ private:
     static bool initializeDefaultReports(QSqlDatabase& db);
     static bool updateDefaultReportQueries(QSqlDatabase& db);  // Update existing report queries
     
-    // CSV Export Reports version tracking
-    static bool checkAndUpdateReportVersion(QSqlDatabase& db);
+    // CSV Export Reports version tracking (private helper methods)
     static bool reinitializeSystemReports(QSqlDatabase& db);
     static bool initializeSystemReports(QSqlDatabase& db);
     static QString getSavedReportVersion();

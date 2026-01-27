@@ -39,6 +39,7 @@
 #include "../database/session_summaries_repository.h"
 #include "../database/event_list_repository.h"
 #include "../database/event_data_repository.h"
+#include "../database/respiratory_events_repository.h"
 
 using namespace std;
 #define FIX_FOR_SINGLE_EVENT            // fixes ibreeze "No valuesummary for channel" error during import.
@@ -3316,6 +3317,50 @@ qint64 Session::last()
 
 // ===== NEW DATABASE STORAGE FOR EVENTS/WAVEFORMS =====
 
+QList<RespiratoryEventData> Session::extractRespiratoryEvents()
+{
+    QList<RespiratoryEventData> events;
+    
+    // Map ChannelID to respiratory_events.event_type
+    QMap<ChannelID, int> respiratoryChannels = {
+        {CPAP_Obstructive, 0},   // OA
+        {CPAP_Apnea, 1},         // UA (unclassified)
+        {CPAP_Hypopnea, 2},      // H
+        {CPAP_RERA, 3},          // RERA
+        {CPAP_ClearAirway, 4}    // CAA
+    };
+    
+    for (auto it = respiratoryChannels.begin(); it != respiratoryChannels.end(); ++it) {
+        ChannelID channelId = it.key();
+        int eventType = it.value();
+        
+        auto channelIt = eventlist.find(channelId);
+        if (channelIt == eventlist.end()) continue;
+        
+        for (EventList* eventList : channelIt.value()) {
+            if (!eventList || eventList->type() != EVL_Event) continue;
+            
+            qint64 startBase = eventList->first();
+            quint32* timePtr = eventList->rawTime();
+            EventStoreType* dataPtr = eventList->rawData();
+            
+            for (quint32 i = 0; i < eventList->count(); i++) {
+                RespiratoryEventData event;
+                event.sessionId = m_database_id;
+                event.eventType = eventType;
+                event.startTime = startBase + timePtr[i];
+                event.duration = static_cast<int>(dataPtr[i]);
+                event.endTime = event.startTime + (event.duration * 1000LL);
+                event.desaturation = 0.0;  // TODO: Link to SpO2 data in future
+                event.severity = 0;
+                events.append(event);
+            }
+        }
+    }
+    
+    return events;
+}
+
 bool Session::StoreEventsToDatabase()
 {
     PERF_TIMER_SCOPE("Session::StoreEventsToDatabase");
@@ -3429,6 +3474,20 @@ bool Session::StoreEventsToDatabase()
                  << "(" << QString::number(ratio, 'f', 1) << "%)";
     }
 #endif
+
+    // NEW: Extract and store respiratory events to respiratory_events table
+    PERF_TIMER_START("Session::StoreDB::RespiratoryEvents");
+    QList<RespiratoryEventData> respiratoryEvents = extractRespiratoryEvents();
+    if (!respiratoryEvents.isEmpty()) {
+        RespiratoryEventsRepository respRepo;
+        if (!respRepo.createBatch(respiratoryEvents)) {
+            qWarning() << "Session::StoreEventsToDatabase() - Failed to store respiratory events";
+        } else {
+            qDebug() << "Session" << s_session << "stored" << respiratoryEvents.size() << "respiratory events";
+        }
+    }
+    PERF_TIMER_STOP("Session::StoreDB::RespiratoryEvents");
+    
     return (totalSaved == totalEventLists);
 }
 

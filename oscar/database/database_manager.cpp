@@ -145,6 +145,14 @@ bool DatabaseManager::initialize(const QString& databasePath)
         }
     }
 
+    // Check and update CSV report versions (runs at every startup)
+    // This is separate from schema upgrades because report changes don't require schema changes
+    qDebug() << "DatabaseManager: Checking CSV report versions...";
+    if (!DatabaseSchema::checkAndUpdateReportVersion(m_database)) {
+        qWarning() << "DatabaseManager: Failed to check/update report versions";
+        // Not a critical error - continue initialization
+    }
+
     m_initialized = true;
     qDebug() << "DatabaseManager: Initialization complete";
     return true;

@@ -434,6 +434,7 @@ SOURCES += \
     database/daily_summary_repository.cpp \
     database/event_list_repository.cpp \
     database/event_data_repository.cpp \
+    database/respiratory_events_repository.cpp \
     database/report_repository.cpp \
     database/report_contents_repository.cpp
 !contains(DEFINES, helpless) {
@@ -582,6 +583,7 @@ HEADERS  += \
     database/daily_summary_repository.h \
     database/event_list_repository.h \
     database/event_data_repository.h \
+    database/respiratory_events_repository.h \
     database/report_repository.h \
     database/report_contents_repository.h
 !contains(DEFINES, helpless) {

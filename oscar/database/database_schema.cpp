@@ -474,11 +474,8 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
             return false;
         }
         
-        // Initialize with default reports
-        if (!initializeDefaultReports(db)) {
-            qCritical() << "DatabaseSchema: Failed to initialize default reports during upgrade";
-            return false;
-        }
+        // Note: Default reports will be initialized by checkAndUpdateReportVersion()
+        // which is called at every startup from DatabaseManager::initialize()
         
         // Update schema version
         if (!setSchemaVersion(db, 11)) {
@@ -488,7 +485,7 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         
         qDebug() << "DatabaseSchema: Successfully upgraded to version 11";
         qDebug() << "DatabaseSchema: CSV export reports tables created";
-        qDebug() << "DatabaseSchema: Default reports initialized (Daily Summaries, Session Statistics, Device Settings)";
+        qDebug() << "DatabaseSchema: Reports will be initialized at startup";
     }
     
     return true;
@@ -1978,8 +1975,62 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
         return false;
     }
     
+    // Report 4: Respiratory Events
+    query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
+    query.addBindValue("Respiratory Events");
+    query.addBindValue("Detailed respiratory event data");
+    query.addBindValue(0);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Respiratory Events report:" << query.lastError().text();
+        return false;
+    }
+    qint64 respiratoryEventsId = query.lastInsertId().toLongLong();
+    
+    // Respiratory Events - Details (individual events with profile name, date, type, times)
+    // Note: OSCAR dates run from noon to noon, so we subtract 12 hours (43200 seconds) before extracting date
+    QString respiratoryEventsQuery =
+        "SELECT\n"
+        "  p.username as Profile_Name,\n"
+        "  date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,\n"
+        "  CASE re.event_type\n"
+        "    WHEN 0 THEN 'OA'\n"
+        "    WHEN 1 THEN 'UA'\n"
+        "    WHEN 2 THEN 'H'\n"
+        "    WHEN 3 THEN 'RERA'\n"
+        "    WHEN 4 THEN 'CA'\n"
+        "    WHEN 5 THEN 'User'\n"
+        "    ELSE CAST(re.event_type AS TEXT)\n"
+        "  END as Event_Type,\n"
+        "  time(re.start_time/1000, 'unixepoch', 'localtime') as Start_Time,\n"
+        "  time(re.end_time/1000, 'unixepoch', 'localtime') as End_Time,\n"
+        "  re.duration as Duration_Seconds\n"
+        "FROM respiratory_events re\n"
+        "JOIN sessions s ON re.session_id = s.id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "JOIN profiles p ON m.profile_id = p.id\n"
+        "WHERE m.profile_id = #PROFILE_ID\n"
+        "  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') >= #START_DATE\n"
+        "  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') <= #END_DATE\n"
+        "  AND s.enabled = 1\n"
+        "ORDER BY re.start_time";
+    
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(respiratoryEventsId);
+    query.addBindValue("Details");
+    query.addBindValue("Individual respiratory events with timestamps");
+    query.addBindValue(respiratoryEventsQuery);
+    query.addBindValue(1);
+    query.addBindValue(1);
+    
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Respiratory Events - Details content:" << query.lastError().text();
+        return false;
+    }
+    
     qDebug() << "DatabaseSchema: Default reports initialized successfully";
-    qDebug() << "DatabaseSchema: Created 3 reports with 8 content varieties total";
+    qDebug() << "DatabaseSchema: Created 4 reports with 9 content varieties total";
     
     return true;
 }

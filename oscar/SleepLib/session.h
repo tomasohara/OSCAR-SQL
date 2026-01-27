@@ -121,6 +121,9 @@ class Session
     
     //! \brief Loads session events from .001 file for import (bypasses database)
     bool LoadEventsFromFile(const QString& filename);
+    
+    //! \brief Extracts respiratory events from EventLists for storage in respiratory_events table
+    QList<struct RespiratoryEventData> extractRespiratoryEvents();
 
     //! \brief Put the events away until needed again, freeing memory
     void TrashEvents();

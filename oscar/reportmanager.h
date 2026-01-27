@@ -130,6 +130,13 @@ private:
     bool isSystemReport(qint64 reportId);
     
     /*!
+     * \brief Check if variety is a system variety
+     * \param varietyId Variety (report content) ID to check
+     * \return true if system variety, false otherwise
+     */
+    bool isSystemVariety(qint64 varietyId);
+    
+    /*!
      * \brief Get report ID from list item
      * \param index Model index
      * \return Report ID or 0 if invalid
