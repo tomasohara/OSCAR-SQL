@@ -2,6 +2,9 @@
 # No parameter is not required
 # This script will identify the distribution and release version
 #
+if [ -f "*-Qt5.deb" ]; then
+    rm -f *-Qt5.deb
+fi
 
 function gene_script () {
   # generate script shell from 2 files
@@ -46,22 +49,13 @@ function gene_script () {
   chmod +x rm_usrbin-result-NN-test.sh
 }
 
-function getTarget(){
-OSCARPRO=${PWD%/*/*}/oscar/"oscar.pro"
-assignmentcnt=$(($(grep -cE '(^|[[:space:]])TARGET[[:space:]]*=' $OSCARPRO)-1))
-if [[ $assignmentcnt -lt 1 ]]; then
-assignmentcnt=1
-fi
-PROGNAME=$(awk -F'=' -v n=$assignmentcnt '/TARGET[[:space:]]*=/{count++; if(count==n){gsub(/^[ \t]+|[ \t]+$/,"",$2); print $2}}' $OSCARPRO)
-}
-
 function getOS () {
   rel=$(lsb_release -r | awk '{print $2}')
   os=$(lsb_release -i | awk '{print $3}')
   tmp2=${os:0:3}
   echo "tmp2 = '$tmp2'"
-  if [ "$tmp2" = "Ubu" ] ; then
-    OSNAME=$os${rel:0:2}
+  if [ "$tmp2" = "Ubu" ] || [ "$tmp2" = "Lin" ] ; then
+     OSNAME=$os${rel:0:2}
   elif [ "$tmp2" = "Deb" ];then
     OSNAME=$os$rel
   elif [ "$tmp2" = "Ras" ];then
@@ -95,6 +89,15 @@ fi
 #SRC=/home/$USER/OSCAR/OSCAR-code/oscar
 SRC=${PWD%/*/*}/oscar
 
+
+function getTarget(){
+OSCARPRO=${PWD%/*/*}/oscar/"oscar.pro"
+assignmentcnt=$(($(grep -cE '(^|[[:space:]])TARGET[[:space:]]*=' $OSCARPRO)-1))
+if [[ $assignmentcnt -lt 1 ]]; then
+assignmentcnt=1
+fi
+
+
 VERSION=`awk '/#define VERSION / { gsub(/"/, "", $3); print $3 }' ${SRC}/VERSION`
 if [[ ${VERSION} == *-* ]]; then
     # Use ~ for prerelease information so that it sorts correctly compared to release
@@ -120,9 +123,6 @@ build_folder=${PWD%/*/*/*}/$OSCAR_BUILD_DIRECTORY
 # package_name="oscar"
 
 # Modified application name code
-# PROGNAME=$(sed -n 's/^TARGET *= *//p' $SRC/oscar.pro) - original
-
-#updated to: - CN
 getTarget
 
 echo "Program Name: "$PROGNAME
