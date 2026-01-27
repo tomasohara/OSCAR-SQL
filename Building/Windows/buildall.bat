@@ -330,7 +330,7 @@ echo Creating Oscar's Makefile
 
 :: Always compile build
 echo Compiling Oscar
-mingw32-make.exe -j8 >make.log 2>&1 || (
+mingw32-make.exe -j$(nproc) >make.log 2>&1 || (
 	call :buildOneError  27 Make Failed
 	type qmake.log
 	goto :endbuildOne
