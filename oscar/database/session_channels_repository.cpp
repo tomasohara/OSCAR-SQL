@@ -213,7 +213,7 @@ SessionChannelData SessionChannelsRepository::findByChannel(qint64 sessionId, in
     return data;
 }
 
-bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionChannelData>& channels)
+bool SessionChannelsRepository::saveBatch(qint64 sessionId, qint64 profileId, const QList<SessionChannelData>& channels)
 {
     PERF_TIMER_SCOPE("Session::StoreDB::Channels::SaveBatch");
     
@@ -232,9 +232,9 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionC
     QSqlQuery query(db);
     if (!query.prepare(
         "INSERT OR REPLACE INTO session_channels "
-        "(session_id, channel_id, count, sum, avg, wavg, min, max, median, p90, p95, "
+        "(session_id, profile_id, channel_id, count, sum, avg, wavg, min, max, median, p90, p95, "
         " phys_min, phys_max, cph, sph, first_time, last_time, gain) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
         qWarning() << "SessionChannelsRepository::saveBatch() - Failed to prepare statement:" 
                    << query.lastError().text();
         return false;
@@ -244,23 +244,24 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, const QList<SessionC
     for (const SessionChannelData& data : channels) {
         // Bind values using positional parameters (much faster than re-preparing)
         query.bindValue(0, sessionId);
-        query.bindValue(1, data.channelId);
-        query.bindValue(2, data.count);
-        query.bindValue(3, data.sum);
-        query.bindValue(4, data.avg);
-        query.bindValue(5, data.wavg);
-        query.bindValue(6, data.min);
-        query.bindValue(7, data.max);
-        query.bindValue(8, data.median);
-        query.bindValue(9, data.p90);
-        query.bindValue(10, data.p95);
-        query.bindValue(11, data.physMin);
-        query.bindValue(12, data.physMax);
-        query.bindValue(13, data.cph);
-        query.bindValue(14, data.sph);
-        query.bindValue(15, data.firstTime);
-        query.bindValue(16, data.lastTime);
-        query.bindValue(17, data.gain);
+        query.bindValue(1, profileId);
+        query.bindValue(2, data.channelId);
+        query.bindValue(3, data.count);
+        query.bindValue(4, data.sum);
+        query.bindValue(5, data.avg);
+        query.bindValue(6, data.wavg);
+        query.bindValue(7, data.min);
+        query.bindValue(8, data.max);
+        query.bindValue(9, data.median);
+        query.bindValue(10, data.p90);
+        query.bindValue(11, data.p95);
+        query.bindValue(12, data.physMin);
+        query.bindValue(13, data.physMax);
+        query.bindValue(14, data.cph);
+        query.bindValue(15, data.sph);
+        query.bindValue(16, data.firstTime);
+        query.bindValue(17, data.lastTime);
+        query.bindValue(18, data.gain);
 
         if (!query.exec()) {
             qWarning() << "SessionChannelsRepository::saveBatch() failed:" << query.lastError().text();

@@ -35,8 +35,15 @@ public:
      *
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
+     * 
+     * Version 12: Profile ID denormalization and schema cleanup
+     * - Added profile_id to session_summaries, event_lists, session_settings, session_channels
+     * - Added profile_id and channel_id to respiratory_events
+     * - Added type field to channels
+     * - Removed events_file and summary_file from sessions (no longer needed)
+     * - New policy: Version mismatch requires fresh database (no incremental migration)
      */
-    static const int CURRENT_SCHEMA_VERSION = 11;
+    static const int CURRENT_SCHEMA_VERSION = 12;
 
     /*!
      * \brief Create the complete database schema

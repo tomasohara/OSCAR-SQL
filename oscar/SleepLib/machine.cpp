@@ -1398,6 +1398,18 @@ bool Machine::LoadSessionsFromDatabase(ProgressDialog *progress)
     return loaded > 0;
 }
 
+/*!
+ * \brief Returns the profile ID this machine belongs to (Schema v12)
+ * \return Profile ID from the profile object, or 0 if no profile
+ */
+qint64 Machine::getProfileId() const
+{
+    if (profile) {
+        return profile->getDatabaseId();
+    }
+    return 0;
+}
+
 bool Machine::SaveToDatabase()
 {
     if (m_database_id > 0) {
@@ -1426,6 +1438,12 @@ bool Machine::SaveToDatabase()
     
     qDebug() << "Machine::SaveToDatabase(): Found profile" << profileName 
              << "with database ID" << profileData.id;
+    
+    // IMPORTANT: Set the profile's database ID so getProfileId() works
+    if (profile->getDatabaseId() == 0) {
+        profile->setDatabaseId(profileData.id);
+        qDebug() << "Machine::SaveToDatabase(): Set profile database ID to" << profileData.id;
+    }
 
     // Check if this machine already exists in THIS PROFILE's database
     // We search by serial+loader+profile to handle cases where machine internal ID changes

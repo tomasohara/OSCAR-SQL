@@ -169,12 +169,13 @@ bool SessionSettingsRepository::saveBatch(qint64 sessionId, const QList<SessionS
     QSqlQuery query(db);
     query.prepare(
         "INSERT OR REPLACE INTO session_settings "
-        "(session_id, channel_id, value, data_type, json_value) "
-        "VALUES (?, ?, ?, ?, ?)"
+        "(session_id, profile_id, channel_id, value, data_type, json_value) "
+        "VALUES (?, ?, ?, ?, ?, ?)"
     );
 
     for (const SessionSettingData& data : settings) {
         query.addBindValue(sessionId);
+        query.addBindValue(data.profileId);
         query.addBindValue(data.channelId);
         query.addBindValue(data.value);
         query.addBindValue(data.dataType);

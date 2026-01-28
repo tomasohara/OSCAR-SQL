@@ -915,14 +915,21 @@ bool Session::LoadEvents(QString filename, bool debug)
 #endif
             return true;
         } else {
-            qWarning() << "Session::LoadEvents() - Database load failed for machine" << m_database_id;
+            // Not a warning - many sessions legitimately don't have events stored
+            // (summary-only sessions, or sessions where events haven't been imported yet)
+#ifdef DBDEBUG
+            qDebug() << "Session::LoadEvents() - No events found in database for session" << s_session
+                     << "(db_id=" << m_database_id << ")";
+#endif
             return false;  // Database-only mode - no file fallback
         }
     }
     
     // Database not available - session not in database
-    qWarning() << "Session::LoadEvents() - Session not in database (machine_id="
+#ifdef DBDEBUG
+    qDebug() << "Session::LoadEvents() - Session not in database (machine_id="
              << s_machine->getDatabaseId() << ", session_id=" << m_database_id << ")";
+#endif
     return false;
     
     /* ===== FILE-BASED LOADING (DISABLED - DATABASE ONLY) =====
@@ -2705,6 +2712,13 @@ bool Session::StoreToDatabase()
         return false;
     }
     
+    // Get profile_id from machine (Schema v12 requirement)
+    qint64 profileId = s_machine->getProfileId();
+    if (profileId == 0) {
+        qWarning() << "Session::StoreToDatabase(): Machine has no profile_id";
+        return false;
+    }
+    
     // 1. Create or update session record
     PERF_TIMER_START("Session::StoreDB::SessionRecord");
     SessionData sessionData;
@@ -2745,6 +2759,7 @@ bool Session::StoreToDatabase()
         for (auto it = settings.begin(); it != settings.end(); ++it) {
             SessionSettingData setting;
             setting.sessionId = m_database_id;
+            setting.profileId = profileId;
             setting.channelId = it.key();
             
             // Handle special JSON serialization for bookmark fields (QVariantList, QStringList)
@@ -2862,7 +2877,7 @@ bool Session::StoreToDatabase()
             channelsList.append(channel);
         }
 
-        if (!channelsRepo.saveBatch(m_database_id, channelsList)) {
+        if (!channelsRepo.saveBatch(m_database_id, profileId, channelsList)) {
             qWarning() << "Session::StoreToDatabase(): Failed to save channels";
         }
         PERF_TIMER_STOP("Session::StoreDB::Channels");
@@ -3179,10 +3194,18 @@ bool Session::StoreSummaryToDatabase()
         return false;
     }
     
+    // Get profile_id from machine (Schema v12 requirement)
+    qint64 profileId = s_machine->getProfileId();
+    if (profileId == 0) {
+        qWarning() << "Session::StoreSummaryToDatabase() - machine has no profile_id";
+        return false;
+    }
+    
     SessionSummariesRepository repo;
     SessionSummaryData data;
     
     data.sessionId = m_database_id;
+    data.profileId = profileId;
     
     // Calculate hours used
     data.hoursUsed = hours();
@@ -3321,34 +3344,65 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
 {
     QList<RespiratoryEventData> events;
     
-    // Map ChannelID to respiratory_events.event_type
-    QMap<ChannelID, int> respiratoryChannels = {
-        {CPAP_Obstructive, 0},   // OA
-        {CPAP_Apnea, 1},         // UA (unclassified)
-        {CPAP_Hypopnea, 2},      // H
-        {CPAP_RERA, 3},          // RERA
-        {CPAP_ClearAirway, 4}    // CAA
+    // Get profile_id from machine (Schema v12 requirement)
+    qint64 profileId = s_machine->getProfileId();
+    if (profileId == 0) {
+        qWarning() << "Session::extractRespiratoryEvents() - machine has no profile_id";
+        return events;  // Return empty list
+    }
+    
+    // Primary respiratory event channel IDs
+    // If channel is in this list, eventType = 1; otherwise eventType = 0
+    QSet<ChannelID> primaryRespiratoryChannels = {
+        CPAP_Obstructive,    // OA
+        CPAP_Apnea,          // UA (unclassified)
+        CPAP_Hypopnea,       // H
+        CPAP_RERA,           // RERA
+        CPAP_ClearAirway,    // CA
+        CPAP_AllApnea        // All
     };
     
-    for (auto it = respiratoryChannels.begin(); it != respiratoryChannels.end(); ++it) {
-        ChannelID channelId = it.key();
-        int eventType = it.value();
+    // Examine all channels in eventlist
+    for (auto channelIt = eventlist.begin(); channelIt != eventlist.end(); ++channelIt) {
+        ChannelID channelId = channelIt.key();
         
-        auto channelIt = eventlist.find(channelId);
-        if (channelIt == eventlist.end()) continue;
+        // Get channel type from schema
+        schema::ChanType chanType = schema::channel[channelId].type();
         
+        // Check if FLAG, MINOR_FLAG, or SPAN bits are set
+        bool isFlagType = (chanType & schema::FLAG) || 
+                          (chanType & schema::MINOR_FLAG) || 
+                          (chanType & schema::SPAN);
+        
+        if (!isFlagType) continue;
+        
+        // Determine eventType based on whether channel is in primary list
+        int eventType = primaryRespiratoryChannels.contains(channelId) ? 1 : 0;
+        
+        // Process all EventLists for this channel
         for (EventList* eventList : channelIt.value()) {
             if (!eventList || eventList->type() != EVL_Event) continue;
             
             qint64 startBase = eventList->first();
+            
+            // Skip if startTime is zero
+            if (startBase == 0) continue;
+            
             quint32* timePtr = eventList->rawTime();
             EventStoreType* dataPtr = eventList->rawData();
             
             for (quint32 i = 0; i < eventList->count(); i++) {
+                qint64 startTime = startBase + timePtr[i];
+                
+                // Skip if startTime is zero
+                if (startTime == 0) continue;
+                
                 RespiratoryEventData event;
                 event.sessionId = m_database_id;
+                event.profileId = profileId;  // Schema v12 requirement
+                event.channelId = channelId;   // Schema v12 requirement
                 event.eventType = eventType;
-                event.startTime = startBase + timePtr[i];
+                event.startTime = startTime;
                 event.duration = static_cast<int>(dataPtr[i]);
                 event.endTime = event.startTime + (event.duration * 1000LL);
                 event.desaturation = 0.0;  // TODO: Link to SpO2 data in future
@@ -3373,6 +3427,13 @@ bool Session::StoreEventsToDatabase()
     if (eventlist.isEmpty()) {
         qDebug() << "Session::StoreEventsToDatabase() - no events to store";
         return true;
+    }
+    
+    // Get profile_id from machine (Schema v12 requirement)
+    qint64 profileId = s_machine->getProfileId();
+    if (profileId == 0) {
+        qWarning() << "Session::StoreEventsToDatabase() - machine has no profile_id";
+        return false;
     }
     
     EventListRepository eventListRepo;
@@ -3406,6 +3467,7 @@ bool Session::StoreEventsToDatabase()
             // 1. Create EventListData from EventList
             EventListData listData;
             listData.sessionId = m_database_id;
+            listData.profileId = profileId;
             listData.channelId = channelId;
             listData.eventlistIndex = index;
             listData.eventType = (int)eventList->type();

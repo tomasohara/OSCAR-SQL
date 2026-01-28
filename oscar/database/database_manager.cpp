@@ -119,30 +119,38 @@ bool DatabaseManager::initialize(const QString& databasePath)
     } else {
         qDebug() << "DatabaseManager: Using existing database";
         
-        // Check schema version and upgrade if needed
+        // Check schema version (Schema v12+ policy: no incremental migration)
         int currentVersion = DatabaseSchema::getSchemaVersion(m_database);
         qDebug() << "DatabaseManager: Current schema version:" << currentVersion;
         
-        if (currentVersion < DatabaseSchema::CURRENT_SCHEMA_VERSION) {
-            qDebug() << "DatabaseManager: Upgrading schema from version" << currentVersion 
-                     << "to" << DatabaseSchema::CURRENT_SCHEMA_VERSION;
+        if (currentVersion != DatabaseSchema::CURRENT_SCHEMA_VERSION) {
+            qCritical() << "DatabaseManager: Database schema version mismatch!";
+            qCritical() << "DatabaseManager: Database version:" << currentVersion;
+            qCritical() << "DatabaseManager: Required version:" << DatabaseSchema::CURRENT_SCHEMA_VERSION;
+            qCritical() << "DatabaseManager: Please start with a fresh database and reimport your data.";
             
-            if (!DatabaseSchema::upgradeSchema(m_database, currentVersion)) {
-                qCritical() << "DatabaseManager: Failed to upgrade database schema";
-                close();
-                return false;
-            }
+            // Display error message to user (requires QMessageBox from QtWidgets)
+            // Note: This will be displayed by the calling code in main.cpp or profileselector
+            emit databaseError(QString(
+                "Database Schema Version Mismatch\n\n"
+                "Your database is version %1, but OSCAR requires version %2.\n\n"
+                "Starting with OSCAR schema version 12, incremental database migrations "
+                "are no longer supported to ensure data integrity.\n\n"
+                "You must start with a fresh database and reimport your CPAP data.\n\n"
+                "Steps to resolve:\n"
+                "1. Close OSCAR\n"
+                "2. Backup your current OSCAR data directory\n"
+                "3. Delete or rename your oscar.db file\n"
+                "4. Restart OSCAR and reimport your CPAP SD card data\n\n"
+                "OSCAR will now close.")
+                .arg(currentVersion)
+                .arg(DatabaseSchema::CURRENT_SCHEMA_VERSION));
             
-            qDebug() << "DatabaseManager: Schema upgrade complete";
-        } else if (currentVersion > DatabaseSchema::CURRENT_SCHEMA_VERSION) {
-            qCritical() << "DatabaseManager: Database schema version" << currentVersion 
-                        << "is newer than supported version" << DatabaseSchema::CURRENT_SCHEMA_VERSION;
-            qCritical() << "DatabaseManager: Please upgrade OSCAR to the latest version";
             close();
             return false;
-        } else {
-            qDebug() << "DatabaseManager: Schema is up to date";
         }
+        
+        qDebug() << "DatabaseManager: Schema version is correct";
     }
 
     // Check and update CSV report versions (runs at every startup)

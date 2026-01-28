@@ -209,6 +209,9 @@ class Machine
     //! \brief Sets the database primary key for this machine
     inline void setDatabaseId(qint64 id) { m_database_id = id; }
     
+    //! \brief Returns the profile ID this machine belongs to (Schema v12)
+    qint64 getProfileId() const;
+    
     //! \brief Save this machine to the database
     bool SaveToDatabase();
 

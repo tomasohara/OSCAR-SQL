@@ -24,6 +24,7 @@ struct SessionSettingData
 {
     qint64 id = 0;                      // Database primary key
     qint64 sessionId = 0;               // Foreign key to sessions table
+    qint64 profileId = 0;               // Foreign key to profiles table (Schema v12 denormalization)
     int channelId = 0;                  // Channel ID (e.g., CPAP_Pressure)
     double value = 0.0;                 // Setting value
     QString dataType;                   // 'int', 'float', 'bool', 'string', 'datetime', 'richtext', 'json'

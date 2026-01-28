@@ -58,7 +58,8 @@ Profile *p_profile;
 
 Profile::Profile(QString path, bool open)
   : is_first_day(true),
-     m_opened(false)
+    m_opened(false),
+    m_database_id(0)
 {
     p_name = STR_GEN_Profile;
 
@@ -265,6 +266,21 @@ bool Profile::OpenMachines()
         return true;
     }
 
+    // IMPORTANT: Set profile database ID FIRST, before loading machines
+    // This ensures fresh imports can access profile ID even when no machines exist yet
+    if (m_database_id == 0) {
+        ProfileRepository profileRepo;
+        QFileInfo pathInfo(p_path);
+        QString username = pathInfo.dir().dirName();
+        ProfileData profileData = profileRepo.findByUsername(username);
+        if (profileData.id > 0) {
+            m_database_id = profileData.id;
+            qDebug() << "Profile::OpenMachines(): Set profile database ID to" << m_database_id;
+        } else {
+            qDebug() << "Profile::OpenMachines(): Profile" << username << "not in database yet";
+        }
+    }
+
     // Try database first
     if (loadMachinesFromDatabase()) {
 //        qDebug() << "Profile::OpenMachines(): Loaded machines from database";
@@ -272,7 +288,7 @@ bool Profile::OpenMachines()
     }
 
     // Unable to read machines (maybe there aren't any?)
-    qWarning() << "Profile::OpenMachines(): Could not read machines from database";
+    qWarning() << "Profile::OpenMachines(): Could not read machines from database (might be fresh profile)";
     return false; // loadMachinesFromXML();
 }
 
@@ -291,6 +307,9 @@ bool Profile::loadMachinesFromDatabase()
         qDebug() << "Profile::loadMachinesFromDatabase(): Profile" << username << "not in database";
         return false;  // Profile not in database yet
     }
+    
+    // Set this profile's database ID
+    m_database_id = profileData.id;
 
     // Get all machines for this profile
     QList<MachineData> machines = machineRepo.findByProfile(profileData.id);
@@ -2729,10 +2748,73 @@ void Profile::loadChannels()
         return;
     }
     
-    // Migration failed or no file - fall back to loading from file
+    // No file to migrate - initialize from schema::channel registry
+    qDebug() << "Profile: No channels.dat file, initializing channels from schema registry";
+    if (initializeChannelsFromSchema()) {
+        qDebug() << "Profile: Channels initialized from schema registry";
+        resetOxiChannelPref();
+        return;
+    }
+    
+    // Last resort - fall back to loading from file if it exists
     qDebug() << "Profile: Loading channels from channels.dat (no migration)";
     loadChannelsFromDat();
     resetOxiChannelPref();
+}
+
+// Initialize channels table from schema::channel registry
+bool Profile::initializeChannelsFromSchema()
+{
+    ProfileRepository profileRepo;
+    ProfileData profileData = profileRepo.findByUsername(user->userName());
+    
+    if (profileData.id == 0) {
+        qDebug() << "Profile: Cannot initialize channels, profile not in database yet";
+        return false;
+    }
+    
+    ChannelRepository channelRepo;
+    QList<ChannelData> channels;
+    
+    qDebug() << "Profile: Initializing" << schema::channel.channels.size() << "channels from schema registry";
+    
+    // Convert all schema::channel entries to ChannelData
+    for (auto it = schema::channel.channels.begin(); 
+         it != schema::channel.channels.end(); ++it) {
+        schema::Channel* chan = it.value();
+        
+        ChannelData data;
+        data.profileId = profileData.id;
+        data.channelId = chan->id();
+        data.channelCode = chan->code();
+        data.enabled = chan->enabled();
+        data.defaultColor = chan->defaultColor();
+        data.fullname = chan->fullname();
+        data.label = chan->label();
+        data.description = chan->description();
+        data.lowerThreshold = chan->lowerThreshold();
+        data.lowerThresholdColor = chan->lowerThresholdColor();
+        data.upperThreshold = chan->upperThreshold();
+        data.upperThresholdColor = chan->upperThresholdColor();
+        data.showInOverview = chan->showInOverview();
+        
+        channels.append(data);
+        
+        // Save channel options if present
+        if (!chan->m_options.isEmpty()) {
+            ChannelOptionsRepository optionsRepo;
+            optionsRepo.saveBatch(chan->id(), chan->m_options);
+        }
+    }
+    
+    // Batch save all channels
+    if (channelRepo.saveBatch(profileData.id, channels)) {
+        qDebug() << "Profile: Successfully initialized" << channels.size() << "channels in database";
+        return true;
+    } else {
+        qWarning() << "Profile: Failed to initialize channels in database";
+        return false;
+    }
 }
 
 // Original file-based implementation

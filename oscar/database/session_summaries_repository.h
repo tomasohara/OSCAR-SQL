@@ -23,6 +23,7 @@ struct SessionSummaryData
 {
     qint64 id = 0;                      // Database primary key
     qint64 sessionId = 0;               // Foreign key to sessions table (UNIQUE)
+    qint64 profileId = 0;               // Foreign key to profiles table (Schema v12 denormalization)
     
     // Primary metrics
     double ahi = 0.0;                   // Apnea-Hypopnea Index

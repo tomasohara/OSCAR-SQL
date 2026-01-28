@@ -126,6 +126,22 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
+    // Reports tables (schema version 11)
+    if (!createReportsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create reports table";
+        return false;
+    }
+
+    if (!createReportContentsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create report_contents table";
+        return false;
+    }
+
+    if (!createReportIndexes(db)) {
+        qCritical() << "DatabaseSchema: Failed to create report indexes";
+        return false;
+    }
+
     // Create indexes
     if (!createIndexes(db)) {
         qCritical() << "DatabaseSchema: Failed to create indexes";
@@ -173,14 +189,28 @@ int DatabaseSchema::getSchemaVersion(QSqlDatabase& db)
  *   db - Database connection to use
  *   fromVersion - Current version in database
  *
- * Returns: true if successful, false otherwise
+ * Returns: false - Schema v12+ does not support incremental migrations
  *
- * Future use: will handle schema migrations from older versions.
- * Currently a placeholder that returns true.
+ * SCHEMA V12 POLICY: No incremental migrations. If schema version doesn't match,
+ * user must start with fresh database and reimport data. This ensures data integrity
+ * and simplifies maintenance. The database_manager will display an appropriate
+ * error message to the user.
  */
 bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
 {
-    qDebug() << "DatabaseSchema: Upgrading schema from version" << fromVersion << "to" << CURRENT_SCHEMA_VERSION;
+    Q_UNUSED(db);
+    
+    qCritical() << "DatabaseSchema: Schema version mismatch detected";
+    qCritical() << "DatabaseSchema: Database version:" << fromVersion;
+    qCritical() << "DatabaseSchema: Required version:" << CURRENT_SCHEMA_VERSION;
+    qCritical() << "DatabaseSchema: Incremental migration not supported in schema v12+";
+    qCritical() << "DatabaseSchema: Please start with a fresh database and reimport your data";
+    
+    return false;
+    
+    // Legacy migration code removed in schema v12
+    // Users upgrading from v11 or earlier must reimport data
+    // This ensures data integrity and simplifies maintenance
 
     // Upgrade from version 2 to version 3: Add session tables
     if (fromVersion < 3) {
@@ -684,6 +714,18 @@ bool DatabaseSchema::createIndexes(QSqlDatabase& db)
     indexes << "CREATE INDEX IF NOT EXISTS idx_event_lists_time ON event_lists(session_id, first_time, last_time)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_event_data_eventlist ON event_data(eventlist_id)";
 
+    // Profile ID indexes (schema version 12 - denormalization for query performance)
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_summaries_profile ON session_summaries(profile_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_summaries_profile_date ON session_summaries(profile_id, session_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_settings_profile ON session_settings(profile_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_settings_profile_channel ON session_settings(profile_id, channel_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_channels_profile ON session_channels(profile_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_session_channels_profile_channel ON session_channels(profile_id, channel_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_event_lists_profile ON event_lists(profile_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_event_lists_profile_channel ON event_lists(profile_id, channel_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_respiratory_events_profile ON respiratory_events(profile_id)";
+    indexes << "CREATE INDEX IF NOT EXISTS idx_respiratory_events_profile_type ON respiratory_events(profile_id, event_type)";
+
     // Execute each index creation
     for (const QString& sql : indexes) {
         if (!query.exec(sql)) {
@@ -883,8 +925,6 @@ bool DatabaseSchema::createSessionsTable(QSqlDatabase& db)
         "    summary_only INTEGER DEFAULT 0,"
         "    no_settings INTEGER DEFAULT 0,"
         "    events_loaded INTEGER DEFAULT 0,"
-        "    events_file TEXT,"
-        "    summary_file TEXT,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE CASCADE,"
@@ -920,12 +960,14 @@ bool DatabaseSchema::createSessionSettingsTable(QSqlDatabase& db)
         "CREATE TABLE IF NOT EXISTS session_settings ("
         "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "    session_id INTEGER NOT NULL,"
+        "    profile_id INTEGER NOT NULL,"
         "    channel_id INTEGER NOT NULL,"
         "    value REAL NOT NULL,"
         "    data_type TEXT,"
         "    json_value TEXT,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,"
         "    UNIQUE(session_id, channel_id)"
         ")";
 
@@ -958,6 +1000,7 @@ bool DatabaseSchema::createSessionChannelsTable(QSqlDatabase& db)
         "CREATE TABLE IF NOT EXISTS session_channels ("
         "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "    session_id INTEGER NOT NULL,"
+        "    profile_id INTEGER NOT NULL,"
         "    channel_id INTEGER NOT NULL,"
         "    count INTEGER DEFAULT 0,"
         "    sum REAL DEFAULT 0,"
@@ -977,6 +1020,7 @@ bool DatabaseSchema::createSessionChannelsTable(QSqlDatabase& db)
         "    gain REAL DEFAULT 1.0,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,"
         "    UNIQUE(session_id, channel_id)"
         ")";
 
@@ -1049,6 +1093,8 @@ bool DatabaseSchema::createRespiratoryEventsTable(QSqlDatabase& db)
         "CREATE TABLE IF NOT EXISTS respiratory_events ("
         "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "    session_id INTEGER NOT NULL,"
+        "    profile_id INTEGER NOT NULL,"
+        "    channel_id INTEGER,"
         "    event_type INTEGER NOT NULL,"
         "    start_time INTEGER NOT NULL,"
         "    end_time INTEGER NOT NULL,"
@@ -1056,7 +1102,8 @@ bool DatabaseSchema::createRespiratoryEventsTable(QSqlDatabase& db)
         "    desaturation REAL,"
         "    severity INTEGER,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
-        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE"
+        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE"
         ")";
 
     if (!query.exec(sql)) {
@@ -1088,6 +1135,7 @@ bool DatabaseSchema::createSessionSummariesTable(QSqlDatabase& db)
         "CREATE TABLE IF NOT EXISTS session_summaries ("
         "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "    session_id INTEGER NOT NULL UNIQUE,"
+        "    profile_id INTEGER NOT NULL,"
         "    ahi REAL DEFAULT 0,"
         "    rdi REAL DEFAULT 0,"
         "    obstructive_count INTEGER DEFAULT 0,"
@@ -1109,7 +1157,8 @@ bool DatabaseSchema::createSessionSummariesTable(QSqlDatabase& db)
         "    mask_on_hours REAL DEFAULT 0,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
-        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE"
+        "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE"
         ")";
 
     if (!query.exec(sql)) {
@@ -1177,6 +1226,7 @@ bool DatabaseSchema::createChannelsTable(QSqlDatabase& db)
         "    profile_id INTEGER NOT NULL,"
         "    channel_id INTEGER NOT NULL,"
         "    channel_code TEXT NOT NULL,"
+        "    type INTEGER,"
         "    enabled INTEGER NOT NULL DEFAULT 1,"
         "    default_color TEXT,"
         "    fullname TEXT,"
@@ -1330,6 +1380,7 @@ bool DatabaseSchema::createEventListsTable(QSqlDatabase& db)
         "CREATE TABLE IF NOT EXISTS event_lists ("
         "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "    session_id INTEGER NOT NULL,"
+        "    profile_id INTEGER NOT NULL,"
         "    channel_id INTEGER NOT NULL,"
         "    eventlist_index INTEGER NOT NULL DEFAULT 0,"
         "    event_type INTEGER NOT NULL,"
@@ -1349,6 +1400,7 @@ bool DatabaseSchema::createEventListsTable(QSqlDatabase& db)
         "    compressed_size INTEGER,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,"
         "    UNIQUE(session_id, channel_id, eventlist_index)"
         ")";
 
@@ -1994,28 +2046,23 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
         "SELECT\n"
         "  p.username as Profile_Name,\n"
         "  date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,\n"
-        "  CASE re.event_type\n"
-        "    WHEN 0 THEN 'OA'\n"
-        "    WHEN 1 THEN 'UA'\n"
-        "    WHEN 2 THEN 'H'\n"
-        "    WHEN 3 THEN 'RERA'\n"
-        "    WHEN 4 THEN 'CA'\n"
-        "    WHEN 5 THEN 'User'\n"
-        "    ELSE CAST(re.event_type AS TEXT)\n"
-        "  END as Event_Type,\n"
+        "  c.fullname as Name,\n"
+        "  c.label as Event_Type,\n"
         "  time(re.start_time/1000, 'unixepoch', 'localtime') as Start_Time,\n"
         "  time(re.end_time/1000, 'unixepoch', 'localtime') as End_Time,\n"
         "  re.duration as Duration_Seconds\n"
         "FROM respiratory_events re\n"
         "JOIN sessions s ON re.session_id = s.id\n"
-        "JOIN machines m ON s.machine_id = m.id\n"
-        "JOIN profiles p ON m.profile_id = p.id\n"
-        "WHERE m.profile_id = #PROFILE_ID\n"
+        "JOIN profiles p ON re.profile_id = p.id\n"
+        "JOIN channels c ON re.channel_id = c.channel_id AND c.profile_id = re.profile_id\n"
+        "WHERE re.profile_id = #PROFILE_ID\n"
         "  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') >= #START_DATE\n"
         "  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') <= #END_DATE\n"
         "  AND s.enabled = 1\n"
+        "--use re.event_type = 1 to see only AHI-contributing events\n"
+        "--AND re.event_type = 1\n"
         "ORDER BY re.start_time";
-    
+
     query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
     query.addBindValue(respiratoryEventsId);
     query.addBindValue("Details");

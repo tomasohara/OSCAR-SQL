@@ -57,13 +57,13 @@ qint64 EventListRepository::create(const EventListData& data)
     
     query.prepare(
         "INSERT INTO event_lists ("
-        "    session_id, channel_id, eventlist_index,"
+        "    session_id, profile_id, channel_id, eventlist_index,"
         "    event_type, first_time, last_time, count, rate,"
         "    gain, offset, min_value, max_value, dimension,"
         "    has_second_field, min2_value, max2_value,"
         "    data_size, compressed_size"
         ") VALUES ("
-        "    :session_id, :channel_id, :eventlist_index,"
+        "    :session_id, :profile_id, :channel_id, :eventlist_index,"
         "    :event_type, :first_time, :last_time, :count, :rate,"
         "    :gain, :offset, :min_value, :max_value, :dimension,"
         "    :has_second_field, :min2_value, :max2_value,"
@@ -72,6 +72,7 @@ qint64 EventListRepository::create(const EventListData& data)
     );
     
     query.bindValue(":session_id", data.sessionId);
+    query.bindValue(":profile_id", data.profileId);
     query.bindValue(":channel_id", data.channelId);
     query.bindValue(":eventlist_index", data.eventlistIndex);
     query.bindValue(":event_type", data.eventType);

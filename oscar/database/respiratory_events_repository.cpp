@@ -28,11 +28,13 @@ qint64 RespiratoryEventsRepository::create(const RespiratoryEventData& data)
     QSqlQuery query(db);
     query.prepare(
         "INSERT INTO respiratory_events "
-        "(session_id, event_type, start_time, end_time, duration, desaturation, severity) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)"
+        "(session_id, profile_id, channel_id, event_type, start_time, end_time, duration, desaturation, severity) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     
     query.addBindValue(data.sessionId);
+    query.addBindValue(data.profileId);
+    query.addBindValue(data.channelId);
     query.addBindValue(data.eventType);
     query.addBindValue(data.startTime);
     query.addBindValue(data.endTime);
@@ -67,13 +69,15 @@ bool RespiratoryEventsRepository::createBatch(const QList<RespiratoryEventData>&
     QSqlQuery query(db);
     query.prepare(
         "INSERT INTO respiratory_events "
-        "(session_id, event_type, start_time, end_time, duration, desaturation, severity) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)"
+        "(session_id, profile_id, channel_id, event_type, start_time, end_time, duration, desaturation, severity) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     
     int inserted = 0;
     for (const RespiratoryEventData& event : events) {
         query.addBindValue(event.sessionId);
+        query.addBindValue(event.profileId);
+        query.addBindValue(event.channelId);
         query.addBindValue(event.eventType);
         query.addBindValue(event.startTime);
         query.addBindValue(event.endTime);

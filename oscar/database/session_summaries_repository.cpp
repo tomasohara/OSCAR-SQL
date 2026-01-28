@@ -35,14 +35,15 @@ qint64 SessionSummariesRepository::create(const SessionSummaryData& data)
     QSqlQuery query(db);
     query.prepare(
         "INSERT INTO session_summaries "
-        "(session_id, ahi, rdi, obstructive_count, unclassified_count, hypopnea_count, rera_count, "
+        "(session_id, profile_id, ahi, rdi, obstructive_count, unclassified_count, hypopnea_count, rera_count, "
         " clear_airway_count, pressure_avg, pressure_min, pressure_max, pressure_95th, "
         " leak_total_avg, leak_total_95th, leak_total_max, "
         " spo2_avg, spo2_min, pulse_avg, hours_used, mask_on_hours) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
 
     query.addBindValue(data.sessionId);
+    query.addBindValue(data.profileId);
     query.addBindValue(data.ahi);
     query.addBindValue(data.rdi);
     query.addBindValue(data.obstructiveCount);

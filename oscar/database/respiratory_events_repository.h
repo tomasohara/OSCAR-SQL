@@ -21,6 +21,8 @@
 struct RespiratoryEventData {
     qint64 id;              ///< Database primary key (0 for new records)
     qint64 sessionId;       ///< Foreign key to sessions table
+    qint64 profileId;       ///< Foreign key to profiles table (Schema v12 denormalization)
+    int channelId;          ///< Channel ID for this event (Schema v12 denormalization)
     int eventType;          ///< 0=OA, 1=UA, 2=H, 3=RERA, 4=CAA, 5=User
     qint64 startTime;       ///< Event start time (Unix timestamp in milliseconds)
     qint64 endTime;         ///< Event end time (Unix timestamp in milliseconds)
@@ -29,7 +31,7 @@ struct RespiratoryEventData {
     int severity;           ///< Optional severity rating
     
     RespiratoryEventData() 
-        : id(0), sessionId(0), eventType(0), 
+        : id(0), sessionId(0), profileId(0), channelId(0), eventType(0), 
           startTime(0), endTime(0), duration(0),
           desaturation(0.0), severity(0) {}
 };

@@ -29,6 +29,7 @@ struct EventListData
 {
     qint64 id;                      // Database primary key
     qint64 sessionId;               // Foreign key to sessions table
+    qint64 profileId;               // Foreign key to profiles table (Schema v12 denormalization)
     ChannelID channelId;            // Channel identifier
     int eventlistIndex;             // Index for multiple EventLists per channel (0, 1, 2...)
     
@@ -57,7 +58,7 @@ struct EventListData
     
     // Constructor with defaults
     EventListData()
-        : id(0), sessionId(0), channelId(0), eventlistIndex(0)
+        : id(0), sessionId(0), profileId(0), channelId(0), eventlistIndex(0)
         , eventType(0), firstTime(0), lastTime(0), count(0)
         , rate(0.0), gain(1.0), offset(0.0)
         , minValue(0.0), maxValue(0.0)

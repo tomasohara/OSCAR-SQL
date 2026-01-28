@@ -97,10 +97,11 @@ public:
     /*!
      * \brief Save multiple channels at once (batch insert/update)
      * \param sessionId Session database ID
+     * \param profileId Profile database ID (Schema v12 denormalization)
      * \param channels List of channels to save
      * \return true if successful, false otherwise
      */
-    bool saveBatch(qint64 sessionId, const QList<SessionChannelData>& channels);
+    bool saveBatch(qint64 sessionId, qint64 profileId, const QList<SessionChannelData>& channels);
     
     /*!
      * \brief Delete a specific channel

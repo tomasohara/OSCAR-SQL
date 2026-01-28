@@ -240,6 +240,11 @@ class Profile : public Preferences
     //! \brief Set the opened state (used by profile importer)
     void setOpened(bool opened) { m_opened = opened; }
 
+    //! \brief Returns the database primary key for this profile (Schema v12)
+    inline qint64 getDatabaseId() const { return m_database_id; }
+    //! \brief Sets the database primary key for this profile (Schema v12)
+    inline void setDatabaseId(qint64 id) { m_database_id = id; }
+
     //! \brief QMap of day records (iterates in order).
     QMap<QDate, Day *> daylist;
 
@@ -254,9 +259,10 @@ class Profile : public Preferences
     // Database integration for channels
     bool loadChannelsFromDatabase();
     bool saveChannelsToDatabase();
-    void loadChannelsFromDat();  // Original file-based implementation
     void saveChannelsToDat();    // Original file-based implementation
+    void loadChannelsFromDat();  // Original file-based implementation
     bool migrateChannelsToDatabase();  // One-time migration from channels.dat to database
+    bool initializeChannelsFromSchema();  // Initialize channels from schema::channel registry
 
 
     bool is_first_day;
@@ -275,6 +281,9 @@ class Profile : public Preferences
     QDate m_last;
 
     bool m_opened;
+    
+    //! \brief Database primary key (0 if not in database) - Schema v12
+    qint64 m_database_id;
 
     QHash<QString, QHash<QString, Machine *> > MachineList;
 

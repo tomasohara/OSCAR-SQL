@@ -36,9 +36,8 @@ qint64 SessionRepository::create(const SessionData& data)
     query.prepare(
         "INSERT INTO sessions "
         "(session_id, machine_id, start_time, end_time, duration, "
-        " enabled, summary_only, no_settings, events_loaded, "
-        " events_file, summary_file) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        " enabled, summary_only, no_settings, events_loaded) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
 
     query.addBindValue(data.sessionId);
@@ -50,8 +49,7 @@ qint64 SessionRepository::create(const SessionData& data)
     query.addBindValue(data.summaryOnly);
     query.addBindValue(data.noSettings);
     query.addBindValue(data.eventsLoaded);
-    query.addBindValue(data.eventsFile);
-    query.addBindValue(data.summaryFile);
+    // Note: events_file and summary_file columns removed in schema v12
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::create() failed:" << query.lastError().text();
@@ -74,7 +72,7 @@ bool SessionRepository::update(const SessionData& data)
         "UPDATE sessions SET "
         "session_id = ?, machine_id = ?, start_time = ?, end_time = ?, duration = ?, "
         "enabled = ?, summary_only = ?, no_settings = ?, events_loaded = ?, "
-        "events_file = ?, summary_file = ?, updated_at = CURRENT_TIMESTAMP "
+        "updated_at = CURRENT_TIMESTAMP "
         "WHERE id = ?"
     );
 
@@ -87,8 +85,7 @@ bool SessionRepository::update(const SessionData& data)
     query.addBindValue(data.summaryOnly);
     query.addBindValue(data.noSettings);
     query.addBindValue(data.eventsLoaded);
-    query.addBindValue(data.eventsFile);
-    query.addBindValue(data.summaryFile);
+    // Note: events_file and summary_file columns removed in schema v12
     query.addBindValue(data.id);
 
     if (!query.exec()) {
@@ -113,7 +110,7 @@ SessionData SessionRepository::findById(qint64 id)
     query.prepare(
         "SELECT id, session_id, machine_id, start_time, end_time, duration, "
         "enabled, summary_only, no_settings, events_loaded, "
-        "events_file, summary_file, created_at, updated_at "
+        "created_at, updated_at "
         "FROM sessions WHERE id = ?"
     );
     query.addBindValue(id);
@@ -134,10 +131,9 @@ SessionData SessionRepository::findById(qint64 id)
         data.summaryOnly = query.value(7).toInt();
         data.noSettings = query.value(8).toInt();
         data.eventsLoaded = query.value(9).toInt();
-        data.eventsFile = query.value(10).toString();
-        data.summaryFile = query.value(11).toString();
-        data.createdAt = query.value(12).toDateTime();
-        data.updatedAt = query.value(13).toDateTime();
+        data.createdAt = query.value(10).toDateTime();
+        data.updatedAt = query.value(11).toDateTime();
+        // Note: eventsFile and summaryFile no longer stored (schema v12)
     }
 
     return data;
@@ -157,7 +153,7 @@ SessionData SessionRepository::findByMachineAndSessionId(qint64 machineId, qint6
     query.prepare(
         "SELECT id, session_id, machine_id, start_time, end_time, duration, "
         "enabled, summary_only, no_settings, events_loaded, "
-        "events_file, summary_file, created_at, updated_at "
+        "created_at, updated_at "
         "FROM sessions WHERE machine_id = ? AND session_id = ?"
     );
     query.addBindValue(machineId);
@@ -179,10 +175,8 @@ SessionData SessionRepository::findByMachineAndSessionId(qint64 machineId, qint6
         data.summaryOnly = query.value(7).toInt();
         data.noSettings = query.value(8).toInt();
         data.eventsLoaded = query.value(9).toInt();
-        data.eventsFile = query.value(10).toString();
-        data.summaryFile = query.value(11).toString();
-        data.createdAt = query.value(12).toDateTime();
-        data.updatedAt = query.value(13).toDateTime();
+        data.createdAt = query.value(10).toDateTime();
+        data.updatedAt = query.value(11).toDateTime();
     }
 
     return data;
@@ -202,7 +196,7 @@ QList<SessionData> SessionRepository::findByMachine(qint64 machineId)
     query.prepare(
         "SELECT id, session_id, machine_id, start_time, end_time, duration, "
         "enabled, summary_only, no_settings, events_loaded, "
-        "events_file, summary_file, created_at, updated_at "
+        "created_at, updated_at "
         "FROM sessions WHERE machine_id = ? ORDER BY start_time"
     );
     query.addBindValue(machineId);
@@ -224,10 +218,8 @@ QList<SessionData> SessionRepository::findByMachine(qint64 machineId)
         data.summaryOnly = query.value(7).toInt();
         data.noSettings = query.value(8).toInt();
         data.eventsLoaded = query.value(9).toInt();
-        data.eventsFile = query.value(10).toString();
-        data.summaryFile = query.value(11).toString();
-        data.createdAt = query.value(12).toDateTime();
-        data.updatedAt = query.value(13).toDateTime();
+        data.createdAt = query.value(10).toDateTime();
+        data.updatedAt = query.value(11).toDateTime();
         result.append(data);
     }
 
@@ -248,7 +240,7 @@ QList<SessionData> SessionRepository::findEnabledByMachine(qint64 machineId)
     query.prepare(
         "SELECT id, session_id, machine_id, start_time, end_time, duration, "
         "enabled, summary_only, no_settings, events_loaded, "
-        "events_file, summary_file, created_at, updated_at "
+        "created_at, updated_at "
         "FROM sessions WHERE machine_id = ? AND enabled = 1 ORDER BY start_time"
     );
     query.addBindValue(machineId);
@@ -270,10 +262,8 @@ QList<SessionData> SessionRepository::findEnabledByMachine(qint64 machineId)
         data.summaryOnly = query.value(7).toInt();
         data.noSettings = query.value(8).toInt();
         data.eventsLoaded = query.value(9).toInt();
-        data.eventsFile = query.value(10).toString();
-        data.summaryFile = query.value(11).toString();
-        data.createdAt = query.value(12).toDateTime();
-        data.updatedAt = query.value(13).toDateTime();
+        data.createdAt = query.value(10).toDateTime();
+        data.updatedAt = query.value(11).toDateTime();
         result.append(data);
     }
 
@@ -294,7 +284,7 @@ QList<SessionData> SessionRepository::findByTimeRange(qint64 machineId, qint64 s
     query.prepare(
         "SELECT id, session_id, machine_id, start_time, end_time, duration, "
         "enabled, summary_only, no_settings, events_loaded, "
-        "events_file, summary_file, created_at, updated_at "
+        "created_at, updated_at "
         "FROM sessions WHERE machine_id = ? AND start_time >= ? AND end_time <= ? "
         "ORDER BY start_time"
     );
@@ -319,10 +309,8 @@ QList<SessionData> SessionRepository::findByTimeRange(qint64 machineId, qint64 s
         data.summaryOnly = query.value(7).toInt();
         data.noSettings = query.value(8).toInt();
         data.eventsLoaded = query.value(9).toInt();
-        data.eventsFile = query.value(10).toString();
-        data.summaryFile = query.value(11).toString();
-        data.createdAt = query.value(12).toDateTime();
-        data.updatedAt = query.value(13).toDateTime();
+        data.createdAt = query.value(10).toDateTime();
+        data.updatedAt = query.value(11).toDateTime();
         result.append(data);
     }
 
