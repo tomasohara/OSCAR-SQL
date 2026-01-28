@@ -3343,9 +3343,14 @@ qint64 Session::last()
 QList<RespiratoryEventData> Session::extractRespiratoryEvents()
 {
     QList<RespiratoryEventData> events;
-    
+
+    qDebug() << "=== Session::extractRespiratoryEvents() CALLED for session" << s_session << "===";
+    qDebug() << "    eventlist.size():" << eventlist.size();
+
     // Get profile_id from machine (Schema v12 requirement)
     qint64 profileId = s_machine->getProfileId();
+    qDebug() << "    profileId:" << profileId;
+    
     if (profileId == 0) {
         qWarning() << "Session::extractRespiratoryEvents() - machine has no profile_id";
         return events;  // Return empty list
@@ -3363,8 +3368,12 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
     };
     
     // Examine all channels in eventlist
+//    int channelsProcessed = 0;
+//    int flagChannels = 0;
+    qDebug() << "    Checking channel types:";
     for (auto channelIt = eventlist.begin(); channelIt != eventlist.end(); ++channelIt) {
         ChannelID channelId = channelIt.key();
+//        channelsProcessed++;
         
         // Get channel type from schema
         schema::ChanType chanType = schema::channel[channelId].type();
@@ -3375,6 +3384,10 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
                           (chanType & schema::SPAN);
         
         if (!isFlagType) continue;
+        
+//        flagChannels++;
+//        qDebug() << "    Processing FLAG channel:" << QString::number(channelId, 16)
+//                 << "EventLists:" << channelIt.value().size();
         
         // Determine eventType based on whether channel is in primary list
         int eventType = primaryRespiratoryChannels.contains(channelId) ? 1 : 0;
@@ -3411,6 +3424,11 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
             }
         }
     }
+    
+//    qDebug() << "=== extractRespiratoryEvents() COMPLETE ===";
+//    qDebug() << "    Channels processed:" << channelsProcessed;
+//    qDebug() << "    FLAG channels:" << flagChannels;
+//    qDebug() << "    Total events extracted:" << events.size();
     
     return events;
 }

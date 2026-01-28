@@ -143,12 +143,16 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     delete sourceProfile;
     
     reportProgress(40, 100, tr("Loading session data from files..."));
-    
+
+    // CRITICAL: Initialize schema before loading sessions
+    // This populates schema::channel[] with channel types so extractRespiratoryEvents() works
+    schema::init();
+
     // IMPORTANT: Set p_profile before loading sessions - Session objects need it
     extern Profile* p_profile;
     Profile* savedProfile = p_profile;
     p_profile = profile;
-    
+
     bool sessionsLoaded = loadSessionsFromFiles(profile, sourcePath);
     
     if (!sessionsLoaded) {
