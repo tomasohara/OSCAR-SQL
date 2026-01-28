@@ -656,12 +656,22 @@ int main(int argc, char *argv[]) {
     // Initialize database (MUST be before migration)
     ///////////////////////////////////////////////////////////////////////////////////////////
     QString dbPath = GetAppData() + "/oscar.db";
+
+    // Connect database error signal to show detailed error messages
+    QObject::connect(&DatabaseManager::instance(), &DatabaseManager::databaseError,
+                     [](const QString& error) {
+                         qCritical() << "Database Manager Error:" << error;
+                         QMessageBox::critical(nullptr, STR_MessageBox_Error,
+                                               QObject::tr("Database Error") + "\n\n" + error);
+                     });
+
     if (!DatabaseManager::instance().initialize(dbPath)) {
-        QMessageBox::critical(nullptr, STR_MessageBox_Error,
-                             QObject::tr("Unable to initialize database at")+"\n"+dbPath+"\n\n"+
-                             QObject::tr("OSCAR cannot continue and is exiting."));
+        // The detailed error message has already been shown via the signal
+        // This is a fallback in case initialize fails without emitting a signal
+        qCritical() << "Database initialization failed";
         return 0;
     }
+
     qDebug() << "Database initialized successfully!";
     qDebug() << "Database file:" << dbPath;
 
