@@ -2755,6 +2755,9 @@ bool Session::StoreToDatabase()
     // 2. Save settings
     PERF_TIMER_START("Session::StoreDB::Settings");
     if (!settings.isEmpty()) {
+        // Delete existing settings records for this session to prevent duplicates
+        settingsRepo.removeBySession(m_database_id);
+        
         QList<SessionSettingData> settingsList;
         for (auto it = settings.begin(); it != settings.end(); ++it) {
             SessionSettingData setting;
@@ -2807,6 +2810,11 @@ bool Session::StoreToDatabase()
     // 3. Save channel statistics and value/time summaries
     PERF_TIMER_START("Session::StoreDB::Channels");
     if (!m_availableChannels.isEmpty()) {
+        // Delete existing channel records for this session to prevent duplicates
+        // This is necessary because INSERT OR REPLACE creates new autoincrement IDs,
+        // leading to duplicate rows if StoreToDatabase() is called multiple times
+        channelsRepo.removeBySession(m_database_id);
+        
         QList<SessionChannelData> channelsList;
         SessionChannelValuesRepository valuesRepo;
         
@@ -2911,6 +2919,9 @@ bool Session::StoreToDatabase()
     // 4. Save slices
     PERF_TIMER_START("Session::StoreDB::Slices");
     if (!m_slices.isEmpty()) {
+        // Delete existing slices records for this session to prevent duplicates
+        slicesRepo.removeBySession(m_database_id);
+        
         QList<SessionSliceData> slicesList;
         for (const SessionSlice& slice : m_slices) {
             SessionSliceData data;
@@ -3370,7 +3381,7 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
     // Examine all channels in eventlist
 //    int channelsProcessed = 0;
 //    int flagChannels = 0;
-    qDebug() << "    Checking channel types:";
+//    qDebug() << "    Checking channel types:";
     for (auto channelIt = eventlist.begin(); channelIt != eventlist.end(); ++channelIt) {
         ChannelID channelId = channelIt.key();
 //        channelsProcessed++;

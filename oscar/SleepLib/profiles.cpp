@@ -2590,14 +2590,15 @@ bool Profile::saveChannelsToDatabase()
     QList<ChannelData> channels;
     
     // Convert schema::channel to ChannelData
-    for (auto it = schema::channel.channels.begin(); 
+    for (auto it = schema::channel.channels.begin();
          it != schema::channel.channels.end(); ++it) {
         schema::Channel* chan = it.value();
-        
+
         ChannelData data;
         data.profileId = profileData.id;
         data.channelId = chan->id();
         data.channelCode = chan->code();
+        data.type = chan->type();  // Store channel type from schema
         data.enabled = chan->enabled();
         data.defaultColor = chan->defaultColor();
         data.fullname = chan->fullname();
@@ -2608,7 +2609,7 @@ bool Profile::saveChannelsToDatabase()
         data.upperThreshold = chan->upperThreshold();
         data.upperThresholdColor = chan->upperThresholdColor();
         data.showInOverview = chan->showInOverview();
-        
+
         channels.append(data);
         
         // Save channel options if present

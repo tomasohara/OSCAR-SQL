@@ -1724,20 +1724,22 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
     }
     qint64 dailySummariesId = query.lastInsertId().toLongLong();
     
-    // Report 2: Session Statistics
+    // Report 2: Session Summaries
     query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
-    query.addBindValue("Session Statistics");
-    query.addBindValue("Individual session or aggregated session data");
+    query.addBindValue("Session Summaries");
+    query.addBindValue("Individual session or aggregated session summaries");
     query.addBindValue(0);
     query.addBindValue(1);
     
     if (!query.exec()) {
-        qCritical() << "DatabaseSchema: Failed to create Session Statistics report:" << query.lastError().text();
+        qCritical() << "DatabaseSchema: Failed to create Session Summaries report:" << query.lastError().text();
         return false;
     }
     qint64 sessionStatsId = query.lastInsertId().toLongLong();
-    
+
+    ///////////////////////////////////////////////////////////////////
     // Report 3: Device Settings
+    ///////////////////////////////////////////////////////////////////
     query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
     query.addBindValue("Device Settings");
     query.addBindValue("Machine configuration settings");
@@ -1750,11 +1752,131 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
     }
     qint64 deviceSettingsId = query.lastInsertId().toLongLong();
     
+    ///////////////////////////////////////////////////////////////////
+    // Report 4: Channels used
+    ///////////////////////////////////////////////////////////////////
+    query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
+    query.addBindValue("Channels Used");
+    query.addBindValue("Channels used by this user");
+    query.addBindValue(0);
+    query.addBindValue(1);
+
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Channels Used report:" << query.lastError().text();
+        return false;
+    }
+    qint64 channelsUsedId = query.lastInsertId().toLongLong();
+
     // Add report contents (varieties)
     // Note: These are the actual queries migrated from exportcsv.cpp with macros for substitution
     
+    // Channels used - Days (no aggregation)
+    QString channelsUsedQuery =
+
+    "SELECT \n"
+    "	profile_id,\n"
+    "   p.username,\n"
+    "   channel_id,\n"
+    "   printf('%X', channel_id) AS channel_id_hex,\n"
+    "--    channel_code,\n"
+    "   label,\n"
+    "   fullname,\n"
+    "   description,\n"
+    "   c.type,\n"
+    "   CASE WHEN (c.type & 1) THEN 'DATA       ' ELSE '' END ||\n"
+    "   CASE WHEN (c.type & 2) THEN 'SETTING    ' ELSE '' END ||\n"
+    "	CASE WHEN (c.type & 4) THEN 'FLAG       ' ELSE '' END ||\n"
+    "   CASE WHEN (c.type & 8) THEN 'MINOR_FLAG ' ELSE '' END ||\n"
+    "   CASE WHEN (c.type & 16) THEN 'SPAN       ' ELSE '' END ||\n"
+    "   CASE WHEN (c.type & 32) THEN 'WAVEFORM   ' ELSE '' END AS flags\n"
+    "FROM channels c\n"
+    "JOIN profiles p ON c.profile_id = p.id\n"
+    "WHERE profile_id = #PROFILE_ID\n"
+    "    AND EXISTS (\n"
+    "        SELECT 1 FROM session_channels sc WHERE sc.channel_id = c.channel_id)\n"
+    "ORDER BY c.channel_id;\n";
+
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(channelsUsedId);
+    query.addBindValue("Channels");
+    query.addBindValue("Channels used in this profile");
+    query.addBindValue(channelsUsedQuery);
+    query.addBindValue(1);
+    query.addBindValue(1);
+
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Channels Used - Channels content:" << query.lastError().text();
+        return false;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+    // Report 4.1: Session Statistics
+    ///////////////////////////////////////////////////////////////////
+    query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
+    query.addBindValue("Session Statistics");
+    query.addBindValue("CPAP statistics by session");
+    query.addBindValue(0);
+    query.addBindValue(1);
+
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Session Statistics report:" << query.lastError().text();
+        return false;
+    }
+    qint64 sessionStatisticsId = query.lastInsertId().toLongLong();
+
+    // Add report contents (varieties)
+    // Note: These are the actual queries migrated from exportcsv.cpp with macros for substitution
+
+    // Session Statistics (no aggregation)
+    QString sessionStatisticsQuery =
+
+        "SELECT\n"
+        "    p.id,\n"
+        "    p.username,\n"
+        "    sc.channel_id,\n"
+        " -- subtract 43200 from time to get OSCAR day, which starts at noon\n"
+        "    date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,\n"
+        "    time(s.start_time/1000, 'unixepoch', 'localtime') as Start,\n"
+        "    time(s.end_time/1000, 'unixepoch', 'localtime') as End,\n"
+        "    s.duration/1000000 as seconds,\n"
+        "    c.label,\n"
+        "    sc.count,\n"
+        "    ROUND(sc.sum,2) as Sum,\n"
+        "    ROUND(sc.min,2) as Min,\n"
+        "    ROUND(sc.avg,2) as Avg,\n"
+        "    ROUND(sc.wavg,2) as Wavg,\n"
+        "    ROUND(sc.median,2) as Med,\n"
+        "    ROUND(sc.p90,2) as '%90',\n"
+        "    ROUND(sc.p95,2) as '%95',\n"
+        "    ROUND(sc.max,2) as Max\n"
+
+        "FROM session_channels sc\n"
+        "JOIN profiles p ON sc.profile_id = p.id\n"
+        "JOIN sessions s ON sc.session_id = s.id\n"
+        "JOIN channels c ON sc.channel_id = c.channel_id\n"
+        "WHERE p.id = #PROFILE_ID\n"
+        "    AND sc.channel_id IN (0x1101, 0x1102, 0x110e,0x1105, 0x1106,0x1112,0x1113,0x1108,0x1104,0x110b,0x110a,0x1103,0x1201 )\n"
+        "    AND Date >= #START_DATE\n"
+        "    AND Date <= #END_DATE\n"
+        "ORDER BY s.start_time";
+
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(sessionStatisticsId);
+    query.addBindValue("Sessions");
+    query.addBindValue("Statistics by session");
+    query.addBindValue(sessionStatisticsQuery);
+    query.addBindValue(1);
+    query.addBindValue(1);
+
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Session Statistics content:" << query.lastError().text();
+        return false;
+    }
+
+    ///////////////////////////////////////////////////////////////////
     // Daily Summaries - Days (no aggregation)
-    QString dailyDaysQuery = 
+    ///////////////////////////////////////////////////////////////////
+    QString dailyDaysQuery =
         "SELECT\n"
         "  ds.date as Period,\n"
         "  ROUND(ds.ahi, 2) as AHI,\n"
@@ -1788,7 +1910,9 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
         return false;
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Daily Summaries - Weeks (weekly aggregation)
+    ///////////////////////////////////////////////////////////////////
     QString dailyWeeksQuery =
         "SELECT\n"
         "  strftime('%Y-W%W', ds.date) as Period,\n"
@@ -1826,7 +1950,9 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
         return false;
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Daily Summaries - Months (monthly aggregation)
+    ///////////////////////////////////////////////////////////////////
     QString dailyMonthsQuery =
         "SELECT\n"
         "  strftime('%Y-%m', ds.date) as Period,\n"
@@ -1862,7 +1988,9 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
         return false;
     }
     
-    // Session Statistics - Sessions (no aggregation - one row per session)
+    ///////////////////////////////////////////////////////////////////
+    // Session Summaries - Sessions (no aggregation - one row per session)
+    ///////////////////////////////////////////////////////////////////
     QString sessionStatsSessionsQuery =
         "SELECT\n"
         "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date,\n"
@@ -1891,11 +2019,13 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
     query.addBindValue(1);
     
     if (!query.exec()) {
-        qCritical() << "DatabaseSchema: Failed to create Session Statistics - Sessions content:" << query.lastError().text();
+        qCritical() << "DatabaseSchema: Failed to create Session Summaries - Sessions content:" << query.lastError().text();
         return false;
     }
     
-    // Session Statistics - Days (daily aggregation)
+    ///////////////////////////////////////////////////////////////////
+    // Session Summaries - Days (daily aggregation)
+    ///////////////////////////////////////////////////////////////////
     QString sessionStatsDaysQuery =
         "SELECT\n"
         "  date(s.start_time/1000, 'unixepoch', 'localtime') as Period,\n"
@@ -1928,7 +2058,9 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
         return false;
     }
     
-    // Session Statistics - Weeks (weekly aggregation)
+    ///////////////////////////////////////////////////////////////////
+    // Session Summaries - Weeks (weekly aggregation)
+    ///////////////////////////////////////////////////////////////////
     QString sessionStatsWeeksQuery =
         "SELECT\n"
         "  strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,\n"
@@ -1959,11 +2091,13 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
     query.addBindValue(1);
     
     if (!query.exec()) {
-        qCritical() << "DatabaseSchema: Failed to create Session Statistics - Weeks content:" << query.lastError().text();
+        qCritical() << "DatabaseSchema: Failed to create Session Summaries - Weeks content:" << query.lastError().text();
         return false;
     }
     
-    // Session Statistics - Months (monthly aggregation)
+    ///////////////////////////////////////////////////////////////////
+    // Session Summaries - Months (monthly aggregation)
+    ///////////////////////////////////////////////////////////////////
     QString sessionStatsMonthsQuery =
         "SELECT\n"
         "  strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,\n"
@@ -1992,11 +2126,13 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
     query.addBindValue(1);
     
     if (!query.exec()) {
-        qCritical() << "DatabaseSchema: Failed to create Session Statistics - Months content:" << query.lastError().text();
+        qCritical() << "DatabaseSchema: Failed to create Session Summaries - Months content:" << query.lastError().text();
         return false;
     }
-    
+
+    ///////////////////////////////////////////////////////////////////
     // Device Settings - All Sessions
+    ///////////////////////////////////////////////////////////////////
     QString deviceSettingsQuery =
         "SELECT\n"
         "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date,\n"
@@ -2027,7 +2163,9 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
         return false;
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Report 4: Respiratory Events
+    ///////////////////////////////////////////////////////////////////
     query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
     query.addBindValue("Respiratory Events");
     query.addBindValue("Detailed respiratory event data");
@@ -2102,8 +2240,10 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
     // Update queries by report name and variety
     // We use report name and variety to find the records since those are unique
     
+    ///////////////////////////////////////////////////////////////////
     // Daily Summaries - Days
-    QString dailyDaysQuery = 
+    ///////////////////////////////////////////////////////////////////
+    QString dailyDaysQuery =
         "SELECT\n"
         "  ds.date as Period,\n"
         "  ROUND(ds.ahi, 2) as AHI,\n"
@@ -2130,7 +2270,9 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
         qWarning() << "DatabaseSchema: Failed to update Daily Summaries - Days:" << query.lastError().text();
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Daily Summaries - Weeks
+    ///////////////////////////////////////////////////////////////////
     QString dailyWeeksQuery =
         "SELECT\n"
         "  strftime('%Y-W%W', ds.date) as Period,\n"
@@ -2161,7 +2303,9 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
         qWarning() << "DatabaseSchema: Failed to update Daily Summaries - Weeks:" << query.lastError().text();
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Daily Summaries - Months
+    ///////////////////////////////////////////////////////////////////
     QString dailyMonthsQuery =
         "SELECT\n"
         "  strftime('%Y-%m', ds.date) as Period,\n"
@@ -2190,7 +2334,9 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
         qWarning() << "DatabaseSchema: Failed to update Daily Summaries - Months:" << query.lastError().text();
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Session Statistics - Sessions
+    ///////////////////////////////////////////////////////////////////
     QString sessionStatsSessionsQuery =
         "SELECT\n"
         "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date,\n"
@@ -2216,7 +2362,9 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
         qWarning() << "DatabaseSchema: Failed to update Session Statistics - Sessions:" << query.lastError().text();
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Session Statistics - Days
+    ///////////////////////////////////////////////////////////////////
     QString sessionStatsDaysQuery =
         "SELECT\n"
         "  date(s.start_time/1000, 'unixepoch', 'localtime') as Period,\n"
@@ -2242,7 +2390,9 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
         qWarning() << "DatabaseSchema: Failed to update Session Statistics - Days:" << query.lastError().text();
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Session Statistics - Weeks
+    ///////////////////////////////////////////////////////////////////
     QString sessionStatsWeeksQuery =
         "SELECT\n"
         "  strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,\n"
@@ -2270,7 +2420,9 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
         qWarning() << "DatabaseSchema: Failed to update Session Statistics - Weeks:" << query.lastError().text();
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Session Statistics - Months
+    ///////////////////////////////////////////////////////////////////
     QString sessionStatsMonthsQuery =
         "SELECT\n"
         "  strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,\n"
@@ -2296,7 +2448,9 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
         qWarning() << "DatabaseSchema: Failed to update Session Statistics - Months:" << query.lastError().text();
     }
     
+    ///////////////////////////////////////////////////////////////////
     // Device Settings - All Sessions
+    ///////////////////////////////////////////////////////////////////
     QString deviceSettingsQuery =
         "SELECT\n"
         "  date(s.start_time/1000, 'unixepoch', 'localtime') as Date,\n"
@@ -2322,6 +2476,70 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
     
     qDebug() << "DatabaseSchema: Default report queries updated successfully";
     return true;
+
+    ///////////////////////////////////////////////////////////////////
+    // Report 4.1: Session Statistics
+    ///////////////////////////////////////////////////////////////////
+    query.prepare("INSERT INTO reports (name, description, display_order, is_system) VALUES (?, ?, ?, ?)");
+    query.addBindValue("Session Statistics");
+    query.addBindValue("CPAP statistics by session");
+    query.addBindValue(0);
+    query.addBindValue(1);
+
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Session Statistics report:" << query.lastError().text();
+        return false;
+    }
+    qint64 sessionStatisticsId = query.lastInsertId().toLongLong();
+
+    // Add report contents (varieties)
+    // Note: These are the actual queries migrated from exportcsv.cpp with macros for substitution
+
+    // Session Statistics (no aggregation)
+    QString sessionStatisticsQuery =
+
+        "SELECT\n"
+        "    p.id,\n"
+        "    p.username,\n"
+        "    sc.channel_id,\n"
+        " -- subtract 43200 from time to get OSCAR day, which starts at noon\n"
+        "    date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,\n"
+        "    time(s.start_time/1000, 'unixepoch', 'localtime') as Start,\n"
+        "    time(s.end_time/1000, 'unixepoch', 'localtime') as End,\n"
+        "    s.duration/1000000 as seconds,\n"
+        "    c.label,\n"
+        "    sc.count,\n"
+        "    ROUND(sc.sum,2) as Sum,\n"
+        "    ROUND(sc.min,2) as Min,\n"
+        "    ROUND(sc.avg,2) as Avg,\n"
+        "    ROUND(sc.wavg,2) as Wavg,\n"
+        "    ROUND(sc.median,2) as Med,\n"
+        "    ROUND(sc.p90,2) as '%90',\n"
+        "    ROUND(sc.p95,2) as '%95',\n"
+        "    ROUND(sc.max,2) as Max\n"
+
+        "FROM session_channels sc\n"
+        "JOIN profiles p ON sc.profile_id = p.id\n"
+        "JOIN sessions s ON sc.session_id = s.id\n"
+        "JOIN channels c ON sc.channel_id = c.channel_id\n"
+        "WHERE p.id = #PROFILE_ID\n"
+        "    AND sc.channel_id IN (0x1101, 0x1102, 0x110e,0x1105, 0x1106,0x1112,0x1113,0x1108,0x1104,0x110b,0x110a,0x1103,0x1201 )\n"
+        "    AND Date >= #START_DATE\n"
+        "    AND Date <= #END_DATE\n"
+        "ORDER BY s.start_time";
+
+    query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");
+    query.addBindValue(sessionStatisticsId);
+    query.addBindValue("Sessions");
+    query.addBindValue("Statistics by session");
+    query.addBindValue(sessionStatisticsQuery);
+    query.addBindValue(1);
+    query.addBindValue(1);
+
+    if (!query.exec()) {
+        qCritical() << "DatabaseSchema: Failed to create Session Statistics content:" << query.lastError().text();
+        return false;
+    }
 }
 
 /*

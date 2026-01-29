@@ -28,6 +28,7 @@ struct ChannelData {
     qint64 profileId = 0;
     ChannelID channelId = 0;
     QString channelCode;
+    int type = 0;  // Channel type from schema (FLAG, WAVEFORM, DATA, etc.)
     bool enabled = true;
     
     // Display properties

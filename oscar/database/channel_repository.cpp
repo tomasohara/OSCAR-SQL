@@ -29,17 +29,18 @@ qint64 ChannelRepository::create(const ChannelData& data)
     
     query.prepare(R"(
         INSERT INTO channels (
-            profile_id, channel_id, channel_code, enabled,
+            profile_id, channel_id, channel_code, type, enabled,
             default_color, fullname, label, description,
             lower_threshold, lower_threshold_color,
             upper_threshold, upper_threshold_color,
             show_in_overview
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     )");
     
     query.addBindValue(data.profileId);
     query.addBindValue(data.channelId);
     query.addBindValue(data.channelCode);
+    query.addBindValue(data.type);
     query.addBindValue(data.enabled);
     query.addBindValue(colorToString(data.defaultColor));
     query.addBindValue(data.fullname);
@@ -65,7 +66,7 @@ bool ChannelRepository::update(const ChannelData& data)
     
     query.prepare(R"(
         UPDATE channels SET
-            profile_id = ?, channel_id = ?, channel_code = ?, enabled = ?,
+            profile_id = ?, channel_id = ?, channel_code = ?, type = ?, enabled = ?,
             default_color = ?, fullname = ?, label = ?, description = ?,
             lower_threshold = ?, lower_threshold_color = ?,
             upper_threshold = ?, upper_threshold_color = ?,
@@ -77,6 +78,7 @@ bool ChannelRepository::update(const ChannelData& data)
     query.addBindValue(data.profileId);
     query.addBindValue(data.channelId);
     query.addBindValue(data.channelCode);
+    query.addBindValue(data.type);
     query.addBindValue(data.enabled);
     query.addBindValue(colorToString(data.defaultColor));
     query.addBindValue(data.fullname);
@@ -246,6 +248,7 @@ ChannelData ChannelRepository::mapResultToData(const QSqlQuery& query)
     data.profileId = query.value("profile_id").toLongLong();
     data.channelId = query.value("channel_id").toUInt();
     data.channelCode = query.value("channel_code").toString();
+    data.type = query.value("type").toInt();
     data.enabled = query.value("enabled").toBool();
     
     data.defaultColor = stringToColor(query.value("default_color").toString());
