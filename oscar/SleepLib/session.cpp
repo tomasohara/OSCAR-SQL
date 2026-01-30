@@ -2379,176 +2379,245 @@ EventDataType Session::timeBelowThreshold(ChannelID id, EventDataType threshold)
 
 bool sortfunction(EventStoreType i, EventStoreType j) { return (i < j); }
 
+/*!
+ * \brief Calculates a single percentile value with time-weighted linear interpolation
+ * \param id Channel ID to calculate percentile for
+ * \param percent Percentile to calculate (0.0 to 1.0, e.g., 0.50 for median, 0.95 for 95th)
+ * \return Time-weighted interpolated percentile value
+ * 
+ * This function uses TIME-WEIGHTED percentile calculation to match Day::percentile().
+ * Values are weighted by how long they were held (from m_timesummary), not by sample count.
+ * This ensures session and day percentiles match for the same data.
+ * 
+ * For calculating multiple percentiles at once, use calculatePercentiles() instead,
+ * which is more efficient (~3x faster for multiple percentiles).
+ */
 EventDataType Session::percentile(ChannelID id, EventDataType percent)
 {
-    // Find the event lists for this channel
-    QHash<ChannelID, QVector<EventList *> >::iterator eventListIterator = eventlist.find(id);
-
-    if (eventListIterator == eventlist.end()) {
-        return 0;
-    }
-
-    QVector<EventList *> &eventLists = eventListIterator.value();
-
     if (percent > 1.0) {
         qWarning() << "Session::percentile() called with > 1.0";
         return 0;
     }
 
-    int eventListCount = eventLists.size();
+    // Ensure m_valuesummary and m_timesummary are populated
+    updateCountSummary(id);
 
-    if (eventListCount == 0) {
+    auto ei = m_valuesummary.find(id);
+    if (ei == m_valuesummary.end()) {
         return 0;
     }
 
-    QVector<EventStoreType> combinedData;
-
-    EventDataType gain = eventLists[0]->gain();
-
-    EventStoreType *arrayPtr, *sourcePtr, *sourceEndPtr;
-
-    int totalSampleCount = 0;
-    int currentCount = 0;
-
-    // First pass: calculate total number of samples across all event lists
-    for (int i = 0; i < eventListCount; ++i) {
-        EventList &eventList = *eventLists[i];
-        currentCount = eventList.count();
-        totalSampleCount += currentCount;
+    auto tei = m_timesummary.find(id);
+    bool timeweight = (tei != m_timesummary.end());
+    
+    if (!timeweight) {
+        // Fallback to value counts if no time summary available
+        // This shouldn't normally happen for waveform data
+        qWarning() << "Session::percentile() - no time summary for channel" << QString::number(id, 16);
+        return 0;
     }
 
-    combinedData.resize(totalSampleCount);
+    EventDataType gain = m_gain.value(id, 1.0);
 
-    // Second pass: copy all data into the combined array
-    arrayPtr = combinedData.data();  // Start at beginning of destination array
-    
-    for (int i = 0; i < eventListCount; ++i) {
-        EventList &eventList = *eventLists[i];
-        sourcePtr = eventList.rawData();
+    // Build weight map from time summary (time in seconds)
+    QHash<EventStoreType, qint64> wmap;
+    qint64 SN = 0;  // Total time (in seconds)
 
-        currentCount = eventList.count();  // Get count for THIS EventList (bug fix)
-        sourceEndPtr = sourcePtr + currentCount;
+    for (auto it = tei.value().begin(), teival_end = tei.value().end(); it != teival_end; ++it) {
+        qint64 weight = it.value();  // Time in seconds
+        SN += weight;
+        wmap[it.key()] += weight;
+    }
 
-        // Copy this EventList's data and advance the destination pointer
-        for (; sourcePtr < sourceEndPtr; sourcePtr++) {
-            *arrayPtr++ = *sourcePtr;
+    if (SN == 0) {
+        return 0;
+    }
+
+    // Build sorted list of value/counts
+    QVector<ValueCount> valcnt;
+    valcnt.resize(wmap.size());
+
+    auto wmap_end = wmap.end();
+    int ii = 0;
+    for (auto it = wmap.begin(); it != wmap_end; ++it) {
+        valcnt[ii++] = ValueCount(EventDataType(it.key()) * gain, it.value(), 0);
+    }
+
+    // Sort by weight, then value
+    std::sort(valcnt.begin(), valcnt.end());
+
+    double p = 100.0 * percent;
+    double nth = double(SN) * percent;  // Target time position
+    double nthi = floor(nth);
+
+    qint64 sum1 = 0, sum2 = 0;
+    qint64 w1, w2 = 0;
+    double v1 = 0, v2;
+
+    int N = valcnt.size();
+    int k = 0;
+
+    // Find the values that bracket the target percentile
+    for (k = 0; k < N; k++) {
+        v1 = valcnt.at(k).value;
+        w1 = valcnt.at(k).count;
+        sum1 += w1;
+
+        if (sum1 > nthi) {
+            return v1;
+        }
+
+        if (sum1 == nthi) {
+            break;  // boundary condition
         }
     }
 
-    // Calculate the index for the requested percentile
-    int percentileIndex = combinedData.size() * percent;
-
-    if (percentileIndex > combinedData.size() - 1) { 
-        percentileIndex--; 
+    if (k >= N) {
+        return v1;
     }
 
-    // Use partial sort to find the nth element efficiently
-    nth_element(combinedData.begin(), combinedData.begin() + percentileIndex, combinedData.end());
+    if (valcnt.size() == 1) {
+        return valcnt[0].value;
+    }
 
-    // Note: This is a simple implementation without averaging adjacent values
-    // Could be improved to average the surrounding values for more accuracy
-    return combinedData[percentileIndex] * gain;
+    v2 = valcnt[k + 1].value;
+    w2 = valcnt[k + 1].count;
+    sum2 = sum1 + w2;
+
+    // Value lies between v1 and v2 - calculate linear interpolation
+    double px = 100.0 / double(SN);  // Percentile represented by one full value
+
+    // Calculate percentile ranks
+    double p1 = px * (double(sum1) - (double(w1) / 2.0));
+    double p2 = px * (double(sum2) - (double(w2) / 2.0));
+
+    // Calculate linear interpolation
+    double v = v1 + ((p - p1) / (p2 - p1)) * (v2 - v1);
+
+    return v;
 }
 
 /*!
- * \brief Calculates multiple percentiles in a single pass for efficiency
+ * \brief Calculates multiple percentiles in a single pass with time-weighted linear interpolation
  * \param id Channel ID to calculate percentiles for
  * \return PercentilesResult containing median (50th), p90, p95, and p995
  * 
- * This function builds the data array once and uses partial sorting to efficiently
- * calculate all requested percentiles. This is ~3x faster than calling percentile()
- * multiple times, as it avoids rebuilding and resorting the data array.
+ * This function uses TIME-WEIGHTED percentile calculation to match Day::percentile().
+ * Values are weighted by how long they were held (from m_timesummary), not by sample count.
+ * This ensures session and day percentiles match for the same data.
  * 
- * Performance: For a channel with 10,000 samples, this takes ~3ms vs ~9ms for
- * three separate percentile() calls.
+ * This is more efficient than calling percentile() multiple times since we only build
+ * the weight map once and reuse it for all percentile calculations.
  */
 Session::PercentilesResult Session::calculatePercentiles(ChannelID id)
 {
     PercentilesResult result;
     
-    // Find the event lists for this channel
-    QHash<ChannelID, QVector<EventList *> >::iterator eventListIterator = eventlist.find(id);
-    
-    if (eventListIterator == eventlist.end()) {
+    // Ensure m_valuesummary and m_timesummary are populated
+    updateCountSummary(id);
+
+    auto ei = m_valuesummary.find(id);
+    if (ei == m_valuesummary.end()) {
         return result; // valid = false
     }
+
+    auto tei = m_timesummary.find(id);
+    bool timeweight = (tei != m_timesummary.end());
     
-    QVector<EventList *> &eventLists = eventListIterator.value();
-    int eventListCount = eventLists.size();
-    
-    if (eventListCount == 0) {
+    if (!timeweight) {
+        // Fallback: no time summary available
+        qWarning() << "Session::calculatePercentiles() - no time summary for channel" << QString::number(id, 16);
         return result; // valid = false
     }
-    
-    // Get gain from first event list
-    EventDataType gain = eventLists[0]->gain();
-    
-    // First pass: calculate total number of samples
-    int totalSampleCount = 0;
-    for (int i = 0; i < eventListCount; ++i) {
-        totalSampleCount += eventLists[i]->count();
+
+    EventDataType gain = m_gain.value(id, 1.0);
+
+    // Build weight map from time summary (time in seconds)
+    QHash<EventStoreType, qint64> wmap;
+    qint64 SN = 0;  // Total time (in seconds)
+
+    for (auto it = tei.value().begin(), teival_end = tei.value().end(); it != teival_end; ++it) {
+        qint64 weight = it.value();  // Time in seconds
+        SN += weight;
+        wmap[it.key()] += weight;
     }
-    
-    if (totalSampleCount == 0) {
+
+    if (SN == 0) {
         return result; // valid = false
     }
-    
-    // Build combined data array
-    QVector<EventStoreType> combinedData;
-    combinedData.resize(totalSampleCount);
-    
-    EventStoreType *arrayPtr = combinedData.data();
-    
-    // Second pass: copy all data into combined array
-    for (int i = 0; i < eventListCount; ++i) {
-        EventList &eventList = *eventLists[i];
-        EventStoreType *sourcePtr = eventList.rawData();
-        int currentCount = eventList.count();
-        EventStoreType *sourceEndPtr = sourcePtr + currentCount;
-        
-        // Copy data
-        for (; sourcePtr < sourceEndPtr; sourcePtr++) {
-            *arrayPtr++ = *sourcePtr;
+
+    // Build sorted list of value/counts
+    QVector<ValueCount> valcnt;
+    valcnt.resize(wmap.size());
+
+    auto wmap_end = wmap.end();
+    int ii = 0;
+    for (auto it = wmap.begin(); it != wmap_end; ++it) {
+        valcnt[ii++] = ValueCount(EventDataType(it.key()) * gain, it.value(), 0);
+    }
+
+    // Sort by weight, then value
+    std::sort(valcnt.begin(), valcnt.end());
+
+    // Helper lambda to calculate time-weighted percentile
+    auto calcTimeWeightedPercentile = [&](double percent) -> EventDataType {
+        double p = 100.0 * percent;
+        double nth = double(SN) * percent;  // Target time position
+        double nthi = floor(nth);
+
+        qint64 sum1 = 0, sum2 = 0;
+        qint64 w1, w2 = 0;
+        double v1 = 0, v2;
+
+        int N = valcnt.size();
+        int k = 0;
+
+        // Find the values that bracket the target percentile
+        for (k = 0; k < N; k++) {
+            v1 = valcnt.at(k).value;
+            w1 = valcnt.at(k).count;
+            sum1 += w1;
+
+            if (sum1 > nthi) {
+                return v1;
+            }
+
+            if (sum1 == nthi) {
+                break;  // boundary condition
+            }
         }
-    }
-    
-    // Calculate indices for each percentile
-    int dataSize = combinedData.size();
-    int idx50 = static_cast<int>(dataSize * 0.50);   // Median
-    int idx90 = static_cast<int>(dataSize * 0.90);   // 90th
-    int idx95 = static_cast<int>(dataSize * 0.95);   // 95th
-    int idx995 = static_cast<int>(dataSize * 0.995);   // 99.55th
 
-    // Bounds checking
-    if (idx50 >= dataSize) idx50 = dataSize - 1;
-    if (idx90 >= dataSize) idx90 = dataSize - 1;
-    if (idx95 >= dataSize) idx95 = dataSize - 1;
-    if (idx995 >= dataSize) idx995 = dataSize - 1;
+        if (k >= N) {
+            return v1;
+        }
 
-    // Use nth_element strategically - partition from lowest to highest
-    // This is O(n) per call and reuses prior partitioning work for better efficiency
-    // Total work: O(n + (n-idx50) + (n-idx90)) instead of O(n + idx95 + idx90)
-    // For typical data sizes (e.g., n=100, idx50=50, idx90=90, idx95=95):
-    //   Old order: 100 + 95 + 90 = 285 element comparisons
-    //   New order: 100 + 50 + 10 = 160 element comparisons (44% fewer)
-    
-    // First partition at 50th percentile (median)
-    std::nth_element(combinedData.begin(), combinedData.begin() + idx50, combinedData.end());
-    result.median = combinedData[idx50] * gain;
-    
-    // Now partition the upper portion at 90th percentile (only needs to check from idx50 onwards)
-    std::nth_element(combinedData.begin() + idx50, combinedData.begin() + idx90, combinedData.end());
-    result.p90 = combinedData[idx90] * gain;
-    
-    // Finally partition the upper portion at 95th percentile (only needs to check from idx90 onwards)
-    std::nth_element(combinedData.begin() + idx90, combinedData.begin() + idx95, combinedData.end());
-    result.p95 = combinedData[idx95] * gain;
-    
-    // Finally partition the upper portion at 99.55th percentile (only needs to check from idx95 onwards)
-    std::nth_element(combinedData.begin() + idx95, combinedData.begin() + idx995, combinedData.end());
-    result.p995 = combinedData[idx995] * gain;
+        if (valcnt.size() == 1) {
+            return valcnt[0].value;
+        }
 
-//    result.p995 = result.p95;
+        v2 = valcnt[k + 1].value;
+        w2 = valcnt[k + 1].count;
+        sum2 = sum1 + w2;
+
+        // Value lies between v1 and v2 - calculate linear interpolation
+        double px = 100.0 / double(SN);  // Percentile represented by one full value
+
+        // Calculate percentile ranks
+        double p1 = px * (double(sum1) - (double(w1) / 2.0));
+        double p2 = px * (double(sum2) - (double(w2) / 2.0));
+
+        // Calculate linear interpolation
+        double v = v1 + ((p - p1) / (p2 - p1)) * (v2 - v1);
+
+        return v;
+    };
+    
+    // Calculate each percentile with time weighting
+    result.median = calcTimeWeightedPercentile(0.50);
+    result.p90 = calcTimeWeightedPercentile(0.90);
+    result.p95 = calcTimeWeightedPercentile(0.95);
+    result.p995 = calcTimeWeightedPercentile(0.995);
+    
     result.valid = true;
     
     return result;

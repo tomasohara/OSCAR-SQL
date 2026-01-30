@@ -1851,11 +1851,12 @@ bool DatabaseSchema::initializeSystemReports(QSqlDatabase& db)
         "    ROUND(sc.max,2) as Max\n"
 
         "FROM session_channels sc\n"
-        "JOIN profiles p ON sc.profile_id = p.id\n"
         "JOIN sessions s ON sc.session_id = s.id\n"
-        "JOIN channels c ON sc.channel_id = c.channel_id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "JOIN profiles p ON m.profile_id = p.id\n"
+        "LEFT JOIN channels c ON sc.channel_id = c.channel_id AND c.profile_id = p.id\n"
         "WHERE p.id = #PROFILE_ID\n"
-        "    AND sc.channel_id IN (0x1101, 0x1102, 0x110e,0x1105, 0x1106,0x1112,0x1113,0x1108,0x1104,0x110b,0x110a,0x1103,0x1201 )\n"
+        "    AND sc.channel_id IN (0x1101, 0x1102, 0x110e,0x1105, 0x1106,0x1113,0x1108,0x1104,0x110b,0x110a,0x1103,0x1201 )\n"
         "    AND Date >= #START_DATE\n"
         "    AND Date <= #END_DATE\n"
         "ORDER BY s.start_time";
@@ -2519,11 +2520,12 @@ bool DatabaseSchema::updateDefaultReportQueries(QSqlDatabase& db)
         "    ROUND(sc.max,2) as Max\n"
 
         "FROM session_channels sc\n"
-        "JOIN profiles p ON sc.profile_id = p.id\n"
         "JOIN sessions s ON sc.session_id = s.id\n"
-        "JOIN channels c ON sc.channel_id = c.channel_id\n"
+        "JOIN machines m ON s.machine_id = m.id\n"
+        "JOIN profiles p ON m.profile_id = p.id\n"
+        "LEFT JOIN channels c ON sc.channel_id = c.channel_id AND c.profile_id = p.id\n"
         "WHERE p.id = #PROFILE_ID\n"
-        "    AND sc.channel_id IN (0x1101, 0x1102, 0x110e,0x1105, 0x1106,0x1112,0x1113,0x1108,0x1104,0x110b,0x110a,0x1103,0x1201 )\n"
+        "    AND sc.channel_id IN (0x1101, 0x1102, 0x110e,0x1105, 0x1106,0x1113,0x1108,0x1104,0x110b,0x110a,0x1103,0x1201 )\n"
         "    AND Date >= #START_DATE\n"
         "    AND Date <= #END_DATE\n"
         "ORDER BY s.start_time";
