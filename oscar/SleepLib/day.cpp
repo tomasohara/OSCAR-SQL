@@ -1142,6 +1142,24 @@ EventDataType Day::count(ChannelID code)
     return total;
 }
 
+int Day::intCount(ChannelID code)
+{
+    int total = 0;
+
+    if (code == AllAhiChannels) {
+        for (int i = 0; i < ahiChannels.size(); i++)
+            total += intCount(ahiChannels.at(i));
+        return total;
+    }
+
+    for (auto & sess : sessions) {
+        if (sess->enabled() && sess->m_cnt.contains(code)) {
+            total += sess->count(code);
+        }
+    }
+    return total;
+}
+
 bool Day::noSettings(Machine * mach)
 {
     for (auto & sess : sessions) {

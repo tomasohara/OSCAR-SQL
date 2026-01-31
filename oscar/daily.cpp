@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <cmath>
 
-#define TEST_MACROS_ENABLEDoff
+#define TEST_MACROS_ENABLED
 #include <test_macros.h>
 
 #define CONFIGURE_MODE
@@ -824,15 +824,20 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
     if (p_profile->general->showUnknownFlags()) chantype |= schema::UNKNOWN;
     QList<ChannelID> chans = day->getSortedMachineChannels(chantype);
 
+    int sessnum = 0;
     // Go through all the enabled sessions of the day
     qint64 max_t_post_context = 0;
     for (QList<Session *>::iterator s=day->begin();s!=day->end();++s) {
         Session * sess = *s;
-        if (!sess->enabled()) continue;
+        qDebug() << "UpdateEventsTree session " << ++sessnum << "starts" << sess->first();
+        if (!sess->enabled()) {
+            qDebug() << "UpdateEventsTree session " << sessnum << "is not enabled";
+            continue;
+        }
 
         // For each session, go through all the channels
         QHash<ChannelID,QVector<EventList *> >::iterator m;
-        for (int c=0; c < chans.size(); ++c) {
+         for (int c=0; c < chans.size(); ++c) {
             ChannelID code = chans.at(c);
             m = sess->eventlist.find(code);
             if (m == sess->eventlist.end()) continue;
@@ -842,7 +847,7 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
             // Prepare title for this code, if there are any events
             QTreeWidgetItem *mcr;
             if (mcroot.find(code)==mcroot.end()) {
-                int cnt=day->count(code);
+                int cnt=day->intCount(code);
                 if (!cnt) continue; // If no events than don't bother showing..
                 QString st=schema::channel[code].fullname();
                 if (st.isEmpty())  {
@@ -909,7 +914,7 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
     for (QHash<ChannelID,QTreeWidgetItem *>::iterator m=mcroot.begin();m!=mcroot.end();m++) {
         tree->insertTopLevelItem(cnt++,m.value());
     }
-//    qDebug() << "Daily::UpdateEventsTree(): max_t_post_context:" << max_t_post_context;
+    qDebug() << "Daily::UpdateEventsTree(): max_t_post_context:" << max_t_post_context;
 
     // Sort the top-level nodes (i.e., event types)
     // note: Done here so that UA occurs before Session Start/End

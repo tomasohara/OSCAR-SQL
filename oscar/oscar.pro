@@ -436,6 +436,7 @@ SOURCES += \
     database/event_data_repository.cpp \
     database/respiratory_events_repository.cpp \
     database/report_repository.cpp \
+    database/reports_initializer.cpp \
     database/report_contents_repository.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
@@ -457,6 +458,7 @@ QMAKE_EXTRA_COMPILERS += optimize
 HEADERS  += \
     SleepLib/performance_timer.h \
     checkupdates.h \
+    database/reports_initializer.h \
     notifyMessageBox.h \
     highresolution.h \
     dailySearchTab.h \
@@ -566,6 +568,7 @@ HEADERS  += \
     git_info.h \
     database/database_manager.h \
     database/database_schema.h \
+    database/reports_initializer.h \
     database/profile_repository.h \
     database/machine_repository.h \
     database/migration_manager.h \
