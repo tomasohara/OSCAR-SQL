@@ -1,10 +1,12 @@
 #! /bin/bash
-# No parameter is not required
+# No parameter is required
 # This script will identify the distribution and release version
 #
 if [ -f "*-Qt5.deb" ]; then
     rm -f *-Qt5.deb
 fi
+
+. ./retrieve_appliname.sh
 
 function gene_script () {
   # generate script shell from 2 files
@@ -12,13 +14,15 @@ function gene_script () {
   if [ -f "clean_rm-result-NN.sh" ]; then
     rm clean_rm-result-NN.sh
   fi
-  cat clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
+  #cat clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
+  cat headers.sh retrieve_appliname2.sh clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
   chmod +x clean_rm-result-NN.sh
 
   if [ -f "clean_rm-result-NN-test.sh" ]; then
     rm clean_rm-result-NN-test.sh
   fi
-  cat clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
+  #cat clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
+  cat headers.sh retrieve_appliname2.sh clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
   chmod +x clean_rm-result-NN-test.sh
 
   # ln_usrbin
@@ -26,26 +30,30 @@ function gene_script () {
   if [ -f "ln_usrbin-result-NN.sh" ]; then
     rm ln_usrbin-result-NN.sh
   fi
-  cat ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
+  #cat ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
+  cat headers.sh retrieve_appliname2.sh ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
   chmod +x ln_usrbin-result-NN.sh
 
   if [ -f "ln_usrbin-result-NN-test.sh" ]; then
     rm ln_usrbin-result-NN-test.sh
   fi
-  cat ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
+  #cat ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
+  cat headers.sh retrieve_appliname2.sh ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
   chmod +x ln_usrbin-result-NN-test.sh
 
   # rm_usrbin
   if [ -f "rm_usrbin-result-NN.sh" ]; then
     rm rm_usrbin-result-NN.sh
   fi
-  cat rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
+  #cat rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
+  cat headers.sh retrieve_appliname2.sh rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
   chmod +x rm_usrbin-result-NN.sh
 
   if [ -f "rm_usrbin-result-NN-test.sh" ]; then
     rm rm_usrbin-result-NN-test.sh
   fi
-  cat rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
+  #cat rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
+  cat headers.sh retrieve_appliname2.sh rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
   chmod +x rm_usrbin-result-NN-test.sh
 }
 
@@ -118,23 +126,17 @@ fi
 echo "Build Directory: "$OSCAR_BUILD_DIRECTORY
 build_folder=${PWD%/*/*/*}/$OSCAR_BUILD_DIRECTORY
 
-# Original application name code
-# appli_name="OSCAR"
-# package_name="oscar"
+# call an external function to get application name & icon name
+retrieve_names
 
-# Modified application name code
-getTarget
-
-echo "Program Name: "$PROGNAME
 lwrcasePROGNAME=${PROGNAME,,}
-icon_name="OSCAR" 
 appli_name=$PROGNAME
 base_name=$PROGNAME
 package_name=$lwrcasePROGNAME
 pre_inst="tst_user.sh"
 
 if [[ -n ${PRERELEASE}  && -z ${RC} ]] ; then
-    icon_name="OSCAR-test" 
+    icon_name="${icon_name}-test"
     appli_name=${appli_name}-test
     package_name=${package_name}-test
     post_inst="ln_usrbin-result-NN-test.sh"
@@ -237,6 +239,8 @@ mkdir ${temp_folder}/share/applications
 
 # Notice : ${appli_name} must be use : it is ${base_name} added with -test suffix if necessary
 strip -s -o ${temp_folder}/bin/${appli_name} ${build_folder}/oscar/${base_name}
+
+echo "av copie : icon_name = '${icon_name}'"
 
 # 2>/dev/null : errors does not appear : we don't care about them
 cp -r ${build_folder}/oscar/Help ${temp_folder}/share/${appli_name} 2>/dev/null

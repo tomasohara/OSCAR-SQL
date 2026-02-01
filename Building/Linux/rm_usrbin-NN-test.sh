@@ -1,9 +1,12 @@
-#! /bin/bash
+#--! /bin/bash
 #
 # no error is permitted
-set -e
+#--set -e
 
 # application name
-appli_name="OSCAR-test"
+#appli_name="OSCAR-test"
 
 
+retrieve_names
+
+appli_name="${PROGNAME}-test"
