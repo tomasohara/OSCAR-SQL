@@ -4,22 +4,15 @@
 function retrieve_names ()
 {
     # Modified application name code
-    PROGNAME=$(sed -n 's/^TARGET *= *//p' $SRC/oscar.pro)
+    OSCARPRO=${PWD%/*/*}/oscar/"oscar.pro"
+    assignmentcnt=$(($(grep -cE '(^|[[:space:]])TARGET[[:space:]]*=' $OSCARPRO)-1))
+    if [[ $assignmentcnt -lt 1 ]]; then
+        assignmentcnt=1
+    fi
+    PROGNAME=$(awk -F'=' -v n=$assignmentcnt '/TARGET[[:space:]]*=/{count++; if(count==n){gsub(/^[ \t]+|[ \t]+$/,"",$2); print $2}}' $OSCARPRO)
     if [ -z "$PROGNAME" ]; then
-        tmpPGM=$(sed -n 's/^    TARGET *= *//p' $SRC/oscar.pro)
+        PROGNAME="OSCAR"
     fi
 
-    if [ -n "$tmpPGM" ]; then
-        tstPGM=$(echo $tmpPGM | grep "OSCAR20")
-        if [ -n "$tstPGM" ]; then
-            PROGNAME="OSCAR20"
-            icon_name="OSCAR20"
-        else
-            PROGNAME="OSCAR"
-            icon_name="OSCAR"
-        fi
-    else
-       PROGNAME="OSCAR"
-       icon_name="OSCAR"
-    fi
+    icon_name=$PROGNAME
 }
