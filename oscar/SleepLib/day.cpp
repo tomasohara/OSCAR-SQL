@@ -1126,6 +1126,7 @@ EventDataType Day::sph(ChannelID code)
 
 EventDataType Day::count(ChannelID code)
 {
+//    qDebug() << "Day::count() for code" << code;
     EventDataType total = 0;
 
     if (code == AllAhiChannels) {
@@ -1134,16 +1135,29 @@ EventDataType Day::count(ChannelID code)
         return total;
     }
 
+//    int numsess = 1;
     for (auto & sess : sessions) {
+//        qDebug() << "Day::count session" << numsess++;
+
         if (sess->enabled() && sess->m_cnt.contains(code)) {
-            total += sess->count(code);
+            EventDataType f = sess->count(code);
+            if (f != static_cast<int>(f))
+                qDebug() << "Day::count() sess->count() says it has code" << code << "with count of" << qSetRealNumberPrecision(9) << f << "total is currently" << qSetRealNumberPrecision(9) << total;
+            total += f;
+            if (total != static_cast<int>(total))
+                qDebug() << "Day::count() float total for" << code << "is now" << qSetRealNumberPrecision(9) << total
+                         << "for session" << sess->session();
         }
+    }
+    if (total != static_cast<int>(total)) {
+        qDebug() << "Day::count for code" << code << "returning" << qSetRealNumberPrecision(9) << total;
     }
     return total;
 }
 
 int Day::intCount(ChannelID code)
 {
+    qDebug() << "Day::intCount() for code" << code;
     int total = 0;
 
     if (code == AllAhiChannels) {
@@ -1152,9 +1166,14 @@ int Day::intCount(ChannelID code)
         return total;
     }
 
+    int numsess = 1;
     for (auto & sess : sessions) {
+        qDebug() << "Day::intCount session" << numsess++;
         if (sess->enabled() && sess->m_cnt.contains(code)) {
-            total += sess->count(code);
+            EventDataType f = sess->count(code);
+            qDebug() << "Day::intCount() sess->count() says it has code" << code << "with count of" << f << "total is currently" << total;
+            total += f;
+            qDebug() << "Day::intCount() float total for" << code << "is now" << total;
         }
     }
     return total;

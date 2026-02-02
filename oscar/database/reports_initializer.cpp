@@ -579,7 +579,7 @@ bool ReportsInitializer::initializeSystemReports(QSqlDatabase& db)
         "  AND Date >= #START_DATE\n"
         "  AND Date <= #END_DATE\n"
         "  AND s.enabled = 1\n"
-        "  AND m.machine_TYPE < 4\n"
+        "  AND m.machine_TYPE <> 4\n"
         "ORDER BY s.start_time";
     
     query.prepare("INSERT INTO report_contents (report_id, variety, description, query, display_order, is_system) VALUES (?, ?, ?, ?, ?, ?)");

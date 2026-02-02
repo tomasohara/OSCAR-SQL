@@ -829,9 +829,9 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
     qint64 max_t_post_context = 0;
     for (QList<Session *>::iterator s=day->begin();s!=day->end();++s) {
         Session * sess = *s;
-        qDebug() << "UpdateEventsTree session " << ++sessnum << "starts" << sess->first();
         if (!sess->enabled()) {
-            qDebug() << "UpdateEventsTree session " << sessnum << "is not enabled";
+            qDebug() << "Daily::UpdateEventsTree() session" << sessnum << sess->session() << "starts"
+                     << QDateTime::fromSecsSinceEpoch(sess->first()/1000).toString("yyyy-MM-dd HH:mm:ss") << "is not enabled";
             continue;
         }
 
@@ -847,7 +847,14 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
             // Prepare title for this code, if there are any events
             QTreeWidgetItem *mcr;
             if (mcroot.find(code)==mcroot.end()) {
-                int cnt=day->intCount(code);
+                EventDataType fCnt = day->count(code);
+                int cnt=fCnt;
+                if (cnt != fCnt) {
+                    qDebug() << "Daily::UpdateEventsTree() counting for" << code << "got" << cnt << "(int) events, EventDataType value for fCnt"
+                             << qSetRealNumberPrecision(9) << fCnt;
+                    qDebug() << "UpdateEventsTree session" << ++sessnum << sess->session() << "type" << sess->machine()->type() << "starts"
+                             << QDateTime::fromSecsSinceEpoch(sess->first()/1000).toString("yyyy-MM-dd HH:mm:ss");
+                }
                 if (!cnt) continue; // If no events than don't bother showing..
                 QString st=schema::channel[code].fullname();
                 if (st.isEmpty())  {

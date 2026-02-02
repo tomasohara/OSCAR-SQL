@@ -2099,6 +2099,8 @@ EventDataType Session::count(ChannelID id)
     QHash<ChannelID, EventDataType>::iterator i = m_cnt.find(id);
 
     if (i != m_cnt.end()) {
+        if (i.value() != static_cast<int>(i.value()))
+            qDebug() << "Session::count() says i != m_cnt.end, returning" << qSetRealNumberPrecision(9) <<  i.value();
         return i.value();
     }
 
@@ -2106,6 +2108,7 @@ EventDataType Session::count(ChannelID id)
 
     if (j == eventlist.end()) {
 //        m_cnt[id] = 0;
+//        qDebug() << "Session::count() says j != eventlist.end, returning 0";
         return 0;
     }
 
@@ -2120,6 +2123,8 @@ EventDataType Session::count(ChannelID id)
     }
 
     m_cnt[id] = sum;
+    if (sum != static_cast<int>(sum))
+        qDebug() << "Session::count() for channel" << id << "returning and setting m_cnt to" << qSetRealNumberPrecision(9) << sum;
     return sum;
 }
 

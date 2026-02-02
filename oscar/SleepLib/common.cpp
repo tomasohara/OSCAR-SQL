@@ -290,8 +290,8 @@ QString appResourcePath()
     paths.append( QCoreApplication::applicationDirPath() );
 #ifdef Q_OS_LINUX 
     QString appName = QCoreApplication::applicationName();
-    if (appName != QString("OSCAR"))
-        appName = QString("OSCAR-test");
+    if (appName != QString("OSCAR20"))
+        appName = QString("OSCAR20-test");
     paths.append( QString( "/usr/share/" ) + appName );
     paths.append( QString( "/usr/local/share/" ) + appName );
 #endif
