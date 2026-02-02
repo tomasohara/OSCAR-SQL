@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <cmath>
 
-#define TEST_MACROS_ENABLED
+#define TEST_MACROS_ENABLEDoff
 #include <test_macros.h>
 
 #define CONFIGURE_MODE
@@ -849,12 +849,11 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
             if (mcroot.find(code)==mcroot.end()) {
                 EventDataType fCnt = day->count(code);
                 int cnt=fCnt;
-                if (cnt != fCnt) {
-                    qDebug() << "Daily::UpdateEventsTree() counting for" << code << "got" << cnt << "(int) events, EventDataType value for fCnt"
-                             << qSetRealNumberPrecision(9) << fCnt;
-                    qDebug() << "UpdateEventsTree session" << ++sessnum << sess->session() << "type" << sess->machine()->type() << "starts"
-                             << QDateTime::fromSecsSinceEpoch(sess->first()/1000).toString("yyyy-MM-dd HH:mm:ss");
-                }
+//                if (cnt != fCnt) {
+//                    qDebug() << "Daily::UpdateEventsTree() counting for" << code << "got" << cnt << "(int) events, EventDataType value for fCnt"
+//                             << qSetRealNumberPrecision(9) << fCnt;
+//                    qDebug() << "UpdateEventsTree session" << ++sessnum << sess->session() << "type" << sess->machine()->type() << "starts"//                           << QDateTime::fromSecsSinceEpoch(sess->first()/1000).toString("yyyy-MM-dd HH:mm:ss");
+//                }
                 if (!cnt) continue; // If no events than don't bother showing..
                 QString st=schema::channel[code].fullname();
                 if (st.isEmpty())  {

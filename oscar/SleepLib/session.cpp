@@ -8,7 +8,7 @@
  * License. See the file COPYING in the main directory of the source code
  * for more details. */
 
-#define TEST_MACROS_ENABLED
+#define TEST_MACROS_ENABLEDoff
 #include <test_macros.h>
 
 #include <cmath>
@@ -21,6 +21,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QNumeric.h>
 
 #include "session.h"
 #include "version.h"
@@ -2099,8 +2100,8 @@ EventDataType Session::count(ChannelID id)
     QHash<ChannelID, EventDataType>::iterator i = m_cnt.find(id);
 
     if (i != m_cnt.end()) {
-        if (i.value() != static_cast<int>(i.value()))
-            qDebug() << "Session::count() says i != m_cnt.end, returning" << qSetRealNumberPrecision(9) <<  i.value();
+//        if (i.value() != static_cast<int>(i.value()))
+//            qDebug() << "Session::count() says i != m_cnt.end, returning" << qSetRealNumberPrecision(9) <<  i.value();
         return i.value();
     }
 
@@ -2123,8 +2124,8 @@ EventDataType Session::count(ChannelID id)
     }
 
     m_cnt[id] = sum;
-    if (sum != static_cast<int>(sum))
-        qDebug() << "Session::count() for channel" << id << "returning and setting m_cnt to" << qSetRealNumberPrecision(9) << sum;
+//    if (sum != static_cast<int>(sum))
+//        qDebug() << "Session::count() for channel" << id << "returning and setting m_cnt to" << qSetRealNumberPrecision(9) << sum;
     return sum;
 }
 
@@ -3139,6 +3140,9 @@ bool Session::LoadFromDatabase()
         ChannelID id = channel.channelId;
         m_availableChannels.push_back(id);
         m_cnt[id] = channel.count;
+        if (channel.count != static_cast<int>(channel.count)) {   // channel.count is ok!
+            qDebug() << "Session::LoadFromDatabase() channel" << id << "channel.count" << qSetRealNumberPrecision(9) <<channel.count;
+        }
         m_sum[id] = channel.sum;
         m_avg[id] = channel.avg;
         m_wavg[id] = channel.wavg;
@@ -3200,9 +3204,10 @@ bool Session::LoadFromDatabase()
 #endif
 
     // 5. Load summary data (optional - contains computed values)
+    // GTS: Nothing optional about it. Summary data ALWAYS exists.
     SessionSummaryData summaryData = summariesRepo.findBySession(m_database_id);
 #ifdef DBDEBUG
-    if (summaryData.id > 0) {
+    if (sessionData.summaryOnly) {
         // Summary data is available - we could use it to pre-populate
         // some calculated values, but for now we'll just log it
         qDebug() << "Session::LoadFromDatabase(): Found summary data - AHI:" 
@@ -3213,18 +3218,21 @@ bool Session::LoadFromDatabase()
     // For summary-only sessions, restore m_cnt from session_summaries
     // This is necessary because summary-only sessions don't have event data
     // stored in session_channels, but the event counts are stored in session_summaries
-    if (summaryData.id > 0) {
+    if (sessionData.summaryOnly) {
         double sessionHours = summaryData.hoursUsed;
-        
+#ifdef DBDEBUG
+        qDebug() << "Session::LoadFromDatabase(): Found summary only session, SummaryData.id" << summaryData.id;
+#endif
+
         // Restore event counts from summary data
         // Use cph * hours to calculate count (since cph is preserved correctly as REAL,
         // while count was truncated to INTEGER in session_channels)
         if (summaryData.obstructiveCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_Obstructive))) {
             // Calculate count from cph * hours (more accurate than stored integer)
             if (m_cph.contains(CPAP_Obstructive) && sessionHours > 0) {
-                m_cnt[CPAP_Obstructive] = m_cph[CPAP_Obstructive] * sessionHours;
+                m_cnt[CPAP_Obstructive] = qRound(static_cast<double>(m_cph[CPAP_Obstructive] * sessionHours));
             } else if (summaryData.obstructiveCount > 0) {
-                m_cnt[CPAP_Obstructive] = summaryData.obstructiveCount;
+                m_cnt[CPAP_Obstructive] = qRound(static_cast<double>(summaryData.obstructiveCount));
             }
             if (!m_availableChannels.contains(CPAP_Obstructive)) {
                 m_availableChannels.push_back(CPAP_Obstructive);
@@ -3232,9 +3240,9 @@ bool Session::LoadFromDatabase()
         }
         if (summaryData.clearAirwayCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_ClearAirway))) {
             if (m_cph.contains(CPAP_ClearAirway) && sessionHours > 0) {
-                m_cnt[CPAP_ClearAirway] = m_cph[CPAP_ClearAirway] * sessionHours;
+                m_cnt[CPAP_ClearAirway] = qRound(static_cast<double>(m_cph[CPAP_ClearAirway] * sessionHours));
             } else if (summaryData.clearAirwayCount > 0) {
-                m_cnt[CPAP_ClearAirway] = summaryData.clearAirwayCount;
+                m_cnt[CPAP_ClearAirway] = qRound(static_cast<double>(summaryData.clearAirwayCount));
             }
             if (!m_availableChannels.contains(CPAP_ClearAirway)) {
                 m_availableChannels.push_back(CPAP_ClearAirway);
@@ -3242,9 +3250,9 @@ bool Session::LoadFromDatabase()
         }
         if (summaryData.hypopneaCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_Hypopnea))) {
             if (m_cph.contains(CPAP_Hypopnea) && sessionHours > 0) {
-                m_cnt[CPAP_Hypopnea] = m_cph[CPAP_Hypopnea] * sessionHours;
+                m_cnt[CPAP_Hypopnea] = qRound(static_cast<double>(m_cph[CPAP_Hypopnea] * sessionHours));
             } else if (summaryData.hypopneaCount > 0) {
-                m_cnt[CPAP_Hypopnea] = summaryData.hypopneaCount;
+                m_cnt[CPAP_Hypopnea] = qRound(static_cast<double>(summaryData.hypopneaCount));
             }
             if (!m_availableChannels.contains(CPAP_Hypopnea)) {
                 m_availableChannels.push_back(CPAP_Hypopnea);
@@ -3252,9 +3260,9 @@ bool Session::LoadFromDatabase()
         }
         if (summaryData.reraCount > 0 || (sessionHours > 0 && m_cph.contains(CPAP_RERA))) {
             if (m_cph.contains(CPAP_RERA) && sessionHours > 0) {
-                m_cnt[CPAP_RERA] = m_cph[CPAP_RERA] * sessionHours;
+                m_cnt[CPAP_RERA] = qRound(static_cast<double>(m_cph[CPAP_RERA] * sessionHours));
             } else if (summaryData.reraCount > 0) {
-                m_cnt[CPAP_RERA] = summaryData.reraCount;
+                m_cnt[CPAP_RERA] = qRound(static_cast<double>(summaryData.reraCount));
             }
             if (!m_availableChannels.contains(CPAP_RERA)) {
                 m_availableChannels.push_back(CPAP_RERA);

@@ -275,7 +275,7 @@ bool Profile::OpenMachines()
         ProfileData profileData = profileRepo.findByUsername(username);
         if (profileData.id > 0) {
             m_database_id = profileData.id;
-            qDebug() << "Profile::OpenMachines(): Set profile database ID to" << m_database_id;
+//            qDebug() << "Profile::OpenMachines(): Set profile database ID to" << m_database_id;
         } else {
             qDebug() << "Profile::OpenMachines(): Profile" << username << "not in database yet";
         }
