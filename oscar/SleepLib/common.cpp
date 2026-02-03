@@ -291,7 +291,7 @@ QString appResourcePath()
 #ifdef Q_OS_LINUX
     QString appName = getAppName();
     if (appName == STR_AppName)
-        appName = QString("OSCAR20")
+        appName = QString("OSCAR20");
     else
         appName = QString("OSCAR20-test");
     paths.append( QString( "/usr/share/" ) + appName );

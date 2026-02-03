@@ -21,7 +21,6 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QNumeric.h>
 
 #include "session.h"
 #include "version.h"
