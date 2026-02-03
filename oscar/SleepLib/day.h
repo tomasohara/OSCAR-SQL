@@ -55,7 +55,6 @@ class Day
 
     //! \brief Returns the count of all this days sessions' events for this day
     EventDataType count(ChannelID code);
-    int intCount(ChannelID code);
 
     //! \brief Returns the Minimum of all this sessions' events for this day
     EventDataType Min(ChannelID code);

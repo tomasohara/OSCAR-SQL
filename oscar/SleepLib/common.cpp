@@ -288,9 +288,11 @@ QString appResourcePath()
     // This one will be used if the Html and Translations folders
     // are in the same folder as  the OSCAR executable
     paths.append( QCoreApplication::applicationDirPath() );
-#ifdef Q_OS_LINUX 
-    QString appName = QCoreApplication::applicationName();
-    if (appName != QString("OSCAR20"))
+#ifdef Q_OS_LINUX
+    QString appName = getAppName();
+    if (appName == STR_AppName)
+        appName = QString("OSCAR20")
+    else
         appName = QString("OSCAR20-test");
     paths.append( QString( "/usr/share/" ) + appName );
     paths.append( QString( "/usr/local/share/" ) + appName );
@@ -1131,4 +1133,26 @@ QByteArray gUncompress(const QByteArray & data)
     inflateEnd(&strm);
     delete [] out;
     return result;
+}
+
+QString getSavedUserPath(QString folderName ) {
+    QSettings settings;
+    QString savedPath = settings.value("SavedPath/"+folderName, "").toString();
+    if (savedPath.length() > 0) {
+        QFileInfo fi(savedPath);
+        if (fi.exists() && fi.isDir()) {
+            return savedPath;
+        }
+    }
+    // Default to standard Documents location if no remembered path or path doesn't exist
+    QStringList paths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    if (paths.size() > 0) {
+        savedPath = paths[0];
+    }
+    return savedPath;
+}
+
+void saveUserPath(QString folderName , QString pathName) {
+    QSettings settings;
+    settings.setValue("SavedPath/"+folderName, pathName);
 }

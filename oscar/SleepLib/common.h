@@ -14,7 +14,9 @@
 #include <QColor>
 #include <QObject>
 #include <QThread>
-#include <qprogressdialog.h>
+#include <QSettings>
+
+#include "qprogressdialog.h"
 
 // #define DEBUG_EFFICIENCY 1   // Developers can define this for qmake if they want it
 
@@ -109,6 +111,12 @@ int countDirItems(const QString &path);
 
 //! \brief Mercilessly trash a directory with progress tracking
 bool removeDirWithProgress(const QString &path, QProgressDialog *progress = nullptr, int start = 0, int end = 100);
+
+//! \brief Retrieve a path for the user from the registry (or equivalent on other platforms)
+void saveUserPath(QString folderName, QString pathName);
+
+//! \brief Save a path in the registry (or equivalent on other platforms)
+QString getSavedUserPath(QString folderName);
 
 ///Represents the exception for taking the median of an empty list
 class median_of_empty_list_exception:public std::exception{

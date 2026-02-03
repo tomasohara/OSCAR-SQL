@@ -1155,30 +1155,6 @@ EventDataType Day::count(ChannelID code)
     return total;
 }
 
-int Day::intCount(ChannelID code)
-{
-    qDebug() << "Day::intCount() for code" << code;
-    int total = 0;
-
-    if (code == AllAhiChannels) {
-        for (int i = 0; i < ahiChannels.size(); i++)
-            total += intCount(ahiChannels.at(i));
-        return total;
-    }
-
-    int numsess = 1;
-    for (auto & sess : sessions) {
-        qDebug() << "Day::intCount session" << numsess++;
-        if (sess->enabled() && sess->m_cnt.contains(code)) {
-            EventDataType f = sess->count(code);
-            qDebug() << "Day::intCount() sess->count() says it has code" << code << "with count of" << f << "total is currently" << total;
-            total += f;
-            qDebug() << "Day::intCount() float total for" << code << "is now" << total;
-        }
-    }
-    return total;
-}
-
 bool Day::noSettings(Machine * mach)
 {
     for (auto & sess : sessions) {
