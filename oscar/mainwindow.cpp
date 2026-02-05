@@ -1617,7 +1617,11 @@ void MainWindow::DelayedScreenshot()
         }
         png_filepath += default_filename;
     } else {
-        QString folder = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + default_filename;
+        QString folder = profilePath(STR_PREF_LastScreenShotPath);  // Added to store the last screenshot path =- Crimson Nape 26/02/05
+        if (folder.isEmpty() == true) {
+            folder = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+        }
+        folder += default_filename;
         png_filepath = QFileDialog::getSaveFileName(this, tr("Choose where to save screenshot"), folder, tr("Image files (*.png)"));
         if (png_filepath.isEmpty() == false && png_filepath.toLower().endsWith(".png") == false) {
             png_filepath += ".png";
@@ -1631,6 +1635,8 @@ void MainWindow::DelayedScreenshot()
             Notify(tr("There was an error saving screenshot to file \"%1\"").arg(QDir::toNativeSeparators(png_filepath)));
         } else {
             Notify(tr("Screenshot saved to file \"%1\"").arg(QDir::toNativeSeparators(png_filepath)));
+            QFileInfo fileInfo(png_filepath);  // Added to store the last screenshot path =- Crimson Nape 26/02/05
+            saveProfilePath(STR_PREF_LastScreenShotPath,fileInfo.absolutePath());
         }
     }
 
