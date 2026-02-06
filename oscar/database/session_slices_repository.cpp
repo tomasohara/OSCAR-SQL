@@ -123,14 +123,14 @@ bool SessionSlicesRepository::saveBatch(const QList<SessionSliceData>& slices)
         qWarning() << "SessionSlicesRepository::saveBatch() - Database not open";
         return false;
     }
-
+/***
     // Only start transaction if not already in one
     bool needTransaction = !dbMgr.inTransaction();
     if (needTransaction && !dbMgr.transaction()) {
         qWarning() << "SessionSlicesRepository::saveBatch() - Failed to start transaction";
         return false;
     }
-
+***/
     QSqlQuery query(db);
     query.prepare(
         "INSERT INTO session_slices "
@@ -146,18 +146,21 @@ bool SessionSlicesRepository::saveBatch(const QList<SessionSliceData>& slices)
 
         if (!query.exec()) {
             qWarning() << "SessionSlicesRepository::saveBatch() failed:" << query.lastError().text();
+/***
             if (needTransaction) {
                 dbMgr.rollback();
             }
+***/
             return false;
         }
     }
-
+/***
     // Only commit if we started the transaction
     if (needTransaction && !dbMgr.commit()) {
         qWarning() << "SessionSlicesRepository::saveBatch() - Failed to commit transaction";
         return false;
     }
+***/
 
     return true;
 }

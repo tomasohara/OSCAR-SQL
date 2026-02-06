@@ -222,6 +222,7 @@ bool DatabaseManager::isOpen() const
  */
 bool DatabaseManager::transaction()
 {
+
     if (m_inTransaction) {
         // Already in a transaction, don't nest
         return true;
@@ -232,6 +233,7 @@ bool DatabaseManager::transaction()
         return false;
     }
     
+    qDebug() << "DatabaseManager: started transaction";
     m_inTransaction = true;
     return true;
 }
@@ -256,6 +258,7 @@ bool DatabaseManager::commit()
         return false;
     }
     
+    qDebug() << "DatabaseManager: committed transaction";
     m_inTransaction = false;
     return true;
 }
@@ -280,6 +283,7 @@ bool DatabaseManager::rollback()
         return false;
     }
     
+    qDebug() << "DatabaseManager: rolled back transaction";
     m_inTransaction = false;
     return true;
 }

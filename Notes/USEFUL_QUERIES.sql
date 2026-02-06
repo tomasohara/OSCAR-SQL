@@ -303,6 +303,11 @@ SELECT
 FROM session_channels
 UNION ALL
 SELECT 
+    'Respiratory Events' as table_name, 
+    COUNT(*) as count 
+FROM respiratory_events
+UNION ALL
+SELECT 
     'Daily Summaries', 
     COUNT(*) 
 FROM daily_summaries

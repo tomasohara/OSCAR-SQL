@@ -875,6 +875,7 @@ bool Machine::SaveSession(Session *sess)
 void Machine::queTask(ImportTask * task)
 {
     if (AppSetting->multithreading()) {
+        qDebug() << "Machine::queTask() Using multithreading";
         m_tasklist.push_back(task);
         return;
     }
@@ -891,6 +892,7 @@ void Machine::runTasks()
         return;
     }
     qDebug() << "Machine::runTasks(): m_tasklist size is" << m_tasklist.size();
+    int taskNum = 0;
 
     QThreadPool * threadpool = QThreadPool::globalInstance();
 /***********************************************************
@@ -902,6 +904,7 @@ void Machine::runTasks()
     while ( ! m_tasklist.isEmpty()) {
         if (threadpool->tryStart(m_tasklist.at(0))) {
             m_tasklist.pop_front();
+            qDebug() << "Machine:runTasks running task" << ++taskNum;
 /************************************************************
 //          if (loader()) {
 //              emit loader()->setProgressValue(++m_currenttask);
@@ -910,7 +913,9 @@ void Machine::runTasks()
 ***************************************************************/
         }
     }
-    QThreadPool::globalInstance()->waitForDone(-1);
+    int activeCount = threadpool->activeThreadCount();
+    qDebug() << "Machine::runTasks:" << activeCount << "threads running";
+    threadpool->waitForDone(-1);
 }
 
 bool Machine::hasModifiedSessions()

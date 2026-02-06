@@ -131,9 +131,11 @@ void MachineLoader::runTasks(bool threaded)
     m_currentMLtask=0;
 
     threaded=AppSetting->multithreading();
+    qDebug() << "MachineLoader::runTasks" << (threaded ? "is" : "is not") << "multithreading";
 
     if ( ! threaded) {
         while (!m_MLtasklist.isEmpty() && !m_abort) {
+            qDebug() << "MachineLoader:runTasks running task" << m_currentMLtask+1;
             ImportTask * task = m_MLtasklist.takeFirst();
             task->run();
 

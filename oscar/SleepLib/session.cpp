@@ -43,7 +43,7 @@
 
 using namespace std;
 #define FIX_FOR_SINGLE_EVENT            // fixes ibreeze "No valuesummary for channel" error during import.
-//#define DBDEBUG                       // for maximum diagnostics
+#define DBDEBUG                       // for maximum diagnostics
 
 // This is the uber important database version for OSCAR's internal storage
 // Increment this after stuffing with Session's save & load code.
@@ -2099,8 +2099,8 @@ EventDataType Session::count(ChannelID id)
     QHash<ChannelID, EventDataType>::iterator i = m_cnt.find(id);
 
     if (i != m_cnt.end()) {
-//        if (i.value() != static_cast<int>(i.value()))
-//            qDebug() << "Session::count() says i != m_cnt.end, returning" << qSetRealNumberPrecision(9) <<  i.value();
+        if (i.value() != static_cast<int>(i.value()))
+            qWarning() << "Session::count() says i != m_cnt.end, returning" << qSetRealNumberPrecision(9) <<  i.value();
         return i.value();
     }
 
@@ -2123,8 +2123,8 @@ EventDataType Session::count(ChannelID id)
     }
 
     m_cnt[id] = sum;
-//    if (sum != static_cast<int>(sum))
-//        qDebug() << "Session::count() for channel" << id << "returning and setting m_cnt to" << qSetRealNumberPrecision(9) << sum;
+    if (sum != static_cast<int>(sum))
+        qWarning() << "Session::count() for channel" << id << "returning and setting m_cnt to" << qSetRealNumberPrecision(9) << sum;
     return sum;
 }
 
@@ -3437,6 +3437,7 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
     QList<RespiratoryEventData> events;
 
     qDebug() << "=== Session::extractRespiratoryEvents() CALLED for session" << s_session << "===";
+    qDebug() << "    Session starts" << QDateTime::fromSecsSinceEpoch(s_first/1000).toString("yyyy-MM-dd HH:mm:ss");
     qDebug() << "    eventlist.size():" << eventlist.size();
 
     // Get profile_id from machine (Schema v12 requirement)
@@ -3460,13 +3461,16 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
     };
     
     // Examine all channels in eventlist
-//    int channelsProcessed = 0;
-//    int flagChannels = 0;
+#ifdef DBDEBUG
+    int channelsProcessed = 0;
+    int flagChannels = 0;
+#endif
 //    qDebug() << "    Checking channel types:";
     for (auto channelIt = eventlist.begin(); channelIt != eventlist.end(); ++channelIt) {
         ChannelID channelId = channelIt.key();
-//        channelsProcessed++;
-        
+#ifdef DBDEBUG
+        channelsProcessed++;
+#endif
         // Get channel type from schema
         schema::ChanType chanType = schema::channel[channelId].type();
         
@@ -3477,10 +3481,11 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
         
         if (!isFlagType) continue;
         
-//        flagChannels++;
-//        qDebug() << "    Processing FLAG channel:" << QString::number(channelId, 16)
-//                 << "EventLists:" << channelIt.value().size();
-        
+#ifdef DBDEBUG
+        flagChannels++;
+        qDebug() << "    Processing FLAG channel:" << QString::number(channelId, 16)
+                 << "EventLists:" << channelIt.value().size();
+#endif
         // Determine eventType based on whether channel is in primary list
         int eventType = primaryRespiratoryChannels.contains(channelId) ? 1 : 0;
         
@@ -3501,7 +3506,10 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
                 
                 // Skip if startTime is zero
                 if (startTime == 0) continue;
-                
+#ifdef DBDEBUG
+                qDebug() << "Session::extractRespiratoryEvents() profile" <<  profileId << "channel" << channelId
+                         << "eventType" << eventType;
+#endif
                 RespiratoryEventData event;
                 event.sessionId = m_database_id;
                 event.profileId = profileId;  // Schema v12 requirement
@@ -3517,11 +3525,13 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
         }
     }
     
-//    qDebug() << "=== extractRespiratoryEvents() COMPLETE ===";
-//    qDebug() << "    Channels processed:" << channelsProcessed;
-//    qDebug() << "    FLAG channels:" << flagChannels;
-//    qDebug() << "    Total events extracted:" << events.size();
-    
+#ifdef DBDEBUG
+    qDebug() << "=== extractRespiratoryEvents() COMPLETE ===";
+    qDebug() << "    Channels processed:" << channelsProcessed;
+    qDebug() << "    FLAG channels:" << flagChannels;
+    qDebug() << "    Total events extracted:" << events.size();
+#endif
+
     return events;
 }
 
