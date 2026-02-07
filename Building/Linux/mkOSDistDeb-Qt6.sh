@@ -3,6 +3,7 @@
 # This script will identify the distribution and release version
 #
 
+# add miscellous.sh as if it is a copy-paste
 . ./miscellous.sh
 
 # generate the script from sources
@@ -88,7 +89,10 @@ echo "osname='$OSNAME'"
 
 deb_file="${package_name}_${VERSION}-${OSNAME}_$archi-Qt6.deb"
 
-remove_deb_file ($deb_file)
+result=$(remove_deb_file "$deb_file")
+if [ "$result" != "0"]; then
+  echo "problem with deb deletion"
+fi
 
 # if deb file exists, fatal error
 #if [ -f "./$deb_file" ]; then
