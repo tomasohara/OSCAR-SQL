@@ -3,9 +3,9 @@
 
 function remove_deb_file ()
 {
-  # param : $1 = debfile 
+  # param : $1 = debfile
   # return : 0 : ok / <> 0 : error
-  
+
   deb_file=$1
 
   # test if the function has been called directly or from another script
@@ -25,7 +25,7 @@ function remove_deb_file ()
       if [[ $KbdResponse == "Y" || $KbdResponse == "y" ]]; then
         echo "- Yes -"
         echo "Deleting old file"
-        rm -f ./$deb_file
+        rm -f "$deb_file"
         if [ "$?" = "0" ]; then
           return 0
         else
