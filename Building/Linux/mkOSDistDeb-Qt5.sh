@@ -91,11 +91,13 @@ echo "osname='$OSNAME'"
 
 deb_file="${package_name}_${VERSION}-${OSNAME}_$archi-Qt5.deb"
 
+remove_deb_file ($deb_file)
+
 # if deb file exists, fatal error
-if [ -f "./$deb_file" ]; then
-    echo "destination file (./$deb_file) exists. fatal error"
-    exit
-fi
+#if [ -f "./$deb_file" ]; then
+#    echo "destination file (./$deb_file) exists. fatal error"
+#    exit
+#fi
 
 ## retrieve packages version for the dependencies
 getPkg libqt5core
@@ -118,6 +120,7 @@ fi
 echo "QT name version " $corePkg $qtver
 echo "DblConv package " $dblPkg
 echo "libcrePkg package " $libpcrePkg
+echo "libqt5sql5 " $libqt5sql5
 
 # clean folders need to create the package
 if [ -d "${temp_folder}" ]; then
