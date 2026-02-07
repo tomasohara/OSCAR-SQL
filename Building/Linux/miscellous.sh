@@ -6,7 +6,7 @@ function remove_deb_file ()
   # param : $1 = debfile 
   # return : 0 : ok / <> 0 : error
   
-  $deb_file=$1
+  deb_file=$1
 
   # test if the function has been called directly or from another script
   if [ "$SHLVL" = "2" ]; then
