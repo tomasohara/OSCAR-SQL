@@ -88,11 +88,13 @@ echo "osname='$OSNAME'"
 
 deb_file="${package_name}_${VERSION}-${OSNAME}_$archi-Qt6.deb"
 
+remove_deb_file ($deb_file)
+
 # if deb file exists, fatal error
-if [ -f "./$deb_file" ]; then
-    echo "destination file (./$deb_file) exists. fatal error"
-    exit
-fi
+#if [ -f "./$deb_file" ]; then
+#    echo "destination file (./$deb_file) exists. fatal error"
+#    exit
+#fi
 
 getPkg libqt6printsupport
 libprintsup=$PKGNAME
