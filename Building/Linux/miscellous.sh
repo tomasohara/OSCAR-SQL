@@ -1,5 +1,52 @@
 # Function to retrieve application name & icon name
-# on 10/02/2025, it can be OSCAR ou OSCAR20
+# on 10/02/2025, it can be OSCAR ou OSCAR20# if deb file exists, ask what to do
+
+function remove_deb_file ()
+{
+  # param : $1 = debfile 
+  # return : 0 : ok / <> 0 : error
+  
+  $deb_file=$1
+
+  # test if the function has been called directly or from another script
+  if [ "$SHLVL" = "2" ]; then
+    # direct call (level 1 = bash - level 2 = script)
+    flag_batch="0"
+  else
+    # call from at least another script
+    flag_batch="1"
+  fi
+
+  if [ -f "$deb_file" ]; then
+    echo "deb_file='$deb_file'"
+    if [ "$flag_batch" = "0" ];then
+      # if the scipt is called directly
+      read -p "*** WARNING *** : A deb file exists, delete it? (y/N): "  KbdResponse
+      if [[ $KbdResponse == "Y" || $KbdResponse == "y" ]]; then
+        echo "- Yes -"
+        echo "Deleting old file"
+        rm -f ./$deb_file
+        if [ "$?" = "0" ]; then
+          return 0
+        else
+          return 1
+        fi
+      else
+        echo "- No -"
+        echo "Exiting mkOSDistDeb due to existing deb file."
+        return 2
+      fi
+    else
+      # if the script is called not directly, return error
+      return 3
+    fi
+  else
+    echo "deb file not exists"
+    return 0
+  fi
+}
+
+
 
 function retrieve_names ()
 {
