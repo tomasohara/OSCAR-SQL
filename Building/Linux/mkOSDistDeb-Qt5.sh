@@ -90,8 +90,9 @@ echo "osname='$OSNAME'"
 deb_file="${package_name}_${VERSION}-${OSNAME}_$archi-Qt5.deb"
 
 result=$(remove_deb_file "$deb_file")
-if [ "$result" != "0"]; then
+if [ "$result" != "0" ]; then
   echo "problem with deb deletion"
+  exit
 fi
 
 # if deb file exists, fatal error
