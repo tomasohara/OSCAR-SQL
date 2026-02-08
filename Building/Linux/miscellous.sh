@@ -21,7 +21,15 @@ function remove_deb_file ()
     echo "deb_file='$deb_file'"
     if [ "$flag_batch" = "0" ];then
       # if the scipt is called directly
-      read -p "*** WARNING *** : A deb file exists, delete it? (y/N): "  KbdResponse
+      KbdResponse=" "
+      while [ "$KbdResponse" != "y" ] && [ "$KbdResponse" != "Y" ] && \
+            [ "$KbdResponse" != "n" ] && [ "$KbdResponse" != "N" ]
+      do
+        echo -n "*** WARNING *** : A deb file exists, delete it? (y/N): "
+        read -n 1  KbdResponse
+        echo " "
+      done
+
       if [[ $KbdResponse == "Y" || $KbdResponse == "y" ]]; then
         echo "- Yes -"
         echo "Deleting old file"

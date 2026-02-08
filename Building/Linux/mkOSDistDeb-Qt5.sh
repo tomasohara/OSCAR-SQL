@@ -89,7 +89,7 @@ echo "osname='$OSNAME'"
 
 deb_file="${package_name}_${VERSION}-${OSNAME}_$archi-Qt5.deb"
 
-result=$(remove_deb_file "$deb_file")
+remove_deb_file "$deb_file"
 test=$?
 if [ "$test" != "0" ]; then
   echo "problem with deb deletion. test='$test'"
