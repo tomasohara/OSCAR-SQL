@@ -3,8 +3,8 @@
 # This script will identify the distribution and release version
 #
 
-# add miscellous.sh as if it is a copy-paste
-. ./miscellous.sh
+# add miscellaneous.sh as if it is a copy-paste
+. ./miscellaneous.sh
 
 # generate the script from sources
 gene_script
