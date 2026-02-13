@@ -3,85 +3,8 @@
 # This script will identify the distribution and release version
 #
 
-. ./retrieve_appliname.sh
-
-function gene_script () {
-  # generate script shell from 2 files
-  # clean_rm
- if [ -f "clean_rm-result-NN.sh" ]; then
-    rm clean_rm-result-NN.sh
-  fi
-  #cat clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
-  cat headers.sh retrieve_appliname2.sh clean_rm-NN.sh clean_rm-common-NN.sh > clean_rm-result-NN.sh
-  chmod +x clean_rm-result-NN.sh
-
-  if [ -f "clean_rm-result-NN-test.sh" ]; then
-    rm clean_rm-result-NN-test.sh
-  fi
-  #cat clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
-  cat headers.sh retrieve_appliname2.sh clean_rm-NN-test.sh clean_rm-common-NN.sh > clean_rm-result-NN-test.sh
-  chmod +x clean_rm-result-NN-test.sh
-
-  # ln_usrbin
-
-  if [ -f "ln_usrbin-result-NN.sh" ]; then
-    rm ln_usrbin-result-NN.sh
-  fi
-  #cat ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
-  cat headers.sh retrieve_appliname2.sh ln_usrbin-NN.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN.sh
-  chmod +x ln_usrbin-result-NN.sh
-
-  if [ -f "ln_usrbin-result-NN-test.sh" ]; then
-    rm ln_usrbin-result-NN-test.sh
-  fi
-  #cat ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
-  cat headers.sh retrieve_appliname2.sh ln_usrbin-NN-test.sh ln_usrbin-common-NN.sh > ln_usrbin-result-NN-test.sh
-  chmod +x ln_usrbin-result-NN-test.sh
-
-  # rm_usrbin
-  if [ -f "rm_usrbin-result-NN.sh" ]; then
-    rm rm_usrbin-result-NN.sh
-  fi
-  #cat rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
-  cat headers.sh retrieve_appliname2.sh rm_usrbin-NN.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN.sh
-  chmod +x rm_usrbin-result-NN.sh
-
-  if [ -f "rm_usrbin-result-NN-test.sh" ]; then
-    rm rm_usrbin-result-NN-test.sh
-  fi
-  #cat rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
-  cat headers.sh retrieve_appliname2.sh rm_usrbin-NN-test.sh rm_usrbin-common-NN.sh > rm_usrbin-result-NN-test.sh
-  chmod +x rm_usrbin-result-NN-test.sh
-}
-
-function getOS () {
-  rel=$(lsb_release -r | awk '{print $2}')
-  os=$(lsb_release -i | awk '{print $3}')
-  tmp2=${os:0:3}
-  echo "tmp2 = '$tmp2'"
-  if [ "$tmp2" = "Ubu" ] || [ "$tmp2" = "Lin" ] ; then
-     OSNAME=$os${rel:0:2}
-  elif [ "$tmp2" = "Deb" ];then
-    OSNAME=$os$rel
-  elif [ "$tmp2" = "Ras" ];then
-    OSNAME="RasPiOS"
-  else
-    OSNAME="unknown"
-  fi
-}
-
-function getPkg () {
-    unset PKGNAME
-    unset PKGVERS
-    while read stat pkg ver other ;
-        do
-            if [[ ${stat} == "ii" ]] ; then
-                PKGNAME=`awk -F: '{print $1}' <<< ${pkg}`
-                PKGVERS=`awk -F. '{print $1 "." $2}' <<< ${ver}`
-                break
-            fi ;
-        done <<< $(dpkg -l | grep $1)
-}
+# add miscellaneous.sh as if it is a copy-paste
+. ./miscellaneous.sh
 
 # generate the script from sources
 gene_script
@@ -93,18 +16,6 @@ fi
 
 #SRC=/home/$USER/OSCAR/OSCAR-code/oscar
 SRC=${PWD%/*/*}/oscar
-
-
-function getTarget(){
-OSCARPRO=${PWD%/*/*}/oscar/"oscar.pro"
-assignmentcnt=$(($(grep -cE '(^|[[:space:]])TARGET[[:space:]]*=' $OSCARPRO)-1))
-if [[ $assignmentcnt -lt 1 ]]; then
-assignmentcnt=1
-fi
-
-PROGNAME=$(awk -F'=' -v n=$assignmentcnt '/TARGET[[:space:]]*=/{count++; if(count==n){gsub(/^[ \t]+|[ \t]+$/,"",$2); print $2}}' $OSCARPRO)
-}
-
 
 VERSION=`awk '/#define VERSION / { gsub(/"/, "", $3); print $3 }' ${SRC}/VERSION`
 if [[ ${VERSION} == *-* ]]; then
@@ -178,11 +89,18 @@ echo "osname='$OSNAME'"
 
 deb_file="${package_name}_${VERSION}-${OSNAME}_$archi-Qt6.deb"
 
-# if deb file exists, fatal error
-if [ -f "./$deb_file" ]; then
-    echo "destination file (./$deb_file) exists. fatal error"
-    exit
+remove_deb_file "$deb_file"
+test=$?
+if [ "$test" != "0" ]; then
+  echo "problem with deb deletion. test='$test'"
+  exit
 fi
+
+# if deb file exists, fatal error
+#if [ -f "./$deb_file" ]; then
+#    echo "destination file (./$deb_file) exists. fatal error"
+#    exit
+#fi
 
 getPkg libqt6printsupport
 libprintsup=$PKGNAME
