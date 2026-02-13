@@ -1,0 +1,346 @@
+# OSCAR Report File
+# Format: ORF 1.0
+# Source: System
+#
+# This file defines all OSCAR system reports. It is loaded into the database
+# at startup when a new version of OSCAR is detected. System reports appear
+# under the "System" branch of the report tree and cannot be modified by users.
+#
+# Macros available in SQL queries:
+#   #PROFILE_ID  - Replaced with the current profile's database ID (integer)
+#   #START_DATE  - Replaced with the start date in ISO format, quoted ('YYYY-MM-DD')
+#   #END_DATE    - Replaced with the end date in ISO format, quoted ('YYYY-MM-DD')
+#
+# Copyright (c) 2026 The OSCAR Team
+
+# ============================================================================
+# Daily Summaries
+# ============================================================================
+
+=== Folder: Daily Summaries ===
+
+=== Report: Daily Summaries/by Day ===
+Description: Daily data, one row per day, no aggregation
+Query: <<SQL
+SELECT
+  ds.date as Period,
+  ROUND(ds.ahi, 2) as AHI,
+  ROUND(ds.rdi, 2) as RDI,
+  ds.obstructive_count as OA,
+  ds.unclassified_count as UA,
+  ds.hypopnea_count as H,
+  ds.clear_airway_count as CA,
+  ds.rera_count as RERA,
+  ROUND(ds.pressure_avg, 2) as Pressure_Avg,
+  ROUND(ds.pressure_95th, 2) as Pressure_95th,
+  ROUND(ds.leak_total_avg, 2) as Leak_Avg,
+  ROUND(ds.leak_total_95th, 2) as Leak_95th,
+  ROUND(ds.mask_on_hours, 2) as Hours
+FROM daily_summaries ds
+WHERE ds.profile_id = #PROFILE_ID
+  AND ds.date >= #START_DATE
+  AND ds.date <= #END_DATE
+ORDER BY ds.date
+SQL
+
+=== Report: Daily Summaries/by Week ===
+Description: Weekly aggregation of daily data
+Query: <<SQL
+SELECT
+  strftime('%Y-W%W', ds.date) as Period,
+  MIN(ds.date) as Week_Start,
+  MAX(ds.date) as Week_End,
+  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as AHI,
+  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count) + SUM(ds.rera_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as RDI,
+  SUM(ds.obstructive_count) as OA,
+  SUM(ds.unclassified_count) as UA,
+  SUM(ds.hypopnea_count) as H,
+  SUM(ds.clear_airway_count) as CA,
+  SUM(ds.rera_count) as RERA,
+  ROUND(SUM(ds.pressure_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Pressure_Avg,
+  ROUND(AVG(ds.pressure_95th), 2) as Pressure_95th,
+  ROUND(SUM(ds.leak_total_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Leak_Avg,
+  ROUND(AVG(ds.leak_total_95th), 2) as Leak_95th,
+  ROUND(SUM(ds.mask_on_hours), 2) as Hours
+FROM daily_summaries ds
+WHERE ds.profile_id = #PROFILE_ID
+  AND ds.date >= #START_DATE
+  AND ds.date <= #END_DATE
+GROUP BY strftime('%Y-W%W', ds.date)
+ORDER BY Period
+SQL
+
+=== Report: Daily Summaries/by Month ===
+Description: Monthly aggregation of daily data
+Query: <<SQL
+SELECT
+  strftime('%Y-%m', ds.date) as Period,
+  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as AHI,
+  ROUND((SUM(ds.obstructive_count) + SUM(ds.unclassified_count) + SUM(ds.hypopnea_count) + SUM(ds.clear_airway_count) + SUM(ds.rera_count)) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as RDI,
+  SUM(ds.obstructive_count) as OA,
+  SUM(ds.unclassified_count) as UA,
+  SUM(ds.hypopnea_count) as H,
+  SUM(ds.clear_airway_count) as CA,
+  SUM(ds.rera_count) as RERA,
+  ROUND(SUM(ds.pressure_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Pressure_Avg,
+  ROUND(AVG(ds.pressure_95th), 2) as Pressure_95th,
+  ROUND(SUM(ds.leak_total_avg * ds.mask_on_hours) / NULLIF(SUM(ds.mask_on_hours), 0), 2) as Leak_Avg,
+  ROUND(AVG(ds.leak_total_95th), 2) as Leak_95th,
+  ROUND(SUM(ds.mask_on_hours), 2) as Hours
+FROM daily_summaries ds
+WHERE ds.profile_id = #PROFILE_ID
+  AND ds.date >= #START_DATE
+  AND ds.date <= #END_DATE
+GROUP BY strftime('%Y-%m', ds.date)
+ORDER BY Period
+SQL
+
+# ============================================================================
+# Session Summaries
+# ============================================================================
+
+=== Folder: Session Summaries ===
+
+=== Report: Session Summaries/by Session ===
+Description: Individual sessions, one row per session, no aggregation
+Query: <<SQL
+SELECT
+  date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,
+  ROUND(ss.ahi, 2) as AHI,
+  ROUND(ss.mask_on_hours, 2) as Hours,
+  ss.obstructive_count as OA,
+  ss.unclassified_count as UA,
+  ss.hypopnea_count as H,
+  ss.clear_airway_count as CA,
+  m.model as Machine
+FROM session_summaries ss
+JOIN sessions s ON ss.session_id = s.id
+JOIN machines m ON s.machine_id = m.id
+WHERE m.profile_id = #PROFILE_ID
+  AND Date >= #START_DATE
+  AND Date <= #END_DATE
+  AND s.enabled = 1
+  AND m.machine_TYPE <> 4
+ORDER BY s.start_time
+SQL
+
+=== Report: Session Summaries/by Day ===
+Description: Daily aggregation of session summaries
+Query: <<SQL
+SELECT
+  date(s.start_time/1000, 'unixepoch', 'localtime') as Period,
+  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,
+  SUM(ss.obstructive_count) as OA,
+  SUM(ss.unclassified_count) as UA,
+  SUM(ss.hypopnea_count) as H,
+  SUM(ss.clear_airway_count) as CA,
+  ROUND(SUM(ss.mask_on_hours), 2) as Hours
+FROM session_summaries ss
+JOIN sessions s ON ss.session_id = s.id
+JOIN machines m ON s.machine_id = m.id
+WHERE m.profile_id = #PROFILE_ID
+  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') >= #START_DATE
+  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') <= #END_DATE
+  AND s.enabled = 1
+  AND m.machine_TYPE < 4
+GROUP BY date(s.start_time/1000, 'unixepoch', 'localtime')
+ORDER BY Period
+SQL
+
+=== Report: Session Summaries/by Week ===
+Description: Weekly aggregation of session summaries
+Query: <<SQL
+SELECT
+  strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,
+  MIN(date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as Week_Start,
+  MAX(date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as Week_End,
+  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,
+  SUM(ss.obstructive_count) as OA,
+  SUM(ss.unclassified_count) as UA,
+  SUM(ss.hypopnea_count) as H,
+  SUM(ss.clear_airway_count) as CA,
+  ROUND(SUM(ss.mask_on_hours), 2) as Hours
+FROM session_summaries ss
+JOIN sessions s ON ss.session_id = s.id
+JOIN machines m ON s.machine_id = m.id
+WHERE m.profile_id = #PROFILE_ID
+  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') >= #START_DATE
+  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') <= #END_DATE
+  AND s.enabled = 1
+  AND m.machine_TYPE < 4
+GROUP BY strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime'))
+ORDER BY Period
+SQL
+
+=== Report: Session Summaries/by Month ===
+Description: Monthly aggregation of session summaries
+Query: <<SQL
+SELECT
+  strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,
+  ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,
+  SUM(ss.obstructive_count) as OA,
+  SUM(ss.unclassified_count) as UA,
+  SUM(ss.hypopnea_count) as H,
+  SUM(ss.clear_airway_count) as CA,
+  ROUND(SUM(ss.mask_on_hours), 2) as Hours
+FROM session_summaries ss
+JOIN sessions s ON ss.session_id = s.id
+JOIN machines m ON s.machine_id = m.id
+WHERE m.profile_id = #PROFILE_ID
+  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') >= #START_DATE
+  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') <= #END_DATE
+  AND s.enabled = 1
+  AND m.machine_TYPE < 4
+GROUP BY strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime'))
+ORDER BY Period
+SQL
+
+# ============================================================================
+# Other
+# ============================================================================
+
+=== Folder: Other ===
+
+=== Report: Other/Channels Used ===
+Description: Channels used by this user's profile
+Query: <<SQL
+SELECT
+  profile_id,
+  p.username,
+  channel_id,
+  printf('%X', channel_id) AS channel_id_hex,
+  label,
+  fullname,
+  description,
+  c.type,
+  CASE WHEN (c.type & 1) THEN 'DATA       ' ELSE '' END ||
+  CASE WHEN (c.type & 2) THEN 'SETTING    ' ELSE '' END ||
+  CASE WHEN (c.type & 4) THEN 'FLAG       ' ELSE '' END ||
+  CASE WHEN (c.type & 8) THEN 'MINOR_FLAG ' ELSE '' END ||
+  CASE WHEN (c.type & 16) THEN 'SPAN       ' ELSE '' END ||
+  CASE WHEN (c.type & 32) THEN 'WAVEFORM   ' ELSE '' END AS flags
+FROM channels c
+JOIN profiles p ON c.profile_id = p.id
+WHERE profile_id = #PROFILE_ID
+  AND EXISTS (
+    SELECT 1 FROM session_channels sc WHERE sc.channel_id = c.channel_id)
+ORDER BY c.channel_id
+SQL
+
+=== Report: Other/Device Settings ===
+Description: Machine configuration settings for all sessions
+Query: <<SQL
+SELECT
+  date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,
+  m.model as Machine,
+  st.channel_id as Channel_ID,
+  COALESCE(c.fullname, c.label, c.channel_code, 'Channel_' || st.channel_id) as Setting,
+  st.value as Value,
+  st.data_type as Type
+FROM session_settings st
+JOIN sessions s ON st.session_id = s.id
+JOIN machines m ON s.machine_id = m.id
+LEFT JOIN channels c ON c.profile_id = m.profile_id AND c.channel_id = st.channel_id
+WHERE m.profile_id = #PROFILE_ID
+  AND Date >= #START_DATE
+  AND Date <= #END_DATE
+ORDER BY s.start_time, st.channel_id
+SQL
+
+=== Report: Other/Profiles ===
+Description: All profiles in the database
+Query: <<SQL
+SELECT
+  p.id as Profile_ID,
+  p.username as Username,
+  p.data_folder as Data_Folder,
+  p.status as Status,
+  p.created_at as Created,
+  p.updated_at as Updated
+FROM profiles p
+ORDER BY p.username
+SQL
+
+=== Report: Other/Profiles with Data ===
+Description: Profiles that have imported CPAP data with date ranges
+Query: <<SQL
+SELECT
+  p.id as Profile_ID,
+  p.username as Username,
+  COUNT(DISTINCT m.id) as Machine_Count,
+  COUNT(DISTINCT s.id) as Session_Count,
+  MIN(date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as First_Date,
+  MAX(date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as Last_Date,
+  ROUND(SUM(s.duration) / 1000000.0 / 3600.0, 1) as Total_Hours
+FROM profiles p
+JOIN machines m ON m.profile_id = p.id
+JOIN sessions s ON s.machine_id = m.id
+WHERE s.enabled = 1
+GROUP BY p.id, p.username
+HAVING Session_Count > 0
+ORDER BY p.username
+SQL
+
+# ============================================================================
+# Statistics
+# ============================================================================
+
+=== Folder: Statistics ===
+
+=== Report: Statistics/Respiratory Events ===
+Description: Individual respiratory events with timestamps (AHI-contributing only)
+Query: <<SQL
+SELECT
+  p.username as Profile_Name,
+  date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,
+  c.fullname as Name,
+  c.label as Event_Type,
+  time(re.start_time/1000, 'unixepoch', 'localtime') as Start_Time,
+  time(re.end_time/1000, 'unixepoch', 'localtime') as End_Time,
+  re.duration as Duration_Seconds
+FROM respiratory_events re
+JOIN sessions s ON re.session_id = s.id
+JOIN profiles p ON re.profile_id = p.id
+JOIN channels c ON re.channel_id = c.channel_id AND c.profile_id = re.profile_id
+WHERE re.profile_id = #PROFILE_ID
+  AND Date >= #START_DATE
+  AND Date <= #END_DATE
+  AND s.enabled = 1
+  -- use re.event_type = 1 to see only AHI-contributing events
+  AND re.event_type = 1
+ORDER BY re.start_time
+SQL
+
+=== Report: Statistics/Sessions ===
+Description: Detailed per-session channel statistics (selected respiratory channels)
+Query: <<SQL
+SELECT
+  p.id,
+  p.username,
+  sc.channel_id,
+  -- subtract 43200 from time to get OSCAR day, which starts at noon
+  date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,
+  time(s.start_time/1000, 'unixepoch', 'localtime') as Start,
+  time(s.end_time/1000, 'unixepoch', 'localtime') as End,
+  s.duration/1000000 as seconds,
+  c.label,
+  sc.count,
+  ROUND(sc.sum,2) as Sum,
+  ROUND(sc.min,2) as Min,
+  ROUND(sc.avg,2) as Avg,
+  ROUND(sc.wavg,2) as Wavg,
+  ROUND(sc.median,2) as Med,
+  ROUND(sc.p90,2) as '%90',
+  ROUND(sc.p95,2) as '%95',
+  ROUND(sc.max,2) as Max
+FROM session_channels sc
+JOIN sessions s ON sc.session_id = s.id
+JOIN machines m ON s.machine_id = m.id
+JOIN profiles p ON m.profile_id = p.id
+LEFT JOIN channels c ON sc.channel_id = c.channel_id AND c.profile_id = p.id
+WHERE p.id = #PROFILE_ID
+  AND sc.channel_id IN (0x1101, 0x1102, 0x110e, 0x1105, 0x1106, 0x1113, 0x1108, 0x1104, 0x110b, 0x110a, 0x1103, 0x1201)
+  AND Date >= #START_DATE
+  AND Date <= #END_DATE
+ORDER BY s.start_time AND c.channel_id
+SQL
