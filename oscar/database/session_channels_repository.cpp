@@ -266,38 +266,10 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, qint64 profileId, co
         query.bindValue(17, data.lastTime);
         query.bindValue(18, data.gain);
 
-        if (data.channelId == 4355) {
-            qDebug() << "=== DEBUG BEFORE EXEC for channel 4355 ===";
-            qDebug() << "  data.median =" << data.median;
-            qDebug() << "  data.p90 =" << data.p90;
-            qDebug() << "  data.p95 =" << data.p95;
-            qDebug() << "  Bound values:";
-            qDebug() << "    [9] median =" << query.boundValue(9);
-            qDebug() << "    [10] p90 =" << query.boundValue(10);
-            qDebug() << "    [11] p95 =" << query.boundValue(11);
-        }
-
         if (!query.exec()) {
             qWarning() << "SessionChannelsRepository::saveBatch() failed:" << query.lastError().text();
             qWarning() << "Channel ID:" << data.channelId;
             return false;
-        }
-        
-        if (data.channelId == 4355) {
-            qDebug() << "=== DEBUG AFTER EXEC for channel 4355 ===";
-            // Read back what was written
-            QSqlQuery verifyQuery(db);
-            verifyQuery.prepare("SELECT median, p90, p95 FROM session_channels WHERE session_id = ? AND channel_id = ?");
-            verifyQuery.addBindValue(sessionId);
-            verifyQuery.addBindValue(data.channelId);
-            if (verifyQuery.exec() && verifyQuery.next()) {
-                qDebug() << "  Values in DB after insert:";
-                qDebug() << "    median =" << verifyQuery.value(0).toDouble();
-                qDebug() << "    p90 =" << verifyQuery.value(1).toDouble();
-                qDebug() << "    p95 =" << verifyQuery.value(2).toDouble();
-            } else {
-                qDebug() << "  Failed to verify values in DB:" << verifyQuery.lastError().text();
-            }
         }
     }
 

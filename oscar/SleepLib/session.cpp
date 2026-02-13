@@ -2099,8 +2099,8 @@ EventDataType Session::count(ChannelID id)
     QHash<ChannelID, EventDataType>::iterator i = m_cnt.find(id);
 
     if (i != m_cnt.end()) {
-        if (i.value() != static_cast<int>(i.value()))
-            qWarning() << "Session::count() says i != m_cnt.end, returning" << qSetRealNumberPrecision(9) <<  i.value();
+//        if (i.value() != static_cast<int>(i.value()))
+//            qDebug() << "Session::count() says i != m_cnt.end, returning" << qSetRealNumberPrecision(9) <<  i.value();
         return i.value();
     }
 
@@ -2123,8 +2123,8 @@ EventDataType Session::count(ChannelID id)
     }
 
     m_cnt[id] = sum;
-    if (sum != static_cast<int>(sum))
-        qWarning() << "Session::count() for channel" << id << "returning and setting m_cnt to" << qSetRealNumberPrecision(9) << sum;
+//    if (sum != static_cast<int>(sum))
+//        qDebug() << "Session::count() for channel" << id << "returning and setting m_cnt to" << qSetRealNumberPrecision(9) << sum;
     return sum;
 }
 
@@ -2927,22 +2927,10 @@ bool Session::StoreToDatabase()
                                 !eventlist[id].isEmpty() &&
                                 eventlist[id][0]->count() > 0;
 
-//            if (id == 4355) {
-//                qDebug() << "Session::StoreToDatabase: needsPercentiles for channel" << id << needsPercentiles;
-//                qDebug() << "Session::StoreToDatabase: has event data for channel" << id << hasEventData;
-//                qDebug() << "eventlist.find(id) == eventlist.end():" << (eventlist.find(id) == eventlist.end()) << "should be false";
-//                qDebug() << "is eventlist[id] empty():" << eventlist[id].isEmpty() << "should be false";
-//                qDebug() << "eventlist[id][0]->count:" << eventlist[id][0]->count() << "should be greater than 0";
- //           }
-
             PERF_TIMER_START("Session::StoreDB::Channels::Calc");
             if (hasEventData) {
                 // Use optimized multi-percentile calculator (~3x faster than calling percentile() 3 times)
                 PercentilesResult percentiles = calculatePercentiles(id);
-//                if (id == 4355) {
-//                    qDebug() << "Session::StoreToDatabase: precentiles.valid" << percentiles.valid << "for channel" << id;
-//                    qDebug() << "percentiles P90:" << percentiles.p90 << "P95:" << percentiles.p95;
-//                }
                 if (percentiles.valid) {
                     channel.median = percentiles.median;
                     channel.p90 = percentiles.p90;
@@ -2969,10 +2957,7 @@ bool Session::StoreToDatabase()
             // Physical min/max from cached values
             channel.physMin = m_physmin.value(id, 0);
             channel.physMax = m_physmax.value(id, 0);
-            
-            if (id == 4355) {
-                qDebug() << "channel settings, P90:" << channel.p90 << "P95:" << channel.p95;
-            }
+
             channelsList.append(channel);
         }
 
