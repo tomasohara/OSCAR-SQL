@@ -55,6 +55,8 @@ qint64 SessionRepository::create(const SessionData& data)
         qWarning() << "SessionRepository::create() failed:" << query.lastError().text();
         return -1;
     }
+    if (data.summaryOnly)
+        qDebug() << "Session::create() summary only session" << data.sessionId;
 
     return query.lastInsertId().toLongLong();
 }
@@ -92,6 +94,9 @@ bool SessionRepository::update(const SessionData& data)
         qWarning() << "SessionRepository::update() failed:" << query.lastError().text();
         return false;
     }
+
+    if (data.summaryOnly)
+        qDebug() << "Session::update() summary only session" << data.sessionId;
 
     return true;
 }

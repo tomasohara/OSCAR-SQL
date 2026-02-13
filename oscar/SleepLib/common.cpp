@@ -1156,3 +1156,4 @@ void saveUserPath(QString folderName , QString pathName) {
     QSettings settings;
     settings.setValue("SavedPath/"+folderName, pathName);
 }
+

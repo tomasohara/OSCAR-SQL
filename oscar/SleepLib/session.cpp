@@ -43,7 +43,7 @@
 
 using namespace std;
 #define FIX_FOR_SINGLE_EVENT            // fixes ibreeze "No valuesummary for channel" error during import.
-#define DBDEBUG                       // for maximum diagnostics
+//#define DBDEBUG                       // for maximum diagnostics
 
 // This is the uber important database version for OSCAR's internal storage
 // Increment this after stuffing with Session's save & load code.
@@ -2523,6 +2523,7 @@ Session::PercentilesResult Session::calculatePercentiles(ChannelID id)
 
     auto ei = m_valuesummary.find(id);
     if (ei == m_valuesummary.end()) {
+        qWarning() << "Session::calculatePercentiles() - no value summary for channel" << id << QString::number(id, 16);
         return result; // valid = false
     }
 
@@ -2531,7 +2532,7 @@ Session::PercentilesResult Session::calculatePercentiles(ChannelID id)
     
     if (!timeweight) {
         // Fallback: no time summary available
-        qWarning() << "Session::calculatePercentiles() - no time summary for channel" << QString::number(id, 16);
+        qWarning() << "Session::calculatePercentiles() - no time summary for channel" << id << QString::number(id, 16);
         return result; // valid = false
     }
 
@@ -2549,6 +2550,7 @@ Session::PercentilesResult Session::calculatePercentiles(ChannelID id)
 
     if (SN == 0) {
         return result; // valid = false
+        qDebug() << "Session::calculatePercentiles has zero time weight for channel" << id << QString::number(id, 16) << "percentile calcs skipped";
     }
 
     // Build sorted list of value/counts
@@ -2921,14 +2923,26 @@ bool Session::StoreToDatabase()
 
             // Check if eventlist actually contains data for this channel
             bool hasEventData = needsPercentiles &&
-                                (eventlist.find(id) != eventlist.end()) && 
-                                !eventlist[id].isEmpty() && 
+                                (eventlist.find(id) != eventlist.end()) &&
+                                !eventlist[id].isEmpty() &&
                                 eventlist[id][0]->count() > 0;
+
+//            if (id == 4355) {
+//                qDebug() << "Session::StoreToDatabase: needsPercentiles for channel" << id << needsPercentiles;
+//                qDebug() << "Session::StoreToDatabase: has event data for channel" << id << hasEventData;
+//                qDebug() << "eventlist.find(id) == eventlist.end():" << (eventlist.find(id) == eventlist.end()) << "should be false";
+//                qDebug() << "is eventlist[id] empty():" << eventlist[id].isEmpty() << "should be false";
+//                qDebug() << "eventlist[id][0]->count:" << eventlist[id][0]->count() << "should be greater than 0";
+ //           }
 
             PERF_TIMER_START("Session::StoreDB::Channels::Calc");
             if (hasEventData) {
                 // Use optimized multi-percentile calculator (~3x faster than calling percentile() 3 times)
                 PercentilesResult percentiles = calculatePercentiles(id);
+//                if (id == 4355) {
+//                    qDebug() << "Session::StoreToDatabase: precentiles.valid" << percentiles.valid << "for channel" << id;
+//                    qDebug() << "percentiles P90:" << percentiles.p90 << "P95:" << percentiles.p95;
+//                }
                 if (percentiles.valid) {
                     channel.median = percentiles.median;
                     channel.p90 = percentiles.p90;
@@ -2956,6 +2970,9 @@ bool Session::StoreToDatabase()
             channel.physMin = m_physmin.value(id, 0);
             channel.physMax = m_physmax.value(id, 0);
             
+            if (id == 4355) {
+                qDebug() << "channel settings, P90:" << channel.p90 << "P95:" << channel.p95;
+            }
             channelsList.append(channel);
         }
 
@@ -3015,6 +3032,7 @@ bool Session::StoreToDatabase()
     // 5. Save summary statistics to session_summaries table
     PERF_TIMER_START("Session::StoreDB::Summaries");
     // Now that m_database_id is set, we can store the calculated summary data
+    // already done?
     StoreSummaryToDatabase();
     PERF_TIMER_STOP("Session::StoreDB::Summaries");
 
@@ -3045,7 +3063,7 @@ bool Session::LoadFromDatabase()
         qWarning() << "Session::LoadFromDatabase(): Session" << s_session << "not found in database";
         return false;
     }
-    
+
     // Store database ID for future updates
     m_database_id = sessionData.id;
     
@@ -3059,6 +3077,9 @@ bool Session::LoadFromDatabase()
 #ifdef DBDEBUG
     qDebug() << "Session::LoadFromDatabase(): Loading session" << s_session
              << "from database ID" << m_database_id;
+    if (s_summaryOnly)
+        qDebug() << "Session::LoadFromDatabase(): Session" << s_session
+                 << "is a summary only sesson";
 #endif
 
     // 2. Load settings
@@ -3206,7 +3227,7 @@ bool Session::LoadFromDatabase()
     // GTS: Nothing optional about it. Summary data ALWAYS exists.
     SessionSummaryData summaryData = summariesRepo.findBySession(m_database_id);
 #ifdef DBDEBUG
-    if (sessionData.summaryOnly) {
+    if (s_summaryOnly) {
         // Summary data is available - we could use it to pre-populate
         // some calculated values, but for now we'll just log it
         qDebug() << "Session::LoadFromDatabase(): Found summary data - AHI:" 
@@ -3217,7 +3238,7 @@ bool Session::LoadFromDatabase()
     // For summary-only sessions, restore m_cnt from session_summaries
     // This is necessary because summary-only sessions don't have event data
     // stored in session_channels, but the event counts are stored in session_summaries
-    if (sessionData.summaryOnly) {
+    if (s_summaryOnly) {
         double sessionHours = summaryData.hoursUsed;
 #ifdef DBDEBUG
         qDebug() << "Session::LoadFromDatabase(): Found summary only session, SummaryData.id" << summaryData.id;
@@ -3281,6 +3302,10 @@ bool Session::LoadFromDatabase()
 
 bool Session::StoreSummaryToDatabase()
 {
+#ifdef DBDEBUG
+    qDebug() << "Session::StoreSummaryToDatabase() entered";
+#endif
+
     if (m_database_id == 0) {
         qWarning() << "Session::StoreSummaryToDatabase() - session not in database";
         return false;

@@ -829,7 +829,7 @@ void edfDebugInit();
 
     qDebug() << "About to call finishAddingSessions()";
     finishAddingSessions();
-    qDebug() << "Finshed finishedAddingSessions() with" << sessionCount << "new sessions";
+    qDebug() << "Finshed finishAddingSessions() with" << sessionCount << "new sessions";
     
     // Save machine and all sessions to database
     mach->Save();

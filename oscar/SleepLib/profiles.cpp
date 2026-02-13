@@ -8,7 +8,9 @@
  * for more details. */
 
 #define TEST_MACROS_ENABLEDoff
-#include <test_macros.h>
+//#define DBDEBUG
+
+#include "test_macros.h"
 
 #include <QString>
 #include <QDateTime>
@@ -1486,7 +1488,8 @@ Profile *Create(QString name, const QString* in_path)
             qWarning() << "Profiles::Create() - Failed to create profile in database";
         }
     } else {
-        qDebug() << "Profiles::Create() - Profile already exists in database with id" << existing.id;
+        if (existing.id != 0)  // zero is special first-user case
+            qDebug() << "Profiles::Create() - Profile already exists in database with id" << existing.id;
     }
 
     return p_profile;
@@ -2945,10 +2948,12 @@ void Profile::calculateDailySummaries()
     int skippedNoSessions = 0;
     int skippedNotCPAP = 0;
     int totalDays = 0;
-    
-//    qDebug() << "Profile::calculateDailySummaries() - Starting, m_machlist.size() =" << m_machlist.size();
-//    qDebug() << "Profile::calculateDailySummaries() - daylist.size() =" << daylist.size();
-    
+
+#ifdef DBDEBUG
+    qDebug() << "Profile::calculateDailySummaries() - Starting, m_machlist.size() =" << m_machlist.size();
+    qDebug() << "Profile::calculateDailySummaries() - daylist.size() =" << daylist.size();
+#endif
+
     // Iterate through all machines and their days
     for (Machine* mach : m_machlist) {
         if (!mach) {
@@ -2956,18 +2961,20 @@ void Profile::calculateDailySummaries()
             continue;
         }
         
-//        qDebug() << "Profile::calculateDailySummaries() - Machine" << mach->brand() << mach->model()
-//                 << "type" << mach->type() << "day.size() =" << mach->day.size();
-        
+#ifdef DBDEBUG
+        qDebug() << "Profile::calculateDailySummaries() - Machine" << mach->brand() << mach->model()
+                 << "type" << mach->type() << "day.size() =" << mach->day.size();
+#endif
         // Process CPAP and other therapy machines
         if (mach->type() != MT_CPAP && mach->type() != MT_OXIMETER && mach->type() != MT_SLEEPSTAGE && mach->type() != MT_POSITION) {
             skippedNotCPAP++;
             continue;
         }
         
-//        qDebug() << "Profile::calculateDailySummaries() - Processing machine" << mach->brand() << mach->model()
-//                 << "type" << mach->type() << "with" << mach->day.size() << "days";
-        
+#ifdef DBDEBUG
+        qDebug() << "Profile::calculateDailySummaries() - Processing machine" << mach->brand() << mach->model()
+                 << "type" << mach->type() << "with" << mach->day.size() << "days";
+#endif
         // Iterate through machine's days
         for (auto it = mach->day.begin(); it != mach->day.end(); ++it) {
             Day* day = it.value();
@@ -2979,16 +2986,19 @@ void Profile::calculateDailySummaries()
                 continue;
             }
             
-//            qDebug() << "Profile::calculateDailySummaries() - Day" << day->date() << "has" << day->sessions.size() << "sessions";
-            
+#ifdef DBDEBUG
+            qDebug() << "Profile::calculateDailySummaries() - Day" << day->date() << "has" << day->sessions.size() << "sessions";
+#endif
+
             if (!day->hasEnabledSessions()) {
                 skippedNoSessions++;
                 qDebug() << "Profile::calculateDailySummaries() - Skipping day" << day->date() << "- no enabled sessions";
                 continue;  // Skip days without enabled sessions
             }
             
-//            qDebug() << "Profile::calculateDailySummaries() - Calculating for day" << day->date();
-            
+#ifdef DBDEBUG
+            qDebug() << "Profile::calculateDailySummaries() - Calculating for day" << day->date();
+#endif
             // Ensure summaries are loaded before calculating
             day->OpenSummary();
             
@@ -2997,7 +3007,7 @@ void Profile::calculateDailySummaries()
             // rather than creating separate entries per machine
             if (summaryRepo.calculateAndStoreFromDay(day, profileId, 0)) {
                 calculatedCount++;
-//                qDebug() << "Profile::calculateDailySummaries() - SUCCESS for day" << day->date();
+                qDebug() << "Profile::calculateDailySummaries() - SUCCESS for day" << day->date();
             } else {
                 qWarning() << "Profile::calculateDailySummaries() - Failed to store summary for day" << day->date();
             }

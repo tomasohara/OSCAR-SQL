@@ -37,12 +37,13 @@ qint64 SessionChannelsRepository::create(const SessionChannelData& data)
     QSqlQuery query(db);
     query.prepare(
         "INSERT INTO session_channels "
-        "(session_id, channel_id, count, sum, avg, wavg, min, max, median, p90, p95, "
+        "(session_id, profile_id, channel_id, count, sum, avg, wavg, min, max, median, p90, p95, "
         " phys_min, phys_max, cph, sph, first_time, last_time, gain) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
 
     query.addBindValue(data.sessionId);
+    query.addBindValue(data.profileId);  // FIX: Added missing profile_id binding
     query.addBindValue(data.channelId);
     query.addBindValue(data.count);
     query.addBindValue(data.sum);
@@ -124,7 +125,7 @@ QList<SessionChannelData> SessionChannelsRepository::findBySession(qint64 sessio
 
     QSqlQuery query(db);
     query.prepare(
-        "SELECT id, session_id, channel_id, count, sum, avg, wavg, min, max, "
+        "SELECT id, session_id, profile_id, channel_id, count, sum, avg, wavg, min, max, "
         "median, p90, p95, phys_min, phys_max, cph, sph, first_time, last_time, gain, created_at "
         "FROM session_channels WHERE session_id = ?"
     );
@@ -139,24 +140,25 @@ QList<SessionChannelData> SessionChannelsRepository::findBySession(qint64 sessio
         SessionChannelData data;
         data.id = query.value(0).toLongLong();
         data.sessionId = query.value(1).toLongLong();
-        data.channelId = query.value(2).toInt();
-        data.count = query.value(3).toInt();
-        data.sum = query.value(4).toDouble();
-        data.avg = query.value(5).toDouble();
-        data.wavg = query.value(6).toDouble();
-        data.min = query.value(7).toDouble();
-        data.max = query.value(8).toDouble();
-        data.median = query.value(9).toDouble();
-        data.p90 = query.value(10).toDouble();
-        data.p95 = query.value(11).toDouble();
-        data.physMin = query.value(12).toDouble();
-        data.physMax = query.value(13).toDouble();
-        data.cph = query.value(14).toDouble();
-        data.sph = query.value(15).toDouble();
-        data.firstTime = query.value(16).toLongLong();
-        data.lastTime = query.value(17).toLongLong();
-        data.gain = query.value(18).toDouble();
-        data.createdAt = query.value(19).toDateTime();
+        data.profileId = query.value(2).toLongLong();  // FIX: Added missing profile_id read
+        data.channelId = query.value(3).toInt();
+        data.count = query.value(4).toInt();
+        data.sum = query.value(5).toDouble();
+        data.avg = query.value(6).toDouble();
+        data.wavg = query.value(7).toDouble();
+        data.min = query.value(8).toDouble();
+        data.max = query.value(9).toDouble();
+        data.median = query.value(10).toDouble();
+        data.p90 = query.value(11).toDouble();
+        data.p95 = query.value(12).toDouble();
+        data.physMin = query.value(13).toDouble();
+        data.physMax = query.value(14).toDouble();
+        data.cph = query.value(15).toDouble();
+        data.sph = query.value(16).toDouble();
+        data.firstTime = query.value(17).toLongLong();
+        data.lastTime = query.value(18).toLongLong();
+        data.gain = query.value(19).toDouble();
+        data.createdAt = query.value(20).toDateTime();
         result.append(data);
     }
 
@@ -175,7 +177,7 @@ SessionChannelData SessionChannelsRepository::findByChannel(qint64 sessionId, in
 
     QSqlQuery query(db);
     query.prepare(
-        "SELECT id, session_id, channel_id, count, sum, avg, wavg, min, max, "
+        "SELECT id, session_id, profile_id, channel_id, count, sum, avg, wavg, min, max, "
         "median, p90, p95, phys_min, phys_max, cph, sph, first_time, last_time, gain, created_at "
         "FROM session_channels WHERE session_id = ? AND channel_id = ?"
     );
@@ -190,24 +192,25 @@ SessionChannelData SessionChannelsRepository::findByChannel(qint64 sessionId, in
     if (query.next()) {
         data.id = query.value(0).toLongLong();
         data.sessionId = query.value(1).toLongLong();
-        data.channelId = query.value(2).toInt();
-        data.count = query.value(3).toInt();
-        data.sum = query.value(4).toDouble();
-        data.avg = query.value(5).toDouble();
-        data.wavg = query.value(6).toDouble();
-        data.min = query.value(7).toDouble();
-        data.max = query.value(8).toDouble();
-        data.median = query.value(9).toDouble();
-        data.p90 = query.value(10).toDouble();
-        data.p95 = query.value(11).toDouble();
-        data.physMin = query.value(12).toDouble();
-        data.physMax = query.value(13).toDouble();
-        data.cph = query.value(14).toDouble();
-        data.sph = query.value(15).toDouble();
-        data.firstTime = query.value(16).toLongLong();
-        data.lastTime = query.value(17).toLongLong();
-        data.gain = query.value(18).toDouble();
-        data.createdAt = query.value(19).toDateTime();
+        data.profileId = query.value(2).toLongLong();  // FIX: Added missing profile_id read
+        data.channelId = query.value(3).toInt();
+        data.count = query.value(4).toInt();
+        data.sum = query.value(5).toDouble();
+        data.avg = query.value(6).toDouble();
+        data.wavg = query.value(7).toDouble();
+        data.min = query.value(8).toDouble();
+        data.max = query.value(9).toDouble();
+        data.median = query.value(10).toDouble();
+        data.p90 = query.value(11).toDouble();
+        data.p95 = query.value(12).toDouble();
+        data.physMin = query.value(13).toDouble();
+        data.physMax = query.value(14).toDouble();
+        data.cph = query.value(15).toDouble();
+        data.sph = query.value(16).toDouble();
+        data.firstTime = query.value(17).toLongLong();
+        data.lastTime = query.value(18).toLongLong();
+        data.gain = query.value(19).toDouble();
+        data.createdAt = query.value(20).toDateTime();
     }
 
     return data;
@@ -263,10 +266,38 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, qint64 profileId, co
         query.bindValue(17, data.lastTime);
         query.bindValue(18, data.gain);
 
+        if (data.channelId == 4355) {
+            qDebug() << "=== DEBUG BEFORE EXEC for channel 4355 ===";
+            qDebug() << "  data.median =" << data.median;
+            qDebug() << "  data.p90 =" << data.p90;
+            qDebug() << "  data.p95 =" << data.p95;
+            qDebug() << "  Bound values:";
+            qDebug() << "    [9] median =" << query.boundValue(9);
+            qDebug() << "    [10] p90 =" << query.boundValue(10);
+            qDebug() << "    [11] p95 =" << query.boundValue(11);
+        }
+
         if (!query.exec()) {
             qWarning() << "SessionChannelsRepository::saveBatch() failed:" << query.lastError().text();
             qWarning() << "Channel ID:" << data.channelId;
             return false;
+        }
+        
+        if (data.channelId == 4355) {
+            qDebug() << "=== DEBUG AFTER EXEC for channel 4355 ===";
+            // Read back what was written
+            QSqlQuery verifyQuery(db);
+            verifyQuery.prepare("SELECT median, p90, p95 FROM session_channels WHERE session_id = ? AND channel_id = ?");
+            verifyQuery.addBindValue(sessionId);
+            verifyQuery.addBindValue(data.channelId);
+            if (verifyQuery.exec() && verifyQuery.next()) {
+                qDebug() << "  Values in DB after insert:";
+                qDebug() << "    median =" << verifyQuery.value(0).toDouble();
+                qDebug() << "    p90 =" << verifyQuery.value(1).toDouble();
+                qDebug() << "    p95 =" << verifyQuery.value(2).toDouble();
+            } else {
+                qDebug() << "  Failed to verify values in DB:" << verifyQuery.lastError().text();
+            }
         }
     }
 

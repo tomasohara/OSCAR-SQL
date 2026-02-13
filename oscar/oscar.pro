@@ -188,6 +188,7 @@ macx  {
 } else:win32 {
     DEFINES          += WINVER=0x0501 # needed for mingw to pull in appropriate dbt business...probably a better way to do this
     LIBS             += -lsetupapi
+    LIBS             += -ldbghelp # needed for call stack with names rather than addresses
 
     INCLUDEPATH += $$PWD
     INCLUDEPATH += $$[QT_INSTALL_PREFIX]/../src/qtbase/src/3rdparty/zlib

@@ -901,9 +901,9 @@ void MainWindow::importCPAPBackups()
         Q_FOREACH(ImportPath path, paths) {
             c+=importCPAP(path, tr("Please wait, importing from backup folder(s)..."));
         }
-        if (c>0) {
-            finishCPAPImport();
-        }
+//        if (c>0) {
+//            finishCPAPImport();
+//        }
     }
 }
 
@@ -1310,7 +1310,7 @@ void MainWindow::importCPAPDataCards(const QList<ImportPath> & datacards)
     }
 
     if (newdata)  {
-        finishCPAPImport();
+//        finishCPAPImport();
         PopulatePurgeMenu();
     }
 }
