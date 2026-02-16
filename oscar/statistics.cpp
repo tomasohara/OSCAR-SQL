@@ -1174,6 +1174,7 @@ bool machineCompareFirstDay(Machine* left, Machine *right) {
 
 QString Statistics::GenerateMachineList()
 {
+    qDebug() << "Statistics::GenerateMachineList: entered";
     QList<Machine *> cpap_machines = p_profile->GetMachines(MT_CPAP);
     QList<Machine *> oximeters = p_profile->GetMachines(MT_OXIMETER);
     QList<Machine *> mach;
@@ -1237,6 +1238,7 @@ QString Statistics::GenerateRXChanges()
     if (cpap_machines.isEmpty())
         return "";
 
+    qDebug() << "Statistics::GenerateRXChanges: entered";
     // do the actual data sorting...
     updateRXChanges();
 
@@ -1353,6 +1355,7 @@ QString Statistics::getRDIorAHIText() {
 QString Statistics::GenerateCPAPUsage()
 {
     PERF_TIMER_SCOPE("Statistics::GenerateCPAPUsage()");
+    qDebug() << "Statistics::GenerateCPAPUsage: entered";
 
     summaryInfo.clear(p_profile->FirstDay(),p_profile->LastDay());
     QList<Machine *> cpap_machines = p_profile->GetMachines(MT_CPAP);
@@ -1618,6 +1621,7 @@ QString Statistics::GenerateCPAPUsage()
 QString Statistics::GenerateHTML()
 {
     PERF_TIMER_SCOPE("Statistics::GenerateHTML()");
+    qDebug() << "Statistics::GenerateHTML: entered";
     initAlternatingColor();
     htmlReportHeader = generateHeader(true);
     htmlReportHeaderPrint = generateHeader(false);

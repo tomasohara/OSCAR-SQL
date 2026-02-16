@@ -240,7 +240,7 @@ bool DailySummaryRepository::calculateAndStoreFromDay(Day* day, qint64 profileId
     
     // Check if we got any meaningful data (CPAP or oximetry)
     if (data.totalHours <= 0) {
-        qDebug() << "DailySummaryRepository: Skipping" << data.date << "- no session hours";
+        qDebug() << "DailySummaryRepository::calculateAndStoreFromDay: Skipping" << data.date << "- no session hours";
         return false;
     }
     
@@ -248,12 +248,12 @@ bool DailySummaryRepository::calculateAndStoreFromDay(Day* day, qint64 profileId
     qint64 id = create(data);
     
     if (id > 0) {
-//        qDebug() << "DailySummaryRepository: Stored daily summary for" << data.date
+//        qDebug() << "DailySummaryRepository::calculateAndStoreFromDay: Stored daily summary for" << data.date
 //                 << "AHI:" << data.ahi << "Hours:" << data.totalHours
 //                 << "Machine:" << data.machineId;
         return true;
     } else {
-        qWarning() << "DailySummaryRepository: Failed to store daily summary for" << data.date;
+        qWarning() << "DailySummaryRepository::calculateAndStoreFromDay: Failed to store daily summary for" << data.date;
     }
     
     return false;

@@ -772,7 +772,9 @@ void MainWindow::Startup()
 
 int MainWindow::importCPAP(ImportPath import, const QString &message)
 {
+    qDebug() << "MainWindow::importCPAP entered";
     if (!import.loader) {
+        qDebug() << "MainWindow::importCPAP no import loader found";
         return 0;
     }
 
@@ -805,6 +807,7 @@ int MainWindow::importCPAP(ImportPath import, const QString &message)
     connect(import.loader, &MachineLoader::deviceIsUnsupported, &importui, &ImportUI::onDeviceIsUnsupported);
 
     // Start a single transaction for the entire import to dramatically improve performance
+    qDebug() << "MainWindow::importCPAP starting entire import transaction";
     DatabaseManager& dbMgr = DatabaseManager::instance();
     if (!dbMgr.transaction()) {
         qWarning() << "MainWindow::importCPAP() - Failed to start database transaction";
@@ -817,6 +820,7 @@ int MainWindow::importCPAP(ImportPath import, const QString &message)
     ctx->Commit();
 
     // Commit the transaction after all import operations are complete
+    qDebug() << "MainWindow::importCPAP committing import transaction";
     if (!dbMgr.commit()) {
         qWarning() << "MainWindow::importCPAP() - Failed to commit database transaction";
     }
@@ -854,23 +858,27 @@ void MainWindow::updateOverview()
 }
 void MainWindow::finishCPAPImport()
 {
+    qDebug() << "MainWindow::finishCPAPImport(): entered";
+
     if (daily)
         daily->Unload(daily->getDate());
 
     // IMPORTANT: Save machines first so they have database IDs
-    p_profile->StoreMachines();
+//    p_profile->StoreMachines();
     
-    // CRITICAL: Now save all sessions to database
+    // CRITICAL: Now save all sessions to database -- has already been done (?)savesession
     // This was missing - sessions were never being saved!
-    QList<Machine *> machines = p_profile->GetMachines(MT_CPAP);
-    for (Machine * mach : machines) {
-        qDebug() << "MainWindow::finishCPAPImport(): Saving" << mach->sessionlist.size() << "sessions for machine" << mach->serial();
-        mach->Save();  // This saves sessions to database
-        mach->saveSessionInfo();
-        mach->SaveSummaryCache();
-    }
+//    QList<Machine *> machines = p_profile->GetMachines(MT_CPAP);
+//    for (Machine * mach : machines) {
+//        qDebug() << "MainWindow::finishCPAPImport(): Saving" << mach->sessionlist.size() << "sessions for machine" << mach->serial();
+//        mach->Save();  // This saves sessions to database
+//        mach->saveSessionInfo();
+//        mach->SaveSummaryCache();
+//    }
 
+    qDebug() << "MainWindow::finishCPAPImport(): calling GenerateStatistics";
     GenerateStatistics();
+    qDebug() << "MainWindow::finishCPAPImport(): calling updateProfileList";
     profileSelector->updateProfileList();
 
     if (welcome)
@@ -884,6 +892,7 @@ void MainWindow::finishCPAPImport()
     if (AppSetting->openTabAfterImport()>0) {
         ui->tabWidget->setCurrentIndex(AppSetting->openTabAfterImport());
     }
+    qDebug() << "MainWindow::finishCPAPImport(): returning to caller";
 
 }
 
@@ -901,9 +910,9 @@ void MainWindow::importCPAPBackups()
         Q_FOREACH(ImportPath path, paths) {
             c+=importCPAP(path, tr("Please wait, importing from backup folder(s)..."));
         }
-//        if (c>0) {
-//            finishCPAPImport();
-//        }
+        if (c>0) {
+            finishCPAPImport();
+        }
     }
 }
 
@@ -1288,6 +1297,8 @@ void MainWindow::importCPAPDataCards(const QList<ImportPath> & datacards)
 {
     bool newdata = false;
 
+    qDebug() << "MainWindow::importCPAPDataCards: entered";
+
     int c = -1;
     for (int i = 0; i < datacards.size(); i++) {
         QString dir = datacards[i].path;
@@ -1296,7 +1307,7 @@ void MainWindow::importCPAPDataCards(const QList<ImportPath> & datacards)
 
         if (!dir.isEmpty()) {
             c = importCPAP(datacards[i], tr("Importing Data"));
-            qDebug() << "Finished Importing data" << c;
+            qDebug() << "MainWindow::importCPAPDataCards: Finished importing data for machine" << i << "with" << c << "sessions";
 
             if (c >= 0) {
                 QDir d(dir.section("/",0,-1));
@@ -1307,10 +1318,13 @@ void MainWindow::importCPAPDataCards(const QList<ImportPath> & datacards)
                 newdata = true;
             }
         }
+        else
+            qDebug() << "MainWindow::importCPAPDataCards: Dir is empty for machine" << i;
+
     }
 
     if (newdata)  {
-//        finishCPAPImport();
+        finishCPAPImport();
         PopulatePurgeMenu();
     }
 }

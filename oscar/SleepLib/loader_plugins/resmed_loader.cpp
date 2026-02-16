@@ -403,7 +403,7 @@ int ResmedLoader::Open(const QString & dirpath)
 void edfDebugInit();
     edfDebugInit();
 #endif
-    qDebug() << "Starting ResmedLoader::Open( with " << dirpath << ")";
+    qDebug() << "ResmedLoader::Open starting ( with " << dirpath << ")";
     QString datalogPath;
     QHash<QString, QString> idmap;  // Temporary device ID properties hash
 
@@ -428,7 +428,7 @@ void edfDebugInit();
 
     // Check DATALOG folder exists and is readable
     if (!QDir().exists(datalogPath)) {
-        qDebug() << "Missing DATALOG in" << dirpath;
+        qDebug() << "ResmedLoader::Open: Missing DATALOG in" << dirpath;
         return -1;
     }
 
@@ -436,22 +436,22 @@ void edfDebugInit();
     MachineInfo info = newInfo();
 
     if ( ! parseIdentFile(importPath, & info, idmap) ) {
-        qDebug() << "Failed to parse Identification file";
+        qDebug() << "ResmedLoader::Open: Failed to parse Identification file";
         return -1;
     }
 
-    qDebug() << "Info:" << info.series << info.model << info.modelnumber << info.serial;
+    qDebug() << "ResmedLoader::Open Info:" << info.series << info.model << info.modelnumber << info.serial;
     DEBUGCI  O(info.modelnumber) Q(info.series) Q(info.model) O(info.serial);
 #ifdef IDENT_DEBUG
-    qDebug() << "IdMap size:" << idmap.size();
+    qDebug() << "ResmedLoader::Open: IdMap size:" << idmap.size();
     foreach ( QString st , idmap.keys() ) {
-        qDebug() << "Key" << st << "Value" << idmap[st];
+        qDebug() << "ResmedLoader::Open: Key" << st << "Value" << idmap[st];
     }
 #endif
 
     // Abort if no serial number
     if (info.serial.isEmpty()) {
-        qDebug() << "ResMed Data card is missing serial number in Indentification.tgt";
+        qDebug() << "ResmedLoader::Open: ResMed Data card is missing serial number in Indentification.tgt";
         return -1;
     }
 
@@ -479,7 +479,7 @@ void edfDebugInit();
         f.setFileName(secpath);
         strpath = secpath;
         if (!f.exists()) {
-            qDebug() << "Missing STR.edf file";
+            qDebug() << "ResmedLoader::Open: Missing STR.edf file";
             return -1;
         }
     }
@@ -492,7 +492,7 @@ void edfDebugInit();
 
     Machine *mach = p_profile->lookupMachine(info.serial, info.loadername);
     if ( mach ) {       // we have seen this device
-        qDebug() << "We have seen this machime";
+        qDebug() << "ResmedLoader::Open: We have seen this machime";
         mach->setInfo( info );                      // update info
         QDate lastDate = mach->LastDay();           // use the last day for this device
         firstImportDay = lastDate;                  // re-import the last day, to  pick up partial days
@@ -503,7 +503,7 @@ void edfDebugInit();
 //      firstImportDay = lastDate.addDays(-1);      // start the day before, to  pick up partial days
 //      firstImportDay = lastDate.addDays(1);       // start the day after until we  figure out the purge
     } else {            // Starting from new beginnings - new or purged
-        qDebug() << "New device or just purged";
+        qDebug() << "VNew device or just purged";
         p_profile->forceResmedPrefs();
         #if defined(INCLUDE_AS_MODEL_VERIFICATION)
         int modelNum = info.modelnumber.toInt();
@@ -524,7 +524,7 @@ void edfDebugInit();
 
     if (ignoreOldSessions && (ignoreBefore.date() > firstImportDay))
         firstImportDay = ignoreBefore.date();
-    qDebug() << "First day to import: " << firstImportDay.toString();
+    qDebug() << "ResmedLoader::Open: First day to import: " << firstImportDay.toString();
 
     bool rebuild_from_backups = false;
     bool create_backups = p_profile->session->backupCardData();
@@ -622,15 +622,15 @@ void edfDebugInit();
             bool addToSTRmap = true;
             QDate date = stredf->edfHdr.startdate_orig.date();
             long int days = stredf->GetNumDataRecords();
-            qDebug() << importFile.section("/",-3,-1) << "starts at" << date << "for" << days << "ends" << date.addDays(days-1);
+            qDebug() << "ResmedLoader::Open:" << importFile.section("/",-3,-1) << "starts at" << date << "for" << days << "ends" << date.addDays(days-1);
             if (STRmap.contains(date)) {        // Keep the longer of the two STR files - or newer if equal!
                 qDebug().noquote() << importFile.section("/",-3,-1) << "overlaps" << STRmap[date].filename.section("/",-3,-1) << "for" << days << "days, ends" << date.addDays(days-1);
                 if (days >= STRmap[date].days) {
-                    qDebug() << "Removing" << STRmap[date].filename.section("/",-3,-1) << "with" << STRmap[date].days << "days from STRmap";
+                    qDebug() << "ResmedLoader::Open: Removing" << STRmap[date].filename.section("/",-3,-1) << "with" << STRmap[date].days << "days from STRmap";
                     STRmap.remove(date);
                 } else {
-                    qDebug() << "Skipping" << importFile.section("/",-3,-1);
-                    qWarning() << "New import str.edf file is shorter than exisiting files - should never happen";
+                    qDebug() << "ResmedLoader::Open: Skipping" << importFile.section("/",-3,-1);
+                    qWarning() << "ResmedLoader::Open: New import str.edf file is shorter than exisiting files - should never happen";
                     delete stredf;
                     addToSTRmap = false;
                 }
@@ -649,7 +649,7 @@ void edfDebugInit();
                         qWarning() << "Failed to copy" << importFile << "to" << backupFile;
                 }
                 STRmap[date] = STRFile(backupFile, days, stredf);
-                qDebug() << "Adding" << importFile << "to STRmap as" << backupFile;
+                qDebug() << "ResmedLoader::Open: Adding" << importFile << "to STRmap as" << backupFile;
 
                 // Meh.. these can be calculated if ever needed for ResScan SDcard export
                 QFile sourcePath(importPath + "STR.crc");
@@ -664,7 +664,7 @@ void edfDebugInit();
             }
         }
     } else {    // get the STR file that is in the BACKUP folder that we are rebuilding from
-        qDebug() << "Rebuilding from BACKUP folder";
+        qDebug() << "ResmedLoader::Open: Rebuilding from BACKUP folder";
         ResMedEDFInfo * stredf = fetchSTRandVerify( strpath, info.serial );
         if ( stredf != nullptr ) {
             QDate date = stredf->edfHdr.startdate_orig.date();
@@ -672,11 +672,11 @@ void edfDebugInit();
             qDebug() << strpath.section("/",-2,-1) << "starts at" << date << "for" << days << "ends" << date.addDays(days-1);
             STRmap[date] = STRFile(strpath, days, stredf);
         } else {
-           qDebug() << "Failed to open" << strpath;
+           qDebug() << "ResmedLoader::Open: Failed to open" << strpath;
         }
     } // end if not importing the backup files
 #ifdef STR_DEBUG
-    qDebug() << "STRmap size is " << STRmap.size();
+    qDebug() << "ResmedLoader::Open: STRmap size is " << STRmap.size();
 #endif
 
     // Now we open the REAL destination STR_Backup, and open the rest for later parsing
@@ -687,10 +687,10 @@ void edfDebugInit();
     QDate date;
     long int days;
 #ifdef STR_DEBUG
-    qDebug() << "STR_Backup folder size is " << flist.size();
+    qDebug() << "ResmedLoader::Open: STR_Backup folder size is " << flist.size();
 #endif
 
-    qDebug() << "Add files in STR_Backup to STRmap (unless they are already there)";
+    qDebug() << "ResmedLoader::Open: Add files in STR_Backup to STRmap (unless they are already there)";
     // Add any STR_Backup versions to the file list
     for (auto & fi : flist) {
         QString filename = fi.fileName();
@@ -723,7 +723,7 @@ void edfDebugInit();
         STRmap[date] = STRFile(fi.canonicalFilePath(), days, stredf);
     }       // end for walking the STR_Backup directory
 #ifdef STR_DEBUG
-    qDebug() << "Finished STRmap size is now " << STRmap.size();
+    qDebug() << "ResmedLoader::Open: Finished STRmap size is now " << STRmap.size();
 #endif
 
     ///////////////////////////////////////////////////////////////////////////////////
@@ -739,21 +739,21 @@ void edfDebugInit();
     for (auto it=STRmap.begin(), end=STRmap.end(); it != end; ++it) {
         QString fullname = it.value().filename;
 #ifdef STR_DEBUG
-        qDebug() << "Deleting edf object of" << fullname;
+        qDebug() << "ResmedLoader::Open: Deleting edf object of" << fullname;
 #endif
         QString datepart = fullname.section("STR-",-1).section(".edf",0,0);
         if (datepart.size() == 6 ) {    // old style name, change to full date
             QFile str(fullname);
             QString newdate = it.key().toString("yyyyMMdd");
             QString newName = fullname.replace(datepart, newdate);
-            qDebug() << "Renaming" << it.value().filename << "to" << newName;
+            qDebug() << "ResmedLoader::Open: Renaming" << it.value().filename << "to" << newName;
               if ( ! str.rename(newName) )
                   qWarning() << "Rename Failed";
         }
         delete it.value().edf;
     }
 #ifdef STR_DEBUG
-    qDebug() << "Finished STRmap cleanup";
+    qDebug() << "ResmedLoader::Open: Finished STRmap cleanup";
 #endif
 
     ///////////////////////////////////////////////////////////////////////////////////
@@ -771,14 +771,14 @@ void edfDebugInit();
     if (isAborted())
         return 0;
 
-    qDebug() << "Starting scan of DATALOG";
+    qDebug() << "ResmedLoader::Open: Starting scan of DATALOG";
 //  sleep(1);
     dir.setPath(datalogPath);
     ScanFiles(mach, datalogPath, firstImportDay);
     if (isAborted())
         return 0;
 
-    qDebug() << "Finished DATALOG scan";
+    qDebug() << "ResmedLoader::Open: Finished DATALOG scan";
 //  sleep(1);
 
     // Now at this point we have resdayList populated with processable summary and EDF files data
@@ -805,18 +805,18 @@ void edfDebugInit();
     // IMPORTANT: Save machine to database BEFORE runTasks()
     // ResMed stores sessions DURING runTasks(), so machine must have database_id first
     if (mach->getDatabaseId() == 0) {
-        qDebug() << "ResMed: Saving machine to database before runTasks()";
+        qDebug() << "ResmedLoader::Open: Saving machine to database before runTasks()";
         if (!mach->SaveToDatabase()) {
-            qWarning() << "ResMed: Failed to save machine to database - sessions will not be saved to database";
+            qWarning() << "ResmedLoader::Open: Failed to save machine to database - sessions will not be saved to database";
         } else {
-            qDebug() << "ResMed: Machine saved to database with ID" << mach->getDatabaseId();
+            qDebug() << "ResmedLoader::Open: Machine saved to database with ID" << mach->getDatabaseId();
         }
     }
 
     // Walk down the resDay list
-    qDebug() << "About to call runTasks()";
+    qDebug() << "ResmedLoader::Open: About to call runTasks()";
     runTasks();
-    qDebug() << "Finshed runTasks() with" << sessionCount << "new sessions";
+    qDebug() << "ResmedLoader::Open: Finshed runTasks() with" << sessionCount << "new sessions";
     int num_new_sessions = sessionCount;
 
 
@@ -827,12 +827,12 @@ void edfDebugInit();
     emit updateMessage(QObject::tr("Finishing Up..."));
     QApplication::processEvents();
 
-    qDebug() << "About to call finishAddingSessions()";
+    qDebug() << "ResmedLoader::Open: About to call finishAddingSessions()";
     finishAddingSessions();
-    qDebug() << "Finshed finishAddingSessions() with" << sessionCount << "new sessions";
+    qDebug() << "ResmedLoader::Open: Finshed finishAddingSessions() with" << sessionCount << "new sessions";
     
     // Save machine and all sessions to database
-    mach->Save();
+//    mach->Save();
 
 #ifdef DEBUG_EFFICIENCY
     {
@@ -873,8 +873,8 @@ void edfDebugInit();
 //    strsess.clear();
 //    strdate.clear();
 
-    qDebug() << "Total Events " << event_cnt;
-    qDebug() << "Total new Sessions " << num_new_sessions;
+    qDebug() << "ResmedLoader::Open: Total Events " << event_cnt;
+    qDebug() << "ResmedLoader::Open: Total new Sessions " << num_new_sessions;
 
     mach->clearPurgeDate();
 

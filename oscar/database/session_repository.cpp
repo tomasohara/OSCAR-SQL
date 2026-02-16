@@ -55,8 +55,8 @@ qint64 SessionRepository::create(const SessionData& data)
         qWarning() << "SessionRepository::create() failed:" << query.lastError().text();
         return -1;
     }
-    if (data.summaryOnly)
-        qDebug() << "Session::create() summary only session" << data.sessionId;
+    if (data.summaryOnly && data.machineId != 0)
+        qDebug() << "SessionRepository::create() summary only session" << data.sessionId;
 
     return query.lastInsertId().toLongLong();
 }
@@ -96,7 +96,9 @@ bool SessionRepository::update(const SessionData& data)
     }
 
     if (data.summaryOnly)
-        qDebug() << "Session::update() summary only session" << data.sessionId;
+        qDebug() << "SessionRepository::update() summary only session" << data.sessionId;
+    else
+        qDebug() << "SessionRepository::update() updated session" << data.sessionId;
 
     return true;
 }

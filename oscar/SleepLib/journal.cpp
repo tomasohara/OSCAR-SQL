@@ -570,7 +570,7 @@ bool Journal::MigrateToDatabase(Profile* profile)
         
         // Create session and set it to load from file (not database)
         Session* sess = new Session(journalMachine, sessionId);
-        sess->setMachineId(machineDbId);
+        sess->setSessionRowId(machineDbId);
         
         // IMPORTANT: Load from the .000 FILE on disk, not from database
         // Read the summary file format to extract settings

@@ -9,7 +9,9 @@
  * for more details. */
 
 #define TEST_MACROS_ENABLEDoff
-#include <test_macros.h>
+#include "test_macros.h"
+
+//#define DBDEBUG                       // for maximum database diagnostics
 
 #include <cmath>
 #include <QDebug>
@@ -43,7 +45,6 @@
 
 using namespace std;
 #define FIX_FOR_SINGLE_EVENT            // fixes ibreeze "No valuesummary for channel" error during import.
-//#define DBDEBUG                       // for maximum diagnostics
 
 // This is the uber important database version for OSCAR's internal storage
 // Increment this after stuffing with Session's save & load code.
@@ -72,7 +73,7 @@ Session::Session(Machine *m, SessionID session)
 
     s_noSettings = s_summaryOnly = false;
     
-    m_database_id = 0;  // Initialize database ID to 0 (not in database)
+    m_sessionrow_id = 0;  // Initialize database ID to 0 (not in database)
 
     destroyed = false;
 }
@@ -359,7 +360,7 @@ bool Session::StoreSummary()
 
         if (!file.open(QIODevice::WriteOnly)) {
 //            qWarning() << "Summary open for writing failed" << "error code" << file.error() << file.errorString();
-            qWarning() << "Could not open summary" << filename << "for writing, error code" << file.error() << file.errorString();
+            qWarning() << "Session::StoreSummary could not open summary" << filename << "for writing, error code" << file.error() << file.errorString();
             return false;
         }
     }
@@ -735,7 +736,7 @@ bool Session::StoreEvents()
 {
     // ===== NEW: Database-Only Storage =====
     // Try storing to database if machine is in database
-    if (s_machine->getDatabaseId() > 0 && m_database_id > 0) {
+    if (s_machine->getDatabaseId() > 0 && m_sessionrow_id > 0) {
         bool dbSuccess = StoreEventsToDatabase();
         if (dbSuccess) {
 #ifdef DBDEBUG
@@ -908,7 +909,7 @@ bool Session::LoadEvents(QString filename, bool debug)
 
     // ===== NEW: Try Database First =====
     // Try loading from database if machine and session are in database
-    if (s_machine->getDatabaseId() > 0 && m_database_id > 0) {
+    if (s_machine->getDatabaseId() > 0 && m_sessionrow_id > 0) {
         if (LoadEventsFromDatabase()) {
 #ifdef DBDEBUG
             qDebug() << "Session::LoadEvents() - Successfully loaded from database";
@@ -919,7 +920,7 @@ bool Session::LoadEvents(QString filename, bool debug)
             // (summary-only sessions, or sessions where events haven't been imported yet)
 #ifdef DBDEBUG
             qDebug() << "Session::LoadEvents() - No events found in database for session" << s_session
-                     << "(db_id=" << m_database_id << ")";
+                     << "(db_id=" << m_sessionrow_id << ")";
 #endif
             return false;  // Database-only mode - no file fallback
         }
@@ -928,7 +929,7 @@ bool Session::LoadEvents(QString filename, bool debug)
     // Database not available - session not in database
 #ifdef DBDEBUG
     qDebug() << "Session::LoadEvents() - Session not in database (machine_id="
-             << s_machine->getDatabaseId() << ", session_id=" << m_database_id << ")";
+             << s_machine->getDatabaseId() << ", session_id=" << m_sessionrow_id << ")";
 #endif
     return false;
     
@@ -2764,7 +2765,9 @@ void Session::offsetSession(qint64 offset)
 bool Session::StoreToDatabase()
 {
     PERF_TIMER_SCOPE("Session::StoreToDatabase");
-    
+#ifdef DBDEBUG
+    qDebug() << "Session:StoreToDatabase() entered";
+#endif
     if (s_first == 0) {
         qWarning() << "Session::StoreToDatabase(): Skipping session" << s_session << "with first=0";
         return false;
@@ -2809,17 +2812,17 @@ bool Session::StoreToDatabase()
     sessionData.summaryFile = "";  // No longer using .000 summary files - data is in database
     sessionData.eventsFile = "";  // No longer using .001 event files - data is in database
     
-    if (m_database_id == 0) {
+    if (m_sessionrow_id == 0) {
         // Create new session
-        m_database_id = sessionRepo.create(sessionData);
-        if (m_database_id < 0) {
+        m_sessionrow_id = sessionRepo.create(sessionData);
+        if (m_sessionrow_id < 0) {
             qWarning() << "Session::StoreToDatabase(): Failed to create session" << s_session;
             PERF_TIMER_STOP("Session::StoreDB::SessionRecord");
             return false;
         }
     } else {
         // Update existing session
-        sessionData.id = m_database_id;
+        sessionData.id = m_sessionrow_id;
         if (!sessionRepo.update(sessionData)) {
             qWarning() << "Session::StoreToDatabase(): Failed to update session" << s_session;
             PERF_TIMER_STOP("Session::StoreDB::SessionRecord");
@@ -2832,12 +2835,12 @@ bool Session::StoreToDatabase()
     PERF_TIMER_START("Session::StoreDB::Settings");
     if (!settings.isEmpty()) {
         // Delete existing settings records for this session to prevent duplicates
-        settingsRepo.removeBySession(m_database_id);
+        settingsRepo.removeBySession(m_sessionrow_id);
         
         QList<SessionSettingData> settingsList;
         for (auto it = settings.begin(); it != settings.end(); ++it) {
             SessionSettingData setting;
-            setting.sessionId = m_database_id;
+            setting.sessionId = m_sessionrow_id;
             setting.profileId = profileId;
             setting.channelId = it.key();
             
@@ -2877,7 +2880,7 @@ bool Session::StoreToDatabase()
             settingsList.append(setting);
         }
 
-        if (!settingsRepo.saveBatch(m_database_id, settingsList)) {
+        if (!settingsRepo.saveBatch(m_sessionrow_id, settingsList)) {
             qWarning() << "Session::StoreToDatabase(): Failed to save settings";
         }
     }
@@ -2889,7 +2892,7 @@ bool Session::StoreToDatabase()
         // Delete existing channel records for this session to prevent duplicates
         // This is necessary because INSERT OR REPLACE creates new autoincrement IDs,
         // leading to duplicate rows if StoreToDatabase() is called multiple times
-        channelsRepo.removeBySession(m_database_id);
+        channelsRepo.removeBySession(m_sessionrow_id);
         
         QList<SessionChannelData> channelsList;
         SessionChannelValuesRepository valuesRepo;
@@ -2957,11 +2960,15 @@ bool Session::StoreToDatabase()
             // Physical min/max from cached values
             channel.physMin = m_physmin.value(id, 0);
             channel.physMax = m_physmax.value(id, 0);
-
+#ifdef DBDEBUG
+            if (id == 4355) {
+                qDebug() << "Session::StoreToDatabase channel" << id << "P90" << channel.p90;
+            }
+#endif
             channelsList.append(channel);
         }
 
-        if (!channelsRepo.saveBatch(m_database_id, profileId, channelsList)) {
+        if (!channelsRepo.saveBatch(m_sessionrow_id, profileId, channelsList)) {
             qWarning() << "Session::StoreToDatabase(): Failed to save channels";
         }
         PERF_TIMER_STOP("Session::StoreDB::Channels");
@@ -2978,7 +2985,7 @@ bool Session::StoreToDatabase()
             
             if (valueSummaryIt != m_valuesummary.end() && timeSummaryIt != m_timesummary.end()) {
                 // Get the session_channel_id for this channel
-                SessionChannelData foundChannel = channelsRepo.findByChannel(m_database_id, id);
+                SessionChannelData foundChannel = channelsRepo.findByChannel(m_sessionrow_id, id);
                 if (foundChannel.id > 0) {
                     // Save the value/time summaries to database
                     if (!valuesRepo.saveChannelSummaries(foundChannel.id, 
@@ -2996,12 +3003,12 @@ bool Session::StoreToDatabase()
     PERF_TIMER_START("Session::StoreDB::Slices");
     if (!m_slices.isEmpty()) {
         // Delete existing slices records for this session to prevent duplicates
-        slicesRepo.removeBySession(m_database_id);
+        slicesRepo.removeBySession(m_sessionrow_id);
         
         QList<SessionSliceData> slicesList;
         for (const SessionSlice& slice : m_slices) {
             SessionSliceData data;
-            data.sessionId = m_database_id;
+            data.sessionId = m_sessionrow_id;
             data.startTime = slice.start;
             data.endTime = slice.end;
             data.status = slice.status;
@@ -3022,7 +3029,7 @@ bool Session::StoreToDatabase()
     PERF_TIMER_STOP("Session::StoreDB::Summaries");
 
 #ifdef DBDEBUG
-    qDebug() << "Session::StoreToDatabase(): Saved session" << s_session << "to database with ID" << m_database_id;
+    qDebug() << "Session::StoreToDatabase(): Saved session" << s_session << "to database with ID" << m_sessionrow_id;
 #endif
     return true;
 }
@@ -3050,7 +3057,7 @@ bool Session::LoadFromDatabase()
     }
 
     // Store database ID for future updates
-    m_database_id = sessionData.id;
+    m_sessionrow_id = sessionData.id;
     
     // Load basic session data
     s_first = sessionData.startTime;
@@ -3061,14 +3068,14 @@ bool Session::LoadFromDatabase()
     
 #ifdef DBDEBUG
     qDebug() << "Session::LoadFromDatabase(): Loading session" << s_session
-             << "from database ID" << m_database_id;
+             << "from database ID" << m_sessionrow_id;
     if (s_summaryOnly)
         qDebug() << "Session::LoadFromDatabase(): Session" << s_session
                  << "is a summary only sesson";
 #endif
 
     // 2. Load settings
-    QList<SessionSettingData> settingsList = settingsRepo.findBySession(m_database_id);
+    QList<SessionSettingData> settingsList = settingsRepo.findBySession(m_sessionrow_id);
     settings.clear();
     for (const SessionSettingData& setting : settingsList) {
         // Handle JSON deserialization for bookmark fields
@@ -3122,7 +3129,7 @@ bool Session::LoadFromDatabase()
 #endif
 
     // 3. Load channel statistics and value/time summaries
-    QList<SessionChannelData> channelsList = channelsRepo.findBySession(m_database_id);
+    QList<SessionChannelData> channelsList = channelsRepo.findBySession(m_sessionrow_id);
     
     // Clear existing channel data
     m_cnt.clear();
@@ -3193,7 +3200,7 @@ bool Session::LoadFromDatabase()
 #endif
 
     // 4. Load slices
-    QList<SessionSliceData> slicesList = slicesRepo.findBySession(m_database_id);
+    QList<SessionSliceData> slicesList = slicesRepo.findBySession(m_sessionrow_id);
     m_slices.clear();
     
     for (const SessionSliceData& sliceData : slicesList) {
@@ -3210,7 +3217,7 @@ bool Session::LoadFromDatabase()
 
     // 5. Load summary data (optional - contains computed values)
     // GTS: Nothing optional about it. Summary data ALWAYS exists.
-    SessionSummaryData summaryData = summariesRepo.findBySession(m_database_id);
+    SessionSummaryData summaryData = summariesRepo.findBySession(m_sessionrow_id);
 #ifdef DBDEBUG
     if (s_summaryOnly) {
         // Summary data is available - we could use it to pre-populate
@@ -3291,7 +3298,7 @@ bool Session::StoreSummaryToDatabase()
     qDebug() << "Session::StoreSummaryToDatabase() entered";
 #endif
 
-    if (m_database_id == 0) {
+    if (m_sessionrow_id == 0) {
         qWarning() << "Session::StoreSummaryToDatabase() - session not in database";
         return false;
     }
@@ -3303,14 +3310,14 @@ bool Session::StoreSummaryToDatabase()
         return false;
     }
     
-    SessionSummariesRepository repo;
-    SessionSummaryData data;
+    SessionSummariesRepository sessionSummariesRepo;
+    SessionSummaryData sessionSummaryData;
     
-    data.sessionId = m_database_id;
-    data.profileId = profileId;
+    sessionSummaryData.sessionId = m_sessionrow_id;
+    sessionSummaryData.profileId = profileId;
     
     // Calculate hours used
-    data.hoursUsed = hours();
+    sessionSummaryData.hoursUsed = hours();
     
     // Calculate mask-on hours if we have slices
     if (!m_slices.isEmpty()) {
@@ -3320,15 +3327,15 @@ bool Session::StoreSummaryToDatabase()
                 maskOnTime += (slice.end - slice.start) / 3600000.0;
             }
         }
-        data.maskOnHours = maskOnTime;
+        sessionSummaryData.maskOnHours = maskOnTime;
     } else {
-        data.maskOnHours = data.hoursUsed;
+        sessionSummaryData.maskOnHours = sessionSummaryData.hoursUsed;
     }
     
     // Get AHI and RDI from cached values
     // For summary-only sessions, calculate AHI from event counts since m_wavg[CPAP_AHI] won't be set
     if (m_wavg.contains(CPAP_AHI)) {
-        data.ahi = m_wavg[CPAP_AHI];
+        sessionSummaryData.ahi = m_wavg[CPAP_AHI];
     } else {
         // Calculate AHI from event counts for summary-only sessions
         double totalEvents = 0;
@@ -3338,78 +3345,78 @@ bool Session::StoreSummaryToDatabase()
         if (m_cnt.contains(CPAP_RERA)) totalEvents += m_cnt[CPAP_RERA];
         if (m_cnt.contains(CPAP_Apnea)) totalEvents += m_cnt[CPAP_Apnea];  // Include unknown apneas
         
-        if (data.hoursUsed > 0) {
-            data.ahi = totalEvents / data.hoursUsed;
+        if (sessionSummaryData.hoursUsed > 0) {
+            sessionSummaryData.ahi = totalEvents / sessionSummaryData.hoursUsed;
         }
     }
     if (m_wavg.contains(CPAP_RDI)) {
-        data.rdi = m_wavg[CPAP_RDI];
+        sessionSummaryData.rdi = m_wavg[CPAP_RDI];
     }
     
     // Event counts from cached values
     if (m_cnt.contains(CPAP_Obstructive)) {
-        data.obstructiveCount = m_cnt[CPAP_Obstructive];
+        sessionSummaryData.obstructiveCount = m_cnt[CPAP_Obstructive];
     }
     if (m_cnt.contains(CPAP_ClearAirway)) {
-        data.clearAirwayCount = m_cnt[CPAP_ClearAirway];
+        sessionSummaryData.clearAirwayCount = m_cnt[CPAP_ClearAirway];
     }
     if (m_cnt.contains(CPAP_Hypopnea)) {
-        data.hypopneaCount = m_cnt[CPAP_Hypopnea];
+        sessionSummaryData.hypopneaCount = m_cnt[CPAP_Hypopnea];
     }
     if (m_cnt.contains(CPAP_RERA)) {
-        data.reraCount = m_cnt[CPAP_RERA];
+        sessionSummaryData.reraCount = m_cnt[CPAP_RERA];
     }
     // Also handle CPAP_Apnea (unknown/unclassified apnea) - store in unclassifiedCount
     if (m_cnt.contains(CPAP_Apnea)) {
-        data.unclassifiedCount = m_cnt[CPAP_Apnea];
+        sessionSummaryData.unclassifiedCount = m_cnt[CPAP_Apnea];
     }
     
     // Pressure statistics from cached values
     if (m_wavg.contains(CPAP_Pressure)) {
-        data.pressureAvg = m_wavg[CPAP_Pressure];
+        sessionSummaryData.pressureAvg = m_wavg[CPAP_Pressure];
         if (m_min.contains(CPAP_Pressure)) {
-            data.pressureMin = m_min[CPAP_Pressure];
+            sessionSummaryData.pressureMin = m_min[CPAP_Pressure];
         }
         if (m_max.contains(CPAP_Pressure)) {
-            data.pressureMax = m_max[CPAP_Pressure];
+            sessionSummaryData.pressureMax = m_max[CPAP_Pressure];
         }
         // For 95th percentile, we need to calculate it if events are loaded
         // Otherwise leave at 0
         if (s_events_loaded) {
-            data.pressure95th = percentile(CPAP_Pressure, 0.95);
+            sessionSummaryData.pressure95th = percentile(CPAP_Pressure, 0.95);
         }
     }
     
     // Leak statistics from cached values
     if (m_wavg.contains(CPAP_LeakTotal)) {
-        data.leakTotalAvg = m_wavg[CPAP_LeakTotal];
+        sessionSummaryData.leakTotalAvg = m_wavg[CPAP_LeakTotal];
         if (m_max.contains(CPAP_LeakTotal)) {
-            data.leakTotalMax = m_max[CPAP_LeakTotal];
+            sessionSummaryData.leakTotalMax = m_max[CPAP_LeakTotal];
         }
         // For 95th percentile
         if (s_events_loaded) {
-            data.leakTotal95th = percentile(CPAP_LeakTotal, 0.95);
+            sessionSummaryData.leakTotal95th = percentile(CPAP_LeakTotal, 0.95);
         }
     }
     
     // Oximetry data from cached values if available
     if (m_wavg.contains(OXI_SPO2)) {
-        data.spo2Avg = m_wavg[OXI_SPO2];
+        sessionSummaryData.spo2Avg = m_wavg[OXI_SPO2];
         if (m_min.contains(OXI_SPO2)) {
-            data.spo2Min = m_min[OXI_SPO2];
+            sessionSummaryData.spo2Min = m_min[OXI_SPO2];
         }
     }
     if (m_wavg.contains(OXI_Pulse)) {
-        data.pulseAvg = m_wavg[OXI_Pulse];
+        sessionSummaryData.pulseAvg = m_wavg[OXI_Pulse];
     }
     
     // Create or update the summary
-    bool success = repo.createOrUpdate(data);
+    bool success = sessionSummariesRepo.createOrUpdate(sessionSummaryData);
     
     if (success) {
 #ifdef DBDEBUG
-        qDebug() << "Session::StoreSummaryToDatabase() - Saved or updated summary for session" << s_session
-                 << "AHI:" << data.ahi << "hours:" << data.hoursUsed;
+        qDebug() << "Session::StoreSummaryToDatabase() - Saved or updated summary for session" << s_session;
+//                 << "AHI:" << data.ahi << "hours:" << data.hoursUsed;
 #endif
     } else {
         qWarning() << "Session::StoreSummaryToDatabase() - Failed to save summary for session" << s_session;
@@ -3445,15 +3452,18 @@ qint64 Session::last()
 QList<RespiratoryEventData> Session::extractRespiratoryEvents()
 {
     QList<RespiratoryEventData> events;
-
+#ifdef DBDEBUG
     qDebug() << "=== Session::extractRespiratoryEvents() CALLED for session" << s_session << "===";
     qDebug() << "    Session starts" << QDateTime::fromSecsSinceEpoch(s_first/1000).toString("yyyy-MM-dd HH:mm:ss");
     qDebug() << "    eventlist.size():" << eventlist.size();
+#endif
 
     // Get profile_id from machine (Schema v12 requirement)
     qint64 profileId = s_machine->getProfileId();
+#ifdef DBDEBUG
     qDebug() << "    profileId:" << profileId;
-    
+#endif
+
     if (profileId == 0) {
         qWarning() << "Session::extractRespiratoryEvents() - machine has no profile_id";
         return events;  // Return empty list
@@ -3521,7 +3531,7 @@ QList<RespiratoryEventData> Session::extractRespiratoryEvents()
                          << "eventType" << eventType;
 #endif
                 RespiratoryEventData event;
-                event.sessionId = m_database_id;
+                event.sessionId = m_sessionrow_id;
                 event.profileId = profileId;  // Schema v12 requirement
                 event.channelId = channelId;   // Schema v12 requirement
                 event.eventType = eventType;
@@ -3549,7 +3559,7 @@ bool Session::StoreEventsToDatabase()
 {
     PERF_TIMER_SCOPE("Session::StoreEventsToDatabase");
     
-    if (m_database_id == 0) {
+    if (m_sessionrow_id == 0) {
         qWarning() << "Session::StoreEventsToDatabase() - session not in database";
         return false;
     }
@@ -3596,7 +3606,7 @@ bool Session::StoreEventsToDatabase()
             
             // 1. Create EventListData from EventList
             EventListData listData;
-            listData.sessionId = m_database_id;
+            listData.sessionId = m_sessionrow_id;
             listData.profileId = profileId;
             listData.channelId = channelId;
             listData.eventlistIndex = index;
@@ -3648,7 +3658,7 @@ bool Session::StoreEventsToDatabase()
             totalSaved++;
             
             // Get compressed size from database (if available)
-            EventListData savedData = eventListRepo.findByIndex(m_database_id, channelId, index);
+            EventListData savedData = eventListRepo.findByIndex(m_sessionrow_id, channelId, index);
             if (savedData.compressedSize > 0) {
                 totalCompressed += savedData.compressedSize;
             } else {
@@ -3685,7 +3695,7 @@ bool Session::StoreEventsToDatabase()
 
 bool Session::LoadEventsFromDatabase()
 {
-    if (m_database_id == 0) {
+    if (m_sessionrow_id == 0) {
         qWarning() << "Session::LoadEventsFromDatabase() - session not in database";
         return false;
     }
@@ -3694,7 +3704,7 @@ bool Session::LoadEventsFromDatabase()
     EventDataRepository eventDataRepo;
     
     // Get all EventList metadata for this session
-    QList<EventListData> eventListsData = eventListRepo.findBySession(m_database_id);
+    QList<EventListData> eventListsData = eventListRepo.findBySession(m_sessionrow_id);
     
     if (eventListsData.isEmpty()) {
 #ifdef DBDEBUG

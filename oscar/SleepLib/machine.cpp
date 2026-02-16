@@ -128,7 +128,7 @@ Machine::Machine(Profile *_profile, MachineID id) : profile(_profile)
 }
 Machine::~Machine()
 {
-    saveSessionInfo();
+//    saveSessionInfo();
     //qDebug() << "Destroy device" << info.loadername << hex << m_id;
 }
 Session *Machine::SessionExists(SessionID session)
@@ -151,7 +151,6 @@ bool Machine::saveSessionInfo()
     QString filename = getDataPath() + "Sessions.info";
     QFile file(filename);
     if (!file.open(QFile::WriteOnly)) {
-//        qDebug() << "Machine::saveSessionInfo(): Couldn't open" << filename << "for writing";
         qWarning() << "Machine::saveSessionInfo(): Couldn't open" << filename << "for writing, error code" << file.error() << file.errorString();
         return false;
     }
@@ -180,7 +179,7 @@ bool Machine::saveSessionInfo()
 
         //out << sess->m_availableChannels;
     }
-//    qDebug() << "Machine::saveSessionInfo(): Done Saving" << info.brand << "session info";
+    qDebug() << "Machine::saveSessionInfo(): Done Saving" << info.brand << "session info";
 
     return true;
 }
@@ -1115,8 +1114,10 @@ QByteArray uncompressed = gUncompress(data);
     QApplication::processEvents();
 
     if (loader()) {
+        qDebug() << "Machine::LoadSummary calling runTasks in loader";
         loader()->runTasks();
     } else {
+        qDebug() << "Machine::LoadSummary calling runTasks";
         runTasks();
     }
     progress->setProgressValue(sess_order.size());
@@ -1131,7 +1132,7 @@ QByteArray uncompressed = gUncompress(data);
         for (sess_it = this->sessionlist.begin(); sess_it != this->sessionlist.end(); ++sess_it) {
             Session* sess = sess_it.value();
             if (sess && sess->first() != 0) {
-                sess->setMachineId(m_database_id);
+                sess->setSessionRowId(m_database_id);
             }
         }
     }
@@ -1143,7 +1144,7 @@ QByteArray uncompressed = gUncompress(data);
 
 bool Machine::SaveSummaryCache()
 {
-    qDebug() << "Saving" << info.brand << info.model <<  "Summaries";
+    qDebug() << "Machine::SaveSummaryCache: Saving" << info.brand << info.model <<  "Summaries";
     QString filename = getDataPath() + summaryFileName;
 
     QDomDocument doc("OSCAR_SessionIndex");
@@ -1214,7 +1215,7 @@ bool Machine::SaveSummaryCache()
     QFile file(filename + ".gz");
 
     if (!file.open(QFile::WriteOnly)) {
-        qWarning() << "Couldn't open summary cache" << filename << "for writing, error code" << file.error() << file.errorString();
+        qWarning() << "Machine::SaveSummaryCache: Couldn't open summary cache" << filename << "for writing, error code" << file.error() << file.errorString();
     }
     file.write(data);
 
@@ -1225,6 +1226,8 @@ bool Machine::Save()
 {
     //int size;
     // int cnt = 0;
+
+    qDebug() << "Machine::Save entered";
 
     QString path = getDataPath();
     QDir dir(path);
@@ -1257,6 +1260,7 @@ bool Machine::Save()
         }
     }
 
+    qDebug() << "Machine::Save(): calling runTasks()";
     runTasks();
 
     // NOW save all sessions to database in a SINGLE TRANSACTION (machine now has a database ID)

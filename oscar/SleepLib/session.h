@@ -502,10 +502,10 @@ class Session
     }
     
     //! \brief Set the machine database ID for this session
-    void setMachineId(qint64 id) { m_database_id = id; }
+    void setSessionRowId(qint64 id) { m_sessionrow_id = id; }
     
     //! \brief Get the machine database ID for this session
-    qint64 machineId() const { return m_database_id; }
+    qint64 sessionRowId() const { return m_sessionrow_id; }
 
     //! \brief Completely purges Session from memory and disk.
     bool Destroy();
@@ -531,7 +531,7 @@ protected:
     qint64 s_last;
     
     //! \brief Database primary key (0 if not in database)
-    qint64 m_database_id;
+    qint64 m_sessionrow_id;
     
     bool s_changed;
     bool s_lonesession;

@@ -1174,7 +1174,7 @@ bool Day::summaryOnly(Machine * mach)
     for (auto & sess : sessions) {
         if ((mach == nullptr) && sess->summaryOnly()) {
             // If this day generally has just summary data.
-            qDebug() << "Day::summaryOnly() reports summary only day for machine == null";
+//            qDebug() << "Day::summaryOnly() reports summary only day for machine == null";
             return true;
         } else if ((mach == sess->machine())  && sess->summaryOnly()) {
             // Focus only on device match

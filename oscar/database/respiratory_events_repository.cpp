@@ -13,6 +13,8 @@
 #include <QDebug>
 #include <QVariant>
 
+//#define DBDEBUG
+
 RespiratoryEventsRepository::RespiratoryEventsRepository()
 {
 }
@@ -94,7 +96,9 @@ bool RespiratoryEventsRepository::createBatch(const QList<RespiratoryEventData>&
         inserted++;
     }
     
+#ifdef DBDEBUG
     qDebug() << "RespiratoryEventsRepository::createBatch() - Inserted" << inserted << "events";
+#endif
     return true;
 }
 

@@ -18,6 +18,8 @@
 #include <QVariant>
 #include <QDebug>
 
+//#define DBDEBUG
+
 SessionChannelsRepository::SessionChannelsRepository()
 {
 }
@@ -28,6 +30,11 @@ SessionChannelsRepository::~SessionChannelsRepository()
 
 qint64 SessionChannelsRepository::create(const SessionChannelData& data)
 {
+#ifdef DBDEBUG
+    if (data.channelId == 4355)
+        qDebug() << "SessionChannelsRepository::create called for channel" << data.channelId << "p90" << data.p90;
+#endif
+
     QSqlDatabase db = DatabaseManager::instance().database();
     if (!db.isOpen()) {
         qWarning() << "SessionChannelsRepository::create() - Database not open";
@@ -72,6 +79,11 @@ qint64 SessionChannelsRepository::create(const SessionChannelData& data)
 
 bool SessionChannelsRepository::update(const SessionChannelData& data)
 {
+#ifdef DBDEBUG
+    if (data.channelId == 4355)
+        qDebug() << "SessionChannelsRepository::update called for channel" << data.channelId << "p90" << data.p90;
+#endif
+
     QSqlDatabase db = DatabaseManager::instance().database();
     if (!db.isOpen()) {
         qWarning() << "SessionChannelsRepository::update() - Database not open";
@@ -220,6 +232,9 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, qint64 profileId, co
 {
     PERF_TIMER_SCOPE("Session::StoreDB::Channels::SaveBatch");
     
+#ifdef DBDEBUG
+    qDebug() << "SessionChannelsRepository::saveBatch called";
+#endif
     DatabaseManager& dbMgr = DatabaseManager::instance();
     QSqlDatabase db = dbMgr.database();
     if (!db.isOpen()) {
@@ -245,6 +260,11 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, qint64 profileId, co
 
     // Execute the prepared statement for each channel
     for (const SessionChannelData& data : channels) {
+#ifdef DBDEBUG
+        if (data.channelId == 4355)
+            qDebug() << "SessionChannelsRepository::saveBatch, channel" << data.channelId << "p90" << data.p90;
+#endif
+
         // Bind values using positional parameters (much faster than re-preparing)
         query.bindValue(0, sessionId);
         query.bindValue(1, profileId);
@@ -284,6 +304,9 @@ bool SessionChannelsRepository::remove(qint64 id)
         return false;
     }
 
+#ifdef DBDEBUG
+    qDebug() << "SessionChannelsRepository::remove called for session row id " << id;
+#endif
     QSqlQuery query(db);
     query.prepare("DELETE FROM session_channels WHERE id = ?");
     query.addBindValue(id);
@@ -298,6 +321,9 @@ bool SessionChannelsRepository::remove(qint64 id)
 
 bool SessionChannelsRepository::removeBySession(qint64 sessionId)
 {
+#ifdef DBDEBUG
+    qDebug() << "SessionChannelsRepository::removeBySession called for sessionId" << sessionId;
+#endif
     QSqlDatabase db = DatabaseManager::instance().database();
     if (!db.isOpen()) {
         qWarning() << "SessionChannelsRepository::removeBySession() - Database not open";
