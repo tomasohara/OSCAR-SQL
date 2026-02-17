@@ -20,6 +20,7 @@
 #include <QMutexLocker>
 #include <QCoreApplication>
 
+//#define DBDEBUG
 /*
  * Get the singleton instance of DatabaseManager
  *
@@ -241,6 +242,7 @@ bool DatabaseManager::transaction()
 }
 long DatabaseManager::countRows(QString text) {
     long totalRows = 0;
+#ifdef DBDEBUG
     QSqlQuery query(m_database);
 
     if (!query.exec("SELECT name FROM sqlite_master WHERE type='table'")) {
@@ -267,6 +269,7 @@ long DatabaseManager::countRows(QString text) {
                                << "for table" << tableName << ":" << rowCount << "rows";
         }
     }
+#endif
     return totalRows;
 }
 

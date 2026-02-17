@@ -16,6 +16,8 @@
 #include <QVariant>
 #include <QDebug>
 
+//#ifdef DBDEBUG
+
 SessionRepository::SessionRepository()
 {
 }
@@ -95,10 +97,12 @@ bool SessionRepository::update(const SessionData& data)
         return false;
     }
 
+#ifdef DBDEBUG
     if (data.summaryOnly)
         qDebug() << "SessionRepository::update() summary only session" << data.sessionId;
     else
         qDebug() << "SessionRepository::update() updated session" << data.sessionId;
+#endif
 
     return true;
 }
