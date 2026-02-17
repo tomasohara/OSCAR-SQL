@@ -87,8 +87,6 @@ Session::~Session()
 void Session::TrashEvents()
 // Trash this sessions Events and release memory.
 {
-    QVector<EventList *>::iterator j;
-    QVector<EventList *>::iterator j_end;
     QHash<ChannelID, QVector<EventList *> >::iterator i;
     QHash<ChannelID, QVector<EventList *> >::iterator i_end=eventlist.end();
 
@@ -97,14 +95,8 @@ void Session::TrashEvents()
     }
 
     for (i = eventlist.begin(); i != i_end; ++i) {
-        j_end=i.value().end();
-        for (j = i.value().begin(); j != j_end; ++j) {
-            EventList * ev = *j;
-            ev->clear();
-            ev->m_data.squeeze();
-            ev->m_data2.squeeze();
-            ev->m_time.squeeze();
-            delete ev;
+        for (EventList * ev : i.value()) {
+            delete ev;  // destructor handles cleanup; no need for clear()+squeeze()
         }
     }
 
@@ -2968,27 +2960,27 @@ bool Session::StoreToDatabase()
             channelsList.append(channel);
         }
 
-        if (!channelsRepo.saveBatch(m_sessionrow_id, profileId, channelsList)) {
+        // Use saveBatchWithIds to get channelId -> dbRowId mapping in one pass
+        // This eliminates the N+1 findByChannel() calls that were needed before
+        QHash<int, qint64> channelIdMap;
+        if (!channelsRepo.saveBatchWithIds(m_sessionrow_id, profileId, channelsList, channelIdMap)) {
             qWarning() << "Session::StoreToDatabase(): Failed to save channels";
         }
         PERF_TIMER_STOP("Session::StoreDB::Channels");
         
-        // 3b. Save value/time summaries for each channel (NEW - fixes bug)
+        // 3b. Save value/time summaries using the ID map (no extra queries needed)
         PERF_TIMER_START("Session::StoreDB::ValueSummaries");
-        // This saves the m_valuesummary and m_timesummary data structures
         for (const SessionChannelData& channelData : channelsList) {
             ChannelID id = channelData.channelId;
             
-            // Check if we have value/time summaries for this channel
             auto valueSummaryIt = m_valuesummary.find(id);
             auto timeSummaryIt = m_timesummary.find(id);
             
             if (valueSummaryIt != m_valuesummary.end() && timeSummaryIt != m_timesummary.end()) {
-                // Get the session_channel_id for this channel
-                SessionChannelData foundChannel = channelsRepo.findByChannel(m_sessionrow_id, id);
-                if (foundChannel.id > 0) {
-                    // Save the value/time summaries to database
-                    if (!valuesRepo.saveChannelSummaries(foundChannel.id, 
+                // Use the ID map directly instead of querying the database
+                qint64 dbRowId = channelIdMap.value(id, 0);
+                if (dbRowId > 0) {
+                    if (!valuesRepo.saveChannelSummaries(dbRowId, 
                                                          valueSummaryIt.value(), 
                                                          timeSummaryIt.value())) {
                         qWarning() << "Session::StoreToDatabase(): Failed to save value/time summaries for channel" << id;
@@ -3173,23 +3165,20 @@ bool Session::LoadFromDatabase()
     qDebug() << "Session::LoadFromDatabase(): Loaded" << channelsList.size() << "channels";
 #endif
 
-    // 3b. Load value/time summaries for each channel (NEW - fixes bug)
-    // This restores the m_valuesummary and m_timesummary data structures
+    // 3b. Bulk-load value/time summaries for ALL channels in one query (eliminates N+1 pattern)
     SessionChannelValuesRepository valuesRepo;
     int valuesLoadedCount = 0;
     
-    for (const SessionChannelData& channel : channelsList) {
-        ChannelID id = channel.channelId;
-        
-        // Try to load value/time summaries for this channel
-        QHash<EventStoreType, EventStoreType> valueSummary;
-        QHash<EventStoreType, quint32> timeSummary;
-        
-        if (valuesRepo.loadChannelSummaries(channel.id, valueSummary, timeSummary)) {
-            // Successfully loaded summaries
-            m_valuesummary[id] = valueSummary;
-            m_timesummary[id] = timeSummary;
+    QHash<ChannelID, QHash<EventStoreType, EventStoreType>> allValueSummaries;
+    QHash<ChannelID, QHash<EventStoreType, quint32>> allTimeSummaries;
+    
+    if (valuesRepo.loadAllChannelSummaries(m_sessionrow_id, allValueSummaries, allTimeSummaries)) {
+        for (auto it = allValueSummaries.begin(); it != allValueSummaries.end(); ++it) {
+            m_valuesummary[it.key()] = it.value();
             valuesLoadedCount++;
+        }
+        for (auto it = allTimeSummaries.begin(); it != allTimeSummaries.end(); ++it) {
+            m_timesummary[it.key()] = it.value();
         }
     }
     
@@ -3657,13 +3646,9 @@ bool Session::StoreEventsToDatabase()
             
             totalSaved++;
             
-            // Get compressed size from database (if available)
-            EventListData savedData = eventListRepo.findByIndex(m_sessionrow_id, channelId, index);
-            if (savedData.compressedSize > 0) {
-                totalCompressed += savedData.compressedSize;
-            } else {
-                totalCompressed += savedData.dataSize;
-            }
+            // Track compressed size from the data we already have
+            // (storeEventListData already updates compressed_size in the DB)
+            totalCompressed += listData.dataSize;  // Approximate; exact value is in DB
         }
     }
     

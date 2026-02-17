@@ -128,6 +128,12 @@ public:
      */
     bool checkpointWAL();
 
+    /*!
+     * \brief Counts total rows in database
+     * \return total number of rows. -1 if failure.
+     */
+    long countRows(QString text);
+
 signals:
     /*!
      * \brief Emitted when a database error occurs

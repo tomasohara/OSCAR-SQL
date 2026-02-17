@@ -9,12 +9,13 @@
  * License. See the file COPYING in the main directory of the source code
  * for more details. */
 
-#include "event_list_repository.h"
-#include "database_manager.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QVariant>
 #include <QDebug>
+
+#include "event_list_repository.h"
+#include "database_manager.h"
 
 /*!
  * \brief Constructor
@@ -50,12 +51,14 @@ QSqlDatabase EventListRepository::getDatabase()
  *
  * Returns: Database ID of created record, or -1 on failure
  */
-qint64 EventListRepository::create(const EventListData& data)
+void EventListRepository::prepareCreateStatement()
 {
-    QSqlDatabase db = getDatabase();
-    QSqlQuery query(db);
+    if (m_createPrepared) return;
     
-    query.prepare(
+    QSqlDatabase db = getDatabase();
+    m_createQuery = QSqlQuery(db);
+    
+    if (!m_createQuery.prepare(
         "INSERT INTO event_lists ("
         "    session_id, profile_id, channel_id, eventlist_index,"
         "    event_type, first_time, last_time, count, rate,"
@@ -68,36 +71,52 @@ qint64 EventListRepository::create(const EventListData& data)
         "    :gain, :offset, :min_value, :max_value, :dimension,"
         "    :has_second_field, :min2_value, :max2_value,"
         "    :data_size, :compressed_size"
-        ")"
-    );
+        ")")) {
+        qCritical() << "EventListRepository: Failed to prepare CREATE statement:"
+                    << m_createQuery.lastError().text();
+        return;
+    }
     
-    query.bindValue(":session_id", data.sessionId);
-    query.bindValue(":profile_id", data.profileId);
-    query.bindValue(":channel_id", data.channelId);
-    query.bindValue(":eventlist_index", data.eventlistIndex);
-    query.bindValue(":event_type", data.eventType);
-    query.bindValue(":first_time", data.firstTime);
-    query.bindValue(":last_time", data.lastTime);
-    query.bindValue(":count", data.count);
-    query.bindValue(":rate", data.rate);
-    query.bindValue(":gain", data.gain);
-    query.bindValue(":offset", data.offset);
-    query.bindValue(":min_value", data.minValue);
-    query.bindValue(":max_value", data.maxValue);
-    query.bindValue(":dimension", data.dimension);
-    query.bindValue(":has_second_field", data.hasSecondField ? 1 : 0);
-    query.bindValue(":min2_value", data.hasSecondField ? QVariant(data.min2Value) : QVariant());
-    query.bindValue(":max2_value", data.hasSecondField ? QVariant(data.max2Value) : QVariant());
-    query.bindValue(":data_size", data.dataSize);
-    query.bindValue(":compressed_size", data.compressedSize > 0 ? QVariant(data.compressedSize) : QVariant());
+    m_createPrepared = true;
+}
+
+qint64 EventListRepository::create(const EventListData& data)
+{
+    // Use cached prepared statement (eliminates re-parsing SQL on each call)
+    prepareCreateStatement();
     
-    if (!query.exec()) {
-        qCritical() << "EventListRepository: Failed to create event_list:"
-                    << query.lastError().text();
+    if (!m_createPrepared) {
+        qCritical() << "EventListRepository: Prepared statement not available";
         return -1;
     }
     
-    return query.lastInsertId().toLongLong();
+    m_createQuery.bindValue(":session_id", data.sessionId);
+    m_createQuery.bindValue(":profile_id", data.profileId);
+    m_createQuery.bindValue(":channel_id", data.channelId);
+    m_createQuery.bindValue(":eventlist_index", data.eventlistIndex);
+    m_createQuery.bindValue(":event_type", data.eventType);
+    m_createQuery.bindValue(":first_time", data.firstTime);
+    m_createQuery.bindValue(":last_time", data.lastTime);
+    m_createQuery.bindValue(":count", data.count);
+    m_createQuery.bindValue(":rate", data.rate);
+    m_createQuery.bindValue(":gain", data.gain);
+    m_createQuery.bindValue(":offset", data.offset);
+    m_createQuery.bindValue(":min_value", data.minValue);
+    m_createQuery.bindValue(":max_value", data.maxValue);
+    m_createQuery.bindValue(":dimension", data.dimension);
+    m_createQuery.bindValue(":has_second_field", data.hasSecondField ? 1 : 0);
+    m_createQuery.bindValue(":min2_value", data.hasSecondField ? QVariant(data.min2Value) : QVariant());
+    m_createQuery.bindValue(":max2_value", data.hasSecondField ? QVariant(data.max2Value) : QVariant());
+    m_createQuery.bindValue(":data_size", data.dataSize);
+    m_createQuery.bindValue(":compressed_size", data.compressedSize > 0 ? QVariant(data.compressedSize) : QVariant());
+    
+    if (!m_createQuery.exec()) {
+        qCritical() << "EventListRepository: Failed to create event_list:"
+                    << m_createQuery.lastError().text();
+        return -1;
+    }
+    
+    return m_createQuery.lastInsertId().toLongLong();
 }
 
 /*!

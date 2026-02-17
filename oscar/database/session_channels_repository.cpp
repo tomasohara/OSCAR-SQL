@@ -296,6 +296,65 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, qint64 profileId, co
     return true;
 }
 
+bool SessionChannelsRepository::saveBatchWithIds(qint64 sessionId, qint64 profileId, 
+                                                  const QList<SessionChannelData>& channels,
+                                                  QHash<int, qint64>& idMap)
+{
+    PERF_TIMER_SCOPE("Session::StoreDB::Channels::SaveBatchWithIds");
+    
+    idMap.clear();
+    
+    DatabaseManager& dbMgr = DatabaseManager::instance();
+    QSqlDatabase db = dbMgr.database();
+    if (!db.isOpen()) {
+        qWarning() << "SessionChannelsRepository::saveBatchWithIds() - Database not open";
+        return false;
+    }
+
+    QSqlQuery query(db);
+    if (!query.prepare(
+        "INSERT OR REPLACE INTO session_channels "
+        "(session_id, profile_id, channel_id, count, sum, avg, wavg, min, max, median, p90, p95, "
+        " phys_min, phys_max, cph, sph, first_time, last_time, gain) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        qWarning() << "SessionChannelsRepository::saveBatchWithIds() - Failed to prepare statement:" 
+                   << query.lastError().text();
+        return false;
+    }
+
+    for (const SessionChannelData& data : channels) {
+        query.bindValue(0, sessionId);
+        query.bindValue(1, profileId);
+        query.bindValue(2, data.channelId);
+        query.bindValue(3, data.count);
+        query.bindValue(4, data.sum);
+        query.bindValue(5, data.avg);
+        query.bindValue(6, data.wavg);
+        query.bindValue(7, data.min);
+        query.bindValue(8, data.max);
+        query.bindValue(9, data.median);
+        query.bindValue(10, data.p90);
+        query.bindValue(11, data.p95);
+        query.bindValue(12, data.physMin);
+        query.bindValue(13, data.physMax);
+        query.bindValue(14, data.cph);
+        query.bindValue(15, data.sph);
+        query.bindValue(16, data.firstTime);
+        query.bindValue(17, data.lastTime);
+        query.bindValue(18, data.gain);
+
+        if (!query.exec()) {
+            qWarning() << "SessionChannelsRepository::saveBatchWithIds() failed:" << query.lastError().text();
+            return false;
+        }
+        
+        // Capture the auto-generated row ID for this channel
+        idMap[data.channelId] = query.lastInsertId().toLongLong();
+    }
+
+    return true;
+}
+
 bool SessionChannelsRepository::remove(qint64 id)
 {
     QSqlDatabase db = DatabaseManager::instance().database();

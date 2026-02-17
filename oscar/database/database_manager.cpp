@@ -222,6 +222,7 @@ bool DatabaseManager::isOpen() const
  */
 bool DatabaseManager::transaction()
 {
+    QMutexLocker locker(&m_mutex);
 
     if (m_inTransaction) {
         // Already in a transaction, don't nest
@@ -234,8 +235,39 @@ bool DatabaseManager::transaction()
     }
     
     qDebug() << "DatabaseManager: started transaction";
+    countRows ("transaction starting");
     m_inTransaction = true;
     return true;
+}
+long DatabaseManager::countRows(QString text) {
+    long totalRows = 0;
+    QSqlQuery query(m_database);
+
+    if (!query.exec("SELECT name FROM sqlite_master WHERE type='table'")) {
+        qDebug() << "Error querying tables:" << query.lastError().text();
+        return 0;
+    }
+
+    while (query.next()) {
+        QString tableName = query.value(0).toString();
+
+        QSqlQuery countQuery(m_database);
+        QString sql = QString("SELECT COUNT(*) FROM %1").arg(tableName);
+
+        if (!countQuery.exec(sql)) {
+            qDebug() << "Error counting rows in" << tableName << ":"
+                     << countQuery.lastError().text();
+            continue;
+        }
+
+        if (countQuery.next()) {
+            int rowCount = countQuery.value(0).toInt();
+            totalRows += rowCount;
+            qDebug().noquote() << "DatabaseManager::countRows" << text
+                               << "for table" << tableName << ":" << rowCount << "rows";
+        }
+    }
+    return totalRows;
 }
 
 /*
@@ -247,11 +279,15 @@ bool DatabaseManager::transaction()
  */
 bool DatabaseManager::commit()
 {
+    QMutexLocker locker(&m_mutex);
+    
     if (!m_inTransaction) {
         // Not in a transaction, nothing to commit
         return true;
     }
     
+    countRows ("before commit");
+
     if (!m_database.commit()) {
         qWarning() << "DatabaseManager: Failed to commit transaction:" << m_database.lastError().text();
         m_inTransaction = false;  // Clear flag even on error
@@ -259,6 +295,7 @@ bool DatabaseManager::commit()
     }
     
     qDebug() << "DatabaseManager: committed transaction";
+    countRows ("after commit");
     m_inTransaction = false;
     return true;
 }
@@ -272,6 +309,8 @@ bool DatabaseManager::commit()
  */
 bool DatabaseManager::rollback()
 {
+    QMutexLocker locker(&m_mutex);
+    
     if (!m_inTransaction) {
         // Not in a transaction, nothing to rollback
         return true;

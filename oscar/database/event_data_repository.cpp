@@ -20,6 +20,7 @@
 #include <QDebug>
 #include <QDataStream>
 #include <QIODevice>
+#include <cstring>  // for memcpy in zero-copy serialization
 
 /*!
  * \brief Constructor
@@ -520,8 +521,8 @@ bool EventDataRepository::compressIfBeneficial(const QByteArray& data, QByteArra
     if (data.size() < 500)
         return false;
     
-    // Compress with greater compression level for larger data amounts (like waveforms)
-    compressedData = qCompress(data, data.size() > 10000 ? 9 : -1);
+    // Compress with moderate level (6 is ~2x faster than 9 with only ~1-2% larger output)
+    compressedData = qCompress(data, 6);
     
     // Only use compression if it saves more than 10%
     if (compressedData.size() < data.size() * 0.9) {
@@ -544,6 +545,14 @@ bool EventDataRepository::compressIfBeneficial(const QByteArray& data, QByteArra
  */
 QByteArray EventDataRepository::serializeInt16Array(const QVector<EventStoreType>& data)
 {
+    if (data.isEmpty()) return QByteArray();
+    
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+    // Zero-copy: data is already in the correct byte order
+    return QByteArray(reinterpret_cast<const char*>(data.constData()),
+                      data.size() * sizeof(EventStoreType));
+#else
+    // Fallback for big-endian: use QDataStream for byte swapping
     QByteArray result;
     QDataStream stream(&result, QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -553,6 +562,7 @@ QByteArray EventDataRepository::serializeInt16Array(const QVector<EventStoreType
     }
     
     return result;
+#endif
 }
 
 /*!
@@ -567,6 +577,14 @@ QByteArray EventDataRepository::serializeInt16Array(const QVector<EventStoreType
  */
 QByteArray EventDataRepository::serializeUInt32Array(const QVector<quint32>& data)
 {
+    if (data.isEmpty()) return QByteArray();
+    
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+    // Zero-copy: data is already in the correct byte order
+    return QByteArray(reinterpret_cast<const char*>(data.constData()),
+                      data.size() * sizeof(quint32));
+#else
+    // Fallback for big-endian: use QDataStream for byte swapping
     QByteArray result;
     QDataStream stream(&result, QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -576,6 +594,7 @@ QByteArray EventDataRepository::serializeUInt32Array(const QVector<quint32>& dat
     }
     
     return result;
+#endif
 }
 
 /*!
@@ -592,16 +611,28 @@ QByteArray EventDataRepository::serializeUInt32Array(const QVector<quint32>& dat
 QVector<EventStoreType> EventDataRepository::deserializeInt16Array(const QByteArray& data, int count)
 {
     QVector<EventStoreType> result;
-    result.reserve(count);
     
+    int expectedBytes = count * sizeof(EventStoreType);
+    if (data.size() < expectedBytes) {
+        qWarning() << "EventDataRepository::deserializeInt16Array: data too short, expected"
+                    << expectedBytes << "got" << data.size();
+        return result;
+    }
+    
+    result.resize(count);
+    
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+    // Zero-copy: memcpy directly (data is already little-endian)
+    memcpy(result.data(), data.constData(), expectedBytes);
+#else
+    // Fallback for big-endian: use QDataStream for byte swapping
     QDataStream stream(data);
     stream.setByteOrder(QDataStream::LittleEndian);
     
-    while (!stream.atEnd() && result.size() < count) {
-        EventStoreType value;
-        stream >> value;
-        result.append(value);
+    for (int i = 0; i < count && !stream.atEnd(); ++i) {
+        stream >> result[i];
     }
+#endif
     
     return result;
 }
@@ -620,16 +651,28 @@ QVector<EventStoreType> EventDataRepository::deserializeInt16Array(const QByteAr
 QVector<quint32> EventDataRepository::deserializeUInt32Array(const QByteArray& data, int count)
 {
     QVector<quint32> result;
-    result.reserve(count);
     
+    int expectedBytes = count * sizeof(quint32);
+    if (data.size() < expectedBytes) {
+        qWarning() << "EventDataRepository::deserializeUInt32Array: data too short, expected"
+                    << expectedBytes << "got" << data.size();
+        return result;
+    }
+    
+    result.resize(count);
+    
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+    // Zero-copy: memcpy directly (data is already little-endian)
+    memcpy(result.data(), data.constData(), expectedBytes);
+#else
+    // Fallback for big-endian: use QDataStream for byte swapping
     QDataStream stream(data);
     stream.setByteOrder(QDataStream::LittleEndian);
     
-    while (!stream.atEnd() && result.size() < count) {
-        quint32 value;
-        stream >> value;
-        result.append(value);
+    for (int i = 0; i < count && !stream.atEnd(); ++i) {
+        stream >> result[i];
     }
+#endif
     
     return result;
 }

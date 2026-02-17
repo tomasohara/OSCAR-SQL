@@ -7,8 +7,8 @@
  * License. See the file COPYING in the main directory of the source code
  * for more details. */
 
-#define TEST_MACROS_ENABLEDoff
-//#define DBDEBUG
+#define TEST_MACROS_ENABLED
+#define DBDEBUG
 
 #include "test_macros.h"
 

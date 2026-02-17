@@ -1,7 +1,7 @@
-OSCAR-test (1.7.1-alpha-1) whatever; urgency=medium
+OSCAR20-test (1.9.0-alpha-1-1) whatever; urgency=medium
 
   * Package created with FPM.
 
   * See the Release Notes under Help/About menu
 
- -- oscar-team.org <oscar@oscar-team.org> 2026-01-20T12:56-05:00
+ -- oscar-team.org <oscar@oscar-team.org> 2026-02-13T17:57-05:00

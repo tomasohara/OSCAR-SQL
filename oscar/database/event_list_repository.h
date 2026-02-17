@@ -13,6 +13,7 @@
 #ifndef EVENT_LIST_REPOSITORY_H
 #define EVENT_LIST_REPOSITORY_H
 
+#include <QSqlQuery>
 #include <QSqlDatabase>
 #include <QString>
 #include <QList>
@@ -152,6 +153,11 @@ public:
 private:
     QSqlDatabase getDatabase();
     EventListData mapFromQuery(class QSqlQuery& query);
+    
+    // Prepared statement caching for performance during bulk import
+    QSqlQuery m_createQuery;
+    bool m_createPrepared = false;
+    void prepareCreateStatement();
 };
 
 #endif // EVENT_LIST_REPOSITORY_H

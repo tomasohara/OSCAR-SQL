@@ -655,6 +655,7 @@ bool DatabaseSchema::createIndexes(QSqlDatabase& db)
     indexes << "CREATE INDEX IF NOT EXISTS idx_sessions_machine ON sessions(machine_id)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_sessions_time ON sessions(start_time, end_time)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_sessions_enabled ON sessions(machine_id, enabled)";
+    indexes << "CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_unique ON sessions(machine_id, session_id)";
     
     indexes << "CREATE INDEX IF NOT EXISTS idx_session_settings_session ON session_settings(session_id)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_session_settings_channel ON session_settings(session_id, channel_id)";

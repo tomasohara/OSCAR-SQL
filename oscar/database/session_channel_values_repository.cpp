@@ -248,6 +248,50 @@ bool SessionChannelValuesRepository::removeBySessionChannel(qint64 sessionChanne
     return true;
 }
 
+bool SessionChannelValuesRepository::loadAllChannelSummaries(qint64 sessionId,
+                                                              QHash<ChannelID, QHash<EventStoreType, EventStoreType>>& valueSummaries,
+                                                              QHash<ChannelID, QHash<EventStoreType, quint32>>& timeSummaries)
+{
+    valueSummaries.clear();
+    timeSummaries.clear();
+    
+    QSqlDatabase db = DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "SessionChannelValuesRepository::loadAllChannelSummaries() - Database not open";
+        return false;
+    }
+
+    // Single JOIN query replaces N separate queries (one per channel)
+    QSqlQuery query(db);
+    query.prepare(
+        "SELECT sc.channel_id, scv.value, scv.count, scv.time_ms "
+        "FROM session_channel_values scv "
+        "INNER JOIN session_channels sc ON sc.id = scv.session_channel_id "
+        "WHERE sc.session_id = ? "
+        "ORDER BY sc.channel_id, scv.value"
+    );
+    query.addBindValue(sessionId);
+
+    if (!query.exec()) {
+        qWarning() << "SessionChannelValuesRepository::loadAllChannelSummaries() failed:" << query.lastError().text();
+        return false;
+    }
+
+    int rowCount = 0;
+    while (query.next()) {
+        ChannelID channelId = query.value(0).toUInt();
+        EventStoreType value = query.value(1).toInt();
+        EventStoreType count = query.value(2).toInt();
+        quint32 timeMs = query.value(3).toUInt();
+
+        valueSummaries[channelId][value] = count;
+        timeSummaries[channelId][value] = timeMs;
+        rowCount++;
+    }
+
+    return rowCount > 0;
+}
+
 int SessionChannelValuesRepository::countBySessionChannel(qint64 sessionChannelId)
 {
     QSqlDatabase db = DatabaseManager::instance().database();

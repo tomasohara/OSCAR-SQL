@@ -105,6 +105,21 @@ public:
     bool saveBatch(qint64 sessionId, qint64 profileId, const QList<SessionChannelData>& channels);
     
     /*!
+     * \brief Save multiple channels and return mapping of channelId -> database row ID
+     * \param sessionId Session database ID
+     * \param profileId Profile database ID
+     * \param channels List of channels to save
+     * \param idMap Output: mapping of channelId -> database primary key
+     * \return true if successful, false otherwise
+     *
+     * This avoids the N+1 pattern of calling findByChannel() after saveBatch()
+     * to look up the auto-generated row IDs.
+     */
+    bool saveBatchWithIds(qint64 sessionId, qint64 profileId, 
+                          const QList<SessionChannelData>& channels,
+                          QHash<int, qint64>& idMap);
+    
+    /*!
      * \brief Delete a specific channel
      * \param id Database primary key
      * \return true if successful, false otherwise

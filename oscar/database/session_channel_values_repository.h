@@ -91,6 +91,20 @@ public:
                               QHash<EventStoreType, quint32>& timeSummary);
     
     /*!
+     * \brief Bulk-load value/time summaries for ALL channels of a session in one query
+     * \param sessionId Database session ID (from sessions table)
+     * \param valueSummaries Output: Map of channelId -> (value -> count)
+     * \param timeSummaries Output: Map of channelId -> (value -> time_ms)
+     * \return true if at least one row was loaded, false otherwise
+     *
+     * This replaces the N+1 pattern of calling loadChannelSummaries() per channel.
+     * Uses a single JOIN query to fetch all data at once.
+     */
+    bool loadAllChannelSummaries(qint64 sessionId,
+                                  QHash<ChannelID, QHash<EventStoreType, EventStoreType>>& valueSummaries,
+                                  QHash<ChannelID, QHash<EventStoreType, quint32>>& timeSummaries);
+    
+    /*!
      * \brief Delete all values for a session channel
      * \param sessionChannelId Session channel database ID
      * \return true if successful, false otherwise
