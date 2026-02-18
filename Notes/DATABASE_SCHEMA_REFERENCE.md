@@ -1,23 +1,25 @@
 # OSCAR Database Schema Reference
-**Version:** Schema Version 11  
-**Last Updated:** 2026 Q1  
-**Database Type:** SQLite  
+**Version:** Schema Version 13
+**Last Updated:** 2026 Q1
+**Database Type:** SQLite
 
 ---
 
 ## Overview
 
-The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 11.
+The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 13.
 
 **Key Design Principles:**
 - **Profile-centric**: All data organized around user profiles
 - **Machine tracking**: Each profile can have multiple CPAP/oximetry devices
 - **Session storage**: Detailed session metadata with waveform/event data in database ⚡ NEW IN v8
 - **Daily summaries**: Pre-calculated daily statistics for fast reporting
-- **CSV export reports**: Database-driven customizable reports with macro substitution 📊 NEW IN v11
+- **Profile ID denormalization**: session_settings, session_channels, session_summaries, event_lists, and respiratory_events carry profile_id for query performance 🔧 NEW IN v12
+- **Report tree**: Hierarchical report tree with system and user nodes, loaded from .orf file 🌲 NEW IN v13
 - **Flexible preferences**: Key-value storage for settings
 - **Cascade deletes**: Removing a profile removes all associated data
 - **Database-only mode**: Waveform and event data stored in database BLOBs (replaces .001 files) ⚡ NEW IN v8
+- **No-migration policy**: Schema version mismatch requires a fresh database (v12+)
 
 ---
 
@@ -36,6 +38,8 @@ The OSCAR database uses SQLite to store user profiles, machine configurations, s
 | 9 | 2026 Q1 | 📝 **ENHANCEMENT**: Added json_value column to session_settings for journal migration and complex data types |
 | 10 | 2026 Q1 | 🔧 **SEMANTIC FIX**: Renamed central_count to unclassified_count (semantically correct) and added clear_airway_count to session_summaries |
 | 11 | 2026 Q1 | 📊 **NEW FEATURE**: Added reports and report_contents tables for CSV export report management with macro-based query templates |
+| 12 | 2026 Q1 | 🔧 **DENORMALIZATION**: Added profile_id to session_settings, session_channels, session_summaries, event_lists; added profile_id and channel_id to respiratory_events; added type to channels; removed events_file and summary_file from sessions. **No-migration policy introduced.** |
+| 13 | 2026 Q1 | 🌲 **REPORT TREE REDESIGN**: Replaced reports/report_contents with single report_tree table; hierarchical structure with System/User roots; system reports loaded from external .orf file |
 
 ---
 
@@ -170,14 +174,14 @@ CREATE TABLE sessions (
     summary_only INTEGER DEFAULT 0,
     no_settings INTEGER DEFAULT 0,
     events_loaded INTEGER DEFAULT 0,
-    events_file TEXT,
-    summary_file TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE CASCADE,
     UNIQUE(machine_id, session_id)
 )
 ```
+
+**Note:** `events_file` and `summary_file` columns were removed in v12 (legacy .001 file references no longer needed).
 
 ### 8. session_settings
 Machine configuration for each session.
@@ -186,17 +190,19 @@ Machine configuration for each session.
 CREATE TABLE session_settings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL,
+    profile_id INTEGER NOT NULL,
     channel_id INTEGER NOT NULL,
     value REAL NOT NULL,
     data_type TEXT,
     json_value TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
     UNIQUE(session_id, channel_id)
 )
 ```
 
-**Note:** The `json_value` column (added in v9) stores complex data types as JSON for journal migration support.
+**Note:** The `json_value` column (added in v9) stores complex data types as JSON for journal migration support. The `profile_id` column (added in v12) denormalizes the profile association for query performance.
 
 ### 9. session_channels
 Summary statistics for each channel in a session.
@@ -205,6 +211,7 @@ Summary statistics for each channel in a session.
 CREATE TABLE session_channels (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL,
+    profile_id INTEGER NOT NULL,
     channel_id INTEGER NOT NULL,
     count INTEGER DEFAULT 0,
     sum REAL DEFAULT 0,
@@ -224,9 +231,12 @@ CREATE TABLE session_channels (
     gain REAL DEFAULT 1.0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
     UNIQUE(session_id, channel_id)
 )
 ```
+
+**Note:** `profile_id` added in v12 for query performance denormalization.
 
 ### 10. session_channel_values 🐛 **NEW IN v7 - BUG FIX**
 Detailed value/time summary data for each channel.
@@ -253,6 +263,8 @@ Individual respiratory events (apneas, hypopneas, RERAs).
 CREATE TABLE respiratory_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL,
+    profile_id INTEGER NOT NULL,
+    channel_id INTEGER,
     event_type INTEGER NOT NULL,
     start_time INTEGER NOT NULL,
     end_time INTEGER NOT NULL,
@@ -260,11 +272,14 @@ CREATE TABLE respiratory_events (
     desaturation REAL,
     severity INTEGER,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
 )
 ```
 
 **Event Types:** 0=Obstructive, 1=Unclassified, 2=Hypopnea, 3=RERA, 4=Clear Airway, 5=User-flagged
+
+**Note:** `profile_id` and `channel_id` added in v12. `channel_id` references the OSCAR channel ID constant (not a FK to the channels table).
 
 ### 11. session_summaries
 Cached high-level session summaries.
@@ -273,6 +288,7 @@ Cached high-level session summaries.
 CREATE TABLE session_summaries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL UNIQUE,
+    profile_id INTEGER NOT NULL,
     ahi REAL DEFAULT 0,
     rdi REAL DEFAULT 0,
     obstructive_count INTEGER DEFAULT 0,
@@ -294,7 +310,8 @@ CREATE TABLE session_summaries (
     mask_on_hours REAL DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
 )
 ```
 
@@ -325,6 +342,7 @@ CREATE TABLE channels (
     profile_id INTEGER NOT NULL,
     channel_id INTEGER NOT NULL,
     channel_code TEXT NOT NULL,
+    type INTEGER,
     enabled INTEGER NOT NULL DEFAULT 1,
     default_color TEXT,
     fullname TEXT,
@@ -417,6 +435,7 @@ EventList metadata for waveform and event data.
 CREATE TABLE event_lists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL,
+    profile_id INTEGER NOT NULL,
     channel_id INTEGER NOT NULL,
     eventlist_index INTEGER NOT NULL DEFAULT 0,
     event_type INTEGER NOT NULL,
@@ -436,9 +455,12 @@ CREATE TABLE event_lists (
     compressed_size INTEGER,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
     UNIQUE(session_id, channel_id, eventlist_index)
 )
 ```
+
+**Note:** `profile_id` added in v12 for query performance denormalization.
 
 **Purpose:** Stores metadata for each EventList (one row per EventList). Replaces .001 file headers. Includes timing, scaling, dimensional information, and compression statistics.
 
@@ -471,48 +493,54 @@ CREATE TABLE event_data (
 
 **Checksum:** CRC16 checksum of primary data for integrity verification.
 
-### 18. reports 📊 **NEW IN v11 - CSV EXPORT REPORTS**
-CSV export report definitions (global, not profile-specific).
+### 18. report_tree 🌲 **NEW IN v13 - REPORT TREE (replaces reports/report_contents)**
+Hierarchical report tree with System and User roots.
 
 ```sql
-CREATE TABLE reports (
+CREATE TABLE report_tree (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL,
+    parent_id INTEGER,
+    name TEXT NOT NULL,
+    node_type TEXT NOT NULL CHECK(node_type IN ('root', 'folder', 'report')),
+    source TEXT NOT NULL CHECK(source IN ('system', 'user')),
     description TEXT,
+    query TEXT,
     display_order INTEGER DEFAULT 0,
-    is_system INTEGER DEFAULT 0,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-)
-```
-
-**Purpose:** Stores CSV export report definitions. System reports (is_system=1) are managed by OSCAR and updated on version changes. Custom reports (is_system=0) are user-created and preserved during upgrades.
-
-### 19. report_contents 📊 **NEW IN v11 - CSV EXPORT QUERIES**
-SQL query templates for each report variety.
-
-```sql
-CREATE TABLE report_contents (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    report_id INTEGER NOT NULL,
-    variety TEXT NOT NULL,
-    description TEXT,
-    query TEXT NOT NULL,
-    display_order INTEGER DEFAULT 0,
-    is_system INTEGER DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
-    UNIQUE(report_id, variety)
+    FOREIGN KEY (parent_id) REFERENCES report_tree(id) ON DELETE CASCADE,
+    UNIQUE(parent_id, name)
 )
 ```
 
-**Purpose:** Stores SQL query templates with macro substitution. Macros like `#PROFILE_ID`, `#START_DATE`, `#END_DATE` are replaced at runtime. Each report can have multiple varieties (e.g., Days, Weeks, Months aggregations).
+**Purpose:** Stores the report tree used in the Reports UI. Replaces the flat `reports`/`report_contents` tables (v11) with a hierarchical structure supporting root nodes, folders, and report leaf nodes.
 
-**Default System Reports (v11):**
-- **Daily Summaries**: Days, Weeks, Months varieties
-- **Session Statistics**: Sessions, Days, Weeks, Months varieties  
-- **Device Settings**: All Sessions variety
+**Node Types:**
+- `root` — top-level System or User root (parent_id = NULL)
+- `folder` — grouping node (e.g., "Daily Summaries")
+- `report` — leaf node with a SQL query template
+
+**Source:**
+- `system` — managed by OSCAR; populated/updated from the external `system_reports.orf` file on each startup
+- `user` — created by the user; preserved across OSCAR upgrades
+
+**Tree Structure Example:**
+```
+System (root, source=system)
+├── Daily Summaries (folder)
+│   ├── Days (report)
+│   ├── Weeks (report)
+│   └── Months (report)
+└── Session Statistics (folder)
+    ├── Sessions (report)
+    └── Days (report)
+User (root, source=user)
+└── My Custom Report (report)
+```
+
+**Query Templates:** Report leaf nodes store SQL with macros (`#PROFILE_ID`, `#START_DATE`, `#END_DATE`) replaced at runtime.
+
+**Not Profile-Specific:** `report_tree` is global to the database and is **not** included in profile backups. System nodes are auto-populated from the `.orf` file; user nodes are preserved across upgrades.
 
 ---
 
@@ -613,10 +641,10 @@ CREATE TABLE report_contents (
 | summary_only | INTEGER | | NO | Summary-only flag (0/1) |
 | no_settings | INTEGER | | NO | No settings flag (0/1) |
 | events_loaded | INTEGER | | NO | Events loaded flag (0/1) |
-| events_file | TEXT | | YES | Events file path |
-| summary_file | TEXT | | YES | Summary file path |
 | created_at | TEXT | | NO | Creation timestamp |
 | updated_at | TEXT | | NO | Update timestamp |
+
+**Note:** `events_file` and `summary_file` removed in v12.
 
 ### session_settings
 
@@ -624,6 +652,7 @@ CREATE TABLE report_contents (
 |-------|------|-----|------|-------------|
 | id | INTEGER | PK | NO | Auto-increment ID |
 | session_id | INTEGER | FK | NO | → sessions(id) |
+| profile_id | INTEGER | FK | NO | → profiles(id) (denormalized, NEW IN v12) |
 | channel_id | INTEGER | | NO | Channel ID |
 | value | REAL | | NO | Setting value |
 | data_type | TEXT | | YES | Data type hint |
@@ -636,6 +665,7 @@ CREATE TABLE report_contents (
 |-------|------|-----|------|-------------|
 | id | INTEGER | PK | NO | Auto-increment ID |
 | session_id | INTEGER | FK | NO | → sessions(id) |
+| profile_id | INTEGER | FK | NO | → profiles(id) (denormalized, NEW IN v12) |
 | channel_id | INTEGER | | NO | Channel ID |
 | count | INTEGER | | NO | Data point count |
 | sum | REAL | | NO | Sum of values |
@@ -674,6 +704,8 @@ CREATE TABLE report_contents (
 |-------|------|-----|------|-------------|
 | id | INTEGER | PK | NO | Auto-increment ID |
 | session_id | INTEGER | FK | NO | → sessions(id) |
+| profile_id | INTEGER | FK | NO | → profiles(id) (denormalized, NEW IN v12) |
+| channel_id | INTEGER | | YES | OSCAR channel ID constant (NEW IN v12) |
 | event_type | INTEGER | | NO | 0=OA, 1=UA, 2=H, 3=RERA, 4=CAA, 5=User |
 | start_time | INTEGER | | NO | Start (Unix timestamp) |
 | end_time | INTEGER | | NO | End (Unix timestamp) |
@@ -688,6 +720,7 @@ CREATE TABLE report_contents (
 |-------|------|-----|------|-------------|
 | id | INTEGER | PK | NO | Auto-increment ID |
 | session_id | INTEGER | FK,UNIQUE | NO | → sessions(id) |
+| profile_id | INTEGER | FK | NO | → profiles(id) (denormalized, NEW IN v12) |
 | ahi | REAL | | NO | Apnea-Hypopnea Index |
 | rdi | REAL | | NO | Respiratory Disturbance Index |
 | obstructive_count | INTEGER | | NO | OA count |
@@ -730,6 +763,7 @@ CREATE TABLE report_contents (
 | profile_id | INTEGER | FK | NO | → profiles(id) |
 | channel_id | INTEGER | | NO | OSCAR channel ID constant |
 | channel_code | TEXT | | NO | Code (e.g., "CPAP_Pressure") |
+| type | INTEGER | | YES | Channel type (NEW IN v12) |
 | enabled | INTEGER | | NO | Enabled flag (0/1) |
 | default_color | TEXT | | YES | Color (#RRGGBB) |
 | fullname | TEXT | | YES | Full name |
@@ -798,6 +832,7 @@ CREATE TABLE report_contents (
 |-------|------|-----|------|-------------|
 | id | INTEGER | PK | NO | Auto-increment ID |
 | session_id | INTEGER | FK | NO | → sessions(id) |
+| profile_id | INTEGER | FK | NO | → profiles(id) (denormalized, NEW IN v12) |
 | channel_id | INTEGER | | NO | OSCAR channel ID |
 | eventlist_index | INTEGER | | NO | Index when multiple EventLists per channel |
 | event_type | INTEGER | | NO | 0=Event, 1=Waveform, 2=Series |
@@ -837,35 +872,22 @@ CREATE TABLE report_contents (
 
 **Replaces:** .001 file data sections. **Compression:** Only one of each pair (blob/compressed) is populated. Compression used only if >10% space savings. **Typical compression:** 40-60% for CPAP waveform data.
 
-### reports 📊 **NEW IN v11**
+### report_tree 🌲 **NEW IN v13 (replaces reports/report_contents from v11)**
 
 | Field | Type | Key | Null | Description |
 |-------|------|-----|------|-------------|
 | id | INTEGER | PK | NO | Auto-increment ID |
-| name | TEXT | UNIQUE | NO | Report name (unique) |
-| description | TEXT | | YES | Report description |
+| parent_id | INTEGER | FK | YES | → report_tree(id); NULL for root nodes |
+| name | TEXT | | NO | Node name (unique within parent) |
+| node_type | TEXT | | NO | 'root', 'folder', or 'report' |
+| source | TEXT | | NO | 'system' or 'user' |
+| description | TEXT | | YES | Node description |
+| query | TEXT | | YES | SQL query template (report nodes only) |
 | display_order | INTEGER | | NO | Sort order for UI display |
-| is_system | INTEGER | | NO | 1=system report, 0=custom user report |
 | created_at | TEXT | | NO | Creation timestamp |
 | updated_at | TEXT | | NO | Last update timestamp |
 
-**System Reports:** Managed by OSCAR, auto-updated on version changes. **Custom Reports:** User-created, preserved during upgrades.
-
-### report_contents 📊 **NEW IN v11**
-
-| Field | Type | Key | Null | Description |
-|-------|------|-----|------|-------------|
-| id | INTEGER | PK | NO | Auto-increment ID |
-| report_id | INTEGER | FK | NO | → reports(id) |
-| variety | TEXT | | NO | Report variety (e.g., "Days", "Weeks", "Months") |
-| description | TEXT | | YES | Variety description |
-| query | TEXT | | NO | SQL query template with macros |
-| display_order | INTEGER | | NO | Sort order for UI display |
-| is_system | INTEGER | | NO | 1=system content, 0=custom |
-| created_at | TEXT | | NO | Creation timestamp |
-| updated_at | TEXT | | NO | Last update timestamp |
-
-**Macro Substitution:** Queries use macros like `#PROFILE_ID`, `#START_DATE`, `#END_DATE` which are replaced at runtime with actual values.
+**System nodes:** Managed by OSCAR; populated/updated from the external `system_reports.orf` file on each startup. **User nodes:** Created by the user; preserved across OSCAR upgrades. **Query macros:** `#PROFILE_ID`, `#START_DATE`, `#END_DATE` replaced at runtime.
 
 ---
 
@@ -950,11 +972,25 @@ idx_event_lists_time ON event_lists(session_id, first_time, last_time)
 idx_event_data_eventlist ON event_data(eventlist_id)
 ```
 
-### CSV Report Indexes 📊 NEW IN v11
+### Profile ID Denormalization Indexes 🔧 NEW IN v12
 ```sql
-idx_report_contents_report ON report_contents(report_id)
-idx_reports_name ON reports(name)
-idx_report_contents_variety ON report_contents(report_id, variety)
+idx_session_summaries_profile ON session_summaries(profile_id)
+idx_session_summaries_profile_date ON session_summaries(profile_id, session_id)
+idx_session_settings_profile ON session_settings(profile_id)
+idx_session_settings_profile_channel ON session_settings(profile_id, channel_id)
+idx_session_channels_profile ON session_channels(profile_id)
+idx_session_channels_profile_channel ON session_channels(profile_id, channel_id)
+idx_event_lists_profile ON event_lists(profile_id)
+idx_event_lists_profile_channel ON event_lists(profile_id, channel_id)
+idx_respiratory_events_profile ON respiratory_events(profile_id)
+idx_respiratory_events_profile_type ON respiratory_events(profile_id, event_type)
+```
+
+### Report Tree Indexes 🌲 NEW IN v13
+```sql
+idx_report_tree_parent ON report_tree(parent_id)
+idx_report_tree_source ON report_tree(source)
+idx_report_tree_type ON report_tree(node_type)
 ```
 
 ---
@@ -969,26 +1005,31 @@ profiles (1) ──┬─< machines (N)
                ├─< doctor_info (1)
                ├─< profile_preferences (N)
                ├─< channels (N)
-               └─< daily_summaries (N) ⭐ NEW
+               ├─< daily_summaries (N)
+               ├─< session_settings (N)    [denormalized profile_id, v12]
+               ├─< session_channels (N)    [denormalized profile_id, v12]
+               ├─< session_summaries (N)   [denormalized profile_id, v12]
+               ├─< event_lists (N)         [denormalized profile_id, v12]
+               └─< respiratory_events (N)  [denormalized profile_id, v12]
 
 machines (1) ──┬─< sessions (N)
-               └─< daily_summaries (N) ⭐ NEW
+               └─< daily_summaries (N)
 
 sessions (1) ──┬─< session_settings (N)
                ├─< session_channels (N)
                ├─< respiratory_events (N)
                ├─< session_summaries (1)
                ├─< session_slices (N)
-               └─< event_lists (N) ⚡ NEW IN v8
+               └─< event_lists (N)
 
-event_lists (1) ─< event_data (1) ⚡ NEW IN v8
+event_lists (1) ─< event_data (1)
 
-session_channels (1) ─< session_channel_values (N) 🐛 NEW IN v7
+session_channels (1) ─< session_channel_values (N)
 
-reports (1) ─< report_contents (N) 📊 NEW IN v11
+report_tree (1) ─< report_tree (N)   [self-referencing parent_id, v13]
 
 channel_options (N) - standalone (references channel_id constant)
-reports (N) - global (not profile-specific) 📊 NEW IN v11
+report_tree (N) - global (not profile-specific) 🌲 NEW IN v13
 ```
 
 ### Foreign Key Details
@@ -1004,20 +1045,26 @@ reports (N) - global (not profile-specific) 📊 NEW IN v11
 | daily_summaries | machine_id | machines | id | SET NULL |
 | sessions | machine_id | machines | id | CASCADE |
 | session_settings | session_id | sessions | id | CASCADE |
+| session_settings | profile_id | profiles | id | CASCADE |
 | session_channels | session_id | sessions | id | CASCADE |
+| session_channels | profile_id | profiles | id | CASCADE |
 | session_channel_values | session_channel_id | session_channels | id | CASCADE |
 | respiratory_events | session_id | sessions | id | CASCADE |
+| respiratory_events | profile_id | profiles | id | CASCADE |
 | session_summaries | session_id | sessions | id | CASCADE |
+| session_summaries | profile_id | profiles | id | CASCADE |
 | session_slices | session_id | sessions | id | CASCADE |
 | event_lists | session_id | sessions | id | CASCADE |
+| event_lists | profile_id | profiles | id | CASCADE |
 | event_data | eventlist_id | event_lists | id | CASCADE |
-| report_contents | report_id | reports | id | CASCADE |
+| report_tree | parent_id | report_tree | id | CASCADE |
 
 **Cascade Delete Behavior:**
-- Deleting **profile** removes: machines, user_info, doctor_info, preferences, channels, daily_summaries
+- Deleting **profile** removes: machines, user_info, doctor_info, preferences, channels, daily_summaries, session_settings, session_channels, session_summaries, event_lists, respiratory_events (all denormalized profile_id FKs)
 - Deleting **machine** removes: sessions (and their data), sets daily_summaries.machine_id to NULL
 - Deleting **session** removes: settings, channels, events, summaries, slices, event_lists (which cascades to event_data)
 - Deleting **event_list** removes: event_data (waveform/event binary data)
+- Deleting **report_tree node** removes: all child nodes (self-referencing cascade)
 
 ---
 
@@ -1163,46 +1210,59 @@ The schema v10 changes provide semantic correctness for apnea event classificati
 
 ## Schema v11 Highlights 📊 **NEW FEATURE - CSV EXPORT REPORTS**
 
-The schema v11 changes introduce database-driven CSV export reports:
+The schema v11 changes introduced database-driven CSV export reports (later redesigned in v13):
 
 **What Changed:**
 - **New tables**: Added `reports` and `report_contents` tables
 - **Macro-based queries**: SQL templates with runtime substitution (#PROFILE_ID, #START_DATE, #END_DATE)
 - **Report varieties**: Each report supports multiple aggregation levels (Days, Weeks, Months)
-- **Version tracking**: System reports auto-update when OSCAR version changes
-- **User customization**: Custom user reports preserved during upgrades
 
-**Default System Reports:**
-1. **Daily Summaries** (3 varieties: Days, Weeks, Months)
-   - Pre-calculated daily aggregates from daily_summaries table
-   - Fast queries with complete CPAP metrics (AHI, pressure, leak, oximetry)
-
-2. **Session Statistics** (4 varieties: Sessions, Days, Weeks, Months)
-   - Individual session data or aggregated statistics
-   - Includes event counts, hours used, machine information
-
-3. **Device Settings** (1 variety: All Sessions)
-   - Machine configuration for each session
-   - Shows setting changes over time
-
-**Benefits:**
-- **Flexibility**: Users can create custom reports with SQL knowledge
-- **Maintainability**: System reports updated automatically with OSCAR
-- **Extensibility**: Easy to add new report types and varieties
-- **Database-driven**: Leverages SQLite's powerful query capabilities
-
-**Version Management:**
-- **First install**: System reports initialized with current OSCAR version
-- **Version change**: System reports regenerated; custom reports preserved
-- **Version tracking**: Stored in QSettings as `csv_reports_version`
-
-**Migration:**
-- **Automatic**: Reports tables created on schema upgrade to v11
-- **Seamless**: Default reports populated during first access
-- **Non-destructive**: No impact on existing data or functionality
+**Note:** These tables were replaced by `report_tree` in v13. See Schema v13 Highlights.
 
 ---
 
-**Document Version:** 6.0  
-**Schema Version:** 11  
+## Schema v12 Highlights 🔧 **DENORMALIZATION AND CLEANUP**
+
+**What Changed:**
+- **Profile ID denormalization**: Added `profile_id` column to `session_settings`, `session_channels`, `session_summaries`, and `event_lists` for direct profile-level queries without joining through machines/sessions
+- **Respiratory events enriched**: Added `profile_id` and `channel_id` to `respiratory_events`
+- **Channels type**: Added `type INTEGER` column to `channels`
+- **Sessions simplified**: Removed `events_file` and `summary_file` columns (legacy .001 file references no longer needed)
+- **No-migration policy introduced**: Schema version mismatch now requires a fresh database and data reimport. Incremental migrations are no longer supported.
+
+**Why Denormalization:**
+- Enables efficient queries like "all sessions for profile X" without joining through machines
+- Allows direct profile-level filtering on event_lists, session_summaries, and respiratory_events
+- Significant query performance improvement for reporting screens
+
+**Impact of No-Migration Policy:**
+- Users upgrading from v11 or earlier must reimport their CPAP data
+- Eliminates complex migration code and reduces maintenance burden
+- Ensures data integrity — no partial or broken upgrade states
+
+---
+
+## Schema v13 Highlights 🌲 **REPORT TREE REDESIGN**
+
+**What Changed:**
+- **Replaced `reports`/`report_contents`** (v11) with a single self-referencing `report_tree` table
+- **Hierarchical structure**: Root nodes → Folders → Report leaf nodes
+- **System/User split**: `source` column distinguishes OSCAR-managed vs user-created nodes
+- **External orf file**: System reports loaded from `system_reports.orf` on each startup (allows report updates without schema changes)
+
+**Benefits:**
+- **Flexibility**: Supports unlimited nesting depth (folders within folders)
+- **Separation**: System and user reports clearly delineated
+- **Maintainability**: System reports updated via `.orf` file, not schema migrations
+- **Simpler schema**: One table instead of two for the same functionality
+
+**Tree Initialization:**
+- At first install: root nodes and system reports populated from `.orf` file
+- At startup: system reports refreshed if OSCAR version changed; user reports untouched
+- User-created reports: preserved across all OSCAR upgrades
+
+---
+
+**Document Version:** 8.0
+**Schema Version:** 13
 **Generated:** 2026 Q1

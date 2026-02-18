@@ -68,7 +68,7 @@ bool DatabaseManager::initialize(const QString& databasePath)
     QMutexLocker locker(&m_mutex);
 
     if (m_initialized) {
-        qDebug() << "DatabaseManager: Already initialized";
+        qDebug() << "DatabaseManager::initialize: Already initialized";
         return true;
     }
 
@@ -79,7 +79,7 @@ bool DatabaseManager::initialize(const QString& databasePath)
     QDir dir = fileInfo.absoluteDir();
     if (!dir.exists()) {
         if (!dir.mkpath(".")) {
-            qCritical() << "DatabaseManager: Failed to create directory:" << dir.absolutePath();
+            qCritical() << "DatabaseManager::initialize: Failed to create directory:" << dir.absolutePath();
             emit databaseError("Failed to create database directory");
             return false;
         }
@@ -94,41 +94,41 @@ bool DatabaseManager::initialize(const QString& databasePath)
 
     // Open the database
     if (!m_database.open()) {
-        qCritical() << "DatabaseManager: Failed to open database:" << m_database.lastError().text();
+        qCritical() << "DatabaseManager::initialize: Failed to open database:" << m_database.lastError().text();
         emit databaseError("Failed to open database: " + m_database.lastError().text());
         QSqlDatabase::removeDatabase(m_connectionName);
         return false;
     }
 
-    qDebug() << "DatabaseManager: Database opened:" << databasePath;
+    qDebug() << "DatabaseManager::initialize: Database opened:" << databasePath;
 
     // Configure database settings
     if (!configureDatabaseSettings()) {
-        qCritical() << "DatabaseManager: Failed to configure database settings";
+        qCritical() << "DatabaseManager::initialize: Failed to configure database settings";
         close();
         return false;
     }
 
     // Create schema if this is a new database
     if (isNewDatabase) {
-        qDebug() << "DatabaseManager: Creating new database schema";
+        qDebug() << "DatabaseManager::initialize: Creating new database schema";
         if (!DatabaseSchema::createSchema(m_database)) {
-            qCritical() << "DatabaseManager: Failed to create database schema";
+            qCritical() << "DatabaseManager::initialize: Failed to create database schema";
             close();
             return false;
         }
     } else {
-        qDebug() << "DatabaseManager: Using existing database";
+        qDebug() << "DatabaseManager::initialize: Using existing database";
         
         // Check schema version (Schema v12+ policy: no incremental migration)
         int currentVersion = DatabaseSchema::getSchemaVersion(m_database);
-        qDebug() << "DatabaseManager: Current schema version:" << currentVersion;
+        qDebug() << "DatabaseManager::initialize: Current schema version:" << currentVersion;
         
         if (currentVersion != DatabaseSchema::CURRENT_SCHEMA_VERSION) {
-            qCritical() << "DatabaseManager: Database schema version mismatch!";
-            qCritical() << "DatabaseManager: Database version:" << currentVersion;
-            qCritical() << "DatabaseManager: Required version:" << DatabaseSchema::CURRENT_SCHEMA_VERSION;
-            qCritical() << "DatabaseManager: Please start with a fresh database and reimport your data.";
+            qCritical() << "DatabaseManager::initialize: Database schema version mismatch!";
+            qCritical() << "DatabaseManager::initialize: Database version:" << currentVersion;
+            qCritical() << "DatabaseManager::initialize: Required version:" << DatabaseSchema::CURRENT_SCHEMA_VERSION;
+            qCritical() << "DatabaseManager::initialize: Please start with a fresh database and reimport your data.";
             
             // Display error message to user (requires QMessageBox from QtWidgets)
             // Note: This will be displayed by the calling code in main.cpp or profileselector
@@ -156,14 +156,14 @@ bool DatabaseManager::initialize(const QString& databasePath)
 
     // Check and update CSV report versions (runs at every startup)
     // This is separate from schema upgrades because report changes don't require schema changes
-    qDebug() << "DatabaseManager: Checking CSV report versions...";
+    qDebug() << "DatabaseManager::initialize: Checking CSV report versions...";
     if (!DatabaseSchema::checkAndUpdateReportVersion(m_database)) {
-        qWarning() << "DatabaseManager: Failed to check/update report versions";
+        qWarning() << "DatabaseManager::initialize: Failed to check/update report versions";
         // Not a critical error - continue initialization
     }
 
     m_initialized = true;
-    qDebug() << "DatabaseManager: Initialization complete";
+    qDebug() << "DatabaseManager::initialize: Initialization complete";
     return true;
 }
 
@@ -177,7 +177,7 @@ void DatabaseManager::close()
     QMutexLocker locker(&m_mutex);
 
     if (m_initialized && m_database.isOpen()) {
-        qDebug() << "DatabaseManager: Closing database connection";
+        qDebug() << "DatabaseManager::close: Closing database connection";
         m_database.close();
     }
 
@@ -231,11 +231,11 @@ bool DatabaseManager::transaction()
     }
     
     if (!m_database.transaction()) {
-        qWarning() << "DatabaseManager: Failed to start transaction:" << m_database.lastError().text();
+        qWarning() << "DatabaseManager::transaction(): Failed to start transaction:" << m_database.lastError().text();
         return false;
     }
     
-    qDebug() << "DatabaseManager: started transaction";
+    qDebug() << "DatabaseManager::transaction(): started transaction";
     countRows ("transaction starting");
     m_inTransaction = true;
     return true;
@@ -246,7 +246,7 @@ long DatabaseManager::countRows(QString text) {
     QSqlQuery query(m_database);
 
     if (!query.exec("SELECT name FROM sqlite_master WHERE type='table'")) {
-        qDebug() << "Error querying tables:" << query.lastError().text();
+        qDebug() << "DatabaseManager::countRows: Error querying tables:" << query.lastError().text();
         return 0;
     }
 
@@ -257,7 +257,7 @@ long DatabaseManager::countRows(QString text) {
         QString sql = QString("SELECT COUNT(*) FROM %1").arg(tableName);
 
         if (!countQuery.exec(sql)) {
-            qDebug() << "Error counting rows in" << tableName << ":"
+            qDebug() << "DatabaseManager::countRows: Error counting rows in" << tableName << ":"
                      << countQuery.lastError().text();
             continue;
         }
@@ -292,12 +292,12 @@ bool DatabaseManager::commit()
     countRows ("before commit");
 
     if (!m_database.commit()) {
-        qWarning() << "DatabaseManager: Failed to commit transaction:" << m_database.lastError().text();
+        qWarning() << "DatabaseManager::commit: Failed to commit transaction:" << m_database.lastError().text();
         m_inTransaction = false;  // Clear flag even on error
         return false;
     }
     
-    qDebug() << "DatabaseManager: committed transaction";
+    qDebug() << "DatabaseManager::commit: committed transaction";
     countRows ("after commit");
     m_inTransaction = false;
     return true;
@@ -320,12 +320,12 @@ bool DatabaseManager::rollback()
     }
     
     if (!m_database.rollback()) {
-        qWarning() << "DatabaseManager: Failed to rollback transaction:" << m_database.lastError().text();
+        qWarning() << "DatabaseManager::rollback: Failed to rollback transaction:" << m_database.lastError().text();
         m_inTransaction = false;  // Clear flag even on error
         return false;
     }
     
-    qDebug() << "DatabaseManager: rolled back transaction";
+    qDebug() << "DatabaseManager::rollback: rolled back transaction";
     m_inTransaction = false;
     return true;
 }

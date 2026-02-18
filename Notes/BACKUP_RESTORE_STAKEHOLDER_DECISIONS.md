@@ -1,6 +1,6 @@
 # Profile Backup/Restore - Stakeholder Decisions
-**Date:** 2026-01-06  
-**Status:** Approved  
+**Date:** 2026-02-18 (updated)
+**Status:** Approved
 **Copyright:** Copyright (c) 2026 The OSCAR Team
 
 ---
@@ -42,12 +42,42 @@
 
 ---
 
+### 6. Should users be able to export only a date range of sessions (partial export)?
+**Decision:** YES — Date range selection is included in Phase 1.
+
+**Rationale:** A key use case is sharing a subset of data (e.g., a few days or weeks) with a clinician or researcher without exposing the entire history. Exporting a short window also dramatically reduces file size and transfer time.
+
+**Scope:**
+- Date range applies to **high-volume tables only**: `daily_summaries`, `sessions`, `session_settings`, `session_channels`, `session_channel_values`, `respiratory_events`, `session_summaries`, `session_slices`, `event_lists`, `event_data`
+- **Profile-level tables are always exported in full** (not date-filtered): `profiles`, `user_info`, `doctor_info`, `profile_preferences`, `channels`, `machines`
+- Default selection is "Everything" (full profile export; existing behaviour unchanged)
+- UI uses the same pattern as ExportCSV: a quick-range combo (Everything / Most Recent Day / Last Week / Last Fortnight / Last Month / Last 6 Months / Last Year / Custom) plus start/end `QDateEdit` widgets with calendar popups coloured for days with data
+- Partial export filenames include the date range: `profile_backup_<username>_<startdate>_<enddate>_<timestamp>.oscar`
+- Manifest records `export_options.is_partial`, `export_options.date_range.start_date`, and `export_options.date_range.end_date`
+- Restoring a partial package **adds** the exported sessions to the target database; it does not require or expect a complete profile history
+
+---
+
+### 7. Should users be able to blank personal information before export (privacy mode)?
+**Decision:** YES — Privacy mode is included in Phase 1.
+
+**Rationale:** A user sharing data with a clinician or a developer for debugging should not be forced to expose personal details (name, DOB, address, etc.). A simple checkbox at export time covers this without requiring full encryption.
+
+**Scope:**
+- A checkbox "Replace personal information with blanks" on the BackupDialog (default: unchecked)
+- When checked, **all data fields** in `user_info` and `doctor_info` are replaced with empty strings / NULL before writing to the SQL export. The `id` and `profile_id` columns are preserved for structural integrity
+- The manifest records `export_options.privacy_applied: true` so the recipient knows personal data was removed
+- Privacy mode can be combined with a date range export
+- Privacy mode does **not** affect any other tables
+
+---
+
 ## Additional Requirements & Constraints
 
 ### Schema Version
-**Current Schema: v9** (not v8 as originally documented)
+**Current Schema: v13** (not v8 as originally documented)
 
-**Impact:** Update all references in documentation and code to reflect v9 as current schema.
+**Impact:** Update all references in documentation and code to reflect v13 as current schema.
 
 ---
 
@@ -154,7 +184,9 @@
 
 ### Must Have (Phase 1)
 - ✓ Backup complete profile to .oscar file
-- ✓ Restore profile from .oscar file  
+- ✓ Restore profile from .oscar file
+- ✓ Date range export — partial backup of selected sessions (decision #6)
+- ✓ Privacy mode — blank personal data fields before export (decision #7)
 - ✓ Handle username conflicts (rename by default)
 - ✓ All data preserved (100% fidelity)
 - ✓ Transactional (atomic) restore
@@ -163,7 +195,7 @@
 - ✓ All errors shown to user in dialogs
 - ✓ Cross-platform compatible (different endianness)
 - ✓ Security warning before backup
-- ✓ Support schema v9
+- ✓ Support schema v13
 
 ### Explicitly Excluded (Phase 1)
 - ✗ Individual machine backup
@@ -176,7 +208,7 @@
 ### Postponed (Future)
 - Encryption support
 - Command-line interface
-- Selective backup (date range, machines)
+- Selective backup by machine or data type
 - Incremental backup
 - Automated/scheduled backups
 - Cloud integration
@@ -211,13 +243,15 @@ Given that uncompressed BLOBs are >40-60% of total size:
 
 ### Priority 1 (Critical)
 1. Core backup/restore functionality
-2. Cross-platform compatibility (endianness)
-3. Error handling and user notification
-4. Security warning
+2. Date range export (partial backup)
+3. Privacy mode (blank personal data)
+4. Cross-platform compatibility (endianness)
+5. Error handling and user notification
+6. Security warning
 
 ### Priority 2 (Important)
 1. Progress feedback
-2. UI polish
+2. UI polish (BackupDialog with date range + privacy controls)
 3. Conflict resolution
 4. Validation and testing
 
@@ -251,6 +285,20 @@ Given that uncompressed BLOBs are >40-60% of total size:
    - Multiple conflicts
    - Verify new username format
 
+5. **Date Range Testing**
+   - Full export (Everything) — all sessions exported
+   - Partial export — only sessions within selected range exported
+   - Profile-level tables (machines, channels, prefs) always fully exported
+   - Partial export filename includes date range component
+   - Manifest `is_partial` and `date_range` fields correct
+   - Restore partial package — sessions merged into existing profile
+
+6. **Privacy Mode Testing**
+   - Privacy mode off — user_info and doctor_info exported normally
+   - Privacy mode on — all data fields blanked; id/profile_id preserved
+   - Manifest `privacy_applied` field set correctly
+   - Privacy mode combined with date range export
+
 ---
 
 ## Documentation Requirements
@@ -270,9 +318,9 @@ Given that uncompressed BLOBs are >40-60% of total size:
 
 ## Sign-off
 
-**Approved By:** Stakeholder  
-**Date:** 2026-01-06  
-**Next Action:** Update design and implementation documents, then proceed with Phase 1 implementation
+**Approved By:** Stakeholder
+**Date:** 2026-01-06 (original); 2026-02-18 (decisions #6 and #7 added)
+**Next Action:** Proceed with Phase 1 implementation
 
 ---
 

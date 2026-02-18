@@ -71,5 +71,6 @@
         <file>icons/empty_box.png</file>
         <file>icons/resvent.png</file>
         <file>icons/bmc.png</file>
+        <file>docs/system_reports.orf</file>
     </qresource>
 </RCC>

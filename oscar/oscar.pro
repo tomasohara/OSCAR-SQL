@@ -438,7 +438,11 @@ SOURCES += \
     database/respiratory_events_repository.cpp \
     database/report_repository.cpp \
     database/reports_initializer.cpp \
-    database/report_contents_repository.cpp
+    database/report_contents_repository.cpp \
+    database/report_tree_repository.cpp \
+    database/report_tree_model.cpp \
+    exports/report_exporter.cpp \
+    database/orf_file_io.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -589,7 +593,11 @@ HEADERS  += \
     database/event_data_repository.h \
     database/respiratory_events_repository.h \
     database/report_repository.h \
-    database/report_contents_repository.h
+    database/report_contents_repository.h \
+    database/report_tree_repository.h \
+    database/report_tree_model.h \
+    exports/report_exporter.h \
+    database/orf_file_io.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }
@@ -630,6 +638,7 @@ OTHER_FILES += \
     docs/channels.xml \
     docs/startup_tips.txt \
     docs/countries.txt \
+    docs/system_reports.orf \
     docs/tz.txt \
     ../LICENSE.txt \
     docs/tooltips.css \

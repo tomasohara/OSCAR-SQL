@@ -24,8 +24,11 @@
  * the OSCAR database schema. It handles schema creation, versioning,
  * and future upgrades.
  *
- * Current schema version: 2
- * Tables: profiles, machines, user_info, doctor_info, profile_preferences, schema_version
+ * Current schema version: 13
+ * Version 13: Report tree redesign
+ * - Replaced reports/report_contents with single report_tree table
+ * - Hierarchical tree structure with System and User roots
+ * - System reports loaded from external .orf file
  */
 class DatabaseSchema
 {
@@ -35,7 +38,12 @@ public:
      *
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
-     * 
+     *
+     * Version 13: Report tree redesign
+     * - Replaced reports/report_contents tables with single report_tree table
+     * - Hierarchical structure with System/User roots and folders
+     * - System reports loaded from external system_reports.orf file
+     *
      * Version 12: Profile ID denormalization and schema cleanup
      * - Added profile_id to session_summaries, event_lists, session_settings, session_channels
      * - Added profile_id and channel_id to respiratory_events
@@ -43,7 +51,7 @@ public:
      * - Removed events_file and summary_file from sessions (no longer needed)
      * - New policy: Version mismatch requires fresh database (no incremental migration)
      */
-    static const int CURRENT_SCHEMA_VERSION = 12;
+    static const int CURRENT_SCHEMA_VERSION = 13;
 
     /*!
      * \brief Create the complete database schema
@@ -92,7 +100,7 @@ private:
     static bool createUserInfoTable(QSqlDatabase& db);
     static bool createDoctorInfoTable(QSqlDatabase& db);
     static bool createProfilePreferencesTable(QSqlDatabase& db);
-    
+
     // Session data tables (schema version 3)
     static bool createSessionsTable(QSqlDatabase& db);
     static bool createSessionSettingsTable(QSqlDatabase& db);
@@ -101,18 +109,21 @@ private:
     static bool createRespiratoryEventsTable(QSqlDatabase& db);
     static bool createSessionSummariesTable(QSqlDatabase& db);
     static bool createSessionSlicesTable(QSqlDatabase& db);
-    
+
     // Channel tables (schema version 5)
     static bool createChannelsTable(QSqlDatabase& db);
     static bool createChannelOptionsTable(QSqlDatabase& db);
-    
+
     // Daily summaries table (schema version 6)
     static bool createDailySummariesTable(QSqlDatabase& db);
-    
+
     // Event data tables (schema version 8)
     static bool createEventListsTable(QSqlDatabase& db);
     static bool createEventDataTable(QSqlDatabase& db);
-    
+
+    // Report tree table (schema version 13 - replaces reports/report_contents)
+    static bool createReportTreeTable(QSqlDatabase& db);
+
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);
 };

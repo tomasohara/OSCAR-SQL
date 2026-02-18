@@ -127,9 +127,9 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
-    // Reports tables (schema version 11)
-    if (!ReportsInitializer::createReportsTables(db)) {
-        qCritical() << "DatabaseSchema: Failed to create reports tables";
+    // Report tree table (schema version 13 - replaces reports/report_contents)
+    if (!createReportTreeTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create report_tree table";
         return false;
     }
 
@@ -142,6 +142,12 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
     // Set schema version
     if (!setSchemaVersion(db, CURRENT_SCHEMA_VERSION)) {
         qCritical() << "DatabaseSchema: Failed to set schema version";
+        return false;
+    }
+
+    // Initialize report tree with root nodes and system reports
+    if (!ReportsInitializer::initializeReportTree(db)) {
+        qCritical() << "DatabaseSchema: Failed to initialize report tree";
         return false;
     }
 
@@ -172,6 +178,7 @@ int DatabaseSchema::getSchemaVersion(QSqlDatabase& db)
 
     return 0;
 }
+
 
 /*
  * Upgrade database schema to current version
@@ -477,26 +484,12 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
     }
     
     // Upgrade from version 10 to version 11: Add CSV export reports tables
+    // NOTE: This code is never executed due to v12+ no-migration policy above
+    // Keeping for reference only - users must start with fresh database
     if (fromVersion < 11) {
         qDebug() << "DatabaseSchema: Applying version 11 upgrade (CSV export reports tables)";
-        
-        if (!ReportsInitializer::createReportsTables(db)) {
-            qCritical() << "DatabaseSchema: Failed to create reports tables during upgrade";
-            return false;
-        }
-        
-        // Note: Default reports will be initialized by checkAndUpdateReportVersion()
-        // which is called at every startup from DatabaseManager::initialize()
-        
-        // Update schema version
-        if (!setSchemaVersion(db, 11)) {
-            qCritical() << "DatabaseSchema: Failed to update schema version to 11";
-            return false;
-        }
-        
-        qDebug() << "DatabaseSchema: Successfully upgraded to version 11";
-        qDebug() << "DatabaseSchema: CSV export reports tables created";
-        qDebug() << "DatabaseSchema: Reports will be initialized at startup";
+        qDebug() << "DatabaseSchema: ERROR - This should never execute due to no-migration policy";
+        return false;
     }
     
     return true;
@@ -1435,6 +1428,60 @@ bool DatabaseSchema::createEventDataTable(QSqlDatabase& db)
     }
 
     qDebug() << "DatabaseSchema: event_data table created";
+    return true;
+}
+
+/*
+ * Create the report_tree table
+ *
+ * Parameters:
+ *   db - Database connection to use
+ *
+ * Returns: true if successful, false otherwise
+ *
+ * The report_tree table stores the hierarchical report tree with System
+ * and User root nodes. Replaces the old reports/report_contents tables.
+ */
+bool DatabaseSchema::createReportTreeTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+
+    QString sql =
+        "CREATE TABLE IF NOT EXISTS report_tree ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    parent_id INTEGER,"
+        "    name TEXT NOT NULL,"
+        "    node_type TEXT NOT NULL CHECK(node_type IN ('root', 'folder', 'report')),"
+        "    source TEXT NOT NULL CHECK(source IN ('system', 'user')),"
+        "    description TEXT,"
+        "    query TEXT,"
+        "    display_order INTEGER DEFAULT 0,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (parent_id) REFERENCES report_tree(id) ON DELETE CASCADE,"
+        "    UNIQUE(parent_id, name)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create report_tree table:"
+                    << query.lastError().text();
+        return false;
+    }
+
+    // Create indexes for report_tree
+    if (!query.exec("CREATE INDEX IF NOT EXISTS idx_report_tree_parent ON report_tree(parent_id)")) {
+        qWarning() << "DatabaseSchema: Failed to create report_tree parent index:" << query.lastError().text();
+    }
+
+    if (!query.exec("CREATE INDEX IF NOT EXISTS idx_report_tree_source ON report_tree(source)")) {
+        qWarning() << "DatabaseSchema: Failed to create report_tree source index:" << query.lastError().text();
+    }
+
+    if (!query.exec("CREATE INDEX IF NOT EXISTS idx_report_tree_type ON report_tree(node_type)")) {
+        qWarning() << "DatabaseSchema: Failed to create report_tree type index:" << query.lastError().text();
+    }
+
+    qDebug() << "DatabaseSchema: report_tree table created";
     return true;
 }
 

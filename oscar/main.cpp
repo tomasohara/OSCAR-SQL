@@ -642,7 +642,7 @@ int main(int argc, char *argv[]) {
     if (!load_profile.isEmpty()) AppSetting->setProfileName(load_profile);
 
     // Set fonts from preferences file
-    qDebug() << "App font before Prefs setting" << QApplication::font();
+    qDebug() << "Main: App font before Prefs setting" << QApplication::font();
     validateAllFonts();
     setApplicationFont();
 
@@ -668,12 +668,12 @@ int main(int argc, char *argv[]) {
     if (!DatabaseManager::instance().initialize(dbPath)) {
         // The detailed error message has already been shown via the signal
         // This is a fallback in case initialize fails without emitting a signal
-        qCritical() << "Database initialization failed";
+        qCritical() << "Main: Database initialization failed";
         return 0;
     }
 
-    qDebug() << "Database initialized successfully!";
-    qDebug() << "Database file:" << dbPath;
+    qDebug() << "Main: Database initialized successfully!";
+    qDebug() << "Main: Database file:" << dbPath;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Migrate from OSCAR 1.x if needed

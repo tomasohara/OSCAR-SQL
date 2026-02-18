@@ -1,7 +1,7 @@
 # Profile Backup/Restore Implementation Plan
-**Version:** 1.0  
-**Date:** 2026-01-06  
-**Status:** Ready for Implementation  
+**Version:** 2.0
+**Date:** 2026-02-18 (updated)
+**Status:** Ready for Implementation
 **Copyright:** Copyright (c) 2026 The OSCAR Team
 
 ---
@@ -18,7 +18,7 @@ This document provides a detailed, step-by-step implementation plan for the Prof
 - Qt6 framework (QtCore, QtSql)
 - SQLite database operations
 - C++ modern practices
-- OSCAR database schema (v8)
+- OSCAR database schema (v13)
 - Existing database repository pattern
 
 ### Development Environment
@@ -112,7 +112,11 @@ public:
                        int eventListsCount, const QString& firstSession,
                        const QString& lastSession, qint64 dbSize);
     void addExportedTable(const QString& tableName);
-    void setExportOptions(bool includeDisabled, bool compress);
+    void setExportOptions(bool includeDisabled, bool compress,
+                          bool isPartial = false,
+                          const QDate& startDate = QDate(),
+                          const QDate& endDate = QDate(),
+                          bool privacyApplied = false);
     void setChecksums(const QString& manifestChecksum, 
                       const QString& dbChecksum, 
                       const QString& packageChecksum);
@@ -258,11 +262,14 @@ private:
    ```cpp
    bool ProfileBackup::exportProfileMetadata(const QString& outputDir)
    {
-       // Export profiles table
-       // Export user_info table
-       // Export doctor_info table
-       // Export profile_preferences table
-       // Export channels table
+       // Export profiles table (always full)
+       // Export user_info table:
+       //   - If m_privacyMode is true, blank all data fields except id and profile_id
+       //     (firstname, lastname, dob, email, phone, address, city, state, postcode, country, etc.)
+       //   - If m_privacyMode is false, export normally
+       // Export doctor_info table (same privacy mode logic as user_info)
+       // Export profile_preferences table (always full)
+       // Export channels table (always full; includes 'type' field added in v12)
        return true;
    }
    ```
@@ -271,15 +278,20 @@ private:
    ```cpp
    bool ProfileBackup::exportMachinesAndSessions(const QString& outputDir)
    {
+       // Build date filter for sessions if m_startDate / m_endDate are set:
+       //   WHERE start_time >= startEpoch AND start_time <= endEpoch
+       // (No WHERE clause when doing a full export.)
+       //
        // For each machine:
-       //   - Export machine record
-       //   - For each session:
-       //     * Export session record
-       //     * Export session_settings
-       //     * Export session_channels
+       //   - Export machine record (always full)
+       //   - Build session_id IN (...) subquery for all matching sessions
+       //   - For sessions within the date range:
+       //     * Export sessions  (no events_file/summary_file columns; removed in v12)
+       //     * Export session_settings  (includes profile_id; use @PROFILE_ID@ placeholder)
+       //     * Export session_channels  (includes profile_id; use @PROFILE_ID@ placeholder)
        //     * Export session_channel_values
-       //     * Export respiratory_events
-       //     * Export session_summaries
+       //     * Export respiratory_events  (includes profile_id and channel_id; use @PROFILE_ID@ placeholder)
+       //     * Export session_summaries  (includes profile_id; use @PROFILE_ID@ placeholder)
        //     * Export session_slices
        return true;
    }
@@ -289,9 +301,10 @@ private:
    ```cpp
    bool ProfileBackup::exportWaveformData(const QString& outputDir)
    {
-       // For each session:
-       //   - Export event_lists (metadata)
-       //   - Export event_data (BLOBs as hex)
+       // For sessions within the date range (or all sessions for full export):
+       //   - Export event_lists (metadata; includes profile_id; use @PROFILE_ID@ placeholder)
+       //   - Export event_data (BLOBs as hex) for those event_lists
+       // Note: report_tree is NOT exported - not profile-specific
        return true;
    }
    ```
@@ -301,6 +314,8 @@ private:
    bool ProfileBackup::exportDailySummaries(const QString& outputDir)
    {
        // Export daily_summaries table
+       // If date range set: WHERE date >= startDate AND date <= endDate
+       // Otherwise: export all rows for this profile
        return true;
    }
    ```
@@ -327,14 +342,22 @@ private:
    bool ProfileBackup::createManifest(const QString& outputDir)
    {
        BackupManifest manifest;
-       
-       // Populate manifest with backup statistics
+
        manifest.setFormatVersion("2.0");
        manifest.setOscarVersion(getOscarVersion());
        manifest.setSchemaVersion(getDatabaseSchemaVersion());
-       
-       // Add profile info, statistics, tables, options, checksums
-       
+
+       // Add profile info, statistics, tables exported
+       // Set export options — record date range and privacy mode:
+       manifest.setExportOptions(
+           m_includeDisabled,
+           m_compress,
+           /*isPartial=*/ m_startDate.isValid() || m_endDate.isValid(),
+           m_startDate,
+           m_endDate,
+           m_privacyMode
+       );
+
        manifest.saveToFile(outputDir + "/manifest.json");
        return true;
    }
@@ -344,6 +367,9 @@ private:
    ```cpp
    bool ProfileBackup::createPackage(const QString& tempDir)
    {
+       // Generate output filename:
+       //   Full export:    profile_backup_<username>_<timestamp>.oscar
+       //   Partial export: profile_backup_<username>_<startdate>_<enddate>_<timestamp>.oscar
        // Use QuaZip or Qt's built-in compression
        // Create .oscar file (ZIP format)
        // Add all SQL files and manifest
@@ -397,8 +423,9 @@ private:
    {
        // Compare schema versions
        // Check format version
-       // Warn if older schema
-       // Error if newer schema
+       // Schema v12+ policy: no incremental migration supported.
+       // Only exact schema version match (v13 == v13) is acceptable.
+       // Error if backup schema != current schema (no partial restore)
        return true;
    }
    ```
@@ -599,7 +626,7 @@ bool ProfileRestore::validateRestore(const QJsonObject& manifest)
 
 ### Milestone 4.1: Create Backup Dialog
 
-**Estimated Time:** 2 days
+**Estimated Time:** 3 days
 
 **Files:**
 - `oscar/backupdialog.h`
@@ -607,16 +634,26 @@ bool ProfileRestore::validateRestore(const QJsonObject& manifest)
 - `oscar/backupdialog.ui`
 
 **UI Components:**
-- Profile selection dropdown
-- Output directory browser
-- Options checkboxes:
-  - [ ] Include disabled sessions
-  - [ ] Compress package
-- Estimated size display
-- Backup button
-- Progress bar
-- Status label
-- Cancel button
+- Profile selection `QComboBox` (pre-selected with current profile)
+- Date range section:
+  - Range `QComboBox` (Everything / Most Recent Day / Last Week / Last Fortnight / Last Month / Last 6 Months / Last Year / Custom) — mirrors ExportCSV pattern
+  - From `QDateEdit` + To `QDateEdit` with locale-aware 4-digit year format; disabled unless "Custom"; calendar popups colour days with data
+- Privacy section:
+  - `QCheckBox` "Replace personal information with blanks"
+- Output section:
+  - `QLineEdit` directory path + `QPushButton` Browse (opens `QFileDialog::getExistingDirectory`)
+  - `QLabel` showing auto-generated filename and estimated size
+- Status section:
+  - `QProgressBar` (hidden until backup starts)
+  - `QLabel` status message
+- Buttons: Backup, Cancel
+
+**Security warning dialog** — shown when Backup is clicked (before starting):
+- Lists sensitive data categories
+- Notes that privacy mode omits personal fields if checked
+- Lists storage recommendations (encrypted drives, secure locations)
+- `QCheckBox` "I understand and will store my backup securely"
+- Continue button disabled until checkbox ticked
 
 **Implementation:**
 
@@ -630,6 +667,10 @@ public:
     ~BackupDialog();
 
 private slots:
+    void onProfileChanged(int index);
+    void onRangeChanged(const QString& range);
+    void onStartDateChanged(const QDate& date);
+    void onEndDateChanged(const QDate& date);
     void onBrowseClicked();
     void onBackupClicked();
     void onProgressChanged(int percent, const QString& message);
@@ -639,10 +680,20 @@ private slots:
 private:
     Ui::BackupDialog* ui;
     ProfileBackup* m_backup;
+
+    void updateFilenamePreview();
+    void updateCalendarDay(QDateEdit* dateEdit, QDate date);
+    bool showSecurityWarning();   // Returns true if user confirmed
 };
 ```
 
-**Deliverable:** Working backup dialog
+**Behaviour notes:**
+- When range combo changes (non-Custom), auto-set From/To and disable them
+- When range combo = "Custom", enable From/To; calendar popup colours days with data
+- When profile or date range changes, update filename preview and estimated size
+- `showSecurityWarning()` opens a modal dialog with confirmation checkbox; returns true only if confirmed
+
+**Deliverable:** Working backup dialog with date range, privacy mode, and security warning
 
 ---
 
@@ -659,7 +710,8 @@ private:
 - Package file browser (.oscar files)
 - Package info display (after validation):
   - Username
-  - Date range
+  - Full or partial export (date range if partial)
+  - Privacy applied: yes/no
   - Session count
   - Size
 - Conflict resolution options (if conflict detected):
@@ -695,6 +747,8 @@ private:
     ProfileRestore* m_restore;
     
     void displayPackageInfo(const BackupManifest& manifest);
+    // Displays: username, full/partial status, date range (if partial),
+    // privacy applied, session count, compressed size
     void handleConflict(ConflictStatus status);
 };
 ```
@@ -866,13 +920,15 @@ void MainWindow::on_actionRestoreProfile_triggered()
 
 ### Phase 2: Backup Implementation
 - [ ] Implement ProfileBackup::validateProfile()
-- [ ] Implement ProfileBackup::exportProfileMetadata()
-- [ ] Implement ProfileBackup::exportMachinesAndSessions()
-- [ ] Implement ProfileBackup::exportWaveformData()
-- [ ] Implement ProfileBackup::exportDailySummaries()
-- [ ] Implement ProfileBackup::createManifest()
-- [ ] Implement ProfileBackup::createPackage()
-- [ ] Unit tests for backup
+- [ ] Implement ProfileBackup::exportProfileMetadata() — with privacy mode (blank user_info/doctor_info)
+- [ ] Implement ProfileBackup::setDateRange() and buildSessionIdSubquery()
+- [ ] Implement ProfileBackup::setPrivacyMode()
+- [ ] Implement ProfileBackup::exportMachinesAndSessions() — with date WHERE clauses
+- [ ] Implement ProfileBackup::exportWaveformData() — with date filtering
+- [ ] Implement ProfileBackup::exportDailySummaries() — with date WHERE clause
+- [ ] Implement ProfileBackup::createManifest() — record is_partial, date_range, privacy_applied
+- [ ] Implement ProfileBackup::createPackage() — date-range filename for partial exports
+- [ ] Unit tests for backup (including BK-006 through BK-010)
 
 ### Phase 3: Restore Implementation
 - [ ] Implement ProfileRestore::validatePackage()
@@ -884,8 +940,18 @@ void MainWindow::on_actionRestoreProfile_triggered()
 - [ ] Unit tests for restore
 
 ### Phase 4: UI Integration
-- [ ] Create BackupDialog (UI + logic)
-- [ ] Create RestoreDialog (UI + logic)
+- [ ] Create BackupDialog (UI + logic):
+  - [ ] Profile selection combo
+  - [ ] Date range combo + From/To QDateEdit + calendar colouring
+  - [ ] Privacy mode checkbox
+  - [ ] Output directory + filename preview + estimated size
+  - [ ] Security warning dialog (confirmation checkbox gating Continue)
+  - [ ] Progress bar + status label + error dialogs
+- [ ] Create RestoreDialog (UI + logic):
+  - [ ] Package file selection
+  - [ ] Package info display (partial/full, date range, privacy applied, session count, size)
+  - [ ] Conflict resolution options
+  - [ ] Progress bar + status label
 - [ ] Integrate with main menu
 - [ ] Manual UI testing
 
@@ -924,10 +990,13 @@ void MainWindow::on_actionRestoreProfile_triggered()
 
 ### Functional Requirements
 - ✓ Can backup complete profile to .oscar file
+- ✓ Can backup a date-range subset (partial export)
+- ✓ Privacy mode blanks personal data fields before export
 - ✓ Can restore profile from .oscar file
 - ✓ Handles username conflicts correctly
 - ✓ All data preserved (100% fidelity)
 - ✓ Transactional (atomic) restore
+- ✓ Partial package restore merges sessions correctly
 
 ### Non-Functional Requirements
 - ✓ Backup 1 year data in <60 seconds
@@ -977,10 +1046,10 @@ After initial release and user feedback:
    - Add backup reminder feature
 
 3. **Advanced Features**
-   - Selective backup (date range)
    - Incremental backup
    - Encrypted backup
    - Cloud storage integration
+   - Selective backup by machine or data type
 
 ### Maintenance
 
@@ -991,33 +1060,10 @@ After initial release and user feedback:
 
 ---
 
-## Questions for Stakeholder Review
-
-Before implementation begins, please confirm:
-
-1. **Scope**
-   - Is Phase 1 (MVP) sufficient for initial release?
-   - Should encryption be in Phase 1 or deferred?
-
-2. **UI/UX**
-   - Should backup/restore be in File menu or Tools menu?
-   - Should there be a backup wizard or simple dialog?
-   - Should we show package contents before restore?
-
-3. **Technical**
-   - Should we use QuaZip or Qt's built-in ZIP?
-   - Should we support .001 file export for backward compat?
-   - Should daily_summaries be recalculated or restored?
-
-4. **Priority**
-   - What is the priority vs other features?
-   - Is 3-4 week timeline acceptable?
-   - Are there any hard deadlines?
-
 ---
 
-**Document Status:** Ready for Review and Approval  
-**Next Action:** Stakeholder review, then begin Phase 1 implementation  
+**Document Status:** Ready for Implementation
+**Next Action:** Begin Phase 1 implementation
 **Contact:** Development team via GitLab
 
 ---

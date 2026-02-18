@@ -19,7 +19,7 @@ This folder contains the complete design and implementation specifications for t
 **Read This First!**
 
 Contains answers to design questions and additional requirements:
-- Schema v9 support
+- Schema v13 support
 - No encryption (with security warnings)
 - UI-only interface
 - Rename as default conflict resolution
@@ -33,7 +33,7 @@ Contains answers to design questions and additional requirements:
 
 ### 2. PROFILE_BACKUP_RESTORE_DESIGN.md
 **Purpose:** Comprehensive technical design specification  
-**Status:** ⚠️ NEEDS UPDATE - Currently reflects v8, needs v9 updates  
+**Status:** ✅ UPDATED to schema v13
 
 Contains:
 - Backup/restore process flows
@@ -51,7 +51,7 @@ Contains:
 
 ### 3. BACKUP_RESTORE_IMPLEMENTATION_PLAN.md
 **Purpose:** Detailed implementation roadmap  
-**Status:** ⚠️ NEEDS UPDATE - Needs v9 and stakeholder decision updates
+**Status:** ✅ UPDATED to schema v13
 
 Contains:
 - 5-phase implementation plan with milestones
@@ -69,28 +69,30 @@ Contains:
 ## Key Requirements Summary
 
 ### What We're Building
-✅ **Profile Backup:** Export complete profile to .oscar file (ZIP format)  
-✅ **Profile Restore:** Import profile from .oscar file to database  
-✅ **Conflict Handling:** Automatically rename if username exists  
-✅ **Data Integrity:** 100% fidelity, transactional restore  
-✅ **Cross-Platform:** Works across Windows/Mac/Linux with different endianness  
-✅ **Security:** Warning dialogs about unencrypted data  
-✅ **UI Integration:** File menu → Backup Profile / Restore Profile  
+✅ **Profile Backup:** Export complete profile to .oscar file (ZIP format)
+✅ **Profile Restore:** Import profile from .oscar file to database
+✅ **Date Range Export:** Partial export of a selected date range (same UI pattern as ExportCSV)
+✅ **Privacy Mode:** Optionally blank all personal data fields in user_info/doctor_info before export
+✅ **Conflict Handling:** Automatically rename if username exists
+✅ **Data Integrity:** 100% fidelity, transactional restore
+✅ **Cross-Platform:** Works across Windows/Mac/Linux with different endianness
+✅ **Security:** Warning dialogs about unencrypted data
+✅ **UI Integration:** File menu → Backup Profile / Restore Profile
 
 ### What We're NOT Building (Phase 1)
-❌ Individual machine backup  
-❌ Encryption/password protection  
-❌ Command-line interface  
-❌ .001 file support  
-❌ BLOB compression during export  
-❌ Full database backup (SQLite API)  
+❌ Individual machine backup
+❌ Encryption/password protection
+❌ Command-line interface
+❌ .001 file support
+❌ BLOB compression during export
+❌ Full database backup (SQLite API)
 
 ---
 
 ## Technical Highlights
 
 ### Architecture
-- **Database-Only**: All data in SQLite (schema v9), including waveforms as BLOBs
+- **Database-Only**: All data in SQLite (schema v13), including waveforms as BLOBs
 - **SQL Export**: Export to SQL INSERT statements with ID placeholders
 - **BLOB Handling**: Hex-encoded BLOBs (X'...') for portability
 - **ID Remapping**: Automatic remapping of auto-increment IDs during restore
@@ -98,18 +100,20 @@ Contains:
 
 ### Package Format
 ```
-profile_backup_<username>_<timestamp>.oscar  (ZIP file)
+profile_backup_<username>_<timestamp>.oscar                          (full)
+profile_backup_<username>_<startdate>_<enddate>_<timestamp>.oscar   (partial)
 ├── manifest.json                # Metadata, checksums, statistics
 └── database/
-    ├── profile.sql
-    ├── user_info.sql
-    ├── doctor_info.sql
-    ├── preferences.sql
-    ├── channels.sql
-    ├── daily_summaries.sql
+    ├── profile.sql              # always full
+    ├── user_info.sql            # full; fields blanked if privacy mode
+    ├── doctor_info.sql          # full; fields blanked if privacy mode
+    ├── preferences.sql          # always full
+    ├── channels.sql             # always full
+    ├── daily_summaries.sql      # date-filtered
     └── machines/
+        ├── machine_<id>.sql     # always full
         └── machine_<id>_sessions/
-            ├── sessions.sql
+            ├── sessions.sql              # sessions within date range
             ├── session_settings.sql
             ├── session_channels.sql
             ├── session_channel_values.sql
@@ -117,8 +121,16 @@ profile_backup_<username>_<timestamp>.oscar  (ZIP file)
             ├── session_summaries.sql
             ├── session_slices.sql
             ├── event_lists.sql
-            └── event_data.sql           # Waveform BLOBs (large)
+            └── event_data.sql            # Waveform BLOBs (large)
 ```
+
+`manifest.json` records `export_options.is_partial`, `export_options.date_range`, and `export_options.privacy_applied` so the recipient can see exactly what the package contains.
+
+### Schema v12/v13 Notes
+- **Profile ID denormalization (v12)**: `session_settings`, `session_channels`, `session_summaries`, `event_lists` include a `profile_id` column; `respiratory_events` includes `profile_id` and `channel_id`; `channels` includes a `type` field. SQL INSERT statements in the backup must include these columns with `@PROFILE_ID@` placeholders.
+- **Sessions simplified (v12)**: `events_file` and `summary_file` columns removed from `sessions` table.
+- **No migration policy (v12+)**: Schema version mismatches require a fresh database. Backup/restore requires matching schema versions (v13 ↔ v13).
+- **Report tree (v13)**: The `report_tree` table replaces `reports`/`report_contents`. It is **not** included in profile backups — it is not profile-specific. System reports are auto-populated from the `.orf` file; user reports are global to the database.
 
 ### Key Technologies
 - **Qt6**: QtCore, QtSql for database operations
@@ -302,6 +314,8 @@ This documentation will be updated as implementation progresses to reflect:
 |------|---------|---------|
 | 2026-01-06 | 1.0 | Initial documentation set created |
 | 2026-01-06 | 1.1 | Stakeholder decisions incorporated |
+| 2026-02-18 | 1.2 | Updated for current schema v13; added v12/v13 notes (profile_id denormalization, no-migration policy, report_tree) |
+| 2026-02-18 | 1.3 | Added date range export (partial backup) and privacy mode to Phase 1 scope; updated package format, manifest, and What We're Building list |
 
 ---
 

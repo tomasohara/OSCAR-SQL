@@ -70,8 +70,7 @@
 #include "ui_mainwindow.h"
 #include "aboutdialog.h"
 #include "newprofile.h"
-#include "exportcsv.h"
-#include "reportmanager.h"
+#include "exports/report_exporter.h"
 #include "importprofile.h"
 #include "profileimporter.h"
 #include "SleepLib/schema.h"
@@ -296,6 +295,8 @@ void MainWindow::SetupGUI()
     ui->action_Frequently_Asked_Questions->setVisible(false);
     ui->actionReport_a_Bug->setVisible(false);  // remove this once we actually implement it
     ui->actionExport_Review->setVisible(false);  // remove this once we actually implement it
+    ui->actionManage_Reports->setVisible(false); // Replaced by unified CSV Export Wizard dialog
+    ui->actionExport_CSV->setText(tr("CSV Export Wizard..."));  // Rename per UI redesign
 
     reset_reportModeUi() ;
     if (!AppSetting->showDebug()) {
@@ -2893,16 +2894,16 @@ void MainWindow::on_actionShow_Performance_Counters_toggled(bool arg1)
 
 void MainWindow::on_actionExport_CSV_triggered()
 {
-    ExportCSV ex(this);
-
-    if (ex.exec() == ExportCSV::Accepted) {
-    }
+    // New unified Report Exporter dialog handles both export and management
+    ReportExporter *dialog = new ReportExporter(this);
+    dialog->exec();
+    delete dialog;
 }
 
 void MainWindow::on_actionManage_Reports_triggered()
 {
-    ReportManager manager(this);
-    manager.exec();
+    // Both menu items now use the same unified dialog
+    on_actionExport_CSV_triggered();
 }
 
 void MainWindow::on_actionExport_Review_triggered()
