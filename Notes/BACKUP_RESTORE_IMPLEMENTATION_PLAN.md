@@ -931,28 +931,28 @@ void MainWindow::on_actionRestoreProfile_triggered()
 - [ ] Unit tests for backup (including BK-006 through BK-010)
 
 ### Phase 3: Restore Implementation
-- [ ] Implement ProfileRestore::validatePackage()
-- [ ] Implement ProfileRestore::checkCompatibility()
-- [ ] Implement ProfileRestore::checkConflicts()
-- [ ] Implement ID remapping system
-- [ ] Implement ProfileRestore::restoreInTransaction()
-- [ ] Implement ProfileRestore::validateRestore()
+- [x] Implement ProfileRestore::validatePackage()
+- [x] Implement ProfileRestore::checkCompatibility()
+- [x] Implement ProfileRestore::checkConflicts()
+- [x] Implement ID remapping system
+- [x] Implement ProfileRestore::restoreInTransaction()
+- [x] Implement ProfileRestore::validateRestore()
 - [ ] Unit tests for restore
 
 ### Phase 4: UI Integration
-- [ ] Create BackupDialog (UI + logic):
-  - [ ] Profile selection combo
-  - [ ] Date range combo + From/To QDateEdit + calendar colouring
-  - [ ] Privacy mode checkbox
-  - [ ] Output directory + filename preview + estimated size
-  - [ ] Security warning dialog (confirmation checkbox gating Continue)
-  - [ ] Progress bar + status label + error dialogs
-- [ ] Create RestoreDialog (UI + logic):
-  - [ ] Package file selection
-  - [ ] Package info display (partial/full, date range, privacy applied, session count, size)
-  - [ ] Conflict resolution options
-  - [ ] Progress bar + status label
-- [ ] Integrate with main menu
+- [x] Create BackupDialog (UI + logic):
+  - [x] Profile selection combo
+  - [x] Date range combo + From/To QDateEdit + calendar colouring
+  - [x] Privacy mode checkbox
+  - [x] Output directory + filename preview + estimated size
+  - [x] Security warning dialog (confirmation checkbox gating Continue)
+  - [x] Progress bar + status label + error dialogs
+- [x] Create RestoreDialog (UI + logic):
+  - [x] Package file selection
+  - [x] Package info display (partial/full, date range, privacy applied, session count, size)
+  - [x] Conflict resolution options
+  - [x] Progress bar + status label
+- [x] Integrate with main menu
 - [ ] Manual UI testing
 
 ### Phase 5: Testing & Documentation

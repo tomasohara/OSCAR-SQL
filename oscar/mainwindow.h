@@ -361,6 +361,12 @@ class MainWindow : public QMainWindow
 
     void on_actionImport_Journal_triggered();
 
+    /*! \brief Open the Backup Profile dialog. */
+    void on_actionBackup_Profile_triggered();
+
+    /*! \brief Open the Restore Profile dialog. */
+    void on_actionRestore_Profile_triggered();
+
     void on_actionShow_Performance_Counters_toggled(bool arg1);
 
     void on_actionExport_CSV_triggered();

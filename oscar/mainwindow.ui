@@ -2415,6 +2415,9 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionExport_Journal"/>
     <addaction name="actionImport_Journal"/>
     <addaction name="separator"/>
+    <addaction name="actionBackup_Profile"/>
+    <addaction name="actionRestore_Profile"/>
+    <addaction name="separator"/>
     <addaction name="actionChange_Data_Folder"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
@@ -2838,6 +2841,22 @@ p, li { white-space: pre-wrap; }
   <action name="actionImport_Journal">
    <property name="text">
     <string>Import Journal</string>
+   </property>
+  </action>
+  <action name="actionBackup_Profile">
+   <property name="text">
+    <string>Backup Profile...</string>
+   </property>
+   <property name="toolTip">
+    <string>Back up the current profile to a .oscar file</string>
+   </property>
+  </action>
+  <action name="actionRestore_Profile">
+   <property name="text">
+    <string>Restore Profile...</string>
+   </property>
+   <property name="toolTip">
+    <string>Restore a profile from a .oscar backup file</string>
    </property>
   </action>
   <action name="actionShow_Performance_Counters">

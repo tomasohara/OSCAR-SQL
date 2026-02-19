@@ -70,6 +70,8 @@
 #include "ui_mainwindow.h"
 #include "aboutdialog.h"
 #include "newprofile.h"
+#include "backupdialog.h"
+#include "restoredialog.h"
 #include "exports/report_exporter.h"
 #include "importprofile.h"
 #include "profileimporter.h"
@@ -2885,6 +2887,22 @@ void MainWindow::on_actionExport_Journal_triggered()
 			(*p_profile)[STR_PREF_LastJournalPath] = dir.absolutePath();
 		}
 	}
+}
+
+void MainWindow::on_actionBackup_Profile_triggered()
+{
+    BackupDialog *dialog = new BackupDialog(this);
+    dialog->exec();
+    delete dialog;
+}
+
+void MainWindow::on_actionRestore_Profile_triggered()
+{
+    RestoreDialog *dialog = new RestoreDialog(this);
+    dialog->exec();
+    // If a new profile was restored it will be accessible after restarting OSCAR
+    // or switching profiles via the profile selection dialog.
+    delete dialog;
 }
 
 void MainWindow::on_actionShow_Performance_Counters_toggled(bool arg1)

@@ -321,6 +321,8 @@ SOURCES += \
     csv.cpp \
     daily.cpp \
     dailySearchTab.cpp \
+    backupdialog.cpp \
+    restoredialog.cpp \
     exportcsv.cpp \
     sqleditor.cpp \
     reportmanager.cpp \
@@ -442,7 +444,11 @@ SOURCES += \
     database/report_tree_repository.cpp \
     database/report_tree_model.cpp \
     exports/report_exporter.cpp \
-    database/orf_file_io.cpp
+    database/orf_file_io.cpp \
+    database/backup/backup_manifest.cpp \
+    database/backup/sql_exporter.cpp \
+    database/backup/profile_backup.cpp \
+    database/backup/profile_restore.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -472,6 +478,8 @@ HEADERS  += \
     overview.h \
     common_gui.h \
     cprogressbar.h \
+    backupdialog.h \
+    restoredialog.h \
     exportcsv.h \
     sqleditor.h \
     reportmanager.h \
@@ -597,7 +605,11 @@ HEADERS  += \
     database/report_tree_repository.h \
     database/report_tree_model.h \
     exports/report_exporter.h \
-    database/orf_file_io.h
+    database/orf_file_io.h \
+    database/backup/backup_manifest.h \
+    database/backup/sql_exporter.h \
+    database/backup/profile_backup.h \
+    database/backup/profile_restore.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }
@@ -609,6 +621,8 @@ FORMS += \
     oximetry.ui \
     preferencesdialog.ui \
     newprofile.ui \
+    backupdialog.ui \
+    restoredialog.ui \
     exportcsv.ui \
     sqleditor.ui \
     reportmanager.ui \

@@ -46,6 +46,68 @@ protected:
 };
 
 
+/*!
+ * \class UnzipFile
+ * \brief Extracts files from a ZIP archive using miniz.
+ *
+ * Mirrors the ZipFile interface for reading.  Files are extracted to memory
+ * and written via QFile so that Unicode paths are handled correctly on all
+ * platforms.
+ *
+ * Typical usage:
+ * \code
+ * UnzipFile zip;
+ * if (zip.Open("/path/to/file.oscar")) {
+ *     zip.ExtractAll("/tmp/extracted");
+ *     zip.Close();
+ * }
+ * \endcode
+ */
+class UnzipFile : public QObject
+{
+    Q_OBJECT
+
+public:
+    UnzipFile();
+    virtual ~UnzipFile();
+
+    /*!
+     * \brief Open a ZIP archive for reading.
+     * \param filepath  Absolute path to the ZIP / .oscar file.
+     * \return true on success.
+     */
+    bool Open(const QString& filepath);
+
+    /*!
+     * \brief Extract all entries to \a destDir.
+     *
+     * Directory entries are created automatically.  Existing files are
+     * overwritten.
+     *
+     * \param destDir  Destination root directory (created if absent).
+     * \return true on success.
+     */
+    bool ExtractAll(const QString& destDir);
+
+    /*!
+     * \brief Close the archive and free internal resources.
+     */
+    void Close();
+
+    /*!
+     * \brief Return the number of entries (files + directories) in the archive.
+     *
+     * Only valid after a successful Open().
+     */
+    int entryCount() const;
+
+protected:
+    void*      m_ctx;      ///< Heap-allocated mz_zip_archive.
+    bool       m_open;     ///< True when the archive has been opened successfully.
+    QByteArray m_fileData; ///< File contents kept alive for mz_zip_reader_init_mem.
+};
+
+
 class FileQueue
 {
     struct Entry

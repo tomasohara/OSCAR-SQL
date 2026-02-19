@@ -349,3 +349,154 @@ static void zip_close(void* ctx)
     mz_zip_writer_finalize_archive(pZip);
     mz_zip_writer_end(pZip);
 }
+
+
+// ==================================================================================================
+// UnzipFile — ZIP extraction wrapper
+
+/*!
+ * \brief Construct an UnzipFile and allocate the internal miniz context.
+ */
+UnzipFile::UnzipFile()
+    : m_open(false)
+{
+    mz_zip_archive* pZip = new mz_zip_archive();
+    memset(pZip, 0, sizeof(*pZip));
+    m_ctx = pZip;
+}
+
+UnzipFile::~UnzipFile()
+{
+    Close();
+    delete static_cast<mz_zip_archive*>(m_ctx);
+    m_ctx = nullptr;
+}
+
+/*!
+ * \brief Open a ZIP archive for reading.
+ *
+ * Reads the file into memory via QFile (handles Unicode paths on all
+ * platforms), then initialises the miniz reader from the in-memory buffer.
+ * The buffer is kept alive in m_fileData for the lifetime of the open
+ * archive.  After a successful Open(), call ExtractAll() then Close().
+ */
+bool UnzipFile::Open(const QString& filepath)
+{
+    if (m_open) {
+        Close();
+    }
+
+    QFile f(filepath);
+    if (!f.open(QIODevice::ReadOnly)) {
+        qWarning() << "UnzipFile::Open: cannot open" << filepath;
+        return false;
+    }
+    m_fileData = f.readAll();
+    f.close();
+
+    mz_zip_archive* pZip = static_cast<mz_zip_archive*>(m_ctx);
+    memset(pZip, 0, sizeof(*pZip));
+
+    if (!mz_zip_reader_init_mem(pZip, m_fileData.constData(),
+                                static_cast<size_t>(m_fileData.size()), 0)) {
+        qWarning() << "UnzipFile::Open: not a valid ZIP:" << filepath;
+        m_fileData.clear();
+        return false;
+    }
+
+    m_open = true;
+    return true;
+}
+
+/*!
+ * \brief Extract all entries in the archive to \a destDir.
+ *
+ * Directory entries are recreated; file entries are extracted to memory
+ * and then written via QFile so that Unicode destination paths are handled
+ * correctly on all platforms.
+ *
+ * \param destDir  Root directory for extraction (created if absent).
+ * \return true on success; false on any I/O or decompression error.
+ */
+bool UnzipFile::ExtractAll(const QString& destDir)
+{
+    if (!m_open) {
+        qWarning() << "UnzipFile::ExtractAll: archive not open";
+        return false;
+    }
+
+    mz_zip_archive* pZip = static_cast<mz_zip_archive*>(m_ctx);
+    const int n = static_cast<int>(mz_zip_reader_get_num_files(pZip));
+
+    if (!QDir().mkpath(destDir)) {
+        qWarning() << "UnzipFile::ExtractAll: cannot create destination:" << destDir;
+        return false;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        mz_zip_archive_file_stat stat;
+        if (!mz_zip_reader_file_stat(pZip, static_cast<mz_uint>(i), &stat)) {
+            qWarning() << "UnzipFile::ExtractAll: file_stat failed for index" << i;
+            continue;
+        }
+
+        const QString archiveName = QString::fromUtf8(stat.m_filename);
+        const QString destPath    = QDir(destDir).filePath(archiveName);
+
+        if (stat.m_is_directory) {
+            QDir().mkpath(destPath);
+            continue;
+        }
+
+        // Ensure the parent directory exists.
+        QDir().mkpath(QFileInfo(destPath).absolutePath());
+
+        // Extract the compressed entry to a heap buffer, then write via QFile.
+        // This avoids platform issues with non-ASCII paths in mz_zip_reader_extract_to_file.
+        size_t extractedSize = 0;
+        void*  data = mz_zip_reader_extract_to_heap(pZip, static_cast<mz_uint>(i),
+                                                    &extractedSize, 0);
+        if (!data) {
+            qWarning() << "UnzipFile::ExtractAll: decompression failed for" << archiveName;
+            return false;
+        }
+
+        QFile outFile(destPath);
+        if (!outFile.open(QIODevice::WriteOnly)) {
+            mz_free(data);
+            qWarning() << "UnzipFile::ExtractAll: cannot write" << destPath;
+            return false;
+        }
+        outFile.write(static_cast<const char*>(data), static_cast<qint64>(extractedSize));
+        outFile.close();
+        mz_free(data);
+    }
+
+    return true;
+}
+
+/*!
+ * \brief Close the archive and release the miniz reader state.
+ */
+void UnzipFile::Close()
+{
+    if (m_open) {
+        mz_zip_archive* pZip = static_cast<mz_zip_archive*>(m_ctx);
+        mz_zip_reader_end(pZip);
+        memset(pZip, 0, sizeof(*pZip));
+        m_open = false;
+    }
+    m_fileData.clear();
+}
+
+/*!
+ * \brief Return the number of entries (files + directories) in the archive.
+ */
+int UnzipFile::entryCount() const
+{
+    if (!m_open) return 0;
+    // mz_zip_reader_get_num_files takes a non-const pointer even though it is
+    // logically a read-only query, so cast away const here.
+    return static_cast<int>(
+        mz_zip_reader_get_num_files(static_cast<mz_zip_archive*>(m_ctx)));
+}
