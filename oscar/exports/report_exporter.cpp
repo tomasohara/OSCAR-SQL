@@ -15,6 +15,7 @@
 #include "../database/orf_file_io.h"
 #include "../sqleditor.h"
 #include "../csv.h"
+#include <functional>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -708,7 +709,17 @@ void ReportExporter::onExpandAll()
 {
     QStandardItem* item = getSelectedItem();
     if (!item) return;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
     m_treeView->expandRecursively(m_model->indexFromItem(item));
+#else
+    std::function<void(const QModelIndex&)> expandAll = [&](const QModelIndex& idx) {
+        m_treeView->expand(idx);
+        for (int r = 0; r < m_model->rowCount(idx); ++r) {
+            expandAll(m_model->index(r, 0, idx));
+        }
+    };
+    expandAll(m_model->indexFromItem(item));
+#endif
 }
 
 void ReportExporter::onCollapseAll()

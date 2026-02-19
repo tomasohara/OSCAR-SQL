@@ -119,7 +119,12 @@ static bool exportPrivacyTable(QSqlDatabase& db,
     for (int i = 0; i < colCount; ++i) {
         colNames << rec.fieldName(i);
     }
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     const QSet<QString> nullSet(nullColumns.begin(), nullColumns.end());
+#else
+    QSet<QString> nullSet;
+    for (const QString& s : nullColumns) nullSet.insert(s);
+#endif
 
     while (query.next()) {
         QStringList vals;
@@ -924,13 +929,21 @@ QString ProfileBackup::buildSessionDateFilter() const
 
     QStringList parts;
     if (m_startDate.isValid()) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
         const qint64 epoch = m_startDate.startOfDay(Qt::UTC).toSecsSinceEpoch();
+#else
+        const qint64 epoch = QDateTime(m_startDate, QTime(0, 0, 0), Qt::UTC).toSecsSinceEpoch();
+#endif
         parts << QString("start_time >= %1").arg(epoch);
     }
     if (m_endDate.isValid()) {
         // One day past end-date gives us an exclusive upper bound that captures
         // sessions starting anywhere on endDate.
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
         const qint64 epoch = m_endDate.addDays(1).startOfDay(Qt::UTC).toSecsSinceEpoch();
+#else
+        const qint64 epoch = QDateTime(m_endDate.addDays(1), QTime(0, 0, 0), Qt::UTC).toSecsSinceEpoch();
+#endif
         parts << QString("start_time < %1").arg(epoch);
     }
     return parts.join(QStringLiteral(" AND "));

@@ -122,7 +122,11 @@ bool OrfFileIO::readFile(const QString& filePath,
             QString parentPath = getFolderPath(path);
             if (!parentPath.isEmpty() && !seenFolders.contains(parentPath)) {
                 // Add parent folder(s) recursively
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
                 QStringList pathParts = parentPath.split("/", Qt::SkipEmptyParts);
+#else
+                QStringList pathParts = parentPath.split("/", QString::SkipEmptyParts);
+#endif
                 QString buildPath;
                 for (const QString& part : pathParts) {
                     if (!buildPath.isEmpty()) buildPath += "/";
@@ -391,7 +395,11 @@ qint64 OrfFileIO::ensureFolderPath(const QString& path, qint64 parentNodeId,
     }
     
     ReportTreeRepository repo;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QStringList parts = path.split("/", Qt::SkipEmptyParts);
+#else
+    QStringList parts = path.split("/", QString::SkipEmptyParts);
+#endif
     qint64 currentParentId = parentNodeId;
     
     QString buildPath;
