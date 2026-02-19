@@ -269,6 +269,8 @@ long DatabaseManager::countRows(QString text) {
                                << "for table" << tableName << ":" << rowCount << "rows";
         }
     }
+#else
+    Q_UNUSED(text)
 #endif
     return totalRows;
 }

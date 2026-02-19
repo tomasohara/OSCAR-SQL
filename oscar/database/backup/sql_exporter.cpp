@@ -18,6 +18,9 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QTextStream>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#  include <QTextCodec>
+#endif
 
 // How often (in rows) to emit a progressChanged signal
 static constexpr int kProgressInterval = 100;
@@ -101,7 +104,11 @@ bool SqlExporter::exportBlobTable(const QString&     tableName,
     }
 
     QTextStream stream(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     stream.setEncoding(QStringConverter::Utf8);
+#else
+    stream.setCodec("UTF-8");
+#endif
 
     // --- Header comment ---
     stream << "-- Export of table: " << tableName << "\n";
@@ -259,7 +266,11 @@ QString SqlExporter::escapeValue(const QVariant& value, bool isBlobColumn) const
         return "X'" + blobToHex(blob) + "'";
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     const int typeId = value.typeId();
+#else
+    const int typeId = static_cast<int>(value.type());
+#endif
 
     // Rule 3: QByteArray variant (BLOB affinity detected by driver)
     if (typeId == QMetaType::QByteArray) {

@@ -135,7 +135,11 @@ static bool exportPrivacyTable(QSqlDatabase& db,
                 if (v.isNull()) {
                     vals << QStringLiteral("NULL");
                 } else {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                     const int tid = v.typeId();
+#else
+                    const int tid = static_cast<int>(v.type());
+#endif
                     if (tid == QMetaType::Int     || tid == QMetaType::LongLong ||
                         tid == QMetaType::UInt    || tid == QMetaType::ULongLong) {
                         vals << v.toString();
