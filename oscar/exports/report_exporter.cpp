@@ -71,7 +71,7 @@ ReportExporter::ReportExporter(QWidget* parent)
     , m_closeButton(nullptr)
 {
     setWindowTitle(tr("CSV Export Wizard"));
-    resize(900, 600);
+    resize(600, 700);
     
     setupUi();
     
@@ -97,35 +97,35 @@ void ReportExporter::setupUi()
     // Create model
     m_model = new ReportTreeModel(this);
     
-    // Main layout
+    // Main layout: splitter on top (expands), status label and buttons fixed at bottom
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     
-    // Splitter for tree and right panel
+    // Horizontal splitter for tree view and right panel — fills all available vertical space
     QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
     
     // Left: Tree view
     m_treeView = createTreeView();
     splitter->addWidget(m_treeView);
     
-    // Right: Controls panel (will add profile, dates, etc. later)
+    // Right: Controls panel
     QWidget* rightPanel = createRightPanel();
     splitter->addWidget(rightPanel);
     
-    // Set splitter proportions (tree gets 40%, right panel gets 60%)
+    // Tree and right panel share space unevenly
     splitter->setStretchFactor(0, 4);
     splitter->setStretchFactor(1, 6);
     
-    mainLayout->addWidget(splitter);
+    mainLayout->addWidget(splitter, 1);  // stretch=1: splitter expands to fill remaining height
     
-    // Status label at bottom
+    // Status label — fixed height, always visible at bottom
     m_statusLabel = new QLabel(tr("Select a report from the tree to export"), this);
     m_statusLabel->setWordWrap(true);
     m_statusLabel->setStyleSheet("QLabel { padding: 5px; border-top: 1px solid #ccc; }");
-    mainLayout->addWidget(m_statusLabel);
+    mainLayout->addWidget(m_statusLabel, 0);  // stretch=0: takes only its natural height
     
-    // Button panel at bottom (3 buttons only)
+    // Button panel — fixed height, always visible at bottom
     QWidget* buttonPanel = createButtonPanel();
-    mainLayout->addWidget(buttonPanel);
+    mainLayout->addWidget(buttonPanel, 0);    // stretch=0: takes only its natural height
     
     setLayout(mainLayout);
     
@@ -266,6 +266,9 @@ QWidget* ReportExporter::createRightPanel()
 
     // Restore saved settings (dates, filename, profile, open-after)
     restoreSettings();
+
+    // Push all widgets to the top; prevents them from stretching to fill extra vertical space
+    outerLayout->addStretch();
 
     panel->setLayout(outerLayout);
     return panel;

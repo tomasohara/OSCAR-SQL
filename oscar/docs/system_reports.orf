@@ -271,10 +271,10 @@ SELECT
   COUNT(DISTINCT s.id) as Session_Count,
   MIN(date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as First_Date,
   MAX(date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as Last_Date,
-  ROUND(SUM(s.duration) / 1000000.0 / 3600.0, 1) as Total_Hours
-FROM profiles p
-JOIN machines m ON m.profile_id = p.id
-JOIN sessions s ON s.machine_id = m.id
+  ROUND(SUM(s.duration)* 1.0 / 3600000.0, 1) as Total_Hours
+FROM sessions s
+JOIN machines m ON s.machine_id = m.id
+JOIN profiles p ON m.profile_id = p.id
 WHERE s.enabled = 1
 GROUP BY p.id, p.username
 HAVING Session_Count > 0
@@ -322,7 +322,7 @@ SELECT
   date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,
   time(s.start_time/1000, 'unixepoch', 'localtime') as Start,
   time(s.end_time/1000, 'unixepoch', 'localtime') as End,
-  s.duration/1000000 as seconds,
+  s.duration/1000.0 as seconds,
   c.label,
   sc.count,
   ROUND(sc.sum,2) as Sum,
