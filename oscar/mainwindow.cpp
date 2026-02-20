@@ -2900,8 +2900,12 @@ void MainWindow::on_actionRestore_Profile_triggered()
 {
     RestoreDialog *dialog = new RestoreDialog(this);
     dialog->exec();
-    // If a new profile was restored it will be accessible after restarting OSCAR
-    // or switching profiles via the profile selection dialog.
+
+    // Refresh profile list UI
+    if (profileSelector) {
+        profileSelector->updateProfileList();
+    }
+
     delete dialog;
 }
 

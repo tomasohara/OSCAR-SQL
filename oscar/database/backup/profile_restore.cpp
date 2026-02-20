@@ -16,6 +16,12 @@
 #include "../database_manager.h"
 #include "../database_schema.h"
 #include "../../zip.h"
+#include "../../SleepLib/preferences.h"
+
+// p_pref is the global Preferences object (defined in SleepLib/profiles.cpp).
+// We need it to resolve the canonical Profiles directory path, using the
+// same mechanism as Profiles::Scan().
+extern Preferences *p_pref;
 
 #include <QCryptographicHash>
 #include <QDateTime>
@@ -195,13 +201,18 @@ static bool parseInsert(const QString& line, InsertStatement& out)
     if (pos >= line.length() || line[pos] != QLatin1Char('(')) return false;
     ++pos;
 
-    // The statement ends with ");" — find the last ");" to locate the close.
-    int valClose = line.lastIndexOf(QLatin1String(");"));
-    if (valClose < pos) {
-        // Fall back: try just the last ')'.
-        valClose = line.lastIndexOf(QLatin1Char(')'));
-        if (valClose < pos) return false;
+    // The exporter always writes "INSERT INTO ... VALUES (...);", with no
+    // trailing whitespace.  The closing ')' is therefore always the second-to-
+    // last character of the trimmed line.  Using lastIndexOf(");") is wrong
+    // here because it would match ')' characters that appear inside quoted
+    // string values (e.g. json_value fields that contain ");").
+    int valClose = -1;
+    if (line.endsWith(QLatin1String(");"))) {
+        valClose = line.length() - 2; // position of the closing ')'
+    } else if (line.endsWith(QLatin1Char(')'))) {
+        valClose = line.length() - 1;
     }
+    if (valClose < pos) return false;
 
     const QString valStr = line.mid(pos, valClose - pos);
     out.values = tokenizeValues(valStr);
@@ -224,6 +235,7 @@ ProfileRestore::ProfileRestore(const QString& packagePath, QObject* parent)
     , m_newProfileId(-1)
     , m_resolution(ConflictResolution::Abort)
 {
+    qDebug() << "ProfileRestore::ProfileRestore constructor";
 }
 
 /*!
@@ -249,6 +261,7 @@ void ProfileRestore::setConflictResolution(ConflictResolution strategy)
 void ProfileRestore::setNewUsername(const QString& username)
 {
     m_newUsername = username;
+    qDebug() << "ProfileRestore::setNewUserName" << username;
 }
 
 // ---------------------------------------------------------------------------
@@ -315,6 +328,8 @@ bool ProfileRestore::parseManifest(QJsonObject& manifest)
 {
     const QString manifestPath = m_tempDir + QStringLiteral("/manifest.json");
 
+    qDebug() << "ProfileRestore::parseManifest" << manifestPath;
+
     BackupManifest bm;
     if (!bm.loadFromFile(manifestPath)) {
         m_errorMessage = QString("Cannot load manifest.json: %1").arg(bm.errorMessage());
@@ -346,8 +361,9 @@ bool ProfileRestore::validatePackage()
     m_errorMessage.clear();
     m_manifestJson = QJsonObject(); // reset
 
+    qDebug() << "ProfileRestore::validatePackage entered";
     if (!QFile::exists(m_packagePath)) {
-        m_errorMessage = QString("Backup file not found: %1").arg(m_packagePath);
+        m_errorMessage = QString("ProfileRestore::validatePackage Backup file not found: %1").arg(m_packagePath);
         return false;
     }
 
@@ -478,7 +494,8 @@ ConflictStatus ProfileRestore::checkConflicts()
  */
 bool ProfileRestore::restoreProfile()
 {
-    m_errorMessage.clear();
+    qDebug () << "ProfileRestore::restoreProfile entered";
+        m_errorMessage.clear();
     m_newProfileId = -1;
 
     // Clear all ID mapping tables from any previous run.
@@ -528,6 +545,23 @@ bool ProfileRestore::restoreProfile()
     if (!restoreInTransaction()) {
         emit restoreFailed(m_errorMessage);
         return false;
+    }
+
+    // Create the profile's data directory on the filesystem.
+    // Profiles::Scan() checks for the directory's existence and marks the
+    // profile as "missing" (and skips loading it) if the directory is absent.
+    // Use p_pref->Get("{home}/Profiles") — the same expression Profiles::Scan()
+    // uses — so the path is guaranteed to resolve identically.
+    const QString profileDataDir =
+        p_pref->Get(QStringLiteral("{home}/Profiles")) + QLatin1Char('/') + m_newUsername;
+    if (!QDir().mkpath(profileDataDir)) {
+        // Non-fatal: the restore is committed.  The directory will be created
+        // on first use (e.g., SD card import), but the profile may appear as
+        // "missing" until then.
+        qWarning() << "ProfileRestore: could not create profile data directory:"
+                   << profileDataDir;
+    } else {
+        qDebug() << "ProfileRestore: created profile data directory:" << profileDataDir;
     }
 
     emit progressChanged(100, QStringLiteral("Restore complete."));
@@ -734,6 +768,34 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
                 continue;
             }
 
+            // 3b. Update data_folder when the username changes (Rename strategy).
+            // The profile data folder is normally "%PROFDIR%/<username>".  When
+            // restoring under a different name we must update that path so the
+            // restored profile does not share the original profile's directory.
+            if (tableName == QLatin1String("profiles")
+                && col == QLatin1String("data_folder")) {
+                const QString origUsername =
+                    m_manifestJson[QStringLiteral("profile")].toObject()
+                                  [QStringLiteral("username")].toString();
+                if (!origUsername.isEmpty() && m_newUsername != origUsername) {
+                    // Decode the SQL string literal (strip outer single-quotes,
+                    // then unescape '' → ').
+                    QString folder = val;
+                    if (folder.startsWith(QLatin1Char('\''))
+                        && folder.endsWith(QLatin1Char('\''))) {
+                        folder = folder.mid(1, folder.length() - 2);
+                        folder.replace(QLatin1String("''"), QLatin1String("'"));
+                    }
+                    // Replace the original username wherever it appears in the path.
+                    folder.replace(origUsername, m_newUsername);
+                    // Re-encode as a SQL string literal.
+                    folder.replace(QLatin1Char('\''), QLatin1String("''"));
+                    newCols.append(col);
+                    newVals.append(QLatin1Char('\'') + folder + QLatin1Char('\''));
+                    continue;
+                }
+            }
+
             // 4. Remap FK columns.
             QString remapped = val;
             if (val != QLatin1String("NULL")) {
@@ -747,7 +809,10 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
                             || tableName == QLatin1String("daily_summaries"))) {
                         newFk = m_machineIdMap.value(oldFk, -1);
 
-                    } else if (col == QLatin1String("session_id")) {
+                    } else if (col == QLatin1String("session_id")
+                               && tableName != QLatin1String("sessions")) {
+                        // sessions.session_id is the machine's native session ID
+                        // (natural key), not a FK to sessions.id — never remap it.
                         newFk = m_sessionIdMap.value(oldFk, -1);
 
                     } else if (col == QLatin1String("session_channel_id")) {
@@ -761,7 +826,8 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
                         remapped = QString::number(newFk);
                     } else if (newFk == -1) {
                         // Mapping not found — determine whether this is fatal.
-                        if ((col == QLatin1String("session_id"))
+                        if ((col == QLatin1String("session_id")
+                             && tableName != QLatin1String("sessions"))
                          || (col == QLatin1String("session_channel_id"))
                          || (col == QLatin1String("eventlist_id"))
                          || (col == QLatin1String("machine_id")
@@ -869,6 +935,8 @@ bool ProfileRestore::restoreInTransaction()
         QStringLiteral("event_data"),
         QStringLiteral("daily_summaries")
     };
+
+    qDebug() << "ProfileRestore::restoreInTransaction entered";
 
     QSqlDatabase db = DatabaseManager::instance().database();
 

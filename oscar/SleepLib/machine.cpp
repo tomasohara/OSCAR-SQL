@@ -690,15 +690,6 @@ qint64 Machine::diskSpaceBackups()
 
 bool Machine::Load(ProgressDialog *progress)
 {
-    QString path = getDataPath();
-
-    QDir dir(path);
-    qDebug() << "Loading" << info.loadername.toLocal8Bit().data() << "record:" << path.toLocal8Bit().data();
-
-    if (!dir.exists() || !dir.isReadable()) {
-        return false;
-    }
-
 #ifndef UNITTEST_MODE
     // Add loader pixmap to progress
     // Note: not used during test due to non-QGuiApplication quirks
@@ -709,18 +700,29 @@ bool Machine::Load(ProgressDialog *progress)
     }
 #endif
     progress->setMessage(QObject::tr("Loading %1 data for %2...").arg(info.brand).arg(profile->user->userName()));
-    
-    // IMPORTANT: Try loading from database first (for imported profiles)
-    // If machine has a database ID and sessions exist in DB, load them
+
+    // Try loading from database first.  This must happen before the on-disk
+    // directory check because restored profiles have all data in the database
+    // and the machine subdirectory (e.g. ResMed_12345678/) may not exist yet.
     if (m_database_id > 0 && LoadSessionsFromDatabase(progress)) {
         qDebug() << "Loaded" << sessionlist.size() << "sessions from database for machine" << info.serial;
-        
+
         progress->setMessage(QObject::tr("Loading Session Info"));
         qDebug() << "Loading Session Info";
         QApplication::processEvents();
         loadSessionInfo();
-        
+
         return true;
+    }
+
+    // Fall back to file-based loading (legacy .000/.001 files).
+    // The on-disk machine directory must exist for this path.
+    QString path = getDataPath();
+    QDir dir(path);
+    qDebug() << "Loading" << info.loadername.toLocal8Bit().data() << "record:" << path.toLocal8Bit().data();
+
+    if (!dir.exists() || !dir.isReadable()) {
+        return false;
     }
 
     if (loader()) {

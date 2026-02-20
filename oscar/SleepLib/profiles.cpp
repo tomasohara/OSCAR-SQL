@@ -520,7 +520,7 @@ bool Profile::storeMachinesToDatabase()
         profileId = profileRepo.create(newProfile);
 
         if (profileId < 0) {
-            qWarning() << "Profile::storeMachinesToDatabas: Failed to create database profile";
+            qWarning() << "Profile::storeMachinesToDatabase: Failed to create database profile";
             return false;
         }
     }
@@ -529,7 +529,7 @@ bool Profile::storeMachinesToDatabase()
     for (Machine* m : m_machlist) {
         // Skip if machine already has a database ID (already saved by Machine::SaveToDatabase)
         if (m->getDatabaseId() > 0) {
-            qDebug() << "Profile::storeMachinesToDatabas: Machine" << m->serial() << m->brand() << m->model() << "already in database with ID" << m->getDatabaseId();
+            qDebug() << "Profile::storeMachinesToDatabase: Machine" << m->serial() << m->brand() << m->model() << "already in database with ID" << m->getDatabaseId();
             continue;
         }
         
@@ -555,7 +555,7 @@ bool Profile::storeMachinesToDatabase()
             MachineLoader* loader = GetLoader(m->loaderName());
             if (loader) {
                 machineVersion = loader->Version();
-                qDebug() << "Profile::storeMachinesToDatabas: Setting" << m->loaderName() << "version from loader:" << machineVersion;
+                qDebug() << "Profile::storeMachinesToDatabase: Setting" << m->loaderName() << "version from loader:" << machineVersion;
                 // IMPORTANT: Also update the machine object's version to prevent rebuild prompts
                 m->info.version = machineVersion;
             }

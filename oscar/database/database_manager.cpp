@@ -236,7 +236,7 @@ bool DatabaseManager::transaction()
     }
     
     qDebug() << "DatabaseManager::transaction(): started transaction";
-    countRows ("transaction starting");
+//    countRows ("transaction starting");
     m_inTransaction = true;
     return true;
 }

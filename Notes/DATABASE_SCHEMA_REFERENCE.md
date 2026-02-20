@@ -636,7 +636,7 @@ User (root, source=user)
 | machine_id | INTEGER | FK | NO | → machines(id) |
 | start_time | INTEGER | | NO | Start (Unix timestamp) |
 | end_time | INTEGER | | NO | End (Unix timestamp) |
-| duration | INTEGER | | NO | Duration (seconds) |
+| duration | INTEGER | | NO | Duration (milliseconds) |
 | enabled | INTEGER | | NO | Enabled flag (0/1) |
 | summary_only | INTEGER | | NO | Summary-only flag (0/1) |
 | no_settings | INTEGER | | NO | No settings flag (0/1) |

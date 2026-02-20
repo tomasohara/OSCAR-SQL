@@ -71,7 +71,7 @@ ReportExporter::ReportExporter(QWidget* parent)
     , m_closeButton(nullptr)
 {
     setWindowTitle(tr("CSV Export Wizard"));
-    resize(600, 700);
+    resize(700, 780);
     
     setupUi();
     
@@ -112,8 +112,8 @@ void ReportExporter::setupUi()
     splitter->addWidget(rightPanel);
     
     // Tree and right panel share space unevenly
-    splitter->setStretchFactor(0, 4);
-    splitter->setStretchFactor(1, 6);
+    splitter->setStretchFactor(0, 50);
+    splitter->setStretchFactor(1, 50);
     
     mainLayout->addWidget(splitter, 1);  // stretch=1: splitter expands to fill remaining height
     

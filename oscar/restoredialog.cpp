@@ -244,6 +244,7 @@ void RestoreDialog::onProgressChanged(int percent, const QString& message)
 {
     ui->progressBar->setValue(percent);
     ui->statusLabel->setText(message);
+    qDebug() << "RestoreDialog::onProgressChanged:" << percent << message;
 }
 
 void RestoreDialog::onRestoreCompleted(qint64 /*profileId*/, const QString& username)

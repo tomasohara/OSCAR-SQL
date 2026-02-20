@@ -50,6 +50,7 @@ static qint64 directorySize(const QString& dirPath)
     for (const QFileInfo& fi : entries) {
         total += fi.size();
     }
+    qDebug() << "Profile_backup::directorySize =" << total;
     return total;
 }
 
@@ -99,6 +100,7 @@ static bool exportPrivacyTable(QSqlDatabase& db,
                                 const QStringList& nullColumns,
                                 const QString& outputFile)
 {
+    qDebug() << "profile_backup::exportPrivacyTable entered";
     QSqlQuery query(db);
     if (!query.exec(QString("SELECT * FROM %1 WHERE %2").arg(tableName, whereClause))) {
         qWarning() << "exportPrivacyTable:" << tableName << query.lastError().text();
@@ -188,6 +190,7 @@ ProfileBackup::ProfileBackup(qint64 profileId, QObject* parent)
     // Default output directory: Documents/OSCAR Backups
     m_outputPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
                    + "/OSCAR Backups";
+    qDebug() << "ProfileBackup::ProfileBackup default output path" << m_outputPath;
 }
 
 ProfileBackup::~ProfileBackup()
@@ -202,6 +205,7 @@ ProfileBackup::~ProfileBackup()
 void ProfileBackup::setOutputPath(const QString& path)
 {
     m_outputPath = path;
+    qDebug() << "ProfileBackup::setOutputPath" << m_outputPath;
 }
 
 void ProfileBackup::setIncludeDisabledSessions(bool include)
@@ -211,6 +215,7 @@ void ProfileBackup::setIncludeDisabledSessions(bool include)
 
 void ProfileBackup::setCompression(bool compress)
 {
+    qDebug() << "ProfileBackup::setCompression" << compress;
     m_compress = compress;
 }
 
@@ -218,6 +223,7 @@ void ProfileBackup::setDateRange(const QDate& startDate, const QDate& endDate)
 {
     m_startDate = startDate;
     m_endDate   = endDate;
+    qDebug() << "ProfileBackup::setDateRange" << startDate << endDate;
 }
 
 void ProfileBackup::setPrivacyMode(bool enable)
@@ -291,6 +297,7 @@ bool ProfileBackup::createBackup()
     }
 
     // --- Export phase ------------------------------------------------------
+    qDebug() << "ProfileBackup::createBackup entering export phase";
     emit progressChanged(15, QStringLiteral("Exporting profile data..."));
     if (!exportProfileMetadata(tmpPath)) {
         emit backupFailed(m_errorMessage);
@@ -440,6 +447,7 @@ bool ProfileBackup::validateProfile()
 bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
 {
     const QString dbDir = tempDir + QStringLiteral("/database");
+    qDebug() << "ProfileBackup::exportProfileMetadata for dir" << dbDir;
 
     // profiles — keyed by id, no profile_id column.
     {

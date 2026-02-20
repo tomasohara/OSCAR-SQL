@@ -30,7 +30,7 @@ ReportTreeModel::ReportTreeModel(QObject* parent)
     m_userIcon = QApplication::style()->standardIcon(QStyle::SP_DialogYesButton);
     
     // Single column - description accessible via right-click "Show Description"
-    setHorizontalHeaderLabels(QStringList() << tr("Name"));
+    setHorizontalHeaderLabels(QStringList() << tr("Reports"));
     
     // Load tree from database
     loadFromDatabase();
@@ -53,7 +53,7 @@ void ReportTreeModel::loadFromDatabase()
     
     // Clear existing items
     clear();
-    setHorizontalHeaderLabels(QStringList() << tr("Name"));
+    setHorizontalHeaderLabels(QStringList() << tr("Reports"));
     
     // Load root nodes (System and User)
     loadChildren(0, invisibleRootItem());

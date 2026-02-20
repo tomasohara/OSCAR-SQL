@@ -17,6 +17,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include "database/database_manager.h"
 #include <QTextStream>
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #  include <QTextCodec>
@@ -59,6 +60,7 @@ bool SqlExporter::exportTable(const QString& tableName,
                                const QString& whereClause,
                                const QString& outputFile)
 {
+    qDebug() << "SqlExporter:exportTable entered";
     return exportBlobTable(tableName, whereClause, outputFile, QStringList());
 }
 
@@ -88,7 +90,7 @@ bool SqlExporter::exportBlobTable(const QString&     tableName,
         sql += " WHERE " + whereClause;
     }
 
-    QSqlQuery query;
+    QSqlQuery query(DatabaseManager::instance().database());
     if (!query.exec(sql)) {
         m_errorMessage = QString("Query failed on table '%1': %2")
                              .arg(tableName, query.lastError().text());
