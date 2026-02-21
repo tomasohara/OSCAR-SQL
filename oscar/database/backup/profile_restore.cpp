@@ -441,9 +441,18 @@ bool ProfileRestore::validatePackage()
 // ---------------------------------------------------------------------------
 
 /*!
- * \brief Check that the backup schema version matches the live database.
+ * \brief Check that the backup schema version is compatible with the live database.
  *
- * Schema v12+ policy: only an exact schema version match is acceptable.
+ * Accepts backups whose schema_version falls in the range
+ * [MIN_RESTORE_SCHEMA_VERSION, CURRENT_SCHEMA_VERSION].
+ *
+ * - Newer than CURRENT: reject — the user must upgrade OSCAR first.
+ * - Older than MIN_RESTORE: reject — the gap is too large to bridge safely.
+ * - Between MIN and CURRENT (exclusive): accept with a warning surfaced by the
+ *   dialog.  executeSqlFile() will silently skip any tables that no longer exist
+ *   in the current schema; new columns added since the backup receive their
+ *   DEFAULT values.
+ * - Equal to CURRENT: accept silently.
  *
  * \return true if compatible; false otherwise.
  */
@@ -456,15 +465,31 @@ bool ProfileRestore::checkCompatibility()
     }
 
     const int backupSchema = m_manifestJson[QStringLiteral("schema_version")].toInt(0);
-    if (backupSchema != DatabaseSchema::CURRENT_SCHEMA_VERSION) {
+
+    if (backupSchema > DatabaseSchema::CURRENT_SCHEMA_VERSION) {
         m_errorMessage = QString(
-            "Schema version mismatch: backup was created with schema v%1 but this "
-            "installation uses schema v%2.  Restoring across different schema versions "
-            "is not supported.  Please use a version of OSCAR that matches the backup.")
+            "This backup was created with a newer version of OSCAR (schema v%1) "
+            "than the one currently installed (schema v%2).  "
+            "Please upgrade OSCAR before restoring this backup.")
             .arg(backupSchema)
             .arg(DatabaseSchema::CURRENT_SCHEMA_VERSION);
         return false;
     }
+
+    if (backupSchema < DatabaseSchema::MIN_RESTORE_SCHEMA_VERSION) {
+        m_errorMessage = QString(
+            "This backup was created with schema v%1, which is too old to restore "
+            "directly (minimum supported version is v%2).  "
+            "Please use an older version of OSCAR to restore this backup, then "
+            "re-export your data.")
+            .arg(backupSchema)
+            .arg(DatabaseSchema::MIN_RESTORE_SCHEMA_VERSION);
+        return false;
+    }
+
+    // backupSchema is in [MIN_RESTORE_SCHEMA_VERSION, CURRENT_SCHEMA_VERSION] — accept.
+    // Tables present in the backup but absent from the current schema will be
+    // skipped by executeSqlFile(); new columns receive their DEFAULT values.
 
     const QString fmtVersion =
         m_manifestJson[QStringLiteral("format_version")].toString();
@@ -801,6 +826,24 @@ QString ProfileRestore::parseAndRemapSql(const QString& sql)
 bool ProfileRestore::executeSqlFile(const QString& sqlFile)
 {
     const QString tableName = QFileInfo(sqlFile).baseName();
+
+    // Skip files for tables that no longer exist in the current schema.
+    // This allows backups from older schema versions to restore cleanly: the
+    // removed tables (e.g. reports/report_contents from schema v12) are simply
+    // bypassed and OSCAR regenerates their data on first run.
+    {
+        QSqlDatabase db = DatabaseManager::instance().database();
+        QSqlQuery tableCheck(db);
+        tableCheck.prepare(QStringLiteral(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?"));
+        tableCheck.addBindValue(tableName);
+        if (tableCheck.exec() && tableCheck.next()
+                && tableCheck.value(0).toInt() == 0) {
+            qDebug() << "ProfileRestore::executeSqlFile: skipping" << tableName
+                     << "(table not present in current schema)";
+            return true;
+        }
+    }
 
     // Tables whose auto-increment PK we must track for FK remapping.
     static const QSet<QString> mappingTables = {

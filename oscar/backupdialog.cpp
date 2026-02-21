@@ -105,7 +105,9 @@ void BackupDialog::applyDateRange(const QString& rangeText)
     ui->toDate->setEnabled(isCustom);
 
     if (rangeText == tr("Everything")) {
-        // No date filter — backup will be full.
+        // Show the actual data extent so the user can see what will be backed up.
+        ui->fromDate->setDate(getFirstDataDate());
+        ui->toDate->setDate(getLastDataDate());
     } else if (rangeText == tr("Custom")) {
         // Leave dates as-is; the user controls them directly.
     } else {
@@ -357,6 +359,27 @@ void BackupDialog::saveSettings()
     s.beginGroup("BackupDialog");
     s.setValue("lastOutputDir", ui->outputDirEdit->text());
     s.endGroup();
+}
+
+QDate BackupDialog::getFirstDataDate() const
+{
+    QDate first = QDate::currentDate();  // fallback if no data or query fails
+
+    int idx = ui->profileCombo->currentIndex();
+    if (idx >= 0 && idx < m_profileIds.size()) {
+        qint64 pid = m_profileIds[idx];
+        QSqlQuery q(DatabaseManager::instance().database());
+        q.prepare(QStringLiteral(
+            "SELECT MIN(DATE(start_time/1000, 'unixepoch')) "
+            "FROM sessions "
+            "WHERE machine_id IN (SELECT id FROM machines WHERE profile_id = :pid)"));
+        q.bindValue(QStringLiteral(":pid"), pid);
+        if (q.exec() && q.next() && !q.value(0).isNull()) {
+            QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+            if (d.isValid()) first = d;
+        }
+    }
+    return first;
 }
 
 QDate BackupDialog::getLastDataDate() const

@@ -173,6 +173,115 @@ static bool exportPrivacyTable(QSqlDatabase& db,
     return true;
 }
 
+/*!
+ * \brief Write a privacy-redacted SQL INSERT file for the profile_preferences table.
+ *
+ * Rows whose \c key column matches a known personal-data key have their
+ * \c value written as NULL.  The \c profile_id column is written as the
+ * \@PROFILE_ID\@ placeholder.  All other rows and columns are exported verbatim.
+ *
+ * \param db          Live database connection.
+ * \param whereClause SQL WHERE body (no keyword).
+ * \param outputFile  Destination .sql file path.
+ * \return true on success.
+ */
+static bool exportPrivacyPreferences(QSqlDatabase& db,
+                                      const QString& whereClause,
+                                      const QString& outputFile)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    static const QSet<QString> kPersonalKeys = {
+        // UserInfo keys (STR_UI_*)
+        QStringLiteral("FirstName"),   QStringLiteral("LastName"),
+        QStringLiteral("DOB"),         QStringLiteral("Address"),
+        QStringLiteral("Phone"),       QStringLiteral("EmailAddress"),
+        QStringLiteral("Country"),     QStringLiteral("Height"),
+        QStringLiteral("Gender"),      QStringLiteral("Password"),
+        // DoctorInfo keys (STR_DI_*) — also stored in profile_preferences via PrefSettings
+        QStringLiteral("DoctorName"),  QStringLiteral("DoctorPhone"),
+        QStringLiteral("DoctorEmail"), QStringLiteral("DoctorPractice"),
+        QStringLiteral("DoctorAddress"), QStringLiteral("DoctorPatientID")
+    };
+#else
+    static const QSet<QString> kPersonalKeys = []() {
+        QSet<QString> s;
+        s << QStringLiteral("FirstName")   << QStringLiteral("LastName")
+          << QStringLiteral("DOB")         << QStringLiteral("Address")
+          << QStringLiteral("Phone")       << QStringLiteral("EmailAddress")
+          << QStringLiteral("Country")     << QStringLiteral("Height")
+          << QStringLiteral("Gender")      << QStringLiteral("Password")
+          << QStringLiteral("DoctorName")  << QStringLiteral("DoctorPhone")
+          << QStringLiteral("DoctorEmail") << QStringLiteral("DoctorPractice")
+          << QStringLiteral("DoctorAddress") << QStringLiteral("DoctorPatientID");
+        return s;
+    }();
+#endif
+
+    QSqlQuery query(db);
+    if (!query.exec(
+            QString("SELECT * FROM profile_preferences WHERE %1").arg(whereClause))) {
+        qWarning() << "exportPrivacyPreferences:" << query.lastError().text();
+        return false;
+    }
+
+    QFile file(outputFile);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "exportPrivacyPreferences: cannot open" << outputFile;
+        return false;
+    }
+
+    QTextStream out(&file);
+    const QSqlRecord rec = query.record();
+    const int colCount   = rec.count();
+
+    QStringList colNames;
+    for (int i = 0; i < colCount; ++i) {
+        colNames << rec.fieldName(i);
+    }
+    const int keyCol = colNames.indexOf(QStringLiteral("key"));
+    const int valCol = colNames.indexOf(QStringLiteral("value"));
+
+    while (query.next()) {
+        const QString rowKey    = (keyCol >= 0) ? query.value(keyCol).toString() : QString();
+        const bool    blankThis = kPersonalKeys.contains(rowKey);
+
+        QStringList vals;
+        for (int i = 0; i < colCount; ++i) {
+            const QString& col = colNames.at(i);
+            if (col == QLatin1String("profile_id")) {
+                vals << QStringLiteral("@PROFILE_ID@");
+            } else if (i == valCol && blankThis) {
+                vals << QStringLiteral("NULL");
+            } else {
+                const QVariant v = query.value(i);
+                if (v.isNull()) {
+                    vals << QStringLiteral("NULL");
+                } else {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                    const int tid = v.typeId();
+#else
+                    const int tid = static_cast<int>(v.type());
+#endif
+                    if (tid == QMetaType::Int     || tid == QMetaType::LongLong ||
+                        tid == QMetaType::UInt    || tid == QMetaType::ULongLong) {
+                        vals << v.toString();
+                    } else if (tid == QMetaType::Double || tid == QMetaType::Float) {
+                        vals << QString::number(v.toDouble(), 'g', 17);
+                    } else {
+                        QString s = v.toString();
+                        s.replace(QLatin1Char('\''), QLatin1String("''"));
+                        vals << QLatin1Char('\'') + s + QLatin1Char('\'');
+                    }
+                }
+            }
+        }
+        out << "INSERT INTO profile_preferences"
+            << " (" << colNames.join(", ")
+            << ") VALUES (" << vals.join(", ") << ");\n";
+    }
+    return true;
+}
+
 // ---------------------------------------------------------------------------
 //  Constructor / Destructor
 // ---------------------------------------------------------------------------
@@ -528,8 +637,15 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
         }
     }
 
-    // profile_preferences
-    {
+    // profile_preferences — privacy mode blanks the value of personal key rows.
+    if (m_privacyMode) {
+        QSqlDatabase db = DatabaseManager::instance().database();
+        if (!exportPrivacyPreferences(db, pidWhere,
+                                      dbDir + "/profile_preferences.sql")) {
+            m_errorMessage = QStringLiteral("Failed to export profile_preferences (privacy mode)");
+            return false;
+        }
+    } else {
         SqlExporter exp;
         exp.setColumnPlaceholders({{"profile_id", "@PROFILE_ID@"}});
         if (!exp.exportTable("profile_preferences", pidWhere,

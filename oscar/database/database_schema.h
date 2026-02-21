@@ -54,6 +54,25 @@ public:
     static const int CURRENT_SCHEMA_VERSION = 13;
 
     /*!
+     * \brief Oldest schema version that can be restored into the current database.
+     *
+     * Backups with schema_version in [MIN_RESTORE_SCHEMA_VERSION, CURRENT_SCHEMA_VERSION]
+     * are accepted.  Tables present in the backup but absent from the current schema are
+     * silently skipped during restore; new columns added since the backup was taken receive
+     * their DEFAULT values.
+     *
+     * Update this constant when a schema change is backward-incompatible (e.g. a column
+     * that had a DEFAULT loses it, or a table that stores critical data is restructured
+     * rather than just extended).  Leave it unchanged for purely additive changes.
+     *
+     * Version history:
+     *   v12 → v13: reports/report_contents removed, report_tree added.  The removed
+     *              tables contain only UI configuration that OSCAR regenerates on first run,
+     *              so v12 backups restore cleanly into a v13 database.
+     */
+    static const int MIN_RESTORE_SCHEMA_VERSION = 12;
+
+    /*!
      * \brief Create the complete database schema
      * \param db Database connection to use
      * \return true if successful, false otherwise

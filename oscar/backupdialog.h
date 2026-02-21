@@ -90,6 +90,12 @@ private:
     void restoreSettings();
 
     /*!
+     * \brief Query the earliest session date for the currently selected profile.
+     * \return The first date on which a session exists, or today as a fallback.
+     */
+    QDate getFirstDataDate() const;
+
+    /*!
      * \brief Query the most recent session date for the currently selected profile.
      *
      * Used as the anchor date for range presets ("Last Week", etc.) so that
