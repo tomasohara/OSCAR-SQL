@@ -18,6 +18,12 @@
 #include "../database_schema.h"
 #include "../../version.h"
 #include "../../zip.h"
+#include "../../SleepLib/preferences.h"
+
+// p_pref is the global Preferences object (defined in SleepLib/profiles.cpp).
+// We need it to resolve the canonical Profiles directory path, using the same
+// mechanism as Profiles::Scan() so the path is always consistent.
+extern Preferences *p_pref;
 
 #include <QCryptographicHash>
 #include <QDateTime>
@@ -231,6 +237,11 @@ void ProfileBackup::setPrivacyMode(bool enable)
     m_privacyMode = enable;
 }
 
+void ProfileBackup::setIncludeSDData(bool include)
+{
+    m_includeSDData = include;
+}
+
 // ---------------------------------------------------------------------------
 //  Execution
 // ---------------------------------------------------------------------------
@@ -277,6 +288,21 @@ bool ProfileBackup::createBackup()
         m_errorMessage = QStringLiteral("Failed to generate backup file path");
         emit backupFailed(m_errorMessage);
         return false;
+    }
+
+    // Resolve SD data path now (while DB is confirmed open).
+    m_profileDataDir.clear();
+    if (m_includeSDData) {
+        m_profileDataDir = getProfileDataDir();
+        if (m_profileDataDir.isEmpty()) {
+            m_errorMessage = QStringLiteral("Failed to determine profile data directory for SD backup");
+            emit backupFailed(m_errorMessage);
+            return false;
+        }
+        if (!QDir(m_profileDataDir).exists()) {
+            qWarning() << "ProfileBackup: profile data directory does not exist, SD data will be skipped:"
+                       << m_profileDataDir;
+        }
     }
 
     emit progressChanged(10, QStringLiteral("Preparing temporary workspace..."));
@@ -767,7 +793,7 @@ bool ProfileBackup::createManifest(const QString& tempDir, QJsonObject& manifest
             .arg(sessionWhere);
         if (q.exec(sql) && q.next() && !q.value(0).isNull()) {
             auto epochToDate = [](qint64 epoch) {
-                return QDateTime::fromSecsSinceEpoch(epoch, Qt::UTC)
+                return QDateTime::fromMSecsSinceEpoch(epoch, Qt::UTC)
                            .date().toString(Qt::ISODate);
             };
             firstSession = epochToDate(q.value(0).toLongLong());
@@ -784,7 +810,8 @@ bool ProfileBackup::createManifest(const QString& tempDir, QJsonObject& manifest
     bm.setStatistics(machinesCount, sessionsCount, eventListsCount,
                      firstSession, lastSession, m_uncompressedSize);
     bm.setExportOptions(m_includeDisabled, m_compress,
-                        isPartialExport(), m_startDate, m_endDate, m_privacyMode);
+                        isPartialExport(), m_startDate, m_endDate, m_privacyMode,
+                        m_includeSDData);
 
     // Record the names of exported tables (derived from .sql file names).
     const QStringList sqlFiles =
@@ -838,6 +865,16 @@ bool ProfileBackup::createPackage(const QString& tempDir)
         zip.Close();
         m_errorMessage = QStringLiteral("Failed to add database directory to package");
         return false;
+    }
+
+    // Add the profile's on-disk SD card data (only for "Everything" backups).
+    if (m_includeSDData && !m_profileDataDir.isEmpty() && QDir(m_profileDataDir).exists()) {
+        emit progressChanged(92, QStringLiteral("Adding SD card data (may take several minutes)..."));
+        if (!zip.AddDirectory(m_profileDataDir, QStringLiteral("sddata"))) {
+            zip.Close();
+            m_errorMessage = QStringLiteral("Failed to add SD card data to package");
+            return false;
+        }
     }
 
     zip.Close();
@@ -921,11 +958,11 @@ QString ProfileBackup::calculateChecksum(const QString& filePath) const
 /*!
  * \brief Build the SQL WHERE clause fragment for session date filtering.
  *
- * Converts the start/end QDate values to UTC epoch-second boundaries and
+ * Converts the start/end QDate values to UTC epoch-millisecond boundaries and
  * returns a fragment suitable for appending to a sessions WHERE clause.
  * Returns an empty string when no date range is set (full export).
  *
- * The sessions table stores \c start_time as epoch seconds (UTC).
+ * The sessions table stores \c start_time as epoch milliseconds (UTC).
  * Start bound:  \c start_time >= startOfDay(startDate, UTC)
  * End bound:    \c start_time <  startOfDay(endDate+1, UTC)   (inclusive end)
  */
@@ -938,9 +975,9 @@ QString ProfileBackup::buildSessionDateFilter() const
     QStringList parts;
     if (m_startDate.isValid()) {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-        const qint64 epoch = m_startDate.startOfDay(Qt::UTC).toSecsSinceEpoch();
+        const qint64 epoch = m_startDate.startOfDay(Qt::UTC).toMSecsSinceEpoch();
 #else
-        const qint64 epoch = QDateTime(m_startDate, QTime(0, 0, 0), Qt::UTC).toSecsSinceEpoch();
+        const qint64 epoch = QDateTime(m_startDate, QTime(0, 0, 0), Qt::UTC).toMSecsSinceEpoch();
 #endif
         parts << QString("start_time >= %1").arg(epoch);
     }
@@ -948,11 +985,36 @@ QString ProfileBackup::buildSessionDateFilter() const
         // One day past end-date gives us an exclusive upper bound that captures
         // sessions starting anywhere on endDate.
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-        const qint64 epoch = m_endDate.addDays(1).startOfDay(Qt::UTC).toSecsSinceEpoch();
+        const qint64 epoch = m_endDate.addDays(1).startOfDay(Qt::UTC).toMSecsSinceEpoch();
 #else
-        const qint64 epoch = QDateTime(m_endDate.addDays(1), QTime(0, 0, 0), Qt::UTC).toSecsSinceEpoch();
+        const qint64 epoch = QDateTime(m_endDate.addDays(1), QTime(0, 0, 0), Qt::UTC).toMSecsSinceEpoch();
 #endif
         parts << QString("start_time < %1").arg(epoch);
     }
     return parts.join(QStringLiteral(" AND "));
+}
+
+/*!
+ * \brief Resolve the canonical on-disk path of the profile's data directory.
+ *
+ * Queries the profile username from the database and combines it with the
+ * Profiles base path obtained from the global Preferences object.  This uses
+ * the same \c {home}/Profiles expression as \c Profiles::Scan() so the result
+ * is always consistent with what OSCAR considers the authoritative location.
+ *
+ * \return Absolute path such as \c C:/OSCAR_Data/Profiles/JohnDoe, or an
+ *         empty string if the profile cannot be found in the database.
+ */
+QString ProfileBackup::getProfileDataDir() const
+{
+    QSqlDatabase db = DatabaseManager::instance().database();
+    QSqlQuery query(db);
+    query.prepare(QStringLiteral("SELECT username FROM profiles WHERE id = :id"));
+    query.bindValue(QStringLiteral(":id"), m_profileId);
+    if (!query.exec() || !query.next()) {
+        qWarning() << "ProfileBackup::getProfileDataDir: cannot find profile" << m_profileId;
+        return QString();
+    }
+    return p_pref->Get(QStringLiteral("{home}/Profiles"))
+           + QLatin1Char('/') + query.value(0).toString();
 }

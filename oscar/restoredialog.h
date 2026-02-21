@@ -55,6 +55,9 @@ private slots:
     /*! \brief Launch ProfileRestore::restoreProfile(). */
     void on_restoreButton_clicked();
 
+    /*! \brief Re-check conflicts and update the UI when the profile name changes. */
+    void on_profileNameEdit_textChanged(const QString& text);
+
     /*! \brief Update the progress bar and status label. */
     void onProgressChanged(int percent, const QString& message);
 
@@ -74,8 +77,18 @@ private:
     /*! \brief Show or hide the package-information group box. */
     void showInfoGroup(bool visible);
 
+    /*! \brief Show or hide the restore-options (profile name) group box. */
+    void showNameGroup(bool visible);
+
     /*! \brief Show or hide the conflict-resolution group box. */
     void showConflictGroup(bool visible);
+
+    /*!
+     * \brief Re-evaluate whether \a name conflicts with an existing profile
+     *        and update the conflict group visibility and Restore button state.
+     * \param name  The profile name currently entered by the user.
+     */
+    void updateConflictForName(const QString& name);
 
     /*!
      * \brief Enable or disable interactive controls while a restore runs.
@@ -83,8 +96,15 @@ private:
      */
     void setBusy(bool busy);
 
+    /*! \brief Persist the last-used package directory to QSettings. */
+    void saveSettings();
+
+    /*! \brief Restore the last-used package directory from QSettings. */
+    void restoreSettings();
+
     Ui::RestoreDialog*  ui;
     ProfileRestore*     m_restore = nullptr;  ///< Heap-allocated; owned by this dialog.
+    QString             m_lastPackageDir;     ///< Last directory used to browse for a package.
 };
 
 #endif // RESTOREDIALOG_H

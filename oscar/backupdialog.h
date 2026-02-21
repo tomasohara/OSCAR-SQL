@@ -83,6 +83,23 @@ private:
     /*! \brief Apply locale-aware formatting and remove weekend red-highlight from calendar widgets. */
     void setupCalendarFormatting();
 
+    /*! \brief Persist the current output directory to QSettings. */
+    void saveSettings();
+
+    /*! \brief Restore the last-used output directory from QSettings. */
+    void restoreSettings();
+
+    /*!
+     * \brief Query the most recent session date for the currently selected profile.
+     *
+     * Used as the anchor date for range presets ("Last Week", etc.) so that
+     * the date window is relative to the profile's own data, not the calendar
+     * date at which the dialog is opened.
+     *
+     * \return The last date on which a session exists, or today as a fallback.
+     */
+    QDate getLastDataDate() const;
+
     /*!
      * \brief Show a modal security-warning dialog before backup starts.
      * \return true if the user ticked the confirmation checkbox and clicked Continue.

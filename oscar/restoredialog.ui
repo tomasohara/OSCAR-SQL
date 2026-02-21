@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>520</width>
-    <height>560</height>
+    <height>640</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -142,6 +142,33 @@
        <widget class="QLabel" name="infoSizeLabel">
         <property name="text">
          <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <!-- Restore options group (hidden until validated) -->
+   <item>
+    <widget class="QGroupBox" name="nameGroup">
+     <property name="title">
+      <string>Restore Options</string>
+     </property>
+     <property name="visible">
+      <bool>false</bool>
+     </property>
+     <layout class="QFormLayout" name="nameLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="profileNameCaption">
+        <property name="text">
+         <string>Restore profile as:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="profileNameEdit">
+        <property name="placeholderText">
+         <string>Enter profile name...</string>
         </property>
        </widget>
       </item>

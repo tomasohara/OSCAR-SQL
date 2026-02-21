@@ -159,6 +159,20 @@ public:
      */
     void setPrivacyMode(bool enable);
 
+    /*!
+     * \brief Enable or disable inclusion of the profile's on-disk SD card data.
+     *
+     * When enabled, the entire \c Profiles/<username>/ directory tree is added
+     * to the .oscar package under the \c sddata/ prefix.  This is only
+     * meaningful for a full ("Everything") export — it is automatically set
+     * by the Backup dialog when the user selects that option.
+     *
+     * Default: false (database-only export).
+     *
+     * \param include  true to include the SD card data directory.
+     */
+    void setIncludeSDData(bool include);
+
     // -----------------------------------------------------------------------
     //  Execution
     // -----------------------------------------------------------------------
@@ -323,6 +337,17 @@ private:
      */
     QString buildSessionDateFilter() const;
 
+    /*!
+     * \brief Resolve the profile's on-disk data directory path.
+     *
+     * Queries the profile username from the database and returns the canonical
+     * \c Profiles/<username> path, using the same \c {home}/Profiles expression
+     * as \c Profiles::Scan() so the path is always consistent.
+     *
+     * \return Absolute path, or an empty string on error.
+     */
+    QString getProfileDataDir() const;
+
     // -----------------------------------------------------------------------
     //  Member variables
     // -----------------------------------------------------------------------
@@ -336,8 +361,10 @@ private:
     bool    m_includeDisabled = true; ///< Include disabled sessions.
     bool    m_compress        = true; ///< Compress the .oscar package.
     bool    m_privacyMode     = false;///< Blank personal data fields.
+    bool    m_includeSDData   = false;///< Include profile's on-disk SD card data.
     QDate   m_startDate;          ///< Export start date (invalid = no filter).
     QDate   m_endDate;            ///< Export end date (invalid = no filter).
+    QString m_profileDataDir;     ///< Resolved Profiles/<username> path (set in createBackup).
 };
 
 #endif // PROFILE_BACKUP_H

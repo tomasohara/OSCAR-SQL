@@ -10,6 +10,7 @@
 #include "ui_restoredialog.h"
 
 #include <QFileDialog>
+#include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QRadioButton>
@@ -34,6 +35,16 @@ RestoreDialog::RestoreDialog(QWidget* parent)
     showConflictGroup(false);
 
     connect(ui->closeButton, &QPushButton::clicked, this, &QDialog::reject);
+
+    restoreSettings();
+
+    // Radio button state → Restore button enabled/disabled.
+    connect(ui->renameRadio,  &QRadioButton::toggled, this,
+            [this](bool checked) { if (checked) ui->restoreButton->setEnabled(true); });
+    connect(ui->replaceRadio, &QRadioButton::toggled, this,
+            [this](bool checked) { if (checked) ui->restoreButton->setEnabled(true); });
+    connect(ui->abortRadio,   &QRadioButton::toggled, this,
+            [this](bool checked) { if (checked) ui->restoreButton->setEnabled(false); });
 }
 
 RestoreDialog::~RestoreDialog()
@@ -84,14 +95,16 @@ void RestoreDialog::displayPackageInfo(const BackupManifest& manifest)
 void RestoreDialog::showInfoGroup(bool visible)
 {
     ui->infoGroup->setVisible(visible);
-    // Resize dialog to fit after visibility change.
-    adjustSize();
+}
+
+void RestoreDialog::showNameGroup(bool visible)
+{
+    ui->nameGroup->setVisible(visible);
 }
 
 void RestoreDialog::showConflictGroup(bool visible)
 {
     ui->conflictGroup->setVisible(visible);
-    adjustSize();
 }
 
 void RestoreDialog::setBusy(bool busy)
@@ -100,9 +113,51 @@ void RestoreDialog::setBusy(bool busy)
     ui->validateButton->setEnabled(!busy && !ui->packagePathEdit->text().isEmpty());
     ui->restoreButton->setEnabled(!busy);
     ui->closeButton->setEnabled(!busy);
+    ui->profileNameEdit->setEnabled(!busy);
     ui->abortRadio->setEnabled(!busy);
     ui->renameRadio->setEnabled(!busy);
     ui->replaceRadio->setEnabled(!busy);
+}
+
+void RestoreDialog::updateConflictForName(const QString& name)
+{
+    if (!m_restore) return;
+
+    if (name.trimmed().isEmpty()) {
+        showConflictGroup(false);
+        ui->restoreButton->setEnabled(false);
+        ui->statusLabel->setText(tr("Profile name cannot be empty."));
+        return;
+    }
+
+    ConflictStatus conflict = m_restore->checkConflicts(name);
+    if (conflict == ConflictStatus::UsernameExists) {
+        showConflictGroup(true);
+        // Default is Abort radio — Restore stays disabled until user picks Rename or Replace.
+        ui->abortRadio->setChecked(true);
+        ui->restoreButton->setEnabled(false);
+        ui->statusLabel->setText(tr("A profile named \"%1\" already exists. Select a resolution option.").arg(name));
+    } else {
+        showConflictGroup(false);
+        ui->restoreButton->setEnabled(true);
+        ui->statusLabel->setText(tr("Package validated successfully."));
+    }
+}
+
+void RestoreDialog::restoreSettings()
+{
+    QSettings s;
+    s.beginGroup("RestoreDialog");
+    m_lastPackageDir = s.value("lastPackageDir").toString();
+    s.endGroup();
+}
+
+void RestoreDialog::saveSettings()
+{
+    QSettings s;
+    s.beginGroup("RestoreDialog");
+    s.setValue("lastPackageDir", m_lastPackageDir);
+    s.endGroup();
 }
 
 // ---------------------------------------------------------------------------
@@ -111,21 +166,34 @@ void RestoreDialog::setBusy(bool busy)
 
 void RestoreDialog::on_browseButton_clicked()
 {
+    const QString startDir = m_lastPackageDir.isEmpty()
+        ? QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
+        : m_lastPackageDir;
+
     QString path = QFileDialog::getOpenFileName(
         this,
         tr("Open Backup Package"),
-        QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),
+        startDir,
         tr("OSCAR Backup Files (*.oscar);;All Files (*)"));
 
     if (!path.isEmpty()) {
+        m_lastPackageDir = QFileInfo(path).absolutePath();
+        saveSettings();
         ui->packagePathEdit->setText(path);
         ui->validateButton->setEnabled(true);
         ui->restoreButton->setEnabled(false);
         showInfoGroup(false);
+        showNameGroup(false);
         showConflictGroup(false);
         ui->progressBar->setValue(0);
         ui->statusLabel->clear();
     }
+}
+
+void RestoreDialog::on_profileNameEdit_textChanged(const QString& text)
+{
+    if (!m_restore) return;
+    updateConflictForName(text);
 }
 
 void RestoreDialog::on_validateButton_clicked()
@@ -137,6 +205,7 @@ void RestoreDialog::on_validateButton_clicked()
     delete m_restore;
     m_restore = nullptr;
     showInfoGroup(false);
+    showNameGroup(false);
     showConflictGroup(false);
     ui->restoreButton->setEnabled(false);
     ui->statusLabel->setText(tr("Validating..."));
@@ -166,44 +235,35 @@ void RestoreDialog::on_validateButton_clicked()
     // Show manifest info.  Reuse the already-parsed manifest from ProfileRestore.
     BackupManifest displayManifest;
     displayManifest.fromJson(m_restore->manifestJson());
+    QString originalUsername;
     if (displayManifest.isValid()) {
         displayPackageInfo(displayManifest);
         showInfoGroup(true);
+        originalUsername = displayManifest.username();
     }
 
-    // Check for username conflict.
-    ConflictStatus conflict = m_restore->checkConflicts();
-    if (conflict == ConflictStatus::UsernameExists) {
-        showConflictGroup(true);
-        // Default is Abort radio — restoreButton stays disabled until user
-        // picks Rename or Replace.
-        ui->restoreButton->setEnabled(false);
+    // Show the profile name field pre-filled with the original username.
+    // The user may edit it freely; changing the name re-checks for conflicts.
+    ui->profileNameEdit->blockSignals(true);
+    ui->profileNameEdit->setText(originalUsername);
+    ui->profileNameEdit->blockSignals(false);
+    showNameGroup(true);
 
-        // Enable Restore only when a non-Abort option is chosen.
-        connect(ui->renameRadio, &QRadioButton::toggled, this,
-                [this](bool checked) {
-                    if (checked) ui->restoreButton->setEnabled(true);
-                });
-        connect(ui->replaceRadio, &QRadioButton::toggled, this,
-                [this](bool checked) {
-                    if (checked) ui->restoreButton->setEnabled(true);
-                });
-        connect(ui->abortRadio, &QRadioButton::toggled, this,
-                [this](bool checked) {
-                    if (checked) ui->restoreButton->setEnabled(false);
-                });
-
-        ui->statusLabel->setText(tr("Username conflict detected. Select a resolution option."));
-    } else {
-        showConflictGroup(false);
-        ui->restoreButton->setEnabled(true);
-        ui->statusLabel->setText(tr("Package validated successfully."));
-    }
+    // Run initial conflict check against the original name.
+    updateConflictForName(originalUsername);
 }
 
 void RestoreDialog::on_restoreButton_clicked()
 {
     if (!m_restore) return;
+
+    // Apply the profile name the user has entered.
+    const QString targetName = ui->profileNameEdit->text().trimmed();
+    if (targetName.isEmpty()) {
+        ui->statusLabel->setText(tr("Profile name cannot be empty."));
+        return;
+    }
+    m_restore->setNewUsername(targetName);
 
     // Apply conflict resolution if the conflict group is visible.
     if (ui->conflictGroup->isVisible()) {

@@ -133,12 +133,14 @@ public:
      * \param startDate        First date in the exported range (invalid = no bound).
      * \param endDate          Last date in the exported range (invalid = no bound).
      * \param privacyApplied   True if user_info / doctor_info fields were blanked.
+     * \param includesSDData   True if the Profiles/<username>/ directory tree was included.
      */
     void setExportOptions(bool includeDisabled, bool compress,
                           bool isPartial = false,
                           const QDate& startDate = QDate(),
                           const QDate& endDate = QDate(),
-                          bool privacyApplied = false);
+                          bool privacyApplied = false,
+                          bool includesSDData = false);
 
     /*!
      * \brief Store package integrity checksums.
@@ -198,6 +200,11 @@ public:
      * \brief Return true if user_info / doctor_info fields were blanked.
      */
     bool privacyApplied() const;
+
+    /*!
+     * \brief Return true if the Profiles/<username>/ directory tree was included in the backup.
+     */
+    bool includesSDData() const;
 
     /*!
      * \brief Return the number of sessions recorded in the statistics block.

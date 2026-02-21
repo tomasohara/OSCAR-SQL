@@ -2900,13 +2900,14 @@ void MainWindow::on_actionRestore_Profile_triggered()
 {
     RestoreDialog *dialog = new RestoreDialog(this);
     dialog->exec();
+    delete dialog;
 
-    // Refresh profile list UI
+    // Rescan profiles to load any newly restored profile into memory,
+    // then refresh the profile list UI.
+    Profiles::Scan();
     if (profileSelector) {
         profileSelector->updateProfileList();
     }
-
-    delete dialog;
 }
 
 void MainWindow::on_actionShow_Performance_Counters_toggled(bool arg1)

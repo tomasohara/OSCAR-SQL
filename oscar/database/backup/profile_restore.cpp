@@ -66,6 +66,46 @@ static QString hashSqlDirectory(const QString& dirPath)
     return QString::fromLatin1(hash.result().toHex());
 }
 
+/*!
+ * \brief Recursively copy \a srcDir into \a destDir.
+ *
+ * \a destDir is created if absent.  Existing files are overwritten.
+ * Hidden files and subdirectories are included.
+ *
+ * \return true on success; false on the first I/O error encountered.
+ */
+static bool copyDirectoryRecursive(const QString& srcDir, const QString& destDir)
+{
+    QDir src(srcDir);
+    if (!src.exists()) {
+        qWarning() << "copyDirectoryRecursive: source does not exist:" << srcDir;
+        return false;
+    }
+    if (!QDir().mkpath(destDir)) {
+        qWarning() << "copyDirectoryRecursive: cannot create:" << destDir;
+        return false;
+    }
+
+    const QFileInfoList entries =
+        src.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden);
+    for (const QFileInfo& fi : entries) {
+        const QString srcPath  = fi.absoluteFilePath();
+        const QString destPath = destDir + QLatin1Char('/') + fi.fileName();
+        if (fi.isDir()) {
+            if (!copyDirectoryRecursive(srcPath, destPath)) {
+                return false;
+            }
+        } else {
+            QFile::remove(destPath); // overwrite if present
+            if (!QFile::copy(srcPath, destPath)) {
+                qWarning() << "copyDirectoryRecursive: cannot copy" << srcPath << "to" << destPath;
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 // ---------------------------------------------------------------------------
 //  SQL INSERT parser
 // ---------------------------------------------------------------------------
@@ -446,30 +486,40 @@ bool ProfileRestore::checkCompatibility()
  *         already present; ConflictStatus::None otherwise (including if the
  *         manifest has not been loaded).
  */
-ConflictStatus ProfileRestore::checkConflicts()
+ConflictStatus ProfileRestore::checkConflicts(const QString& targetUsername)
 {
     if (m_manifestJson.isEmpty()) {
         return ConflictStatus::None;
     }
 
-    const QString username =
-        m_manifestJson[QStringLiteral("profile")].toObject()
-                      [QStringLiteral("username")].toString();
+    // Use the supplied target name, or fall back to the manifest's original username.
+    const QString nameToCheck = targetUsername.isEmpty()
+        ? m_manifestJson[QStringLiteral("profile")].toObject()
+                        [QStringLiteral("username")].toString()
+        : targetUsername;
 
-    if (username.isEmpty()) {
+    if (nameToCheck.isEmpty()) {
         return ConflictStatus::None;
     }
 
-    if (!DatabaseManager::instance().isOpen()) {
-        return ConflictStatus::None;
+    if (DatabaseManager::instance().isOpen()) {
+        QSqlDatabase db = DatabaseManager::instance().database();
+        QSqlQuery query(db);
+        query.prepare(QStringLiteral("SELECT COUNT(*) FROM profiles WHERE username = :u"));
+        query.bindValue(QStringLiteral(":u"), nameToCheck);
+
+        if (query.exec() && query.next() && query.value(0).toInt() > 0) {
+            return ConflictStatus::UsernameExists;
+        }
     }
 
-    QSqlDatabase db = DatabaseManager::instance().database();
-    QSqlQuery query(db);
-    query.prepare(QStringLiteral("SELECT COUNT(*) FROM profiles WHERE username = :u"));
-    query.bindValue(QStringLiteral(":u"), username);
-
-    if (query.exec() && query.next() && query.value(0).toInt() > 0) {
+    // Also treat an existing profile data directory as a conflict.
+    // This catches the case where the directory was left on disk after a DB entry
+    // was deleted, or where a previous restore created the directory but not the
+    // DB row.  Either condition is enough to require conflict resolution.
+    const QString profileDir =
+        p_pref->Get(QStringLiteral("{home}/Profiles")) + QLatin1Char('/') + nameToCheck;
+    if (QDir(profileDir).exists()) {
         return ConflictStatus::UsernameExists;
     }
 
@@ -529,9 +579,9 @@ bool ProfileRestore::restoreProfile()
         m_newUsername = origUsername;
     }
 
-    // Resolve username conflicts.
-    if (checkConflicts() == ConflictStatus::UsernameExists) {
-        const QString resolved = resolveUsernameConflict(origUsername);
+    // Resolve username conflicts, checking against the target name.
+    if (checkConflicts(m_newUsername) == ConflictStatus::UsernameExists) {
+        const QString resolved = resolveUsernameConflict(m_newUsername);
         if (resolved.isEmpty()) {
             // resolveUsernameConflict() already set m_errorMessage.
             emit restoreFailed(m_errorMessage);
@@ -562,6 +612,19 @@ bool ProfileRestore::restoreProfile()
                    << profileDataDir;
     } else {
         qDebug() << "ProfileRestore: created profile data directory:" << profileDataDir;
+    }
+
+    // Restore SD card data if the backup includes it.
+    m_includesSDData = m_manifestJson[QStringLiteral("export_options")]
+                           .toObject()[QStringLiteral("includes_sd_data")].toBool(false);
+    if (m_includesSDData) {
+        emit progressChanged(80, QStringLiteral("Restoring SD card data (may take several minutes)..."));
+        if (!restoreSDData()) {
+            // Non-fatal: the DB restore succeeded.  The profile is fully usable;
+            // the user can reimport their SD card to repopulate on-disk data.
+            qWarning() << "ProfileRestore: SD data restore failed (DB restore OK):" << m_errorMessage;
+            m_errorMessage.clear();
+        }
     }
 
     emit progressChanged(100, QStringLiteral("Restore complete."));
@@ -646,6 +709,52 @@ QString ProfileRestore::resolveUsernameConflict(const QString& originalUsername)
     } // switch
 
     return QString(); // unreachable
+}
+
+/*!
+ * \brief Copy the \c sddata/ subtree from the extracted package to the
+ *        restored profile's on-disk data directory.
+ *
+ * The target directory (\c Profiles/<newname>/) has already been created by
+ * restoreProfile().  For the Replace resolution strategy, any existing content
+ * in that directory is cleared first so the restored SD data is authoritative.
+ *
+ * \return true on success; false on any I/O error (sets m_errorMessage).
+ */
+bool ProfileRestore::restoreSDData()
+{
+    const QString sdDataDir = m_tempDir + QStringLiteral("/sddata");
+    if (!QDir(sdDataDir).exists()) {
+        qWarning() << "ProfileRestore::restoreSDData: no sddata/ directory found in extracted package";
+        return false;
+    }
+
+    const QString targetDir =
+        p_pref->Get(QStringLiteral("{home}/Profiles")) + QLatin1Char('/') + m_newUsername;
+
+    // For Replace: clear the existing directory content before writing.
+    // This ensures stale files from the old profile do not persist.
+    if (m_resolution == ConflictResolution::Replace) {
+        const QFileInfoList entries = QDir(targetDir).entryInfoList(
+            QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden);
+        for (const QFileInfo& fi : entries) {
+            if (fi.isDir()) {
+                QDir(fi.absoluteFilePath()).removeRecursively();
+            } else {
+                QFile::remove(fi.absoluteFilePath());
+            }
+        }
+    }
+
+    qDebug() << "ProfileRestore::restoreSDData: copying to" << targetDir;
+    if (!copyDirectoryRecursive(sdDataDir, targetDir)) {
+        m_errorMessage = QString("Failed to copy SD card data to profile directory: %1")
+                             .arg(targetDir);
+        return false;
+    }
+
+    qDebug() << "ProfileRestore::restoreSDData: SD data restored successfully";
+    return true;
 }
 
 // ---------------------------------------------------------------------------

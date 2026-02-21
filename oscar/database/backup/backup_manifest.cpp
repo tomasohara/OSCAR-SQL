@@ -126,7 +126,8 @@ void BackupManifest::setExportOptions(bool          includeDisabled,
                                        bool          isPartialExport,
                                        const QDate&  startDate,
                                        const QDate&  endDate,
-                                       bool          privacyMode)
+                                       bool          privacyMode,
+                                       bool          includesSDData)
 {
     QJsonObject options;
     options["is_partial"] = isPartialExport;
@@ -143,7 +144,8 @@ void BackupManifest::setExportOptions(bool          includeDisabled,
     options["privacy_applied"]           = privacyMode;
     options["include_disabled_sessions"] = includeDisabled;
     options["compress_package"]          = compress;
-    options["database_only"]             = true;
+    options["includes_sd_data"]          = includesSDData;
+    options["database_only"]             = !includesSDData;
 
     m_data["export_options"] = options;
 }
@@ -216,6 +218,11 @@ QDate BackupManifest::endDate() const
 bool BackupManifest::privacyApplied() const
 {
     return m_data["export_options"].toObject()["privacy_applied"].toBool(false);
+}
+
+bool BackupManifest::includesSDData() const
+{
+    return m_data["export_options"].toObject()["includes_sd_data"].toBool(false);
 }
 
 int BackupManifest::sessionsCount() const

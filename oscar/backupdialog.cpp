@@ -10,6 +10,7 @@
 #include "ui_backupdialog.h"
 
 #include <QCalendarWidget>
+#include <QSettings>
 #include <QCheckBox>
 #include <QDateEdit>
 #include <QDialog>
@@ -55,6 +56,8 @@ BackupDialog::BackupDialog(QWidget* parent)
     applyDateRange(ui->rangeCombo->currentText());
 
     connect(ui->closeButton, &QPushButton::clicked, this, &QDialog::reject);
+
+    restoreSettings();
 }
 
 BackupDialog::~BackupDialog()
@@ -96,47 +99,41 @@ void BackupDialog::populateProfiles()
 
 void BackupDialog::applyDateRange(const QString& rangeText)
 {
-    QDate today = QDate::currentDate();
     bool isCustom = (rangeText == tr("Custom"));
 
     ui->fromDate->setEnabled(isCustom);
     ui->toDate->setEnabled(isCustom);
 
     if (rangeText == tr("Everything")) {
-        // No date filter — leave dates as-is; the backup will be full.
-    } else if (rangeText == tr("Most Recent Day")) {
-        // Query the latest session date for the selected profile.
-        QDate latest = today;
-        int idx = ui->profileCombo->currentIndex();
-        if (idx >= 0 && idx < m_profileIds.size()) {
-            qint64 pid = m_profileIds[idx];
-            QSqlQuery q(DatabaseManager::instance().database());
-            q.prepare("SELECT MAX(DATE(start_time, 'unixepoch')) FROM sessions WHERE profile_id = :pid");
-            q.bindValue(":pid", pid);
-            if (q.exec() && q.next() && !q.value(0).isNull()) {
-                QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
-                if (d.isValid()) latest = d;
-            }
+        // No date filter — backup will be full.
+    } else if (rangeText == tr("Custom")) {
+        // Leave dates as-is; the user controls them directly.
+    } else {
+        // All other presets are anchored to the last date with data for the
+        // selected profile, so the range is always meaningful regardless of
+        // when the dialog is opened.
+        const QDate last = getLastDataDate();
+
+        if (rangeText == tr("Most Recent Day")) {
+            ui->fromDate->setDate(last);
+            ui->toDate->setDate(last);
+        } else if (rangeText == tr("Last Week")) {
+            ui->fromDate->setDate(last.addDays(-6));
+            ui->toDate->setDate(last);
+        } else if (rangeText == tr("Last Fortnight")) {
+            ui->fromDate->setDate(last.addDays(-13));
+            ui->toDate->setDate(last);
+        } else if (rangeText == tr("Last Month")) {
+            ui->fromDate->setDate(last.addMonths(-1).addDays(1));
+            ui->toDate->setDate(last);
+        } else if (rangeText == tr("Last 6 Months")) {
+            ui->fromDate->setDate(last.addMonths(-6).addDays(1));
+            ui->toDate->setDate(last);
+        } else if (rangeText == tr("Last Year")) {
+            ui->fromDate->setDate(last.addYears(-1).addDays(1));
+            ui->toDate->setDate(last);
         }
-        ui->fromDate->setDate(latest);
-        ui->toDate->setDate(latest);
-    } else if (rangeText == tr("Last Week")) {
-        ui->fromDate->setDate(today.addDays(-7));
-        ui->toDate->setDate(today);
-    } else if (rangeText == tr("Last Fortnight")) {
-        ui->fromDate->setDate(today.addDays(-14));
-        ui->toDate->setDate(today);
-    } else if (rangeText == tr("Last Month")) {
-        ui->fromDate->setDate(today.addMonths(-1));
-        ui->toDate->setDate(today);
-    } else if (rangeText == tr("Last 6 Months")) {
-        ui->fromDate->setDate(today.addMonths(-6));
-        ui->toDate->setDate(today);
-    } else if (rangeText == tr("Last Year")) {
-        ui->fromDate->setDate(today.addYears(-1));
-        ui->toDate->setDate(today);
     }
-    // "Custom": leave dates as-is and keep controls enabled.
 
     updateFilenamePreview();
 }
@@ -243,7 +240,8 @@ bool BackupDialog::showSecurityWarning()
 
 void BackupDialog::on_profileCombo_currentIndexChanged(int /*index*/)
 {
-    updateFilenamePreview();
+    // Re-apply the current range preset so dates re-anchor to the new profile's data.
+    applyDateRange(ui->rangeCombo->currentText());
 }
 
 void BackupDialog::on_rangeCombo_currentTextChanged(const QString& text)
@@ -262,6 +260,7 @@ void BackupDialog::on_browseButton_clicked()
 
     if (!dir.isEmpty()) {
         ui->outputDirEdit->setText(dir);
+        saveSettings();
         updateFilenamePreview();
     }
 }
@@ -297,7 +296,9 @@ void BackupDialog::on_backupButton_clicked()
     backup->setPrivacyMode(ui->privacyCheck->isChecked());
 
     QString rangeText = ui->rangeCombo->currentText();
-    if (rangeText != tr("Everything")) {
+    if (rangeText == tr("Everything")) {
+        backup->setIncludeSDData(true);
+    } else {
         backup->setDateRange(ui->fromDate->date(), ui->toDate->date());
     }
 
@@ -334,12 +335,50 @@ void BackupDialog::onBackupCompleted(const QString& path)
     QMessageBox::information(this, tr("Backup Complete"),
         tr("Backup created successfully.\n\nFile: %1\nSize: %2").arg(path, sizeStr));
 
-    // Re-enable controls.
-    ui->backupButton->setEnabled(true);
-    ui->closeButton->setEnabled(true);
-    ui->profileCombo->setEnabled(true);
-    ui->rangeCombo->setEnabled(true);
-    ui->browseButton->setEnabled(true);
+    accept();
+}
+
+void BackupDialog::restoreSettings()
+{
+    QSettings s;
+    s.beginGroup("BackupDialog");
+    const QString lastDir = s.value("lastOutputDir").toString();
+    s.endGroup();
+
+    if (!lastDir.isEmpty() && QDir(lastDir).exists()) {
+        ui->outputDirEdit->setText(lastDir);
+        updateFilenamePreview();
+    }
+}
+
+void BackupDialog::saveSettings()
+{
+    QSettings s;
+    s.beginGroup("BackupDialog");
+    s.setValue("lastOutputDir", ui->outputDirEdit->text());
+    s.endGroup();
+}
+
+QDate BackupDialog::getLastDataDate() const
+{
+    QDate last = QDate::currentDate();  // fallback if no data or query fails
+
+    int idx = ui->profileCombo->currentIndex();
+    if (idx >= 0 && idx < m_profileIds.size()) {
+        qint64 pid = m_profileIds[idx];
+        QSqlQuery q(DatabaseManager::instance().database());
+        // sessions has no direct profile_id; reach it via machines.
+        q.prepare(QStringLiteral(
+            "SELECT MAX(DATE(start_time/1000, 'unixepoch')) "
+            "FROM sessions "
+            "WHERE machine_id IN (SELECT id FROM machines WHERE profile_id = :pid)"));
+        q.bindValue(QStringLiteral(":pid"), pid);
+        if (q.exec() && q.next() && !q.value(0).isNull()) {
+            QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+            if (d.isValid()) last = d;
+        }
+    }
+    return last;
 }
 
 void BackupDialog::onBackupFailed(const QString& error)

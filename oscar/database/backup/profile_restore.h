@@ -178,15 +178,23 @@ public:
     bool checkCompatibility();
 
     /*!
-     * \brief Detect whether the backup username already exists in the DB.
+     * \brief Detect whether \a targetUsername (or the backup's own username if
+     *        \a targetUsername is empty) already exists in the database or on
+     *        the filesystem.
      *
-     * \return \c ConflictStatus::UsernameExists if a profile with the backup
-     *         username is already present; \c ConflictStatus::None otherwise.
+     * The dialog calls this with the name the user has typed so that a live
+     * conflict check is performed as the name is edited.  Internally,
+     * restoreProfile() also calls this with the resolved target name before
+     * executing the restore.
+     *
+     * \param targetUsername  Name to check.  If empty, the manifest username
+     *                        is used (backward-compatible default).
+     * \return \c ConflictStatus::UsernameExists if a conflict is found;
+     *         \c ConflictStatus::None otherwise.
      *
      * \note Must be called after validatePackage().
-     * \note Implemented in Phase 3.
      */
-    ConflictStatus checkConflicts();
+    ConflictStatus checkConflicts(const QString& targetUsername = QString());
 
     // -----------------------------------------------------------------------
     //  Execution
@@ -328,6 +336,18 @@ private:
     QString resolveUsernameConflict(const QString& originalUsername);
 
     /*!
+     * \brief Copy the \c sddata/ directory from the extracted package into
+     *        the restored profile's on-disk data directory.
+     *
+     * For the Replace resolution strategy the existing content of the target
+     * directory is cleared before copying.  The directory is created by
+     * restoreProfile() before this is called, so it always exists.
+     *
+     * \return true on success; false on any I/O error (sets m_errorMessage).
+     */
+    bool restoreSDData();
+
+    /*!
      * \brief Parse a SQL INSERT statement and replace all ID placeholders.
      *
      * Scans for tokens such as \c @PROFILE_ID@, \c @MACHINE_ID@,
@@ -407,6 +427,8 @@ private:
     ConflictResolution m_resolution = ConflictResolution::Abort; ///< Conflict strategy.
 
     QJsonObject        m_manifestJson;        ///< Loaded manifest (populated by validatePackage).
+
+    bool               m_includesSDData = false; ///< True if package contains SD card data.
 
     // ID mapping tables (old backup ID → new database ID)
     QMap<qint64, qint64> m_profileIdMap;        ///< profile_id remapping.
