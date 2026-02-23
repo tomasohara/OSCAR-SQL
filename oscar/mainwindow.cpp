@@ -2898,6 +2898,7 @@ void MainWindow::on_actionBackup_Profile_triggered()
 
 void MainWindow::on_actionRestore_Profile_triggered()
 {
+    qDebug() << "MainWindow::on_actionRestore_Profile_triggered()";
     RestoreDialog *dialog = new RestoreDialog(this);
     dialog->exec();
     delete dialog;

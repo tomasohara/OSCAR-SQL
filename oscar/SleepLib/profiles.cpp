@@ -2791,6 +2791,7 @@ bool Profile::initializeChannelsFromSchema()
         data.profileId = profileData.id;
         data.channelId = chan->id();
         data.channelCode = chan->code();
+        data.type = chan->type();
         data.enabled = chan->enabled();
         data.defaultColor = chan->defaultColor();
         data.fullname = chan->fullname();

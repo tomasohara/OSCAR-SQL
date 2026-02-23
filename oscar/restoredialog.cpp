@@ -28,6 +28,7 @@ RestoreDialog::RestoreDialog(QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::RestoreDialog)
 {
+    qDebug() << "RestoreDialog::RestoreDialog() entered";
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
@@ -60,6 +61,7 @@ RestoreDialog::~RestoreDialog()
 
 void RestoreDialog::displayPackageInfo(const BackupManifest& manifest)
 {
+    qDebug() << "RestoreDialog::displayPackageInfo() entered";
     ui->infoUsernameLabel->setText(manifest.username());
 
     if (manifest.isPartial()) {
@@ -199,6 +201,7 @@ void RestoreDialog::on_profileNameEdit_textChanged(const QString& text)
 
 void RestoreDialog::on_validateButton_clicked()
 {
+    qDebug() << "RestoreDialog::validateButton_clicked()";
     QString path = ui->packagePathEdit->text();
     if (path.isEmpty()) return;
 

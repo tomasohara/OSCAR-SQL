@@ -191,7 +191,16 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     
 //    qDebug() << "ProfileImporter: Successfully committed entire import transaction";
 //    qDebug() << "ProfileImporter: Import completed - all data saved to database";
-    
+
+    // Initialize channels for this profile immediately after import.
+    // Without this, channels are only populated when the profile is first opened
+    // via LoadMachineData(), which means bulk-imported profiles show empty
+    // channels/channel_options tables until the user manually opens each one.
+    if (!profile->initializeChannelsFromSchema()) {
+        qWarning() << "ProfileImporter: Failed to initialize channels for" << newProfileName
+                   << "- they will be initialized when the profile is first opened";
+    }
+
     reportProgress(100, 100, tr("Import complete!"));
     
     // Delete profile (still needs p_profile set - destructor may call Session methods)

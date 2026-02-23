@@ -205,26 +205,26 @@ SQL
 Description: Channels used by this user's profile
 Query: <<SQL
 SELECT
-  profile_id,
+  p.id,
   p.username,
-  channel_id,
-  printf('%X', channel_id) AS channel_id_hex,
-  label,
-  fullname,
-  description,
-  c.type,
+  el.channel_id,
+  printf('%X', el.channel_id) AS channel_id_hex,
+  c.label,
+  c.fullname,
+  c.description,
+--  c.type,
   CASE WHEN (c.type & 1) THEN 'DATA       ' ELSE '' END ||
   CASE WHEN (c.type & 2) THEN 'SETTING    ' ELSE '' END ||
   CASE WHEN (c.type & 4) THEN 'FLAG       ' ELSE '' END ||
   CASE WHEN (c.type & 8) THEN 'MINOR_FLAG ' ELSE '' END ||
   CASE WHEN (c.type & 16) THEN 'SPAN       ' ELSE '' END ||
   CASE WHEN (c.type & 32) THEN 'WAVEFORM   ' ELSE '' END AS flags
-FROM channels c
-JOIN profiles p ON c.profile_id = p.id
-WHERE profile_id = #PROFILE_ID
-  AND EXISTS (
-    SELECT 1 FROM session_channels sc WHERE sc.channel_id = c.channel_id)
-ORDER BY c.channel_id
+FROM event_lists el
+JOIN profiles p ON el.profile_id = p.id
+LEFT JOIN channels c ON el.channel_id = c.channel_id
+WHERE p.id = #PROFILE_ID
+GROUP BY el.channel_id
+ORDER BY el.channel_id
 SQL
 
 === Report: Other/Device Settings ===

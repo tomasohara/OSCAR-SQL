@@ -1140,13 +1140,14 @@ EventDataType Day::count(ChannelID code)
 //        qDebug() << "Day::count session" << numsess++;
 
         if (sess->enabled() && sess->m_cnt.contains(code)) {
-            EventDataType f = sess->count(code);
-            if (f != static_cast<int>(f))
-                qWarning() << "Day::count() sess->count() says it has code" << code << "with count of" << qSetRealNumberPrecision(9) << f << "total is currently" << qSetRealNumberPrecision(9) << total;
-            total += f;
-            if (total != static_cast<int>(total))
-                qWarning() << "Day::count() total+= for" << code << "is now" << qSetRealNumberPrecision(9) << total
-                         << "at session" << sess->session();
+            total += sess->count(code);
+//            EventDataType f = sess->count(code);
+//            if (f != static_cast<int>(f) && code!=4097) // 4097 = 0x1001 or Clear Airway flag
+//                qWarning() << "Day::count() sess->count() says it has code" << code << "with count of" << qSetRealNumberPrecision(9) << f << "total is currently" << qSetRealNumberPrecision(9) << total;
+//            total += f;
+//            if (total != static_cast<int>(total) && code!=4097)
+//                qWarning() << "Day::count() total+= for" << code << "is now" << qSetRealNumberPrecision(9) << total
+//                         << "at session" << sess->session();
         }
     }
     if (total != static_cast<int>(total)) {

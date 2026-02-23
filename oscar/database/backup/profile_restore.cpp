@@ -827,6 +827,8 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
 {
     const QString tableName = QFileInfo(sqlFile).baseName();
 
+    qDebug() << "ProfileRestore::executeSqlFile()";
+
     // Skip files for tables that no longer exist in the current schema.
     // This allows backups from older schema versions to restore cleanly: the
     // removed tables (e.g. reports/report_contents from schema v12) are simply
@@ -845,6 +847,7 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
         }
     }
 
+    qDebug() << "ProfileRestore::executeSqlFile(): set up mappingTables";
     // Tables whose auto-increment PK we must track for FK remapping.
     static const QSet<QString> mappingTables = {
         QStringLiteral("profiles"),
@@ -911,6 +914,7 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
             }
 
             // 3. Substitute the resolved username in the profiles table.
+            qDebug() << "ProfileRestore::executeSqlFile() step 3a";
             if (tableName == QLatin1String("profiles")
                 && col == QLatin1String("username")) {
                 QString safeName = m_newUsername;
@@ -924,6 +928,7 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
             // The profile data folder is normally "%PROFDIR%/<username>".  When
             // restoring under a different name we must update that path so the
             // restored profile does not share the original profile's directory.
+            qDebug() << "ProfileRestore::executeSqlFile() step 3b";
             if (tableName == QLatin1String("profiles")
                 && col == QLatin1String("data_folder")) {
                 const QString origUsername =
@@ -949,6 +954,7 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
             }
 
             // 4. Remap FK columns.
+            qDebug() << "ProfileRestore::executeSqlFile() step 4 Remap FK columns";
             QString remapped = val;
             if (val != QLatin1String("NULL")) {
                 bool ok = false;
@@ -1010,6 +1016,7 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
         }
 
         // Execute the INSERT.
+        qDebug() << "ProfileRestore::executeSqlFile() execute the INSERT";
         const QString sql = QString("INSERT INTO %1 (%2) VALUES (%3)")
                                 .arg(stmt.tableName,
                                      newCols.join(QStringLiteral(", ")),
@@ -1024,6 +1031,7 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
         }
 
         // For parent tables, capture the new auto-increment PK and record the mapping.
+        qDebug() << "ProfileRestore::executeSqlFile() capture the new auto-increment PK and record the mapping";
         if (originalId >= 0 && mappingTables.contains(tableName)) {
             QSqlQuery rowIdQ(db);
             if (!rowIdQ.exec(QStringLiteral("SELECT last_insert_rowid()"))
@@ -1150,6 +1158,7 @@ bool ProfileRestore::restoreInTransaction()
  */
 bool ProfileRestore::validateRestore(const QJsonObject& manifest)
 {
+    qDebug() << "ProfileRestore::validateRestore"    ;
     if (m_newProfileId < 0) {
         m_errorMessage = QStringLiteral("Profile was not restored (profile ID unknown).");
         return false;
