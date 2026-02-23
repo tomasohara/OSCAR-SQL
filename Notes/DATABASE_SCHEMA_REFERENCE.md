@@ -725,7 +725,7 @@ User (root, source=user)
 | rdi | REAL | | NO | Respiratory Disturbance Index |
 | obstructive_count | INTEGER | | NO | OA count |
 | unclassified_count | INTEGER | | NO | UA count (renamed from central_count in v10) |
-| hypopnea_count | INTEGER | | NO | Hypopnea count |
+| hypopnea_count | INTEGER | | NO | H Hypopnea count |
 | rera_count | INTEGER | | NO | RERA count |
 | clear_airway_count | INTEGER | | NO | CA count (added in v10) |
 | pressure_avg | REAL | | YES | Average pressure (cmH₂O) |
@@ -861,7 +861,7 @@ User (root, source=user)
 | id | INTEGER | PK | NO | Auto-increment ID |
 | eventlist_id | INTEGER | FK,UNIQUE | NO | → event_lists(id) |
 | data_blob | BLOB | | YES | Uncompressed primary data (qint16 array) |
-| data_compressed | BLOB | | YES | Compressed primary data (qCompress level 9) |
+| data_compressed | BLOB | | YES | Compressed primary data (qCompress level 6) |
 | data2_blob | BLOB | | YES | Uncompressed secondary data |
 | data2_compressed | BLOB | | YES | Compressed secondary data |
 | time_blob | BLOB | | YES | Uncompressed time deltas (quint32 array) |

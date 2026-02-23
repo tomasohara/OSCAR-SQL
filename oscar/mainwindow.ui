@@ -2400,23 +2400,31 @@ p, li { white-space: pre-wrap; }
       <string>Export Data</string>
      </property>
      <addaction name="actionExport_CSV"/>
-     <addaction name="actionManage_Reports"/>
-     <addaction name="separator"/>
-     <addaction name="actionExport_Review"/>
-   </widget>
+    </widget>
+    <widget class="QMenu" name="menuProfiles">
+     <property name="title">
+      <string>Profiles</string>
+     </property>
+     <addaction name="action_Import_OSCAR_Data"/>
+     <addaction name="actionBackup_Profile"/>
+     <addaction name="actionRestore_Profile"/>
+    </widget>
+    <widget class="QMenu" name="menuJournals">
+     <property name="title">
+      <string>Journals</string>
+     </property>
+     <addaction name="actionExport_Journal"/>
+     <addaction name="actionImport_Journal"/>
+    </widget>
     <addaction name="action_Import_Data"/>
-    <addaction name="action_Import_OSCAR_Data"/>
     <addaction name="action_Preferences"/>
     <addaction name="action_Edit_Profile"/>
     <addaction name="separator"/>
     <addaction name="actionPrint_Report"/>
     <addaction name="separator"/>
     <addaction name="menuExp_ort_CSV_Data"/>
-    <addaction name="actionExport_Journal"/>
-    <addaction name="actionImport_Journal"/>
-    <addaction name="separator"/>
-    <addaction name="actionBackup_Profile"/>
-    <addaction name="actionRestore_Profile"/>
+    <addaction name="menuProfiles"/>
+    <addaction name="menuJournals"/>
     <addaction name="separator"/>
     <addaction name="actionChange_Data_Folder"/>
     <addaction name="separator"/>
@@ -2835,7 +2843,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionExport_Journal">
    <property name="text">
-    <string>Backup Journal</string>
+    <string>Export Journal...</string>
    </property>
   </action>
   <action name="actionImport_Journal">
