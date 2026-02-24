@@ -564,7 +564,7 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
     QDir summariesDir(summariesPath);
     
     if (!summariesDir.exists()) {
-        qDebug() << "No Summaries folder for" << oldMachinePath;
+        qDebug() << "ProfileImporter::loadMachineSessions: No Summaries folder for" << oldMachinePath;
         return true;  // Not an error - machine may have no sessions
     }
     
@@ -573,7 +573,7 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
     QFileInfoList files = summariesDir.entryInfoList(filters, QDir::Files);
     
     if (files.isEmpty()) {
-        qDebug() << "No session files found in" << summariesPath;
+        qDebug() << "ProfileImporter::loadMachineSessions: No session files found in" << summariesPath;
         return true;  // Not an error
     }
     
@@ -586,7 +586,7 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
         SessionID sessionId = baseName.toLongLong(&ok, 16);
         
         if (!ok) {
-            qWarning() << "Invalid session filename:" << fileInfo.fileName();
+            qWarning() << "ProfileImporter::loadMachineSessions: Invalid session filename:" << fileInfo.fileName();
             continue;
         }
         
@@ -595,7 +595,7 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
         
         // Load summary from .000 file
         if (!session->LoadSummaryFromFile(fileInfo.absoluteFilePath())) {
-            qWarning() << "Failed to load summary:" << fileInfo.fileName();
+            qWarning() << "ProfileImporter::loadMachineSessions: Failed to load summary:" << fileInfo.fileName();
             delete session;
             continue;
         }
@@ -604,14 +604,14 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
         QString eventsPath = oldMachinePath + "/Events/" + baseName + ".001";
         if (QFile::exists(eventsPath)) {
             if (!session->LoadEventsFromFile(eventsPath)) {
-                qWarning() << "Failed to load events:" << eventsPath;
+                qWarning() << "ProfileImporter::loadMachineSessions: Failed to load events:" << eventsPath;
                 // Continue anyway - summary data is still valid
             }
         }
         
         // Save session metadata to database first
         if (!session->StoreToDatabase()) {
-            qWarning() << "Failed to store session to database:" << fileInfo.fileName();
+            qWarning() << "ProfileImporter::loadMachineSessions: Failed to store session to database:" << fileInfo.fileName();
             delete session;
             continue;
         }
@@ -619,7 +619,7 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
         // Now store events if they were loaded
         if (session->eventlist.size() > 0) {
             if (!session->StoreEventsToDatabase()) {
-                qWarning() << "Failed to store events for session:" << fileInfo.fileName();
+                qWarning() << "ProfileImporter::loadMachineSessions: Failed to store events for session:" << fileInfo.fileName();
                 // Continue anyway - session metadata is saved
             }
         }
@@ -649,7 +649,7 @@ bool ProfileImporter::calculateSummaries(Profile* profile)
         profile->calculateDailySummaries();
         return true;
     } catch (...) {
-        qWarning() << "Exception while calculating summaries";
+        qWarning() << "ProfileImporter::calculateSummaries: Exception while calculating summaries";
         return false;
     }
 }

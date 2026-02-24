@@ -2808,9 +2808,21 @@ bool Session::StoreToDatabase()
         // Create new session
         m_sessionrow_id = sessionRepo.create(sessionData);
         if (m_sessionrow_id < 0) {
-            qWarning() << "Session::StoreToDatabase(): Failed to create session" << s_session;
-            PERF_TIMER_STOP("Session::StoreDB::SessionRecord");
-            return false;
+            // Row already exists (e.g. prior import) — look it up and update instead
+            SessionData existing = sessionRepo.findByMachineAndSessionId(machineDbId, s_session);
+            if (existing.id > 0) {
+                m_sessionrow_id = existing.id;
+                sessionData.id = m_sessionrow_id;
+                if (!sessionRepo.update(sessionData)) {
+                    qWarning() << "Session::StoreToDatabase(): Failed to update session" << s_session;
+                    PERF_TIMER_STOP("Session::StoreDB::SessionRecord");
+                    return false;
+                }
+            } else {
+                qWarning() << "Session::StoreToDatabase(): Failed to create session" << s_session;
+                PERF_TIMER_STOP("Session::StoreDB::SessionRecord");
+                return false;
+            }
         }
     } else {
         // Update existing session
@@ -3567,7 +3579,11 @@ bool Session::StoreEventsToDatabase()
     
     EventListRepository eventListRepo;
     EventDataRepository eventDataRepo;
-    
+
+    // Clear existing event lists for this session before re-inserting,
+    // so re-imports (e.g. to add newly-computed channels) don't hit UNIQUE constraints.
+    eventListRepo.deleteBySession(m_sessionrow_id);
+
     int totalEventLists = 0;
     int totalSaved = 0;
     qint64 totalUncompressed = 0;

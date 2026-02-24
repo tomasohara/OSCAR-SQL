@@ -8,7 +8,7 @@
  * for more details. */
 
 #define TEST_MACROS_ENABLEDoff
-#include <test_macros.h>
+#include "test_macros.h"
 
 #include <QApplication>
 #include <QString>
@@ -3032,6 +3032,7 @@ void ResDayTask::run()
             }
         }           // end else no STR record for these edf files
 
+        qDebug() << "ResmedLoader run(): calling sess->UpdateSummaries()";
         sess->UpdateSummaries();
 #ifdef SESSION_DEBUG
         qDebug() << "Adding session" << sess->session()
@@ -3063,10 +3064,10 @@ void ResmedLoader::SaveSession(ResmedLoader* loader, Session* sess)
 
     loader->sessionMutex.lock();         // AddSession definitely ain't threadsafe.
     if ( ! sess->Store(mach->getDataPath()) ) {
-        qWarning() << "Failed to store session" << sess->session();
+        qWarning() << "ResmedLoader::SaveSession: Failed to store session" << sess->session();
     }
     if ( ! mach->AddSession(sess) ) {
-        qWarning() << "Session" << sess->session() << "was not addded";
+        qWarning() << "ResmedLoader::SaveSession: Session" << sess->session() << "was not addded";
     }
     loader->sessionCount++;
     loader->sessionMutex.unlock();

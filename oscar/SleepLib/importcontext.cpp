@@ -75,7 +75,7 @@ bool ImportContext::AddSession(Session* session)
     // Write the session file to disk.
     bool ok = session->Store(session->machine()->getDataPath());
     if (!ok) {
-        qWarning() << "Failed to store session" << session->session();
+        qWarning() << "ImportContext::AddSession: Failed to store session" << session->session();
     }
 
     // Unload the memory-intensive data now that it's written to disk.

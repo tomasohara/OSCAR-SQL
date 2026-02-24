@@ -54,7 +54,14 @@ qint64 SessionRepository::create(const SessionData& data)
     // Note: events_file and summary_file columns removed in schema v12
 
     if (!query.exec()) {
-        qWarning() << "SessionRepository::create() failed:" << query.lastError().text();
+        if (query.lastError().nativeErrorCode() == "19" &&
+            query.lastError().text().contains("UNIQUE constraint failed")) {
+#ifdef DBDEBUG
+            qDebug() << "SessionRepository::create() - session already exists:" << query.lastError().text();
+#endif
+        } else {
+            qWarning() << "SessionRepository::create() failed:" << query.lastError().text();
+        }
         return -1;
     }
     if (data.summaryOnly && data.machineId != 0)
@@ -110,7 +117,7 @@ bool SessionRepository::update(const SessionData& data)
 SessionData SessionRepository::findById(qint64 id)
 {
     SessionData data;
-    
+
     QSqlDatabase db = DatabaseManager::instance().database();
     if (!db.isOpen()) {
         qWarning() << "SessionRepository::findById() - Database not open";
@@ -153,7 +160,7 @@ SessionData SessionRepository::findById(qint64 id)
 SessionData SessionRepository::findByMachineAndSessionId(qint64 machineId, qint64 sessionId)
 {
     SessionData data;
-    
+
     QSqlDatabase db = DatabaseManager::instance().database();
     if (!db.isOpen()) {
         qWarning() << "SessionRepository::findByMachineAndSessionId() - Database not open";
@@ -196,7 +203,7 @@ SessionData SessionRepository::findByMachineAndSessionId(qint64 machineId, qint6
 QList<SessionData> SessionRepository::findByMachine(qint64 machineId)
 {
     QList<SessionData> result;
-    
+
     QSqlDatabase db = DatabaseManager::instance().database();
     if (!db.isOpen()) {
         qWarning() << "SessionRepository::findByMachine() - Database not open";
@@ -240,7 +247,7 @@ QList<SessionData> SessionRepository::findByMachine(qint64 machineId)
 QList<SessionData> SessionRepository::findEnabledByMachine(qint64 machineId)
 {
     QList<SessionData> result;
-    
+
     QSqlDatabase db = DatabaseManager::instance().database();
     if (!db.isOpen()) {
         qWarning() << "SessionRepository::findEnabledByMachine() - Database not open";
@@ -284,7 +291,7 @@ QList<SessionData> SessionRepository::findEnabledByMachine(qint64 machineId)
 QList<SessionData> SessionRepository::findByTimeRange(qint64 machineId, qint64 startTime, qint64 endTime)
 {
     QList<SessionData> result;
-    
+
     QSqlDatabase db = DatabaseManager::instance().database();
     if (!db.isOpen()) {
         qWarning() << "SessionRepository::findByTimeRange() - Database not open";
