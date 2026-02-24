@@ -16,6 +16,7 @@
 #include "../sqleditor.h"
 #include "../csv.h"
 #include <functional>
+#include <QSet>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -48,12 +49,13 @@
 #include <QDate>
 #include <QDir>
 #include <QFileInfo>
+#include <QCloseEvent>
 #include <QDebug>
 
 /*
  * Constructor
  */
-ReportExporter::ReportExporter(QWidget* parent)
+ReportExporter::ReportExporter(QWidget* parent, const QString& currentProfileName)
     : QDialog(parent)
     , m_treeView(nullptr)
     , m_statusLabel(nullptr)
@@ -69,15 +71,18 @@ ReportExporter::ReportExporter(QWidget* parent)
     , m_exportCSVButton(nullptr)
     , m_editSQLButton(nullptr)
     , m_closeButton(nullptr)
+    , m_currentProfileName(currentProfileName)
 {
     setWindowTitle(tr("CSV Export Wizard"));
     resize(700, 780);
     
     setupUi();
-    
-    // Expand root nodes by default (model loaded in setupUi via ReportTreeModel constructor)
-    m_treeView->expandToDepth(0);
-    
+
+    // Restore previous tree state; fall back to expanding root nodes on first use.
+    if (!restoreTreeState()) {
+        m_treeView->expandToDepth(0);
+    }
+
     qDebug() << "ReportExporter: Dialog created";
 }
 
@@ -87,6 +92,15 @@ ReportExporter::ReportExporter(QWidget* parent)
 ReportExporter::~ReportExporter()
 {
     // QDialog handles cleanup of child widgets
+}
+
+/*
+ * Save settings when the dialog closes (via any path)
+ */
+void ReportExporter::closeEvent(QCloseEvent* event)
+{
+    saveSettings();
+    QDialog::closeEvent(event);
 }
 
 /*
@@ -316,6 +330,7 @@ void ReportExporter::onSelectionChanged(const QModelIndex& current, const QModel
     Q_UNUSED(previous);
     updateButtonStates(current);
     updateStatusLabel(current);
+    updateFilenameField();
 }
 
 /*
@@ -833,6 +848,18 @@ void ReportExporter::loadProfiles()
     }
     if (m_profileCombo->count() == 0) {
         m_profileCombo->addItem(tr("(No profiles)"), 0LL);
+        return;
+    }
+
+    // Prefer the currently open profile; fall back to the last-used profile for this dialog.
+    QString selectName = m_currentProfileName;
+    if (selectName.isEmpty()) {
+        QSettings s;
+        selectName = s.value("ReportExporter/lastProfile").toString();
+    }
+    if (!selectName.isEmpty()) {
+        int idx = m_profileCombo->findText(selectName);
+        if (idx >= 0) m_profileCombo->setCurrentIndex(idx);
     }
 }
 
@@ -840,23 +867,113 @@ void ReportExporter::restoreSettings()
 {
     QSettings s;
     s.beginGroup("ReportExporter");
-    if (m_filenameEdit)        m_filenameEdit->setText(s.value("lastFilename").toString());
-    if (m_openAfterExportCheck)m_openAfterExportCheck->setChecked(s.value("openAfterExport", false).toBool());
-    if (m_programCombo)        m_programCombo->setCurrentIndex(s.value("openProgram", 0).toInt());
-    if (m_quickRangeCombo)     m_quickRangeCombo->setCurrentIndex(s.value("quickRange", 0).toInt());
+    if (m_openAfterExportCheck) m_openAfterExportCheck->setChecked(s.value("openAfterExport", false).toBool());
+    if (m_programCombo)         m_programCombo->setCurrentIndex(s.value("openProgram", 0).toInt());
+    if (m_quickRangeCombo)      m_quickRangeCombo->setCurrentIndex(s.value("quickRange", 0).toInt());
+    m_lastExportFolder = s.value("lastExportFolder").toString();
     s.endGroup();
     setQuickDateRange(m_quickRangeCombo ? m_quickRangeCombo->currentIndex() : 0);
+    // Filename is auto-generated; will be populated when a report is selected.
 }
 
 void ReportExporter::saveSettings()
 {
     QSettings s;
     s.beginGroup("ReportExporter");
-    if (m_filenameEdit)        s.setValue("lastFilename",   m_filenameEdit->text());
-    if (m_openAfterExportCheck)s.setValue("openAfterExport",m_openAfterExportCheck->isChecked());
-    if (m_programCombo)        s.setValue("openProgram",    m_programCombo->currentIndex());
-    if (m_quickRangeCombo)     s.setValue("quickRange",     m_quickRangeCombo->currentIndex());
+    if (m_openAfterExportCheck) s.setValue("openAfterExport", m_openAfterExportCheck->isChecked());
+    if (m_programCombo)         s.setValue("openProgram",     m_programCombo->currentIndex());
+    if (m_quickRangeCombo)      s.setValue("quickRange",      m_quickRangeCombo->currentIndex());
+    s.setValue("lastExportFolder", m_lastExportFolder);
+    if (m_profileCombo && m_profileCombo->count() > 0
+            && !m_profileCombo->currentText().startsWith("(")) {
+        s.setValue("lastProfile", m_profileCombo->currentText());
+    }
     s.endGroup();
+    saveTreeState();
+}
+
+/*
+ * Save the tree's expanded-node set and selected node to QSettings.
+ * Keys are stored inside the "ReportExporter" group.
+ */
+void ReportExporter::saveTreeState()
+{
+    if (!m_treeView || !m_model) return;
+
+    QStringList expanded;
+    std::function<void(const QModelIndex&)> walk = [&](const QModelIndex& parent) {
+        for (int r = 0; r < m_model->rowCount(parent); ++r) {
+            QModelIndex idx = m_model->index(r, 0, parent);
+            QStandardItem* item = m_model->itemFromIndex(idx);
+            if (item && m_treeView->isExpanded(idx)) {
+                qint64 id = item->data(ReportTreeModel::NodeIdRole).toLongLong();
+                if (id != 0) expanded << QString::number(id);
+            }
+            walk(idx);  // recurse regardless of expanded state
+        }
+    };
+    walk(QModelIndex());
+
+    qint64 selectedId = 0;
+    QStandardItem* sel = getSelectedItem();
+    if (sel) selectedId = sel->data(ReportTreeModel::NodeIdRole).toLongLong();
+
+    QSettings s;
+    s.beginGroup("ReportExporter");
+    s.setValue("expandedNodes", expanded.join(","));
+    s.setValue("selectedNode",  selectedId);
+    s.endGroup();
+}
+
+/*
+ * Restore expanded-node set and selection from QSettings.
+ * Returns true if saved state was found and applied; false on first use.
+ */
+bool ReportExporter::restoreTreeState()
+{
+    if (!m_treeView || !m_model) return false;
+
+    QSettings s;
+    s.beginGroup("ReportExporter");
+    QString expandedStr = s.value("expandedNodes").toString();
+    qint64  selectedId  = s.value("selectedNode", 0LL).toLongLong();
+    s.endGroup();
+
+    if (expandedStr.isEmpty()) return false;  // No saved tree state
+
+    // Build the set of IDs to expand.
+    QSet<qint64> expandedIds;
+    for (const QString& part : expandedStr.split(",")) {
+        bool ok;
+        qint64 id = part.toLongLong(&ok);
+        if (ok && id != 0) expandedIds.insert(id);
+    }
+
+    // Walk the entire tree, expanding saved nodes and noting the selection target.
+    QModelIndex selectIndex;
+    std::function<void(const QModelIndex&)> walk = [&](const QModelIndex& parent) {
+        for (int r = 0; r < m_model->rowCount(parent); ++r) {
+            QModelIndex idx = m_model->index(r, 0, parent);
+            QStandardItem* item = m_model->itemFromIndex(idx);
+            if (item) {
+                qint64 id = item->data(ReportTreeModel::NodeIdRole).toLongLong();
+                if (expandedIds.contains(id)) {
+                    m_treeView->expand(idx);
+                }
+                if (selectedId != 0 && id == selectedId) {
+                    selectIndex = idx;
+                }
+            }
+            walk(idx);
+        }
+    };
+    walk(QModelIndex());
+
+    if (selectIndex.isValid()) {
+        m_treeView->setCurrentIndex(selectIndex);
+        m_treeView->scrollTo(selectIndex);
+    }
+    return true;
 }
 
 void ReportExporter::setQuickDateRange(int idx)
@@ -883,44 +1000,70 @@ void ReportExporter::setQuickDateRange(int idx)
     if (m_endDateEdit)   m_endDateEdit->setDate(end);
 }
 
-void ReportExporter::onProfileChanged(int) { /* future: update calendar colors */ }
+void ReportExporter::onProfileChanged(int)
+{
+    updateFilenameField();
+}
 
 void ReportExporter::onQuickRangeChanged(int index)
 {
     setQuickDateRange(index);
+    updateFilenameField();
 }
 
-void ReportExporter::onBrowseFilename()
+/*
+ * Build the default export filename (base name only, no directory).
+ * Returns an empty string if no report is selected.
+ * Format: OSCAR_{profile}_{report}_{startDate}[_{endDate}].csv
+ */
+QString ReportExporter::buildDefaultFilename() const
 {
-    // Build ExportCSV-style default filename: OSCAR_{profile}_{report}_{date}.csv
     QStandardItem* item = getSelectedItem();
+    if (!item || !isReportNode(item)) return QString();
 
     QString profileName = (m_profileCombo && m_profileCombo->count() > 0
                            && !m_profileCombo->currentText().startsWith("("))
                           ? m_profileCombo->currentText() : "System";
 
-    QString reportName = (item && isReportNode(item))
-                         ? item->text().replace(" ", "_") : "Report";
+    QString reportName = item->text().replace(" ", "_");
 
     QString startStr = m_startDateEdit ? m_startDateEdit->date().toString("yyyy-MM-dd") : "";
     QString endStr   = m_endDateEdit   ? m_endDateEdit->date().toString("yyyy-MM-dd")   : "";
 
-    QString timestamp = QString("OSCAR_%1_%2_%3").arg(profileName, reportName, startStr);
-    if (!endStr.isEmpty() && endStr != startStr) timestamp += "_" + endStr;
-    timestamp += ".csv";
+    QString name = QString("OSCAR_%1_%2_%3").arg(profileName, reportName, startStr);
+    if (!endStr.isEmpty() && endStr != startStr) name += "_" + endStr;
+    name += ".csv";
+    return name;
+}
 
-    // Use last-saved export directory, or current filename dir
-    QString folder;
-    if (m_filenameEdit && !m_filenameEdit->text().isEmpty()) {
-        folder = QFileInfo(m_filenameEdit->text()).absolutePath();
-    } else {
-        QSettings s;
-        folder = s.value("ReportExporter/lastExportPath").toString();
+/*
+ * Update the filename field with the auto-generated default path.
+ * Clears the field if no report is selected.
+ */
+void ReportExporter::updateFilenameField()
+{
+    if (!m_filenameEdit) return;
+    QString name = buildDefaultFilename();
+    if (name.isEmpty()) {
+        m_filenameEdit->clear();
+        return;
     }
+    QString folder = m_lastExportFolder.isEmpty() ? QDir::homePath() : m_lastExportFolder;
+    m_filenameEdit->setText(folder + QDir::separator() + name);
+}
+
+void ReportExporter::onBrowseFilename()
+{
+    // Use the current field value (auto-generated or previously browsed) as the dialog default.
+    QString defaultName = buildDefaultFilename();
+    if (defaultName.isEmpty()) defaultName = "OSCAR_Export.csv";
+
+    // Determine the starting folder: prefer last-saved folder, then home.
+    QString folder = m_lastExportFolder;
     if (folder.isEmpty()) folder = QDir::homePath();
 
     QString fn = QFileDialog::getSaveFileName(this, tr("Save CSV"),
-        folder + QDir::separator() + timestamp,
+        folder + QDir::separator() + defaultName,
         tr("CSV Files (*.csv)"));
 
     if (fn.isEmpty()) return;
@@ -928,9 +1071,8 @@ void ReportExporter::onBrowseFilename()
 
     if (m_filenameEdit) m_filenameEdit->setText(fn);
 
-    // Remember the folder for next time
-    QSettings s;
-    s.setValue("ReportExporter/lastExportPath", QFileInfo(fn).absolutePath());
+    // Remember the folder for next time.
+    m_lastExportFolder = QFileInfo(fn).absolutePath();
 }
 
 bool ReportExporter::runExport()

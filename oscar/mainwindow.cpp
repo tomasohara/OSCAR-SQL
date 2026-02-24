@@ -672,7 +672,6 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     if (updateChecker != nullptr)
         updateChecker->showMessage();
 
-    ui->actionExport_CSV->setEnabled(true);
     PERF_TIMER_REPORT();
     PERF_TIMER_RESET();
 
@@ -682,7 +681,6 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
 void MainWindow::CloseProfile()
 {
     PERF_TIMER_SCOPE("MainWindow::CloseProfile");
-    ui->actionExport_CSV->setEnabled(false);
 
     if (updateChecker != nullptr)
         updateChecker->showMessage();
@@ -2918,8 +2916,10 @@ void MainWindow::on_actionShow_Performance_Counters_toggled(bool arg1)
 
 void MainWindow::on_actionExport_CSV_triggered()
 {
-    // New unified Report Exporter dialog handles both export and management
-    ReportExporter *dialog = new ReportExporter(this);
+    // New unified Report Exporter dialog handles both export and management.
+    // Pass the currently open profile name so the dialog can pre-select it.
+    QString currentProfile = p_profile ? p_profile->user->userName() : QString();
+    ReportExporter *dialog = new ReportExporter(this, currentProfile);
     dialog->exec();
     delete dialog;
 }

@@ -2892,7 +2892,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionExport_CSV">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>CSV Export Wizard</string>

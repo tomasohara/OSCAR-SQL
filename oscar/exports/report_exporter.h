@@ -28,6 +28,7 @@ class QDateEdit;
 class QLineEdit;
 class QProgressBar;
 class QCheckBox;
+class QCloseEvent;
 class ReportTreeModel;
 class QStandardItem;
 
@@ -46,8 +47,12 @@ class ReportExporter : public QDialog
     Q_OBJECT
 
 public:
-    explicit ReportExporter(QWidget* parent = nullptr);
+    explicit ReportExporter(QWidget* parent = nullptr,
+                            const QString& currentProfileName = QString());
     ~ReportExporter() override;
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
 
 private slots:
     // Tree interaction
@@ -103,6 +108,14 @@ private:
     qint64 selectedProfileId() const;
     void launchPostExportProgram(const QString& csvFilePath);
 
+    // Filename helpers
+    QString buildDefaultFilename() const;
+    void updateFilenameField();
+
+    // Tree state persistence
+    void saveTreeState();
+    bool restoreTreeState();  ///< Returns false if no saved state exists
+
     // Tree helpers
     QStandardItem* getSelectedItem() const;
     QStandardItem* getUserRootItem() const;
@@ -131,6 +144,10 @@ private:
     QPushButton* m_exportCSVButton;
     QPushButton* m_editSQLButton;
     QPushButton* m_closeButton;
+
+    // State
+    QString m_currentProfileName;  ///< Profile open in main window when dialog was created
+    QString m_lastExportFolder;    ///< Last folder used for Browse; persisted via QSettings
 };
 
 #endif // REPORT_EXPORTER_H
