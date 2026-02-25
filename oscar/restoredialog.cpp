@@ -9,6 +9,7 @@
 #include "restoredialog.h"
 #include "ui_restoredialog.h"
 
+#include <QDir>
 #include <QFileDialog>
 #include <QSettings>
 #include <QFileInfo>
@@ -20,8 +21,10 @@
 #include "database/backup/profile_restore.h"
 #include "database/database_schema.h"
 #include "mainwindow.h"
+#include "SleepLib/preferences.h"
 
 extern MainWindow *mainwin;
+extern Preferences *p_pref;
 
 
 RestoreDialog::RestoreDialog(QWidget* parent)
@@ -295,11 +298,38 @@ void RestoreDialog::on_restoreButton_clicked()
         } else if (ui->renameRadio->isChecked()) {
             m_restore->setConflictResolution(ConflictResolution::Rename);
         } else if (ui->replaceRadio->isChecked()) {
-            // Extra confirmation for the destructive Replace option.
+            // Determine whether the incoming package will wipe the profile
+            // directory (only happens when it includes SD card data) and
+            // whether the existing profile has a Backup subdirectory that
+            // would be destroyed in that wipe.
+            const bool incomingHasSD =
+                m_restore->manifestJson()[QStringLiteral("export_options")]
+                          .toObject()[QStringLiteral("includes_sd_data")].toBool(false);
+            const QString profilesDir = p_pref->Get(QStringLiteral("{home}/Profiles"));
+            const bool existingHasBackup =
+                QDir(profilesDir + QLatin1Char('/') + targetName
+                     + QStringLiteral("/Backup")).exists();
+
+            QString warningTitle;
+            QString warningText;
+            if (incomingHasSD && existingHasBackup) {
+                warningTitle = tr("Confirm Replace — Backup Data Will Be Deleted");
+                warningText  = tr(
+                    "WARNING: The existing profile \"%1\" contains a Backup directory "
+                    "that holds CPAP backup data.\n\n"
+                    "Because this restore package includes SD card data, the entire "
+                    "profile directory — including all CPAP backup data — will be "
+                    "permanently deleted and replaced.\n\n"
+                    "This cannot be undone. Are you sure you want to continue?")
+                    .arg(targetName);
+            } else {
+                warningTitle = tr("Confirm Replace");
+                warningText  = tr(
+                    "This will permanently delete the existing profile and all its data.\n\n"
+                    "Are you sure you want to replace it?");
+            }
             int ret = QMessageBox::warning(
-                this, tr("Confirm Replace"),
-                tr("This will permanently delete the existing profile and all its data.\n\n"
-                   "Are you sure you want to replace it?"),
+                this, warningTitle, warningText,
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
             if (ret != QMessageBox::Yes) return;
             m_restore->setConflictResolution(ConflictResolution::Replace);
