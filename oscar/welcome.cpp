@@ -377,11 +377,11 @@ QString Welcome::GenerateOxiHTML()
         else html += QObject::tr("(%2 days ago)").arg(oxidate.daysTo(QDate::currentDate()));
         html+="</p>";
         ui->oxiIcon->setVisible(true);
-        ui->oxiInfo->setVisible(true);
+        ui->oxiInfoFrame->setVisible(true);
     } else {
         html += "<p>"+QObject::tr("No oximetry data has been imported yet.")+"</p>";
         ui->oxiIcon->setVisible(false);
-        ui->oxiInfo->setVisible(false);
+        ui->oxiInfoFrame->setVisible(false);
     }
 
     html += "</body></html>";
