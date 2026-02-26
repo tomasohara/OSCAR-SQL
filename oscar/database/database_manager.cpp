@@ -177,6 +177,16 @@ void DatabaseManager::close()
     QMutexLocker locker(&m_mutex);
 
     if (m_initialized && m_database.isOpen()) {
+        // Update query-planner statistics before closing. PRAGMA optimize is
+        // lightweight (analyses only tables with stale stats) and takes effect
+        // on the next open, improving query planning over time.
+        QSqlQuery query(m_database);
+        if (!query.exec("PRAGMA optimize")) {
+            qWarning() << "DatabaseManager::close: PRAGMA optimize failed:" << query.lastError().text();
+        } else {
+            qDebug() << "DatabaseManager::close: PRAGMA optimize complete";
+        }
+
         qDebug() << "DatabaseManager::close: Closing database connection";
         m_database.close();
     }

@@ -2470,6 +2470,8 @@ p, li { white-space: pre-wrap; }
      <addaction name="actionDebug"/>
      <addaction name="actionShow_Performance_Counters"/>
      <addaction name="separator"/>
+     <addaction name="actionCompress_Database"/>
+     <addaction name="separator"/>
      <addaction name="actionCreate_Card_zip"/>
      <addaction name="actionCreate_Log_zip"/>
      <addaction name="actionCreate_OSCAR_Data_zip"/>
@@ -2873,6 +2875,11 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Show Performance Information</string>
+   </property>
+  </action>
+  <action name="actionCompress_Database">
+   <property name="text">
+    <string>Compress database (rarely needed)</string>
    </property>
   </action>
   <action name="actionCreate_Card_zip">

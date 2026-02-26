@@ -36,6 +36,9 @@
 #include <QTextBrowser>
 #include <QStandardPaths>
 #include <QDesktopServices>
+#include <QLocale>
+#include <QSqlQuery>
+#include <QSqlError>
 #include <QScreen>
 #include <QStorageInfo>
 #include <cmath>
@@ -3077,6 +3080,71 @@ void MainWindow::on_actionCreate_Log_zip_triggered()
 }
 
 
+void MainWindow::on_actionCompress_Database_triggered()
+{
+    // Report database size including the WAL, which holds recently committed data.
+    QString dbPath = DatabaseManager::instance().databasePath();
+    auto dbSize = [&]() -> qint64 {
+        qint64 sz = QFileInfo(dbPath).size();
+        QFileInfo wal(dbPath + "-wal");
+        if (wal.exists()) sz += wal.size();
+        return sz;
+    };
+
+    qint64 sizeBefore = dbSize();
+    QString sizeBeforeStr = QLocale().formattedDataSize(sizeBefore);
+
+    QMessageBox::StandardButton answer = staticQMessageBox::question(this,
+        tr("Compress Database"),
+        tr("This will compact the database to reclaim unused disk space. "
+           "It is most useful after deleting profiles.\n\n"
+           "Current database size: %1\n\n"
+           "This may take several minutes. Continue?").arg(sizeBeforeStr),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
+
+    if (answer != QMessageBox::Yes) return;
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    // VACUUM cannot run inside a transaction; checkpointWAL first so
+    // all committed data is in the main file before VACUUM rewrites it.
+    DatabaseManager::instance().checkpointWAL();
+
+    QSqlQuery query(DatabaseManager::instance().database());
+    bool ok = query.exec("VACUUM");
+
+    // VACUUM writes the rebuilt database through the WAL; checkpoint again
+    // to merge it back into the main file before measuring the final size.
+    if (ok) {
+        DatabaseManager::instance().checkpointWAL();
+    }
+
+    QApplication::restoreOverrideCursor();
+
+    if (!ok) {
+        staticQMessageBox::warning(this, tr("Compress Database"),
+            tr("Database compression failed:\n%1").arg(query.lastError().text()),
+            QMessageBox::Ok);
+        return;
+    }
+
+    qint64 sizeAfter = dbSize();
+    qint64 reclaimed = sizeBefore - sizeAfter;
+    QString msg;
+    if (reclaimed > 0) {
+        msg = tr("Database compressed successfully.\n\nBefore: %1\nAfter:  %2\nReclaimed: %3")
+                .arg(QLocale().formattedDataSize(sizeBefore),
+                     QLocale().formattedDataSize(sizeAfter),
+                     QLocale().formattedDataSize(reclaimed));
+    } else {
+        msg = tr("Database compressed successfully.\n\nSize: %1\n\n"
+                 "No space was reclaimed — the database was already compact.")
+                .arg(QLocale().formattedDataSize(sizeAfter));
+    }
+    staticQMessageBox::information(this, tr("Compress Database"), msg, QMessageBox::Ok);
+}
+
 void MainWindow::on_actionCreate_OSCAR_Data_zip_triggered()
 {
     QString folder;
@@ -3108,9 +3176,18 @@ void MainWindow::on_actionCreate_OSCAR_Data_zip_triggered()
         prog->setWindowModality(Qt::ApplicationModal);
         prog->open();
 
+        // Flush all committed data into oscar.db so the zip contains a consistent,
+        // self-contained database snapshot. After a TRUNCATE checkpoint, oscar.db-wal
+        // is empty and oscar.db-shm is a regenerable index — exclude both.
+        DatabaseManager::instance().checkpointWAL();
+
         // Build the list of files.
         FileQueue files;
         files.AddDirectory(oscarData.canonicalPath(), oscarData.dirName());
+
+        // Exclude WAL and SHM — after the checkpoint above they are empty/redundant.
+        files.Remove(oscarData.canonicalPath() + "/oscar.db-wal");
+        files.Remove(oscarData.canonicalPath() + "/oscar.db-shm");
 
         // Defer the current debug log to the end.
         QString debugLog = logger->logFileName();

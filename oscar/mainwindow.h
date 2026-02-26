@@ -378,6 +378,8 @@ class MainWindow : public QMainWindow
 
     void on_mainsplitter_splitterMoved(int pos, int index);
 
+    void on_actionCompress_Database_triggered();
+
     void on_actionCreate_Card_zip_triggered();
 
     void on_actionCreate_Log_zip_triggered();
