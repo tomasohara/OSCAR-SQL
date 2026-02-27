@@ -69,6 +69,14 @@ public:
      * \return true if successful, false otherwise
      */
     bool update(const SessionData& data);
+
+    /*!
+     * \brief Update only the enabled flag for a session (targeted write).
+     * \param id Database primary key
+     * \param enabled New enabled state
+     * \return true if successful, false otherwise
+     */
+    bool updateEnabled(qint64 id, bool enabled);
     
     /*!
      * \brief Find session by database ID

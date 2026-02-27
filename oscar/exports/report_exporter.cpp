@@ -278,6 +278,11 @@ QWidget* ReportExporter::createRightPanel()
     // Load profiles
     loadProfiles();
 
+    // Initialize date edits to the actual data range before restoring settings,
+    // so that "Custom" mode starts from meaningful dates rather than today.
+    if (m_startDateEdit) m_startDateEdit->setDate(getFirstDataDate());
+    if (m_endDateEdit)   m_endDateEdit->setDate(getLastDataDate());
+
     // Restore saved settings (dates, filename, profile, open-after)
     restoreSettings();
 
@@ -976,6 +981,50 @@ bool ReportExporter::restoreTreeState()
     return true;
 }
 
+/*
+ * Return the date of the earliest session for the selected profile.
+ * Uses daily_summaries.date, which stores the OSCAR date (local time +
+ * day-split logic via Machine::pickDate()) rather than the raw UTC date.
+ * Falls back to today if no data exists or the query fails.
+ */
+QDate ReportExporter::getFirstDataDate() const
+{
+    qint64 pid = selectedProfileId();
+    if (pid == 0) return QDate::currentDate();
+
+    QSqlQuery q(DatabaseManager::instance().database());
+    q.prepare(QStringLiteral(
+        "SELECT MIN(date) FROM daily_summaries WHERE profile_id = :pid"));
+    q.bindValue(QStringLiteral(":pid"), pid);
+    if (q.exec() && q.next() && !q.value(0).isNull()) {
+        QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+        if (d.isValid()) return d;
+    }
+    return QDate::currentDate();
+}
+
+/*
+ * Return the date of the most recent session for the selected profile.
+ * Uses daily_summaries.date, which stores the OSCAR date (local time +
+ * day-split logic via Machine::pickDate()) rather than the raw UTC date.
+ * Falls back to today if no data exists or the query fails.
+ */
+QDate ReportExporter::getLastDataDate() const
+{
+    qint64 pid = selectedProfileId();
+    if (pid == 0) return QDate::currentDate();
+
+    QSqlQuery q(DatabaseManager::instance().database());
+    q.prepare(QStringLiteral(
+        "SELECT MAX(date) FROM daily_summaries WHERE profile_id = :pid"));
+    q.bindValue(QStringLiteral(":pid"), pid);
+    if (q.exec() && q.next() && !q.value(0).isNull()) {
+        QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+        if (d.isValid()) return d;
+    }
+    return QDate::currentDate();
+}
+
 void ReportExporter::setQuickDateRange(int idx)
 {
     // Custom (index 7): enable date edits so user can type; all others: show but disable
@@ -984,7 +1033,9 @@ void ReportExporter::setQuickDateRange(int idx)
     if (m_endDateEdit)   m_endDateEdit->setEnabled(isCustom);
     if (isCustom) return;  // Don't overwrite dates when Custom is chosen
 
-    QDate end = QDate::currentDate();
+    // Anchor all presets to the most recent date with data, so ranges are
+    // always meaningful regardless of when the dialog is opened.
+    const QDate end = getLastDataDate();
     QDate start;
     switch (idx) {
         case 0: start = end; break;                       // Most Recent Day
@@ -993,7 +1044,7 @@ void ReportExporter::setQuickDateRange(int idx)
         case 3: start = end.addMonths(-1); break;         // Last Month
         case 4: start = end.addMonths(-6); break;         // Last 6 Months
         case 5: start = end.addYears(-1); break;          // Last Year
-        case 6: start = QDate(2000, 1, 1); break;         // Everything
+        case 6: start = getFirstDataDate(); break;        // Everything
         default: return;
     }
     if (m_startDateEdit) m_startDateEdit->setDate(start);
@@ -1002,6 +1053,7 @@ void ReportExporter::setQuickDateRange(int idx)
 
 void ReportExporter::onProfileChanged(int)
 {
+    setQuickDateRange(m_quickRangeCombo ? m_quickRangeCombo->currentIndex() : 0);
     updateFilenameField();
 }
 

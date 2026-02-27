@@ -6,32 +6,38 @@
 
 Written to: `<machine data path>/Sessions.info`
 
-## Current status: actively used and authoritative
+## Current status: superseded — DB is now authoritative
 
-Despite the database `sessions` table having an `enabled` column (with its own index `idx_sessions_enabled`), `sessions.info` is the actual authoritative source for session enabled/disabled state.
+The cleanup described in the "Cleanup path" section below has been completed (2026-02-26).
+`sessions.info` is no longer read or written for DB-backed machines. The `sessions.enabled`
+column in the database is the single source of truth for enabled/disabled state.
 
-## Load sequence (database path)
+## Load sequence (database path) — updated
 
-1. `Machine::LoadSessionsFromDatabase()` calls `sess->LoadFromDatabase()`, which sets `s_enabled = sessionData.enabled` from the DB (`session.cpp:3069`)
-2. Immediately after, `loadSessionInfo()` is called (`machine.cpp:713`), reads `sessions.info`, and calls `sess->setEnabled(b)` for each session — **overwriting** the value just loaded from the DB
+1. `Machine::LoadSessionsFromDatabase()` calls `sess->LoadFromDatabase()`, which sets
+   `s_enabled = sessionData.enabled` from the DB (`session.cpp`)
+2. `loadSessionInfo()` is **not called** after DB load — the `sessions.info` file is ignored
+   for DB-backed machines
 
-So `sessions.info` wins over the DB on every load.
+## Save side — updated
 
-## Save side
+- `Session::setEnabled()` (`session.cpp`) now writes directly to the DB via
+  `SessionRepository::updateEnabled()` whenever the value changes and the session is
+  DB-backed (`m_sessionrow_id > 0`)
+- `saveSessionInfo()` is only called from `Profile::UnloadMachineData()` for legacy machines
+  that have `getDatabaseId() == 0`
 
-- `Session::setEnabled()` (`session.cpp:114`) only updates the in-memory flag — it never touches the database
-- `saveSessionInfo()` is called from `Profile::UnloadMachineData()` (`profiles.cpp:949`) on every unload, keeping `sessions.info` current
-- Nothing ever updates `sessions.enabled` in the DB after initial import
+## Legacy / file-based path
 
-## Consequence: DB `enabled` column is stale
+For machines not in the database (`m_database_id == 0`), the old behaviour is unchanged:
+`loadSessionInfo()` is called during load and `saveSessionInfo()` is called on unload.
+Existing `sessions.info` files on disk are left in place and simply ignored for DB-backed
+machines — no migration is needed.
 
-The DB's `enabled` column is correct at import time but drifts after any session is toggled by the user. `SessionRepository::findEnabledByMachine()` (which filters `WHERE enabled = 1`) is therefore unreliable for users who have toggled sessions, and is not used in the main load path — `Machine::LoadSessionsFromDatabase()` calls `findByMachine()` (no filter).
+## Prior state (for historical reference)
 
-## Cleanup path (future work)
-
-To eliminate `sessions.info` and make the DB the single source of truth:
-
-1. Make `Session::setEnabled()` issue an `UPDATE sessions SET enabled=? WHERE id=?` to the DB
-2. Remove the `loadSessionInfo()` call after DB load in `Machine::Load()`
-3. Remove the `saveSessionInfo()` call from `Profile::UnloadMachineData()`
-4. The `sessions.info` files on disk can then be ignored (no migration needed — the DB values will be correct once writes go there)
+Prior to 2026-02-26, `sessions.info` was the authoritative runtime source of truth:
+- `Session::setEnabled()` only updated an in-memory flag
+- `loadSessionInfo()` overwrote the DB-loaded value on every load
+- `saveSessionInfo()` wrote the file on every unload
+- The DB `enabled` column drifted after any session was toggled by the user

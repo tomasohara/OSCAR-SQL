@@ -114,6 +114,22 @@ bool SessionRepository::update(const SessionData& data)
     return true;
 }
 
+bool SessionRepository::updateEnabled(qint64 id, bool enabled)
+{
+    QSqlDatabase db = DatabaseManager::instance().database();
+    QSqlQuery query(db);
+    query.prepare(
+        "UPDATE sessions SET enabled = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+    );
+    query.addBindValue(enabled ? 1 : 0);
+    query.addBindValue(id);
+    if (!query.exec()) {
+        qWarning() << "SessionRepository::updateEnabled() failed:" << query.lastError().text();
+        return false;
+    }
+    return true;
+}
+
 SessionData SessionRepository::findById(qint64 id)
 {
     SessionData data;

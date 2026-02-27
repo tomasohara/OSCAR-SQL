@@ -705,12 +705,15 @@ bool Machine::Load(ProgressDialog *progress)
     // directory check because restored profiles have all data in the database
     // and the machine subdirectory (e.g. ResMed_12345678/) may not exist yet.
     if (m_database_id > 0 && LoadSessionsFromDatabase(progress)) {
-        qDebug() << "Loaded" << sessionlist.size() << "sessions from database for machine" << info.serial;
+        qDebug() << "Machine::Load: Loaded" << sessionlist.size() << "sessions from database for machine" << info.serial;
 
-        progress->setMessage(QObject::tr("Loading Session Info"));
-        qDebug() << "Loading Session Info";
-        QApplication::processEvents();
-        loadSessionInfo();
+        // Remove the legacy Sessions.info file if present — enabled state is
+        // now stored in the DB and this file is no longer read or written.
+        QFile sessionInfoFile(getDataPath() + "Sessions.info");
+        if (sessionInfoFile.exists()) {
+            sessionInfoFile.remove();
+            qDebug() << "Machine::Load: Removed legacy Sessions.info for machine" << info.serial;
+        }
 
         return true;
     }
@@ -719,7 +722,7 @@ bool Machine::Load(ProgressDialog *progress)
     // The on-disk machine directory must exist for this path.
     QString path = getDataPath();
     QDir dir(path);
-    qDebug() << "Loading" << info.loadername.toLocal8Bit().data() << "record:" << path.toLocal8Bit().data();
+    qDebug() << "Machine::Load: Loading" << info.loadername.toLocal8Bit().data() << "record:" << path.toLocal8Bit().data();
 
     if (!dir.exists() || !dir.isReadable()) {
         return false;
@@ -732,7 +735,7 @@ bool Machine::Load(ProgressDialog *progress)
     }
 
     if ( ! LoadSummary(progress)) {
-        qDebug() << "Recreating the Summary index XML file";
+        qDebug() << "Machine::Load: Recreating the Summary index XML file";
         // No XML index file, so assume upgrading, or it simply just got screwed up or deleted...
         progress->setMessage(QObject::tr("Scanning Files"));
         progress->setProgressValue(0);
@@ -796,7 +799,7 @@ bool Machine::Load(ProgressDialog *progress)
         size = filelist.size();
 
         progress->setMessage(QObject::tr("Reading summary files"));
-        qDebug() << "Reading summary files (.000)";
+        qDebug() << "Machine::Load: Reading summary files (.000)";
         progress->setProgressValue(0);
         QApplication::processEvents();
 
@@ -823,17 +826,17 @@ bool Machine::Load(ProgressDialog *progress)
             if (sess->LoadSummary()) {
                 AddSession(sess, true);
             } else {
-                qWarning() << "Error loading summary file" << filename;
+                qWarning() << "Machine::Load: Error loading summary file" << filename;
                 delete sess;
             }
         }
 
         SaveSummaryCache();
-        qDebug() << "Loaded" << info.model.toLocal8Bit().data() << "data in" << time.elapsed() << "ms";
+        qDebug() << "Machine::Load: Loaded" << info.model.toLocal8Bit().data() << "data in" << time.elapsed() << "ms";
         progress->setProgressValue(size);
     }
     progress->setMessage(QObject::tr("Loading Session Info"));
-    qDebug() << "Loading Session Info";
+    qDebug() << "Machine::Load: Loading Session Info";
     QApplication::processEvents();
 
     loadSessionInfo();

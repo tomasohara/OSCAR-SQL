@@ -113,10 +113,16 @@ bool Session::enabled(bool realValues) const
 
 void Session::setEnabled(bool b)
 {
+    if (b == s_enabled) return;  // no change — skip DB write and cache invalidation
     s_enabled = b;
-    // not so simple.. we have to invalidate the hours cache in the day record..
 
-    Day * day = p_profile->findSessionDay(this);
+    if (m_sessionrow_id > 0) {
+        SessionRepository repo;
+        repo.updateEnabled(m_sessionrow_id, b);
+    }
+
+    // Invalidate the hours cache in the day record.
+    Day *day = p_profile->findSessionDay(this);
     if (day) {
         day->invalidate();
     }

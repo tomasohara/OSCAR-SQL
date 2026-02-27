@@ -116,6 +116,10 @@ private:
     void saveTreeState();
     bool restoreTreeState();  ///< Returns false if no saved state exists
 
+    // Data date helpers
+    QDate getFirstDataDate() const;
+    QDate getLastDataDate() const;
+
     // Tree helpers
     QStandardItem* getSelectedItem() const;
     QStandardItem* getUserRootItem() const;

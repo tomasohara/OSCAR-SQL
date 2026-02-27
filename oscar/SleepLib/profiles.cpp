@@ -946,7 +946,9 @@ void Profile::DataFormatError(Machine *m)
 void Profile::UnloadMachineData()
 {
     for (auto & mach : m_machlist) {
-        mach->saveSessionInfo();
+        if (mach->getDatabaseId() == 0) {
+            mach->saveSessionInfo();  // Legacy path only: machine not in DB
+        }
         mach->sessionlist.clear();
         mach->day.clear();
     }
