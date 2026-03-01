@@ -128,7 +128,7 @@ SQL
 Description: Daily aggregation of session summaries
 Query: <<SQL
 SELECT
-  date(s.start_time/1000, 'unixepoch', 'localtime') as Period,
+  date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Period,
   ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,
   SUM(ss.obstructive_count) as OA,
   SUM(ss.unclassified_count) as UA,
@@ -143,7 +143,7 @@ WHERE m.profile_id = #PROFILE_ID
   AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') <= #END_DATE
   AND s.enabled = 1
   AND m.machine_TYPE < 4
-GROUP BY date(s.start_time/1000, 'unixepoch', 'localtime')
+GROUP BY date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')
 ORDER BY Period
 SQL
 
@@ -151,7 +151,7 @@ SQL
 Description: Weekly aggregation of session summaries
 Query: <<SQL
 SELECT
-  strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,
+  strftime('%Y-W%W', date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as Period,
   MIN(date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as Week_Start,
   MAX(date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as Week_End,
   ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,
@@ -168,7 +168,7 @@ WHERE m.profile_id = #PROFILE_ID
   AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') <= #END_DATE
   AND s.enabled = 1
   AND m.machine_TYPE < 4
-GROUP BY strftime('%Y-W%W', date(s.start_time/1000, 'unixepoch', 'localtime'))
+GROUP BY strftime('%Y-W%W', date(s.start_time/1000 - 43200, 'unixepoch', 'localtime'))
 ORDER BY Period
 SQL
 
@@ -176,7 +176,7 @@ SQL
 Description: Monthly aggregation of session summaries
 Query: <<SQL
 SELECT
-  strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime')) as Period,
+  strftime('%Y-%m', date(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) as Period,
   ROUND((SUM(ss.obstructive_count) + SUM(ss.unclassified_count) + SUM(ss.hypopnea_count) + SUM(ss.clear_airway_count)) / NULLIF(SUM(ss.mask_on_hours), 0), 2) as AHI,
   SUM(ss.obstructive_count) as OA,
   SUM(ss.unclassified_count) as UA,
@@ -191,7 +191,7 @@ WHERE m.profile_id = #PROFILE_ID
   AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') <= #END_DATE
   AND s.enabled = 1
   AND m.machine_TYPE < 4
-GROUP BY strftime('%Y-%m', date(s.start_time/1000, 'unixepoch', 'localtime'))
+GROUP BY strftime('%Y-%m', date(s.start_time/1000 - 43200, 'unixepoch', 'localtime'))
 ORDER BY Period
 SQL
 

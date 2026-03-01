@@ -370,7 +370,7 @@ QDate BackupDialog::getFirstDataDate() const
         qint64 pid = m_profileIds[idx];
         QSqlQuery q(DatabaseManager::instance().database());
         q.prepare(QStringLiteral(
-            "SELECT MIN(DATE(start_time/1000, 'unixepoch')) "
+            "SELECT MIN(DATE(start_time/1000 - 43200, 'unixepoch', 'localtime')) "
             "FROM sessions "
             "WHERE machine_id IN (SELECT id FROM machines WHERE profile_id = :pid)"));
         q.bindValue(QStringLiteral(":pid"), pid);
@@ -392,7 +392,7 @@ QDate BackupDialog::getLastDataDate() const
         QSqlQuery q(DatabaseManager::instance().database());
         // sessions has no direct profile_id; reach it via machines.
         q.prepare(QStringLiteral(
-            "SELECT MAX(DATE(start_time/1000, 'unixepoch')) "
+            "SELECT MAX(DATE(start_time/1000 - 43200, 'unixepoch', 'localtime')) "
             "FROM sessions "
             "WHERE machine_id IN (SELECT id FROM machines WHERE profile_id = :pid)"));
         q.bindValue(QStringLiteral(":pid"), pid);

@@ -1074,13 +1074,15 @@ QString ProfileBackup::calculateChecksum(const QString& filePath) const
 /*!
  * \brief Build the SQL WHERE clause fragment for session date filtering.
  *
- * Converts the start/end QDate values to UTC epoch-millisecond boundaries and
- * returns a fragment suitable for appending to a sessions WHERE clause.
- * Returns an empty string when no date range is set (full export).
+ * Converts the start/end OSCAR-date QDate values to epoch-millisecond
+ * boundaries and returns a fragment suitable for appending to a sessions
+ * WHERE clause.  Returns an empty string when no date range is set.
  *
- * The sessions table stores \c start_time as epoch milliseconds (UTC).
- * Start bound:  \c start_time >= startOfDay(startDate, UTC)
- * End bound:    \c start_time <  startOfDay(endDate+1, UTC)   (inclusive end)
+ * An OSCAR day runs from noon local time on the named date to noon local
+ * time the following calendar day.  The sessions table stores \c start_time
+ * as epoch milliseconds (UTC), so the boundaries are:
+ *   Start bound:  \c start_time >= noon(startDate, local)
+ *   End bound:    \c start_time <  noon(endDate+1, local)   (inclusive end)
  */
 QString ProfileBackup::buildSessionDateFilter() const
 {
@@ -1090,21 +1092,13 @@ QString ProfileBackup::buildSessionDateFilter() const
 
     QStringList parts;
     if (m_startDate.isValid()) {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-        const qint64 epoch = m_startDate.startOfDay(Qt::UTC).toMSecsSinceEpoch();
-#else
-        const qint64 epoch = QDateTime(m_startDate, QTime(0, 0, 0), Qt::UTC).toMSecsSinceEpoch();
-#endif
+        // OSCAR day startDate begins at noon local time on that calendar date.
+        const qint64 epoch = QDateTime(m_startDate, QTime(12, 0, 0), Qt::LocalTime).toMSecsSinceEpoch();
         parts << QString("start_time >= %1").arg(epoch);
     }
     if (m_endDate.isValid()) {
-        // One day past end-date gives us an exclusive upper bound that captures
-        // sessions starting anywhere on endDate.
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-        const qint64 epoch = m_endDate.addDays(1).startOfDay(Qt::UTC).toMSecsSinceEpoch();
-#else
-        const qint64 epoch = QDateTime(m_endDate.addDays(1), QTime(0, 0, 0), Qt::UTC).toMSecsSinceEpoch();
-#endif
+        // OSCAR day endDate ends at noon local time the following calendar day.
+        const qint64 epoch = QDateTime(m_endDate.addDays(1), QTime(12, 0, 0), Qt::LocalTime).toMSecsSinceEpoch();
         parts << QString("start_time < %1").arg(epoch);
     }
     return parts.join(QStringLiteral(" AND "));
