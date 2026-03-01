@@ -501,14 +501,20 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
         query.prepare("DELETE FROM profiles WHERE id = ?");
         query.bindValue(0, id);
         
-        bool success = query.exec();
-        if (success) {
-            db.commit();
+        bool success = false;
+        if (!query.exec()) {
+            db.rollback();
+        } else if (query.numRowsAffected() == 0) {
+            db.rollback();
+        } else if (!db.commit()) {
+            qWarning() << "ProfileRepository::removeWithProgress() - Commit failed:"
+                       << db.lastError().text();
+            db.rollback();
+        } else {
+            success = true;
             if (progressCallback) {
                 progressCallback(70, QObject::tr("Profile deleted"));
             }
-        } else {
-            db.rollback();
         }
         
         query.exec("PRAGMA defer_foreign_keys = OFF");

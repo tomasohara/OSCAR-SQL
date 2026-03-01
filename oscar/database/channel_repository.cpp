@@ -173,7 +173,10 @@ ChannelData ChannelRepository::findByProfileAndChannelId(qint64 profileId, Chann
 bool ChannelRepository::saveBatch(qint64 profileId, const QList<ChannelData>& channels)
 {
     // Use transaction for atomic batch operation
-    db.transaction();
+    if (!db.transaction()) {
+        qWarning() << "ChannelRepository::saveBatch failed to start transaction:" << db.lastError().text();
+        return false;
+    }
     
     bool success = true;
     for (const ChannelData& channel : channels) {
@@ -201,7 +204,11 @@ bool ChannelRepository::saveBatch(qint64 profileId, const QList<ChannelData>& ch
     }
     
     if (success) {
-        db.commit();
+        if (!db.commit()) {
+            qWarning() << "ChannelRepository::saveBatch failed to commit transaction:" << db.lastError().text();
+            db.rollback();
+            success = false;
+        }
     } else {
         db.rollback();
         qWarning() << "ChannelRepository::saveBatch failed, rolled back transaction";

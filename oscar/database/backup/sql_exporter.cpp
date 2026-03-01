@@ -306,8 +306,14 @@ QString SqlExporter::escapeValue(const QVariant& value, bool isBlobColumn) const
         return value.toBool() ? QStringLiteral("1") : QStringLiteral("0");
     }
 
-    // Rule 7: text (default) — double any embedded single quotes
+    // Rule 7: text (default)
+    // Escape backslash first (so later replacements don't double-escape it),
+    // then newlines and carriage returns so every INSERT stays on one line,
+    // then single quotes using the standard SQL doubling convention.
     QString text = value.toString();
-    text.replace(QLatin1Char('\''), QLatin1String("''"));
+    text.replace(QLatin1Char('\\'),  QLatin1String("\\\\"));
+    text.replace(QLatin1Char('\n'),  QLatin1String("\\n"));
+    text.replace(QLatin1Char('\r'),  QLatin1String("\\r"));
+    text.replace(QLatin1Char('\''),  QLatin1String("''"));
     return '\'' + text + '\'';
 }

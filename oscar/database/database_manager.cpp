@@ -96,6 +96,7 @@ bool DatabaseManager::initialize(const QString& databasePath)
     if (!m_database.open()) {
         qCritical() << "DatabaseManager::initialize: Failed to open database:" << m_database.lastError().text();
         emit databaseError("Failed to open database: " + m_database.lastError().text());
+        m_database = QSqlDatabase();
         QSqlDatabase::removeDatabase(m_connectionName);
         return false;
     }
@@ -194,6 +195,7 @@ void DatabaseManager::close()
     // Only remove database if QCoreApplication still exists
     // to avoid Qt warnings during shutdown
     if (QCoreApplication::instance()) {
+        m_database = QSqlDatabase();
         QSqlDatabase::removeDatabase(m_connectionName);
     }
     

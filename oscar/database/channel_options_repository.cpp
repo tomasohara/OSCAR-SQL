@@ -157,7 +157,10 @@ bool ChannelOptionsRepository::saveBatch(ChannelID channelId, const QHash<int, Q
     }
     
     // Use transaction for atomic batch operation
-    db.transaction();
+    if (!db.transaction()) {
+        qWarning() << "ChannelOptionsRepository::saveBatch failed to start transaction:" << db.lastError().text();
+        return false;
+    }
     
     // Use INSERT OR REPLACE to avoid duplicates
     QSqlQuery query(db);
@@ -180,7 +183,11 @@ bool ChannelOptionsRepository::saveBatch(ChannelID channelId, const QHash<int, Q
     }
     
     if (success) {
-        db.commit();
+        if (!db.commit()) {
+            qWarning() << "ChannelOptionsRepository::saveBatch failed to commit transaction:" << db.lastError().text();
+            db.rollback();
+            success = false;
+        }
     } else {
         db.rollback();
         qWarning() << "ChannelOptionsRepository::saveBatch failed, rolled back transaction";

@@ -338,13 +338,17 @@ void RestoreDialog::on_restoreButton_clicked()
         m_restore->setConflictResolution(ConflictResolution::Abort);
     }
 
-    // Connect signals.
+    // Connect signals.  UniqueConnection prevents duplicate handlers if the
+    // user retries after a failed restore (same m_restore object, same slot).
     connect(m_restore, &ProfileRestore::progressChanged,
-            this,      &RestoreDialog::onProgressChanged);
+            this,      &RestoreDialog::onProgressChanged,
+            Qt::UniqueConnection);
     connect(m_restore, &ProfileRestore::restoreCompleted,
-            this,      &RestoreDialog::onRestoreCompleted);
+            this,      &RestoreDialog::onRestoreCompleted,
+            Qt::UniqueConnection);
     connect(m_restore, &ProfileRestore::restoreFailed,
-            this,      &RestoreDialog::onRestoreFailed);
+            this,      &RestoreDialog::onRestoreFailed,
+            Qt::UniqueConnection);
 
     setBusy(true);
     ui->progressBar->setValue(0);

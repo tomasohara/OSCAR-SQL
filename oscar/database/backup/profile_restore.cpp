@@ -120,6 +120,80 @@ struct InsertStatement {
 };
 
 /*!
+ * \brief Convert a SQL literal token (as produced by SqlExporter) to a QVariant.
+ *
+ * Handles:
+ * - \c NULL                → invalid QVariant (SQL NULL)
+ * - \c X'hex'              → QByteArray (BLOB)
+ * - \c 'text'              → QString; unescapes \c '' → \c ', \c \\n → newline,
+ *                            \c \\r → carriage return, \c \\\\ → backslash
+ * - integer literal        → qint64
+ * - real literal           → double
+ *
+ * \param token  A single SQL literal token as returned by tokenizeValues().
+ * \return QVariant suitable for QSqlQuery::addBindValue().
+ */
+static QVariant sqlLiteralToVariant(const QString& token)
+{
+    if (token == QLatin1String("NULL")) {
+        return QVariant();
+    }
+
+    // Hex BLOB literal: X'...' or x'...'
+    if (token.length() >= 3
+            && token[0].toUpper() == QLatin1Char('X')
+            && token[1] == QLatin1Char('\'')
+            && token.endsWith(QLatin1Char('\''))) {
+        const QString hex = token.mid(2, token.length() - 3);
+        return QVariant(QByteArray::fromHex(hex.toLatin1()));
+    }
+
+    // Single-quoted string literal
+    if (token.startsWith(QLatin1Char('\'')) && token.endsWith(QLatin1Char('\''))) {
+        const QString inner = token.mid(1, token.length() - 2);
+        QString result;
+        result.reserve(inner.length());
+        for (int i = 0; i < inner.length(); ++i) {
+            if (inner[i] == QLatin1Char('\\') && i + 1 < inner.length()) {
+                const QChar next = inner[i + 1];
+                if (next == QLatin1Char('n')) {
+                    result += QLatin1Char('\n');
+                    ++i;
+                } else if (next == QLatin1Char('r')) {
+                    result += QLatin1Char('\r');
+                    ++i;
+                } else if (next == QLatin1Char('\\')) {
+                    result += QLatin1Char('\\');
+                    ++i;
+                } else {
+                    result += inner[i]; // unknown escape: keep the backslash
+                }
+            } else if (inner[i] == QLatin1Char('\'')
+                       && i + 1 < inner.length()
+                       && inner[i + 1] == QLatin1Char('\'')) {
+                result += QLatin1Char('\'');
+                ++i;
+            } else {
+                result += inner[i];
+            }
+        }
+        return QVariant(result);
+    }
+
+    // Integer
+    bool ok = false;
+    const qint64 iv = token.toLongLong(&ok);
+    if (ok) return QVariant(iv);
+
+    // Real
+    const double dv = token.toDouble(&ok);
+    if (ok) return QVariant(dv);
+
+    // Fallback: return as string (e.g. unrecognised placeholder left over)
+    return QVariant(token);
+}
+
+/*!
  * \brief Tokenize the VALUES list of an INSERT statement.
  *
  * Handles: NULL, integers, reals, single-quoted strings (with '' escaping),
@@ -425,10 +499,15 @@ bool ProfileRestore::validatePackage()
     if (!storedHash.isEmpty()) {
         const QString dbDir    = m_tempDir + QStringLiteral("/database");
         const QString computed = hashSqlDirectory(dbDir);
-        if (!computed.isEmpty() && computed != storedHash) {
-            m_errorMessage = QStringLiteral(
-                "Backup integrity check failed: database export checksum mismatch. "
-                "The file may be corrupted or tampered with.");
+        // Fail if computation failed (I/O error → empty) OR hash doesn't match.
+        if (computed.isEmpty() || computed != storedHash) {
+            m_errorMessage = computed.isEmpty()
+                ? QStringLiteral(
+                    "Backup integrity check failed: could not compute checksum "
+                    "of extracted database files.")
+                : QStringLiteral(
+                    "Backup integrity check failed: database export checksum mismatch. "
+                    "The file may be corrupted or tampered with.");
             return false;
         }
     }
@@ -691,8 +770,11 @@ QJsonObject ProfileRestore::manifestJson() const
  * - Abort   → sets m_errorMessage and returns an empty string.
  * - Rename  → returns m_newUsername if set, otherwise generates
  *             \c <original>_restored_<yyyyMMdd_HHmmss>.
- * - Replace → deletes the existing profile (CASCADE removes all child rows)
- *             and returns \a originalUsername.
+ * - Replace → returns \a originalUsername unchanged.  The actual deletion of
+ *             the existing profile is deferred to restoreInTransaction() so
+ *             that the DELETE and the subsequent re-insert are wrapped in the
+ *             same database transaction — preventing data loss if the restore
+ *             fails after the delete has already been committed.
  *
  * \param originalUsername  Username read from the backup manifest.
  * \return Resolved username, or an empty string on Abort.
@@ -717,19 +799,9 @@ QString ProfileRestore::resolveUsernameConflict(const QString& originalUsername)
                + QStringLiteral("_restored_")
                + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd_HHmmss"));
 
-    case ConflictResolution::Replace: {
-        QSqlDatabase db = DatabaseManager::instance().database();
-        QSqlQuery q(db);
-        q.prepare(QStringLiteral("DELETE FROM profiles WHERE username = :u"));
-        q.bindValue(QStringLiteral(":u"), originalUsername);
-        if (!q.exec()) {
-            m_errorMessage = QString(
-                "Failed to delete existing profile '%1' for Replace: %2")
-                .arg(originalUsername, q.lastError().text());
-            return QString();
-        }
+    case ConflictResolution::Replace:
+        // The actual DELETE happens inside the transaction in restoreInTransaction().
         return originalUsername;
-    }
 
     } // switch
 
@@ -1015,18 +1087,28 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
             continue;
         }
 
-        // Execute the INSERT.
+        // Execute the INSERT using parameterized binding so that text values
+        // containing newlines or other special characters are stored correctly.
 //        qDebug() << "ProfileRestore::executeSqlFile() execute the INSERT";
+        const QStringList placeholders(newVals.count(), QStringLiteral("?"));
         const QString sql = QString("INSERT INTO %1 (%2) VALUES (%3)")
                                 .arg(stmt.tableName,
                                      newCols.join(QStringLiteral(", ")),
-                                     newVals.join(QStringLiteral(", ")));
+                                     placeholders.join(QStringLiteral(", ")));
 
         QSqlQuery q(db);
-        if (!q.exec(sql)) {
+        if (!q.prepare(sql)) {
+            m_errorMessage = QString("Failed to prepare INSERT for %1: %2")
+                                 .arg(tableName, q.lastError().text());
+            return false;
+        }
+        for (const QString& val : newVals) {
+            q.addBindValue(sqlLiteralToVariant(val));
+        }
+        if (!q.exec()) {
             m_errorMessage = QString("INSERT failed in %1: %2")
                                  .arg(tableName, q.lastError().text());
-            qWarning() << "ProfileRestore: failed SQL:" << sql;
+            qWarning() << "ProfileRestore: failed prepared INSERT for table:" << tableName;
             return false;
         }
 
@@ -1103,6 +1185,23 @@ bool ProfileRestore::restoreInTransaction()
     if (!db.transaction()) {
         m_errorMessage = QStringLiteral("Failed to start database transaction.");
         return false;
+    }
+
+    // For Replace mode, delete the existing profile inside the transaction.
+    // ON DELETE CASCADE removes all child rows (machines, sessions, etc.)
+    // atomically with the re-insert, so a restore failure leaves the database
+    // untouched rather than deleting the old profile without replacing it.
+    if (m_resolution == ConflictResolution::Replace) {
+        QSqlQuery delQ(db);
+        delQ.prepare(QStringLiteral("DELETE FROM profiles WHERE username = :u"));
+        delQ.bindValue(QStringLiteral(":u"), m_newUsername);
+        if (!delQ.exec()) {
+            m_errorMessage = QString(
+                "Failed to delete existing profile '%1' for Replace: %2")
+                .arg(m_newUsername, delQ.lastError().text());
+            db.rollback();
+            return false;
+        }
     }
 
     const int total = restoreOrder.count();
