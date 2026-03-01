@@ -10,6 +10,7 @@
  * for more details. */
 
 #include "report_tree_model.h"
+#include <QCoreApplication>
 #include <QDebug>
 #include <QApplication>
 #include <QStyle>
@@ -84,16 +85,28 @@ void ReportTreeModel::loadChildren(qint64 parentId, QStandardItem* parentItem)
  */
 QStandardItem* ReportTreeModel::createNodeItem(const ReportTreeNode& node)
 {
-    QStandardItem* item = new QStandardItem(node.name);
-    
+    // Translate names and descriptions for system nodes; show user nodes as-is
+    QString displayName = node.name;
+    QString displayDesc = node.description;
+    if (node.source == "system") {
+        displayName = QCoreApplication::translate("SystemReports",
+                          node.name.toUtf8().constData());
+        if (!node.description.isEmpty()) {
+            displayDesc = QCoreApplication::translate("SystemReports",
+                              node.description.toUtf8().constData());
+        }
+    }
+
+    QStandardItem* item = new QStandardItem(displayName);
+
     // Set icon based on node type
     item->setIcon(iconForNode(node.nodeType, node.source));
-    
+
     // Store node data in custom roles
     item->setData(QVariant::fromValue(node.id), NodeIdRole);
     item->setData(node.nodeType, NodeTypeRole);
     item->setData(node.source, SourceRole);
-    item->setData(node.description, DescriptionRole);
+    item->setData(displayDesc, DescriptionRole);
     item->setData(node.query, QueryRole);
     
     // Set editable flag only for user nodes (not roots)

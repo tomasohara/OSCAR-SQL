@@ -444,6 +444,7 @@ SOURCES += \
     database/report_tree_repository.cpp \
     database/report_tree_model.cpp \
     exports/report_exporter.cpp \
+    exports/system_report_strings.cpp \
     database/orf_file_io.cpp \
     database/backup/backup_manifest.cpp \
     database/backup/sql_exporter.cpp \
