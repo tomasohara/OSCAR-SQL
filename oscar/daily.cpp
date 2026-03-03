@@ -2317,8 +2317,8 @@ void Daily::Unload(QDate date)
     if (journal) {
         if (journal->IsChanged()) {
             journal->settings[LastUpdated] = QDateTime::currentDateTime();
-            journal->machine()->SaveSummaryCache();
-            journal->SetChanged(false); // save summary doesn't automatically do this
+            journal->StoreToDatabase();
+            journal->SetChanged(false);
         }
     }
     UpdateCalendarDay(date);
@@ -2567,7 +2567,7 @@ void Daily::on_prevDayButton_clicked()
 
 bool Daily::eventFilter(QObject *object, QEvent *event)
 {
-    if (false && object == ui->JournalNotes && event->type() == QEvent::FocusOut) {
+    if (object == ui->JournalNotes && event->type() == QEvent::FocusOut) {
         // Trigger immediate save of journal when we focus out from it so we never
         // lose any journal entry text...
         if (previous_date.isValid()) {
