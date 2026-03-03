@@ -337,17 +337,20 @@ void Report::PrintReport(gGraphView *gv, QString name, QDate date)
                     stats = doc.toPlainText();
                     //doc.drawContents(&painter); // doesn't work as intended..
 
-                    bounds = painter.boundingRect(QRectF(0, top + ttop, virt_width, 0), stats,
+                    // Calculate bounds using box width so height is correct for multi-line notes.
+                    // Shrink the text area by padding so text doesn't touch the box border.
+                    double boxLeft = virt_width / 4.0;
+                    double padding = normal_height / 2.0;
+                    double textWidth = virt_width / 2.0 - 2.0 * padding;
+                    bounds = painter.boundingRect(QRectF(boxLeft + padding, top + ttop + padding, textWidth, 0), stats,
                                                   QTextOption(Qt::AlignHCenter));
                     painter.drawText(bounds, stats, QTextOption(Qt::AlignHCenter));
-                    bounds.setLeft(virt_width / 4);
-                    bounds.setRight(virt_width - (virt_width / 4));
 
                     QPen pen(Qt::black);
                     pen.setWidth(4);
                     painter.setPen(pen);
-                    painter.drawRect(bounds);
-                    ttop += bounds.height() + normal_height;
+                    painter.drawRect(bounds.adjusted(-padding, -padding, padding, padding));
+                    ttop += bounds.height() + 2.0 * padding + normal_height;
                 }
             }
 
