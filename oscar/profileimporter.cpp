@@ -14,6 +14,8 @@
 #include "SleepLib/progressdialog.h"
 #include "database/migration_manager.h"
 #include "database/database_manager.h"
+#include "database/preferences_repository.h"
+#include "database/profile_repository.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -129,7 +131,24 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
         profile->doctor->setPhone(sourceProfile->doctor->phone());
         profile->doctor->setEmail(sourceProfile->doctor->email());
         profile->doctor->setPatientID(sourceProfile->doctor->patientID());
-        // Note: Preferences are copied during extended data migration
+        // Copy preferences (cpap, oxi, session, appearance, general) from source profile.
+        // migrateExtendedData() runs on the freshly-created destination profile (which holds
+        // only defaults), so we must explicitly overwrite with the source values here.
+        ProfileRepository profileRepo;
+        ProfileData profileData = profileRepo.findByUsername(newProfileName);
+        if (profileData.id > 0) {
+            PreferencesRepository prefRepo;
+            if (!prefRepo.saveAllPreferences(profileData.id,
+                                             sourceProfile->cpap,
+                                             sourceProfile->oxi,
+                                             sourceProfile->session,
+                                             sourceProfile->appearance,
+                                             sourceProfile->general)) {
+                qWarning() << "ProfileImporter: Failed to save source preferences to database";
+            }
+        } else {
+            qWarning() << "ProfileImporter: Could not find destination profile in database to save preferences";
+        }
         
 //        qDebug() << "ProfileImporter: After copy - user firstname:" << profile->user->firstName();
 //        qDebug() << "ProfileImporter: After copy - user lastname:" << profile->user->lastName();
@@ -148,7 +167,13 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     // This populates schema::channel[] with channel types so extractRespiratoryEvents() works
     schema::init();
 
-    // IMPORTANT: Set p_profile before loading sessions - Session objects need it
+    // IMPORTANT: Set p_profile before loading sessions - Session objects need it.
+    // NOTE: p_profile is a global that is temporarily replaced here. reportProgress()
+    // calls QApplication::processEvents(), which can dispatch Qt events while the swap
+    // is active. This is safe in practice because the import dialog is modal (blocking
+    // UI interaction with the main window) and no known timer touches p_profile during
+    // import. If future timers or background tasks are added that read p_profile, this
+    // swap should be eliminated and progress updates driven via queued signals instead.
     extern Profile* p_profile;
     Profile* savedProfile = p_profile;
     p_profile = profile;
@@ -175,8 +200,16 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     profile->setOpened(true);
     
     // Save profile (still needs p_profile set)
-    profile->Save();
-    
+    if (!profile->Save()) {
+        m_lastError = tr("Failed to save profile to database");
+        qWarning() << "ProfileImporter: Rolled back transaction due to profile Save() failure";
+        dbMgr.rollback();
+        p_profile = savedProfile;
+        rollbackImport(newPath);
+        delete profile;
+        return false;
+    }
+
     // ===== COMMIT THE ENTIRE TRANSACTION =====
     // All database operations succeeded - commit everything at once
     if (!dbMgr.commit()) {
@@ -239,8 +272,17 @@ bool ProfileImporter::copyProfileStructure(const QString& oldPath,
     if (!copyJournalFolders(oldPath, newPath)) {
         return false;
     }
+
+    // 2. Copy graph layout files from profile root (daily.shg, overview.shg, etc.)
+    QStringList shgFiles = oldDir.entryList(QStringList() << "*.shg", QDir::Files);
+    for (const QString& shgFile : shgFiles) {
+        if (!QFile::copy(oldPath + "/" + shgFile, newPath + "/" + shgFile)) {
+            qWarning() << "ProfileImporter::copyProfileStructure: Failed to copy" << shgFile;
+            // Not fatal - graph layout will revert to defaults
+        }
+    }
     
-    // 2. Copy machine folders with their Backup subfolder structure
+    // 3. Copy machine folders with their Backup subfolder structure
     QStringList entries = oldDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
     
     for (const QString& entry : entries) {
@@ -507,25 +549,28 @@ bool ProfileImporter::loadSessionsFromFiles(Profile* profile,
     }
 
     // Prevent possible divide by zero error if this should-be-impossible condition occurs
-    if (machineCount == 0)
+    if (machineCount == 0) {
+        m_lastError = tr("No machine folders found in source profile");
         return false;
+    }
     
     int currentMachine = 0;
-    
+    QStringList skippedFolders;
+
     for (const QString& entry : entries) {
         // Skip non-machine folders
-        if (entry.startsWith("Journal_") || 
-            entry == "Summaries" || 
+        if (entry.startsWith("Journal_") ||
+            entry == "Summaries" ||
             entry == "Events") {
             continue;
         }
-        
+
         currentMachine++;
         QString oldMachinePath = oldPath + "/" + entry;
-        
-        reportProgress(40 + (currentMachine * 45 / machineCount), 100, 
+
+        reportProgress(40 + (currentMachine * 45 / machineCount), 100,
             tr("Loading machine %1 of %2...").arg(currentMachine).arg(machineCount));
-        
+
         // Find corresponding machine in profile
         Machine* machine = findMachineByFolderName(profile, entry);
         if (!machine) {
@@ -534,25 +579,32 @@ bool ProfileImporter::loadSessionsFromFiles(Profile* profile,
             for (Machine* m : profile->m_machlist) {
                 qWarning() << "  - Machine hexid:" << m->hexid();
             }
+            skippedFolders << entry;
             continue;
         }
-        
+
 //        qDebug() << "Loading sessions for machine:" << machine->hexid() << "from folder:" << entry;
-        
+
         if (!loadMachineSessions(machine, oldMachinePath)) {
             return false;
         }
-        
+
 //        qDebug() << "Machine now has" << machine->sessionlist.size() << "sessions";
 //        qDebug() << "Machine day list size:" << machine->day.size();
     }
-    
+
+    if (!skippedFolders.isEmpty()) {
+        m_lastError = tr("Could not match machine folder(s) to imported profile: %1")
+                          .arg(skippedFolders.join(", "));
+        return false;
+    }
+
     // Debug: Check profile's overall daylist
 //    qDebug() << "ProfileImporter: Total sessions loaded:" << m_loadedSessions;
 //    qDebug() << "ProfileImporter: Profile daylist size:" << profile->daylist.size();
 //    qDebug() << "ProfileImporter: Profile first day:" << profile->FirstDay();
 //    qDebug() << "ProfileImporter: Profile last day:" << profile->LastDay();
-    
+
     return true;
 }
 
@@ -578,28 +630,31 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
     }
     
     m_totalSessions += files.size();
-    
+
+    int sessionFailures = 0;
+    int eventFailures = 0;
+
     for (const QFileInfo& fileInfo : files) {
         // Parse session ID from filename (hex)
         QString baseName = fileInfo.baseName();
         bool ok;
         SessionID sessionId = baseName.toLongLong(&ok, 16);
-        
+
         if (!ok) {
             qWarning() << "ProfileImporter::loadMachineSessions: Invalid session filename:" << fileInfo.fileName();
             continue;
         }
-        
+
         // Create session
         Session* session = new Session(machine, sessionId);
-        
+
         // Load summary from .000 file
         if (!session->LoadSummaryFromFile(fileInfo.absoluteFilePath())) {
             qWarning() << "ProfileImporter::loadMachineSessions: Failed to load summary:" << fileInfo.fileName();
             delete session;
             continue;
         }
-        
+
         // Load events from .001 file (if exists)
         QString eventsPath = oldMachinePath + "/Events/" + baseName + ".001";
         if (QFile::exists(eventsPath)) {
@@ -608,19 +663,20 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
                 // Continue anyway - summary data is still valid
             }
         }
-        
-        // Save session metadata to database first
+
+        // Save session metadata to database
         if (!session->StoreToDatabase()) {
             qWarning() << "ProfileImporter::loadMachineSessions: Failed to store session to database:" << fileInfo.fileName();
             delete session;
+            sessionFailures++;
             continue;
         }
-        
-        // Now store events if they were loaded
+
+        // Store events if they were loaded
         if (session->eventlist.size() > 0) {
             if (!session->StoreEventsToDatabase()) {
                 qWarning() << "ProfileImporter::loadMachineSessions: Failed to store events for session:" << fileInfo.fileName();
-                // Continue anyway - session metadata is saved
+                eventFailures++;
             }
         }
         
@@ -635,11 +691,17 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
         // Update progress every 10 sessions or so to avoid too many updates
         if (m_loadedSessions % 10 == 0 || m_loadedSessions == m_totalSessions) {
             int progress = 40 + (m_loadedSessions * 45 / qMax(1, m_totalSessions));
-            reportProgress(progress, 100, 
+            reportProgress(progress, 100,
                 tr("Loaded %1 of %2 sessions...").arg(m_loadedSessions).arg(m_totalSessions));
         }
     }
-    
+
+    if (sessionFailures > 0 || eventFailures > 0) {
+        m_lastError = tr("Session persistence failures: %1 session(s) and %2 event set(s) failed to store")
+                          .arg(sessionFailures).arg(eventFailures);
+        return false;
+    }
+
     return true;
 }
 
@@ -677,38 +739,47 @@ Machine* ProfileImporter::findMachineByFolderName(Profile* profile, const QStrin
         serial = folderName.section('_', -1);  // Get last part after underscore
     }
     
+#ifdef DBDEBUG
     qDebug() << "Matching folder:" << folderName << "extracted serial:" << serial;
-    
+#endif
+
     // Try matching by serial number
     for (Machine* machine : profile->m_machlist) {
         QString machineSerial = machine->serial();
+#ifdef DBDEBUG
         qDebug() << "  Checking machine serial:" << machineSerial << "hexid:" << machine->hexid();
-        
+#endif
         if (machineSerial == serial) {
+#ifdef DBDEBUG
             qDebug() << "  MATCH! Found machine by serial";
+#endif
             return machine;
         }
     }
-    
+
     // Try matching by hexid (for older formats)
     for (Machine* machine : profile->m_machlist) {
         QString machineFolder = machine->hexid();
         if (machineFolder == folderName) {
+#ifdef DBDEBUG
             qDebug() << "  MATCH! Found machine by hexid";
+#endif
             return machine;
         }
     }
-    
+
     // Try partial match
     for (Machine* machine : profile->m_machlist) {
         QString machineSerial = machine->serial();
         QString machineFolder = machine->hexid();
         if (folderName.contains(machineSerial) || folderName.contains(machineFolder)) {
+#ifdef DBDEBUG
             qDebug() << "  MATCH! Found machine by partial match";
+#endif
             return machine;
         }
     }
-    
+
     // Last resort: if there's only one CPAP machine, use it
     QList<Machine*> cpapMachines;
     for (Machine* machine : profile->m_machlist) {
@@ -716,9 +787,11 @@ Machine* ProfileImporter::findMachineByFolderName(Profile* profile, const QStrin
             cpapMachines.append(machine);
         }
     }
-    
+
     if (cpapMachines.size() == 1) {
+#ifdef DBDEBUG
         qDebug() << "  MATCH! Using only CPAP machine";
+#endif
         return cpapMachines.first();
     }
     

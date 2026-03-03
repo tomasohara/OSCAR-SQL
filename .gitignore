@@ -16,7 +16,6 @@ oscar/build/*
 git_info.h
 .github
 Building/Linux/changelog
-Building/Windows/CopyDropbox.bat
 
 notes/temp/*
 

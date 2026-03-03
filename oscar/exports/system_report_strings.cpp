@@ -13,6 +13,9 @@
  *     using QCoreApplication::translate("SystemReports", ...).
  *   - User-created reports are NOT translated (displayed as-is).
  *
+ * DO NOT EDIT BY HAND — regenerate with:
+ *   python3 Tools/gen_system_report_strings.py
+ *
  * This file is subject to the terms and conditions of the GNU General Public
  * License. See the file COPYING in the main directory of the source code
  * for more details. */

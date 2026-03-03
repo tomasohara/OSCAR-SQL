@@ -4,13 +4,13 @@
 
 The OSCAR database file is typically located at:
 ```
-{User Data Directory}/OSCAR_Data/oscar.db
+{User Data Directory}/OSCAR20_Data/oscar.db
 ```
 
 Common locations:
-- **Windows**: `C:\Users\{Username}\Documents\OSCAR_Data\oscar.db`
-- **macOS**: `~/Library/Application Support/OSCAR_Data/oscar.db`
-- **Linux**: `~/.local/share/OSCAR_Data/oscar.db`
+- **Windows**: `C:\Users\{Username}\Documents\OSCAR20_Data\oscar.db`
+- **macOS**: `~/Library/Application Support/OSCAR20_Data/oscar.db`
+- **Linux**: `~/.local/share/OSCAR20_Data/oscar.db`
 
 ## Tools to Run the Queries
 

@@ -153,6 +153,17 @@ win32 {
 PRE_TARGETDEPS += git_info.h
 QMAKE_EXTRA_TARGETS += gitinfotarget
 
+# Regenerate exports/system_report_strings.cpp from docs/system_reports.orf when the .orf changes.
+orf_strings.target  = $$_PRO_FILE_PWD_/exports/system_report_strings.cpp
+orf_strings.depends = $$_PRO_FILE_PWD_/docs/system_reports.orf
+win32 {
+    orf_strings.commands = python $$_PRO_FILE_PWD_/../Tools/gen_system_report_strings.py
+} else {
+    orf_strings.commands = python3 $$_PRO_FILE_PWD_/../Tools/gen_system_report_strings.py
+}
+QMAKE_EXTRA_TARGETS += orf_strings
+PRE_TARGETDEPS += $$_PRO_FILE_PWD_/exports/system_report_strings.cpp
+
 !contains(DEFINES, helpless) {
 #Build the help documentation
     message("Generating help files");
