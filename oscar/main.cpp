@@ -802,6 +802,13 @@ int main(int argc, char *argv[]) {
 
     DeviceConnectionManager::getInstance().record(nullptr);
 
+    // Close the database explicitly while Qt is still alive.
+    // DatabaseManager is a Meyer's singleton whose destructor fires after main() returns,
+    // by which point libQt6Sql has already been torn down on some platforms (e.g. Ubuntu 24),
+    // causing a SIGSEGV when the destructor tries to run "PRAGMA optimize" via QSqlQuery.
+    // Closing here sets m_initialized=false so the destructor becomes a no-op.
+    DatabaseManager::instance().close();
+
     return result;
 }
 
