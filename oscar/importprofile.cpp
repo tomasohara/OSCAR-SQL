@@ -13,6 +13,7 @@
 #include "ui_importprofile.h"
 #include "common_gui.h"
 #include "SleepLib/preferences.h"
+#include "database/profile_repository.h"
 #include <QFileDialog>
 #include <QSettings>
 #include <QDir>
@@ -174,13 +175,18 @@ bool ImportProfile::validateSelection()
         return false;
     }
     
-    // Check if profile name already exists
-    QString profilesPath = GetAppData() + "/Profiles/" + m_newProfileName;
-    if (QDir(profilesPath).exists()) {
+    // Check if profile name already exists (filesystem or database)
+    ProfileRepository profileRepo;
+    auto nameConflicts = [&](const QString& name) -> bool {
+        if (QDir(GetAppData() + "/Profiles/" + name).exists()) return true;
+        ProfileData pd = profileRepo.findByUsername(name);
+        return pd.id > 0;
+    };
+    if (nameConflicts(m_newProfileName)) {
         // Auto-append (copy) or number
         int num = 2;
         QString baseName = m_newProfileName;
-        while (QDir(GetAppData() + "/Profiles/" + m_newProfileName).exists()) {
+        while (nameConflicts(m_newProfileName)) {
             m_newProfileName = baseName + QString(" (copy %1)").arg(num);
             num++;
         }

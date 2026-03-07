@@ -460,15 +460,33 @@ bool MigrationManager::parseMachinesXml(const QString& machinesXmlPath, qint64 p
                 machine.properties = QString::fromUtf8(doc.toJson(QJsonDocument::Compact));
             }
 
-            // Insert into database
+            // Insert into database (or update if already present)
             qint64 dbId = m_machineRepo->create(machine);
             if (dbId > 0) {
                 machineCount++;
-                qDebug() << "MigrationManager: Migrated machine" << machine.brand << machine.model 
+                qDebug() << "MigrationManager: Migrated machine" << machine.brand << machine.model
                          << "serial" << machine.serialNumber;
             } else {
-                errorCount++;
-                qWarning() << "MigrationManager: Failed to migrate machine" << machine.brand << machine.model;
+                // INSERT failed — check if a record already exists for this (profile_id, machine_id).
+                // This can happen when a profile name is reused after its directory was removed without
+                // clearing the database (e.g. after a failed-then-rolled-back import of the same name).
+                MachineData existing = m_machineRepo->findByProfileAndMachineId(machine.profileId, machine.machineId);
+                if (existing.id > 0) {
+                    machine.id = existing.id;
+                    if (m_machineRepo->update(machine)) {
+                        machineCount++;
+                        qDebug() << "MigrationManager: Updated existing machine" << machine.brand << machine.model
+                                 << "serial" << machine.serialNumber << "(profile_id" << machine.profileId
+                                 << "machine_id" << machine.machineId << ")";
+                    } else {
+                        errorCount++;
+                        qWarning() << "MigrationManager: Failed to update existing machine" << machine.brand << machine.model;
+                    }
+                } else {
+                    errorCount++;
+                    qWarning() << "MigrationManager: Failed to migrate machine" << machine.brand << machine.model
+                               << "serial" << machine.serialNumber;
+                }
             }
 
             // Update progress (40-90% range for machine migration)

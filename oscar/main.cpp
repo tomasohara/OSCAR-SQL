@@ -58,6 +58,7 @@
 #include "SleepLib/loader_plugins/resvent_loader.h"
 #include "SleepLib/loader_plugins/vrem_loader.h"
 #include "SleepLib/loader_plugins/bmc_loader.h"
+#include "SleepLib/loader_plugins/bmcg3x_loader.h"
 #include "SleepLib/loader_plugins/yuwell_loader.h"
 
 #include "database/database_manager.h"
@@ -762,6 +763,7 @@ int main(int argc, char *argv[]) {
     PrismaLoader::Register();
     ResventLoader::Register();
     BmcLoader::Register();
+    BmcG3xLoader::Register();
     VREMLoader::Register();
     YuwellLoader::Register();
 

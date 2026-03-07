@@ -8,10 +8,16 @@
 #include <QVector>
 #include <QMap>
 #include <QStringList>
+#include <QMutexLocker>
+#include <QSet>
 #include <cmath>
 #include <QMessageBox>
+#include <limits>
+#include <memory>
+#include <algorithm>
 #include "SleepLib/loader_plugins/bmcDataParsing.h"
 #include "SleepLib/loader_plugins/bmc_loader.h"
+#include "../../database/session_repository.h"
 
 
 ChannelID BMC_MODE, BMC_RESLEX, BMC_HUMIDIFIER, BMC_SMARTA, BMC_SMARTC, BMC_SMARTB,
@@ -26,6 +32,7 @@ ChannelID BMC_RESLEX_MODE, BMC_RESLEX_PATIENT;
 
 
 const QDate baseDate(2010 , 1, 1);
+static bool bmc_channels_initialized = false;
 
 
 /*
@@ -40,6 +47,116 @@ void BmcLoaderTask::run()
     {
         BmcDateSession bmcDateSession = bmc->ReadDateSession(this->bmcLink->UsrSession.StartTimestamp.date());
 
+        const auto computeSessionId = [this](BmcSession* bmcSession, int index) -> SessionID {
+            const qint64 sessionStartSecs = bmcSession->StartTimestamp.toSecsSinceEpoch();
+            if (sessionStartSecs > 0 &&
+                sessionStartSecs <= static_cast<qint64>(std::numeric_limits<SessionID>::max())) {
+                return static_cast<SessionID>(sessionStartSecs);
+            }
+            return (baseDate.daysTo(this->bmcLink->UsrSession.StartTimestamp.date()) * 64) + index;
+        };
+
+        qint64 importStartMs = std::numeric_limits<qint64>::max();
+        qint64 importEndMs = std::numeric_limits<qint64>::min();
+        QSet<SessionID> plannedSessionIds;
+        for (int j = 0; j < bmcDateSession.Sessions.length(); ++j) {
+            BmcSession* bmcSession = bmcDateSession.Sessions.at(j);
+            if (!bmcSession) {
+                continue;
+            }
+            if (bmcSession->Waveforms.length() == 0 && bmcSession->RespiratoryEvents.length() == 0) {
+                continue;
+            }
+
+            plannedSessionIds.insert(computeSessionId(bmcSession, j));
+            importStartMs = std::min(importStartMs, bmcSession->StartTimestamp.toMSecsSinceEpoch());
+            importEndMs = std::max(importEndMs, bmcSession->EndTimestamp.addSecs(-1).toMSecsSinceEpoch());
+        }
+
+        if (!plannedSessionIds.isEmpty() && importStartMs <= importEndMs) {
+            QMutexLocker locker(&bmcLoader->sessionMutex);
+            int removedOverlappingSessions = 0;
+            int removedOverlappingDbSessions = 0;
+            QSet<SessionID> removedSessionIds;
+
+            if (mach->getDatabaseId() > 0) {
+                SessionRepository sessionRepo;
+                const QList<SessionData> existingDbSessions = sessionRepo.findByMachine(mach->getDatabaseId());
+                for (const SessionData& dbSession : existingDbSessions) {
+                    if (dbSession.id <= 0 || dbSession.startTime <= 0 || dbSession.endTime <= 0) {
+                        continue;
+                    }
+
+                    const SessionID existingSessionId = static_cast<SessionID>(dbSession.sessionId);
+                    const bool overlapsImportWindow = (dbSession.startTime <= importEndMs) && (importStartMs <= dbSession.endTime);
+                    const bool isPlannedReplacement = plannedSessionIds.contains(existingSessionId);
+                    if (!overlapsImportWindow || isPlannedReplacement) {
+                        continue;
+                    }
+
+                    if (sessionRepo.remove(dbSession.id)) {
+                        ++removedOverlappingDbSessions;
+                    } else {
+                        qWarning() << "BmcLoaderTask::run() - Failed to remove stale DB session row"
+                                   << dbSession.id << "session_id" << dbSession.sessionId;
+                    }
+
+                    if (Session* existingSession = mach->SessionExists(existingSessionId)) {
+                        if (mach->unlinkSession(existingSession)) {
+                            ++removedOverlappingSessions;
+                        }
+                        removedSessionIds.insert(existingSessionId);
+                    }
+                }
+            }
+
+            const QDate cleanupStartDate = QDateTime::fromMSecsSinceEpoch(importStartMs).date().addDays(-1);
+            const QDate cleanupEndDate = QDateTime::fromMSecsSinceEpoch(importEndMs).date().addDays(1);
+
+            for (QDate day = cleanupStartDate; day <= cleanupEndDate; day = day.addDays(1)) {
+                Day* oscarDay = p_profile->GetDay(day, MT_CPAP);
+                if (!oscarDay || !oscarDay->hasMachine(mach)) {
+                    continue;
+                }
+
+                const QList<Session*> existingSessions = oscarDay->getSessions(MT_CPAP, true);
+                for (Session* existingSession : existingSessions) {
+                    if (!existingSession || existingSession->machine() != mach) {
+                        continue;
+                    }
+                    if (removedSessionIds.contains(existingSession->session())) {
+                        continue;
+                    }
+
+                    const qint64 existingStartMs = existingSession->realFirst();
+                    const qint64 existingEndMs = existingSession->realLast();
+                    if (existingStartMs <= 0 || existingEndMs <= 0) {
+                        continue;
+                    }
+
+                    const bool overlapsImportWindow = (existingStartMs <= importEndMs) && (importStartMs <= existingEndMs);
+                    const bool isPlannedReplacement = plannedSessionIds.contains(existingSession->session());
+                    if (overlapsImportWindow && !isPlannedReplacement) {
+                        if (mach->unlinkSession(existingSession)) {
+                            ++removedOverlappingSessions;
+                            removedSessionIds.insert(existingSession->session());
+                        }
+                    }
+                }
+            }
+
+            if (removedOverlappingSessions > 0 || removedOverlappingDbSessions > 0) {
+                qDebug() << "BmcLoaderTask::run() - Removed overlapping stale sessions:"
+                         << removedOverlappingSessions
+                         << "db_rows"
+                         << removedOverlappingDbSessions
+                         << "range"
+                         << QDateTime::fromMSecsSinceEpoch(importStartMs).toString(Qt::ISODate)
+                         << "to"
+                         << QDateTime::fromMSecsSinceEpoch(importEndMs).toString(Qt::ISODate);
+            }
+        }
+
         for (int j = 0; j < bmcDateSession.Sessions.length(); j++)
         {
             emit bmcLoader->setProgressValue(this->currentLinkIndex);
@@ -51,23 +168,12 @@ void BmcLoaderTask::run()
             QCoreApplication::processEvents();
 
             BmcSession* bmcSession = bmcDateSession.Sessions.at(j);
-            SessionID sessionID = (baseDate.daysTo(this->bmcLink->UsrSession.StartTimestamp.date()) * 64) + j; // leave space for N sessions.
-
-            //We will always try to re-import the last day we import since it might have
-            //been imported before noon which means a session could have been in progress.
-            //Delete the session if it already exists before importing it again
-            auto oscarDay = p_profile->GetDay(this->bmcLink->UsrSession.StartTimestamp.date(), MT_CPAP);
-            if (oscarDay && oscarDay->hasMachine(mach))
-            {
-                auto oscarDaySessions = oscarDay->getSessions(MT_CPAP);
-                auto oscarSessionToDelete = oscarDay->find(sessionID, MT_CPAP);
-                if (oscarSessionToDelete)
-                {
-                    oscarDay->removeSession(oscarSessionToDelete);
-                }
+            if (!bmcSession) {
+                continue;
             }
+            SessionID sessionID = computeSessionId(bmcSession, j);
 
-            if (bmcSession->Waveforms.length() == 0)
+            if (bmcSession->Waveforms.length() == 0 && bmcSession->RespiratoryEvents.length() == 0)
                 continue;
 
             //Import the session
@@ -84,9 +190,33 @@ void BmcLoaderTask::run()
             session->SetChanged(true);
             session->setNoSettings(false);
             session->UpdateSummaries();
-            //session->StoreSummary();
-            session->Store(mach->getDataPath());
-            mach->AddSession(session);
+
+            QMutexLocker locker(&bmcLoader->sessionMutex);
+
+            // We always re-import the final day since a session might still be in progress.
+            // If this session id already exists for the day, remove it before adding replacement data.
+            if (Session* existingSession = mach->SessionExists(sessionID)) {
+                mach->unlinkSession(existingSession);
+            }
+
+            auto oscarDay = p_profile->GetDay(bmcSession->StartTimestamp.date(), MT_CPAP);
+            if (oscarDay && oscarDay->hasMachine(mach))
+            {
+                auto oscarSessionToDelete = oscarDay->find(sessionID, MT_CPAP);
+                if (oscarSessionToDelete)
+                {
+                    oscarDay->removeSession(oscarSessionToDelete);
+                }
+            }
+
+            if (!session->Store(mach->getDataPath())) {
+                qWarning() << "BmcLoaderTask::run() - Failed to store session" << sessionID;
+            }
+            if (!mach->AddSession(session)) {
+                qWarning() << "BmcLoaderTask::run() - Failed to add session" << sessionID;
+                delete session;
+                continue;
+            }
 
             bmcLoader->sessionsLoaded++;
         }
@@ -219,6 +349,7 @@ void BmcLoader::setSessionRespiratoryEvents(BmcSession* bmcSession, Session* osc
     EventList* oscarOsaList = oscarSession->AddEventList(CPAP_Obstructive, EVL_Event);
     EventList* oscarCsaList = oscarSession->AddEventList(CPAP_ClearAirway, EVL_Event);
     EventList* oscarHypList = oscarSession->AddEventList(CPAP_Hypopnea, EVL_Event);
+    EventList* oscarUaList = oscarSession->AddEventList(CPAP_Apnea, EVL_Event);
 
     for (auto & bmcEvent : bmcSession->RespiratoryEvents)
     {
@@ -227,6 +358,7 @@ void BmcLoader::setSessionRespiratoryEvents(BmcSession* bmcSession, Session* osc
         case BmcRespiratoryEventType::OSA: oscarOsaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
         case BmcRespiratoryEventType::CSA: oscarCsaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
         case BmcRespiratoryEventType::HYP: oscarHypList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
+        case BmcRespiratoryEventType::UA: oscarUaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
         default: qDebug() << "Unknown BMC respiratory event type not added to OSCAR";
 
         }
@@ -236,13 +368,31 @@ void BmcLoader::setSessionRespiratoryEvents(BmcSession* bmcSession, Session* osc
 //Given a created session, we add the BMC waveforms for the session to the OSCAR session
 void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSession)
 {
-    auto wPressure = oscarSession->AddEventList(CPAP_Pressure, EVL_Event, 0.5, 0.0, 0.0, 0.0, 1000);
-    auto wIPAP = oscarSession->AddEventList(CPAP_EPAP, EVL_Event, 0.5, 0.0, 0.0, 0.0, 1000);
-    auto wEPAP = oscarSession->AddEventList(CPAP_IPAP, EVL_Event, 0.5, 0.0, 0.0, 0.0, 1000);
+    const double waveformSampleIntervalMs = WaveformSampleIntervalMs();
+    const int waveformSamplesPerPacket = WaveformSamplesPerPacket();
+    const qint64 waveformPacketDurationMs = WaveformPacketDurationMs();
 
-    auto wFlow = oscarSession->AddEventList(CPAP_FlowRate, EVL_Waveform, 0.1, 0.0, 0.0, 0.0, 1000/25.0);
-    auto wPressureWave = oscarSession->AddEventList(BMC_PressureWave, EVL_Waveform, 1.0, 0.0, 0.0, 0.0, 1000/25.0);
-    auto wFlowAbnormality = oscarSession->AddEventList(BMC_FlowAbnormality, EVL_Waveform, 1.0, 0.0, 0.0, 0.0, 1000/25.0);
+    auto wPressure = oscarSession->AddEventList(CPAP_Pressure, EVL_Event, 0.5, 0.0, 0.0, 0.0, 1000);
+    auto wIPAP = oscarSession->AddEventList(CPAP_IPAP, EVL_Event, 0.5, 0.0, 0.0, 0.0, 1000);
+    auto wEPAP = oscarSession->AddEventList(CPAP_EPAP, EVL_Event, 0.5, 0.0, 0.0, 0.0, 1000);
+
+    auto wFlow = oscarSession->AddEventList(CPAP_FlowRate, EVL_Waveform, FlowWaveformGain(), 0.0, 0.0, 0.0, waveformSampleIntervalMs);
+    EventList* wPressureWave = nullptr;
+    EventList* wFlowAbnormality = nullptr;
+    if (ExportPressureWaveform()) {
+        wPressureWave = oscarSession->AddEventList(BMC_PressureWave,
+                                                   EVL_Waveform,
+                                                   PressureWaveformGain(),
+                                                   0.0, 0.0, 0.0,
+                                                   waveformSampleIntervalMs);
+    }
+    if (ExportFlowAbnormalityWaveform()) {
+        wFlowAbnormality = oscarSession->AddEventList(BMC_FlowAbnormality,
+                                                      EVL_Waveform,
+                                                      FlowAbnormalityWaveformGain(),
+                                                      0.0, 0.0, 0.0,
+                                                      waveformSampleIntervalMs);
+    }
 
     auto wLeak = oscarSession->AddEventList(CPAP_Leak, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000);
     auto wTidalVolume = oscarSession->AddEventList(CPAP_TidalVolume, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
@@ -255,36 +405,74 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
     auto wInspTime = oscarSession->AddEventList(CPAP_Ti, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
     auto wExpTime = oscarSession->AddEventList(CPAP_Te, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
 
+    qint16 rawIpapMin = std::numeric_limits<qint16>::max();
+    qint16 rawIpapMax = std::numeric_limits<qint16>::min();
+    qint16 rawEpapMin = std::numeric_limits<qint16>::max();
+    qint16 rawEpapMax = std::numeric_limits<qint16>::min();
+    quint16 rawLeakMin = std::numeric_limits<quint16>::max();
+    quint16 rawLeakMax = std::numeric_limits<quint16>::min();
+    qint16 rawTvMin = std::numeric_limits<qint16>::max();
+    qint16 rawTvMax = std::numeric_limits<qint16>::min();
+    qint16 rawMvMin = std::numeric_limits<qint16>::max();
+    qint16 rawMvMax = std::numeric_limits<qint16>::min();
+    quint16 rawRrMin = std::numeric_limits<quint16>::max();
+    quint16 rawRrMax = std::numeric_limits<quint16>::min();
+    int pressureEventCount = 0;
+
 
     for (auto & bmcWaveform : bmcSession->Waveforms)
     {
         qint64 timestamp = bmcWaveform.Timestamp.toMSecsSinceEpoch();
 
-        wFlow->AddWaveform(timestamp, bmcWaveform.Raw.Flow, 25, 1000);
-        wPressureWave->AddWaveform(timestamp, bmcWaveform.Raw.PressureWave, 25, 1000);
-        wFlowAbnormality->AddWaveform(timestamp, bmcWaveform.Raw.FlowAbnormality, 25, 1000);
+        wFlow->AddWaveform(timestamp, bmcWaveform.Raw.Flow, waveformSamplesPerPacket, waveformPacketDurationMs);
+        if (wPressureWave) {
+            wPressureWave->AddWaveform(timestamp, bmcWaveform.Raw.PressureWave, waveformSamplesPerPacket, waveformPacketDurationMs);
+        }
+        if (wFlowAbnormality) {
+            wFlowAbnormality->AddWaveform(timestamp, bmcWaveform.Raw.FlowAbnormality, waveformSamplesPerPacket, waveformPacketDurationMs);
+        }
 
         wPressure->AddEvent(timestamp, bmcWaveform.Raw.IPAP);
         wIPAP->AddEvent(timestamp, bmcWaveform.Raw.IPAP);
         wEPAP->AddEvent(timestamp, bmcWaveform.Raw.EPAP);
-        wLeak->AddEvent(timestamp, bmcWaveform.Raw.Leak);
-        wTidalVolume->AddEvent(timestamp, bmcWaveform.Raw.TidalVolume);
-        wMinuteVentilation->AddEvent(timestamp, bmcWaveform.Raw.MinuteVentilation);
+        rawIpapMin = std::min<qint16>(rawIpapMin, bmcWaveform.Raw.IPAP);
+        rawIpapMax = std::max<qint16>(rawIpapMax, bmcWaveform.Raw.IPAP);
+        rawEpapMin = std::min<qint16>(rawEpapMin, bmcWaveform.Raw.EPAP);
+        rawEpapMax = std::max<qint16>(rawEpapMax, bmcWaveform.Raw.EPAP);
+        rawLeakMin = std::min<quint16>(rawLeakMin, bmcWaveform.Raw.Leak);
+        rawLeakMax = std::max<quint16>(rawLeakMax, bmcWaveform.Raw.Leak);
+        rawTvMin = std::min<qint16>(rawTvMin, bmcWaveform.Raw.TidalVolume);
+        rawTvMax = std::max<qint16>(rawTvMax, bmcWaveform.Raw.TidalVolume);
+        rawMvMin = std::min<qint16>(rawMvMin, bmcWaveform.Raw.MinuteVentilation);
+        rawMvMax = std::max<qint16>(rawMvMax, bmcWaveform.Raw.MinuteVentilation);
+        rawRrMin = std::min<quint16>(rawRrMin, bmcWaveform.Raw.RespiratoryRate);
+        rawRrMax = std::max<quint16>(rawRrMax, bmcWaveform.Raw.RespiratoryRate);
+        ++pressureEventCount;
+        if (bmcWaveform.Raw.Leak > 0)
+            wLeak->AddEvent(timestamp, bmcWaveform.Raw.Leak);
+        if (bmcWaveform.Raw.TidalVolume > 0)
+            wTidalVolume->AddEvent(timestamp, bmcWaveform.Raw.TidalVolume);
+        if (bmcWaveform.Raw.MinuteVentilation > 0)
+            wMinuteVentilation->AddEvent(timestamp, bmcWaveform.Raw.MinuteVentilation);
         if (bmcWaveform.Raw.SpO2Pct > 0)
             wSpO2->AddEvent(timestamp, bmcWaveform.Raw.SpO2Pct);
         if (bmcWaveform.Raw.PulseRate > 0)
             wPulse->AddEvent(timestamp, bmcWaveform.Raw.PulseRate);
-        wRespiratoryRate->AddEvent(timestamp, bmcWaveform.Raw.RespiratoryRate);
-        const int ieMapped = bmcWaveform.Raw.IERatioMapped;     // 0-100
+        if (bmcWaveform.Raw.RespiratoryRate > 0)
+            wRespiratoryRate->AddEvent(timestamp, bmcWaveform.Raw.RespiratoryRate);
+        const int ieMapped = bmcWaveform.Raw.IERatioMapped;
+        const bool ieMappedPermille = (ieMapped > 100);
         if (ieMapped > 0) {
-            /* IE value (es. 1:2 ≈ 500) */
+            const double ieNumerator = ieMappedPermille ? 1000.0 : 100.0;
             const qint16 ieValue = static_cast<qint16>(
-                1000.0 * (100.0 - ieMapped) / ieMapped);
-            wIEValue ->AddEvent(timestamp, ieValue);
+                1000.0 * (ieNumerator - ieMapped) / ieMapped);
+            wIEValue->AddEvent(timestamp, ieValue);
         } else {
-            wIEValue ->AddEvent(timestamp, 0);
+            wIEValue->AddEvent(timestamp, 0);
         }
-        wIERatio->AddEvent(timestamp, ieMapped);
+        const qint16 ieRatioDisplayValue = static_cast<qint16>(
+            ieMappedPermille ? qRound(static_cast<double>(ieMapped) / 10.0) : ieMapped);
+        wIERatio->AddEvent(timestamp, ieRatioDisplayValue);
 
         /* compute Ti/Te so OSCAR doesn't need to guess from Flow waveform peaks */
         if (bmcWaveform.RespiratoryRate > 0)
@@ -321,6 +509,23 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
         }
 
     }
+
+    if (pressureEventCount > 0) {
+        qDebug() << "BmcLoader::setSessionWaveforms pressure export"
+                 << "events" << pressureEventCount
+                 << "raw_ipap_min_halfcm" << rawIpapMin
+                 << "raw_ipap_max_halfcm" << rawIpapMax
+                 << "raw_epap_min_halfcm" << rawEpapMin
+                 << "raw_epap_max_halfcm" << rawEpapMax
+                 << "raw_leak_min_tenths" << rawLeakMin
+                 << "raw_leak_max_tenths" << rawLeakMax
+                 << "raw_tv_min_ml" << rawTvMin
+                 << "raw_tv_max_ml" << rawTvMax
+                 << "raw_mv_min_tenths" << rawMvMin
+                 << "raw_mv_max_tenths" << rawMvMax
+                 << "raw_rr_min_bpm" << rawRrMin
+                 << "raw_rr_max_bpm" << rawRrMax;
+    }
 }
 
 
@@ -341,9 +546,7 @@ bool BmcLoader::Detect(const QString & givenpath)
         return false;
     }
 
-    bool hasBmcData = BmcData::DirectoryHasBmcData(givenpath);
-
-    return hasBmcData;
+    return BmcData::DirectoryHasBmcData(givenpath);
 }
 
 /*
@@ -355,8 +558,8 @@ MachineInfo BmcLoader::PeekInfo(const QString & path)
         return MachineInfo();
     }
 
-    BmcData bmc(path);
-    auto bmcMachineInfo = bmc.ReadMachineInfo();
+    auto parser = std::make_unique<BmcData>(path);
+    auto bmcMachineInfo = parser->ReadMachineInfo();
 
     MachineInfo info = newInfo();
     info.type = MachineType::MT_CPAP;
@@ -375,15 +578,17 @@ MachineInfo BmcLoader::PeekInfo(const QString & path)
 */
 void BmcLoader::initChannels()
 {
+    if (bmc_channels_initialized) {
+        return;
+    }
+
     using namespace schema;
 
-    int BMC_CHANNEL_IDX = 0xe930;
-
-    int channelIdx = BMC_CHANNEL_IDX;
+    const int BMC_CHANNEL_IDX = 0xe930;
 
     //Mode
     //---------------------------------------------------------------------------
-    Channel * chan = new Channel(BMC_MODE = channelIdx++ , SETTING, MT_CPAP, SESSION,
+    Channel * chan = new Channel(BMC_MODE = BMC_CHANNEL_IDX + 0, SETTING, MT_CPAP, SESSION,
                                 "BMC_Mode", QObject::tr("BMC Mode"), QObject::tr("BMC Mode"), QObject::tr("BMC Mode"), "", LOOKUP, Qt::green);
     channel.add(GRP_CPAP, chan);
     chan->addOption(0, QObject::tr("CPAP"));
@@ -396,7 +601,7 @@ void BmcLoader::initChannels()
     chan->addOption(7, QObject::tr("Unknown"));
 
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_RESLEX = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_RESLEX = BMC_CHANNEL_IDX + 1, SETTING, MT_CPAP,   SESSION,
                                              "Reslex", QObject::tr("Reslex"), QObject::tr("BMC Reslex is an exhalation pressure relief feature"), QObject::tr("Reslex"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, QObject::tr("1"));
@@ -405,11 +610,11 @@ void BmcLoader::initChannels()
     chan->addOption(4, QObject::tr("Patient"));
 
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_RESLEX_MODE = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_RESLEX_MODE = BMC_CHANNEL_IDX + 2, SETTING, MT_CPAP,   SESSION,
                                              "ReslexMode", QObject::tr("Reslex Mode"), QObject::tr("Reslex Mode"), QObject::tr("Reslex Mode"), "", LOOKUP, Qt::green));
     chan->addOption(0, "Full Time");
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_HUMIDIFIER = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_HUMIDIFIER = BMC_CHANNEL_IDX + 3, SETTING, MT_CPAP,   SESSION,
                                              "Humidifier", QObject::tr("Humidifier"), QObject::tr("Humidifier"), QObject::tr("Humidifier"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, QObject::tr("1"));
@@ -419,44 +624,44 @@ void BmcLoader::initChannels()
     chan->addOption(5, QObject::tr("5"));
     chan->addOption(6, STR_TR_Auto);
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_SMARTA = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_SMARTA = BMC_CHANNEL_IDX + 4, SETTING, MT_CPAP,   SESSION,
                                              "SmartA", QObject::tr("SmartA"), QObject::tr("SmartA"), QObject::tr("SmartA"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, STR_TR_On);
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_SMARTB = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_SMARTB = BMC_CHANNEL_IDX + 5, SETTING, MT_CPAP,   SESSION,
                                              "SmartB", QObject::tr("SmartB"), QObject::tr("SmartB"), QObject::tr("SmartB"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, STR_TR_On);
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_SMARTC = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_SMARTC = BMC_CHANNEL_IDX + 6, SETTING, MT_CPAP,   SESSION,
                                              "SmartC", QObject::tr("SmartC"), QObject::tr("SmartC"), QObject::tr("SmartC"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, STR_TR_On);
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_AUTO_ON = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_AUTO_ON = BMC_CHANNEL_IDX + 7, SETTING, MT_CPAP,   SESSION,
                                              "AutoOn", QObject::tr("Auto On"), QObject::tr("Auto On"), QObject::tr("Auto On"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, STR_TR_On);
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_AUTO_OFF = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_AUTO_OFF = BMC_CHANNEL_IDX + 8, SETTING, MT_CPAP,   SESSION,
                                              "AutoOff", QObject::tr("Auto Off"), QObject::tr("Auto Off"), QObject::tr("Auto Off"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, STR_TR_On);
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_LEAK_ALERT = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_LEAK_ALERT = BMC_CHANNEL_IDX + 9, SETTING, MT_CPAP,   SESSION,
                                              "LeakAlert", QObject::tr("Leak Alert"), QObject::tr("Leak Alert"), QObject::tr("Leak Alert"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, STR_TR_On);
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_AIRTUBE_TYPE = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_AIRTUBE_TYPE = BMC_CHANNEL_IDX + 10, SETTING, MT_CPAP,   SESSION,
                                              "AirTubeType", QObject::tr("Air Tube Type"), QObject::tr("Air Tube Type"), QObject::tr("Air Tube Type"), "", LOOKUP, Qt::green));
     chan->addOption(0, QObject::tr("Normal 22mm"));
     chan->addOption(1, QObject::tr("Normal 15mm"));
     chan->addOption(2, QObject::tr("Heated 22mm"));
     chan->addOption(3, QObject::tr("Heated 22mm"));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_MASKTYPE = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_MASKTYPE = BMC_CHANNEL_IDX + 11, SETTING, MT_CPAP,   SESSION,
                                              "MaskType", QObject::tr("Mask"), QObject::tr("Mask"), QObject::tr("Mask"), "", LOOKUP, Qt::green));
     chan->addOption(0, QObject::tr("Full Face"));
     chan->addOption(1, QObject::tr("Nasal"));
@@ -464,7 +669,7 @@ void BmcLoader::initChannels()
     chan->addOption(3, QObject::tr("Unknown"));
 
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_HEATEDTUBE_LEVEL = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_HEATEDTUBE_LEVEL = BMC_CHANNEL_IDX + 12, SETTING, MT_CPAP,   SESSION,
                                              "HeatedTubeLevel", QObject::tr("Heated Tube Level"), QObject::tr("Heated Tube Level"), QObject::tr("Heated Tube Level"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, QObject::tr("1"));
@@ -475,75 +680,77 @@ void BmcLoader::initChannels()
     chan->addOption(6, STR_TR_Auto);
 
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_RAMPTIME = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_RAMPTIME = BMC_CHANNEL_IDX + 13, SETTING, MT_CPAP,   SESSION,
                                              "BmcRampTime", QObject::tr("BmcRampTime"), QObject::tr("Ramp Time "), QObject::tr("Ramp Time "), STR_UNIT_Minutes, INTEGER, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_RAMPTIME_AUTO = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_RAMPTIME_AUTO = BMC_CHANNEL_IDX + 14, SETTING, MT_CPAP,   SESSION,
                                              "BmcRampAuto", QObject::tr("BmcRampAuto"), QObject::tr("Ramp Time "), QObject::tr("Ramp Time "), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Auto);
 
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_INITIALP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_INITIALP = BMC_CHANNEL_IDX + 15, SETTING, MT_CPAP,   SESSION,
                                              "InitialP", QObject::tr("InitialP"), QObject::tr("Initial P"), QObject::tr("Initial P"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_TREATP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_TREATP = BMC_CHANNEL_IDX + 16, SETTING, MT_CPAP,   SESSION,
                                              "TreatP", QObject::tr("TreatP"), QObject::tr("Treat P"), QObject::tr("Treat P"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_MANUALP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_MANUALP = BMC_CHANNEL_IDX + 17, SETTING, MT_CPAP,   SESSION,
                                              "ManualP", QObject::tr("ManualP"), QObject::tr("Manual P"), QObject::tr("Manual P"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_MIN_APAP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_MIN_APAP = BMC_CHANNEL_IDX + 18, SETTING, MT_CPAP,   SESSION,
                                              "MinAPAP", QObject::tr("Min APAP"), QObject::tr("Min APAP"), QObject::tr("Min APAP"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_MAX_APAP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_MAX_APAP = BMC_CHANNEL_IDX + 19, SETTING, MT_CPAP,   SESSION,
                                              "MaxAPAP", QObject::tr("Max APAP"), QObject::tr("Max APAP"), QObject::tr("Max APAP"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_SENSITIVITY = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_SENSITIVITY = BMC_CHANNEL_IDX + 20, SETTING, MT_CPAP,   SESSION,
                                              "Sensitivity", QObject::tr("Sensitivity"), QObject::tr("Sensitivity"), QObject::tr("Sensitivity"), "", INTEGER, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_INITIAL_EPAP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_INITIAL_EPAP = BMC_CHANNEL_IDX + 21, SETTING, MT_CPAP,   SESSION,
                                              "InitialEPAP", QObject::tr("Initial EPAP"), QObject::tr("Initial EPAP"), QObject::tr("Initial EPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_EPAP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_EPAP = BMC_CHANNEL_IDX + 22, SETTING, MT_CPAP,   SESSION,
                                              "BmcEPAP", QObject::tr("EPAP"), QObject::tr("EPAP"), QObject::tr("EPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_IPAP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_IPAP = BMC_CHANNEL_IDX + 23, SETTING, MT_CPAP,   SESSION,
                                              "BmcIPAP", QObject::tr("IPAP"), QObject::tr("IPAP"), QObject::tr("IPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_ISENS = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_ISENS = BMC_CHANNEL_IDX + 24, SETTING, MT_CPAP,   SESSION,
                                              "ISens", QObject::tr("ISens"), QObject::tr("I Sens"), QObject::tr("I Sens"), "", INTEGER, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_ESENS = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_ESENS = BMC_CHANNEL_IDX + 25, SETTING, MT_CPAP,   SESSION,
                                              "ESens", QObject::tr("ESens"), QObject::tr("E Sens"), QObject::tr("E Sens"), "", INTEGER, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_RISE_TIME = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_RISE_TIME = BMC_CHANNEL_IDX + 26, SETTING, MT_CPAP,   SESSION,
                                              "RiseTime", QObject::tr("RiseTime"), QObject::tr("Rise Time"), QObject::tr("Rise Time"), STR_UNIT_Seconds, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_TI_MIN = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_TI_MIN = BMC_CHANNEL_IDX + 27, SETTING, MT_CPAP,   SESSION,
                                              "TiMin", QObject::tr("TiMin"), QObject::tr("Ti Min"), QObject::tr("Ti Min"), STR_UNIT_Seconds, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_TI_MAX = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_TI_MAX = BMC_CHANNEL_IDX + 28, SETTING, MT_CPAP,   SESSION,
                                              "TiMax", QObject::tr("TiMax"), QObject::tr("Ti Max"), QObject::tr("Ti Max"), STR_UNIT_Seconds, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_BACKUP_RR = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_BACKUP_RR = BMC_CHANNEL_IDX + 29, SETTING, MT_CPAP,   SESSION,
                                              "BackupRR", QObject::tr("BackupRR"), QObject::tr("Backup RR"), QObject::tr("Backup RR"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, STR_TR_On);
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_MIN_EPAP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_MIN_EPAP = BMC_CHANNEL_IDX + 30, SETTING, MT_CPAP,   SESSION,
                                              "MinEPAP", QObject::tr("MinEPAP"), QObject::tr("Min EPAP"), QObject::tr("Min EPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_MIN_IPAP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_MIN_IPAP = BMC_CHANNEL_IDX + 31, SETTING, MT_CPAP,   SESSION,
                                              "MinIPAP", QObject::tr("MinIPAP"), QObject::tr("Min IPAP"), QObject::tr("Min IPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_MAX_IPAP = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_MAX_IPAP = BMC_CHANNEL_IDX + 32, SETTING, MT_CPAP,   SESSION,
                                              "BmcMaxIPAP", QObject::tr("MaxIPAP"), QObject::tr("Max IPAP"), QObject::tr("Max IPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
 
-    channel.add(GRP_CPAP, chan = new Channel(BMC_RESLEX_PATIENT = channelIdx++, SETTING, MT_CPAP,   SESSION,
+    channel.add(GRP_CPAP, chan = new Channel(BMC_RESLEX_PATIENT = BMC_CHANNEL_IDX + 33, SETTING, MT_CPAP,   SESSION,
                                              "ReslexAvailability", QObject::tr("Reslex Availability"), QObject::tr("Reslex setting can be restricted to only clinician menu or may be made available for the user to change"), QObject::tr("Reslex Availability"), "", LOOKUP, Qt::green));
     chan->addOption(0, QObject::tr("Clinician"));
     chan->addOption(1, QObject::tr("Patient"));
+
+    bmc_channels_initialized = true;
 }
 
 /*
@@ -574,8 +781,8 @@ int BmcLoader::Open(const QString & dirpath)
     QCoreApplication::processEvents();
 
     const auto machine_info = PeekInfo(dirpath);
-    BmcData bmc(dirpath);
-    bmc.ReadData();
+    std::unique_ptr<BmcDataParser> parser = std::make_unique<BmcData>(dirpath);
+    parser->ReadData();
 
     //******************************************************************************
     //#endregion
@@ -611,6 +818,17 @@ int BmcLoader::Open(const QString & dirpath)
     if (ignoreOldSessions && (ignoreBefore.date() > firstImportDay))
         firstImportDay = ignoreBefore.date();
     qDebug() << "First day to import: " << firstImportDay.toString();
+
+    // Session::Store() requires a machine database id. Ensure the machine row exists
+    // before import tasks start storing session/event data.
+    if (mach->getDatabaseId() == 0) {
+        qDebug() << "BmcLoader::Open: Saving machine to database before runTasks()";
+        if (!mach->SaveToDatabase()) {
+            qWarning() << "BmcLoader::Open: Failed to save machine to database - session/event tables may stay empty";
+        } else {
+            qDebug() << "BmcLoader::Open: Machine saved to database with ID" << mach->getDatabaseId();
+        }
+    }
     //******************************************************************************
     //#endregion
 
@@ -638,7 +856,8 @@ int BmcLoader::Open(const QString & dirpath)
     //******************************************************************************
 
     QList<BmcDataLink> linksToImport;
-    for (auto & link : bmc.SessionLinks)
+    const QList<BmcDataLink>& parserLinks = parser->GetSessionLinks();
+    for (auto & link : parserLinks)
     {
         if (link.UsrSession.StartTimestamp.date() >= firstImportDay){
             linksToImport.append(link);
@@ -670,7 +889,7 @@ int BmcLoader::Open(const QString & dirpath)
         BmcDataLink *link;
         link = (BmcDataLink*)&linksToImport.at(i);
 
-        queTask(new BmcLoaderTask(this, mach, &bmc, link, linksToImport.length(), i));
+        queTask(new BmcLoaderTask(this, mach, parser.get(), link, linksToImport.length(), i));
     }
 
 
@@ -699,3 +918,4 @@ void BmcLoader::Register()
 
     bmc_initialized = true;
 }
+

@@ -153,6 +153,7 @@ QString Welcome::GenerateCPAPHTML()
     "<style type='text/css'>"
     "p,a,td,body { font-family: '"+QApplication::font().family()+"'; }"
     "p,a,td,body { font-size: "+QString::number(QApplication::font().pointSize() + 2)+"px; }"
+    "body { color: black; }"
     "</style>"
     "</head>"
 
@@ -361,6 +362,7 @@ QString Welcome::GenerateOxiHTML()
     "<style type='text/css'>"
     "p,a,td,body { font-family: '"+QApplication::font().family()+"'; }"
     "p,a,td,body { font-size: "+QString::number(QApplication::font().pointSize() + 2)+"px; }"
+    "body { color: black; }"
     "</style>"
     "</head>"
 

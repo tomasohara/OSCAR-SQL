@@ -19,6 +19,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QSet>
 #include <QDebug>
 #include <QApplication>
 
@@ -577,7 +578,8 @@ bool ProfileImporter::loadSessionsFromFiles(Profile* profile,
             qWarning() << "Could not find machine for folder" << entry;
             qWarning() << "Available machines:" << profile->m_machlist.size();
             for (Machine* m : profile->m_machlist) {
-                qWarning() << "  - Machine hexid:" << m->hexid();
+                qWarning() << "  - Machine hexid:" << m->hexid() << "serial:" << m->serial()
+                           << "loader:" << m->loaderName() << "type:" << m->type();
             }
             skippedFolders << entry;
             continue;
@@ -594,9 +596,68 @@ bool ProfileImporter::loadSessionsFromFiles(Profile* profile,
     }
 
     if (!skippedFolders.isEmpty()) {
-        m_lastError = tr("Could not match machine folder(s) to imported profile: %1")
-                          .arg(skippedFolders.join(", "));
-        return false;
+        // Second pass: process-of-elimination matching.
+        // Collect machines that were not matched by any folder in the first pass.
+        QSet<Machine*> matchedMachines;
+        for (const QString& entry : entries) {
+            if (entry.startsWith("Journal_") || entry == "Summaries" || entry == "Events") {
+                continue;
+            }
+            if (skippedFolders.contains(entry)) {
+                continue;  // This folder failed to match
+            }
+            Machine* m = findMachineByFolderName(profile, entry);
+            if (m) {
+                matchedMachines.insert(m);
+            }
+        }
+
+        QList<Machine*> unmatchedMachines;
+        for (Machine* m : profile->m_machlist) {
+            if (!matchedMachines.contains(m)) {
+                unmatchedMachines.append(m);
+            }
+        }
+
+        // If the number of unmatched machines equals the number of skipped folders,
+        // try to assign them by machine type.
+        if (unmatchedMachines.size() == skippedFolders.size()) {
+            QStringList stillSkipped;
+            for (const QString& skipped : skippedFolders) {
+                QString oldMachinePath = oldPath + "/" + skipped;
+                // Find an unmatched machine of type MT_CPAP (ResMed folders are always CPAP)
+                Machine* assigned = nullptr;
+                for (Machine* candidate : unmatchedMachines) {
+                    if (candidate->type() == MT_CPAP) {
+                        assigned = candidate;
+                        break;
+                    }
+                }
+                if (!assigned && !unmatchedMachines.isEmpty()) {
+                    assigned = unmatchedMachines.first();
+                }
+                if (assigned) {
+                    qWarning() << "ProfileImporter: Using process-of-elimination to assign folder"
+                               << skipped << "to machine serial:" << assigned->serial()
+                               << "hexid:" << assigned->hexid();
+                    unmatchedMachines.removeOne(assigned);
+                    if (!loadMachineSessions(assigned, oldMachinePath)) {
+                        return false;
+                    }
+                } else {
+                    stillSkipped << skipped;
+                }
+            }
+            if (!stillSkipped.isEmpty()) {
+                m_lastError = tr("Could not match machine folder(s) to imported profile: %1")
+                                  .arg(stillSkipped.join(", "));
+                return false;
+            }
+        } else {
+            m_lastError = tr("Could not match machine folder(s) to imported profile: %1")
+                              .arg(skippedFolders.join(", "));
+            return false;
+        }
     }
 
     // Debug: Check profile's overall daylist

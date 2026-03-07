@@ -5,6 +5,7 @@
 #include <QBuffer>
 
 #include <QDebug>
+#include <algorithm>
 
 
 #ifdef DEBUG_BMC
@@ -385,10 +386,17 @@ BmcWaveformPacket::BmcWaveformPacket(char* buffer)
 {
     BmcWaveformPacketStruct* packetStruct = (BmcWaveformPacketStruct*)buffer;
 
+    std::fill_n(this->Flow, kBmcExtendedWaveformSamples, 0.0f);
+    std::fill_n(this->PressureWave, kBmcExtendedWaveformSamples, 0);
+    std::fill_n(this->FlowAbnormality, kBmcExtendedWaveformSamples, 0);
+    std::fill_n(this->Raw.Flow, kBmcExtendedWaveformSamples, 0);
+    std::fill_n(this->Raw.PressureWave, kBmcExtendedWaveformSamples, 0);
+    std::fill_n(this->Raw.FlowAbnormality, kBmcExtendedWaveformSamples, 0);
+
     this->EPAP = packetStruct->EPAP / 2.0f;
     this->IPAP = packetStruct->IPAP / 2.0f;
 
-    for (int i = 0; i < 25; i++)
+    for (int i = 0; i < kBmcLegacyWaveformSamples; i++)
     {
         this->Flow[i] = packetStruct->Flow[i] / 10.0f;
         this->PressureWave[i] = packetStruct->PressureWave[i];
@@ -406,7 +414,7 @@ BmcWaveformPacket::BmcWaveformPacket(char* buffer)
     this->Raw.EPAP = packetStruct->EPAP;
     this->Raw.IPAP = packetStruct->IPAP;
 
-    for (int i = 0; i < 25; i++)
+    for (int i = 0; i < kBmcLegacyWaveformSamples; i++)
     {
         this->Raw.Flow[i] = packetStruct->Flow[i];
         this->Raw.PressureWave[i] = packetStruct->PressureWave[i];
@@ -605,6 +613,11 @@ BmcDateSession BmcData::ReadDateSession(QDate aDate)
 
 
     return dateSession;
+}
+
+const QList<BmcDataLink>& BmcData::GetSessionLinks() const
+{
+    return this->SessionLinks;
 }
 
 
@@ -821,6 +834,10 @@ QList<BmcWaveformPacket> BmcData::ReadWaveforms(BmcDataLink& link)
             qout2.flush();
 #endif
             BmcWaveformPacket packet(packetBuf);
+            // Legacy BMC packet pressure fields are reversed relative to how OSCAR
+            // expects IPAP/EPAP channels; correct here for legacy imports only.
+            std::swap(packet.IPAP, packet.EPAP);
+            std::swap(packet.Raw.IPAP, packet.Raw.EPAP);
 
             if (packet.Timestamp >= link.UsrSession.StartTimestamp &&
                 packet.Timestamp <= link.UsrSession.EndTimestamp)

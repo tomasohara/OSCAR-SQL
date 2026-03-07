@@ -5,6 +5,8 @@
 #include <QDataStream>
 #include <QList>
 
+constexpr int kBmcLegacyWaveformSamples = 25;
+constexpr int kBmcExtendedWaveformSamples = 50;
 
 //The raw I:E Ratio value recorded by BMC is transformed using a function that maps the raw
 //value to a percentage: `InspirationPercentage = (100 * rawValue) / (rawValue + 10)`
@@ -65,6 +67,7 @@ enum class BmcRespiratoryEventType
     HYP = 0,
     OSA,
     CSA,
+    UA,
     Unknown
 };
 
@@ -236,9 +239,9 @@ struct BmcWaveformPacketStruct{
     int16_t Offset0x02; //02
     int16_t IPAP; //04
     int16_t EPAP; //06
-    int16_t PressureWave[25]; //08
-    int16_t FlowAbnormality[25]; //3a
-    int16_t Flow[25]; //6c
+    int16_t PressureWave[kBmcLegacyWaveformSamples]; //08
+    int16_t FlowAbnormality[kBmcLegacyWaveformSamples]; //3a
+    int16_t Flow[kBmcLegacyWaveformSamples]; //6c
     int16_t Offset0x9E;
     int16_t Offset0xA0;
     int16_t Offset0xA2;
@@ -301,9 +304,9 @@ public:
     QDateTime Timestamp;
     qint16 IPAP;
     qint16 EPAP;
-    qint16 PressureWave[25];
-    qint16 FlowAbnormality[25];
-    qint16 Flow[25];
+    qint16 PressureWave[kBmcExtendedWaveformSamples];
+    qint16 FlowAbnormality[kBmcExtendedWaveformSamples];
+    qint16 Flow[kBmcExtendedWaveformSamples];
     quint16 Leak;
     qint16 TidalVolume;
     qint16 MinuteVentilation;
@@ -321,9 +324,9 @@ public:
     QDateTime Timestamp;
     float IPAP;
     float EPAP;
-    qint16 PressureWave[25];
-    quint16 FlowAbnormality[25];
-    float Flow[25];
+    qint16 PressureWave[kBmcExtendedWaveformSamples];
+    quint16 FlowAbnormality[kBmcExtendedWaveformSamples];
+    float Flow[kBmcExtendedWaveformSamples];
     float Leak;
     int TidalVolume;
     float MinuteVentilation;
@@ -368,7 +371,18 @@ public:
     ~BmcDateSession();
 };
 
+class BmcDataParser
+{
+public:
+    virtual ~BmcDataParser() = default;
+    virtual void ReadData() = 0;
+    virtual BmcMachineInfo ReadMachineInfo() = 0;
+    virtual BmcDateSession ReadDateSession(QDate aDate) = 0;
+    virtual const QList<BmcDataLink>& GetSessionLinks() const = 0;
+};
+
 class BmcData
+    : public BmcDataParser
 {
 public:
     QList<BmcUsrSession> AllUsrSessions;
@@ -387,11 +401,12 @@ public:
     BmcData(const QString& path);
 
     int ReadDataCount();
-    void ReadData();
+    void ReadData() override;
 
-    BmcMachineInfo ReadMachineInfo();
+    BmcMachineInfo ReadMachineInfo() override;
 
-    BmcDateSession ReadDateSession(QDate aDate);
+    BmcDateSession ReadDateSession(QDate aDate) override;
+    const QList<BmcDataLink>& GetSessionLinks() const override;
 
 protected:
     QString dirPath;

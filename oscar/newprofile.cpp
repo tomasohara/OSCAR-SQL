@@ -11,6 +11,7 @@
 #include "test_macros.h"
 
 #include <QMessageBox>
+#include <QDir>
 #include <QFile>
 #include <QTextStream>
 #include <QCryptographicHash>
@@ -22,6 +23,7 @@
 #include <QTimeZone>
 
 #include "SleepLib/profiles.h"
+#include "database/profile_repository.h"
 
 #include "newprofile.h"
 #include "staticQMessageBox.h"
@@ -301,23 +303,32 @@ void NewProfile::on_nextButton_clicked()
 
             profile->Save();
             if ( !originalProfileName.isEmpty() && !newProfileName.isEmpty() && (originalProfileName != newProfileName)) {
-                QString originalProfileFullName = p_pref->Get("{home}/Profiles/") + originalProfileName;
-                QString newProfileFullName = p_pref->Get("{home}/Profiles/") + newProfileName;
-                QFile file(originalProfileFullName);
-                if (file.exists()) {
-                    bool status = file.rename(newProfileFullName);
+                QDir profilesDir(p_pref->Get("{home}/Profiles/"));
+                if (profilesDir.exists(originalProfileName)) {
+                    bool status = profilesDir.rename(originalProfileName, newProfileName);
                     if (status) {  // successful rename
                         Profiles::profiles[newProfileName] = p_profile;
                         AppSetting->setProfileName(newProfileName);
                         if (mainwin) mainwin->CloseProfile();
                         QCoreApplication::processEvents();
+                        // Update the database AFTER CloseProfile() so that Save() inside
+                        // CloseProfile() can still find "originalProfileName" in the DB.
+                        ProfileRepository profileRepo;
+                        ProfileData profileData = profileRepo.findByUsername(originalProfileName);
+                        if (profileData.id != 0) {
+                            profileData.username = newProfileName;
+                            profileData.dataFolder = QString("%PROFDIR%/") + newProfileName;
+                            profileRepo.update(profileData);
+                        } else {
+                            qWarning() << "NewProfile: could not find profile in DB for rename:" << originalProfileName;
+                        }
                         mainwin->RestartApplication(true,"-l");
                         QCoreApplication::processEvents();
                         exit(0);
                     } else {
-                        staticQMessageBox::question(this,
-                            tr("Duplicate or Invalid User Name"),
-                            tr("Please Change User Name "),
+                        staticQMessageBox::information(this,
+                            tr("Profile Name Already In Use"),
+                            tr("The name \"%1\" is already used by another profile. Please choose a different name.").arg(newProfileName),
                             QMessageBox::Ok);
                         index=1;
                         ui->stackedWidget->setCurrentIndex(index);

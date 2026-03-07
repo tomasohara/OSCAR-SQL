@@ -17,12 +17,12 @@ const QString bmc_class_name = "BMC";
 
 class BmcLoader;
 class BmcDataLink;
-class BmcData;
+class BmcDataParser;
 
 class BmcLoaderTask: public ImportTask
 {
 public:
-    BmcLoaderTask(BmcLoader* machineLoader, Machine* machine, BmcData* bmcData, BmcDataLink *dataLink, int totalLinkCount, int currentLinkIdx):
+    BmcLoaderTask(BmcLoader* machineLoader, Machine* machine, BmcDataParser* bmcData, BmcDataLink *dataLink, int totalLinkCount, int currentLinkIdx):
         bmcLoader(machineLoader),
         mach(machine),
         bmc(bmcData),
@@ -33,7 +33,7 @@ public:
 
     BmcLoader* bmcLoader;
     Machine* mach;
-    BmcData* bmc;
+    BmcDataParser* bmc;
     BmcDataLink* bmcLink;
     int totalLinksToImport;
     int currentLinkIndex;
@@ -80,6 +80,15 @@ public:
     virtual ChannelID PresReliefMode();
     virtual ChannelID PresReliefLevel();
     virtual ChannelID CPAPModeChannel();
+
+    virtual double FlowWaveformGain() const { return 0.1; }
+    virtual double PressureWaveformGain() const { return 1.0; }
+    virtual double FlowAbnormalityWaveformGain() const { return 1.0; }
+    virtual double WaveformSampleIntervalMs() const { return 1000 / 25.0; }
+    virtual int WaveformSamplesPerPacket() const { return 25; }
+    virtual qint64 WaveformPacketDurationMs() const { return 1000; }
+    virtual bool ExportPressureWaveform() const { return true; }
+    virtual bool ExportFlowAbnormalityWaveform() const { return true; }
 
     int sessionsLoaded;
 };
