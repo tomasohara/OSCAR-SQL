@@ -3113,12 +3113,26 @@ bool Profile::loadExtendedDataFromDatabase()
     if (!prefRepo.loadAllPreferences(profileId, cpap, oxi, session, appearance, general)) {
 //        qDebug() << "Profile::loadExtendedDataFromDatabase() - No preferences in database";
     }
-    
+
     // Load Profile-level preferences
+    // NOTE: saveProfilePreferencesToDatabase() saves ALL p_preferences keys under category
+    // "profile", overwriting the category-specific entries saved by saveAllPreferences().
+    // So the authoritative values for session/cpap/etc. keys are in category "profile",
+    // not "session"/"cpap"/etc.  This call populates p_preferences with the correct values.
     if (!loadProfilePreferencesFromDatabase()) {
 //      qDebug() << "Profile::loadExtendedDataFromDatabase() - No profile-level preferences in database";
     }
-    
+
+    // Refresh cached member variables in settings classes AFTER all DB loading is done.
+    // The settings classes cache values in member variables (e.g. m_preloadSummaries) set
+    // during construction.  loadAllPreferences/loadProfilePreferences update the underlying
+    // Preferences map via setPref(), but the cached members are not automatically updated.
+    // refreshCachedValues() re-reads the members from the now-populated map.
+    cpap->refreshCachedValues();
+    session->refreshCachedValues();
+    appearance->refreshCachedValues();
+    general->refreshCachedValues();
+
     return true;
 }
 

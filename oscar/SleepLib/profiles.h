@@ -732,7 +732,30 @@ class CPAPSettings : public PrefSettings
 
     void setEventPostcontext(double val) { setPref(STR_CS_EventPostcontext, m_event_postcontext=val); }
     void setConsolidateEvents(bool b) { setPref(STR_CS_ConsolidateEvents, m_consolidate_events=b); }
-    
+
+    //! \brief Refresh cached member variables from the underlying preference map (call after loading from DB).
+    void refreshCachedValues() {
+        m_complianceHours = getPref(STR_CS_ComplianceHours).toFloat();
+        m_clinicalMode = getPref(STR_CS_ClinicalMode).toBool();
+        m_userEventRestriction1 = getPref(STR_CS_UserFlowRestriction).toFloat();
+        m_userEventDuration1 = getPref(STR_CS_UserEventDuration).toFloat();
+        m_userEventRestriction2 = getPref(STR_CS_UserFlowRestriction2).toFloat();
+        m_userEventDuration2 = getPref(STR_CS_UserEventDuration2).toFloat();
+        m_userEventDuplicates = getPref(STR_CS_UserEventDuplicates).toBool();
+        m_userEventFlagging = getPref(STR_CS_UserEventFlagging).toBool();
+        m_ahiWindow = getPref(STR_CS_AHIWindow).toFloat();
+        m_ahiReset = getPref(STR_CS_AHIReset).toBool();
+        m_leakRedLine = getPref(STR_CS_LeakRedline).toFloat();
+        m_showLeakRedline = getPref(STR_CS_ShowLeakRedline).toBool();
+        m_resyncFromUserFlagging = getPref(STR_CS_ResyncFromUserFlagging).toBool();
+        m_calcUnintentionalLeaks = getPref(STR_CS_CalculateUnintentionalLeaks).toBool();
+        m_4cmH2OLeaks = getPref(STR_CS_4cmH2OLeaks).toDouble();
+        m_20cmH2OLeaks = getPref(STR_CS_20cmH2OLeaks).toDouble();
+        m_clock_drift = getPref(STR_CS_ClockDrift).toInt();
+        m_event_postcontext = getPref(STR_CS_EventPostcontext).toDouble();
+        m_consolidate_events = getPref(STR_CS_ConsolidateEvents).toBool();
+    }
+
   public:
     int m_clock_drift;
     double m_4cmH2OLeaks, m_20cmH2OLeaks;
@@ -796,6 +819,21 @@ class SessionSettings : public PrefSettings
     void setWarnOnUntestedMachine(bool b) { setPref(STR_IS_WarnOnUntestedMachine, m_warnOnUntestedMachine=b); }
     void setWarnOnUnexpectedData(bool b) { setPref(STR_IS_WarnOnUnexpectedData, m_warnOnUnexpectedData=b); }
 
+    //! \brief Refresh cached member variables from the underlying preference map (call after loading from DB).
+    void refreshCachedValues() {
+        m_daySplitTime = getPref(STR_IS_DaySplitTime).toTime();
+        m_preloadSummaries = getPref(STR_IS_PreloadSummaries).toBool();
+        m_combineCloseSessions = getPref(STR_IS_CombineCloseSessions).toDouble();
+        m_ignoreShortSessions = getPref(STR_IS_IgnoreShorterSessions).toDouble();
+        m_backupCardData = getPref(STR_IS_BackupCardData).toBool();
+        m_compressBackupData = getPref(STR_IS_CompressBackupData).toBool();
+        m_compressSessionData = getPref(STR_IS_CompressSessionData).toBool();
+        m_ignoreOlderSessions = getPref(STR_IS_IgnoreOlderSessions).toBool();
+        m_ignoreOlderSessionsDate = getPref(STR_IS_IgnoreOlderSessionsDate).toDateTime();
+        m_lockSummarySessions = getPref(STR_IS_LockSummarySessions).toBool();
+        m_warnOnUntestedMachine = getPref(STR_IS_WarnOnUntestedMachine).toBool();
+        m_warnOnUnexpectedData = getPref(STR_IS_WarnOnUnexpectedData).toBool();
+    }
 
     QTime m_daySplitTime;
     QDateTime m_ignoreOlderSessionsDate;
@@ -825,6 +863,12 @@ class AppearanceSettings : public PrefSettings
     //Setters
     void setEventFlagSessionBar(bool b) { setPref(STR_AS_EventFlagSessionBar, m_eventFlagSessionBar = b); }
     void setZombieMode(bool mode) { setPref(STR_CS_ZombieMode, m_zombieMode=mode); }
+
+    //! \brief Refresh cached member variables from the underlying preference map (call after loading from DB).
+    void refreshCachedValues() {
+        m_eventFlagSessionBar = getPref(STR_AS_EventFlagSessionBar).toBool();
+        m_zombieMode = getPref(STR_CS_ZombieMode).toBool();
+    }
 
     bool m_eventFlagSessionBar;
     bool m_zombieMode;
@@ -888,6 +932,16 @@ class UserSettings : public PrefSettings
     void setLastOverviewRange(int i) { setPref(STR_US_LastOverviewRange, i); }
     void setCustomOverviewRangeStart(QDate i) { setPref(STR_US_CustomOverviewRangeStart, i); }
     void setCustomOverviewRangeEnd(QDate i) { setPref(STR_US_CustomOverviewRangeEnd, i); }
+
+    //! \brief Refresh cached member variables from the underlying preference map (call after loading from DB).
+    void refreshCachedValues() {
+        m_skipEmptyDays = getPref(STR_US_SkipEmptyDays).toBool();
+        m_calculateRDI = getPref(STR_US_CalculateRDI).toBool();
+        m_prefCalcMiddle = getPref(STR_US_PrefCalcMiddle).toInt();
+        m_prefCalcPercentile = getPref(STR_US_PrefCalcPercentile).toDouble();
+        m_prefCalcMax = getPref(STR_US_PrefCalcMax).toInt();
+        m_showUnownFlags = getPref(STR_US_ShowUnknownFlags).toBool();
+    }
 
     bool m_calculateRDI, m_showUnownFlags,  m_skipEmptyDays;
     int m_prefCalcMiddle, m_prefCalcMax;

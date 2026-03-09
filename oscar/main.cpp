@@ -25,6 +25,7 @@
 #include <QFontDatabase>
 #include <QStandardPaths>
 #include <QProgressDialog>
+//#include <QStyleHints>
 
 #include "version.h"
 #include "logger.h"
@@ -329,6 +330,7 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(getAppName() + " 2.0"); // add major version so that QSettings separates this from prior version.
     QCoreApplication::setOrganizationName(getDeveloperName());
     QCoreApplication::setOrganizationDomain(getDeveloperDomain());
+//    QGuiApplication::styleHints()->colorScheme();  // Supporting dark mode would require an exhaustive change to OSCAR
 
     #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     HighResolution::init();

@@ -32,6 +32,7 @@ public:
     virtual int WaveformSamplesPerPacket() const override { return 50; }
     virtual qint64 WaveformPacketDurationMs() const override { return 1000; }
     virtual bool ExportFlowAbnormalityWaveform() const override { return false; }
+    virtual bool ExportLeakRate() const override { return false; }
 };
 
 #endif // BMCG3XLOADER_H

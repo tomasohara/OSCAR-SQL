@@ -89,6 +89,7 @@ public:
     virtual qint64 WaveformPacketDurationMs() const { return 1000; }
     virtual bool ExportPressureWaveform() const { return true; }
     virtual bool ExportFlowAbnormalityWaveform() const { return true; }
+    virtual bool ExportLeakRate() const { return true; }
 
     int sessionsLoaded;
 };

@@ -394,7 +394,7 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
                                                       waveformSampleIntervalMs);
     }
 
-    auto wLeak = oscarSession->AddEventList(CPAP_Leak, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000);
+    EventList* wLeak = ExportLeakRate() ? oscarSession->AddEventList(CPAP_Leak, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000) : nullptr;
     auto wTidalVolume = oscarSession->AddEventList(CPAP_TidalVolume, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wMinuteVentilation = oscarSession->AddEventList(CPAP_MinuteVent, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000);
     auto wRespiratoryRate = oscarSession->AddEventList(CPAP_RespRate, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
@@ -448,7 +448,7 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
         rawRrMin = std::min<quint16>(rawRrMin, bmcWaveform.Raw.RespiratoryRate);
         rawRrMax = std::max<quint16>(rawRrMax, bmcWaveform.Raw.RespiratoryRate);
         ++pressureEventCount;
-        if (bmcWaveform.Raw.Leak > 0)
+        if (wLeak && bmcWaveform.Raw.Leak > 0)
             wLeak->AddEvent(timestamp, bmcWaveform.Raw.Leak);
         if (bmcWaveform.Raw.TidalVolume > 0)
             wTidalVolume->AddEvent(timestamp, bmcWaveform.Raw.TidalVolume);

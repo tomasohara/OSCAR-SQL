@@ -1310,9 +1310,11 @@ void Session::updateCountSummary(ChannelID code)
         using namespace schema;
         Channel *ch_p = channel.channels[code];
         if (  ! ch_p->isNull() ) {                      // the channel was found in the channel list
+#ifdef DBDEBUG
             if ( ((ch_p->type() & (FLAG|SPAN|MINOR_FLAG)) == 0) ) {  // the channel is not a flag or span type
                 qDebug() << "No valuesummary for channel " << ch_p->label() <<  " " << QDateTime::fromMSecsSinceEpoch( realFirst()).toString() ;    // so tell about missing summary
             }
+#endif
         } else {
             // This channel wasn't added to the channel list, so we can't check its type
             qDebug() << "No valuesummary for channel (hex)" << QString::number(code, 16);
@@ -2522,7 +2524,9 @@ Session::PercentilesResult Session::calculatePercentiles(ChannelID id)
 
     auto ei = m_valuesummary.find(id);
     if (ei == m_valuesummary.end()) {
+#ifdef DBDEBUG
         qWarning() << "Session::calculatePercentiles() - no value summary for channel" << id << QString::number(id, 16);
+#endif
         return result; // valid = false
     }
 
@@ -2531,7 +2535,9 @@ Session::PercentilesResult Session::calculatePercentiles(ChannelID id)
     
     if (!timeweight) {
         // Fallback: no time summary available
+#ifdef DBDEBUG
         qWarning() << "Session::calculatePercentiles() - no time summary for channel" << id << QString::number(id, 16);
+#endif
         return result; // valid = false
     }
 
@@ -2931,8 +2937,10 @@ bool Session::StoreToDatabase()
                     needsPercentiles = false;
                 }
             }
+#ifdef DBDEBUG
             if (needsPercentiles && (channel.count > 10000))
                 qDebug() << "Channel" << QString::number(id, 16) << "has lots of events -" << channel.count;
+#endif
 
             // Check if eventlist actually contains data for this channel
             bool hasEventData = needsPercentiles &&
