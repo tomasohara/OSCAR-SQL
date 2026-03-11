@@ -581,7 +581,9 @@ BmcDateSession BmcData::ReadDateSession(QDate aDate)
     BmcSession* session = new BmcSession();
     for (auto & packet : dateSession.Waveforms)
     {
-        if (lastPacketTimestamp.isValid() && qAbs(packet.Timestamp.secsTo(lastPacketTimestamp)) >= 5)
+        // Only split on forward gaps (machine turned off for ≥5 s). Backward jumps
+        // due to DST "fall back" are negative here and must not trigger a split.
+        if (lastPacketTimestamp.isValid() && lastPacketTimestamp.secsTo(packet.Timestamp) >= 5)
         {
             session->StartTimestamp = session->Waveforms.first().Timestamp;
             session->EndTimestamp = lastPacketTimestamp;
@@ -843,8 +845,12 @@ QList<BmcWaveformPacket> BmcData::ReadWaveforms(BmcDataLink& link)
                 packet.Timestamp <= link.UsrSession.EndTimestamp)
                 waveforms.append(packet);
 
+            // Allow backward timestamp jumps of up to 2 hours to handle DST "fall back"
+            // (clocks go back 1 hour). Larger backward jumps indicate stale circular
+            // buffer data from a previous recording cycle.
+            const qint64 kMaxAllowedBackwardSecs = 7200LL;
             if (packet.Timestamp > link.UsrSession.EndTimestamp ||
-                packet.Timestamp < lastPacketTimestamp){
+                packet.Timestamp < lastPacketTimestamp.addSecs(-kMaxAllowedBackwardSecs)){
                 complete = true;
                 break;
             }
