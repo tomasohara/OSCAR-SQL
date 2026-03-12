@@ -176,6 +176,15 @@ bool Session::Destroy()
         qWarning() << "Could not delete" << eventfile;
     }
 
+    // Remove session from database — all child rows (channels, slices, events, etc.)
+    // are deleted automatically via ON DELETE CASCADE foreign key constraints.
+    if (m_sessionrow_id > 0) {
+        SessionRepository repo;
+        if (!repo.remove(m_sessionrow_id)) {
+            qWarning() << "Session::Destroy() - Failed to remove session" << m_sessionrow_id << "from database";
+        }
+    }
+
     return s_machine->unlinkSession(this);
 }
 

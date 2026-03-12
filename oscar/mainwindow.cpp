@@ -814,7 +814,17 @@ int MainWindow::importCPAP(ImportPath import, const QString &message)
     qDebug() << "MainWindow::importCPAP starting entire import transaction";
     DatabaseManager& dbMgr = DatabaseManager::instance();
     if (!dbMgr.transaction()) {
-        qWarning() << "MainWindow::importCPAP() - Failed to start database transaction";
+        QString errText = dbMgr.lastError().text();
+        qWarning() << "MainWindow::importCPAP() - Failed to start database transaction:" << errText;
+        progdlg->close();
+        delete progdlg;
+        import.loader->SetContext(nullptr);
+        delete ctx;
+        QMessageBox::critical(this, tr("Database Locked"),
+            tr("Cannot import data: the OSCAR database is locked by another application.\n\n"
+               "If you have the database open in a SQLite viewer or editor, "
+               "please close it and try again.\n\nError: %1").arg(errText));
+        return -1;
     }
 
     int c = import.loader->Open(import.path);
@@ -825,14 +835,20 @@ int MainWindow::importCPAP(ImportPath import, const QString &message)
 
     // Commit the transaction after all import operations are complete
     qDebug() << "MainWindow::importCPAP committing import transaction";
+    QString commitError;
     if (!dbMgr.commit()) {
-        qWarning() << "MainWindow::importCPAP() - Failed to commit database transaction";
+        commitError = dbMgr.lastError().text();
+        qWarning() << "MainWindow::importCPAP() - Failed to commit database transaction:" << commitError;
+        dbMgr.rollback();
+        c = -1;  // treat as failure — sessions were not saved
     }
 
     import.loader->SetContext(nullptr);
     delete ctx;
 
-    if (c > 0) {
+    if (!commitError.isEmpty()) {
+        // Don't show a false success/up-to-date notification — fall through to error below
+    } else if (c > 0) {
         Notify(tr("Imported %1 CPAP session(s) from\n\n%2").arg(c).arg(import.path), tr("Import Success"));
     } else if (c == 0) {
         Notify(tr("Already up to date with CPAP data at\n\n%1").arg(import.path), tr("Up to date"));
@@ -845,8 +861,16 @@ int MainWindow::importCPAP(ImportPath import, const QString &message)
     disconnect(import.loader, SIGNAL(updateMessage(QString)), progdlg, SLOT(setMessage(QString)));
 
     progdlg->close();
-
     delete progdlg;
+
+    if (!commitError.isEmpty()) {
+        QMessageBox::critical(this, tr("Import Failed"),
+            tr("The imported data could not be saved to the database. No data was stored.\n\n"
+               "If you have the OSCAR database open in another application "
+               "(e.g., a SQLite viewer or editor), please close it and try again.\n\nError: %1")
+            .arg(commitError));
+        return -1;
+    }
 
     if (AppSetting->openTabAfterImport()>0) {
         ui->tabWidget->setCurrentIndex(AppSetting->openTabAfterImport());

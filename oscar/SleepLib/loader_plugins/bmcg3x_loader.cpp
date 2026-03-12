@@ -100,16 +100,20 @@ int BmcG3xLoader::Open(const QString& dirpath)
         }
     }
 
-    emit updateMessage(QObject::tr("Creating data backup..."));
-    QCoreApplication::processEvents();
-
     QString backupPath = mach->getBackupPath();
-    QDir backupDir(backupPath);
-    if (backupDir.exists(backupPath)) {
-        backupDir.removeRecursively();
+    if (QDir::cleanPath(dirpath) == QDir::cleanPath(backupPath)) {
+        qDebug() << "BmcG3xLoader::Open: input is the backup directory, skipping backup creation";
+    } else {
+        emit updateMessage(QObject::tr("Creating data backup..."));
+        QCoreApplication::processEvents();
+
+        QDir backupDir(backupPath);
+        if (backupDir.exists(backupPath)) {
+            backupDir.removeRecursively();
+        }
+        backupDir.mkpath(backupPath);
+        copyPath(dirpath, backupPath);
     }
-    backupDir.mkpath(backupPath);
-    copyPath(dirpath, backupPath);
 
     QList<BmcDataLink> linksToImport;
     const QList<BmcDataLink>& parserLinks = parser->GetSessionLinks();

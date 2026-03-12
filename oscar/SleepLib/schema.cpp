@@ -377,7 +377,7 @@ void init()
             QObject::tr("I/E Ratio %"), QObject::tr("Inspiration duration compared to expiration duration expressed as a percentage"), QObject::tr("I/E Ratio %"), STR_UNIT_Percentage,    DEFAULT,    QColor(39, 95, 140)));
 
     schema::channel.add(GRP_CPAP, new Channel(BMC_PressureTrend  = 0x1213, WAVEFORM,    MT_CPAP,  SESSION, STR_GRAPH_PressureTrend,
-                                              QObject::tr("Pressure Trend"), QObject::tr("BMC Pressure Trend"), QObject::tr("Press Trend"), "",    DEFAULT,    QColor(39, 95, 140)));
+                                              QObject::tr("Pressure Trend"), QObject::tr("BMC Pressure Trend"), QObject::tr("Pressure Trend"), "",    DEFAULT,    QColor(39, 95, 140)));
 
     NoChannel = 0;
     /*

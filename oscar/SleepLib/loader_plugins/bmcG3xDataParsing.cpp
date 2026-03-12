@@ -59,12 +59,13 @@ constexpr int kLegacyWaveformPacketSize = 0x100;
 // ------------------------------------------------------------
 // Waveform packet — high-resolution sample region layout
 // ------------------------------------------------------------
-// Each region contains 100 int16 LE samples.  BMC writes each value twice
-// (pairs of identical uint16s), giving 50 discrete values within the 100
-// stored.  The resampler handles the redundancy naturally.
+// Flow region: 100 int16 LE samples (200 bytes) at 0x56E.
+// Pressure wave region: 100 int16 LE samples (200 bytes) at 0x24A.
+// Output is resampled to kBmcExtendedWaveformSamples (50) per packet.
 
-/// Flow waveform region: 100 × int16 LE at 0x576.
-constexpr int    kG3xFlowRegionOffset      = 0x576;
+/// Flow waveform region: 100 × int16 LE at 0x56E.
+/// 0x182 was tried but has a shifted zero baseline; 0x56E gives the correct baseline.
+constexpr int    kG3xFlowRegionOffset      = 0x56E;
 constexpr int    kG3xFlowRegionSampleCount = 100;
 constexpr qint16 kG3xFlowRawClamp          = 2000;
 
@@ -104,22 +105,28 @@ constexpr int kG3xOffsetMinuteVentilation = 0x52E;
 /// Respiratory rate in breaths/min (offset 0x530).
 constexpr int kG3xOffsetRespiratoryRate = 0x530;
 
-/// Pressure trend in hundredths cmH2O (offset 0x76C).
+/// EPAP pressure trend in hundredths cmH2O (offset 0x76C).
 /// Slowly-varying field matching the BMC "Pressure Trend" display.
-/// BMC also writes the identical value at 0x76E (paired uint16 pattern).
-constexpr int kG3xOffsetPressureTrend = 0x76C;
+constexpr int kG3xOffsetPressureTrendEPAP = 0x76C;
+
+/// IPAP pressure trend in hundredths cmH2O (offset 0x76E).
+/// Paired with 0x76C; identical values in CPAP mode, may differ in BiPAP mode.
+constexpr int kG3xOffsetPressureTrendIPAP = 0x76E;
+
+/// Alias kept for PressureTrend channel (reads EPAP offset).
+constexpr int kG3xOffsetPressureTrend = kG3xOffsetPressureTrendEPAP;
 
 // ------------------------------------------------------------
-// Experimental: pressure channel source selection
+// Pressure channel source selection
 // ------------------------------------------------------------
 
 /// @brief When true, the Pressure / IPAP / EPAP channels are sourced from the
-///        waveform-packet pressure trend (offset 0x76C, slowly-varying smoothed
-///        pressure in hundredths cmH2O) instead of the EVT 0x42 snapshot stream.
+///        waveform-packet pressure trend (0x76C → EPAP, 0x76E → IPAP) instead
+///        of the EVT 0x42 snapshot stream.
 ///
 /// Set false to revert to EVT-based pressure (step-wise updates from the
 /// therapy-pressure snapshot records).
-constexpr bool kG3xUsePressureTrendForPressureChannel = false;
+constexpr bool kG3xUsePressureTrendForPressureChannel = true;
 
 // ------------------------------------------------------------
 // EVT stream — message type codes
@@ -1091,9 +1098,10 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             // Respiratory rate (0x530): direct breaths/min value.
             const int rawRespiratoryRate = ReadUInt16LEPtr(packetData, kG3xOffsetRespiratoryRate);
 
-            // Pressure trend (0x76C): hundredths cmH2O; slowly-varying target pressure.
-            // The identical value at 0x76E is redundant (BMC paired-uint16 pattern).
-            const int rawPressureTrend = ReadUInt16LEPtr(packetData, kG3xOffsetPressureTrend);
+            // Pressure trend (0x76C = EPAP, 0x76E = IPAP): hundredths cmH2O.
+            // Identical in CPAP mode; may differ in BiPAP mode.
+            const int rawPressureTrend     = ReadUInt16LEPtr(packetData, kG3xOffsetPressureTrendEPAP);
+            const int rawPressureTrendIPAP = ReadUInt16LEPtr(packetData, kG3xOffsetPressureTrendIPAP);
 
             // Inspiration / expiration times (0x074 / 0x07E): centiseconds.
             // Their sum gives cycle time, from which I:E ratio is derived.
@@ -1163,14 +1171,13 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             legacyPacket.Raw.PressureTrend = static_cast<quint16>(rawPressureTrend);
             legacyPacket.PressureTrend     = rawPressureTrend / 100.0f;
 
-            // Experimental: override the Pressure / IPAP / EPAP channels with the
-            // waveform-packet pressure trend (see kG3xUsePressureTrendForPressureChannel).
+            // Override Pressure / IPAP / EPAP with waveform pressure trend values.
+            // 0x76C → EPAP, 0x76E → IPAP (identical in CPAP mode).
             if (kG3xUsePressureTrendForPressureChannel && rawPressureTrend > 0) {
-                const qint16 halfCm = PressureHundredthsToRawHalfCm(rawPressureTrend);
-                legacyPacket.Raw.IPAP = halfCm;
-                legacyPacket.Raw.EPAP = halfCm;
-                legacyPacket.IPAP     = rawPressureTrend / 100.0f;
-                legacyPacket.EPAP     = rawPressureTrend / 100.0f;
+                legacyPacket.Raw.EPAP = PressureHundredthsToRawHalfCm(rawPressureTrend);
+                legacyPacket.Raw.IPAP = PressureHundredthsToRawHalfCm(rawPressureTrendIPAP);
+                legacyPacket.EPAP     = rawPressureTrend     / 100.0f;
+                legacyPacket.IPAP     = rawPressureTrendIPAP / 100.0f;
             }
 
             // Copy flow and pressure-wave waveform regions into the output packet.

@@ -913,8 +913,8 @@ void ReportExporter::saveTreeState()
             if (item && m_treeView->isExpanded(idx)) {
                 qint64 id = item->data(ReportTreeModel::NodeIdRole).toLongLong();
                 if (id != 0) expanded << QString::number(id);
+                walk(idx);  // only recurse into expanded nodes
             }
-            walk(idx);  // recurse regardless of expanded state
         }
     };
     walk(QModelIndex());
@@ -976,7 +976,19 @@ bool ReportExporter::restoreTreeState()
 
     if (selectIndex.isValid()) {
         m_treeView->setCurrentIndex(selectIndex);
-        m_treeView->scrollTo(selectIndex);
+        // Only scroll to the item if its entire parent chain is expanded.
+        // QTreeView::scrollTo() expands collapsed ancestors to make the item
+        // visible, which would override the user's saved collapsed state.
+        bool parentChainExpanded = true;
+        for (QModelIndex p = selectIndex.parent(); p.isValid(); p = p.parent()) {
+            if (!m_treeView->isExpanded(p)) {
+                parentChainExpanded = false;
+                break;
+            }
+        }
+        if (parentChainExpanded) {
+            m_treeView->scrollTo(selectIndex);
+        }
     }
     return true;
 }

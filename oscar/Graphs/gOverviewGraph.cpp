@@ -1076,8 +1076,6 @@ bool gOverviewGraph::mouseMoveEvent(QMouseEvent *event, gGraph *graph)
 
         auto d = m_values.find(hl_day);
 
-        QMap<short, EventDataType> &valhash = d.value();
-
         xposLeft += m_rect.left(); //gYAxis::Margin+gGraphView::titleWidth; //graph->m_marginleft+
         int y = event_y - m_rect.top() + rtop - 15;
         //QDateTime dt1=QDateTime::fromSecsSinceEpoch(hl_day*86400).toLocalTime();
@@ -1091,6 +1089,7 @@ bool gOverviewGraph::mouseMoveEvent(QMouseEvent *event, gGraph *graph)
         day = m_days[zd];
 
         if ((d != m_values.end()) && (day != nullptr)) {
+            QMap<short, EventDataType> &valhash = d.value();
             bool summary_only = day->summaryOnly();
 
             QString strTooltip = dt.toString(QLocale::system().dateFormat(QLocale::ShortFormat));

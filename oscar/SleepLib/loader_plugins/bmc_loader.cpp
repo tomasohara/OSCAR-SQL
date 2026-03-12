@@ -436,9 +436,12 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
             wFlowAbnormality->AddWaveform(timestamp, bmcWaveform.Raw.FlowAbnormality, waveformSamplesPerPacket, waveformPacketDurationMs);
         }
 
-        wPressure->AddEvent(timestamp, bmcWaveform.Raw.IPAP);
-        wIPAP->AddEvent(timestamp, bmcWaveform.Raw.IPAP);
-        wEPAP->AddEvent(timestamp, bmcWaveform.Raw.EPAP);
+        if (bmcWaveform.Raw.IPAP > 0) {
+            wPressure->AddEvent(timestamp, bmcWaveform.Raw.IPAP);
+            wIPAP->AddEvent(timestamp, bmcWaveform.Raw.IPAP);
+        }
+        if (bmcWaveform.Raw.EPAP > 0)
+            wEPAP->AddEvent(timestamp, bmcWaveform.Raw.EPAP);
         rawIpapMin = std::min<qint16>(rawIpapMin, bmcWaveform.Raw.IPAP);
         rawIpapMax = std::max<qint16>(rawIpapMax, bmcWaveform.Raw.IPAP);
         rawEpapMin = std::min<qint16>(rawEpapMin, bmcWaveform.Raw.EPAP);
@@ -842,17 +845,21 @@ int BmcLoader::Open(const QString & dirpath)
     //#region Create backup
     //******************************************************************************
 
-    emit updateMessage(QObject::tr("Creating data backup..."));
-    QCoreApplication::processEvents();
-
     QString backupPath = mach->getBackupPath();
-    QDir backupDir(backupPath);
-    if (backupDir.exists(backupPath))
-        backupDir.removeRecursively();
+    if (QDir::cleanPath(dirpath) == QDir::cleanPath(backupPath)) {
+        qDebug() << "BmcLoader::Open: input is the backup directory, skipping backup creation";
+    } else {
+        emit updateMessage(QObject::tr("Creating data backup..."));
+        QCoreApplication::processEvents();
 
-    backupDir.mkpath(backupPath);
+        QDir backupDir(backupPath);
+        if (backupDir.exists(backupPath))
+            backupDir.removeRecursively();
 
-    copyPath(dirpath, backupPath);
+        backupDir.mkpath(backupPath);
+
+        copyPath(dirpath, backupPath);
+    }
 
     //******************************************************************************
     //#endregion
