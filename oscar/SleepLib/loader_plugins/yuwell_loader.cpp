@@ -7,198 +7,166 @@
 
 #include "SleepLib/loader_plugins/yuwell_loader.h"
 
+/*
+ * Take care of BreathCare ECO and BreathCare I type machines
+ * The files either contain single sessions per BYS file OR a single file with all sessions
+ *
+ * At this stage I don't know which machines have SD-Cards, some may not
+ * and if all machines provide full logs rather than just summaries.
+ * This is left in the simple state that it is until I receive data from
+ * other models. Other models include:
+ *
+ * YH350 (BreathCare I Auto-CPAP)
+ * YH360 (BreathCare I Auto-CPAP)
+ * YH450 (BreathCare II Auto-CPAP)
+ * YH480 (BreathCare II Auto-CPAP)
+ * YH550 (BreathCare ECO Auto-CPAP, A/B Models) (Supported)
+ * YH580 (BreathCare I Auto-CPAP) (Supported)
+ * YH680 (BreathCare III Auto-CPAP, A/B Models)
+ * YH690 (BreathCare III Auto-CPAP, A/B Models)
+ * YH720 (BreathCare I Bi-PAP)
+ * YH725 (BreathCare I Bi-PAP)
+ * YH730 (BreathCare I Bi-PAP)
+ * YH820 (BreathCare II Bi-PAP)
+ * YH825 (BreathCare II Bi-PAP)
+ * YH830 (BreathCare II Bi-PAP)
+ * So This will probably change around here to detect each model and if the file
+ * format is different, the Open() will have to change as well
+ *
+ * Fingers crossed the other models with CD-Cards have the same file format.
+ * NARRATOR: They weren't
+ *
+ * NOTES
+ * ======
+ *
+ * So far we have 2 BYS formats, the YH-550 and the YH-580
+ *
+ * The BYS file contains either a single session or multiple sessions
+ * The SD-CARD structure for both machines are completely different
+ *
+ * Can identify the machine type by looking at the source of truth in the model/serial field
+ *
+ * The SD-CARDS have a shallow directory structure, only 1 directory deep
+ * Don't need to recurse and entire directory tree looking for BYS files
+ *
+ * Can detect Yuwell data using SD-CARD files and directories and if the model starts with "YH"
+ *
+ * Can find specific machines by looking at the model/serial fields
+ *
+ * Can then import data depending on the format of the BYS files and directory locations
+ *
+ * Call them YuwellFormatA, YuwellFormatB, YuwellFormatC and so on. Iterate over each looking for a match
+ *
+ * 1. Match the file structure
+ * 2. Look for model/serial
+ *
+ * Model must start with "YH"
+ *
+ * Do not reject data based on model number (yet)
+ */
+
 ChannelID Yuwell_Ramp;
 ChannelID Yuwell_Humidity;
 
-YuwellLoader::YuwellLoader() {
-    m_type = MT_CPAP;
 
-    const QString YUWELL_ICON = ":/icons/yuwell.png";
-
-    QString s = newInfo().series;
-    m_pixmap_paths[s] = YUWELL_ICON;
-    m_pixmaps[s] = QPixmap(YUWELL_ICON);
-}
-
-YuwellLoader::~YuwellLoader() {}
-
-bool yuwell_initialized = false;
-void YuwellLoader::Register() {
-    if (yuwell_initialized)
-        return;
-
-    RegisterLoader(new YuwellLoader());
-
-    yuwell_initialized = true;
-}
-
-bool YuwellLoader::Detect(const QString & givenPath) {
+bool YuwellFormatA::Detect() {
     /*
-     * The YH550A has the structure:
-     * root - RunLog.bys
+     * root - RunLog.bys (0Kb in size)
      *      \ MODEL-SERIAL
+     *        \ 0100001.BYS <- Data is in here
+     *
+     * Models seen
+     * -----------
+     * YH-550
      */
-    QDir dir(givenPath);
+    QDir cardDir(m_filePath);
 
-    if (!dir.exists()) {
+    if (!cardDir.exists("RunLog.bys")) {
         return false;
     }
 
-    // Should contain a file named "RunLog.bys".
-    if (!dir.exists("RunLog.bys")) {
+    QStringList model_serials = GetModelSerials();
+
+    if (model_serials.size() == 0) {
         return false;
     }
 
-    QStringList machines = getYuwellMachines(givenPath);
-    if (machines.length() <= 0)
-        // Did not find any Yuwell device directories
-        return false;
-
+    qDebug() << "Found Yuwell format A serial number: " << model_serials;
     return true;
 }
 
-bool YuwellLoader::backupData (Machine * mach, const QString & path) {
-    QDir ipath(path);
-    QDir bpath(mach->getBackupPath());
-
-    // Compare QDirs rather than QStrings because separators may be different, especially on Windows.
-    if (ipath == bpath) {
-        // Don't create backups if importing from backup folder
-        rebuild_from_backups = true;
-        create_backups = false;
-    } else {
-        rebuild_from_backups = false;
-        create_backups = p_profile->session->backupCardData();
-    }
-
-    if (rebuild_from_backups || !create_backups)
-        return true;
-
-    // Copy input data to backup location
-    copyPath(ipath.absolutePath(), bpath.absolutePath(), true);
-
-    return true;
-}
-
-
-QStringList YuwellLoader::getYuwellMachines (QString givenPath) {
+QStringList YuwellFormatA::GetModelSerials() {
     /*
-     * Return a list of machines, model-serial
+     * Find a model/serial number from the inside of a file
+     * instead of a directory name. Much more source-of-truth
      */
-    QStringList yuwellMachines;
-    QDir cardDir (givenPath);
+    QDir cardDir(m_filePath);
 
     cardDir.setFilter(QDir::NoDotAndDotDot | QDir::Dirs | QDir::NoSymLinks);
     cardDir.setSorting(QDir::Name);
 
-    QFileInfoList flist = cardDir.entryInfoList();   // List of machine subdirectories
+    QFileInfoList dlist = cardDir.entryInfoList();
 
-    for (int i = 0; i < flist.size(); i++) {
-        QFileInfo fi = flist.at(i);
+    QStringList model_serials;
+
+    for (int i = 0; i < dlist.size(); i++) {
+        // Iterate until we find our first file with a model/serial number
+        QFileInfo fi = dlist.at(i);
         QString filename = fi.fileName();
 
-        /*
-         * Only supporting the YH550A at the moment because that's all I have!
-         * At this stage I don't know which machines have SD-Cards, some may not
-         * and if all machines provide full logs rather than just summaries.
-         * This is left in the simple state that it is until I receive data from
-         * other models. Other models include:
-         *
-         * YH350 (BreathCare I Auto-CPAP)
-         * YH360 (BreathCare I Auto-CPAP)
-         * YH450 (BreathCare II Auto-CPAP)
-         * YH480 (BreathCare II Auto-CPAP)
-         * YH550 (BreathCare ECO Auto-CPAP, A/B Models)
-         * YH580 (BreathCare I Auto-CPAP)
-         * YH680 (BreathCare III Auto-CPAP, A/B Models)
-         * YH690 (BreathCare III Auto-CPAP, A/B Models)
-         * YH720 (BreathCare I Bi-PAP)
-         * YH725 (BreathCare I Bi-PAP)
-         * YH730 (BreathCare I Bi-PAP)
-         * YH820 (BreathCare II Bi-PAP)
-         * YH825 (BreathCare II Bi-PAP)
-         * YH830 (BreathCare II Bi-PAP)
-         * So This will probably change around here to detect each model and if the file
-         * format is different, the Open() will have to change as well
-         *
-         * Fingers crossed the other models with CD-Cards have the same file format.
-         */
-        if (!filename.toUpper().startsWith("YH550A-")) {
-            continue;
-        }
+        if (filename.toUpper().startsWith("YH")) {
+            // Its tempting to use the directory as the model/serial, but there's a source of truth in each file
+            QDir machineDir (m_filePath + "/" + filename);
+            machineDir.setFilter(QDir::NoDotAndDotDot | QDir::Files | QDir::NoSymLinks);
+            machineDir.setSorting(QDir::Name);
 
-        // Data files have a .BYS extension
-        QDir machineDir (givenPath + "/" + filename);
-        machineDir.setFilter(QDir::NoDotAndDotDot | QDir::Files | QDir::NoSymLinks);
-        machineDir.setSorting(QDir::Name);
+            QStringList filters;
+            filters << "*.BYS";
+            machineDir.setNameFilters(filters);
+            QFileInfoList flist = machineDir.entryInfoList();
+            if (flist.size() >= 1) { // Found data
+                QFileInfo ex = flist.at(0);
+                QFile bysFile(m_filePath + "/" + filename + "/" + ex.fileName());
 
-        QStringList filters;
-        filters << "*.BYS";
-        machineDir.setNameFilters(filters);
-        QFileInfoList flist = machineDir.entryInfoList();
-        if (flist.size() <= 0) { // No data files
-            continue;
-        }
-        yuwellMachines.push_back(filename);
-    }
+                if (bysFile.open(QFile::ReadOnly)) {
+                    QByteArray header = bysFile.read(0xA0);
 
-    return yuwellMachines;
-}
+                    if (header.size() == 0xA0) {
+                        QDataStream in(header);
+                        in.setVersion(QDataStream::Qt_4_8);
 
-int YuwellLoader::Open(const QString & dirPath) {
-    QStringList serialNumbers = getYuwellMachines(dirPath);
-    if (serialNumbers.length() <= 0)
-        return -1;
+                        QByteArray raw_model_serial(16, Qt::Uninitialized);
 
-    Machine *m;
+                        in.skipRawData(0x1E);
+                        in.readRawData(raw_model_serial.data(), 16);
 
-    int c = 0;
-    for (int i = 0; i < serialNumbers.size(); i++) {
-        MachineInfo info = newInfo();
-        info.serial = serialNumbers[i];
-        m = p_profile->CreateMachine(info);
-        
-        // IMPORTANT: Save machine to database immediately so sessions can reference it
-        if (m && m->getDatabaseId() == 0) {
-            if (!m->SaveToDatabase()) {
-                qWarning() << "YuwellLoader::Open() - Failed to save machine to database";
-            } else {
-                qDebug() << "YuwellLoader::Open() - Saved machine to database with ID" << m->getDatabaseId();
+                        QString model_serial(raw_model_serial);
+                        if (model_serial.startsWith("YH") && !model_serials.contains(model_serial)) {
+                            model_serials << model_serial;
+                        }
+                    }
+                    bysFile.close();
+                }
             }
         }
-        
-        QString serialPath = dirPath + "/" + info.serial;
-        try {
-            if (m) {
-                c += OpenMachine(m, dirPath, serialPath);
-                m->Save();
-            }
-        } catch (OneTypePerDay& e) {
-            Q_UNUSED(e)
-            p_profile->DelMachine(m);
-            QMessageBox::warning(nullptr, tr("Import Error"),
-                                 tr("This device Record cannot be imported in this profile.")+"\n\n"+tr("The Day records overlap with already existing content."),
-                                 QMessageBox::Ok);
-            delete m;
-        }
     }
-
-    return c;
+    return model_serials;
 }
 
-int YuwellLoader::OpenMachine(Machine *mach, const QString & path, const QString & serialPath)
+int YuwellFormatA::OpenMachine(Machine *mach, const QString & serial)
 {
-    emit updateMessage(QObject::tr("Getting Ready..."));
-    emit setProgressValue(0);
+    emit m_loader->updateMessage(QObject::tr("Getting Ready..."));
+    emit m_loader->setProgressValue(0);
     QCoreApplication::processEvents();
 
+    QString serialPath = m_filePath + "/" + serial;
     QDir dir(serialPath);
 
     if (!dir.exists() || (!dir.isReadable())) {
         return -1;
     }
 
-    backupData(mach, path);
+    m_loader->backupData(mach, m_filePath);
 
     calc_leaks = p_profile->cpap->calculateUnintentionalLeaks();
     lpm4 = p_profile->cpap->custom4cmH2OLeaks();
@@ -208,18 +176,17 @@ int YuwellLoader::OpenMachine(Machine *mach, const QString & path, const QString
     dir.setSorting(QDir::Name);
     QFileInfoList flist = dir.entryInfoList();
 
-
-    emit updateMessage(QObject::tr("Reading data files..."));
+    emit m_loader->updateMessage(QObject::tr("Reading data files..."));
     QCoreApplication::processEvents();
 
     Sessions.clear();
 
     QString filename, fpath;
-    emit setProgressMax(flist.size());
+    emit m_loader->setProgressMax(flist.size());
 
     // There's only one file type with an extension .BYS containing a header and line data
     for (int i = 0; i < flist.size(); i++) {
-        emit setProgressValue(i);
+        emit m_loader->setProgressValue(i);
         QFileInfo fi = flist.at(i);
         filename = fi.fileName();
         fpath = serialPath + "/" + filename;
@@ -228,22 +195,22 @@ int YuwellLoader::OpenMachine(Machine *mach, const QString & path, const QString
     }
 
     int c = Sessions.size();
-    qDebug() << "Yuwell Loader found" << c << "sessions";
+    qDebug() << "Yuwell Format A Loader found" << c << "sessions";
 
-    emit updateMessage(QObject::tr("Finishing up..."));
+    emit m_loader->updateMessage(QObject::tr("Finishing up..."));
     QCoreApplication::processEvents();
 
-    finishAddingSessions();
+    m_loader->finish();
 
     return c;
 }
 
-bool YuwellLoader::OpenSession(Machine *mach, const QString & filename)
+bool YuwellFormatA::OpenSession(Machine *mach, const QString & filename)
 {
     QFile file(filename);
 
     if (!file.open(QFile::ReadOnly)) {
-        qWarning() << "Yuwell Session Couldn't open" << filename;
+        qWarning() << "Yuwell Session Couldn't open " << filename;
         return false;
     }
 
@@ -252,7 +219,7 @@ bool YuwellLoader::OpenSession(Machine *mach, const QString & filename)
     header = file.read(0x33);
 
     if (header.size() != 0x33) {
-        qWarning() << "Yuwell Session Short file" << filename;
+        qWarning() << "Yuwell Session Short file " << filename;
         file.close();
         return false;
     }
@@ -386,4 +353,794 @@ bool YuwellLoader::OpenSession(Machine *mach, const QString & filename)
     }
 
     return true;
+}
+
+int YuwellFormatA::Open() {
+    // Start with m_filePath and do the import
+    QStringList model_serials = GetModelSerials();
+
+    Machine *m;
+
+    int c = 0;
+    for (int i = 0; i < model_serials.size(); i++) {
+        MachineInfo info = m_loader->newInfo();
+        info.serial = model_serials[i];
+        m = p_profile->CreateMachine(info);
+        try {
+            if (m) {
+                c += OpenMachine(m, model_serials[i]);
+                m->Save();
+            }
+        } catch (OneTypePerDay& e) {
+            Q_UNUSED(e)
+            p_profile->DelMachine(m);
+            QMessageBox::warning(nullptr, m_loader->tr("Import Error"),
+                                 m_loader->tr("This device Record cannot be imported in this profile.")+"\n\n"+m_loader->tr("The Day records overlap with already existing content."),
+                                 QMessageBox::Ok);
+            delete m;
+        }
+    }
+
+    return c;
+}
+
+bool YuwellFormatB::Detect() {
+    /*
+     * root - YHSD-NEW.BYS (64Kb in size) <- Data is in here
+     *      \ YHSD-OLD.BYS <- We don't care about this
+     *
+     * Models seen
+     * -----------
+     * YH-580
+     */
+    QDir cardDir(m_filePath);
+
+    if (!cardDir.exists("YHSD-NEW.BYS")) {
+        return false;
+    }
+
+    QFileInfo fi = QFileInfo(m_filePath + "/YHSD-NEW.BYS");
+    if (fi.size() != 0x10000) { // Needs to be 64Kb in size
+        return false;
+    }
+
+    QStringList model_serials = GetModelSerials();
+    if (model_serials.size() == 0) {
+        return false;
+    }
+
+    qDebug() << "Found Yuwell Format B serial: " << model_serials;
+
+    return true;
+}
+
+QStringList YuwellFormatB::GetModelSerials() {
+    /*
+     * Find a model/serial number from the inside of a file
+     * instead of a directory name. Much more source-of-truth
+     */
+    QStringList model_serials;
+    QFile bysFile(m_filePath + "/YHSD-NEW.BYS");
+    if (bysFile.open(QFile::ReadOnly)) {
+        QByteArray header = bysFile.read(0xA0);
+
+        if (header.size() == 0xA0) {
+            QDataStream in(header);
+            in.setVersion(QDataStream::Qt_4_8);
+
+            QByteArray raw_model_serial(16, Qt::Uninitialized);
+
+            in.skipRawData(0x84);
+            in.readRawData(raw_model_serial.data(), 16);
+
+            QString model_serial(raw_model_serial);
+            if (model_serial.startsWith("YH")) {
+                model_serials << model_serial;
+            }
+        }
+        bysFile.close();
+    }
+
+    return model_serials;
+}
+
+int YuwellFormatB::Open() {
+    // Start with m_filePath and do the import
+    QStringList model_serials = GetModelSerials();
+
+    Machine *m;
+
+    int c = 0;
+    for (int i = 0; i < model_serials.size(); i++) {
+        MachineInfo info = m_loader->newInfo();
+        info.serial = model_serials[i];
+        m = p_profile->CreateMachine(info);
+        try {
+            if (m) {
+                c += OpenMachine(m, model_serials[i]);
+                m->Save();
+            }
+        } catch (OneTypePerDay& e) {
+            Q_UNUSED(e)
+            p_profile->DelMachine(m);
+            QMessageBox::warning(nullptr, m_loader->tr("Import Error"),
+                                 m_loader->tr("This device Record cannot be imported in this profile.")+"\n\n"+m_loader->tr("The Day records overlap with already existing content."),
+                                 QMessageBox::Ok);
+            delete m;
+        }
+    }
+
+    return c;
+}
+
+int YuwellFormatB::OpenMachine(Machine *mach, const QString & serial) {
+    emit m_loader->updateMessage(QObject::tr("Getting Ready..."));
+    emit m_loader->setProgressValue(0);
+    QCoreApplication::processEvents();
+
+    QString test = m_filePath + "/" + serial;
+    QDir dir(m_filePath);
+
+    if (!dir.exists() || (!dir.isReadable())) {
+        return -1;
+    }
+
+    m_loader->backupData(mach, m_filePath);
+
+    // We don't use the serial in the path, its always YHSD-NEW.BYS
+    calc_leaks = p_profile->cpap->calculateUnintentionalLeaks();
+    lpm4 = p_profile->cpap->custom4cmH2OLeaks();
+    lpm20 = p_profile->cpap->custom20cmH2OLeaks();
+
+    emit m_loader->updateMessage(QObject::tr("Reading data files..."));
+    QCoreApplication::processEvents();
+
+    Sessions.clear();
+
+    QFile file(m_filePath + "/YHSD-NEW.BYS");
+
+    if (!file.exists()) {
+        qWarning() << "Yuwell Session Cannot find " << file.fileName();
+        return -1;
+    }
+
+    // We just read the file contents from here...
+    if (!file.open(QFile::ReadOnly)) {
+        qWarning() << "Yuwell Session Couldn't open " << file.fileName();
+        return -1;
+    }
+
+    QByteArray cpap_data;
+    cpap_data = file.read(0x10000);
+
+    if (cpap_data.size() != 0x10000) {
+        qWarning() << "Yuwell Session Short file " << file.fileName();
+        file.close();
+        return -1;
+    }
+
+    QDataStream in(cpap_data);
+    in.setVersion(QDataStream::Qt_4_8);
+    in.setByteOrder(QDataStream::LittleEndian); // Mostly, except for record offsets
+
+    unsigned char mode, ramp, initial_pressure, pressure_setting, maximum_pressure, minimum_pressure, humidity, fps_level;
+    unsigned char oai_count, hi_count, avg_leak_vol, avg_pressure, offset_high, offset_low, session_minutes;
+    short int record_count;
+    short unsigned int offset;
+    unsigned char start_year, start_month, start_day, start_hour, start_minute, start_second;
+    unsigned char finish_year, finish_month, finish_day, finish_hour, finish_minute, finish_second;
+
+    QByteArray raw_model_serial(16, Qt::Uninitialized);
+
+    in.skipRawData(4); // Magic number "AAAA", but as this may be different for some machines, we don't enfore a check (yet)
+
+    in >> mode;
+    in >> ramp;
+    in >> initial_pressure;
+    in >> pressure_setting;
+    in >> maximum_pressure;
+    in >> minimum_pressure;
+    in >> humidity;
+    in >> fps_level;
+
+    in.skipRawData(19);
+
+    in >> record_count;
+
+    in.skipRawData(99);
+
+    in.readRawData(raw_model_serial.data(), 16);
+
+    QString model_serial(raw_model_serial);
+    mach->setModel(model_serial);
+
+    in.skipRawData(2924); // Alarming amount of data to skip
+
+    QList<FormatBSessionSummary> sessionSummaries;
+    // record_count number of sessions from this point forward, 30 bytes per session summary
+    for (int i = 0; i < record_count; i++) {
+        in >> start_year;
+        in >> start_month;
+        in >> start_day;
+        in >> start_hour;
+        in >> start_minute;
+        in >> start_second;
+
+        in >> finish_year;
+        in >> finish_month;
+        in >> finish_day;
+        in >> finish_hour;
+        in >> finish_minute;
+        in >> finish_second;
+
+        QDateTime start = QDateTime(QDate((int)start_year + 2000, start_month, start_day), QTime(start_hour, start_minute, start_second), QTimeZone::systemTimeZone());
+        QDateTime finish = QDateTime(QDate((int)finish_year + 2000, finish_month, finish_day), QTime(finish_hour, finish_minute, finish_second), QTimeZone::systemTimeZone());
+
+        in >> mode;
+        in >> ramp;
+        in >> initial_pressure;
+        in >> pressure_setting;
+        in >> maximum_pressure;
+        in >> minimum_pressure;
+        in >> humidity;
+        in >> fps_level;
+        in >> oai_count;
+        in >> hi_count;
+        in.skipRawData(2);
+        in >> avg_leak_vol;
+        in >> avg_pressure;
+        in >> offset_high;
+        in >> offset_low;
+        /*
+         * The offset 0x7600 here seems fairly arbitrary but from examining the header of the file I
+         * cannot find any data that could possibly be used to calculate this value. It's fairly odd
+         * to have something like this in a data file at a fixed place. So if the imports fail in the
+         * future, this is a likely culprit.
+         * For reference, the header seems to extent to position 0x0C00 where it starts with session
+         * summary information. Then there's nothing of a bunch of 0xFF's until 0x7600.
+         */
+        offset = ((offset_high << 0x08) + offset_low) + 0x7600;
+        in.skipRawData(1);
+        in >> session_minutes;
+
+        FormatBSessionSummary sessionSummary = {
+            start,
+            finish,
+            mode,
+            ramp,
+            initial_pressure,
+            pressure_setting,
+            maximum_pressure,
+            minimum_pressure,
+            humidity,
+            fps_level,
+            oai_count,
+            hi_count,
+            avg_leak_vol,
+            avg_pressure,
+            offset,
+            session_minutes
+        };
+        sessionSummaries.append(sessionSummary);
+    }
+
+    unsigned char leakage, pressure, spo2, oai, hi, pulse, cai;
+    emit m_loader->setProgressMax(sessionSummaries.size());
+    int counter = 0;
+    for (FormatBSessionSummary summary : sessionSummaries) {
+        emit m_loader->setProgressValue(counter++);
+        QDataStream in(cpap_data.mid(summary.offset, summary.session_minutes * 7));
+        quint32 ts;
+        ts = summary.start.toSecsSinceEpoch();  // Create timestamp from session start
+        if (!mach->SessionExists(ts)) {
+            Session *sess = new Session(mach, ts);
+            sess->really_set_first(qint64(ts) * 1000L);
+            sess->really_set_last(qint64(summary.finish.toSecsSinceEpoch()) * 1000L);
+            if (summary.mode == YUWELL_CPAP) {
+                sess->settings[CPAP_Mode] = (int)MODE_CPAP;
+                sess->settings[CPAP_Pressure] = summary.initial_pressure / 10.0;
+            } else {
+                sess->settings[CPAP_Mode] = (int)MODE_APAP;
+                sess->settings[CPAP_PressureMin] = summary.minimum_pressure / 10.0;
+                sess->settings[CPAP_PressureMax] = summary.maximum_pressure / 10.0;
+            }
+            sess->settings[Yuwell_Humidity] = summary.humidity;
+            sess->settings[Yuwell_Ramp] = summary.ramp;
+
+            EventList *LK = sess->AddEventList(CPAP_LeakTotal, EVL_Event, 1);
+            EventList *PR = sess->AddEventList(CPAP_Pressure, EVL_Event, 0.1F);
+            EventList *OA = sess->AddEventList(CPAP_Obstructive, EVL_Event);
+            EventList *CA = sess->AddEventList(CPAP_ClearAirway, EVL_Event);
+            EventList *H =  sess->AddEventList(CPAP_Hypopnea, EVL_Event);
+            EventList *P =  sess->AddEventList(OXI_Pulse, EVL_Event);
+            EventList *O =  sess->AddEventList(OXI_SPO2, EVL_Event);
+
+            qint64 ti;
+            ti = qint64(ts) * 1000L;
+
+            for (int i = 0; i < summary.session_minutes; i++) {
+                QCoreApplication::processEvents();
+
+                in >> leakage;
+                in >> pressure;
+                in >> spo2;
+                in >> oai;
+                in >> hi;
+                in >> pulse;
+                in >> cai;
+
+                if (i == 0 && leakage != 0xF9) {
+                    break; // Out of bounds offset, not a valid record
+                }
+                PR->AddEvent(ti + (i * 60000), pressure); // Samples are every 60 seconds
+                if (pulse < 249) {
+                    P->AddEvent(ti + (i * 60000), pulse);
+                }
+                O->AddEvent(ti + (i * 60000), spo2);
+
+                if (oai > 0) {
+                    OA->AddEvent(ti + (i * 60000), 0);
+                }
+                if (hi > 0) {
+                    H->AddEvent(ti + (i * 60000), 0);
+                }
+                if (cai > 0) {
+                    CA->AddEvent(ti + (i * 60000), 0);
+                }
+                if (leakage > 0 && leakage < 249) { // First record always pulls high, ignore
+                    LK->AddEvent(ti + (i * 60000), leakage);
+                }
+            }
+            sess->SetChanged(true);
+            Sessions[ts] = sess;
+            sess->UpdateSummaries();
+            sess->Store(mach->getDataPath());
+            mach->AddSession(sess);
+        }
+    }
+
+    emit m_loader->updateMessage(QObject::tr("Finishing up..."));
+    QCoreApplication::processEvents();
+
+    m_loader->finish();
+
+    return record_count;
+}
+
+bool YuwellFormatC::Detect() {
+    /*
+     * root - \ MODEL-SERIAL
+     *          \ 0100001.BYS <- Data is in here
+     *
+     * Models seen
+     * -----------
+     * YH-830
+     */
+    QDir cardDir(m_filePath);
+
+    QStringList model_serials = GetModelSerials();
+
+    if (model_serials.size() == 0) {
+        return false;
+    }
+
+    qDebug() << "Found Yuwell format C serial number: " << model_serials;
+    return true;
+}
+
+QStringList YuwellFormatC::GetModelSerials() {
+    /*
+     * Find a model/serial number from the inside of a file
+     * instead of a directory name. Much more source-of-truth
+     */
+    QDir cardDir(m_filePath);
+
+    cardDir.setFilter(QDir::NoDotAndDotDot | QDir::Dirs | QDir::NoSymLinks);
+    cardDir.setSorting(QDir::Name);
+
+    QFileInfoList dlist = cardDir.entryInfoList();
+
+    QStringList model_serials;
+
+    for (int i = 0; i < dlist.size(); i++) {
+        // Iterate until we find our first file with a model/serial number
+        QFileInfo fi = dlist.at(i);
+        QString filename = fi.fileName();
+
+        if (filename.toUpper().startsWith("YH")) {
+            // Its tempting to use the directory as the model/serial, but there's a source of truth in each file
+            QDir machineDir (m_filePath + "/" + filename);
+            machineDir.setFilter(QDir::NoDotAndDotDot | QDir::Files | QDir::NoSymLinks);
+            machineDir.setSorting(QDir::Name);
+
+            QStringList filters;
+            filters << "*.BYS";
+            machineDir.setNameFilters(filters);
+            QFileInfoList flist = machineDir.entryInfoList();
+            if (flist.size() >= 1) { // Found data
+                QFileInfo ex = flist.at(0);
+                QFile bysFile(m_filePath + "/" + filename + "/" + ex.fileName());
+
+                if (bysFile.open(QFile::ReadOnly)) {
+                    QByteArray header = bysFile.read(0xA0);
+
+                    if (header.size() == 0xA0) {
+                        QDataStream in(header);
+                        in.setVersion(QDataStream::Qt_4_8);
+
+                        QByteArray raw_model_serial(16, Qt::Uninitialized);
+
+                        in.skipRawData(0x27);
+                        in.readRawData(raw_model_serial.data(), 16);
+
+                        QString model_serial(raw_model_serial);
+                        if (model_serial.startsWith("YH") && !model_serials.contains(model_serial)) {
+                            model_serials << model_serial;
+                        }
+                    }
+                    bysFile.close();
+                }
+            }
+        }
+    }
+    return model_serials;
+}
+
+int YuwellFormatC::OpenMachine(Machine *mach, const QString & serial)
+{
+    emit m_loader->updateMessage(QObject::tr("Getting Ready..."));
+    emit m_loader->setProgressValue(0);
+    QCoreApplication::processEvents();
+
+    QString serialPath = m_filePath + "/" + serial;
+    QDir dir(serialPath);
+
+    if (!dir.exists() || (!dir.isReadable())) {
+        return -1;
+    }
+
+    m_loader->backupData(mach, m_filePath);
+
+    calc_leaks = p_profile->cpap->calculateUnintentionalLeaks();
+    lpm4 = p_profile->cpap->custom4cmH2OLeaks();
+    lpm20 = p_profile->cpap->custom20cmH2OLeaks();
+
+    dir.setFilter(QDir::NoDotAndDotDot | QDir::Files | QDir::NoSymLinks);
+    dir.setSorting(QDir::Name);
+    QFileInfoList flist = dir.entryInfoList();
+
+    emit m_loader->updateMessage(QObject::tr("Reading data files..."));
+    QCoreApplication::processEvents();
+
+    Sessions.clear();
+
+    QString filename, fpath;
+    emit m_loader->setProgressMax(flist.size());
+
+    // There's only one file type with an extension .BYS containing a header and line data
+    for (int i = 0; i < flist.size(); i++) {
+        emit m_loader->setProgressValue(i);
+        QFileInfo fi = flist.at(i);
+        filename = fi.fileName();
+        fpath = serialPath + "/" + filename;
+
+        OpenSession(mach, fpath);
+    }
+
+    int c = Sessions.size();
+    qDebug() << "Yuwell Format C Loader found" << c << "sessions";
+
+    emit m_loader->updateMessage(QObject::tr("Finishing up..."));
+    QCoreApplication::processEvents();
+
+    m_loader->finish();
+
+    return c;
+}
+
+bool YuwellFormatC::OpenSession(Machine *mach, const QString & filename)
+{
+    qDebug() << "Opening session " << filename;
+    QFile file(filename);
+
+    if (!file.open(QFile::ReadOnly)) {
+        qWarning() << "Yuwell Session Couldn't open " << filename;
+        return false;
+    }
+
+    // Read header of summary file, 60 bytes
+    QByteArray header;
+    header = file.read(0x3C);
+
+    if (header.size() != 0x3C) {
+        qWarning() << "Yuwell Session Short file " << filename;
+        file.close();
+        return false;
+    }
+
+    QDataStream in(header);
+    in.setVersion(QDataStream::Qt_4_8);
+    in.setByteOrder(QDataStream::LittleEndian);
+
+    short int start_year;
+    unsigned char start_month, start_day, start_hour, start_minute, start_second;
+    short int finish_year;
+    unsigned char finish_month, finish_day, finish_hour, finish_minute, finish_second;
+
+    in >> start_year;
+    in >> start_month;
+    in >> start_day;
+    in >> start_hour;
+    in >> start_minute;
+    in >> start_second;
+
+    in >> finish_year;
+    in >> finish_month;
+    in >> finish_day;
+    in >> finish_hour;
+    in >> finish_minute;
+    in >> finish_second;
+
+    QDateTime start = QDateTime(QDate(start_year, start_month, start_day), QTime(start_hour, start_minute, start_second), QTimeZone::systemTimeZone());
+    QDateTime finish = QDateTime(QDate(finish_year, finish_month, finish_day), QTime(finish_hour, finish_minute, finish_second), QTimeZone::systemTimeZone());
+
+    qDebug() << "Start time: " << start;
+    qDebug() << "Finish time: " << finish;
+
+    short int record_count;
+    unsigned char humidity_settings;
+    QByteArray raw_model_serial(16, Qt::Uninitialized);
+
+    in >> record_count;
+    in.skipRawData(5);
+    in >> humidity_settings;
+    in.skipRawData(17);
+    in.readRawData(raw_model_serial.data(), 16);
+    in.skipRawData(5);
+
+    QString model_serial(raw_model_serial);
+    mach->setModel(model_serial);
+
+    unsigned char maximum_pressure;
+    maximum_pressure = 150; // TODO: This doesn't seem to exist?
+    // Missing stuff, especially the CPAP mode and ramp time
+    // unsigned char mode, minimum_pressure, maximum_pressure;
+    // unsigned char avg_leak_volume, avg_pressure;
+    // in >> mode;  // 0x00=CPAP, 0x01=APAP
+    // in >> ramp_up_time;  // Minutes
+    // in >> initial_pressure;
+    // in >> minimum_pressure;
+    // in >> maximum_pressure;
+    // in >> avg_leak_volume;
+    // in >> avg_pressure;
+
+    quint32 ts;
+    ts = start.toSecsSinceEpoch();  // Create timestamp from session start
+    if (!mach->SessionExists(ts)) {
+        Session *sess = new Session(mach, ts);
+        sess->really_set_first(qint64(ts) * 1000L);
+        sess->really_set_last(qint64(finish.toSecsSinceEpoch()) * 1000L);
+
+        sess->settings[CPAP_Mode] = -1;
+        sess->settings[Yuwell_Humidity] = humidity_settings;
+
+        EventList *LK = sess->AddEventList(CPAP_LeakTotal, EVL_Event, 0.1F);
+        EventList *PR = sess->AddEventList(CPAP_Pressure, EVL_Event, 0.1F);
+        EventList *OA = sess->AddEventList(CPAP_Obstructive, EVL_Event);
+        EventList *CA = sess->AddEventList(CPAP_ClearAirway, EVL_Event);
+        EventList *H =  sess->AddEventList(CPAP_Hypopnea, EVL_Event);
+        EventList *TV = sess->AddEventList(CPAP_TidalVolume, EVL_Event, 1);
+        EventList *RR = sess->AddEventList(CPAP_RespRate, EVL_Event, 1);
+
+        qint64 ti;
+        ti = qint64(ts) * 1000L;
+
+        for (int i = 0; i < record_count; i++) {
+            QCoreApplication::processEvents();
+            QByteArray record;
+
+            record = file.read(0x28);
+
+            if (record.size() != 0x28) {
+                qWarning() << "Yuwell Session Record Short" << filename;
+                file.close();
+                return false;
+            }
+
+            QDataStream in(record);
+            in.setVersion(QDataStream::Qt_4_8);
+            in.setByteOrder(QDataStream::LittleEndian);
+
+            unsigned char mode, pressure, initial_pressure, ramp, leak_volume, minute_volume, inspiratory_ratio, respiratory_rate;
+            short int tidal_volume;
+            unsigned char oai, hi, cai;
+            in.skipRawData(1); // Always 0xF9
+            in >> mode; // Weird that this records the session mode on every log line. Maybe you can change mode half-way through a session on this model?
+            in.skipRawData(10);
+            in >> pressure;
+            in >> initial_pressure;
+            in.skipRawData(4);
+            in >> ramp;
+            in.skipRawData(2);
+            in >> tidal_volume;
+            in >> leak_volume;
+            in.skipRawData(1);
+            in >> minute_volume;
+            in.skipRawData(5);
+            in >> inspiratory_ratio;
+            in.skipRawData(2);
+            in >> respiratory_rate;
+            in >> oai;
+            in >> hi;
+            in.skipRawData(1);
+            in >> cai;
+            in.skipRawData(1);
+
+            // For some odd reason, these settings are the line items not the header
+            if (sess->settings[CPAP_Mode] == -1) {
+                sess->settings[Yuwell_Ramp] = ramp;
+                if (mode == YUWELL_FORMATC_CPAP) {
+                    sess->settings[CPAP_Mode] = (int)MODE_CPAP;
+                    sess->settings[CPAP_Pressure] = initial_pressure / 10.0;
+                } else if (mode == YUWELL_FORMATC_APAP) {
+                    sess->settings[CPAP_Mode] = (int)MODE_APAP;
+                    sess->settings[CPAP_PressureMin] = pressure / 10.0;
+                    sess->settings[CPAP_PressureMax] = maximum_pressure / 10.0;
+                } else {
+                    sess->settings[CPAP_Mode] = (int)MODE_UNKNOWN;
+                }
+            }
+
+            PR->AddEvent(ti + (i * 60000), pressure); // Samples are every 60 seconds
+            TV->AddEvent(ti + (i * 60000), tidal_volume);
+            RR->AddEvent(ti + (i * 60000), respiratory_rate);
+
+            if (oai > 0) {
+                OA->AddEvent(ti + (i * 60000), 0);
+            }
+            if (hi > 0) {
+                H->AddEvent(ti + (i * 60000), 0);
+            }
+            if (cai > 0) {
+                CA->AddEvent(ti + (i * 60000), 0);
+            }
+            if (leak_volume > 0) {
+                LK->AddEvent(ti + (i * 60000), leak_volume);
+            }
+        }
+        sess->SetChanged(true);
+        Sessions[ts] = sess;
+        sess->UpdateSummaries();
+        sess->Store(mach->getDataPath());
+        mach->AddSession(sess);
+    }
+
+    return true;
+}
+
+int YuwellFormatC::Open() {
+    // Start with m_filePath and do the import
+    QStringList model_serials = GetModelSerials();
+
+    Machine *m;
+
+    int c = 0;
+    for (int i = 0; i < model_serials.size(); i++) {
+        MachineInfo info = m_loader->newInfo();
+        info.serial = model_serials[i];
+        m = p_profile->CreateMachine(info);
+        try {
+            if (m) {
+                c += OpenMachine(m, model_serials[i]);
+                m->Save();
+            }
+        } catch (OneTypePerDay& e) {
+            Q_UNUSED(e)
+            p_profile->DelMachine(m);
+            QMessageBox::warning(nullptr, m_loader->tr("Import Error"),
+                                 m_loader->tr("This device Record cannot be imported in this profile.")+"\n\n"+m_loader->tr("The Day records overlap with already existing content."),
+                                 QMessageBox::Ok);
+            delete m;
+        }
+    }
+
+    return c;
+}
+
+YuwellLoader::YuwellLoader() {
+    m_type = MT_CPAP;
+
+    const QString YUWELL_ICON = ":/icons/yuwell.png";
+
+    QString s = newInfo().series;
+    m_pixmap_paths[s] = YUWELL_ICON;
+    m_pixmaps[s] = QPixmap(YUWELL_ICON);
+}
+
+YuwellLoader::~YuwellLoader() {}
+
+bool yuwell_initialized = false;
+void YuwellLoader::Register() {
+    if (yuwell_initialized)
+        return;
+
+    RegisterLoader(new YuwellLoader());
+
+    yuwell_initialized = true;
+}
+
+YuwellFormat* YuwellLoader::YuwellFactory(const QString & givenPath) {
+    // Add formats here as we find them
+    QList<YuwellFormat*> candidates;
+    candidates << new YuwellFormatA(*this, givenPath);
+    candidates << new YuwellFormatB(*this, givenPath);
+    candidates << new YuwellFormatC(*this, givenPath);
+
+    YuwellFormat* match = nullptr;
+    for(YuwellFormat* format : candidates) {
+        if (match == nullptr && format->Detect()) {
+            match = format;
+        } else {
+            delete format;
+        }
+    }
+
+    return match;
+}
+
+bool YuwellLoader::Detect(const QString & givenPath) {
+    /*
+     * For each format, detect
+     */
+    QDir dir(givenPath);
+
+    if (!dir.exists()) {
+        return false;
+    }
+
+    YuwellFormat* formatter = YuwellFactory(givenPath);
+    if (!formatter) {
+        return false;
+    }
+
+    delete formatter;
+    return true;
+}
+
+bool YuwellLoader::backupData (Machine * mach, const QString & path) {
+    QDir ipath(path);
+    QDir bpath(mach->getBackupPath());
+
+    // Compare QDirs rather than QStrings because separators may be different, especially on Windows.
+    if (ipath == bpath) {
+        // Don't create backups if importing from backup folder
+        rebuild_from_backups = true;
+        create_backups = false;
+    } else {
+        rebuild_from_backups = false;
+        create_backups = p_profile->session->backupCardData();
+    }
+
+    if (rebuild_from_backups || !create_backups)
+        return true;
+
+    // Copy input data to backup location
+    copyPath(ipath.absolutePath(), bpath.absolutePath(), true);
+
+    return true;
+}
+
+int YuwellLoader::Open(const QString & dirPath) {
+    // Do the import
+    YuwellFormat* formatter = YuwellFactory(dirPath);
+    if (formatter) {
+        formatter->Open();
+        return 1;
+    }
+    return 0;
+
+}
+
+void YuwellLoader::finish() {
+    finishAddingSessions();
 }
