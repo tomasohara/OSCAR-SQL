@@ -488,7 +488,14 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
 
         QDialog confirmdlg;
         QVBoxLayout layout(&confirmdlg);
-        QLabel message(QString("<b>"+STR_MessageBox_Warning+":</b> "+tr("You are about to destroy profile '<b>%1</b>'.")+"<br/><br/>"+tr("Think carefully, as this will irretrievably delete the profile along with all <b>backup data</b> stored under<br/>%2.")+"<br/><br/>"+tr("Enter the word <b>DELETE</b> below (exactly as shown) to confirm.")).arg(name).arg(path), &confirmdlg);
+
+        // 493 - 497 modified to allow for translation - CN
+        QString warning = STR_MessageBox_Warning;
+        QString line1 = tr("You are about to destroy profile '<b>%1</b>'.").arg(name);
+        QString line2 = tr("Think carefully, as this will irretrievably delete the profile along with all <b>backup data</b> stored under<br/>%1.").arg(path);
+        QString line3 = tr("Enter the word <b>DELETE</b> below (exactly as shown) to confirm.");
+        QLabel message(QString("<b>%1:</b> %2<br/><br/>%3<br/><br/>%4").arg(warning, line1, line2, line3), &confirmdlg);
+
         layout.insertWidget(0,&message,1);
         QLineEdit lineedit(&confirmdlg);
         layout.insertWidget(1, &lineedit, 1);
