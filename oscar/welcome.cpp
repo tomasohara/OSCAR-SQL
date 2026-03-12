@@ -186,7 +186,7 @@ QString Welcome::GenerateCPAPHTML()
             else if (daysto == 0) daystring += tr("today");
             else daystring += tr("%2 days ago").arg(daysto-1);
 
-            html += tr("was %1 (on %2)").arg(daystring).arg(date.toString(QLocale::system().dateFormat(QLocale::LongFormat))) + "<br/>";
+            html += tr("was %1 (on %2)").arg(daystring).arg(QLocale::system().toString(date, QLocale::LongFormat)) + "<br/>";
 
             EventDataType hours = day->hours(MT_CPAP);
             html += "<br/>";

@@ -32,7 +32,9 @@ public:
     virtual int WaveformSamplesPerPacket() const override { return 50; }
     virtual qint64 WaveformPacketDurationMs() const override { return 1000; }
     virtual bool ExportFlowAbnormalityWaveform() const override { return false; }
-    virtual bool ExportLeakRate() const override { return false; }
+    // Leak is now sourced from waveform packet offset 0x52A (raw × 0.16 → L/min).
+    // The old EVT-based leak source (0x0C) was discarded; see bmcG3xDataParsing.cpp.
+    virtual bool ExportLeakRate() const override { return true; }
 };
 
 #endif // BMCG3XLOADER_H

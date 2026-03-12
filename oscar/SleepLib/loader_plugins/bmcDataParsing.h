@@ -314,7 +314,9 @@ public:
     quint16 PulseRate;
     quint16 RespiratoryRate;
     qint16 IERatioMapped;
-
+    /// @brief Pressure trend (slow-moving target/smoothed pressure), raw hundredths cmH2O.
+    ///        Sourced from waveform packet offset 0x76C. See BMC_G3X_00X_FORMAT.md.
+    quint16 PressureTrend = 0;
 };
 
 
@@ -332,6 +334,9 @@ public:
     float MinuteVentilation;
     quint16 RespiratoryRate;
     float IERatio;
+    /// @brief Pressure trend in cmH2O (raw hundredths / 100.0).
+    ///        Sourced from waveform packet offset 0x76C. See BMC_G3X_00X_FORMAT.md.
+    float PressureTrend = 0.0f;
 
     BmcWaveformPacketRaw Raw;
 

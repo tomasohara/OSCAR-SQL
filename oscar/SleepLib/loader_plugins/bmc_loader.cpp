@@ -400,6 +400,10 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
     auto wRespiratoryRate = oscarSession->AddEventList(CPAP_RespRate, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wIEValue = oscarSession->AddEventList(CPAP_IE, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
     auto wIERatio = oscarSession->AddEventList(BMC_IE_Ratio, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000);
+    // Pressure trend (G3X only): raw hundredths of cmH2O; gain 0.01 → displayed cmH2O.
+    // EVL_Event draws a step-function line between events, keeping horizontal
+    // stretches visible at all zoom levels.
+    auto wPressureTrend = oscarSession->AddEventList(BMC_PressureTrend, EVL_Event, 0.01, 0.0, 0.0, 0.0, 1000);
     auto wSpO2 = oscarSession->AddEventList(OXI_SPO2, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wPulse = oscarSession->AddEventList(OXI_Pulse, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wInspTime = oscarSession->AddEventList(CPAP_Ti, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
@@ -460,6 +464,8 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
             wPulse->AddEvent(timestamp, bmcWaveform.Raw.PulseRate);
         if (bmcWaveform.Raw.RespiratoryRate > 0)
             wRespiratoryRate->AddEvent(timestamp, bmcWaveform.Raw.RespiratoryRate);
+        if (bmcWaveform.Raw.PressureTrend > 0)
+            wPressureTrend->AddEvent(timestamp, bmcWaveform.Raw.PressureTrend);
         const int ieMapped = bmcWaveform.Raw.IERatioMapped;
         const bool ieMappedPermille = (ieMapped > 100);
         if (ieMapped > 0) {
