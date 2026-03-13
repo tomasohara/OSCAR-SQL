@@ -1457,7 +1457,7 @@ QString Statistics::GenerateCPAPUsage()
                     }
 
                     // all periods must be displayed to indicate that it is not used.
-                    periods.push_back(Period(s, l, s.toString("MMMM<br>yyyy")));
+                    periods.push_back(Period(s, l, QLocale().toString(s, "MMMM<br>yyyy")));
                     j++;
                     l = s.addDays(-1);
                 } while ((l > first) && (j < number_periods));

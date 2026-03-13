@@ -1243,20 +1243,23 @@ QList<ImportPath> MainWindow::selectCPAPDataCards(const QString & prompt, bool a
             QMessageBox mbox(QMessageBox::NoIcon,
                 tr("CPAP Data Located"), infostr+"\n\n"+QDir::toNativeSeparators(datacards[0].path)+"\n\n"+
                 prompt,
-                QMessageBox::Yes | QMessageBox::Cancel, this);
-            mbox.setDefaultButton(QMessageBox::Yes);
+                QMessageBox::NoButton, this);
+            QPushButton *yesBtn    = mbox.addButton(tr("Yes"),     QMessageBox::YesRole);
+            QPushButton *cancelBtn = mbox.addButton(tr("Cancel"),  QMessageBox::RejectRole);
             mbox.addButton(tr("Specify"), QMessageBox::NoRole);
+            mbox.setDefaultButton(yesBtn);
 
             QPixmap pixmap = datacards[0].loader->getPixmap(datacards[0].loader->PeekInfo(datacards[0].path).series).scaled(64,64);
 
             //QPixmap pixmap = QPixmap(getCPAPPixmap(datacards[0].loader->loaderName())).scaled(64,64);
             mbox.setIconPixmap(pixmap);
-            int res = mbox.exec();
-            if (res == QMessageBox::Cancel) {
+            mbox.exec();
+            QAbstractButton *clicked = mbox.clickedButton();
+            if (clicked == cancelBtn) {
                 // Give the communal progress bar back
                 datacards.clear();
                 return datacards;
-            } else if (res == QMessageBox::Yes) {
+            } else if (clicked == yesBtn) {
                 // let it fall through.
             } else {
                 //waitmsg->setText(tr("Please wait, launching file dialog..."));

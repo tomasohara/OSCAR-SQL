@@ -550,7 +550,7 @@ OSCAR can keep a copy of this data if you ever need to reinstall.
                       <enum>QDateTimeEdit::DaySection</enum>
                      </property>
                      <property name="displayFormat">
-                      <string>dd MMMM yyyy</string>
+                      <string notr="true">dd MMMM yyyy</string>
                      </property>
                      <property name="calendarPopup">
                       <bool>true</bool>

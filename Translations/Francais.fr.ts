@@ -5026,7 +5026,7 @@ Surtout pour l&apos;import.</translation>
     </message>
     <message>
         <source>dd MMMM yyyy</source>
-        <translation>jj MMMM aaaa</translation>
+        <translation>dd MMMM yyyy</translation>
     </message>
     <message>
         <source>Reset Defaults</source>
