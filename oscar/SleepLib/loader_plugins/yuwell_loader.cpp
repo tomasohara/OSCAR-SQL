@@ -8,7 +8,7 @@
 #include "SleepLib/loader_plugins/yuwell_loader.h"
 
 /*
- * Take care of BreathCare ECO and BreathCare I type machines
+ * Take care of BreathCare ECO and BreathCare I/II/III type machines
  * The files either contain single sessions per BYS file OR a single file with all sessions
  *
  * At this stage I don't know which machines have SD-Cards, some may not
@@ -39,7 +39,7 @@
  * NOTES
  * ======
  *
- * So far we have 2 BYS formats, the YH-550 and the YH-580
+ * So far we have 4 BYS formats, the YH-550, YH-580, YH-690 and the YH-830
  *
  * The BYS file contains either a single session or multiple sessions
  * The SD-CARD structure for both machines are completely different
@@ -55,7 +55,7 @@
  *
  * Can then import data depending on the format of the BYS files and directory locations
  *
- * Call them YuwellFormatA, YuwellFormatB, YuwellFormatC and so on. Iterate over each looking for a match
+ * Call them YuwellFormatA, YuwellFormatB, YuwellFormatC, YuwellFormatD and so on. Iterate over each looking for a match
  *
  * 1. Match the file structure
  * 2. Look for model/serial
@@ -884,9 +884,6 @@ bool YuwellFormatC::OpenSession(Machine *mach, const QString & filename)
     QDateTime start = QDateTime(QDate(start_year, start_month, start_day), QTime(start_hour, start_minute, start_second), QTimeZone::systemTimeZone());
     QDateTime finish = QDateTime(QDate(finish_year, finish_month, finish_day), QTime(finish_hour, finish_minute, finish_second), QTimeZone::systemTimeZone());
 
-    qDebug() << "Start time: " << start;
-    qDebug() << "Finish time: " << finish;
-
     short int record_count;
     unsigned char humidity_settings;
     QByteArray raw_model_serial(16, Qt::Uninitialized);
@@ -1047,6 +1044,460 @@ int YuwellFormatC::Open() {
     return c;
 }
 
+bool YuwellFormatD::Detect() {
+    /*
+     * root - \ MODEL-SERIAL
+     *          | RunLog.bys <- 0 byte file
+     *          | summer.bys <- 50 byte file containing zeroes
+     *          | 00100001 (dir)
+     *            \ 0100001d.BYS <- Flow rate data
+     *            | 0100001m.BYS <- Minute summary data
+     *            | 0100001s.BYS <- Session summary data
+     *
+     * Models seen
+     * -----------
+     * YH-690
+     *
+     * This is possibly the BreathCare III format, will have to confirm with other BCIII units
+     */
+    QDir cardDir(m_filePath);
+
+    QStringList model_serials = GetModelSerials();
+
+    if (model_serials.size() == 0) {
+        return false;
+    }
+
+    qDebug() << "Found Yuwell format D serial number: " << model_serials;
+    return true;
+}
+
+QStringList YuwellFormatD::GetModelSerials() {
+    /*
+     * Find a model/serial number from the inside of a file
+     * instead of a directory name. Much more source-of-truth
+     */
+    QDir cardDir(m_filePath);
+
+    cardDir.setFilter(QDir::NoDotAndDotDot | QDir::Dirs | QDir::NoSymLinks);
+    cardDir.setSorting(QDir::Name);
+
+    QFileInfoList dlist = cardDir.entryInfoList();
+
+    QStringList model_serials;
+
+    for (int i = 0; i < dlist.size(); i++) {
+        // Iterate until we find our first file with a model/serial number
+        QFileInfo fi = dlist.at(i);
+        QString filename = fi.fileName();
+
+        if (filename.toUpper().startsWith("YH")) {
+            // From here there are sub-directories with individual sessions
+            QDir sessionsDir (m_filePath + "/" + filename);
+
+            // There should be an empty RunLog.bys file in this directory
+            if (!sessionsDir.exists("RunLog.bys")) {
+                continue;
+            }
+            sessionsDir.setFilter(QDir::NoDotAndDotDot | QDir::Dirs | QDir::NoSymLinks);
+            sessionsDir.setSorting(QDir::Name);
+
+            QFileInfoList slist = sessionsDir.entryInfoList();
+
+            for (int j = 0; j < slist.size(); j++) {
+                // Each session directory should contain *s.bys containing the serial
+                QFileInfo sfi = slist.at(j);
+                QString sessionname = sfi.fileName();
+
+                QDir sessionDir (m_filePath + "/" + filename + "/" + sessionname);
+                sessionDir.setFilter(QDir::NoDotAndDotDot | QDir::Files | QDir::NoSymLinks);
+                sessionDir.setSorting(QDir::Name);
+
+                QStringList filters;
+                filters << "*s.BYS";
+                sessionDir.setNameFilters(filters);
+
+                QFileInfoList flist = sessionDir.entryInfoList();
+                if (flist.size() == 0) {
+                    continue;
+                }
+
+                QFileInfo summary = flist.at(0);
+                QFile bysFile(m_filePath + "/" + filename + "/" + sessionname + "/" + summary.fileName());
+
+                if (bysFile.open(QFile::ReadOnly)) {
+                    QByteArray header = bysFile.read(0x30);
+
+                    if (header.size() == 0x30) {
+                        QDataStream in(header);
+                        in.setVersion(QDataStream::Qt_4_8);
+
+                        QByteArray raw_model_serial(16, Qt::Uninitialized);
+
+                        in.skipRawData(0x20);
+                        in.readRawData(raw_model_serial.data(), 16);
+
+                        QString model_serial(raw_model_serial);
+                        if (model_serial.startsWith("YH") && !model_serials.contains(model_serial)) {
+                            model_serials << model_serial;
+                        }
+                    }
+                    bysFile.close();
+                }
+            }
+        }
+    }
+    return model_serials;
+}
+
+int YuwellFormatD::OpenMachine(Machine *mach, const QString & serial)
+{
+    emit m_loader->updateMessage(QObject::tr("Getting Ready..."));
+    emit m_loader->setProgressValue(0);
+    QCoreApplication::processEvents();
+
+    QString machinePath = m_filePath + "/" + serial;
+    QDir dir(machinePath);
+
+    if (!dir.exists() || (!dir.isReadable())) {
+        return -1;
+    }
+
+    m_loader->backupData(mach, m_filePath);
+
+    calc_leaks = p_profile->cpap->calculateUnintentionalLeaks();
+    lpm4 = p_profile->cpap->custom4cmH2OLeaks();
+    lpm20 = p_profile->cpap->custom20cmH2OLeaks();
+
+    dir.setFilter(QDir::NoDotAndDotDot | QDir::Dirs | QDir::NoSymLinks);
+    dir.setSorting(QDir::Name);
+    QFileInfoList flist = dir.entryInfoList();
+
+    emit m_loader->updateMessage(QObject::tr("Reading session directories..."));
+    QCoreApplication::processEvents();
+
+    Sessions.clear();
+
+    QString filename, spath;
+    emit m_loader->setProgressMax(flist.size());
+
+    // There's only one file type with an extension .BYS containing a header and line data
+    for (int i = 0; i < flist.size(); i++) {
+        emit m_loader->setProgressValue(i);
+        QFileInfo fi = flist.at(i);
+        QString sessionname = fi.fileName();
+        spath = machinePath + "/" + sessionname;
+
+        OpenSession(mach, spath);
+    }
+
+    int c = Sessions.size();
+    qDebug() << "Yuwell Format D Loader found" << c << "sessions";
+
+    emit m_loader->updateMessage(QObject::tr("Finishing up..."));
+    QCoreApplication::processEvents();
+
+    m_loader->finish();
+
+    return c;
+}
+
+bool YuwellFormatD::OpenSession(Machine *mach, const QString & filename)
+{
+    QDir sessionDir(filename);
+
+    // Read three files: *s.bys, *m.bys, *d.bys
+    // Read from the session file (*s.bys) first to get the session start/stop, mode, FPS level and ramp time
+    QStringList sFilters;
+    sFilters << "*s.bys";
+    sessionDir.setNameFilters(sFilters);
+
+    QFileInfoList flist = sessionDir.entryInfoList();
+    if (flist.size() == 0) {
+        return false;
+    }
+
+    QFileInfo summary = flist.at(0);
+    QFile bysFile(filename + "/" + summary.fileName());
+
+    unsigned char start_year, start_month, start_day, start_hour, start_minute, start_second;
+    unsigned char finish_year, finish_month, finish_day, finish_hour, finish_minute, finish_second;
+    unsigned char mode, fps_level, ramp;
+
+    QDateTime start, finish;
+    quint32 ts;
+    Session *sess = nullptr;
+
+    if (bysFile.open(QFile::ReadOnly)) {
+        QByteArray header = bysFile.read(0x4D);
+
+        if (header.size() != 0x4D) {
+            return false;
+        }
+
+        QDataStream in(header);
+        in.setVersion(QDataStream::Qt_4_8);
+
+        in.skipRawData(2);
+        in >> start_year;
+        in >> start_month;
+        in >> start_day;
+        in >> start_hour;
+        in >> start_minute;
+        in >> start_second;
+
+        in >> finish_year;
+        in >> finish_month;
+        in >> finish_day;
+        in >> finish_hour;
+        in >> finish_minute;
+        in >> finish_second;
+
+        start = QDateTime(QDate(2000 + start_year, start_month, start_day), QTime(start_hour, start_minute, start_second), QTimeZone::systemTimeZone());
+        finish = QDateTime(QDate(2000 + finish_year, finish_month, finish_day), QTime(finish_hour, finish_minute, finish_second), QTimeZone::systemTimeZone());
+
+        ts = start.toSecsSinceEpoch();
+
+        in.skipRawData(18);
+
+        QByteArray raw_model_serial(16, Qt::Uninitialized);
+        in.readRawData(raw_model_serial.data(), 16);
+        QString model_serial(raw_model_serial);
+        mach->setModel(model_serial);
+
+        in.skipRawData(8); // Some rando date in here
+        in >> mode;
+
+        in.skipRawData(18);
+        in >> fps_level;
+        in >> ramp;
+
+        if (!mach->SessionExists(ts)) {
+            sess = new Session(mach, ts);
+            sess->really_set_first(qint64(ts) * 1000L);
+            sess->really_set_last(qint64(finish.toSecsSinceEpoch()) * 1000L);
+
+            if (mode == YUWELL_CPAP) {
+                sess->settings[CPAP_Mode] = (int)MODE_CPAP;
+                sess->settings[CPAP_Pressure] = -1; // Sentinel value to fill in later
+            } else {
+                sess->settings[CPAP_Mode] = (int)MODE_APAP;
+                sess->settings[CPAP_PressureMin] = -1;
+                sess->settings[CPAP_PressureMax] = -1;
+            }
+
+            // sess->settings[Yuwell_Humidity] = humidity;
+            sess->settings[Yuwell_Ramp] = ramp;
+        }
+        bysFile.close();
+    }
+
+    if (!sess) {
+        return false;
+    }
+
+    EventList *LK = sess->AddEventList(CPAP_LeakTotal, EVL_Event, 1);
+    EventList *PR = sess->AddEventList(CPAP_Pressure, EVL_Event, 0.1F);
+    EventList *OA = sess->AddEventList(CPAP_Obstructive, EVL_Event);
+    EventList *CA = sess->AddEventList(CPAP_ClearAirway, EVL_Event);
+    EventList *H =  sess->AddEventList(CPAP_Hypopnea, EVL_Event);
+    EventList *FR =  sess->AddEventList(CPAP_FlowRate, EVL_Event, 1);
+
+    QStringList mFilters;
+    mFilters << "*m.bys";
+    sessionDir.setNameFilters(mFilters);
+
+    QFileInfoList mlist = sessionDir.entryInfoList();
+    if (mlist.size() == 0) {
+        return false;
+    }
+    QFileInfo minutes = mlist.at(0);
+    QFile bysMFile(filename + "/" + minutes.fileName());
+
+    if (bysMFile.open(QFile::ReadOnly)) {
+        QByteArray mHeader = bysMFile.read(0x08);
+
+        if (mHeader.size() != 0x08) {
+            return false;
+        }
+        short int record_count;
+
+        QDataStream in(mHeader);
+        in.setVersion(QDataStream::Qt_4_8);
+        in.setByteOrder(QDataStream::LittleEndian);
+
+        in.skipRawData(6);
+
+        in >> record_count;
+
+        qint64 ti;
+        ti = qint64(ts) * 1000L;
+
+        unsigned char max_pressure = 0;
+
+        // Records start here at 18 bytes each
+        for (int i = 0; i < record_count; i++) {
+            QCoreApplication::processEvents();
+            QByteArray record;
+
+            record = bysMFile.read(18);
+
+            if (record.size() != 18) {
+                qWarning() << "Yuwell Session Record Short " << minutes.fileName();
+                bysMFile.close();
+                return false;
+            }
+
+            QDataStream in(record);
+            in.setVersion(QDataStream::Qt_4_8);
+            in.setByteOrder(QDataStream::LittleEndian);
+
+            unsigned char pressure, oai, cai, hi, leakage;
+            in >> pressure;
+            in.skipRawData(1);
+            in >> oai;
+            in >> cai;
+            in >> hi;
+            in.skipRawData(4);
+            in >> leakage;
+            in.skipRawData(8);
+
+            if (sess->settings[CPAP_Mode] == (int)MODE_CPAP) {
+                if (sess->settings[CPAP_Pressure] == -1) {
+                    sess->settings[CPAP_Pressure] = pressure / 10.0;
+                }
+            } else {
+                if (sess->settings[CPAP_PressureMin] == -1) {
+                    sess->settings[CPAP_PressureMin] = pressure / 10.0;
+                }
+            }
+
+            if (pressure > max_pressure) {
+                max_pressure = pressure;
+            }
+
+            PR->AddEvent(ti + (i * 60000), pressure);
+
+            if (oai > 0) {
+                OA->AddEvent(ti + (i * 60000), 0);
+            }
+            if (hi > 0) {
+                H->AddEvent(ti + (i * 60000), 0);
+            }
+            if (cai > 0) {
+                CA->AddEvent(ti + (i * 60000), 0);
+            }
+            if (leakage > 0) {
+                LK->AddEvent(ti + (i * 60000), leakage);
+            }
+        }
+
+        if (sess->settings[CPAP_Mode] == (int)MODE_APAP) {
+            sess->settings[CPAP_PressureMax] = max_pressure / 10.0;
+        }
+
+        bysMFile.close();
+    }
+    // Flow rate data
+    QStringList dFilters;
+    dFilters << "*d.bys";
+    sessionDir.setNameFilters(dFilters);
+
+    QFileInfoList dlist = sessionDir.entryInfoList();
+    if (dlist.size() == 0) {
+        return false;
+    }
+    QFileInfo flow_rate = dlist.at(0);
+    QFile bysDFile(filename + "/" + flow_rate.fileName());
+
+    if (bysDFile.open(QFile::ReadOnly)) {
+        QByteArray mHeader = bysDFile.read(0x08);
+
+        if (mHeader.size() != 0x08) {
+            return false;
+        }
+        short int record_count;
+
+        QDataStream in(mHeader);
+        in.setVersion(QDataStream::Qt_4_8);
+        in.setByteOrder(QDataStream::LittleEndian);
+
+        in.skipRawData(6);
+
+        in >> record_count;
+
+        qint64 ti;
+        ti = qint64(ts) * 1000L;
+
+        // Records start here at 1200 bytes each
+        // For 1 minute of flow rate data. Two datasets in each minute
+        // 10 flow rate samples per second. 600 samples for each dataset
+        // Actual flow rate is in the second dataset.
+        for (int i = 0; i < record_count; i++) {
+            QCoreApplication::processEvents();
+            QByteArray record;
+
+            record = bysDFile.read(1200);
+
+            if (record.size() != 1200) {
+                qWarning() << "Yuwell Session Record Short " << minutes.fileName();
+                bysDFile.close();
+                return false;
+            }
+
+            QDataStream in(record);
+            in.setVersion(QDataStream::Qt_4_8);
+            in.setByteOrder(QDataStream::LittleEndian);
+
+            in.skipRawData(600); // Unsure what the first 600 byte dataset is in each minute
+            for (int j = 0; j < 600; j++) {
+                unsigned char flow_rate;
+                in >> flow_rate;
+
+                // Flow rate events are every 1/10th of a second plus the minute offset
+                FR->AddEvent(ti + (i * 60000) + (j * 100), (signed int)-70 + flow_rate);
+            }
+        }
+        bysDFile.close();
+    }
+    sess->SetChanged(true);
+    Sessions[ts] = sess;
+    sess->UpdateSummaries();
+    sess->Store(mach->getDataPath());
+    mach->AddSession(sess);
+
+    return true;
+}
+
+int YuwellFormatD::Open() {
+    // Start with m_filePath and do the import
+    QStringList model_serials = GetModelSerials();
+
+    Machine *m;
+
+    int c = 0;
+    for (int i = 0; i < model_serials.size(); i++) {
+        MachineInfo info = m_loader->newInfo();
+        info.serial = model_serials[i];
+        m = p_profile->CreateMachine(info);
+        try {
+            if (m) {
+                c += OpenMachine(m, model_serials[i]);
+                m->Save();
+            }
+        } catch (OneTypePerDay& e) {
+            Q_UNUSED(e)
+            p_profile->DelMachine(m);
+            QMessageBox::warning(nullptr, m_loader->tr("Import Error"),
+                                 m_loader->tr("This device Record cannot be imported in this profile.")+"\n\n"+m_loader->tr("The Day records overlap with already existing content."),
+                                 QMessageBox::Ok);
+            delete m;
+        }
+    }
+
+    return c;
+}
+
 YuwellLoader::YuwellLoader() {
     m_type = MT_CPAP;
 
@@ -1075,6 +1526,7 @@ YuwellFormat* YuwellLoader::YuwellFactory(const QString & givenPath) {
     candidates << new YuwellFormatA(*this, givenPath);
     candidates << new YuwellFormatB(*this, givenPath);
     candidates << new YuwellFormatC(*this, givenPath);
+    candidates << new YuwellFormatD(*this, givenPath);
 
     YuwellFormat* match = nullptr;
     for(YuwellFormat* format : candidates) {

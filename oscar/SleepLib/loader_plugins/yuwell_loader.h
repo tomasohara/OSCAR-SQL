@@ -55,6 +55,27 @@ class YuwellFormat
 };
 
 
+/*
+ * These are placeholder class names until we can confirm that the formats are actually the BreathCare versions
+ * If this is the case, then the renaming should be:
+ *
+ * YuwellFormatA -> YuwellBreathCareECO
+ * YuwellFormatB -> YuwellBreathCareI
+ * YuwellFormatC -> YuwellBreathCareII
+ * YuwellFormatD -> YuwellBreathCareIII
+ *
+ * The list of known Yuwell machines and their BreathCare revisions:
+ *
+ * BreathCare ECO: YH-550
+ * BreathCare I: YH-350, YH-360, YH-580, YH-720, YH-725, YH-730
+ * BreathCare II: YH-450, YH-480, YH-820, YH-825, YH-830
+ * BreathCare III: YH-680, YH-690
+ *
+ * So far we've only seen one model from each BreathCare revision, so its difficult to say for sure. If we see
+ * another machine and it *just works* then we can be closer to saying that this is how the data format are organised.
+ */
+
+
 class YuwellFormatA : public YuwellFormat
 {
   public:
@@ -82,6 +103,18 @@ class YuwellFormatC : public YuwellFormat
 {
   public:
     YuwellFormatC(YuwellLoader &loader, const QString &filePath) : YuwellFormat(loader, filePath) {};
+    virtual QStringList GetModelSerials();
+    virtual bool Detect();
+    virtual int Open();
+  private:
+    int OpenMachine(Machine *mach, const QString & serial);
+    bool OpenSession(Machine *mach, const QString & filename);
+};
+
+class YuwellFormatD : public YuwellFormat
+{
+  public:
+    YuwellFormatD(YuwellLoader &loader, const QString &filePath) : YuwellFormat(loader, filePath) {};
     virtual QStringList GetModelSerials();
     virtual bool Detect();
     virtual int Open();
