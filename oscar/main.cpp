@@ -121,7 +121,7 @@ bool migrateFromOSCAR(QString destDir) {
         sourcePath = QFileDialog::getExistingDirectory(nullptr,
                   QObject::tr("Choose the OSCAR 1.x data folder to migrate")+" "+
                   QObject::tr("or CANCEL to skip migration."),
-                  homeDocs, QFileDialog::ShowDirsOnly);
+                  homeDocs, QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
         qDebug() << "Migration source folder selected: " + sourcePath;
         if (sourcePath.isEmpty()) {
             qDebug() << "No migration source directory selected";
@@ -545,7 +545,7 @@ int main(int argc, char *argv[]) {
                 bool change_data_dir = true;
                 while (change_data_dir) {           // Create or select an acceptable folder
                     QString datadir = QFileDialog::getExistingDirectory(nullptr,
-                                      QObject::tr("Choose or create a new folder for OSCAR data"), homeDocs, QFileDialog::ShowDirsOnly);
+                                      QObject::tr("Choose or create a new folder for OSCAR data"), homeDocs, QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
 
                     if (datadir.isEmpty()) {        // User hit Cancel instead of selecting or creating a folder
                         QMessageBox::information(nullptr, QObject::tr("Exiting"),

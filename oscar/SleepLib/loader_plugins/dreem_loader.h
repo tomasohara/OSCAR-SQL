@@ -34,7 +34,7 @@ class DreemLoader : public MachineLoader
     virtual const QString &loaderName() { return dreem_class_name; }
 
     virtual MachineInfo newInfo() {
-        return MachineInfo(MT_SLEEPSTAGE, 0, dreem_class_name, QObject::tr("Dreem"), QString(), QString(), QString(), QObject::tr("Dreem"), QDateTime::currentDateTime(), dreem_data_version);
+        return MachineInfo(MT_SLEEPSTAGE, 0, dreem_class_name, QObject::tr("Dreem"), QObject::tr("Dreem Headband"), QString(), QString(), QObject::tr("Dreem"), QDateTime::currentDateTime(), dreem_data_version);
     }
     
     bool openCSV(const QString & filename);

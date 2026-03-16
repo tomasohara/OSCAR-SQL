@@ -154,9 +154,10 @@ void ProfileSelector::updateProfileList()
             UserInfoData userInfo = userRepo.findByProfile(profileData.id);
             QString usersname;
             if (!userInfo.lastName.isEmpty()) {
-                usersname = QString("%1, %2").arg(userInfo.lastName, userInfo.firstName);
+                usersname = formattedName(userInfo.lastName, userInfo.firstName);
             }
             model->setData(model->index(row, 5, QModelIndex()), usersname);
+            model->setData(model->index(row, 5, QModelIndex()), nameSortKey(userInfo.lastName, userInfo.firstName), MySortFilterProxyModel2::NameSortRole);
             model->setData(model->index(row, 3, QModelIndex()), tr("Id: ") + QString::number(userInfo.id));
 
             // Get most recent CPAP machine from database
@@ -219,12 +220,13 @@ void ProfileSelector::updateProfileList()
             model->insertRows(row, 1, QModelIndex());
             QString usersname;
             if (!prof->user->lastName().isEmpty()) {
-                usersname = QString("%1, %2").arg(prof->user->lastName(), prof->user->firstName());
+                usersname = formattedName(prof->user->lastName(), prof->user->firstName());
             }
 
             model->setData(model->index(row, 0, QModelIndex()), name);
             model->setData(model->index(row, 0, QModelIndex()), name, Qt::UserRole+2);
             model->setData(model->index(row, 5, QModelIndex()), usersname);
+            model->setData(model->index(row, 5, QModelIndex()), nameSortKey(prof->user->lastName(), prof->user->firstName()), MySortFilterProxyModel2::NameSortRole);
             if (mach) {
                 model->setData(model->index(row, 1, QModelIndex()), mach->brand());
                 model->setData(model->index(row, 2, QModelIndex()), mach->model());
@@ -401,10 +403,11 @@ void ProfileSelector::on_buttonEditProfile_clicked()
         if (newprof->exec() != NewProfile::Rejected) {
             QString usersname;
             if (!prof->user->lastName().isEmpty()) {
-                usersname = QString("%1, %2").arg(prof->user->lastName(), prof->user->firstName());
+                usersname = formattedName(prof->user->lastName(), prof->user->firstName());
             }
 
             proxy->setData(proxy->index(ui->profileView->currentIndex().row(), 5, QModelIndex()), usersname);
+            proxy->setData(proxy->index(ui->profileView->currentIndex().row(), 5, QModelIndex()), nameSortKey(prof->user->lastName(), prof->user->firstName()), MySortFilterProxyModel2::NameSortRole);
             //updateProfileList();
             if (prof == p_profile) updateProfileHighlight(name);
         }
@@ -609,6 +612,20 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
     }
 }
 
+QString ProfileSelector::formattedName(const QString &lastName, const QString &firstName)
+{
+    // Translators: name display order. English default is "Last, First".
+    // Override to "%2 %1" for locales that prefer "First Last" (e.g. French).
+    return tr("%1, %2").arg(lastName, firstName);
+}
+
+QString ProfileSelector::nameSortKey(const QString &lastName, const QString &firstName)
+{
+    if (firstName.isEmpty())
+        return lastName;
+    return lastName + ", " + firstName;
+}
+
 QString ProfileSelector::formatSize(qint64 size)
 {
     QStringList units = { tr("Bytes"), tr("KB"), tr("MB"), tr("GB"), tr("TB"), tr("PB") };
@@ -691,7 +708,7 @@ void ProfileSelector::on_selectionChanged(const QModelIndex &index, const QModel
             Profile * profile = prof.value();
 
             if (!profile->user->lastName().isEmpty() && !profile->user->firstName().isEmpty()) {
-                html += tr("Name: %1, %2").arg(profile->user->lastName(), profile->user->firstName())+"<br/>";
+                html += tr("Name: ") + formattedName(profile->user->lastName(), profile->user->firstName()) + "<br/>";
             }
             if (!profile->user->phone().isEmpty()) {
                 html += tr("Phone: %1").arg(profile->user->phone())+"<br/>";

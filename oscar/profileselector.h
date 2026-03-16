@@ -28,6 +28,10 @@ class MySortFilterProxyModel2:public QSortFilterProxyModel
 
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
 
+    //! Role used to store the "lastname, firstname" sort key for the name column,
+    //! independent of the locale-specific display format.
+    static const int NameSortRole = Qt::UserRole + 3;
+
     void setDateColumn(int column) {
         dateColumn = column;
     }
@@ -36,19 +40,28 @@ class MySortFilterProxyModel2:public QSortFilterProxyModel
         dateFormat = format;
     }
 
+    void setNameColumn(int column) {
+        nameColumn = column;
+    }
+
   protected:
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override
     {
-        // Check if this is the date column
+        // Name column: sort by the locale-independent "lastname, firstname" key
+        if (left.column() == nameColumn) {
+            QString leftKey  = sourceModel()->data(left,  NameSortRole).toString();
+            QString rightKey = sourceModel()->data(right, NameSortRole).toString();
+            return leftKey.compare(rightKey, Qt::CaseInsensitive) < 0;
+        }
+
+        // Date column: parse and compare as QDate
         if (left.column() == dateColumn) {
             QString leftString = sourceModel()->data(left).toString();
             QString rightString = sourceModel()->data(right).toString();
 
-            // Parse strings back to QDate
             QDate leftDate = QDate::fromString(leftString, dateFormat);
             QDate rightDate = QDate::fromString(rightString, dateFormat);
 
-            // If both are valid dates, compare them
             if (leftDate.isValid() && rightDate.isValid()) {
                 return leftDate < rightDate;
             }
@@ -60,6 +73,7 @@ class MySortFilterProxyModel2:public QSortFilterProxyModel
 
   private:
     int dateColumn = 4;
+    int nameColumn = 5;
     QString dateFormat = QLocale::system().dateFormat(QLocale::ShortFormat);
 };
 
@@ -97,6 +111,11 @@ private slots:
 private:
     QString getProfileDiskInfo(Profile *profile);
     QString formatSize(qint64 size);
+    //! @brief Returns the user's full name formatted according to the current locale's conventions.
+    //! Translators may override the format string "%1, %2" (last, first) to "%2 %1" (first last).
+    QString formattedName(const QString &lastName, const QString &firstName);
+    //! @brief Returns a locale-independent "lastname, firstname" sort key for the name column.
+    static QString nameSortKey(const QString &lastName, const QString &firstName);
 
     Ui::ProfileSelector *ui;
     QStandardItemModel *model;
