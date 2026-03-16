@@ -1295,7 +1295,7 @@ QList<ImportPath> MainWindow::selectCPAPDataCards(const QString & prompt, bool a
         w.setDirectory(folder);
         w.setFileMode(QFileDialog::Directory);
         w.setOption(QFileDialog::ShowDirsOnly, true);
-        w.setOption(QFileDialog::DontUseNativeDialog, true);
+        if (nativeDialogOption()) w.setOption(QFileDialog::DontUseNativeDialog);
         w.setWindowTitle(tr("Find your CPAP data card"));
 
         if (w.exec() != QDialog::Accepted) {
@@ -1668,7 +1668,7 @@ void MainWindow::DelayedScreenshot()
             folder = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
         }
         folder += default_filename;
-        png_filepath = QFileDialog::getSaveFileName(this, tr("Choose where to save screenshot"), folder, tr("Image files (*.png)"), nullptr, QFileDialog::DontUseNativeDialog);
+        png_filepath = QFileDialog::getSaveFileName(this, tr("Choose where to save screenshot"), folder, tr("Image files (*.png)"), nullptr, nativeDialogOption());
         if (png_filepath.isEmpty() == false && png_filepath.toLower().endsWith(".png") == false) {
             png_filepath += ".png";
         }
@@ -2439,7 +2439,7 @@ void MainWindow::on_actionImport_RemStar_MSeries_Data_triggered()
     QFileDialog w;
     w.setFileMode(QFileDialog::ExistingFiles);
     w.setOption(QFileDialog::ShowDirsOnly, false);
-    w.setOption(QFileDialog::DontUseNativeDialog, true);
+    if (nativeDialogOption()) w.setOption(QFileDialog::DontUseNativeDialog);
     w.setNameFilters(QStringList("M-Series data file (*.bin)"));
 
     MSeriesLoader mseries;
@@ -2882,7 +2882,7 @@ void MainWindow::on_actionImport_Journal_triggered()
     QString filename = QFileDialog::getOpenFileName(this,
             tr("Choose where to read journal"),
             profilePath(STR_PREF_LastJournalPath),
-            tr("XML Files (*.xml)"), nullptr, QFileDialog::DontUseNativeDialog);
+            tr("XML Files (*.xml)"), nullptr, nativeDialogOption());
     if (Journal::RestoreJournal(filename) ) {
 		QFileInfo fi(filename);
 		QDir dir = fi.dir();
@@ -2905,7 +2905,7 @@ void MainWindow::on_actionExport_Journal_triggered()
     }
     folder += QDir::separator() + tr("%1's Journal").arg(p_profile->user->userName()) + ".xml";
 
-    QString filename = QFileDialog::getSaveFileName(this, tr("Choose where to save journal"), folder, tr("XML Files (*.xml)"), nullptr, QFileDialog::DontUseNativeDialog);
+    QString filename = QFileDialog::getSaveFileName(this, tr("Choose where to save journal"), folder, tr("XML Files (*.xml)"), nullptr, nativeDialogOption());
 
     if (Journal::BackupJournal(filename) ) {
 		QFileInfo fi(filename);
@@ -2993,7 +2993,7 @@ void MainWindow::on_actionCreate_Card_zip_triggered()
             prefix = infostr;
             folder += "/" + infostr + ".zip";
 
-            filename = QFileDialog::getSaveFileName(this, tr("Choose where to save zip"), folder, tr("ZIP files (*.zip)"), nullptr, QFileDialog::DontUseNativeDialog);
+            filename = QFileDialog::getSaveFileName(this, tr("Choose where to save zip"), folder, tr("ZIP files (*.zip)"), nullptr, nativeDialogOption());
 
             if (filename.isEmpty()) {
                 return;  // aborted
@@ -3064,7 +3064,7 @@ void MainWindow::on_actionCreate_Log_zip_triggered()
     // Note: macOS ignores this and points to OSCAR's most recently used directory for saving.
     folder = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     folder += "/OSCAR-logs.zip";
-    QString filename = QFileDialog::getSaveFileName(this, tr("Choose where to save zip"), folder, tr("ZIP files (*.zip)"), nullptr, QFileDialog::DontUseNativeDialog);
+    QString filename = QFileDialog::getSaveFileName(this, tr("Choose where to save zip"), folder, tr("ZIP files (*.zip)"), nullptr, nativeDialogOption());
     if (filename.isEmpty()) {
         return;  // aborted
     }
@@ -3180,7 +3180,7 @@ void MainWindow::on_actionCreate_OSCAR_Data_zip_triggered()
 
     folder += "/" + STR_AppData + ".zip";
 
-    QString filename = QFileDialog::getSaveFileName(this, tr("Choose where to save zip"), folder, tr("ZIP files (*.zip)"), nullptr, QFileDialog::DontUseNativeDialog);
+    QString filename = QFileDialog::getSaveFileName(this, tr("Choose where to save zip"), folder, tr("ZIP files (*.zip)"), nullptr, nativeDialogOption());
 
     if (filename.isEmpty()) {
         return;  // aborted

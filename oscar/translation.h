@@ -11,11 +11,17 @@
 #define TRANSLATION_H
 
 #include <QString>
+#include <QFileDialog>
 const QString DefaultLanguage = "en_US";
 const QString LangSetting = "Settings/Language";
 
 void initTranslations();
 QString currentLanguage();
 QString lookupLanguageName(QString language);
+
+//! Returns QFileDialog::DontUseNativeDialog when the active OSCAR language differs
+//! from the OS locale language, so Qt can translate dialog button labels.
+//! Returns an empty Options when they match -- native dialogs look and perform better.
+QFileDialog::Options nativeDialogOption();
 
 #endif // TRANSLATION_H

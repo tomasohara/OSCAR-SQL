@@ -17,6 +17,8 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QDir>
+#include <QFileDialog>
+#include <QLocale>
 #include <QSettings>
 #include <QTranslator>
 #include <QListWidget>
@@ -39,6 +41,18 @@ QString lookupLanguageName(QString language)
         return it.value();
     }
     return language;
+}
+
+QFileDialog::Options nativeDialogOption()
+{
+    // Native OS dialogs are rendered by the platform and cannot be translated by Qt;
+    // their button labels always reflect the OS locale.  When the user has chosen an
+    // OSCAR language that differs from the OS language, force Qt-rendered dialogs so
+    // the buttons are correctly translated.  When they match, prefer native dialogs
+    // for their better appearance and performance.
+    QString sysLang = QLocale::system().name().left(2);
+    QString appLang = currentLanguage().left(2);
+    return (sysLang == appLang) ? QFileDialog::Options{} : QFileDialog::DontUseNativeDialog;
 }
 
 void initTranslations()

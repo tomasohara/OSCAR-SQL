@@ -8,6 +8,7 @@
 
 #include "restoredialog.h"
 #include "ui_restoredialog.h"
+#include "translation.h"
 
 #include <QDir>
 #include <QFileDialog>
@@ -180,7 +181,7 @@ void RestoreDialog::on_browseButton_clicked()
         this,
         tr("Open Backup Package"),
         startDir,
-        tr("OSCAR Backup Files (*.oscar);;All Files (*)"), nullptr, QFileDialog::DontUseNativeDialog);
+        tr("OSCAR Backup Files (*.oscar);;All Files (*)"), nullptr, nativeDialogOption());
 
     if (!path.isEmpty()) {
         m_lastPackageDir = QFileInfo(path).absolutePath();

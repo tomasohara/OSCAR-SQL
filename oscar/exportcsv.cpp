@@ -26,6 +26,7 @@
 #include "database/report_repository.h"
 #include "database/report_contents_repository.h"
 #include "exportcsv.h"
+#include "translation.h"
 #include "ui_exportcsv.h"
 #include "mainwindow.h"
 #include "sqleditor.h"
@@ -117,7 +118,7 @@ void ExportCSV::on_filenameBrowseButton_clicked()
 
     QString name = QFileDialog::getSaveFileName(this, tr("Select file to export to"),
                    folder + QDir::separator() + timestamp, tr("CSV Files (*.csv)"),
-                   nullptr, QFileDialog::DontUseNativeDialog);
+                   nullptr, nativeDialogOption());
     if (name.isEmpty()) {
         ui->exportButton->setEnabled(false);
         return;

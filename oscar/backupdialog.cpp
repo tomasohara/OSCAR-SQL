@@ -8,6 +8,7 @@
 
 #include "backupdialog.h"
 #include "ui_backupdialog.h"
+#include "translation.h"
 
 #include <QCalendarWidget>
 #include <QSettings>
@@ -259,7 +260,7 @@ void BackupDialog::on_browseButton_clicked()
         ui->outputDirEdit->text().isEmpty()
             ? QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
             : ui->outputDirEdit->text(),
-        QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
+        QFileDialog::ShowDirsOnly | nativeDialogOption());
 
     if (!dir.isEmpty()) {
         ui->outputDirEdit->setText(dir);

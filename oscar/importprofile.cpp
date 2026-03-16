@@ -11,6 +11,7 @@
 
 #include "importprofile.h"
 #include "ui_importprofile.h"
+#include "translation.h"
 #include "common_gui.h"
 #include "SleepLib/preferences.h"
 #include "database/profile_repository.h"
@@ -82,7 +83,7 @@ void ImportProfile::on_sourcePathButton_clicked()
         this,
         tr("Select Profile Folder from OSCAR 1.x"),
         startPath,
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | nativeDialogOption()
     );
     
     if (path.isEmpty()) return;

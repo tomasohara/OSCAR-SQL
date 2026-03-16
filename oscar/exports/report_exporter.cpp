@@ -10,6 +10,7 @@
  * for more details. */
 
 #include "report_exporter.h"
+#include "../translation.h"
 #include "../database/report_tree_model.h"
 #include "../database/database_manager.h"
 #include "../database/orf_file_io.h"
@@ -669,7 +670,7 @@ void ReportExporter::onImportReports()
 
     QString filename = QFileDialog::getOpenFileName(
         this, tr("Import Reports"), QString(),
-        tr("OSCAR Report Files (*.orf)"), nullptr, QFileDialog::DontUseNativeDialog);
+        tr("OSCAR Report Files (*.orf)"), nullptr, nativeDialogOption());
     if (filename.isEmpty()) return;
 
     QList<OrfReportEntry> entries;
@@ -704,7 +705,7 @@ void ReportExporter::onExportSelected()
     QString filename = QFileDialog::getSaveFileName(
         this, tr("Export Reports"),
         item->text() + ".orf",
-        tr("OSCAR Report Files (*.orf)"), nullptr, QFileDialog::DontUseNativeDialog);
+        tr("OSCAR Report Files (*.orf)"), nullptr, nativeDialogOption());
     if (filename.isEmpty()) return;
 
     qint64 nodeId = item->data(ReportTreeModel::NodeIdRole).toLongLong();
@@ -1128,7 +1129,7 @@ void ReportExporter::onBrowseFilename()
 
     QString fn = QFileDialog::getSaveFileName(this, tr("Save CSV"),
         folder + QDir::separator() + defaultName,
-        tr("CSV Files (*.csv)"), nullptr, QFileDialog::DontUseNativeDialog);
+        tr("CSV Files (*.csv)"), nullptr, nativeDialogOption());
 
     if (fn.isEmpty()) return;
     if (!fn.toLower().endsWith(".csv")) fn += ".csv";
