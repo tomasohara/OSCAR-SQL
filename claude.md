@@ -21,17 +21,18 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 ## Conventions
 
 - All code must be in c++17 and compile clean with Qt 6.10.2.
-- File headers should include a brief description of the module and, in new modules, "Copyright (c) 2026 The OSCAR Team".
-- All .h and .cpp files are to be well documented in Doxygen style.
+- Include a brief description of the module and in the file header and, in new modules, "Copyright (c) 2026 The OSCAR Team".
+- Document all .h and .cpp files in Doxygen style. Document code for understanding by a programmer reading the code.
 - Avoid platform-specific APIs; code must be cross-platform compatible.
 - Place any progress, design notes, etc. in Notes folder. If searching for a file that was there before, it may have been moved to Notes/temp folder.
 - Add new files to oscar.pro as required for compilation.
 - Never touch any files in oscar/SleepLib/thirdparty.
+- Log all bug fixes in Notes/BUG_FIXES.md.
 
 ## Other Notes
 
 - The application uses SQLite.
-- Application is normally built using QtCreator and by the developer who can forward error messages.
+- Developer builds application using QtCreator and will forward error messages.
 - Primary development environment is Windows 11.
 - We use git and GitLab for version control.
 - Final product is distributed to about 25 different environments (Mac, Linux, etc.).

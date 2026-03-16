@@ -258,7 +258,8 @@ void BackupDialog::on_browseButton_clicked()
         tr("Select Output Directory"),
         ui->outputDirEdit->text().isEmpty()
             ? QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
-            : ui->outputDirEdit->text());
+            : ui->outputDirEdit->text(),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
 
     if (!dir.isEmpty()) {
         ui->outputDirEdit->setText(dir);

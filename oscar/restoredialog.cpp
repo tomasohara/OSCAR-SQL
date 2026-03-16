@@ -180,7 +180,7 @@ void RestoreDialog::on_browseButton_clicked()
         this,
         tr("Open Backup Package"),
         startDir,
-        tr("OSCAR Backup Files (*.oscar);;All Files (*)"));
+        tr("OSCAR Backup Files (*.oscar);;All Files (*)"), nullptr, QFileDialog::DontUseNativeDialog);
 
     if (!path.isEmpty()) {
         m_lastPackageDir = QFileInfo(path).absolutePath();

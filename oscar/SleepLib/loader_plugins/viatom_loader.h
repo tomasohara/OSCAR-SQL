@@ -37,7 +37,7 @@ class ViatomLoader : public MachineLoader
     virtual const QString &loaderName() { return viatom_class_name; }
 
     virtual MachineInfo newInfo() {
-        return MachineInfo(MT_OXIMETER, 0, viatom_class_name, QObject::tr("Viatom"), QString(), QString(), QString(), QObject::tr("Viatom Software"), QDateTime::currentDateTime(), viatom_data_version);
+        return MachineInfo(MT_OXIMETER, 0, viatom_class_name, QObject::tr("Viatom"), QObject::tr("Viatom Oximeter"), QString(), QString(), QObject::tr("Viatom Software"), QDateTime::currentDateTime(), viatom_data_version);
     }
 
     virtual QStringList getNameFilter();

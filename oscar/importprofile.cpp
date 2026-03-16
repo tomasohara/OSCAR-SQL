@@ -82,7 +82,7 @@ void ImportProfile::on_sourcePathButton_clicked()
         this,
         tr("Select Profile Folder from OSCAR 1.x"),
         startPath,
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog
     );
     
     if (path.isEmpty()) return;
