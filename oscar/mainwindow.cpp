@@ -56,6 +56,7 @@
 #include "SleepLib/common.h"
 #include "notifyMessageBox.h"
 #include "staticQMessageBox.h"
+#include "translation.h"
 
 
 // Custom loaders that don't autoscan..
