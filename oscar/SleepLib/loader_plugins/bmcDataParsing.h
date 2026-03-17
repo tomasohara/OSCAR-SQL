@@ -68,6 +68,7 @@ enum class BmcRespiratoryEventType
     OSA,
     CSA,
     UA,
+    PB,         ///< Periodic breathing / Cheyne-Stokes respiration episode
     Unknown
 };
 
@@ -305,6 +306,7 @@ public:
     qint16 IPAP;
     qint16 EPAP;
     qint16 PressureWave[kBmcExtendedWaveformSamples];
+    qint16 MaskPressure[kBmcExtendedWaveformSamples];
     qint16 FlowAbnormality[kBmcExtendedWaveformSamples];
     qint16 Flow[kBmcExtendedWaveformSamples];
     quint16 Leak;
@@ -314,9 +316,12 @@ public:
     quint16 PulseRate;
     quint16 RespiratoryRate;
     qint16 IERatioMapped;
-    /// @brief Pressure trend (slow-moving target/smoothed pressure), raw hundredths cmH2O.
+    /// @brief EPAP pressure trend (slow-moving target/smoothed pressure), raw hundredths cmH2O.
     ///        Sourced from waveform packet offset 0x76C. See BMC_G3X_00X_FORMAT.md.
     quint16 PressureTrend = 0;
+    /// @brief IPAP pressure trend, raw hundredths cmH2O.
+    ///        Sourced from waveform packet offset 0x76E. Identical to PressureTrend in CPAP mode.
+    quint16 IPAPTrend = 0;
 };
 
 
@@ -327,6 +332,7 @@ public:
     float IPAP;
     float EPAP;
     qint16 PressureWave[kBmcExtendedWaveformSamples];
+    qint16 MaskPressure[kBmcExtendedWaveformSamples];
     quint16 FlowAbnormality[kBmcExtendedWaveformSamples];
     float Flow[kBmcExtendedWaveformSamples];
     float Leak;

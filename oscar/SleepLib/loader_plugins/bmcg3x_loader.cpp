@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QFile>
+#include <QMessageBox>
 #include <algorithm>
 #include <memory>
 
@@ -54,6 +55,16 @@ MachineInfo BmcG3xLoader::PeekInfo(const QString& path)
 int BmcG3xLoader::Open(const QString& dirpath)
 {
     this->sessionsLoaded = 0;
+
+    // Show the experimental-loader warning from the bundled resource.
+    QFile warnFile(":/docs/bmcg3x_warning.txt");
+    if (warnFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        const QString warnText = QString::fromUtf8(warnFile.readAll());
+        warnFile.close();
+        QMessageBox::warning(nullptr,
+            QObject::tr("BMC G3X Loader — Experimental"),
+            warnText);
+    }
 
     QCoreApplication::processEvents();
     emit updateMessage(QObject::tr("Reading data..."));

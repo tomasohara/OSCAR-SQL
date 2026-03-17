@@ -194,7 +194,7 @@ extern ChannelID ZEO_SleepStage, ZEO_ZQ, ZEO_TotalZ, ZEO_TimeToZ, ZEO_TimeInWake
 
 extern ChannelID POS_Orientation, POS_Inclination, POS_Movement;
 
-extern ChannelID BMC_PressureWave, BMC_FlowAbnormality, BMC_IE_Ratio, BMC_PressureTrend;
+extern ChannelID BMC_PressureWave, BMC_FlowAbnormality, BMC_IE_Ratio, BMC_PressureTrend, BMC_IPAPTrend;
 
 const QString GRP_CPAP = "CPAP";
 const QString GRP_POS = "POS";

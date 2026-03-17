@@ -91,6 +91,13 @@ public:
     virtual bool ExportFlowAbnormalityWaveform() const { return true; }
     virtual bool ExportLeakRate() const { return true; }
 
+    /// Returns the session start timestamp to use for really_set_first().
+    /// Base implementation uses the session's StartTimestamp (no adjustment).
+    /// Subclasses may override to skip startup noise before therapy stabilizes.
+    virtual qint64 findStableStartMs(BmcSession* bmcSession) const {
+        return bmcSession->StartTimestamp.toMSecsSinceEpoch();
+    }
+
     int sessionsLoaded;
 };
 

@@ -60,7 +60,8 @@ constexpr int kLegacyWaveformPacketSize = 0x100;
 // Waveform packet — high-resolution sample region layout
 // ------------------------------------------------------------
 // Flow region: 100 int16 LE samples (200 bytes) at 0x56E.
-// Pressure wave region: 100 int16 LE samples (200 bytes) at 0x24A.
+// Pressure wave region: 50 uint16 LE samples (100 bytes) at 0x380.
+//   0x24A (100 samples) was tried but values were large/noisy; 0x380 is being evaluated.
 // Output is resampled to kBmcExtendedWaveformSamples (50) per packet.
 
 /// Flow waveform region: 100 × int16 LE at 0x56E.
@@ -69,10 +70,17 @@ constexpr int    kG3xFlowRegionOffset      = 0x56E;
 constexpr int    kG3xFlowRegionSampleCount = 100;
 constexpr qint16 kG3xFlowRawClamp          = 2000;
 
-/// Pressure wave region: 100 × int16 LE at 0x24A (signed 16-bit).
-constexpr int    kG3xPressureWaveRegionOffset      = 0x24A;
-constexpr int    kG3xPressureWaveRegionSampleCount = 100;
+/// Pressure wave region: 50 × uint16 LE at 0x380 (slowly-varying, pressure-like 400–1600 range).
+/// 0x24A (100 samples) was tried but produced large/noisy values; 0x380 is under evaluation.
+constexpr int    kG3xPressureWaveRegionOffset      = 0x380;
+constexpr int    kG3xPressureWaveRegionSampleCount = 50;
 constexpr qint16 kG3xPressureWaveRawClamp          = 4000;
+
+/// Mask pressure region: 100 × int16 LE at 0x24A.
+/// Loaded into CPAP_MaskPressure for comparison against the 0x380 pressure wave channel.
+constexpr int    kG3xMaskPressureRegionOffset      = 0x24A;
+constexpr int    kG3xMaskPressureRegionSampleCount = 100;
+constexpr qint16 kG3xMaskPressureRawClamp          = 4000;
 
 /// Number of output waveform samples per packet (defined in bmcDataParsing.h).
 constexpr int kG3xWaveformOutputSampleCount = kBmcExtendedWaveformSamples;
@@ -101,6 +109,12 @@ constexpr int kG3xOffsetTidalVolume = 0x52C;
 
 /// Minute ventilation (offset 0x52E). Scale factor not yet determined; stored raw.
 constexpr int kG3xOffsetMinuteVentilation = 0x52E;
+
+/// SpO2 oxygen saturation percent (offset 0x08A). Single byte, 0 when not available.
+constexpr int kG3xOffsetSpO2 = 0x08A;
+
+/// Pulse rate in beats/min (offset 0x08C). Single byte, 0 when not available.
+constexpr int kG3xOffsetPulseRate = 0x08C;
 
 /// Respiratory rate in breaths/min (offset 0x530).
 constexpr int kG3xOffsetRespiratoryRate = 0x530;
@@ -143,6 +157,17 @@ constexpr int kG3xEvtTypeHyp = 0x09; ///< Hypopnea (unclassified subtype)
 /// Therapy pressure snapshot — value2 is IPAP/EPAP in hundredths cmH2O.
 /// This is the primary pressure source for the waveform packet loop.
 constexpr int kG3xEvtTypePressure = 0x42;
+
+/// Periodic breathing marker — consecutive records grouped into episodes.
+/// Value fields are zero; the presence of the record is the signal.
+constexpr int kG3xEvtTypePB = 0x44;
+/// Gap between consecutive 0x44 records that starts a new PB episode (seconds).
+constexpr int kG3xPbGapThresholdSec = 10 * 60;
+/// Nominal extra duration appended after the last 0x44 record to close an episode (seconds).
+constexpr int kG3xPbEpisodeTrailSec = 10;
+/// Minimum number of 0x44 records required to emit a PB episode.
+/// Solo scattered records (noise) are suppressed; genuine episodes have 7+ records.
+constexpr int kG3xPbMinRecordsPerEpisode = 2;
 
 /// Clamping limits for respiratory event duration.
 constexpr int kG3xRespEventMinDurationSec = 10;
@@ -531,10 +556,12 @@ void ApplyFlowWaveformFromG3xPacket(const QByteArray& waveformPacket,
         return;
     }
 
-    // Verify the packet is large enough to contain both regions.
+    // Verify the packet is large enough to contain all waveform regions.
     const int requiredSize = qMax(
         kG3xFlowRegionOffset        + (kG3xFlowRegionSampleCount        * 2),
-        kG3xPressureWaveRegionOffset + (kG3xPressureWaveRegionSampleCount * 2));
+        qMax(
+            kG3xPressureWaveRegionOffset + (kG3xPressureWaveRegionSampleCount * 2),
+            kG3xMaskPressureRegionOffset + (kG3xMaskPressureRegionSampleCount * 2)));
     if (waveformPacket.size() < requiredSize) {
         return;
     }
@@ -556,15 +583,25 @@ void ApplyFlowWaveformFromG3xPacket(const QByteArray& waveformPacket,
         legacyPacket->Raw.Flow[i] = rawFlow;
         legacyPacket->Flow[i]     = rawFlow / 10.0f;
 
-        // --- Pressure wave ---
-        // Decoded as signed 16-bit (the default, validated against G3X samples).
+        // --- Pressure wave (0x380) ---
+        // Decoded as unsigned 16-bit; values in the 400–1600 range (pressure-like, slowly varying).
         const int srcPressure = (i * (kG3xPressureWaveRegionSampleCount - 1)) / (kG3xWaveformOutputSampleCount - 1);
-        const qint16 rawPressureWave = qBound<qint16>(
-            -kG3xPressureWaveRawClamp,
-            ReadInt16LEPtr(packetData, kG3xPressureWaveRegionOffset + (srcPressure * 2)),
-            kG3xPressureWaveRawClamp);
+        const qint16 rawPressureWave = static_cast<qint16>(qMin(
+            static_cast<int>(kG3xPressureWaveRawClamp),
+            ReadUInt16LEPtr(packetData, kG3xPressureWaveRegionOffset + (srcPressure * 2))));
         legacyPacket->Raw.PressureWave[i] = rawPressureWave;
         legacyPacket->PressureWave[i]     = rawPressureWave;
+
+        // --- Mask pressure (0x24A) ---
+        // Decoded as signed 16-bit, 100 source samples resampled to 50 output samples.
+        // Clamped to [0, max]: negative values are suppressed (not plotted below zero line).
+        const int srcMask = (i * (kG3xMaskPressureRegionSampleCount - 1)) / (kG3xWaveformOutputSampleCount - 1);
+        const qint16 rawMaskPressure = qBound<qint16>(
+            qint16(0),
+            ReadInt16LEPtr(packetData, kG3xMaskPressureRegionOffset + (srcMask * 2)),
+            kG3xMaskPressureRawClamp);
+        legacyPacket->Raw.MaskPressure[i] = rawMaskPressure;
+        legacyPacket->MaskPressure[i]     = rawMaskPressure;
     }
 }
 
@@ -712,6 +749,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     int  evtPressureUpdateCount = 0;
 
     QVector<G3xRawRespEvent> rawRespEvents;
+    QVector<QDateTime>       rawPbTimestamps;
     int rawRespType02Count = 0;
     int rawRespType03Count = 0;
     int rawRespType04Count = 0;
@@ -787,6 +825,12 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     default: break;
                     }
                     rawRespEvents.append(G3xRawRespEvent{messageType, value1, evtTime});
+                    break;
+
+                case kG3xEvtTypePB:
+                    // Periodic breathing marker; value fields are always zero.
+                    // Records are collected and grouped into episodes after the loop.
+                    rawPbTimestamps.append(evtTime);
                     break;
 
                 default:
@@ -944,6 +988,54 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         }
     }
 
+    // ---- Phase 2b: Group EVT 0x44 PB records into episodes ----
+    //
+    // Each 0x44 record is a single-point PB marker (no duration field).  Consecutive
+    // records separated by less than kG3xPbGapThresholdSec belong to the same episode.
+    // The episode's duration is the span from first to last record plus a nominal trail.
+
+    if (!rawPbTimestamps.isEmpty()) {
+        std::sort(rawPbTimestamps.begin(), rawPbTimestamps.end());
+
+        int pbGroupCount  = 0;
+        int pbDropCount   = 0;
+        QDateTime groupStart = rawPbTimestamps.first();
+        QDateTime groupLast  = groupStart;
+        int groupRecords     = 1;
+
+        auto emitPbEpisode = [&](const QDateTime& start, const QDateTime& last, int recordCount) {
+            if (recordCount < kG3xPbMinRecordsPerEpisode) {
+                ++pbDropCount;
+                return;
+            }
+            BmcRespiratoryEvent pbEvt;
+            pbEvt.EventType       = BmcRespiratoryEventType::PB;
+            pbEvt.StartTime       = start;
+            pbEvt.DurationSeconds = static_cast<int>(start.secsTo(last)) + kG3xPbEpisodeTrailSec;
+            pbEvt.EndTime         = start.addSecs(pbEvt.DurationSeconds);
+            dateSession.RespiratoryEvents.append(pbEvt);
+            ++pbGroupCount;
+        };
+
+        for (int i = 1; i < rawPbTimestamps.size(); ++i) {
+            const QDateTime& ts = rawPbTimestamps.at(i);
+            if (groupLast.secsTo(ts) > kG3xPbGapThresholdSec) {
+                emitPbEpisode(groupStart, groupLast, groupRecords);
+                groupStart   = ts;
+                groupRecords = 1;
+            } else {
+                ++groupRecords;
+            }
+            groupLast = ts;
+        }
+        emitPbEpisode(groupStart, groupLast, groupRecords);   // final episode
+
+        qDebug() << "BmcG3xData PB day" << aDate.toString(Qt::ISODate)
+                 << "raw44" << rawPbTimestamps.size()
+                 << "episodes" << pbGroupCount
+                 << "dropped(solo)" << pbDropCount;
+    }
+
     // ---- Phase 3: Seed initial pressure from IDX summary ----
     // Used when no EVT pressure records were found.
 
@@ -1095,6 +1187,10 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             // Minute ventilation (0x52E): raw stored directly; scale factor TBD.
             const int rawMinuteVentilation = ReadUInt16LEPtr(packetData, kG3xOffsetMinuteVentilation);
 
+            // SpO2 (0x08A) and pulse rate (0x08C): single-byte values, 0 when unavailable.
+            const int rawSpO2      = static_cast<unsigned char>(packetData[kG3xOffsetSpO2]);
+            const int rawPulseRate = static_cast<unsigned char>(packetData[kG3xOffsetPulseRate]);
+
             // Respiratory rate (0x530): direct breaths/min value.
             const int rawRespiratoryRate = ReadUInt16LEPtr(packetData, kG3xOffsetRespiratoryRate);
 
@@ -1161,6 +1257,9 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             legacyPacket.Raw.RespiratoryRate  = static_cast<quint16>(qBound(0, rawRespiratoryRate, 65535));
             legacyPacket.RespiratoryRate      = static_cast<quint16>(qBound(0, rawRespiratoryRate, 65535));
 
+            legacyPacket.Raw.SpO2Pct   = static_cast<quint16>(rawSpO2);
+            legacyPacket.Raw.PulseRate = static_cast<quint16>(rawPulseRate);
+
             if (packetIePermille > 0) {
                 // Store I:E as per-mille (0–1000) for Ti/Te derivation downstream.
                 legacyPacket.Raw.IERatioMapped = static_cast<qint16>(packetIePermille);
@@ -1168,8 +1267,9 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             }
 
             // Pressure trend: convert hundredths cmH2O to cmH2O.
-            legacyPacket.Raw.PressureTrend = static_cast<quint16>(rawPressureTrend);
-            legacyPacket.PressureTrend     = rawPressureTrend / 100.0f;
+            legacyPacket.Raw.PressureTrend  = static_cast<quint16>(rawPressureTrend);
+            legacyPacket.Raw.IPAPTrend      = static_cast<quint16>(rawPressureTrendIPAP);
+            legacyPacket.PressureTrend      = rawPressureTrend / 100.0f;
 
             // Override Pressure / IPAP / EPAP with waveform pressure trend values.
             // 0x76C → EPAP, 0x76E → IPAP (identical in CPAP mode).
@@ -1285,6 +1385,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     const auto idxToDouble = [](int x100) -> double {
         return (x100 >= 0) ? (static_cast<double>(x100) / 100.0) : -1.0;
     };
+#ifdef BMCDEBUG
     qDebug() << "BmcG3xData idx summary day" << aDate.toString(Qt::ISODate)
              << "ahi"          << idxToDouble(dayEntry->ItAhiX100)
              << "ai"           << idxToDouble(dayEntry->ItAiX100)
@@ -1310,6 +1411,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                  << "mode"                 << static_cast<int>(dateSession.MacineSettings.Mode)
                  << "ts_minmax_hundredths" << minPressureHundredths << maxPressureHundredths;
     }
+#endif // BMCDEBUG
 
     // ---- Phase 6: Split into sessions on gaps ≥ 5 seconds ----
 

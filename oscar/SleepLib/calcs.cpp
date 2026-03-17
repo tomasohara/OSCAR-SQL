@@ -1552,7 +1552,7 @@ int calcSPO2Drop(Session *session)
     //added by Sheila for marks1 1/5/2026 //////////////
     int override_baseline_spo2_value = p_profile->oxi->baseSpO2Option();
         
-    qDebug() << "Override Baseline SpO2 Value from Preference (zero if preference is not set): " << override_baseline_spo2_value;   
+    qDebug() << "Override Baseline SpO2 Value from Preference (zero if preference is not set): " << override_baseline_spo2_value;
        
     // marks1 1/6/26 Fix Sheila issue, change || to && 
     // Add debug to confirm whether we are using the Default traditional (calculated) SpO2 baseline or overriding it.

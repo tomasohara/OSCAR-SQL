@@ -184,7 +184,7 @@ void BmcLoaderTask::run()
             bmcLoader->setSessionWaveforms(bmcSession, session);
 
 
-            session->really_set_first(bmcSession->StartTimestamp.toMSecsSinceEpoch());
+            session->really_set_first(bmcLoader->findStableStartMs(bmcSession));
             session->really_set_last(bmcSession->EndTimestamp.addSecs(-1).toMSecsSinceEpoch());
 
             session->SetChanged(true);
@@ -349,18 +349,19 @@ void BmcLoader::setSessionRespiratoryEvents(BmcSession* bmcSession, Session* osc
     EventList* oscarOsaList = oscarSession->AddEventList(CPAP_Obstructive, EVL_Event);
     EventList* oscarCsaList = oscarSession->AddEventList(CPAP_ClearAirway, EVL_Event);
     EventList* oscarHypList = oscarSession->AddEventList(CPAP_Hypopnea, EVL_Event);
-    EventList* oscarUaList = oscarSession->AddEventList(CPAP_Apnea, EVL_Event);
+    EventList* oscarUaList  = oscarSession->AddEventList(CPAP_Apnea, EVL_Event);
+    EventList* oscarPbList  = oscarSession->AddEventList(CPAP_PB, EVL_Event);
 
     for (auto & bmcEvent : bmcSession->RespiratoryEvents)
     {
         switch (bmcEvent.EventType)
         {
-        case BmcRespiratoryEventType::OSA: oscarOsaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
-        case BmcRespiratoryEventType::CSA: oscarCsaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
-        case BmcRespiratoryEventType::HYP: oscarHypList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
-        case BmcRespiratoryEventType::UA: oscarUaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
+        case BmcRespiratoryEventType::OSA: oscarOsaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),   bmcEvent.DurationSeconds); break;
+        case BmcRespiratoryEventType::CSA: oscarCsaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),   bmcEvent.DurationSeconds); break;
+        case BmcRespiratoryEventType::HYP: oscarHypList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),   bmcEvent.DurationSeconds); break;
+        case BmcRespiratoryEventType::UA:  oscarUaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),    bmcEvent.DurationSeconds); break;
+        case BmcRespiratoryEventType::PB:  oscarPbList->AddEvent(bmcEvent.StartTime.toMSecsSinceEpoch(),  bmcEvent.DurationSeconds); break;
         default: qDebug() << "Unknown BMC respiratory event type not added to OSCAR";
-
         }
     }
 }
@@ -393,6 +394,9 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
                                                       0.0, 0.0, 0.0,
                                                       waveformSampleIntervalMs);
     }
+    // Mask pressure from 0x24A. Gain matches PressureWaveformGain() (0.01 for G3X),
+    // giving the same cmH2O scale that BMC_PressureWave (0x380) used.
+    auto wMaskPressure = oscarSession->AddEventList(CPAP_MaskPressure, EVL_Waveform, PressureWaveformGain(), 0.0, 0.0, 0.0, waveformSampleIntervalMs);
 
     EventList* wLeak = ExportLeakRate() ? oscarSession->AddEventList(CPAP_Leak, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000) : nullptr;
     auto wTidalVolume = oscarSession->AddEventList(CPAP_TidalVolume, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
@@ -400,10 +404,11 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
     auto wRespiratoryRate = oscarSession->AddEventList(CPAP_RespRate, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wIEValue = oscarSession->AddEventList(CPAP_IE, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
     auto wIERatio = oscarSession->AddEventList(BMC_IE_Ratio, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000);
-    // Pressure trend (G3X only): raw hundredths of cmH2O; gain 0.01 → displayed cmH2O.
+    // Pressure trend (G3X only): EPAP and IPAP from 0x76C/0x76E, raw hundredths of cmH2O; gain 0.01 → displayed cmH2O.
     // EVL_Event draws a step-function line between events, keeping horizontal
     // stretches visible at all zoom levels.
-    auto wPressureTrend = oscarSession->AddEventList(BMC_PressureTrend, EVL_Event, 0.01, 0.0, 0.0, 0.0, 1000);
+    auto wPressureTrend     = oscarSession->AddEventList(BMC_PressureTrend, EVL_Event, 0.01, 0.0, 0.0, 0.0, 1000);
+    auto wIPAPTrend         = oscarSession->AddEventList(BMC_IPAPTrend,     EVL_Event, 0.01, 0.0, 0.0, 0.0, 1000);
     auto wSpO2 = oscarSession->AddEventList(OXI_SPO2, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wPulse = oscarSession->AddEventList(OXI_Pulse, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wInspTime = oscarSession->AddEventList(CPAP_Ti, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
@@ -423,7 +428,6 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
     quint16 rawRrMax = std::numeric_limits<quint16>::min();
     int pressureEventCount = 0;
 
-
     for (auto & bmcWaveform : bmcSession->Waveforms)
     {
         qint64 timestamp = bmcWaveform.Timestamp.toMSecsSinceEpoch();
@@ -432,6 +436,7 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
         if (wPressureWave) {
             wPressureWave->AddWaveform(timestamp, bmcWaveform.Raw.PressureWave, waveformSamplesPerPacket, waveformPacketDurationMs);
         }
+        wMaskPressure->AddWaveform(timestamp, bmcWaveform.Raw.MaskPressure, waveformSamplesPerPacket, waveformPacketDurationMs);
         if (wFlowAbnormality) {
             wFlowAbnormality->AddWaveform(timestamp, bmcWaveform.Raw.FlowAbnormality, waveformSamplesPerPacket, waveformPacketDurationMs);
         }
@@ -469,6 +474,8 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
             wRespiratoryRate->AddEvent(timestamp, bmcWaveform.Raw.RespiratoryRate);
         if (bmcWaveform.Raw.PressureTrend > 0)
             wPressureTrend->AddEvent(timestamp, bmcWaveform.Raw.PressureTrend);
+        if (bmcWaveform.Raw.IPAPTrend > 0)
+            wIPAPTrend->AddEvent(timestamp, bmcWaveform.Raw.IPAPTrend);
         const int ieMapped = bmcWaveform.Raw.IERatioMapped;
         const bool ieMappedPermille = (ieMapped > 100);
         if (ieMapped > 0) {
@@ -519,6 +526,7 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
 
     }
 
+#ifdef BMCDEBUG
     if (pressureEventCount > 0) {
         qDebug() << "BmcLoader::setSessionWaveforms pressure export"
                  << "events" << pressureEventCount
@@ -535,6 +543,7 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
                  << "raw_rr_min_bpm" << rawRrMin
                  << "raw_rr_max_bpm" << rawRrMax;
     }
+#endif // BMCDEBUG
 }
 
 

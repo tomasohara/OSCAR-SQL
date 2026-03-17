@@ -667,6 +667,7 @@ OTHER_FILES += \
     docs/graphs.xml \
     docs/channels.xml \
     docs/startup_tips.txt \
+    docs/bmcg3x_warning.txt \
     docs/countries.txt \
     docs/system_reports.orf \
     docs/tz.txt \
