@@ -333,8 +333,8 @@ int main(int argc, char *argv[]) {
 //    QGuiApplication::styleHints()->colorScheme();  // Copies OS light or dark style to OSCAR,
                                                      // but supporting dark mode would require an exhaustive change to OSCAR
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-//    QApplication app(argc, argv); // Forcce light style
-//    app.styleHints()->setColorScheme(Qt::ColorScheme::Light);
+    QApplication app(argc, argv); // Force light style
+    app.styleHints()->setColorScheme(Qt::ColorScheme::Light);
 #endif
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
