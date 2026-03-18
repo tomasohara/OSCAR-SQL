@@ -154,6 +154,10 @@ constexpr int kG3xEvtTypeOH  = 0x07; ///< Obstructive hypopnea
 constexpr int kG3xEvtTypeCH  = 0x08; ///< Central hypopnea
 constexpr int kG3xEvtTypeHyp = 0x09; ///< Hypopnea (unclassified subtype)
 
+/// Session boundary markers — timestamp only, value fields unused.
+constexpr int kG3xEvtTypeSessionStart = 0x40; ///< Session start (machine begins therapy recording).
+constexpr int kG3xEvtTypeSessionEnd   = 0x41; ///< Session end   (machine stops therapy recording).
+
 /// Therapy pressure snapshot — value2 is IPAP/EPAP in hundredths cmH2O.
 /// This is the primary pressure source for the waveform packet loop.
 constexpr int kG3xEvtTypePressure = 0x42;
@@ -831,6 +835,14 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     // Periodic breathing marker; value fields are always zero.
                     // Records are collected and grouped into episodes after the loop.
                     rawPbTimestamps.append(evtTime);
+                    break;
+
+                case kG3xEvtTypeSessionStart:
+                case kG3xEvtTypeSessionEnd:
+                    // Session boundary markers — timestamp only, no data fields.
+                    // Confirmed: 0x40 = machine starts recording, 0x41 = machine stops recording.
+                    // Not used: the waveform-heuristic start (findStableStartMs) is more accurate
+                    // because it excludes startup noise; 0x40/0x41 are only second-precise.
                     break;
 
                 default:

@@ -184,8 +184,17 @@ void BmcLoaderTask::run()
             bmcLoader->setSessionWaveforms(bmcSession, session);
 
 
-            session->really_set_first(bmcLoader->findStableStartMs(bmcSession));
-            session->really_set_last(bmcSession->EndTimestamp.addSecs(-1).toMSecsSinceEpoch());
+            const qint64 sessionFirstMs = bmcLoader->findStableStartMs(bmcSession);
+            const qint64 sessionLastMs  = bmcSession->EndTimestamp.addSecs(-1).toMSecsSinceEpoch();
+            session->really_set_first(sessionFirstMs);
+            session->really_set_last(sessionLastMs);
+
+            // Populate a MaskOn slice so that session->hours() returns mask-on time
+            // rather than total session length.  findStableEndMs() detects mask removal
+            // via a sustained leak spike; if no mask-off is detected it returns the full
+            // session end, making the slice cover the whole session (no change in hours).
+            const qint64 maskOffMs = bmcLoader->findStableEndMs(bmcSession);
+            session->m_slices.append(SessionSlice(sessionFirstMs, maskOffMs, MaskOn));
 
             session->SetChanged(true);
             session->setNoSettings(false);

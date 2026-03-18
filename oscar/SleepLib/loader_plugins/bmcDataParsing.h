@@ -378,6 +378,7 @@ public:
     QList<BmcRespiratoryEvent> RespiratoryEvents;
     QList<BmcWaveformPacket> Waveforms;
 
+
     QList<BmcSession*> Sessions;
     ~BmcDateSession();
 };

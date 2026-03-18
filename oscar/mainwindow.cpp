@@ -106,6 +106,15 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Qt 6 on Windows 11 renders menu bar items with excessive vertical padding.
+    // Constrain the padding to match the look of earlier Qt versions.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0) && defined(Q_OS_WIN)
+    ui->menubar->setStyleSheet(
+        "QMenuBar { padding: 0px; }"
+        "QMenuBar::item { padding: 2px 8px 1px 8px; }"
+    );
+#endif
+
     if (logger) {
         connect(logger, SIGNAL(outputLog(QString)), this, SLOT(logMessage(QString)));
         logger->connectionReady();

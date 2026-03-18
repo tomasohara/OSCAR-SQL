@@ -1,6 +1,7 @@
 #ifndef BMCG3XLOADER_H
 #define BMCG3XLOADER_H
 
+#include <QDebug>
 #include "SleepLib/loader_plugins/bmc_loader.h"
 
 const int bmcg3x_version = 1;
@@ -79,6 +80,66 @@ public:
     // Leak is now sourced from waveform packet offset 0x52A (raw × 0.16 → L/min).
     // The old EVT-based leak source (0x0C) was discarded; see bmcG3xDataParsing.cpp.
     virtual bool ExportLeakRate() const override { return true; }
+
+    /// Detects the mask-off point by finding the last waveform packet with
+    /// meaningful respiratory flow, followed by a sustained period of near-zero
+    /// flow at the end of the session.
+    ///
+    /// After mask removal, the patient's respiratory flow through the mask drops
+    /// to the instrument noise floor (±2–18 raw units at offset 0x56E).  The
+    /// machine may continue running for many minutes (e.g. until the user presses
+    /// the stop button), so the leak profile is not a reliable indicator.
+    ///
+    /// Detection rule:
+    ///   1. Scan backward to find the last packet where any flow sample exceeds
+    ///      kG3xMaskOffFlowNoise (i.e. has real respiratory signal).
+    ///   2. If the trailing inactive period (from that packet to the last packet)
+    ///      is at least kG3xMaskOffSustainSec seconds, declare mask-off at that
+    ///      packet's timestamp.
+    ///   3. Otherwise fall back to the full session end (mask on the whole time).
+    virtual qint64 findStableEndMs(BmcSession* bmcSession) const override {
+        /// Raw flow threshold above the noise floor (noise = ±2–18, breathing >> 25).
+        static constexpr qint16 kG3xMaskOffFlowNoise  = 25;
+        /// Minimum seconds of no-flow at session end to declare mask removal.
+        static constexpr int    kG3xMaskOffSustainSec = 300;
+
+        const auto& waveforms = bmcSession->Waveforms;
+        const int n = waveforms.size();
+        if (n < 2) {
+            return bmcSession->EndTimestamp.toMSecsSinceEpoch();
+        }
+
+        // Scan backward: find the last packet with any flow sample above the noise floor.
+        int lastActivePacket = -1;
+        for (int i = n - 1; i >= 0; --i) {
+            const qint16* flow = waveforms[i].Raw.Flow;
+            for (int s = 0; s < kBmcExtendedWaveformSamples; ++s) {
+                if (flow[s] > kG3xMaskOffFlowNoise || flow[s] < -kG3xMaskOffFlowNoise) {
+                    lastActivePacket = i;
+                    break;
+                }
+            }
+            if (lastActivePacket >= 0) break;
+        }
+
+        if (lastActivePacket < 0) {
+            // Entire session has near-zero flow — no useful mask-on period.
+            return bmcSession->EndTimestamp.toMSecsSinceEpoch();
+        }
+
+        const int inactiveSec = static_cast<int>(
+            waveforms[lastActivePacket].Timestamp.secsTo(waveforms[n - 1].Timestamp));
+
+        if (inactiveSec < kG3xMaskOffSustainSec) {
+            // Inactive period too short — could be an apnea at session end.
+            return bmcSession->EndTimestamp.toMSecsSinceEpoch();
+        }
+
+        qDebug() << "BmcG3xLoader: mask-off detected at"
+                 << waveforms[lastActivePacket].Timestamp.toString(Qt::ISODate)
+                 << "inactiveSec" << inactiveSec;
+        return waveforms[lastActivePacket].Timestamp.toMSecsSinceEpoch();
+    }
 };
 
 #endif // BMCG3XLOADER_H

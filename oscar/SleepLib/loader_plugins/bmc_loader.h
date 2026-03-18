@@ -98,6 +98,16 @@ public:
         return bmcSession->StartTimestamp.toMSecsSinceEpoch();
     }
 
+    /// Returns the mask-off timestamp in ms since epoch, i.e. the point at which
+    /// the patient removed the mask.  Used to populate SessionSlice(MaskOn) so that
+    /// session->hours() reports mask-on time rather than total session length.
+    ///
+    /// Base implementation returns EndTimestamp (no mask-off detection; MaskOn
+    /// covers the whole session).  Subclasses may override with device-specific logic.
+    virtual qint64 findStableEndMs(BmcSession* bmcSession) const {
+        return bmcSession->EndTimestamp.toMSecsSinceEpoch();
+    }
+
     int sessionsLoaded;
 };
 

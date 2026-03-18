@@ -356,6 +356,9 @@ int main(int argc, char *argv[]) {
     }
 #else
         // high resolution is enable by default
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
+        Qt::HighDpiScaleFactorRoundingPolicy::RoundPreferFloor
+        );
 #endif
 
     QSettings settings;

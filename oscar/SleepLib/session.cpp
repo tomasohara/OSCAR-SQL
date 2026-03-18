@@ -3340,8 +3340,10 @@ bool Session::StoreSummaryToDatabase()
     sessionSummaryData.sessionId = m_sessionrow_id;
     sessionSummaryData.profileId = profileId;
     
-    // Calculate hours used
-    sessionSummaryData.hoursUsed = hours();
+    // Calculate hours used — full session span regardless of slices.
+    // hours() returns MaskOn slice time when slices are present, which would make
+    // hoursUsed == maskOnHours.  Use the raw s_last/s_first span instead.
+    sessionSummaryData.hoursUsed = (s_last > s_first) ? (s_last - s_first) / 3600000.0 : 0.0;
     
     // Calculate mask-on hours if we have slices
     if (!m_slices.isEmpty()) {
