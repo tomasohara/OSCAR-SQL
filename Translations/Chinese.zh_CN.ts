@@ -2796,6 +2796,14 @@ No space was reclaimed — the database was already compact.</source>
         <source>%1 Data Import complete</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>是的</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

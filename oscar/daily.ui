@@ -558,6 +558,7 @@ QToolButton:pressed {
 border: 2px solid #aaaaaa;
 border-radius: 10px;
 background: white;
+color: black;
 }
 
 QToolButton:hover {
@@ -789,6 +790,7 @@ QToolButton:pressed {
   border: 2px solid transparent;
   border-radius: 8px;
   width: 6em;
+  color: black;
 }
 
 #qt_calendar_monthbutton:hover {
@@ -803,6 +805,7 @@ QToolButton:pressed {
 #qt_calendar_yearbutton {
   background: transparent;
  border-radius: 8px;
+ color: black;
 }
 
 #qt_calendar_yearbutton:hover {
@@ -812,6 +815,26 @@ QToolButton:pressed {
 #qt_calendar_yearbutton:pressed {
 	border: 2px solid #456789;
     background: #89abcd;
+}
+
+QCalendarWidget QWidget#qt_calendar_navigationbar {
+ background-color: #e0e0e0;
+}
+
+QCalendarWidget QAbstractItemView:enabled {
+ background-color: white;
+ color: black;
+ selection-background-color: #3a7fc2;
+ selection-color: white;
+}
+
+QCalendarWidget QAbstractItemView:disabled {
+ color: #808080;
+}
+
+QCalendarWidget QHeaderView::section {
+ background-color: #e0e0e0;
+ color: black;
 }
 </string>
           </property>

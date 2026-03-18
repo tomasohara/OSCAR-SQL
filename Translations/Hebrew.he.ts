@@ -2743,6 +2743,14 @@ No space was reclaimed — the database was already compact.</source>
         <source>Bookmarks</source>
         <translation>סימניות</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>כן</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>בטל</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

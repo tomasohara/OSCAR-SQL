@@ -13,6 +13,8 @@
 #include <QMessageBox>
 
 #include "SleepLib/importcontext.h"
+#include "database/machine_repository.h"
+#include <QSet>
 
 
 ImportContext::ImportContext()
@@ -93,7 +95,7 @@ bool ImportContext::AddSession(Session* session)
 bool ImportContext::Commit()
 {
     bool ok = true;
-    
+
     // TODO: Remove MachineLoader::finishAddingSessions once all loaders use this.
     // Using a map specifically so they are inserted in order.
     for (auto session : m_sessions) {
@@ -103,6 +105,27 @@ bool ImportContext::Commit()
             ok = false;
         }
     }
+
+    // Update lastImported timestamp for each machine that received sessions.
+    if (!m_sessions.isEmpty()) {
+        QDateTime now = QDateTime::currentDateTime();
+        MachineRepository repo;
+        QSet<Machine*> updatedMachines;
+        for (auto session : m_sessions) {
+            Machine* m = session->machine();
+            if (updatedMachines.contains(m)) continue;
+            updatedMachines.insert(m);
+            m->info.lastimported = now;
+            if (m->getDatabaseId() > 0) {
+                MachineData data = repo.findById(m->getDatabaseId());
+                if (data.id > 0) {
+                    data.lastImported = now.toString(Qt::ISODate);
+                    repo.update(data);
+                }
+            }
+        }
+    }
+
     m_sessions.clear();
 
     // TODO: Move what we can from finishCPAPImport into here,

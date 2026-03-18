@@ -2834,6 +2834,14 @@ You can now select it from the profile selector.</source>
         <source>%1 Data Import complete</source>
         <translation>%1 import zakończony</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Tak</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Skasuj</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

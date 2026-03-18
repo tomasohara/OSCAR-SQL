@@ -86,6 +86,7 @@
 #include "SleepLib/progressdialog.h"
 #include "SleepLib/importcontext.h"
 #include "database/database_manager.h"
+#include "database/machine_repository.h"
 #include "SleepLib/performance_timer.h"
 #include "reports.h"
 #include "statistics.h"
@@ -833,6 +834,25 @@ int MainWindow::importCPAP(ImportPath import, const QString &message)
     progdlg->setMessage(QObject::tr("Finishing up..."));
     QCoreApplication::processEvents();
     ctx->Commit();
+
+    // Update lastImported timestamp for the machine(s) just imported.
+    // This must happen inside the transaction so the update commits atomically with the sessions.
+    // (Some loaders call mach->AddSession() directly, bypassing finishAddingSessions/ImportContext,
+    //  so this is the only reliable place to stamp the import time for all loaders.)
+    if (c > 0) {
+        QDateTime now = QDateTime::currentDateTime();
+        MachineRepository repo;
+        for (Machine* m : p_profile->GetMachines()) {
+            if (m->loaderName() == import.loader->loaderName() && m->getDatabaseId() > 0) {
+                m->info.lastimported = now;
+                MachineData data = repo.findById(m->getDatabaseId());
+                if (data.id > 0) {
+                    data.lastImported = now.toString(Qt::ISODate);
+                    repo.update(data);
+                }
+            }
+        }
+    }
 
     // Commit the transaction after all import operations are complete
     qDebug() << "MainWindow::importCPAP committing import transaction";

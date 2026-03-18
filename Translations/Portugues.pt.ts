@@ -2810,6 +2810,14 @@ No space was reclaimed — the database was already compact.</source>
         <source>OSCAR Information</source>
         <translation>Informação do OSCAR</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Sim</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

@@ -2812,6 +2812,14 @@ No space was reclaimed — the database was already compact.</source>
         <source>MSeries Import complete</source>
         <translation>MSeries-tietojen tuonti valmis</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Kyllä</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Keskeytä</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

@@ -2819,6 +2819,14 @@ Data File: %2</source>
         <source>MSeries Import complete</source>
         <translation>MSeries importálás kész</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Igen</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Mégse</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

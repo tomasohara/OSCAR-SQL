@@ -2814,6 +2814,14 @@ Data File: %2</source>
         <source>MSeries Import complete</source>
         <translation>Importul finalizat din aparatul MSeries</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Da</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Anuleaza</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

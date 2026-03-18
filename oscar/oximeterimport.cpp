@@ -43,6 +43,48 @@ OximeterImport::OximeterImport(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle(tr("Oximeter Import Wizard"));
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+    // Force light appearance throughout the wizard in system dark mode.
+    // The 'frame' left-panel has its own gradient stylesheet and is unaffected.
+    // All other containers (stackedWidget, its 6 pages, group boxes, frames) need
+    // explicit backgrounds because QPalette changes are ignored by native renderers.
+    setStyleSheet(
+        // --- Container backgrounds ---
+        "QDialog                { background-color: #f0f0f0; }"
+        "QStackedWidget         { background-color: #f0f0f0; }"
+        "#welcomePage, #importSelectionPage, #directImportPage,"
+        "#liveImportPage, #chooseSessionPage, #syncPage { background-color: #f0f0f0; }"
+        "#liveViewFrame, #frame_3 { background-color: #f0f0f0; }"
+        "QGroupBox { background-color: #f0f0f0; color: black;"
+        "    border: 1px solid #c0c0c0; border-radius: 4px; margin-top: 8px; }"
+        "QGroupBox::title { color: black; subcontrol-origin: margin; left: 8px; }"
+        // --- Text ---
+        "QLabel      { color: black; }"
+        "QTextBrowser { color: black; background-color: white; }"
+        // --- Buttons ---
+        "QPushButton { color: black; background-color: #f0f0f0;"
+        "    border: 1px solid #adadad; border-radius: 3px; padding: 3px 8px; }"
+        "QPushButton:hover    { background-color: #e5f1fb; border-color: #0078d7; }"
+        "QPushButton:pressed  { background-color: #cce4f7; border-color: #0078d7; }"
+        "QPushButton:disabled { color: #a0a0a0; border-color: #d0d0d0; }"
+        // --- Other input controls ---
+        "QCheckBox   { color: black; }"
+        "QRadioButton { color: black; }"
+        "QComboBox   { color: black; background-color: white; border: 1px solid #adadad; border-radius: 2px; }"
+        "QSpinBox    { color: black; background-color: white; border: 1px solid #adadad; }"
+        "QTimeEdit   { color: black; background-color: white; border: 1px solid #adadad; }"
+        "QLineEdit   { color: black; background-color: white; border: 1px solid #adadad; }"
+        "QListWidget { color: black; background-color: white; }"
+        "QTreeWidget { color: black; background-color: white; }"
+        // --- Calendar widget internals ---
+        "#qt_calendar_monthbutton { color: black; }"
+        "#qt_calendar_yearbutton  { color: black; }"
+        "QCalendarWidget QWidget#qt_calendar_navigationbar { background-color: #e0e0e0; }"
+        "QCalendarWidget QAbstractItemView:enabled { background-color: white; color: black;"
+        "    selection-background-color: #3a7fc2; selection-color: white; }"
+        "QCalendarWidget QAbstractItemView:disabled { color: #808080; }"
+        "QCalendarWidget QHeaderView::section { background-color: #e0e0e0; color: black; }"
+    );
     ui->stackedWidget->setCurrentIndex(0);
     ui->retryButton->setVisible(false);
     ui->stopButton->setVisible(false);

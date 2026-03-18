@@ -3078,6 +3078,14 @@ Datendatei: %2</translation>
         <source>%1 Data Import complete</source>
         <translation>%1 Datenimport abgeschlossen</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Ja</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Schließen</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

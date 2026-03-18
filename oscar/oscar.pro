@@ -13,23 +13,13 @@ message(Platform is $$QMAKESPEC )
 # a better name might be possible.
 # this can be enabled by CONFIG += crash in the qmake make.
 # qmake <buldFolderPath> OSCAR-code/OSCAR_QT.pro "CONFIG+=crash"
+
 contains(CONFIG, crash) {
     message("DEBUG BUILDS - set by OPTION  'crash' ")
 }
 
-
-lessThan(QT_MAJOR_VERSION,5) {
-    error("You need Qt 5.8 or newer to build OSCAR");
-}
-
-if (equals(QT_MAJOR_VERSION,5)) {
-    lessThan(QT_MINOR_VERSION,9) {
-        message("You need Qt 5.9 to build OSCAR with Help Pages")
-        DEFINES += helpless
-    }
-    lessThan(QT_MINOR_VERSION,7) {
-        error("You need Qt 5.8 or newer to build OSCAR");
-    }
+lessThan(QT_MAJOR_VERSION,6) {
+    error("You need Qt 6 or newer to build OSCAR. 6.10 is recommended.");
 }
 
 # get rid of the help browser, at least for now
@@ -58,9 +48,7 @@ contains(DEFINES, NoGL) {
     DEFINES-=BrokenGL
 } else {
     QT += opengl
-    greaterThan(QT_MAJOR_VERSION, 5) {
-        QT += openglwidgets
-    }
+    QT += openglwidgets
     message("Building with regular OpenGL gGraphView")
 }
 
@@ -71,18 +59,6 @@ greaterThan(QT_MAJOR_VERSION, 5) {
     CONFIG += warn_off
     QMAKE_CXXFLAGS += -Wno-nonportable-include-path
 
-} else {
-    CONFIG += c++11
-    #keep old configuration for qt5.
-    #needs verification to use higher compiler.
-    if (false) {
-        greaterThan(QT_MINOR_VERSION, 11) {
-            CONFIG += c++17
-        } else {
-            CONFIG += c++1z
-            QMAKE_CXXFLAGS += -std=c++17
-        }
-    }
 }
 
 DEFINES += LOCK_RESMED_SESSIONS
@@ -651,11 +627,6 @@ FORMS += \
     welcome.ui
 !contains(DEFINES, helpless) {
     FORMS += help.ui
-}
-equals(QT_MAJOR_VERSION,5) {
-    lessThan(QT_MINOR_VERSION,12) {
-        FORMS += reports.ui
-    }
 }
 
 RESOURCES += \

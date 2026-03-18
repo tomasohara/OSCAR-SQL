@@ -2796,6 +2796,14 @@ No space was reclaimed — the database was already compact.</source>
         <source>MSeries Import complete</source>
         <translation>Η εισαγωγή του MSeries ολοκληρώθηκε</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Ναí</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Ματαíωση</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

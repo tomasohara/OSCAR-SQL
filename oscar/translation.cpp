@@ -215,19 +215,27 @@ void initTranslations()
 
     if (language.compare(DefaultLanguage) != 0) {
         // Install QT translation files
-        QString qtLang = language.left(2);
-        if ( qtLang.compare("zh") == 0 )      // QT-supplied translation files have both _CN and _TW, but are the same for our purposes
-            qtLang.append("_CN");
-        QString qtLangFile = "qt_" + qtLang + ".qm";
-        if (!QFileInfo(qtLangFile).exists()) {
-            qtLang = qtLang.left(2);        // Undo QT suffix for zh; we don't use that for our file
-            qtLangFile = "oscar_qt_" + qtLang + ".qm";
-        }
-        qDebug() << "Loading" << langname << "QT translation" << qtLangFile.toLocal8Bit().data() << "from" << langpath.toLocal8Bit().data();
         QTranslator * qtranslator = new QTranslator();
+        QStringList qtLangCandidates;
+        qtLangCandidates << language;
 
-        if (!qtLangFile.isEmpty() && !qtranslator->load(qtLangFile, langpath)) {
-             qWarning() << "Could not load QT translation" << qtLangFile << "reverting to english :(";
+        const QString baseQtLang = language.contains('_') ? language.section('_', 0, 0) : language.left(2);
+        if (!qtLangCandidates.contains(baseQtLang)) {
+            qtLangCandidates << baseQtLang;
+        }
+
+        bool qtLoaded = false;
+        for (const QString & qtLang : qtLangCandidates) {
+            const QString qtLangFile = "oscar_qt_" + qtLang + ".qm";
+            qDebug() << "Loading" << langname << "QT translation" << qtLangFile.toLocal8Bit().data() << "from" << langpath.toLocal8Bit().data();
+            if (qtranslator->load(qtLangFile, langpath)) {
+                qtLoaded = true;
+                break;
+            }
+        }
+
+        if (!qtLoaded) {
+             qWarning() << "Could not load QT translation for" << language << "reverting to english :(";
         }
 
         qApp->installTranslator(qtranslator);

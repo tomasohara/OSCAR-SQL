@@ -70,6 +70,31 @@ ProfileSelector::ProfileSelector(QWidget *parent) :
     ui(new Ui::ProfileSelector)
 {
     ui->setupUi(this);
+
+    // Force light appearance so the profile selector is legible in system dark mode.
+    // QPalette changes are ignored by native Windows style renderers, so use QSS instead.
+    // Qt::setColorScheme() (Qt 6.5+) is unavailable on the minimum supported versions.
+    setAutoFillBackground(true);
+    QPalette p;
+    p.setColor(QPalette::Window, Qt::white);
+    setPalette(p);
+    setStyleSheet(
+        "QTableView { background-color: white; color: black; alternate-background-color: #f2f2f2; }"
+        "QTableView::item:selected { background-color: #3a7fc2; color: white; }"
+        "QLabel { color: black; background-color: transparent; }"
+        "QPushButton { color: black; background-color: #f0f0f0;"
+        "    border: 1px solid #adadad; border-radius: 3px; padding: 3px 8px; }"
+        "QPushButton:hover { background-color: #e5f1fb; border-color: #0078d7; }"
+        "QPushButton:pressed { background-color: #cce4f7; border-color: #0078d7; }"
+        "QPushButton:disabled { color: #a0a0a0; border-color: #d0d0d0; }"
+        "QToolButton { color: black; }"
+        "QLineEdit { background-color: white; color: black; border: 1px solid #adadad; border-radius: 2px; }"
+        "QGroupBox { color: black; border: 1px solid #c0c0c0; border-radius: 4px;"
+        "    margin-top: 8px; padding-top: 4px; }"
+        "QGroupBox::title { color: black; subcontrol-origin: margin; left: 8px; }"
+        "#frame_2 { background-color: white; }"
+    );
+
     model = nullptr;
     proxy = nullptr;
 
@@ -114,7 +139,7 @@ void ProfileSelector::updateProfileList()
     model->setHeaderData(4, Qt::Horizontal, tr("Last Imported"));
     model->setHeaderData(5, Qt::Horizontal, tr("Name"));
 
-    ui->profileView->setStyleSheet("QHeaderView::section { background-color:lightgrey }");
+    ui->profileView->setStyleSheet("QHeaderView::section { background-color: lightgrey; color: black; }");
 
     int row = 0;
 //    int sel = -1;

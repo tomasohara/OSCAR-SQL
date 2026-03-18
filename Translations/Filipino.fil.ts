@@ -2796,6 +2796,10 @@ Data File: %2</source>
         <source>OSCAR Information</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancel</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

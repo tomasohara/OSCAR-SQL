@@ -2830,6 +2830,14 @@ Data File: %2</source>
         <source>OSCAR Information</source>
         <translation>OSCAR Information</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Ja</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annuller</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

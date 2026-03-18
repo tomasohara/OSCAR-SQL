@@ -86,7 +86,7 @@ void MachineLoader::finishAddingSessions()
         p_profile->calculateDailySummaries();
         qDebug() << "MachineLoader::finishAddingSessions: Calculated daily summaries for imported data";
     }
-    
+
     new_sessions.clear();
     
     // Report performance metrics when import completes

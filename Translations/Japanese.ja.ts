@@ -2849,6 +2849,14 @@ Data File: %2</source>
         <source>MSeries Import complete</source>
         <translation>MSeries インポート完了</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>はい</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>キャンセル</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

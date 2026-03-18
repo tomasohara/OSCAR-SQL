@@ -2805,6 +2805,14 @@ Data File: %2</source>
         <source>MSeries Import complete</source>
         <translation>MSeries İçe Aktarması tamamlandı</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Evet</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>İptal</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>

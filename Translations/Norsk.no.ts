@@ -2794,6 +2794,14 @@ No space was reclaimed — the database was already compact.</source>
         <source>OSCAR Information</source>
         <translation>OSCAR-informasjon</translation>
     </message>
+    <message>
+        <source>Yes</source>
+        <translation>Ja</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Avbryt</translation>
+    </message>
 </context>
 <context>
     <name>MinMaxWidget</name>
