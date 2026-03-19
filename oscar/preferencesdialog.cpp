@@ -243,6 +243,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     ui->monochromePrinting->setChecked(AppSetting->monochromePrinting());
     ui->eventFlagSessionBar->setChecked(profile->appearance->eventFlagSessionBar());
     ui->disableDailyGraphTitles->setChecked(AppSetting->disableDailyGraphTitles());
+    ui->useFusionTheme->setChecked(AppSetting->useFusionTheme());
 
 #if defined(STEADY_BREATHING)
     SteadyBreathingState sbState = AppSetting->steadyBreathing();
@@ -919,6 +920,11 @@ bool PreferencesDialog::Save()
     AppSetting->setMonochromePrinting(ui->monochromePrinting->isChecked());
     p_profile->appearance->setEventFlagSessionBar(ui->eventFlagSessionBar->isChecked());
     AppSetting->setDisableDailyGraphTitles(ui->disableDailyGraphTitles->isChecked());
+
+    if (ui->useFusionTheme->isChecked() != AppSetting->useFusionTheme()) {
+        AppSetting->setUseFusionTheme(ui->useFusionTheme->isChecked());
+        needs_restart = true;
+    }
 
     bool clicicalModeChanged = profile->cpap->clinicalMode() != ui->clinicalMode->isChecked() ;
     p_profile->cpap->setClinicalMode(ui->clinicalMode->isChecked());

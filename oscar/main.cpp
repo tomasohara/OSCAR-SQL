@@ -26,6 +26,7 @@
 #include <QStandardPaths>
 #include <QProgressDialog>
 #include <QStyleHints>
+#include <QStyleFactory>
 
 #include "version.h"
 #include "logger.h"
@@ -647,6 +648,11 @@ int main(int argc, char *argv[]) {
     p_pref = new Preferences("Preferences");
     p_pref->Open();
     AppSetting = new AppWideSetting(p_pref);
+
+    // Apply Fusion theme if enabled in preferences
+    if (AppSetting->useFusionTheme()) {
+        QApplication::setStyle(QStyleFactory::create("Fusion"));
+    }
 
     QString language = settings.value(LangSetting, "").toString();
     AppSetting->setLanguage(language);

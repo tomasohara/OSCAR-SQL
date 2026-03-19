@@ -60,6 +60,7 @@ const QString STR_AS_SteadyBreathingDuration = "SteadyBreathingDuration";
 #endif
 #endif
 const QString STR_AS_GraphTooltips = "GraphTooltips";
+const QString STR_AS_UseFusionTheme = "UseFusionTheme";
 const QString STR_AS_LineThickness = "LineThickness";
 const QString STR_AS_LineCursorMode = "LineCursorMode";
 const QString STR_AS_CalendarVisible = "CalendarVisible";
@@ -97,7 +98,7 @@ class AppWideSetting: public PrefSettings
 public:
   AppWideSetting(Preferences *pref);
 
-  bool m_usePixmapCaching, m_antiAliasing, m_squareWavePlots,m_graphTooltips, m_lineCursorMode, m_animations;
+  bool m_usePixmapCaching, m_antiAliasing, m_squareWavePlots,m_graphTooltips, m_lineCursorMode, m_animations, m_useFusionTheme;
   bool m_showPerformance, m_showDebug;
   int m_tooltipTimeout, m_graphHeight, m_scrollDampening;
   int m_alternatingColorsCombo;
@@ -166,6 +167,8 @@ public:
   //! \Allow disabling of sessions
   //! \brief Whether to show graph tooltips
   inline bool graphTooltips() const { return m_graphTooltips; }
+  //! \brief Whether to use the Fusion theme instead of the platform-native theme
+  inline bool useFusionTheme() const { return m_useFusionTheme; }
   inline int  alternatingColorsCombo() { return m_alternatingColorsCombo;}
   //! \brief Pen width of line plots
   inline float lineThickness() const { return m_lineThickness; }
@@ -236,6 +239,8 @@ public:
   #endif
   //! \brief Sets whether to allow double clicking on Y-Axis labels to change vertical scaling mode
   void setGraphTooltips(bool b) { setPref(STR_AS_GraphTooltips, m_graphTooltips=b); }
+  //! \brief Sets whether to use the Fusion theme instead of the platform-native theme
+  void setUseFusionTheme(bool b) { setPref(STR_AS_UseFusionTheme, m_useFusionTheme=b); }
   //! \brief Sets the type of overlay flags (which are displayed over the Flow Waveform)
   void setAlternatingColorsCombo(int b) { setPref(STR_AS_setAlternatingColorsCombo, m_alternatingColorsCombo=b); }
 #ifndef REMOVE_FITNESS

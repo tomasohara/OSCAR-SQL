@@ -41,6 +41,7 @@ AppWideSetting::AppWideSetting(Preferences *pref) : PrefSettings(pref)
     m_squareWavePlots = initPref(STR_AS_SquareWave, false).toBool();
     initPref(STR_AS_AllowYAxisScaling, true);
     m_graphTooltips = initPref(STR_AS_GraphTooltips, true).toBool();
+    m_useFusionTheme = initPref(STR_AS_UseFusionTheme, false).toBool();
     m_usePixmapCaching = initPref(STR_AS_UsePixmapCaching, false).toBool();
     m_odt = (OverlayDisplayType)initPref(STR_AS_OverlayType, (int)ODT_Bars).toInt();
     initPref(STR_AS_GraphTooltips, 0);

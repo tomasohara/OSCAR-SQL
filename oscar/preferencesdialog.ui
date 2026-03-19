@@ -3127,6 +3127,18 @@ Try it and see if you like it.</string>
                     </widget>
                    </item>
                    <item>
+                    <widget class="QCheckBox" name="useFusionTheme">
+                     <property name="toolTip">
+                      <string>Use Qt's Fusion theme instead of the platform-native theme.
+Provides a consistent look across platforms.
+OSCAR will restart when you click OK.</string>
+                     </property>
+                     <property name="text">
+                      <string>Use Fusion theme (OSCAR will restart)</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <spacer name="verticalSpacer">
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
