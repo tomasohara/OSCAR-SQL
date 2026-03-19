@@ -35,6 +35,7 @@
 #include "speedcheck.h"
 #include "SleepLib/common.h"
 #include "SleepLib/deviceconnection.h"
+#include "Graphs/gGraph.h"
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include "highresolution.h"
 #endif
@@ -332,10 +333,8 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setOrganizationDomain(getDeveloperDomain());
 //    QGuiApplication::styleHints()->colorScheme();  // Copies OS light or dark style to OSCAR,
                                                      // but supporting dark mode would require an exhaustive change to OSCAR
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-    QApplication app(argc, argv); // Force light style
-    app.styleHints()->setColorScheme(Qt::ColorScheme::Light);
-#endif
+    // Light mode is forced on mainapp after it is created (see below).
+    // There must be only ONE QApplication instance per process.
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     HighResolution::init();
@@ -409,6 +408,9 @@ int main(int argc, char *argv[]) {
     }
 
     QApplication mainapp(argc, argv);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    mainapp.styleHints()->setColorScheme(Qt::ColorScheme::Light);
+#endif
     QStringList args = mainapp.arguments();
 
 #ifdef Q_OS_WIN
@@ -813,6 +815,22 @@ int main(int argc, char *argv[]) {
     int result = mainapp.exec();
 
     DeviceConnectionManager::getInstance().record(nullptr);
+
+    // Delete the main window explicitly while Qt is still fully alive.
+    // closeEvent() has already run (closing the profile, saving window geometry,
+    // un-parenting loaders, and shutting down the logger) but the widget tree
+    // is still alive. Deleting it here — while globals like AppSetting and the
+    // graph fonts are still valid — ensures widget destructors don't access
+    // freed memory, which would corrupt state and crash QApplication's teardown.
+    delete mainwin;
+    mainwin = nullptr;
+
+    // Now that all widgets are gone, free the global objects that widget code
+    // may have referenced (AppSetting, p_pref, loaders, graph fonts/images).
+    // These were previously freed in closeEvent, but that ran before widget
+    // destruction, causing use-after-free during QApplication::~QApplication.
+    Profiles::Done();
+    DestroyGraphGlobals();
 
     // Close the database explicitly while Qt is still alive.
     // DatabaseManager is a Meyer's singleton whose destructor fires after main() returns,

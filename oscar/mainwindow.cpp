@@ -347,17 +347,11 @@ void MainWindow::closeEvent(QCloseEvent * event)
             CloseProfile();
         }
 
-        // Shutdown and Save the current User profile
-        Profiles::Done();
-
         // Save current window position
         QSettings settings;
         settings.setValue("MainWindow/geometry", saveGeometry());
 
         settings.setValue("Fingerprint", getFingerprint());
-
-        // Trash anything allocated by the Graph objects
-        DestroyGraphGlobals();
 
         if (systraymenu) {
             delete systraymenu;
@@ -366,6 +360,14 @@ void MainWindow::closeEvent(QCloseEvent * event)
         if (systray) {
             delete systray;
             systray = nullptr;
+        }
+
+        // Un-parent loaders from MainWindow so they are not double-deleted:
+        // they are tracked in the global m_loaders list and freed by
+        // Profiles::Done() → DestroyLoaders(), which runs in main() after
+        // MainWindow is deleted.
+        for (auto & loader : GetLoaders()) {
+            loader->setParent(nullptr);
         }
 
         disconnect(logger, SIGNAL(outputLog(QString)), this, SLOT(logMessage(QString)));
@@ -381,7 +383,6 @@ void MainWindow::closeEvent(QCloseEvent * event)
 MainWindow::~MainWindow()
 {
     delete ui;
-    QCoreApplication::quit();
 }
 
 void MainWindow::log(QString text)
@@ -1169,7 +1170,7 @@ void MainWindow::on_action_Import_Data_triggered()
 {
     static bool in_import = false;
     if ( p_profile == nullptr ) {
-        Notify(tr("No profile has been selected for Import."), STR_MessageBox_Busy);
+        QMessageBox::warning(this, tr("Import"), tr("Please select or create a profile before importing data."));
         return;
     }
     if (m_inRecalculation) {
@@ -1566,7 +1567,7 @@ void MainWindow::on_action_Advanced_Graph_Order_triggered()
 void MainWindow::on_action_Preferences_triggered()
 {
     if (!p_profile) {
-        mainwin->Notify(tr("Please open a profile first."));
+        QMessageBox::warning(this, tr("Preferences"), tr("Please select or create a profile first."));
         return;
     }
 
@@ -2525,7 +2526,7 @@ void MainWindow::on_actionChange_Data_Folder_triggered()
 
 QString MainWindow::profilePath(QString folderProfileName ) {
     QString folderName;
-    if (p_profile->contains(folderProfileName)) {
+    if (p_profile && p_profile->contains(folderProfileName)) {
         folderName = (*p_profile)[folderProfileName].toString();
         QFileInfo fi(folderName);
         if (fi.exists() && fi.isDir()) {
@@ -2908,6 +2909,10 @@ void MainWindow::on_actionShowPersonalData_toggled(bool visible)
 
 void MainWindow::on_actionImport_Journal_triggered()
 {
+    if (!p_profile) {
+        QMessageBox::warning(this, tr("Import Journal"), tr("No profile is currently open."));
+        return;
+    }
 
     QString filename = QFileDialog::getOpenFileName(this,
             tr("Choose where to read journal"),
@@ -2924,6 +2929,10 @@ void MainWindow::on_actionImport_Journal_triggered()
 
 void MainWindow::on_actionExport_Journal_triggered()
 {
+    if (!p_profile) {
+        QMessageBox::warning(this, tr("Export Journal"), tr("No profile is currently open."));
+        return;
+    }
     QString folder;
     folder = profilePath(STR_PREF_LastJournalPath);
 	if (p_profile->contains(STR_PREF_LastJournalPath)) {
