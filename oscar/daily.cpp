@@ -1963,6 +1963,7 @@ void Daily::Load(QDate date)
     htmlLeftSessionInfo.clear();
 
     htmlLeftHeader = "<html><head>"
+    "<style>body { line-height: 0.95; }</style>"
     "</head>"
     "<body leftmargin=0 rightmargin=0 topmargin=0 marginwidth=0 marginheight=0>";
 

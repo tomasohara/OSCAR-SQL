@@ -333,9 +333,7 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setOrganizationDomain(getDeveloperDomain());
 //    QGuiApplication::styleHints()->colorScheme();  // Copies OS light or dark style to OSCAR,
                                                      // but supporting dark mode would require an exhaustive change to OSCAR
-    // Light mode is forced on mainapp after it is created (see below).
-    // There must be only ONE QApplication instance per process.
-
+//    QApplication::setStyle("Fusion");
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     HighResolution::init();
     bool hiResEnabled=false;

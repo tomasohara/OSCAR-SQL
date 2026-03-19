@@ -791,6 +791,7 @@ QToolButton:pressed {
   border-radius: 8px;
   width: 6em;
   color: black;
+  font-weight: bold;
 }
 
 #qt_calendar_monthbutton:hover {
@@ -806,6 +807,7 @@ QToolButton:pressed {
   background: transparent;
  border-radius: 8px;
  color: black;
+ font-weight: bold;
 }
 
 #qt_calendar_yearbutton:hover {

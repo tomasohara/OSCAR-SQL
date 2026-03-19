@@ -4,6 +4,15 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-03-18 - Daily calendar navigation bar doesn't highlight on window focus
+
+**Files:** `oscar/daily.ui`
+**Symptom:** In OSCAR 1.7.1 (Qt 5), the calendar's month/year navigation bar changed from black-on-gray to white-on-blue when OSCAR had window focus. In 2.0 (Qt 6), it stays black-on-gray regardless of focus.
+**Root cause:** Qt 5 applied the system highlight color to the navigation bar automatically. Qt 6 no longer does this, and the explicit stylesheet in `daily.ui` overrides any default behavior. Qt stylesheets don't support a `:focus` pseudo-state on parent widgets, so restoring this would require handling `QEvent::WindowActivate`/`WindowDeactivate` in code to swap the stylesheet.
+**Status:** Noted; no fix applied.
+
+---
+
 ## 2026-03-18 - Preferences dialog more vertically spread out than Qt5/Windows 10
 
 **Files:** Preferences `.ui` file
