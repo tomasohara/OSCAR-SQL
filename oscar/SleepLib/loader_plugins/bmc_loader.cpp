@@ -403,16 +403,16 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
                                                       0.0, 0.0, 0.0,
                                                       waveformSampleIntervalMs);
     }
-    // Mask pressure from 0x24A. Gain matches PressureWaveformGain() (0.01 for G3X),
-    // giving the same cmH2O scale that BMC_PressureWave (0x380) used.
+    // Mask pressure waveform. Legacy BMC: sourced from PressureWave[25] at packet offset 0x08,
+    // gain 0.1 → cmH2O. G3X: sourced from Raw.MaskPressure, gain 0.01 → cmH2O.
     auto wMaskPressure = oscarSession->AddEventList(CPAP_MaskPressure, EVL_Waveform, PressureWaveformGain(), 0.0, 0.0, 0.0, waveformSampleIntervalMs);
 
     EventList* wLeak = ExportLeakRate() ? oscarSession->AddEventList(CPAP_Leak, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000) : nullptr;
     auto wTidalVolume = oscarSession->AddEventList(CPAP_TidalVolume, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wMinuteVentilation = oscarSession->AddEventList(CPAP_MinuteVent, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000);
     auto wRespiratoryRate = oscarSession->AddEventList(CPAP_RespRate, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
-    auto wIEValue = oscarSession->AddEventList(CPAP_IE, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
-    auto wIERatio = oscarSession->AddEventList(BMC_IE_Ratio, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000);
+    EventList* wIEValue = ExportTimingChannels() ? oscarSession->AddEventList(CPAP_IE,       EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000) : nullptr;
+    EventList* wIERatio = ExportTimingChannels() ? oscarSession->AddEventList(BMC_IE_Ratio,  EVL_Event, 0.1,   0.0, 0.0, 0.0, 1000) : nullptr;
     // Pressure trend (G3X only): EPAP and IPAP from 0x76C/0x76E, raw hundredths of cmH2O; gain 0.01 → displayed cmH2O.
     // EVL_Event draws a step-function line between events, keeping horizontal
     // stretches visible at all zoom levels.
@@ -420,8 +420,12 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
     auto wIPAPTrend         = oscarSession->AddEventList(BMC_IPAPTrend,     EVL_Event, 0.01, 0.0, 0.0, 0.0, 1000);
     auto wSpO2 = oscarSession->AddEventList(OXI_SPO2, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wPulse = oscarSession->AddEventList(OXI_Pulse, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
-    auto wInspTime = oscarSession->AddEventList(CPAP_Ti, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
-    auto wExpTime = oscarSession->AddEventList(CPAP_Te, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
+    // Always create Ti/Te event lists so calcs.cpp doesn't attempt to derive them
+    // from the flow waveform (which fails for BMC due to the non-zero baseline).
+    // Events are only populated when ExportTimingChannels() confirms the source
+    // data is valid; otherwise the lists remain empty and display nothing.
+    EventList* wInspTime = oscarSession->AddEventList(CPAP_Ti, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
+    EventList* wExpTime  = oscarSession->AddEventList(CPAP_Te, EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000);
 
     qint16 rawIpapMin = std::numeric_limits<qint16>::max();
     qint16 rawIpapMax = std::numeric_limits<qint16>::min();
@@ -445,7 +449,9 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
         if (wPressureWave) {
             wPressureWave->AddWaveform(timestamp, bmcWaveform.Raw.PressureWave, waveformSamplesPerPacket, waveformPacketDurationMs);
         }
-        wMaskPressure->AddWaveform(timestamp, bmcWaveform.Raw.MaskPressure, waveformSamplesPerPacket, waveformPacketDurationMs);
+        // PressureWave[25] at packet offset 0x08 is confirmed as mask pressure (÷10 = cmH2O).
+        // Raw.MaskPressure is populated by the G3X loader; for legacy BMC use Raw.PressureWave.
+        wMaskPressure->AddWaveform(timestamp, bmcWaveform.Raw.PressureWave, waveformSamplesPerPacket, waveformPacketDurationMs);
         if (wFlowAbnormality) {
             wFlowAbnormality->AddWaveform(timestamp, bmcWaveform.Raw.FlowAbnormality, waveformSamplesPerPacket, waveformPacketDurationMs);
         }
@@ -485,52 +491,39 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
             wPressureTrend->AddEvent(timestamp, bmcWaveform.Raw.PressureTrend);
         if (bmcWaveform.Raw.IPAPTrend > 0)
             wIPAPTrend->AddEvent(timestamp, bmcWaveform.Raw.IPAPTrend);
-        const int ieMapped = bmcWaveform.Raw.IERatioMapped;
-        const bool ieMappedPermille = (ieMapped > 100);
-        if (ieMapped > 0) {
-            const double ieNumerator = ieMappedPermille ? 1000.0 : 100.0;
-            const qint16 ieValue = static_cast<qint16>(
-                1000.0 * (ieNumerator - ieMapped) / ieMapped);
-            wIEValue->AddEvent(timestamp, ieValue);
-        } else {
-            wIEValue->AddEvent(timestamp, 0);
+        if (wIEValue || wIERatio) {
+            const int ieMapped = bmcWaveform.Raw.IERatioMapped;
+            const bool ieMappedPermille = (ieMapped > 100);
+            if (wIEValue) {
+                if (ieMapped > 0) {
+                    const double ieNumerator = ieMappedPermille ? 1000.0 : 100.0;
+                    const qint16 ieValue = static_cast<qint16>(
+                        1000.0 * (ieNumerator - ieMapped) / ieMapped);
+                    wIEValue->AddEvent(timestamp, ieValue);
+                } else {
+                    wIEValue->AddEvent(timestamp, 0);
+                }
+            }
+            if (wIERatio) {
+                const qint16 ieRatioDisplayValue = static_cast<qint16>(
+                    ieMappedPermille ? qRound(static_cast<double>(ieMapped) / 10.0) : ieMapped);
+                wIERatio->AddEvent(timestamp, ieRatioDisplayValue);
+            }
         }
-        const qint16 ieRatioDisplayValue = static_cast<qint16>(
-            ieMappedPermille ? qRound(static_cast<double>(ieMapped) / 10.0) : ieMapped);
-        wIERatio->AddEvent(timestamp, ieRatioDisplayValue);
 
-        /* compute Ti/Te so OSCAR doesn't need to guess from Flow waveform peaks */
-        if (bmcWaveform.RespiratoryRate > 0)
-        {
+        /* Compute Ti/Te from I:E ratio and respiratory rate so OSCAR doesn't
+         * need to estimate them from flow waveform peaks.  Only populated when
+         * ExportTimingChannels() is true and the source data is confirmed valid. */
+        if (ExportTimingChannels() && bmcWaveform.RespiratoryRate > 0) {
             double respTime = 60.0 / bmcWaveform.RespiratoryRate;
-            double inspTime = respTime * (bmcWaveform.Raw.IERatioMapped / 1000.0);
-            double expTime  = respTime * ((1000 - bmcWaveform.Raw.IERatioMapped) / 1000.0);
-
+            double inspTime = respTime * (bmcWaveform.Raw.IERatioMapped / 100.0);
+            double expTime  = respTime * ((100 - bmcWaveform.Raw.IERatioMapped) / 100.0);
             qint16 inspMs = static_cast<qint16>(inspTime * 1000);
             qint16 expMs  = static_cast<qint16>(expTime * 1000);
-
-            if (inspMs > 0)
+            if (wInspTime && inspMs > 0)
                 wInspTime->AddEvent(timestamp, inspMs);
-
-            if (expMs > 0)
+            if (wExpTime && expMs > 0)
                 wExpTime->AddEvent(timestamp, expMs);
-        }
-
-
-
-        //We add the inspiration and expiration waveform so that OSCAR doesn't try to calculcate them
-        //OSCAR searched for peaks and throughs in the flow waveform, but since BMC's flow waveform
-        //doesn't have a zero crossing (i.e. there is a y-offset), it can't do so reliably.
-        //Instead, we can accurately calculate the I and E times from two parameters BMC does record:
-        //the respiratory rate and the IE ratio
-
-        if (bmcWaveform.RespiratoryRate > 0)
-        {
-            double respTime = (60.0 / bmcWaveform.RespiratoryRate);
-            double inspTime = respTime * (bmcWaveform.Raw.IERatioMapped / 1000.0);
-            double expTime = respTime * ((1000 - bmcWaveform.Raw.IERatioMapped) / 1000.0);
-            wInspTime->AddEvent(timestamp, (qint16)(inspTime * 1000));
-            wExpTime->AddEvent(timestamp, (qint16)(expTime * 1000));
         }
 
     }

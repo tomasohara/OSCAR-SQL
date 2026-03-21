@@ -93,12 +93,12 @@ constexpr int kG3xWaveformOutputSampleCount = kBmcExtendedWaveformSamples;
 /// pressure source is available from the EVT stream.
 constexpr int kG3xOffsetPressureSeed = 0x00A;
 
-/// Inspiration time in centiseconds (offset 0x074).
-/// Combined with expiration time at 0x07E to derive I:E ratio.
+/// Packet offsets 0x074 and 0x07E: originally labelled Ti/Te (centiseconds) but
+/// their sum is near-constant (~565 cs) regardless of respiratory rate and shows
+/// no correlation with RR, tidal volume, or pressure.  Not confirmed Ti/Te.
+/// Read but currently discarded; kept for future investigation.
 constexpr int kG3xOffsetInspirationTime = 0x074;
-
-/// Expiration time in centiseconds (offset 0x07E).
-constexpr int kG3xOffsetExpirationTime = 0x07E;
+constexpr int kG3xOffsetExpirationTime  = 0x07E;
 
 /// Leak rate (offset 0x52A). Scale: raw × G3xLeakScaleTenthsPerRawUnit() → tenths of L/min.
 /// This field matches the BMC "Leak" display in shape, baseline, and spike pattern.
@@ -177,10 +177,6 @@ constexpr int kG3xPbMinRecordsPerEpisode = 2;
 constexpr int kG3xRespEventMinDurationSec = 10;
 constexpr int kG3xRespEventMaxDurationSec = 180;
 
-/// Validity bounds for inspiration+expiration cycle time (centiseconds).
-/// Outside this range the I:E calculation is discarded.
-constexpr int kG3xMinCycleCentisec = 200;  ///< ~30 bpm upper limit
-constexpr int kG3xMaxCycleCentisec = 2400; ///< ~2.5 bpm lower limit
 
 // ============================================================
 // Internal data structures
@@ -222,8 +218,8 @@ struct G3xDiagRow
 
     // Raw header / vitals fields read from the waveform packet.
     int RawPressureSeed       = 0; ///< 0x00A — instantaneous pressure, hundredths cmH2O
-    int RawInspirationTimeCentisec = 0; ///< 0x074
-    int RawExpirationTimeCentisec  = 0; ///< 0x07E
+    int RawUnknown074         = 0; ///< 0x074 — unknown; not confirmed Ti
+    int RawUnknown07E         = 0; ///< 0x07E — unknown; not confirmed Te
     int RawLeak               = 0; ///< 0x52A
     int RawTidalVolume        = 0; ///< 0x52C (scale TBD)
     int RawMinuteVentilation  = 0; ///< 0x52E (scale TBD)
@@ -379,7 +375,7 @@ bool WriteG3xDiagnosticsCsv(const QString& outputPath,
 
     out << "timestamp_iso,timestamp_sec,virtual_offset"
            ",raw_pressure_seed_0x0A"
-           ",raw_insp_time_cs_0x74,raw_exp_time_cs_0x7E"
+           ",raw_unknown_0x74,raw_unknown_0x7E"
            ",raw_leak_0x52A,raw_tv_0x52C,raw_mv_0x52E,raw_rr_0x530"
            ",raw_pressure_trend_0x76C"
            ",current_ipap_hundredths,current_epap_hundredths"
@@ -391,8 +387,8 @@ bool WriteG3xDiagnosticsCsv(const QString& outputPath,
             << row.TimestampSec                  << ","
             << row.VirtualOffset                 << ","
             << row.RawPressureSeed               << ","
-            << row.RawInspirationTimeCentisec    << ","
-            << row.RawExpirationTimeCentisec     << ","
+            << row.RawUnknown074                 << ","
+            << row.RawUnknown07E                 << ","
             << row.RawLeak                       << ","
             << row.RawTidalVolume                << ","
             << row.RawMinuteVentilation          << ","
@@ -1211,25 +1207,13 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             const int rawPressureTrend     = ReadUInt16LEPtr(packetData, kG3xOffsetPressureTrendEPAP);
             const int rawPressureTrendIPAP = ReadUInt16LEPtr(packetData, kG3xOffsetPressureTrendIPAP);
 
-            // Inspiration / expiration times (0x074 / 0x07E): centiseconds.
-            // Their sum gives cycle time, from which I:E ratio is derived.
-            const int rawInspTimeCentisec = ReadUInt16LEPtr(packetData, kG3xOffsetInspirationTime);
-            const int rawExpTimeCentisec  = ReadUInt16LEPtr(packetData, kG3xOffsetExpirationTime);
-
-            // Derive I:E permille (inspiration fraction × 1000) from timing fields.
-            // Both fields must be positive and the combined cycle must be within a
-            // physiologically plausible range (2.5–30 bpm).
-            int packetIePermille = 0;
-            const int cycleCentiseconds = rawInspTimeCentisec + rawExpTimeCentisec;
-            if (rawInspTimeCentisec > 0 &&
-                rawExpTimeCentisec  > 0 &&
-                cycleCentiseconds   >= kG3xMinCycleCentisec &&
-                cycleCentiseconds   <= kG3xMaxCycleCentisec)
-            {
-                packetIePermille = qBound(50,
-                    qRound(1000.0 * rawInspTimeCentisec / static_cast<double>(cycleCentiseconds)),
-                    950);
-            }
+            // Offsets 0x074 and 0x07E were originally labelled inspiration/expiration time
+            // (centiseconds), but analysis shows their sum is near-constant (~565 cs)
+            // regardless of respiratory rate and they carry no correlation with RR, TV,
+            // MV, or pressure.  They are NOT confirmed Ti/Te.  The I:E computation is
+            // suppressed until the correct offsets are identified.
+            // The raw values are still captured in the diagnostics CSV (RawUnknown074/07E).
+            const int packetIePermille = 0;
 
             // Fall back to waveform packet pressure seed only if EVT and IDX
             // have not already provided a pressure value.
@@ -1307,8 +1291,8 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                                     static_cast<quint64>(cursor);
 
                 row.RawPressureSeed            = packetPressureSeedHundredths > 0 ? packetPressureSeedHundredths : 0;
-                row.RawInspirationTimeCentisec = rawInspTimeCentisec;
-                row.RawExpirationTimeCentisec  = rawExpTimeCentisec;
+                row.RawUnknown074              = ReadUInt16LEPtr(packetData, kG3xOffsetInspirationTime);
+                row.RawUnknown07E              = ReadUInt16LEPtr(packetData, kG3xOffsetExpirationTime);
                 row.RawLeak                    = rawLeak;
                 row.RawTidalVolume             = rawTidalVolume;
                 row.RawMinuteVentilation       = rawMinuteVentilation;

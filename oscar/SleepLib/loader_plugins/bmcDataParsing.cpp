@@ -423,8 +423,11 @@ BmcWaveformPacket::BmcWaveformPacket(char* buffer)
 
     this->Raw.Leak = packetStruct->Leak;
     this->Raw.TidalVolume = packetStruct->TidalVolume;
-    this->Raw.SpO2Pct   = packetStruct->SpO2Pct;      // nessuna scala extra
-    this->Raw.PulseRate = packetStruct->PulseRate;    // idem
+    // SpO2 (0xCC) and pulse rate (0xCE) are populated by an optional oximeter accessory.
+    // Both will be 0 when the accessory is absent or not in use; they are expected to be
+    // present or absent together.
+    this->Raw.SpO2Pct   = packetStruct->SpO2Pct;
+    this->Raw.PulseRate = packetStruct->PulseRate;
     this->Raw.MinuteVentilation = packetStruct->MinuteVentilation;
     this->Raw.RespiratoryRate = packetStruct->RespiratoryRate;
     //this->Raw.IERatioMapped = ((qint16)(packetStruct->IERatio <= 100 ? 100 - IERatioLookup[packetStruct->IERatio] : 0) * 10);

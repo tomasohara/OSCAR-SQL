@@ -82,14 +82,20 @@ public:
     virtual ChannelID CPAPModeChannel();
 
     virtual double FlowWaveformGain() const { return 0.1; }
-    virtual double PressureWaveformGain() const { return 1.0; }
+    virtual double PressureWaveformGain() const { return 0.1; }
     virtual double FlowAbnormalityWaveformGain() const { return 1.0; }
     virtual double WaveformSampleIntervalMs() const { return 1000 / 25.0; }
     virtual int WaveformSamplesPerPacket() const { return 25; }
     virtual qint64 WaveformPacketDurationMs() const { return 1000; }
-    virtual bool ExportPressureWaveform() const { return true; }
+    /// Legacy BMC: the PressureWave array (0x08) is mapped to CPAP_MaskPressure.
+    /// No separate pressure-wave chart is needed.
+    virtual bool ExportPressureWaveform() const { return false; }
     virtual bool ExportFlowAbnormalityWaveform() const { return true; }
     virtual bool ExportLeakRate() const { return true; }
+    /// Returns true if CPAP_Ti, CPAP_Te, CPAP_IE, and BMC_IE_Ratio channels
+    /// should be populated.  Override to false when the source fields are not
+    /// confirmed to carry Ti/Te data (e.g. G3X offsets 0x074/0x07E).
+    virtual bool ExportTimingChannels() const { return true; }
 
     /// Returns the session start timestamp to use for really_set_first().
     /// Base implementation uses the session's StartTimestamp (no adjustment).

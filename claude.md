@@ -28,6 +28,7 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 - Add new files to oscar.pro as required for compilation.
 - Never touch any files in oscar/SleepLib/thirdparty.
 - Log all bug fixes in Notes/BUG_FIXES.md.
+- An "OSCAR day" starts at noon and runs until noon of the following calendar day.
 
 ## Other Notes
 

@@ -80,6 +80,11 @@ public:
     // Leak is now sourced from waveform packet offset 0x52A (raw × 0.16 → L/min).
     // The old EVT-based leak source (0x0C) was discarded; see bmcG3xDataParsing.cpp.
     virtual bool ExportLeakRate() const override { return true; }
+    /// 0x074 and 0x07E are not confirmed Ti/Te: their sum is near-constant
+    /// (~565 cs) regardless of RR and shows no correlation with respiratory
+    /// parameters.  Suppress Ti, Te, IE channels until the correct offsets
+    /// are identified.
+    virtual bool ExportTimingChannels() const override { return false; }
 
     /// Detects the mask-off point by finding the last waveform packet with
     /// meaningful respiratory flow, followed by a sustained period of near-zero
