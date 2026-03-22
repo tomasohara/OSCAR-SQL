@@ -2994,6 +2994,70 @@ Mainly affects the importer.</string>
                      </property>
                     </widget>
                    </item>
+                   <item row="10" column="0">
+                    <widget class="QLabel" name="label_gridLineOpacity">
+                     <property name="text">
+                      <string>Grid Line Darkness</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="10" column="1" colspan="2">
+                    <layout class="QHBoxLayout" name="horizontalLayout_gridOpacity">
+                     <item>
+                      <widget class="QSlider" name="gridLineOpacitySlider">
+                       <property name="toolTip">
+                        <string>Controls the darkness of the horizontal grid lines on graphs. Higher values make the lines more visible. Default is 64.</string>
+                       </property>
+                       <property name="minimum">
+                        <number>0</number>
+                       </property>
+                       <property name="maximum">
+                        <number>255</number>
+                       </property>
+                       <property name="singleStep">
+                        <number>8</number>
+                       </property>
+                       <property name="pageStep">
+                        <number>32</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="tickPosition">
+                        <enum>QSlider::TicksBelow</enum>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="gridLineOpacityDisplay">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>60</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="frameShape">
+                        <enum>QFrame::Box</enum>
+                       </property>
+                       <property name="text">
+                        <string notr="true">TextLabel</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
                   </layout>
                  </widget>
                 </item>

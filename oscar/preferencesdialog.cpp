@@ -230,6 +230,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     //    ui->bigFont->setEditable(false);
 
     ui->lineThicknessSlider->setValue(AppSetting->lineThickness()*2.0);
+    ui->gridLineOpacitySlider->setValue(AppSetting->gridLineOpacity());
+    on_gridLineOpacitySlider_valueChanged(AppSetting->gridLineOpacity());
 
     ui->resyncMachineDetectedEvents->setChecked(profile->cpap->resyncFromUserFlagging());
 
@@ -961,6 +963,7 @@ bool PreferencesDialog::Save()
     AppSetting->setSquareWavePlots(ui->useSquareWavePlots->isChecked());
     //    AppSetting->setGraphSnapshots(ui->enableGraphSnapshots->isChecked());
     AppSetting->setLineThickness(float(ui->lineThicknessSlider->value()) / 2.0);
+    AppSetting->setGridLineOpacity(ui->gridLineOpacitySlider->value());
 
     profile->general->setSkipEmptyDays(ui->skipEmptyDays->isChecked());
 
@@ -1348,6 +1351,11 @@ void PreferencesDialog::on_scrollDampeningSlider_valueChanged(int value)
 void PreferencesDialog::on_tooltipTimeoutSlider_valueChanged(int value)
 {
     ui->tooltipTimeoutDisplay->setText(QString("%1%2").arg(double(value)/1000.0,0,'f',1).arg(STR_UNIT_s));
+}
+
+void PreferencesDialog::on_gridLineOpacitySlider_valueChanged(int value)
+{
+    ui->gridLineOpacityDisplay->setText(QString::number(value));
 }
 
 void PreferencesDialog::on_resetChannelDefaults_clicked()

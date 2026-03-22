@@ -134,6 +134,9 @@ void gXGrid::paint(QPainter &painter, gGraph &w, const QRegion &region)
             }
         }
     }
+    int alpha = AppSetting->gridLineOpacity();
+    m_major_color.setAlpha(alpha);
+    m_minor_color.setAlpha(alpha);
     painter.setPen(QPen(m_major_color,1));
     painter.drawLines(majorlines);
     painter.setPen(QPen(m_minor_color,1));

@@ -1020,7 +1020,7 @@ int MapPainter::drawYaxis(int peaktime) {
         painter.setPen(Qt::black);
         painter.drawLine(left, bot, left-4, bot);
 
-        painter.setPen(QColor(128,128,128,30));
+        painter.setPen(QColor(128,128,128, AppSetting->gridLineOpacity()));
         painter.drawLine(left, bot, left+width, bot);
 
         label = QString("%1").arg(f);

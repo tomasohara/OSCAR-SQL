@@ -62,6 +62,7 @@ const QString STR_AS_SteadyBreathingDuration = "SteadyBreathingDuration";
 const QString STR_AS_GraphTooltips = "GraphTooltips";
 const QString STR_AS_UseFusionTheme = "UseFusionTheme";
 const QString STR_AS_LineThickness = "LineThickness";
+const QString STR_AS_GridLineOpacity = "GridLineOpacity";
 const QString STR_AS_LineCursorMode = "LineCursorMode";
 const QString STR_AS_CalendarVisible = "CalendarVisible";
 const QString STR_AS_RightSidebarVisible = "RightSidebarVisible";
@@ -104,6 +105,7 @@ public:
   int m_alternatingColorsCombo;
   bool m_multithreading, m_cacheSessions;
   float m_lineThickness;
+  int m_gridLineOpacity;
 
   OverlayDisplayType m_odt;
 #ifndef REMOVE_FITNESS
@@ -172,6 +174,8 @@ public:
   inline int  alternatingColorsCombo() { return m_alternatingColorsCombo;}
   //! \brief Pen width of line plots
   inline float lineThickness() const { return m_lineThickness; }
+  //! \brief Opacity (0-255) of horizontal graph grid lines
+  inline int gridLineOpacity() const { return m_gridLineOpacity; }
   //! \brief Whether to show line cursor
   inline bool lineCursorMode() const { return m_lineCursorMode; }
   //! \brief Whether to show the right sidebar
@@ -248,6 +252,8 @@ public:
 #endif
   //! \brief Set the pen width of line plots.
   void setLineThickness(float size) { setPref(STR_AS_LineThickness, m_lineThickness=size); }
+  //! \brief Set the opacity (0-255) of horizontal graph grid lines.
+  void setGridLineOpacity(int v) { setPref(STR_AS_GridLineOpacity, m_gridLineOpacity=v); }
   //! \brief Sets whether to display Line Cursor
   void setLineCursorMode(bool b) { setPref(STR_AS_LineCursorMode, m_lineCursorMode=b); }
   //! \brief Sets whether to display the right sidebar

@@ -50,6 +50,7 @@ AppWideSetting::AppWideSetting(Preferences *pref) : PrefSettings(pref)
     m_olm = (OverviewLinechartModes)initPref(STR_AS_OverviewLinechartMode, (int)OLC_Bartop).toInt();
 #endif
     m_lineThickness=initPref(STR_AS_LineThickness, 1.0).toFloat();
+    m_gridLineOpacity=initPref(STR_AS_GridLineOpacity, 64).toInt();
     m_lineCursorMode = initPref(STR_AS_LineCursorMode, true).toBool();
     initPref(STR_AS_RightSidebarVisible, false);
     initPref(STR_CS_UserEventPieChart, false);

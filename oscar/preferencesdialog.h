@@ -75,6 +75,8 @@ class PreferencesDialog : public QDialog
 
     void on_tooltipTimeoutSlider_valueChanged(int value);
 
+    void on_gridLineOpacitySlider_valueChanged(int value);
+
     void on_createSDBackups_clicked(bool checked);
 
     void on_resetChannelDefaults_clicked();
