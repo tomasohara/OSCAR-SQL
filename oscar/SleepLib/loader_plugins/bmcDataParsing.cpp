@@ -839,10 +839,6 @@ QList<BmcWaveformPacket> BmcData::ReadWaveforms(BmcDataLink& link)
             qout2.flush();
 #endif
             BmcWaveformPacket packet(packetBuf);
-            // Legacy BMC packet pressure fields are reversed relative to how OSCAR
-            // expects IPAP/EPAP channels; correct here for legacy imports only.
-            std::swap(packet.IPAP, packet.EPAP);
-            std::swap(packet.Raw.IPAP, packet.Raw.EPAP);
 
             if (packet.Timestamp >= link.UsrSession.StartTimestamp &&
                 packet.Timestamp <= link.UsrSession.EndTimestamp)

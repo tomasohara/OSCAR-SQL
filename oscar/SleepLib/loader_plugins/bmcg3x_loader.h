@@ -29,6 +29,7 @@ public:
     // G3X pressure-wave bytes appear to be in finer units than legacy BMC packets.
     // Start with a conservative scale to put the plotted range near clinical values.
     virtual double PressureWaveformGain() const override { return 0.01; }
+    virtual double PressureChannelGain() const override { return 0.01; }
     virtual double WaveformSampleIntervalMs() const override { return 20.0; }
     virtual int WaveformSamplesPerPacket() const override { return 50; }
     virtual qint64 WaveformPacketDurationMs() const override { return 1000; }

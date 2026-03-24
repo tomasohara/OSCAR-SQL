@@ -58,7 +58,6 @@ const QString STR_GRAPH_rMVFluctuation = "rMVFluctuation";
 const QString STR_GRAPH_FlowFull = "FlowFull";
 const QString STR_GRAPH_PressureWave = "PressureWave";
 const QString STR_GRAPH_FlowAbnormality = "FlowAbnormality";
-const QString STR_GRAPH_PressureTrend = "PressureTrend";
 const QString STR_GRAPH_IE_Ratio = "IERatio";
 #if defined(STEADY_BREATHING)
 const QString STR_GRAPH_CPAP_SteadyBreathing = "SteadyBreathing";

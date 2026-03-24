@@ -95,7 +95,7 @@ inline QString channelInfo(ChannelID code) {
 //
 // Standard graph order
 const QList<QString> standardGraphOrder = {
-    STR_GRAPH_SleepFlags, STR_GRAPH_FlowRate, STR_GRAPH_Pressure, STR_GRAPH_PressureTrend, STR_GRAPH_PressureWave, STR_GRAPH_LeakRate, STR_GRAPH_FlowLimitation,
+    STR_GRAPH_SleepFlags, STR_GRAPH_FlowRate, STR_GRAPH_Pressure, STR_GRAPH_PressureWave, STR_GRAPH_LeakRate, STR_GRAPH_FlowLimitation,
     STR_GRAPH_Snore, STR_GRAPH_IE_Ratio, STR_GRAPH_FlowAbnormality, STR_GRAPH_TidalVolume, STR_GRAPH_MaskPressure, STR_GRAPH_RespRate, STR_GRAPH_MinuteVent,
     STR_GRAPH_PTB, STR_GRAPH_RespEvent, STR_GRAPH_Ti, STR_GRAPH_Te, STR_GRAPH_IE,
     STR_GRAPH_SleepStage, STR_GRAPH_Inclination, STR_GRAPH_Orientation, STR_GRAPH_Motion, STR_GRAPH_TestChan1,
@@ -109,7 +109,7 @@ const QList<QString> standardGraphOrder = {
 
 // Advanced graph order
 const QList<QString> advancedGraphOrder = {
-    STR_GRAPH_SleepFlags, STR_GRAPH_FlowRate, STR_GRAPH_PressureWave, STR_GRAPH_PressureTrend, STR_GRAPH_MaskPressure, STR_GRAPH_TidalVolume, STR_GRAPH_MinuteVent,
+    STR_GRAPH_SleepFlags, STR_GRAPH_FlowRate, STR_GRAPH_PressureWave, STR_GRAPH_MaskPressure, STR_GRAPH_TidalVolume, STR_GRAPH_MinuteVent,
     STR_GRAPH_Ti, STR_GRAPH_Te, STR_GRAPH_IE, STR_GRAPH_FlowLimitation, STR_GRAPH_FlowAbnormality, STR_GRAPH_Pressure, STR_GRAPH_LeakRate, STR_GRAPH_Snore,
     STR_GRAPH_IE_Ratio, STR_GRAPH_RespRate, STR_GRAPH_PTB, STR_GRAPH_RespEvent,
     STR_GRAPH_SleepStage, STR_GRAPH_Inclination, STR_GRAPH_Orientation, STR_GRAPH_Motion, STR_GRAPH_TestChan1,
@@ -286,7 +286,7 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     // order at the beginning of daily.cpp.
     //============================================
     const ChannelID cpapcodes[] = {
-        CPAP_FlowRate, CPAP_Pressure, BMC_PressureTrend, CPAP_Leak, CPAP_FLG, CPAP_Snore, CPAP_TidalVolume,
+        CPAP_FlowRate, CPAP_Pressure, CPAP_Leak, CPAP_FLG, CPAP_Snore, CPAP_TidalVolume,
         CPAP_MaskPressure, CPAP_RespRate, CPAP_MinuteVent, CPAP_PTB, PRS1_PeakFlow, CPAP_RespEvent, CPAP_Ti, CPAP_Te,
         CPAP_IE, ZEO_SleepStage, POS_Inclination, POS_Orientation, POS_Movement, CPAP_Test1,
         Prisma_ObstructLevel, Prisma_rRMV, Prisma_rMVFluctuation, Prisma_PressureMeasured, Prisma_FlowFull
@@ -449,11 +449,6 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     //LEAK->AddLayer(AddCPAP(new gLineChart(CPAP_MaxLeak, COLOR_MaxLeak,square)));
     graphlist[schema::channel[CPAP_Snore].code()]->AddLayer(new gLineChart(CPAP_Snore, true));
     graphlist[schema::channel[BMC_FlowAbnormality].code()]->AddLayer(new gLineChart(BMC_FlowAbnormality, square));
-    {
-        gLineChart *ptc = new gLineChart(BMC_PressureTrend, square);
-        ptc->addPlot(BMC_IPAPTrend, square);
-        graphlist[schema::channel[BMC_PressureTrend].code()]->AddLayer(ptc);
-    }
     graphlist[schema::channel[BMC_PressureWave].code()]->AddLayer(new gLineChart(BMC_PressureWave, square));
     graphlist[schema::channel[BMC_IE_Ratio].code()]->AddLayer(new gLineChart(BMC_IE_Ratio, square));
     graphlist[schema::channel[CPAP_PTB].code()]->AddLayer(new gLineChart(CPAP_PTB, square));

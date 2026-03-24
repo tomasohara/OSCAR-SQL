@@ -69,6 +69,7 @@ enum class BmcRespiratoryEventType
     CSA,
     UA,
     PB,         ///< Periodic breathing / Cheyne-Stokes respiration episode
+    RERA,       ///< Respiratory Effort Related Arousal
     Unknown
 };
 
@@ -79,6 +80,15 @@ public:
     QDateTime StartTime;
     QDateTime EndTime;
     int DurationSeconds;
+};
+
+/// @brief A single flow-limitation point event with a severity grade.
+/// Grade 1 = Mild, 2 = Moderate, 3 = Severe.
+class BmcFlowLimitEvent
+{
+public:
+    QDateTime Timestamp;
+    int Grade; ///< 1 = Mild, 2 = Moderate, 3 = Severe
 };
 
 class BmcUsrSession
@@ -238,8 +248,8 @@ public:
 struct BmcWaveformPacketStruct{
     uint16_t Header; //00
     int16_t Offset0x02; //02
-    int16_t IPAP; //04
-    int16_t EPAP; //06
+    int16_t EPAP; //04
+    int16_t IPAP; //06
     int16_t PressureWave[kBmcLegacyWaveformSamples]; //08
     int16_t FlowAbnormality[kBmcLegacyWaveformSamples]; //3a
     int16_t Flow[kBmcLegacyWaveformSamples]; //6c
@@ -317,11 +327,8 @@ public:
     quint16 RespiratoryRate;
     qint16 IERatioMapped;
     /// @brief EPAP pressure trend (slow-moving target/smoothed pressure), raw hundredths cmH2O.
-    ///        Sourced from waveform packet offset 0x76C. See BMC_G3X_00X_FORMAT.md.
+    ///        Sourced from waveform packet offset 0x76C. Used by session-start detection.
     quint16 PressureTrend = 0;
-    /// @brief IPAP pressure trend, raw hundredths cmH2O.
-    ///        Sourced from waveform packet offset 0x76E. Identical to PressureTrend in CPAP mode.
-    quint16 IPAPTrend = 0;
 };
 
 
@@ -340,10 +347,6 @@ public:
     float MinuteVentilation;
     quint16 RespiratoryRate;
     float IERatio;
-    /// @brief Pressure trend in cmH2O (raw hundredths / 100.0).
-    ///        Sourced from waveform packet offset 0x76C. See BMC_G3X_00X_FORMAT.md.
-    float PressureTrend = 0.0f;
-
     BmcWaveformPacketRaw Raw;
 
     BmcWaveformPacket(char* buffer);
@@ -366,6 +369,7 @@ public:
 
     QList<BmcWaveformPacket> Waveforms;
     QList<BmcRespiratoryEvent> RespiratoryEvents;
+    QList<BmcFlowLimitEvent> FlowLimitEvents;
 };
 
 class BmcDateSession
@@ -376,6 +380,7 @@ public:
     BmcMachineInfo MachineInfo;
     BmcMachineSettings MacineSettings;
     QList<BmcRespiratoryEvent> RespiratoryEvents;
+    QList<BmcFlowLimitEvent> FlowLimitEvents;
     QList<BmcWaveformPacket> Waveforms;
 
 

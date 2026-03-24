@@ -376,10 +376,6 @@ void init()
     schema::channel.add(GRP_CPAP, new Channel(BMC_IE_Ratio  = 0x1212, WAVEFORM,    MT_CPAP,  SESSION, STR_GRAPH_IE_Ratio,
             QObject::tr("I/E Ratio %"), QObject::tr("Inspiration duration compared to expiration duration expressed as a percentage"), QObject::tr("I/E Ratio %"), STR_UNIT_Percentage,    DEFAULT,    QColor(39, 95, 140)));
 
-    schema::channel.add(GRP_CPAP, new Channel(BMC_PressureTrend  = 0x1213, WAVEFORM,    MT_CPAP,  SESSION, STR_GRAPH_PressureTrend,
-                                              QObject::tr("Pressure Trend"), QObject::tr("BMC EPAP Pressure Trend"), QObject::tr("Pressure Trend"), "",    DEFAULT,    QColor(39, 95, 140)));
-    schema::channel.add(GRP_CPAP, new Channel(BMC_IPAPTrend      = 0x1214, WAVEFORM,    MT_CPAP,  SESSION, "IPAPTrend",
-                                              QObject::tr("IPAP Trend"), QObject::tr("BMC IPAP Pressure Trend"), QObject::tr("IPAP Trend"), "",    DEFAULT,    QColor("red")));
 
     NoChannel = 0;
     /*

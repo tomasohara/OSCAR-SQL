@@ -5,7 +5,6 @@ Please be aware that this is an experimental loader for BMC CPAP machines such a
 We know that some features are still missing or are especially questionable:
   Periodic Breathing
   Pulse Rate
-  Flow limitations (not yet available)
   Snoring (not yet available)
   Machine settings
 

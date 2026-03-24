@@ -127,8 +127,6 @@ constexpr int kG3xOffsetPressureTrendEPAP = 0x76C;
 /// Paired with 0x76C; identical values in CPAP mode, may differ in BiPAP mode.
 constexpr int kG3xOffsetPressureTrendIPAP = 0x76E;
 
-/// Alias kept for PressureTrend channel (reads EPAP offset).
-constexpr int kG3xOffsetPressureTrend = kG3xOffsetPressureTrendEPAP;
 
 // ------------------------------------------------------------
 // Pressure channel source selection
@@ -147,6 +145,7 @@ constexpr bool kG3xUsePressureTrendForPressureChannel = true;
 // ------------------------------------------------------------
 
 /// Respiratory events — value1 is duration in seconds (clamped to 10..180).
+constexpr int kG3xEvtTypeRERA = 0x0A; ///< Respiratory Effort Related Arousal (RERA); confirmed 2026-03-23
 constexpr int kG3xEvtTypeUA  = 0x02; ///< Unclassified apnea
 constexpr int kG3xEvtTypeOSA = 0x03; ///< Obstructive sleep apnea
 constexpr int kG3xEvtTypeCSA = 0x04; ///< Central sleep apnea
@@ -161,6 +160,12 @@ constexpr int kG3xEvtTypeSessionEnd   = 0x41; ///< Session end   (machine stops 
 /// Therapy pressure snapshot — value2 is IPAP/EPAP in hundredths cmH2O.
 /// This is the primary pressure source for the waveform packet loop.
 constexpr int kG3xEvtTypePressure = 0x42;
+
+/// Flow limitation point events — present only when the machine detects FL.
+/// Confirmed by PAP-Link alignment on two independent sessions (2026-03-23).
+constexpr int kG3xEvtTypeFlowLimitMild     = 0x0E; ///< Mild flow limitation (grade 1)
+constexpr int kG3xEvtTypeFlowLimitModerate = 0x0F; ///< Moderate flow limitation (grade 2)
+constexpr int kG3xEvtTypeFlowLimitSevere   = 0x10; ///< Severe flow limitation (grade 3)
 
 /// Periodic breathing marker — consecutive records grouped into episodes.
 /// Value fields are zero; the presence of the record is the signal.
@@ -748,8 +753,9 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     bool hasEvtPressureUpdates  = false;
     int  evtPressureUpdateCount = 0;
 
-    QVector<G3xRawRespEvent> rawRespEvents;
-    QVector<QDateTime>       rawPbTimestamps;
+    QVector<G3xRawRespEvent>  rawRespEvents;
+    QVector<QDateTime>        rawPbTimestamps;
+    QVector<BmcFlowLimitEvent> rawFlEvents;
     int rawRespType02Count = 0;
     int rawRespType03Count = 0;
     int rawRespType04Count = 0;
@@ -832,6 +838,26 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     // Records are collected and grouped into episodes after the loop.
                     rawPbTimestamps.append(evtTime);
                     break;
+
+                case kG3xEvtTypeFlowLimitMild:
+                case kG3xEvtTypeFlowLimitModerate:
+                case kG3xEvtTypeFlowLimitSevere:
+                {
+                    // Flow limitation point events — confirmed by PAP-Link alignment.
+                    // Collected here and assigned to sessions after the loop.
+                    int grade = 0;
+                    switch (messageType) {
+                    case kG3xEvtTypeFlowLimitMild:     grade = 1; break;
+                    case kG3xEvtTypeFlowLimitModerate: grade = 2; break;
+                    case kG3xEvtTypeFlowLimitSevere:   grade = 3; break;
+                    default: break;
+                    }
+                    BmcFlowLimitEvent flEvt;
+                    flEvt.Timestamp = evtTime;
+                    flEvt.Grade     = grade;
+                    rawFlEvents.append(flEvt);
+                    break;
+                }
 
                 case kG3xEvtTypeSessionStart:
                 case kG3xEvtTypeSessionEnd:
@@ -925,14 +951,28 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                   return a.TimestampSec < b.TimestampSec;
               });
 
+    // EVT records are not always in strict chronological order (pressure and
+    // respiratory records can appear out of sequence by up to ~86 minutes).
+    // Sort both raw event lists so OSCAR's EventList receives them in time
+    // order; out-of-order insertion triggers costly reindex and display glitches.
+    std::sort(rawRespEvents.begin(), rawRespEvents.end(),
+              [](const G3xRawRespEvent& a, const G3xRawRespEvent& b) {
+                  return a.Timestamp < b.Timestamp;
+              });
+    std::sort(rawFlEvents.begin(), rawFlEvents.end(),
+              [](const BmcFlowLimitEvent& a, const BmcFlowLimitEvent& b) {
+                  return a.Timestamp < b.Timestamp;
+              });
+
     // ---- Phase 2: Map EVT respiratory events to OSCAR types ----
 
     if (!rawRespEvents.isEmpty()) {
-        int mappedOsaCount = 0;
-        int mappedCsaCount = 0;
-        int mappedHypCount = 0;
-        int mappedUaCount  = 0;
-        int ignoredCount   = 0;
+        int mappedOsaCount  = 0;
+        int mappedCsaCount  = 0;
+        int mappedHypCount  = 0;
+        int mappedUaCount   = 0;
+        int mappedReraCount = 0;
+        int ignoredCount    = 0;
 
         for (const G3xRawRespEvent& rawEvt : rawRespEvents) {
             BmcRespiratoryEventType mappedType  = BmcRespiratoryEventType::Unknown;
@@ -944,7 +984,8 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             case kG3xEvtTypeCSA: mappedType = BmcRespiratoryEventType::CSA; break;
             case kG3xEvtTypeOH:
             case kG3xEvtTypeCH:
-            case kG3xEvtTypeHyp: mappedType = BmcRespiratoryEventType::HYP; break;
+            case kG3xEvtTypeHyp: mappedType = BmcRespiratoryEventType::HYP;  break;
+            case kG3xEvtTypeRERA: mappedType = BmcRespiratoryEventType::RERA; break;
             default: hasMappedType = false; break;
             }
 
@@ -954,34 +995,42 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             }
 
             BmcRespiratoryEvent evt;
-            evt.EventType       = mappedType;
-            evt.StartTime       = rawEvt.Timestamp;
-            evt.DurationSeconds = qBound(kG3xRespEventMinDurationSec, rawEvt.Value1, kG3xRespEventMaxDurationSec);
-            evt.EndTime         = evt.StartTime.addSecs(evt.DurationSeconds);
+            evt.EventType = mappedType;
+            evt.StartTime = rawEvt.Timestamp;
+            // RERA: value1 semantics are unconfirmed; use a fixed 10-second marker duration.
+            // Other respiratory events use value1 as duration in seconds (clamped 10..180).
+            if (mappedType == BmcRespiratoryEventType::RERA) {
+                evt.DurationSeconds = 10;
+            } else {
+                evt.DurationSeconds = qBound(kG3xRespEventMinDurationSec, rawEvt.Value1, kG3xRespEventMaxDurationSec);
+            }
+            evt.EndTime = evt.StartTime.addSecs(evt.DurationSeconds);
             dateSession.RespiratoryEvents.append(evt);
 
             switch (mappedType) {
-            case BmcRespiratoryEventType::OSA: ++mappedOsaCount; break;
-            case BmcRespiratoryEventType::CSA: ++mappedCsaCount; break;
-            case BmcRespiratoryEventType::HYP: ++mappedHypCount; break;
-            case BmcRespiratoryEventType::UA:  ++mappedUaCount;  break;
+            case BmcRespiratoryEventType::OSA:  ++mappedOsaCount;  break;
+            case BmcRespiratoryEventType::CSA:  ++mappedCsaCount;  break;
+            case BmcRespiratoryEventType::HYP:  ++mappedHypCount;  break;
+            case BmcRespiratoryEventType::UA:   ++mappedUaCount;   break;
+            case BmcRespiratoryEventType::RERA: ++mappedReraCount; break;
             default: break;
             }
         }
 
         qDebug() << "BmcG3xData respiratory summary day" << aDate.toString(Qt::ISODate)
-                 << "raw02(UA)"  << rawRespType02Count
-                 << "raw03(OSA)" << rawRespType03Count
-                 << "raw04(CSA)" << rawRespType04Count
-                 << "raw07(OH)"  << rawRespType07Count
-                 << "raw08(CH)"  << rawRespType08Count
-                 << "raw09(hyp)" << rawRespType09Count
-                 << "raw0A"      << rawRespType0ACount
-                 << "mappedUA"   << mappedUaCount
-                 << "mappedOSA"  << mappedOsaCount
-                 << "mappedCSA"  << mappedCsaCount
-                 << "mappedHYP"  << mappedHypCount
-                 << "ignored"    << ignoredCount;
+                 << "raw02(UA)"   << rawRespType02Count
+                 << "raw03(OSA)"  << rawRespType03Count
+                 << "raw04(CSA)"  << rawRespType04Count
+                 << "raw07(OH)"   << rawRespType07Count
+                 << "raw08(CH)"   << rawRespType08Count
+                 << "raw09(hyp)"  << rawRespType09Count
+                 << "raw0A(RERA)" << rawRespType0ACount
+                 << "mappedUA"    << mappedUaCount
+                 << "mappedOSA"   << mappedOsaCount
+                 << "mappedCSA"   << mappedCsaCount
+                 << "mappedHYP"   << mappedHypCount
+                 << "mappedRERA"  << mappedReraCount
+                 << "ignored"     << ignoredCount;
 
         if (rawRespType09Count > 0) {
             qDebug() << "BmcG3xData respiratory 0x09 samples day" << aDate.toString(Qt::ISODate)
@@ -1042,6 +1091,16 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                  << "raw44" << rawPbTimestamps.size()
                  << "episodes" << pbGroupCount
                  << "dropped(solo)" << pbDropCount;
+    }
+
+    // ---- Phase 2c: Collect flow limitation events ----
+
+    if (!rawFlEvents.isEmpty()) {
+        dateSession.FlowLimitEvents = rawFlEvents;
+        qDebug() << "BmcG3xData FL day" << aDate.toString(Qt::ISODate)
+                 << "mild"     << std::count_if(rawFlEvents.begin(), rawFlEvents.end(), [](const BmcFlowLimitEvent& e){ return e.Grade == 1; })
+                 << "moderate" << std::count_if(rawFlEvents.begin(), rawFlEvents.end(), [](const BmcFlowLimitEvent& e){ return e.Grade == 2; })
+                 << "severe"   << std::count_if(rawFlEvents.begin(), rawFlEvents.end(), [](const BmcFlowLimitEvent& e){ return e.Grade == 3; });
     }
 
     // ---- Phase 3: Seed initial pressure from IDX summary ----
@@ -1264,14 +1323,14 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
 
             // Pressure trend: convert hundredths cmH2O to cmH2O.
             legacyPacket.Raw.PressureTrend  = static_cast<quint16>(rawPressureTrend);
-            legacyPacket.Raw.IPAPTrend      = static_cast<quint16>(rawPressureTrendIPAP);
-            legacyPacket.PressureTrend      = rawPressureTrend / 100.0f;
 
             // Override Pressure / IPAP / EPAP with waveform pressure trend values.
             // 0x76C → EPAP, 0x76E → IPAP (identical in CPAP mode).
             if (kG3xUsePressureTrendForPressureChannel && rawPressureTrend > 0) {
-                legacyPacket.Raw.EPAP = PressureHundredthsToRawHalfCm(rawPressureTrend);
-                legacyPacket.Raw.IPAP = PressureHundredthsToRawHalfCm(rawPressureTrendIPAP);
+                // Store hundredths of cmH2O directly; PressureChannelGain() returns 0.01
+                // in the G3X loader so the displayed value is raw / 100 = cmH2O.
+                legacyPacket.Raw.EPAP = static_cast<qint16>(rawPressureTrend);
+                legacyPacket.Raw.IPAP = static_cast<qint16>(rawPressureTrendIPAP);
                 legacyPacket.EPAP     = rawPressureTrend     / 100.0f;
                 legacyPacket.IPAP     = rawPressureTrendIPAP / 100.0f;
             }
@@ -1325,7 +1384,12 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     // If no packets were found, emit a single synthetic packet so the session
     // is not empty.
     if (dateSession.Waveforms.isEmpty() && dayEntry->StartTimestamp.isValid()) {
-        dateSession.Waveforms.append(BuildLegacyCompatiblePacket(dayEntry->StartTimestamp, currentValues));
+        BmcWaveformPacket fallback = BuildLegacyCompatiblePacket(dayEntry->StartTimestamp, currentValues);
+        // Override the half-cmH2O values written by BuildLegacyCompatiblePacket with
+        // hundredths of cmH2O to match PressureChannelGain() = 0.01 in the G3X loader.
+        fallback.Raw.IPAP = static_cast<qint16>(currentValues.ipapHundredths);
+        fallback.Raw.EPAP = static_cast<qint16>(currentValues.epapHundredths);
+        dateSession.Waveforms.append(fallback);
     }
 
     if (firstPressureCmH2O <= 0.0f) {
@@ -1440,6 +1504,11 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         for (const BmcRespiratoryEvent& evt : dateSession.RespiratoryEvents) {
             if (evt.StartTime >= s->StartTimestamp && evt.StartTime <= s->EndTimestamp) {
                 s->RespiratoryEvents.append(evt);
+            }
+        }
+        for (const BmcFlowLimitEvent& evt : dateSession.FlowLimitEvents) {
+            if (evt.Timestamp >= s->StartTimestamp && evt.Timestamp <= s->EndTimestamp) {
+                s->FlowLimitEvents.append(evt);
             }
         }
     }

@@ -83,6 +83,10 @@ public:
 
     virtual double FlowWaveformGain() const { return 0.1; }
     virtual double PressureWaveformGain() const { return 0.1; }
+    /// Gain applied to Raw.IPAP/Raw.EPAP when writing CPAP_Pressure/CPAP_IPAP/CPAP_EPAP
+    /// event lists.  Legacy BMC stores half-cmH2O units (gain 0.5); G3X stores hundredths
+    /// of cmH2O (gain 0.01) for full 0.01 cmH2O resolution.
+    virtual double PressureChannelGain() const { return 0.5; }
     virtual double FlowAbnormalityWaveformGain() const { return 1.0; }
     virtual double WaveformSampleIntervalMs() const { return 1000 / 25.0; }
     virtual int WaveformSamplesPerPacket() const { return 25; }

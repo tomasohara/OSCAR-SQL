@@ -4,6 +4,41 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-03-24 - G3X: RERA (Respiratory Effort Related Arousal) added to CPAP_RERA channel
+
+**Files:** `bmcDataParsing.h`, `bmcG3xDataParsing.cpp`, `bmc_loader.cpp`
+**Feature:** EVT message type `0x0A` confirmed as RERA by PAP-Link correlation on five independent events across four JCCPAP nights (2026-02-12, 2026-02-21, 2026-02-22 ×2, 2026-02-24). All five PAP-Link RERA timestamps matched a `0x0A` record within ±1 minute; two RERAs on 2026-02-22 corresponded exactly to the two `0x0A` records on that night.
+**Implementation:** `RERA` added to `BmcRespiratoryEventType` enum. `kG3xEvtTypeRERA = 0x0A` constant added. Phase 2 maps `0x0A` → `BmcRespiratoryEventType::RERA` with a fixed 10-second duration (confirmed against PAP-Link: both examined RERAs were exactly 10 seconds). Written to `CPAP_RERA` (EVL_Event) in `bmc_loader`.
+**Open:** value1 and value2 field meanings for `0x0A` remain unconfirmed.
+
+---
+
+## 2026-03-23 - G3X: Flow Limitation (Mild/Moderate/Severe) added to CPAP_FLG channel
+
+**Files:** `bmcDataParsing.h`, `bmcG3xDataParsing.cpp`, `bmc_loader.cpp`
+**Feature:** EVT message types 0x0E (Mild), 0x0F (Moderate), 0x10 (Severe) confirmed as flow limitation events by PAP-Link alignment on two independent sessions (G3X-2 2026-02-20: 376/22/6 vs PAP-Link many/21/5; JCCPAP 2025-12-20: 181/11/5). These types are absent from devices with no FL.
+**Implementation:** `BmcFlowLimitEvent` struct (Timestamp + Grade 1/2/3) collected in EVT loop, assigned to sessions, written to `CPAP_FLG` (EVL_Event, gain=1.0) with ±100 ms zero bookends to create isolated bars. `setPhysMin/Max(0.0/3.0)` anchors the y-axis so mild (grade 1) bars are visible. Statistics (min=0, median=0, 95th=0, max=3) are correct — FL is sparse (~2% of session time).
+
+---
+
+## 2026-03-23 - G3X: CPAP_Pressure artificially quantised to 0.5 cmH2O steps
+
+**Files:** `bmcG3xDataParsing.cpp`, `bmc_loader.cpp`, `bmc_loader.h`, `bmcg3x_loader.h`
+**Symptom:** The G3X Pressure graph had only 0.5 cmH2O resolution despite the machine recording pressure at 0.01 cmH2O precision.
+**Root cause:** `Raw.IPAP`/`Raw.EPAP` were written using `PressureHundredthsToRawHalfCm()`, which rounds to the nearest half-cmH2O to match the legacy BMC packet format. The `bmc_loader` then applied a fixed gain of 0.5. This was appropriate for the legacy machine (which genuinely only records half-cmH2O steps) but threw away the G3X's finer precision.
+**Fix:** Added virtual `PressureChannelGain()` to `BmcLoader` (default 0.5 for legacy). G3X overrides to 0.01. G3X now stores raw hundredths of cmH2O directly in `Raw.IPAP`/`Raw.EPAP`, bypassing `PressureHundredthsToRawHalfCm()`. `bmc_loader` uses `PressureChannelGain()` for all three pressure event lists.
+
+---
+
+## 2026-03-22 - BMC Legacy: IPAP/EPAP fields mis-labelled in packet struct
+
+**Files:** `bmcDataParsing.h`, `bmcDataParsing.cpp`
+**Symptom:** `BmcWaveformPacketStruct` had `IPAP` at offset 0x04 and `EPAP` at 0x06, which was backwards. A runtime `std::swap` was papering over the error.
+**Root cause:** The documentation was incorrect — 0x04 is always the smaller value (EPAP) and 0x06 is always the larger (IPAP), confirmed across all packets on all three test machines.
+**Fix:** Swapped the field names in the struct declaration in `bmcDataParsing.h` (EPAP at 0x04, IPAP at 0x06). Removed the `std::swap` calls and their comment from `bmcDataParsing.cpp`.
+
+---
+
 ## 2026-03-20 - BMC Legacy: MaskPressure waveform channel showed garbage data
 
 **Files:** `bmc_loader.h`, `bmc_loader.cpp`
