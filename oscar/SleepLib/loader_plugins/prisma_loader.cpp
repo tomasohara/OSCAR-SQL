@@ -231,11 +231,13 @@ void PrismaImport::run()
             }
 
             session->settings[Prisma_BiSoft] = parameters[PRISMA_LINE_EXTRA_OBSTRUCTION_PROTECTION];
+            session->settings[CPAP_EPAPLo] = parameters[PRISMA_LINE_EPAP] / 100.0;
             session->settings[CPAP_EEPAPLo] = parameters[PRISMA_LINE_EEPAP_MIN] / 100.0;
             session->settings[CPAP_EEPAPHi] = parameters[PRISMA_LINE_EEPAP_MAX] / 100.0;
-            session->settings[CPAP_EPAP] = parameters[PRISMA_LINE_EPAP] / 100.0;
+            session->settings[CPAP_EPAP] = parameters[PRISMA_LINE_EEPAP_MAX] / 100.0;
             session->settings[CPAP_IPAP] = parameters[PRISMA_LINE_IPAP] / 100.0;
             session->settings[CPAP_IPAPHi] = parameters[PRISMA_LINE_IPAP_MAX] / 100.0;
+            session->settings[CPAP_PS] = parameters[PRISMA_LINE_PDIFF_NORM] / 100.0;
             session->settings[CPAP_PSMin] = parameters[PRISMA_LINE_PDIFF_NORM] / 100.0;
             session->settings[CPAP_PSMax] = parameters[PRISMA_LINE_PDIFF_MAX] / 100.0;
             session->settings[Prisma_Softstart_Pressure] = parameters[PRISMA_LINE_SOFT_START_PRESS] / 100.0;
@@ -245,10 +247,39 @@ void PrismaImport::run()
                 session->settings[Prisma_TubeType] = parameters[PRISMA_LINE_TUBE_TYPE] / 10.0;
             }
             // Indicate partial support
-            session->settings[Prisma_Warning] = 2;
+            //session->settings[Prisma_Warning] = 2;
         }
 
         switch(parameters[PRISMA_LINE_MODE]) {
+            case PRISMA_MODE_S:
+            if (parameters[PRISMA_LINE_EXTRA_OBSTRUCTION_PROTECTION] != 1) {
+                if (parameters[PRISMA_LINE_AUTO_PDIFF] == 1) {
+                    session->settings[CPAP_Mode] = (int)MODE_BILEVEL_AUTO_VARIABLE_PS;
+                }else{
+                    session->settings[CPAP_Mode] = (int)MODE_BILEVEL_AUTO_FIXED_PS;
+                }
+            }
+            else {
+                session->settings[CPAP_Mode] = (int)MODE_TRILEVEL_AUTO_VARIABLE_PDIFF;
+            }
+                session->settings[Prisma_Mode] = (int)PRISMA_COMBINED_MODE_AUTO_S;
+                session->settings[Prisma_BiSoft] = parameters[PRISMA_LINE_EXTRA_OBSTRUCTION_PROTECTION];
+                session->settings[CPAP_EPAPLo] = parameters[PRISMA_LINE_EEPAP_MIN] / 100.0;
+                session->settings[CPAP_EEPAPLo] = parameters[PRISMA_LINE_EEPAP_MIN] / 100.0;
+                session->settings[CPAP_EEPAPHi] = parameters[PRISMA_LINE_EEPAP_MAX] / 100.0;
+                session->settings[CPAP_EPAP] = parameters[PRISMA_LINE_EPAP] / 100.0;
+                session->settings[CPAP_IPAP] = parameters[PRISMA_LINE_IPAP] / 100.0;
+                session->settings[CPAP_IPAPHi] = parameters[PRISMA_LINE_IPAP_MAX] / 100.0;
+                session->settings[CPAP_PS] = parameters[PRISMA_LINE_PDIFF_NORM] / 100.0;
+                session->settings[CPAP_PSMin] = parameters[PRISMA_LINE_PDIFF_NORM] / 100.0;
+                session->settings[CPAP_PSMax] = parameters[PRISMA_LINE_PDIFF_MAX] / 100.0;
+                session->settings[Prisma_Softstart_Pressure] = parameters[PRISMA_LINE_SOFT_START_PRESS] / 100.0;
+                session->settings[Prisma_Softstart_Time] = parameters[PRISMA_LINE_SOFT_START_TIME];
+                session->settings[Prisma_AutoStart] = parameters[PRISMA_LINE_AUTOSTART];
+                if (parameters.contains(PRISMA_SMART_TUBE_TYPE)) {
+                    session->settings[Prisma_TubeType] = parameters[PRISMA_LINE_TUBE_TYPE] / 10.0;
+                }
+            break;
             case PRISMA_MODE_AUTO_ST:
                 // TODO AXT
                 // Was not sure which mode this should be mapped, maybe we need to intorudce new modes
@@ -259,6 +290,7 @@ void PrismaImport::run()
 
             case PRISMA_MODE_AUTO_S:
                 session->settings[Prisma_Mode] = (int)PRISMA_COMBINED_MODE_AUTO_S;
+
             break;
 
             case PRISMA_MODE_ACSV:
@@ -303,6 +335,19 @@ void PrismaImport::run()
                 if (parameters.contains(PRISMA_SMART_TUBE_TYPE)) {
                     session->settings[Prisma_TubeType] = parameters[PRISMA_LINE_TUBE_TYPE] / 10.0;
                 }
+            break;
+
+        case PRISMA_MODE_CPAP:
+            session->settings[CPAP_Mode] = (int)MODE_CPAP;
+
+            session->settings[CPAP_Pressure] = parameters[PRISMA_LINE_EPAP] / 100.0;
+            session->settings[Prisma_AutoStart] = parameters[PRISMA_LINE_AUTOSTART];
+            session->settings[Prisma_SoftPAP] = parameters[PRISMA_LINE_SOFT_PAP_LEVEL];
+            session->settings[Prisma_Softstart_Time] = parameters[PRISMA_LINE_SOFT_START_TIME];
+            session->settings[Prisma_Softstart_Pressure] = parameters[PRISMA_LINE_SOFT_START_PRESS] / 100.0;
+            if (parameters.contains(PRISMA_SMART_TUBE_TYPE)) {
+                session->settings[Prisma_TubeType] = parameters[PRISMA_LINE_TUBE_TYPE] / 10.0;
+            }
             break;
 
             default:
@@ -462,6 +507,7 @@ struct PrismaTestedModel
 static const PrismaTestedModel s_PrismaTestedModels[] = {
     { "0x92", "Prisma Smart" },
     { "0x91", "Prisma Soft" },
+    {"22" , "Prisma 25S" },
     { "", ""}
 };
 
@@ -661,6 +707,49 @@ MachineInfo PrismaLoader::PeekInfo(const QString & selectedPath)
     return PeekInfoFromConfig(selectedPath + QDir::separator() + PRISMA_SMART_CONFIG_FILE);
 }
 
+MachineInfo PrismaLoader::PeekInfoFromPrismaLineConfig(const QString & selectedPath){
+    QFile prismaLineConfigFile(selectedPath + QDir::separator() + PRISMA_LINE_CONFIG_FILE);
+        MachineInfo info = newInfo();
+    if (!prismaLineConfigFile.open(QIODevice::ReadOnly)) {
+        return info;
+    }
+    QByteArray configDataZip = prismaLineConfigFile.readAll();
+    prismaLineConfigFile.close();
+
+    mz_bool status;
+    mz_zip_archive zip_archive;
+
+
+    memset(&zip_archive, 0, sizeof(zip_archive));
+
+    status = mz_zip_reader_init_mem(&zip_archive, (const void*)configDataZip.constData(), configDataZip.size(), 0);
+    if (!status)
+    {
+        qDebug() <<  "mz_zip_reader_init_file() failed!";
+        return info;
+    }
+    size_t uncomp_size_config;
+    void *extract_config = mz_zip_reader_extract_file_to_heap( &zip_archive, "mnt/flash/conf/device.xml", &uncomp_size_config, 0);
+    QByteArray configData((const char*)extract_config, uncomp_size_config);
+    free(extract_config);
+
+    QDomDocument dom;
+    dom.setContent(configData);
+
+    QDomElement root = dom.documentElement();
+    QDomNodeList  configNodelist = root.elementsByTagName("DeviceType");
+
+    info.modelnumber = configNodelist.item(0).attributes().item(0).nodeValue();
+    info.model = s_PrismaModelInfo.Name(info.modelnumber);
+    configNodelist = dom.elementsByTagName("DeviceSerialNumber");
+    info.serial = configNodelist.item(0).attributes().item(0).nodeValue();
+
+    // TODO AXT load props
+    info.properties["cica"] = "mica";
+
+    return info;
+}
+
 MachineInfo PrismaLoader::PeekInfoFromConfig(const QString & selectedPath)
 {
     QFile prismaSmartConfigFile(selectedPath + QDir::separator() + PRISMA_SMART_CONFIG_FILE);
@@ -687,24 +776,17 @@ MachineInfo PrismaLoader::PeekInfoFromConfig(const QString & selectedPath)
         info.properties["cica"] = "mica";
         return info;
     } else if (prismaLineConfigFile.exists()) {
-        // TODO AXT prismaLine machine info loader not supported at all at this time
-        // first extract the therapy data loader in PrismaLoader::Open(), it will help
-        // to solve this issue too
-        if (!prismaLineConfigFile.open(QIODevice::ReadOnly)) {
-            return MachineInfo();
-        }
-        MachineInfo info = newInfo();
-        prismaLineConfigFile.close();
-        // info.modelnumber=42     error: conversion from 'int' to 'QChar' is ambiguous
-        info.modelnumber="42";
-        info.model = "Unknown PrismaLine";
-        info.serial = "0x42424242";
-        // TODO AXT load props
-        info.properties["cica"] = "mica";
+
+        MachineInfo info = PeekInfoFromPrismaLineConfig(selectedPath);
+
         return info;
     }
     return MachineInfo();
 }
+/*MachineInfo ReadprismaLineMachineInfo(QFile prismaLineFile){
+
+    return MachineInfo();
+}*/
 
 void PrismaLoader::ImportDataDir(QDir& dataDir, QSet<SessionID>& sessions, QHash<SessionID, QString>& eventFiles, QHash<SessionID, QString>& signalFiles) {
     dataDir.setFilter(QDir::NoDotAndDotDot | QDir::Files | QDir::NoSymLinks);

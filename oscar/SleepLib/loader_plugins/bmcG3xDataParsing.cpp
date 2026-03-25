@@ -145,13 +145,14 @@ constexpr bool kG3xUsePressureTrendForPressureChannel = true;
 // ------------------------------------------------------------
 
 /// Respiratory events — value1 is duration in seconds (clamped to 10..180).
+constexpr int kG3xEvtTypeUH   = 0x01; ///< Unclassified hypopnea (confirmed 2026-03-25)
 constexpr int kG3xEvtTypeRERA = 0x0A; ///< Respiratory Effort Related Arousal (RERA); confirmed 2026-03-23
-constexpr int kG3xEvtTypeUA  = 0x02; ///< Unclassified apnea
-constexpr int kG3xEvtTypeOSA = 0x03; ///< Obstructive sleep apnea
-constexpr int kG3xEvtTypeCSA = 0x04; ///< Central sleep apnea
-constexpr int kG3xEvtTypeOH  = 0x07; ///< Obstructive hypopnea
-constexpr int kG3xEvtTypeCH  = 0x08; ///< Central hypopnea
-constexpr int kG3xEvtTypeHyp = 0x09; ///< Hypopnea (unclassified subtype)
+constexpr int kG3xEvtTypeUA   = 0x02; ///< Unclassified apnea
+constexpr int kG3xEvtTypeOSA  = 0x03; ///< Obstructive sleep apnea
+constexpr int kG3xEvtTypeCSA  = 0x04; ///< Central sleep apnea
+constexpr int kG3xEvtTypeOH   = 0x07; ///< Obstructive hypopnea
+constexpr int kG3xEvtTypeCH   = 0x08; ///< Central hypopnea
+constexpr int kG3xEvtTypeHyp  = 0x09; ///< Hypopnea (unclassified subtype)
 
 /// Session boundary markers — timestamp only, value fields unused.
 constexpr int kG3xEvtTypeSessionStart = 0x40; ///< Session start (machine begins therapy recording).
@@ -756,6 +757,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     QVector<G3xRawRespEvent>  rawRespEvents;
     QVector<QDateTime>        rawPbTimestamps;
     QVector<BmcFlowLimitEvent> rawFlEvents;
+    int rawRespType01Count = 0;
     int rawRespType02Count = 0;
     int rawRespType03Count = 0;
     int rawRespType04Count = 0;
@@ -807,15 +809,17 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     }
                     break;
 
+                case kG3xEvtTypeUH:
                 case kG3xEvtTypeUA:
                 case kG3xEvtTypeOSA:
                 case kG3xEvtTypeCSA:
                 case kG3xEvtTypeOH:
                 case kG3xEvtTypeCH:
                 case kG3xEvtTypeHyp:
-                case 0x0A:
+                case kG3xEvtTypeRERA:
                     // Respiratory events: value1 = duration in seconds (pre-clamp).
                     switch (messageType) {
+                    case kG3xEvtTypeUH:  ++rawRespType01Count; break;
                     case kG3xEvtTypeUA:  ++rawRespType02Count; break;
                     case kG3xEvtTypeOSA: ++rawRespType03Count; break;
                     case kG3xEvtTypeCSA: ++rawRespType04Count; break;
@@ -827,7 +831,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                             rawResp09Examples.append(G3xRawRespEvent{messageType, value1, evtTime});
                         }
                         break;
-                    case 0x0A: ++rawRespType0ACount; break;
+                    case kG3xEvtTypeRERA: ++rawRespType0ACount; break;
                     default: break;
                     }
                     rawRespEvents.append(G3xRawRespEvent{messageType, value1, evtTime});
@@ -979,9 +983,10 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             bool                    hasMappedType = true;
 
             switch (rawEvt.MessageType) {
-            case kG3xEvtTypeUA:  mappedType = BmcRespiratoryEventType::UA;  break;
-            case kG3xEvtTypeOSA: mappedType = BmcRespiratoryEventType::OSA; break;
-            case kG3xEvtTypeCSA: mappedType = BmcRespiratoryEventType::CSA; break;
+            case kG3xEvtTypeUH:  mappedType = BmcRespiratoryEventType::HYP;  break;
+            case kG3xEvtTypeUA:  mappedType = BmcRespiratoryEventType::UA;   break;
+            case kG3xEvtTypeOSA: mappedType = BmcRespiratoryEventType::OSA;  break;
+            case kG3xEvtTypeCSA: mappedType = BmcRespiratoryEventType::CSA;  break;
             case kG3xEvtTypeOH:
             case kG3xEvtTypeCH:
             case kG3xEvtTypeHyp: mappedType = BmcRespiratoryEventType::HYP;  break;
@@ -1018,6 +1023,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         }
 
         qDebug() << "BmcG3xData respiratory summary day" << aDate.toString(Qt::ISODate)
+                 << "raw01(UH)"   << rawRespType01Count
                  << "raw02(UA)"   << rawRespType02Count
                  << "raw03(OSA)"  << rawRespType03Count
                  << "raw04(CSA)"  << rawRespType04Count

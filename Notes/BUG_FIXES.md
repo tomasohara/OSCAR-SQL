@@ -4,6 +4,13 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-03-25 - G3X: Unclassified hypopnea (0x01) added to CPAP_Hypopnea channel
+
+**Files:** `bmcG3xDataParsing.cpp`
+**Feature:** EVT message type `0x01` confirmed as unclassified hypopnea (2026-03-25, Patient 2 B33BF114508). Added `kG3xEvtTypeUH = 0x01` constant; added to EVT loop and Phase 2 mapping → `BmcRespiratoryEventType::HYP`. Duration uses value1 clamped to 10–180 s, same as other hypopnea types. 58 records observed across Patient 2 nights; absent from JCCPAP.
+
+---
+
 ## 2026-03-24 - G3X: RERA (Respiratory Effort Related Arousal) added to CPAP_RERA channel
 
 **Files:** `bmcDataParsing.h`, `bmcG3xDataParsing.cpp`, `bmc_loader.cpp`

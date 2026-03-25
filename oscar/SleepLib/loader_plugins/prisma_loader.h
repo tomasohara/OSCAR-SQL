@@ -84,6 +84,7 @@ enum Prisma_Mode {
 
     // Prisma Line
     PRISMA_MODE_ACSV = 3,
+    PRISMA_MODE_S    = 4,
     PRISMA_MODE_AUTO_S = 9,
     PRISMA_MODE_AUTO_ST = 10,
 };
@@ -211,6 +212,9 @@ class PrismaLoader : public CPAPLoader
 
     //! \brief Detect if the given path contains a valid Folder structure
     virtual bool Detect(const QString & path);
+
+    //! \brief Load MachineInfo structure for Prisma Line machines.
+    virtual MachineInfo PeekInfoFromPrismaLineConfig(const QString & path);
 
     //! \brief Load MachineInfo structure.
     virtual MachineInfo PeekInfo(const QString & path);
