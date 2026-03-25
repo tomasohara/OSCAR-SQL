@@ -4,10 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-03-25 - G3X: Respiratory event duration corrected to value2 (milliseconds)
+
+**Files:** `bmcG3xDataParsing.cpp`
+**Root cause:** All respiratory event types (0x01–0x09, 0x0A) were using `value1` as duration in seconds. `value1` is actually a wrapping counter (0–999) with no duration information; `value2` encodes duration in milliseconds. Confirmed 2026-03-25 by extracting value2/1000 for a full OSCAR day and comparing against OSCAR waveform graphs: OSA durations of 27.7 s, 15.6 s; hypopnea 10.9 s; UA 11.5 s; RERA 11.3 s — all clinically plausible. `0x0B` value2/1000 = 0.4–1.1 s (sub-second, not event duration).
+**Fix:** `G3xRawRespEvent.Value1` renamed to `Value2Millis`; raw event collection changed to store `value2`; duration = `round(value2 / 1000.0)` seconds, clamped to [10, 180]. RERA fixed-duration override removed.
+
+---
+
 ## 2026-03-25 - G3X: Unclassified hypopnea (0x01) added to CPAP_Hypopnea channel
 
 **Files:** `bmcG3xDataParsing.cpp`
-**Feature:** EVT message type `0x01` confirmed as unclassified hypopnea (2026-03-25, Patient 2 B33BF114508). Added `kG3xEvtTypeUH = 0x01` constant; added to EVT loop and Phase 2 mapping → `BmcRespiratoryEventType::HYP`. Duration uses value1 clamped to 10–180 s, same as other hypopnea types. 58 records observed across Patient 2 nights; absent from JCCPAP.
+**Feature:** EVT message type `0x01` confirmed as unclassified hypopnea (2026-03-25, Patient 2 B33BF114508). Added `kG3xEvtTypeUH = 0x01` constant; added to EVT loop and Phase 2 mapping → `BmcRespiratoryEventType::HYP`. Duration uses value2/1000 s clamped to 10–180 s. 58 records observed across Patient 2 nights; absent from JCCPAP.
 
 ---
 
@@ -15,8 +23,7 @@ Notable bugs found and fixed during development/investigation.
 
 **Files:** `bmcDataParsing.h`, `bmcG3xDataParsing.cpp`, `bmc_loader.cpp`
 **Feature:** EVT message type `0x0A` confirmed as RERA by PAP-Link correlation on five independent events across four JCCPAP nights (2026-02-12, 2026-02-21, 2026-02-22 ×2, 2026-02-24). All five PAP-Link RERA timestamps matched a `0x0A` record within ±1 minute; two RERAs on 2026-02-22 corresponded exactly to the two `0x0A` records on that night.
-**Implementation:** `RERA` added to `BmcRespiratoryEventType` enum. `kG3xEvtTypeRERA = 0x0A` constant added. Phase 2 maps `0x0A` → `BmcRespiratoryEventType::RERA` with a fixed 10-second duration (confirmed against PAP-Link: both examined RERAs were exactly 10 seconds). Written to `CPAP_RERA` (EVL_Event) in `bmc_loader`.
-**Open:** value1 and value2 field meanings for `0x0A` remain unconfirmed.
+**Implementation:** `RERA` added to `BmcRespiratoryEventType` enum. `kG3xEvtTypeRERA = 0x0A` constant added. Phase 2 maps `0x0A` → `BmcRespiratoryEventType::RERA`. Written to `CPAP_RERA` (EVL_Event) in `bmc_loader`. Duration initially set to a fixed 10 s; updated 2026-03-25 to use value2/1000 s (observed ~11.3 s, consistent with PAP-Link's 10-second display).
 
 ---
 

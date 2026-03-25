@@ -144,7 +144,7 @@ constexpr bool kG3xUsePressureTrendForPressureChannel = true;
 // EVT stream — message type codes
 // ------------------------------------------------------------
 
-/// Respiratory events — value1 is duration in seconds (clamped to 10..180).
+/// Respiratory events — value2 is duration in milliseconds (confirmed 2026-03-25).
 constexpr int kG3xEvtTypeUH   = 0x01; ///< Unclassified hypopnea (confirmed 2026-03-25)
 constexpr int kG3xEvtTypeRERA = 0x0A; ///< Respiratory Effort Related Arousal (RERA); confirmed 2026-03-23
 constexpr int kG3xEvtTypeUA   = 0x02; ///< Unclassified apnea
@@ -212,7 +212,7 @@ struct G3xTimedSampleUpdate
 struct G3xRawRespEvent
 {
     int      MessageType = 0;
-    int      Value1      = 0; ///< Duration in seconds (pre-clamp)
+    int      Value2Millis = 0; ///< Duration in milliseconds (value2 field; confirmed 2026-03-25)
     QDateTime Timestamp;
 };
 
@@ -817,7 +817,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 case kG3xEvtTypeCH:
                 case kG3xEvtTypeHyp:
                 case kG3xEvtTypeRERA:
-                    // Respiratory events: value1 = duration in seconds (pre-clamp).
+                    // Respiratory events: value2 = duration in milliseconds (confirmed 2026-03-25).
                     switch (messageType) {
                     case kG3xEvtTypeUH:  ++rawRespType01Count; break;
                     case kG3xEvtTypeUA:  ++rawRespType02Count; break;
@@ -828,13 +828,13 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     case kG3xEvtTypeHyp:
                         ++rawRespType09Count;
                         if (rawResp09Examples.size() < 8) {
-                            rawResp09Examples.append(G3xRawRespEvent{messageType, value1, evtTime});
+                            rawResp09Examples.append(G3xRawRespEvent{messageType, value2, evtTime});
                         }
                         break;
                     case kG3xEvtTypeRERA: ++rawRespType0ACount; break;
                     default: break;
                     }
-                    rawRespEvents.append(G3xRawRespEvent{messageType, value1, evtTime});
+                    rawRespEvents.append(G3xRawRespEvent{messageType, value2, evtTime});
                     break;
 
                 case kG3xEvtTypePB:
@@ -1002,13 +1002,10 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             BmcRespiratoryEvent evt;
             evt.EventType = mappedType;
             evt.StartTime = rawEvt.Timestamp;
-            // RERA: value1 semantics are unconfirmed; use a fixed 10-second marker duration.
-            // Other respiratory events use value1 as duration in seconds (clamped 10..180).
-            if (mappedType == BmcRespiratoryEventType::RERA) {
-                evt.DurationSeconds = 10;
-            } else {
-                evt.DurationSeconds = qBound(kG3xRespEventMinDurationSec, rawEvt.Value1, kG3xRespEventMaxDurationSec);
-            }
+            // value2 encodes duration in milliseconds (confirmed 2026-03-25).
+            // Clamp to [10, 180] seconds to guard against corrupt records.
+            const int durationSec = static_cast<int>(rawEvt.Value2Millis / 1000.0 + 0.5);
+            evt.DurationSeconds = qBound(kG3xRespEventMinDurationSec, durationSec, kG3xRespEventMaxDurationSec);
             evt.EndTime = evt.StartTime.addSecs(evt.DurationSeconds);
             dateSession.RespiratoryEvents.append(evt);
 
@@ -1046,7 +1043,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 const G3xRawRespEvent& s = rawResp09Examples.at(i);
                 qDebug() << "  0x09 sample" << (i + 1)
                          << "ts"    << s.Timestamp.toString(Qt::ISODate)
-                         << "value1" << s.Value1;
+                         << "value2_millis" << s.Value2Millis;
             }
         }
     }
