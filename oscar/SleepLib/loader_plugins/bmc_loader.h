@@ -101,6 +101,12 @@ public:
     /// confirmed to carry Ti/Te data (e.g. G3X offsets 0x074/0x07E).
     virtual bool ExportTimingChannels() const { return true; }
 
+    /// Returns true if CPAP_PB (periodic breathing / Cheyne-Stokes) events
+    /// should be emitted to OSCAR.  Legacy BMC: enabled (source confirmed).
+    /// G3X: suppressed until the 0x44 EVT flag is validated; the signal is
+    /// suspected nonsense in SC.74+ firmware and unverified in SC.72.
+    virtual bool ExportPeriodicBreathing() const { return true; }
+
     /// Returns the session start timestamp to use for really_set_first().
     /// Base implementation uses the session's StartTimestamp (no adjustment).
     /// Subclasses may override to skip startup noise before therapy stabilizes.

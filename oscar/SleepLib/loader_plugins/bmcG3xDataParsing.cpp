@@ -101,8 +101,17 @@ constexpr int kG3xOffsetInspirationTime = 0x074;
 constexpr int kG3xOffsetExpirationTime  = 0x07E;
 
 /// Leak rate (offset 0x52A). Scale: raw × G3xLeakScaleTenthsPerRawUnit() → tenths of L/min.
-/// This field matches the BMC "Leak" display in shape, baseline, and spike pattern.
+/// Confirmed for firmware G3-2.11.x (e.g. JCCPAP/Luna G3X; internal build G3-2.SC.72.01).
+/// Reports unintentional (mask-fit) leak; ~0 for intentional vent.
 constexpr int kG3xOffsetLeak = 0x52A;
+
+/// Alternate leak rate (offset 0x568). Present in all known firmware versions.
+/// In firmware G3-2.11.x (JCCPAP) this field exists but differs from 0x52A (r≈0.05);
+/// its baseline (~16 L/min) appears to reflect intentional vent flow.
+/// In firmware G3-2.12.x+ (e.g. Kavolodin G3 A20), 0x52A is always zero and 0x568 is
+/// the only available continuous leak signal (~15–17 L/min baseline at 0.16 scale).
+/// Selected automatically at runtime when 0x52A is found to be essentially unpopulated.
+constexpr int kG3xOffsetAlternateLeak = 0x568;
 
 /// Tidal volume (offset 0x52C). Scale factor not yet determined; stored raw.
 constexpr int kG3xOffsetTidalVolume = 0x52C;
@@ -158,7 +167,10 @@ constexpr int kG3xEvtTypeHyp  = 0x09; ///< Hypopnea (unclassified subtype)
 constexpr int kG3xEvtTypeSessionStart = 0x40; ///< Session start (machine begins therapy recording).
 constexpr int kG3xEvtTypeSessionEnd   = 0x41; ///< Session end   (machine stops therapy recording).
 
-/// Therapy pressure snapshot — value2 is IPAP/EPAP in hundredths cmH2O.
+/// Therapy pressure snapshot.
+/// value2 (0x1C) = EPAP in hundredths cmH2O.
+/// unk1e (0x1E) = IPAP in hundredths cmH2O (confirmed 2026-03-25: equals EPAP + PS×100;
+/// for pure CPAP/APAP with no pressure support IPAP = EPAP so both fields are equal).
 /// This is the primary pressure source for the waveform packet loop.
 constexpr int kG3xEvtTypePressure = 0x42;
 
@@ -168,16 +180,27 @@ constexpr int kG3xEvtTypeFlowLimitMild     = 0x0E; ///< Mild flow limitation (gr
 constexpr int kG3xEvtTypeFlowLimitModerate = 0x0F; ///< Moderate flow limitation (grade 2)
 constexpr int kG3xEvtTypeFlowLimitSevere   = 0x10; ///< Severe flow limitation (grade 3)
 
-/// Periodic breathing marker — consecutive records grouped into episodes.
-/// Value fields are zero; the presence of the record is the signal.
-constexpr int kG3xEvtTypePB = 0x44;
-/// Gap between consecutive 0x44 records that starts a new PB episode (seconds).
-constexpr int kG3xPbGapThresholdSec = 10 * 60;
-/// Nominal extra duration appended after the last 0x44 record to close an episode (seconds).
-constexpr int kG3xPbEpisodeTrailSec = 10;
-/// Minimum number of 0x44 records required to emit a PB episode.
-/// Solo scattered records (noise) are suppressed; genuine episodes have 7+ records.
-constexpr int kG3xPbMinRecordsPerEpisode = 2;
+/// Per-breath event types: 0x0C marks the start of each inspiration,
+/// 0x0D marks the start of each expiration.  One pair fires per breath cycle.
+/// Used for AASM-based computed periodic breathing (PB) detection.
+constexpr int kG3xEvtTypeBreathInspiration = 0x0C;
+constexpr int kG3xEvtTypeBreathExpiration  = 0x0D;
+
+// AASM-based PB detection thresholds, applied to device-classified CSA events.
+//
+// AASM definition: ≥3 central apneas lasting >3 s, separated by ≤20 s of normal
+// breathing.  Detection uses CSA events from rawRespEvents, which carry device-measured
+// durations, rather than inferring timing from 0x0C breath gaps.
+
+/// Minimum device-reported apnea duration to qualify for PB scoring (seconds).
+/// 3 s matches the AASM PB definition; in practice the G3X firmware never classifies
+/// an event as an apnea unless it is ≥10 s, so this threshold has no practical effect.
+constexpr int kG3xPbMinApneaDurationSec = 3;
+/// Maximum normal-breathing interval between consecutive apneas for them to belong to
+/// the same PB cluster (AASM: ≤20 s of normal breathing between apneas).
+constexpr int kG3xPbMaxInterApneaNormalBreathSec = 20;
+/// Minimum number of qualifying apneas in a cluster to score as a PB episode (AASM: ≥3).
+constexpr int kG3xPbMinApneasPerEpisode = 3;
 
 /// Clamping limits for respiratory event duration.
 constexpr int kG3xRespEventMinDurationSec = 10;
@@ -216,6 +239,7 @@ struct G3xRawRespEvent
     QDateTime Timestamp;
 };
 
+#ifdef BMCDEBUG
 /// @brief One row written to the optional per-day diagnostics CSV.
 struct G3xDiagRow
 {
@@ -226,7 +250,7 @@ struct G3xDiagRow
     int RawPressureSeed       = 0; ///< 0x00A — instantaneous pressure, hundredths cmH2O
     int RawUnknown074         = 0; ///< 0x074 — unknown; not confirmed Ti
     int RawUnknown07E         = 0; ///< 0x07E — unknown; not confirmed Te
-    int RawLeak               = 0; ///< 0x52A
+    int RawLeak               = 0; ///< 0x52A (fw SC.72) or 0x568 (fw SC.74+); selected by Phase 3.5 probe
     int RawTidalVolume        = 0; ///< 0x52C (scale TBD)
     int RawMinuteVentilation  = 0; ///< 0x52E (scale TBD)
     int RawRespiratoryRate    = 0; ///< 0x530 — breaths/min
@@ -246,11 +270,13 @@ struct G3xDiagRow
     int PressureWaveMin  = 0;
     int PressureWaveMax  = 0;
 };
+#endif // BMCDEBUG
 
 // ============================================================
 // Configuration helpers
 // ============================================================
 
+#ifdef BMCDEBUG
 /// @brief Returns true when G3X diagnostics CSV output is requested via the
 ///        OSCAR_BMC_G3X_DIAG environment variable.
 bool IsG3xDiagnosticsEnabled()
@@ -269,6 +295,7 @@ bool IsG3xDiagnosticsEnabled()
     }
     return enabled != 0;
 }
+#endif // BMCDEBUG
 
 /// @brief Returns true when the pressure value is within the physiologically
 ///        plausible CPAP range (4.00–35.00 cmH2O).
@@ -277,11 +304,11 @@ bool IsReasonablePressureHundredths(int pressureHundredths)
     return pressureHundredths >= 400 && pressureHundredths <= 3500;
 }
 
-/// @brief Returns the leak scale factor: raw units at offset 0x52A → tenths of L/min.
+/// @brief Returns the leak scale factor: raw units → tenths of L/min.
 ///
-/// The raw value at 0x52A, when multiplied by 0.16, gives leak in L/min.
-/// Since OSCAR's CPAP_Leak EventList stores tenths of L/min and applies a
-/// display gain of 0.1, the tenths-per-raw scale is 0.16 × 10 = 1.6.
+/// Applies to both leak field offsets (0x52A and 0x568): the raw value multiplied
+/// by 0.16 gives leak in L/min.  Since OSCAR's CPAP_Leak EventList stores tenths
+/// of L/min and applies a display gain of 0.1, the tenths-per-raw scale is 1.6.
 ///
 /// Override via the OSCAR_BMC_G3X_LEAK_SCALE environment variable (env value
 /// is interpreted as L/min per raw unit; the code multiplies by 10 internally).
@@ -316,6 +343,7 @@ int ConvertG3xLeakRawToTenths(int rawLeak)
 // Diagnostics CSV helpers
 // ============================================================
 
+#ifdef BMCDEBUG
 /// @brief Builds the output path for the per-day diagnostics CSV file.
 QString BuildG3xDiagnosticsPath(const QString& serial, const QDate& day)
 {
@@ -414,6 +442,7 @@ bool WriteG3xDiagnosticsCsv(const QString& outputPath,
     file.close();
     return true;
 }
+#endif // BMCDEBUG
 
 // ============================================================
 // Low-level binary decode helpers
@@ -755,7 +784,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     int  evtPressureUpdateCount = 0;
 
     QVector<G3xRawRespEvent>  rawRespEvents;
-    QVector<QDateTime>        rawPbTimestamps;
+    QVector<QDateTime>        rawInspirationTimestamps;
     QVector<BmcFlowLimitEvent> rawFlEvents;
     int rawRespType01Count = 0;
     int rawRespType02Count = 0;
@@ -773,8 +802,13 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         const qint64 safeStart = std::min<qint64>(dayEntry->EventStartOffset, evtFile.size());
         const qint64 safeEnd   = std::min<qint64>(dayEntry->EventEndOffset,   evtFile.size());
         if (safeEnd > safeStart) {
-            evtFile.seek(safeStart);
-            const QByteArray evtBytes = evtFile.read(static_cast<qint64>(safeEnd - safeStart));
+            // EventStartOffset in the IDX is not guaranteed to fall on a 32-byte record
+            // boundary (confirmed for at least one device whose offset falls 16 bytes into
+            // a record).  Round down to the nearest boundary; the AE AA magic check will
+            // skip the partial record fragment at the start.
+            const qint64 alignedStart = (safeStart / kG3xEvtRecordSize) * kG3xEvtRecordSize;
+            evtFile.seek(alignedStart);
+            const QByteArray evtBytes = evtFile.read(static_cast<qint64>(safeEnd - alignedStart));
 
             for (int offset = 0; offset + kG3xEvtRecordSize <= evtBytes.size(); offset += kG3xEvtRecordSize) {
                 const char* rec = evtBytes.constData() + offset;
@@ -795,19 +829,26 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 const int value2      = ReadUInt16LEPtr(rec, 0x1C);
 
                 switch (messageType) {
-                case kG3xEvtTypePressure:
-                    // value2 = therapy pressure in hundredths cmH2O (IPAP = EPAP for CPAP/APAP).
-                    if (IsReasonablePressureHundredths(value2)) {
+                case kG3xEvtTypePressure: {
+                    // value2 (0x1C) = EPAP; unk1e (0x1E) = IPAP (both hundredths cmH2O).
+                    // For CPAP/APAP with no pressure support IPAP = EPAP so both fields are equal.
+                    const int epapHundredths = value2;
+                    const int ipapHundredths = ReadUInt16LEPtr(rec, 0x1E);
+                    if (IsReasonablePressureHundredths(epapHundredths)) {
                         G3xSampleValues sample;
-                        sample.hasIPAP      = true;
-                        sample.ipapHundredths = value2;
-                        sample.hasEPAP      = true;
-                        sample.epapHundredths = value2;
+                        sample.hasEPAP        = true;
+                        sample.epapHundredths = epapHundredths;
+                        // Use IPAP if valid; otherwise fall back to EPAP (CPAP mode).
+                        sample.hasIPAP        = true;
+                        sample.ipapHundredths = IsReasonablePressureHundredths(ipapHundredths)
+                                                ? ipapHundredths
+                                                : epapHundredths;
                         timedSampleUpdates.append(G3xTimedSampleUpdate{evtTime.toSecsSinceEpoch(), sample});
                         hasEvtPressureUpdates = true;
                         ++evtPressureUpdateCount;
                     }
                     break;
+                }
 
                 case kG3xEvtTypeUH:
                 case kG3xEvtTypeUA:
@@ -837,10 +878,14 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     rawRespEvents.append(G3xRawRespEvent{messageType, value2, evtTime});
                     break;
 
-                case kG3xEvtTypePB:
-                    // Periodic breathing marker; value fields are always zero.
-                    // Records are collected and grouped into episodes after the loop.
-                    rawPbTimestamps.append(evtTime);
+                case kG3xEvtTypeBreathInspiration:
+                    // Per-breath inspiration marker; one record per breath cycle.
+                    // Collected for AASM-based PB detection in Phase 2b.
+                    rawInspirationTimestamps.append(evtTime);
+                    break;
+
+                case kG3xEvtTypeBreathExpiration:
+                    // Per-breath expiration marker; not currently decoded.
                     break;
 
                 case kG3xEvtTypeFlowLimitMild:
@@ -925,27 +970,32 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     continue;
                 }
 
-                const int value2 = ReadUInt16LEPtr(rec, 0x1C);
-                if (!IsReasonablePressureHundredths(value2)) {
+                const int epapHundredths = ReadUInt16LEPtr(rec, 0x1C);
+                const int ipapHundredths = ReadUInt16LEPtr(rec, 0x1E);
+                if (!IsReasonablePressureHundredths(epapHundredths)) {
                     continue;
                 }
 
                 G3xSampleValues sample;
-                sample.hasIPAP      = true;
-                sample.ipapHundredths = value2;
-                sample.hasEPAP      = true;
-                sample.epapHundredths = value2;
+                sample.hasEPAP        = true;
+                sample.epapHundredths = epapHundredths;
+                sample.hasIPAP        = true;
+                sample.ipapHundredths = IsReasonablePressureHundredths(ipapHundredths)
+                                        ? ipapHundredths
+                                        : epapHundredths;
                 timedSampleUpdates.append(G3xTimedSampleUpdate{evtSec, sample});
                 hasEvtPressureUpdates = true;
                 ++evtPressureUpdateCount;
                 ++fallbackPressureUpdates;
             }
 
+#ifdef BMCDEBUG
             qDebug() << "BmcG3xData: EVT pressure fallback scan day" << aDate.toString(Qt::ISODate)
                      << "scanned42"    << scanned42
                      << "timeWindow42" << inTimeWindow42
                      << "dateWindow42" << inDateWindow42
                      << "recovered"    << fallbackPressureUpdates;
+#endif // BMCDEBUG
         }
     }
 
@@ -1019,6 +1069,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             }
         }
 
+#ifdef BMCDEBUG
         qDebug() << "BmcG3xData respiratory summary day" << aDate.toString(Qt::ISODate)
                  << "raw01(UH)"   << rawRespType01Count
                  << "raw02(UA)"   << rawRespType02Count
@@ -1046,64 +1097,96 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                          << "value2_millis" << s.Value2Millis;
             }
         }
+#endif // BMCDEBUG
     }
 
-    // ---- Phase 2b: Group EVT 0x44 PB records into episodes ----
+    // ---- Phase 2b: Compute PB episodes from device-classified apnea events ----
     //
-    // Each 0x44 record is a single-point PB marker (no duration field).  Consecutive
-    // records separated by less than kG3xPbGapThresholdSec belong to the same episode.
-    // The episode's duration is the span from first to last record plus a nominal trail.
+    // Implements the AASM definition: ≥3 central apneas lasting >3 s, separated by ≤20 s
+    // of normal breathing.  Uses device-classified CSA (0x04) and CH (0x08) events from
+    // rawRespEvents, which carry device-measured durations.  CH events are also included
+    // because some firmware versions (e.g. SC.72) emit CH rather than CSA for the partial
+    // flow reductions that accompany periodic breathing on CPAP therapy.  CH events
+    // continue to be reported as hypopneas in OSCAR; the PB clustering here is separate.
+    // EVT respiratory event timestamps mark the event END (confirmed 2026-03-25);
+    // startTime is derived as endTime − durationSec.
 
-    if (!rawPbTimestamps.isEmpty()) {
-        std::sort(rawPbTimestamps.begin(), rawPbTimestamps.end());
-
-        int pbGroupCount  = 0;
-        int pbDropCount   = 0;
-        QDateTime groupStart = rawPbTimestamps.first();
-        QDateTime groupLast  = groupStart;
-        int groupRecords     = 1;
-
-        auto emitPbEpisode = [&](const QDateTime& start, const QDateTime& last, int recordCount) {
-            if (recordCount < kG3xPbMinRecordsPerEpisode) {
-                ++pbDropCount;
-                return;
-            }
-            BmcRespiratoryEvent pbEvt;
-            pbEvt.EventType       = BmcRespiratoryEventType::PB;
-            pbEvt.StartTime       = start;
-            pbEvt.DurationSeconds = static_cast<int>(start.secsTo(last)) + kG3xPbEpisodeTrailSec;
-            pbEvt.EndTime         = start.addSecs(pbEvt.DurationSeconds);
-            dateSession.RespiratoryEvents.append(pbEvt);
-            ++pbGroupCount;
+    {
+        struct PbApnea {
+            QDateTime startTime;
+            QDateTime endTime;
         };
-
-        for (int i = 1; i < rawPbTimestamps.size(); ++i) {
-            const QDateTime& ts = rawPbTimestamps.at(i);
-            if (groupLast.secsTo(ts) > kG3xPbGapThresholdSec) {
-                emitPbEpisode(groupStart, groupLast, groupRecords);
-                groupStart   = ts;
-                groupRecords = 1;
-            } else {
-                ++groupRecords;
+        QVector<PbApnea> pbApneas;
+        for (const G3xRawRespEvent& evt : rawRespEvents) {
+            if (evt.MessageType != kG3xEvtTypeCSA &&
+                evt.MessageType != kG3xEvtTypeCH) {
+                continue;
             }
-            groupLast = ts;
+            const int durationSec = evt.Value2Millis / 1000;
+            if (durationSec < kG3xPbMinApneaDurationSec) {
+                continue;
+            }
+            const QDateTime endTime   = evt.Timestamp;
+            const QDateTime startTime = endTime.addSecs(-durationSec);
+            pbApneas.append(PbApnea{startTime, endTime});
         }
-        emitPbEpisode(groupStart, groupLast, groupRecords);   // final episode
 
-        qDebug() << "BmcG3xData PB day" << aDate.toString(Qt::ISODate)
-                 << "raw44" << rawPbTimestamps.size()
-                 << "episodes" << pbGroupCount
-                 << "dropped(solo)" << pbDropCount;
+        // rawRespEvents is already sorted chronologically; sort pbApneas by startTime
+        // to handle any apneas whose timestamps cross each other after duration subtraction.
+        std::sort(pbApneas.begin(), pbApneas.end(),
+                  [](const PbApnea& a, const PbApnea& b) {
+                      return a.startTime < b.startTime;
+                  });
+
+        // Group: cluster consecutive apneas whose inter-apnea normal-breathing interval
+        // (endTime[k] to startTime[k+1]) is ≤ kG3xPbMaxInterApneaNormalBreathSec.
+        // Clusters of ≥ kG3xPbMinApneasPerEpisode emit a PB episode.
+        int pbComputedCount = 0;
+        int i = 0;
+        while (i < pbApneas.size()) {
+            int clusterEnd = i;
+            for (int j = i + 1; j < pbApneas.size(); ++j) {
+                const int normalBreathSec = static_cast<int>(
+                    pbApneas.at(clusterEnd).endTime.secsTo(pbApneas.at(j).startTime));
+                if (normalBreathSec >= 0 && normalBreathSec <= kG3xPbMaxInterApneaNormalBreathSec) {
+                    clusterEnd = j;
+                } else {
+                    break;
+                }
+            }
+
+            const int apneaCount = clusterEnd - i + 1;
+            if (apneaCount >= kG3xPbMinApneasPerEpisode) {
+                BmcRespiratoryEvent pbEvt;
+                pbEvt.EventType       = BmcRespiratoryEventType::PB;
+                pbEvt.StartTime       = pbApneas.at(i).startTime;
+                pbEvt.EndTime         = pbApneas.at(clusterEnd).endTime;
+                pbEvt.DurationSeconds = static_cast<int>(pbEvt.StartTime.secsTo(pbEvt.EndTime));
+                dateSession.RespiratoryEvents.append(pbEvt);
+                ++pbComputedCount;
+                i = clusterEnd + 1;
+            } else {
+                ++i;
+            }
+        }
+
+#ifdef BMCDEBUG
+        qDebug() << "BmcG3xData computed PB day" << aDate.toString(Qt::ISODate)
+                 << "csaChEvents" << pbApneas.size()
+                 << "episodes"    << pbComputedCount;
+#endif // BMCDEBUG
     }
 
     // ---- Phase 2c: Collect flow limitation events ----
 
     if (!rawFlEvents.isEmpty()) {
         dateSession.FlowLimitEvents = rawFlEvents;
+#ifdef BMCDEBUG
         qDebug() << "BmcG3xData FL day" << aDate.toString(Qt::ISODate)
                  << "mild"     << std::count_if(rawFlEvents.begin(), rawFlEvents.end(), [](const BmcFlowLimitEvent& e){ return e.Grade == 1; })
                  << "moderate" << std::count_if(rawFlEvents.begin(), rawFlEvents.end(), [](const BmcFlowLimitEvent& e){ return e.Grade == 2; })
                  << "severe"   << std::count_if(rawFlEvents.begin(), rawFlEvents.end(), [](const BmcFlowLimitEvent& e){ return e.Grade == 3; });
+#endif // BMCDEBUG
     }
 
     // ---- Phase 3: Seed initial pressure from IDX summary ----
@@ -1159,14 +1242,70 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         currentValues.epapHundredths  = 400;
     }
 
+    // ---- Phase 3.5: Detect which leak offset to use ----
+    //
+    // Firmware SC.72 (user version G3-2.11.x) populates 0x52A with unintentional leak.
+    // Firmware SC.74+ (user version G3-2.12.x) leaves 0x52A at zero and instead uses
+    // 0x568 for total mask leak.  Sample the first 200 packets to detect which applies.
+    //
+    const int startFileIndexForProbe = static_cast<int>(dayEntry->WaveStartOffset / kG3xWaveformFileSpan);
+    int leakFieldOffset = kG3xOffsetLeak;   // default: 0x52A
+    {
+        const QString probeFilepath = QString("%1.%2")
+            .arg(fileBasePath)
+            .arg(startFileIndexForProbe, 3, 10, QLatin1Char('0'));
+        QFile probeFile(probeFilepath);
+        if (probeFile.open(QIODevice::ReadOnly)) {
+            const qint64 probeStartRaw   = dayEntry->WaveStartOffset % kG3xWaveformFileSpan;
+            // Align to packet boundary (waveform offsets are normally already aligned).
+            const qint64 probeStartLocal = (probeStartRaw / kG3xWaveformPacketSize) * kG3xWaveformPacketSize;
+            probeFile.seek(std::max<qint64>(0, probeStartLocal));
+
+            int probeTotal = 0;
+            int probeNonZero52A = 0;
+            while (probeTotal < 200) {
+                const QByteArray probePkt = probeFile.read(kG3xWaveformPacketSize);
+                if (probePkt.size() < static_cast<int>(kG3xWaveformPacketSize)) {
+                    break;
+                }
+                if (static_cast<unsigned char>(probePkt[0]) != 0xAD ||
+                    static_cast<unsigned char>(probePkt[1]) != 0xAA) {
+                    continue;
+                }
+                if (ReadUInt16LEPtr(probePkt.constData(), kG3xOffsetLeak) > 0) {
+                    ++probeNonZero52A;
+                }
+                ++probeTotal;
+            }
+            probeFile.close();
+
+            // If fewer than 10% of sampled packets have non-zero 0x52A, assume
+            // firmware SC.74+ and fall back to the alternate leak field at 0x568.
+            if (probeTotal > 0 && probeNonZero52A < probeTotal / 10) {
+                leakFieldOffset = kG3xOffsetAlternateLeak;
+            }
+
+#ifdef BMCDEBUG
+            qDebug() << "BmcG3xData leak field day" << aDate.toString(Qt::ISODate)
+                     << (leakFieldOffset == kG3xOffsetLeak
+                             ? "0x52A (unintentional; fw G3-2.11.x)"
+                             : "0x568 (total mask leak; fw G3-2.12.x+)")
+                     << "probe:" << probeTotal << "packets,"
+                     << probeNonZero52A << "non-zero at 0x52A";
+#endif // BMCDEBUG
+        }
+    }
+
     // ---- Phase 4: Iterate waveform packets ----
 
+#ifdef BMCDEBUG
     const bool diagnosticsEnabled = IsG3xDiagnosticsEnabled();
     QVector<G3xDiagRow> diagRows;
     if (diagnosticsEnabled) {
         const quint32 packetCountEstimate = std::max<quint32>(1, dayEntry->WaveLength / kG3xWaveformPacketSize);
         diagRows.reserve(static_cast<int>(packetCountEstimate));
     }
+#endif // BMCDEBUG
 
     float  firstPressureCmH2O   = -1.0f;
     qint16 waveformRawIpapMin   = std::numeric_limits<qint16>::max();
@@ -1247,8 +1386,8 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             // ---- Read vitals directly from this waveform packet ----
             const char* packetData = waveformPacket.constData();
 
-            // Leak (0x52A): raw × scale → tenths of L/min.
-            const int rawLeak     = ReadUInt16LEPtr(packetData, kG3xOffsetLeak);
+            // Leak: offset selected in Phase 3.5 (0x52A for fw SC.72, 0x568 for fw SC.74+).
+            const int rawLeak     = ReadUInt16LEPtr(packetData, leakFieldOffset);
             const int leakTenths  = ConvertG3xLeakRawToTenths(rawLeak);
 
             // Tidal volume (0x52C): raw stored directly; scale factor TBD.
@@ -1345,6 +1484,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             waveformRawIpapMin = std::min<qint16>(waveformRawIpapMin, legacyPacket.Raw.IPAP);
             waveformRawIpapMax = std::max<qint16>(waveformRawIpapMax, legacyPacket.Raw.IPAP);
 
+#ifdef BMCDEBUG
             // ---- Optionally record a diagnostics row ----
             if (diagnosticsEnabled) {
                 G3xDiagRow row;
@@ -1376,6 +1516,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
 
                 diagRows.append(row);
             }
+#endif // BMCDEBUG
 
             lastTimestampKey = timestampKey;
             cursor += kG3xWaveformPacketSize;
@@ -1399,6 +1540,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         firstPressureCmH2O = 4.0f;
     }
 
+#ifdef BMCDEBUG
     // ---- Write diagnostics CSV if requested ----
     if (diagnosticsEnabled && !diagRows.isEmpty()) {
         const QString diagPath = BuildG3xDiagnosticsPath(dateSession.MachineInfo.SerialNumber, aDate);
@@ -1410,6 +1552,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             qDebug() << "BmcG3xData: Wrote diagnostics CSV:" << diagPath;
         }
     }
+#endif // BMCDEBUG
 
     // ---- Phase 5: Populate machine settings ----
 
@@ -1565,11 +1708,54 @@ bool BmcG3xData::ResolveIdxFile()
     return false;
 }
 
-/// @brief Extracts machine serial number and model from the IDX file header.
+/// @brief Extracts machine serial number, model name, and firmware version from the IDX file header
+///        and the companion .log file.
+///
+/// IDX header layout (confirmed from binary analysis, 2026-03-26):
+///   0x0030 (16 bytes) — serial number (e.g. "A3125636308")
+///   0x0048 (16 bytes) — part/config code (e.g. "110A40113"); NOT the product name
+///   0x0100 (16 bytes) — product name (e.g. "G3 A20"); the human-readable model
+///   0x0345 (20 bytes) — internal SC firmware build string (e.g. "G3-2.SC.72.01")
+///
+/// .log file (first 6 KB scanned for null-terminated ASCII string starting with "G3-2."):
+///   User-facing firmware version, e.g. "G3-2.11.02.33", "G3-2.12.54.13", "G3-2.12.55.05".
+///   This matches what PAP-Link and the device display report to the user.
+///   The byte offset varies by device: ~0x0420 in small log files (G3 A20, SC.72/SC.74),
+///   ~0x1420 in larger ring-buffer log files (G3 B20A, SC.75).
+///   Major version 11 = SC.72; major version 12 = SC.74 / SC.75.
 void BmcG3xData::ParseMachineInfo(const QByteArray& idxBytes)
 {
     machineInfo.SerialNumber = ReadAscii(idxBytes, 0x30, 16);
-    machineInfo.Model        = ReadAscii(idxBytes, 0x48, 16);
+
+    // Product name at 0x100 ("G3 A20"); fall back to part-code at 0x48 if absent.
+    machineInfo.Model = ReadAscii(idxBytes, 0x100, 16);
+    if (machineInfo.Model.isEmpty()) {
+        machineInfo.Model = ReadAscii(idxBytes, 0x48, 16);
+    }
+
+    // User-facing firmware version from the .log file (e.g. "G3-2.11.02.33" or "G3-2.12.55.05").
+    // This matches what PAP-Link and the device display report.
+    // The version string is null-terminated ASCII starting with "G3-2.".  Its byte offset
+    // varies by device and log-file size: small log files (G3 A20) have it near 0x0420;
+    // large ring-buffer log files (G3 B20A) have it near 0x1420.  We scan the first 6 KB.
+    // Fall back to the internal SC build string from IDX 0x0345 if the .log is unavailable.
+    const QString logFilePath = fileBasePath + ".log";
+    QFile logFile(logFilePath);
+    if (logFile.open(QIODevice::ReadOnly)) {
+        const QByteArray logData = logFile.read(6144);
+        logFile.close();
+        static const QByteArray kLogVersionPrefix("G3-2.");
+        const int pos = logData.indexOf(kLogVersionPrefix);
+        if (pos >= 0) {
+            const int end = logData.indexOf('\0', pos);
+            machineInfo.FirmwareVersion = QString::fromLatin1(
+                logData.mid(pos, end < 0 ? 20 : qMin(end - pos, 20)));
+        }
+    }
+    if (machineInfo.FirmwareVersion.isEmpty()) {
+        // Fallback: internal SC build string from IDX 0x0345 (e.g. "G3-2.SC.72.01").
+        machineInfo.FirmwareVersion = ReadAscii(idxBytes, 0x0345, 20);
+    }
 
     if (machineInfo.SerialNumber.isEmpty()) {
         machineInfo.SerialNumber = QFileInfo(idxFilePath).completeBaseName();
@@ -1577,6 +1763,12 @@ void BmcG3xData::ParseMachineInfo(const QByteArray& idxBytes)
     if (machineInfo.Model.isEmpty()) {
         machineInfo.Model = QString("Luna G3X");
     }
+
+#ifdef BMCDEBUG
+    qDebug() << "BmcG3xData machine info: serial" << machineInfo.SerialNumber
+             << "model" << machineInfo.Model
+             << "firmware" << machineInfo.FirmwareVersion;
+#endif // BMCDEBUG
 }
 
 /// @brief Parses the per-day index records from the IDX file.
@@ -1599,8 +1791,12 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
         return (rawValue == 0xFFFF) ? -1 : static_cast<int>(rawValue);
     };
 
+    int idxScanned = 0, idxNoMagic = 0, idxBadDate = 0, idxNoWave = 0, idxBadTs = 0, idxAccepted = 0;
+
     for (int offset = kG3xIdxRecordOffset; offset + 0x34 <= idxBytes.size(); offset += kG3xIdxRecordSize) {
+        ++idxScanned;
         if (ReadUInt16LE(idxBytes, offset) != 0xAAAA) {
+            ++idxNoMagic;
             continue;
         }
 
@@ -1608,6 +1804,11 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
         const int month = static_cast<unsigned char>(idxBytes.at(offset + 0x09));
         const int day   = static_cast<unsigned char>(idxBytes.at(offset + 0x0A));
         if (!QDate::isValid(year, month, day)) {
+            ++idxBadDate;
+#ifdef BMCDEBUG
+            qDebug() << "BmcG3xData IDX: skipping bad date" << year << month << day
+                     << "at idx offset" << Qt::hex << offset;
+#endif // BMCDEBUG
             continue;
         }
 
@@ -1622,6 +1823,16 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
         const quint32 logLen     = ReadUInt32LE(idxBytes, offset + 0x30);
 
         if (waveLen == 0 || waveEnd <= waveStart) {
+            ++idxNoWave;
+#ifdef BMCDEBUG
+            qDebug() << "BmcG3xData IDX: skipping" << QDate(year, month, day).toString(Qt::ISODate)
+                     << "waveLen" << waveLen
+                     << "waveStart" << Qt::hex << waveStart
+                     << "waveEnd"   << Qt::hex << waveEnd
+                     << "evtStart"  << Qt::hex << eventStart
+                     << "evtEnd"    << Qt::hex << eventEnd
+                     << "evtLen"    << Qt::dec << eventLen;
+#endif // BMCDEBUG
             continue;
         }
 
@@ -1633,6 +1844,11 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
         QDateTime endTs = ReadWaveformPacketTimestamp(endPacketOffset);
 
         if (!startTs.isValid()) {
+            ++idxBadTs;
+#ifdef BMCDEBUG
+            qDebug() << "BmcG3xData IDX: skipping" << QDate(year, month, day).toString(Qt::ISODate)
+                     << "invalid waveform timestamp at waveStart" << Qt::hex << waveStart;
+#endif // BMCDEBUG
             continue;
         }
         if (!endTs.isValid() || endTs < startTs) {
@@ -1689,6 +1905,13 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
             dayEntry.TsPressureMaxHundredths = decodePressureField(ReadUInt16LE(idxBytes, tsOffset + 0x10));
         }
 
+        ++idxAccepted;
+#ifdef BMCDEBUG
+        qDebug() << "BmcG3xData IDX: accepted" << dayEntry.Date.toString(Qt::ISODate)
+                 << "waveTs" << startTs.toString(Qt::ISODate)
+                 << "waveStart" << Qt::hex << waveStart << "waveEnd" << Qt::hex << waveEnd
+                 << "evtStart"  << Qt::hex << eventStart << "evtEnd" << Qt::hex << eventEnd;
+#endif // BMCDEBUG
         dayEntries.append(dayEntry);
 
         // Build the session link.  Use the IDX calendar date (not the waveform
@@ -1701,6 +1924,15 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
         link.UsrSession.DurationMinutes = static_cast<int>(durationMinutes);
         sessionLinks.append(link);
     }
+
+#ifdef BMCDEBUG
+    qDebug() << "BmcG3xData IDX summary: scanned" << idxScanned
+             << "noMagic" << idxNoMagic
+             << "badDate"  << idxBadDate
+             << "noWave"   << idxNoWave
+             << "badTs"    << idxBadTs
+             << "accepted" << idxAccepted;
+#endif // BMCDEBUG
 
     std::sort(sessionLinks.begin(), sessionLinks.end(), [](const BmcDataLink& a, const BmcDataLink& b) {
         return a.UsrSession.StartTimestamp < b.UsrSession.StartTimestamp;

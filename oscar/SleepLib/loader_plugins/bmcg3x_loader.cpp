@@ -1,3 +1,4 @@
+#include <QApplication>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QDebug>
@@ -48,6 +49,9 @@ MachineInfo BmcG3xLoader::PeekInfo(const QString& path)
     info.series = "BMC";
     info.serial = bmcMachineInfo.SerialNumber;
     info.version = bmcg3x_version;
+    if (!bmcMachineInfo.FirmwareVersion.isEmpty()) {
+        info.properties["firmware"] = bmcMachineInfo.FirmwareVersion;
+    }
 
     return info;
 }
@@ -94,6 +98,27 @@ int BmcG3xLoader::Open(const QString& dirpath)
         qDebug() << "We haven't imported data for this machine before";
         mach = p_profile->CreateMachine(machine_info);
     }
+
+    // Warn if the firmware version has not been tested with this loader.
+    // Known user-facing versions: G3-2.11.x.x (SC.72) and G3-2.12.x.x (SC.74).
+    // The version string comes from the .log file (e.g. "G3-2.11.02.33") and matches
+    // what PAP-Link and the device display report.  If the .log was unavailable, the
+    // fallback is the IDX internal build string (e.g. "G3-2.SC.72.01").
+    const QString fwVersion = machine_info.properties.value("firmware");
+    if (!fwVersion.isEmpty()) {
+        const bool knownFirmware = fwVersion.startsWith("G3-2.11.") ||
+                                   fwVersion.startsWith("G3-2.12.") ||
+                                   fwVersion.contains("SC.72") ||  // IDX fallback
+                                   fwVersion.contains("SC.74");    // IDX fallback
+        if (!knownFirmware) {
+            QMessageBox::information(QApplication::activeWindow(),
+                QObject::tr("BMC G3X — Untested Firmware"),
+                QObject::tr("Your BMC G3X device is running firmware \"%1\", which has not been tested with this version of OSCAR.").arg(fwVersion) + "\n\n" +
+                QObject::tr("It may be similar enough to known firmware versions that import works correctly, but the OSCAR developers would like a .zip copy of this device's SD card to verify support. Import will continue."),
+                QMessageBox::Ok);
+        }
+    }
+
     QDateTime ignoreBefore = p_profile->session->ignoreOlderSessionsDate();
     bool ignoreOldSessions = p_profile->session->ignoreOlderSessions();
 

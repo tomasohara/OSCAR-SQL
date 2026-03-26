@@ -359,7 +359,9 @@ void BmcLoader::setSessionRespiratoryEvents(BmcSession* bmcSession, Session* osc
     EventList* oscarCsaList  = oscarSession->AddEventList(CPAP_ClearAirway, EVL_Event);
     EventList* oscarHypList  = oscarSession->AddEventList(CPAP_Hypopnea,    EVL_Event);
     EventList* oscarUaList   = oscarSession->AddEventList(CPAP_Apnea,       EVL_Event);
-    EventList* oscarPbList   = oscarSession->AddEventList(CPAP_PB,          EVL_Event);
+    EventList* oscarPbList   = ExportPeriodicBreathing()
+                               ? oscarSession->AddEventList(CPAP_PB, EVL_Event)
+                               : nullptr;
     EventList* oscarReraList = oscarSession->AddEventList(CPAP_RERA,        EVL_Event);
 
     for (auto & bmcEvent : bmcSession->RespiratoryEvents)
@@ -370,7 +372,7 @@ void BmcLoader::setSessionRespiratoryEvents(BmcSession* bmcSession, Session* osc
         case BmcRespiratoryEventType::CSA:  oscarCsaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),   bmcEvent.DurationSeconds); break;
         case BmcRespiratoryEventType::HYP:  oscarHypList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),   bmcEvent.DurationSeconds); break;
         case BmcRespiratoryEventType::UA:   oscarUaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),    bmcEvent.DurationSeconds); break;
-        case BmcRespiratoryEventType::PB:   oscarPbList->AddEvent(bmcEvent.StartTime.toMSecsSinceEpoch(),  bmcEvent.DurationSeconds); break;
+        case BmcRespiratoryEventType::PB:   if (oscarPbList) oscarPbList->AddEvent(bmcEvent.StartTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
         case BmcRespiratoryEventType::RERA: oscarReraList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),  bmcEvent.DurationSeconds); break;
         default: qDebug() << "Unknown BMC respiratory event type not added to OSCAR";
         }

@@ -357,6 +357,8 @@ class BmcMachineInfo
 public:
     QString SerialNumber;
     QString Model;
+    QString FirmwareVersion; ///< User-facing version from .log 0x0420, e.g. "G3-2.11.02.33" or "G3-2.12.54.13".
+                             ///< Falls back to IDX 0x0345 SC build string if .log unavailable.
 };
 
 

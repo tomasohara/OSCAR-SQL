@@ -4,6 +4,73 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-03-25 - G3X: EVT scan misses all records when EventStartOffset is not 32-byte aligned
+
+**Files:** `bmcG3xDataParsing.cpp`
+
+**Symptom:** For at least one known device (Lijunjun G3 B20A, SC.75), all respiratory events (apneas, hypopneas, flow limits) are absent from the imported day because the EVT parse loop finds zero valid records.
+
+**Root cause:** The IDX `EventStartOffset` is not guaranteed to fall on a 32-byte record boundary. When it falls mid-record (e.g., 16 bytes in), the parse loop starting exactly at `EventStartOffset` and stepping in 32-byte increments hits the second half of every record — none of which start with the required AE AA magic bytes. All records are silently skipped.
+
+**Fix:** Round `EventStartOffset` down to the nearest 32-byte boundary before seeking. The existing AE AA magic check discards the partial record fragment at the start.
+
+---
+
+## 2026-03-25 - G3X: Replace 0x44-based PB with AASM computed PB from 0x0C breath markers
+
+**Files:** `bmcG3xDataParsing.cpp`, `bmcg3x_loader.h`
+
+**Symptom:** Periodic breathing was never shown in OSCAR for any G3X device. Firmware SC.72 (JCCPAP/Luna G3X) emits no EVT 0x44 records at all. On SC.74+/SC.75 the 0x44 records had not been validated and PB output was explicitly suppressed.
+
+**Root cause:** PB detection depended entirely on firmware-emitted 0x44 event records, which are absent on SC.72. No universal PB signal existed.
+
+**Fix:** Replaced 0x44-based detection with an AASM algorithm applied to device-classified CSA (central apnea) events from `rawRespEvents`. Each event carries a device-measured duration; startTime is derived as endTime − duration. The algorithm groups consecutive central apneas (≥3 s each) separated by ≤20 s of normal breathing into PB episodes (≥3 qualifying apneas per episode). Works on all firmware. `ExportPeriodicBreathing()` in `BmcG3xLoader` changed from `false` to `true`.
+
+---
+
+## 2026-03-25 - G3X: EVT 0x42 IPAP/EPAP fields reversed; bilevel devices showed wrong IPAP
+
+**Files:** `bmcG3xDataParsing.cpp`
+
+**Symptom:** For bilevel G3X devices (e.g. G3 B20A with 1 cmH2O pressure support), OSCAR displayed the same value for both `CPAP_IPAP` and `CPAP_EPAP`, equal to EPAP. IPAP was never shown.
+
+**Root cause:** The EVT 0x42 record carries two pressure fields: `value2` (offset 0x1C) = EPAP, `unk1e` (offset 0x1E) = IPAP. The parser was treating `value2` as both IPAP and EPAP (CPAP assumption). Confirmed by comparing the Lijunjun G3 B20A (1 cmH2O PS): every 0x42 record has `unk1e` = `value2` + 100 (= +1.00 cmH2O).
+
+**Fix:** Updated both the main EVT parse loop and the fallback scan in `ReadDateSession()` to read EPAP from `value2` and IPAP from `unk1e`. IPAP falls back to EPAP if `unk1e` is outside the plausible pressure range (handles pure CPAP devices where `unk1e` might be zero or absent).
+
+---
+
+## 2026-03-26 - G3X: Periodic breathing (EVT 0x44) suppressed; unknown-firmware warning added
+
+**Files:** `bmc_loader.h`, `bmc_loader.cpp`, `bmcg3x_loader.h`, `bmcg3x_loader.cpp`
+
+**Periodic breathing:** EVT type 0x44 ("PB") was being emitted to the CPAP_PB channel for all G3X sessions. The flag has not been validated against PAP-Link for any G3X firmware, and on SC.74+ firmware it produces clearly nonsensical output. Added `ExportPeriodicBreathing()` virtual method to `BmcLoader` (base returns `true` for legacy BMC). `BmcG3xLoader` overrides to `false`, which suppresses creation of the CPAP_PB event list entirely. The raw 0x44 records are still collected in the parser for future analysis.
+
+**Unknown-firmware warning:** BMC G3X firmware version is read from the companion `.log` file (first 6 KB scanned for a null-terminated ASCII string starting with `"G3-2."`; offset varies by device — ~0x0420 in small G3 A20 logs, ~0x1420 in larger G3 B20A ring-buffer logs). Falls back to IDX offset `0x0345` (internal SC build string, e.g. `"G3-2.SC.72.01"`) if the `.log` is unavailable. The version is stored in `MachineInfo.properties["firmware"]` (added in `PeekInfo()`). In `Open()`, if the firmware string is non-empty and does not start with a known user-facing prefix (`"G3-2.11."` or `"G3-2.12."`, or contain `"SC.72"` / `"SC.74"` as IDX-fallback identifiers), a `QMessageBox::information` dialog is shown asking the user to send their SD card .zip to the OSCAR team. Import then continues normally.
+
+---
+
+## 2026-03-26 - G3X: Leak graph wrong/empty on firmware SC.74+ (Kavolodin / Patient 2); model string and firmware version also fixed
+
+**Files:** `bmcG3xDataParsing.cpp`, `bmcDataParsing.h`
+
+**Symptom:** On BMC G3 A20 machines with firmware SC.74+ (part-code prefix `880`, e.g. Kavolodin and Patient 2), the OSCAR leak graph showed a near-zero sparse line with only a handful of data points — clearly wrong. On the same machines, the machine model string displayed the internal part/config code (`"880A40383"`) instead of the product name (`"G3 A20"`). Firmware version was not recorded at all.
+
+**Root cause (three bugs):**
+1. **Leak field**: `kG3xOffsetLeak = 0x52A` is populated only in firmware SC.72 (prefix `110`). In firmware SC.74+ (prefix `880`) this field is always zero (0.33% non-zero, clearly noise). The correct leak field for SC.74+ is `0x568` (total mask leak; continuously populated at ~15–17 L/min baseline, scale 0.16 L/min per raw unit).
+2. **Model string**: IDX offset `0x048` holds the internal part/config code (`"110A40113"` or `"880A40383"`), not the product name. The product name (`"G3 A20"`) is at IDX offset `0x100`.
+3. **Firmware version**: Not read at all. The user-facing version string (e.g. `"G3-2.11.02.33"` or `"G3-2.12.54.13"`) is in the companion `.log` file; the internal SC build string (e.g. `"G3-2.SC.72.01"`) is at IDX offset `0x0345` as a fallback.
+
+**Fix:**
+- Added `FirmwareVersion` field to `BmcMachineInfo` in `bmcDataParsing.h`.
+- Updated `ParseMachineInfo()` to read model from IDX `0x100` (with fallback to `0x048` if absent) and firmware version from the `.log` file (scan first 6 KB for `"G3-2."` prefix; offset varies by device). Falls back to IDX `0x0345` if `.log` is unavailable.
+- Added `kG3xOffsetAlternateLeak = 0x568` constant.
+- Added Phase 3.5 adaptive leak-field probe in `ReadDateSession()`: samples first 200 waveform packets; if fewer than 10% have non-zero `0x52A`, selects `0x568` for the entire day. This is robust to future firmware versions without needing hard-coded part-code lookup.
+- Updated waveform loop to use `leakFieldOffset` (determined by Phase 3.5) instead of always using `kG3xOffsetLeak`.
+- Scale factor `0.16 L/min per raw unit` applies to both fields.
+
+---
+
 ## 2026-03-25 - G3X: Respiratory event duration corrected to value2 (milliseconds)
 
 **Files:** `bmcG3xDataParsing.cpp`
@@ -16,6 +83,15 @@ Notable bugs found and fixed during development/investigation.
 
 **Files:** `bmcG3xDataParsing.cpp`
 **Feature:** EVT message type `0x01` confirmed as unclassified hypopnea (2026-03-25, Patient 2 B33BF114508). Added `kG3xEvtTypeUH = 0x01` constant; added to EVT loop and Phase 2 mapping → `BmcRespiratoryEventType::HYP`. Duration uses value2/1000 s clamped to 10–180 s. 58 records observed across Patient 2 nights; absent from JCCPAP.
+
+---
+
+## 2026-03-26 - G3X: PB detection expanded to include CH (central hypopnea) events
+
+**Files:** `bmcG3xDataParsing.cpp`
+**Symptom:** JCCPAP-2 (SC.72 firmware) periodic breathing episode missed. SC.72 emits one CSA plus generic/central hypopneas during a PB event; CSA-only clustering cannot form a ≥3-apnea cluster from one CSA.
+**Root cause:** Phase 2b PB clustering filtered only on `kG3xEvtTypeCSA` (0x04). On CPAP devices CH (0x08, central hypopnea) also indicates absent/reduced central drive and is part of the same periodic-breathing cluster.
+**Fix:** Expanded Phase 2b filter to include `kG3xEvtTypeCH` (0x08) alongside CSA. CH events continue to be reported as hypopneas in OSCAR (unchanged); only the PB episode detection input changes.
 
 ---
 
