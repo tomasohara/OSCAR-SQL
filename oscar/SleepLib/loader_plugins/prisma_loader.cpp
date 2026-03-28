@@ -508,6 +508,7 @@ static const PrismaTestedModel s_PrismaTestedModels[] = {
     { "0x92", "Prisma Smart" },
     { "0x91", "Prisma Soft" },
     {"22" , "Prisma 25S" },
+    {"23" , "prisma25ST" },
     { "", ""}
 };
 
