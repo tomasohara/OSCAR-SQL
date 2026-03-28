@@ -902,8 +902,9 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     default: break;
                     }
                     BmcFlowLimitEvent flEvt;
-                    flEvt.Timestamp = evtTime;
-                    flEvt.Grade     = grade;
+                    flEvt.Timestamp  = evtTime;
+                    flEvt.Grade      = grade;
+                    flEvt.DurationMs = value2; // milliseconds, same convention as respiratory events
                     rawFlEvents.append(flEvt);
                     break;
                 }

@@ -84,11 +84,13 @@ public:
 
 /// @brief A single flow-limitation point event with a severity grade.
 /// Grade 1 = Mild, 2 = Moderate, 3 = Severe.
+/// DurationMs is the device-reported breath duration in milliseconds (EVT value2).
 class BmcFlowLimitEvent
 {
 public:
     QDateTime Timestamp;
-    int Grade; ///< 1 = Mild, 2 = Moderate, 3 = Severe
+    int Grade;      ///< 1 = Mild, 2 = Moderate, 3 = Severe
+    int DurationMs; ///< Device-reported breath duration in milliseconds (EVT value2)
 };
 
 class BmcUsrSession

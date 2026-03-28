@@ -4,6 +4,23 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-03-27 - G3X: Flow limitation bars misaligned and wrong width
+
+**Files:** `bmcDataParsing.h`, `bmcG3xDataParsing.cpp`, `bmc_loader.cpp`
+
+**Symptom:** FL events displayed as a near-invisible line when zoomed in (200 ms wide), with no visual correlation to individual breaths in the flow waveform.
+
+**Root cause (two bugs):**
+1. **Wrong width:** Bar was bookended at ±100 ms, giving a 200 ms display width.  The EVT value2 field (which for respiratory events carries duration in milliseconds) was read but not stored or used for FL events.  Confirmed via Python analysis of Kavolodin EVT data (5145 FL events): value2 range 0.36–3.98 s, mean 1.88 s — the device-reported inspiration duration.
+2. **Wrong direction:** The bar was initially plotted forward from `ts` (correct), then changed to backward (`ts − dur` to `ts`) based on a misread of the flow waveform.  With backward plotting the bar covered expiration instead of inspiration.  Confirmed visually: `ts` is the trough at end-of-expiration / start-of-inspiration; the bar must run forward to cover the inspiratory peak where FL occurs.
+
+**Fix:**
+- Added `DurationMs` field to `BmcFlowLimitEvent`; EVT parser stores `value2` there.
+- `bmc_loader.cpp` plots each FL event from `ts` to `ts + DurationMs` (forward), with a zero bookend 100 ms before `ts` to isolate from the previous event.
+- Validated: FL bars now align with the inspiratory peak; severity 1/2/3 visually correlates with degree of inspiratory flattening in the flow waveform.
+
+---
+
 ## 2026-03-25 - G3X: EVT scan misses all records when EventStartOffset is not 32-byte aligned
 
 **Files:** `bmcG3xDataParsing.cpp`

@@ -380,15 +380,21 @@ void BmcLoader::setSessionRespiratoryEvents(BmcSession* bmcSession, Session* osc
 
     if (!bmcSession->FlowLimitEvents.isEmpty()) {
         // EVL_Event preserves actual timestamps (avoids waveform compression).
-        // Zero-value samples 100 ms before and after each event create isolated
-        // bars so grades don't connect across gaps.
+        // Each event spans the device-reported breath duration (DurationMs, typically
+        // 1.4–2.4 s for Kavolodin; same value2 convention as respiratory events).
+        // The EVT timestamp marks the end of expiration / start of the next inspiration
+        // (the trough in the flow waveform).  FL occurs during the subsequent inhalation,
+        // so the bar runs forward from ts to ts+dur, covering the inspiratory peak.
+        // A zero 100 ms before ts isolates the bar from the previous event.
         // setPhysMin/Max anchors the y-axis at 0–3 so mild (grade 1) bars are visible.
         EventList* oscarFlgList = oscarSession->AddEventList(CPAP_FLG, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
         for (const BmcFlowLimitEvent& flEvt : bmcSession->FlowLimitEvents) {
-            const qint64 ts = flEvt.Timestamp.toMSecsSinceEpoch();
-            oscarFlgList->AddEvent(ts - 100, 0);
-            oscarFlgList->AddEvent(ts,       flEvt.Grade);
-            oscarFlgList->AddEvent(ts + 100, 0);
+            const qint64 ts  = flEvt.Timestamp.toMSecsSinceEpoch();
+            const qint64 dur = qMax(200LL, static_cast<qint64>(flEvt.DurationMs));
+            oscarFlgList->AddEvent(ts - 100,       0);
+            oscarFlgList->AddEvent(ts,             flEvt.Grade);
+            oscarFlgList->AddEvent(ts + dur,       flEvt.Grade);
+            oscarFlgList->AddEvent(ts + dur + 100, 0);
         }
         oscarSession->setPhysMin(CPAP_FLG, 0.0);
         oscarSession->setPhysMax(CPAP_FLG, 3.0);
