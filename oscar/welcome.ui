@@ -422,12 +422,6 @@ border: 2px solid #56789a; border-radius: 10px;
               <verstretch>1</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>150</height>
-             </size>
-            </property>
             <property name="styleSheet">
              <string notr="true">border: 1px solid; border-radius: 20px; background-color: #ffffd0;</string>
             </property>
@@ -439,16 +433,16 @@ border: 2px solid #56789a; border-radius: 10px;
               <number>0</number>
              </property>
              <property name="leftMargin">
-              <number>0</number>
+              <number>8</number>
              </property>
              <property name="topMargin">
-              <number>0</number>
+              <number>8</number>
              </property>
              <property name="rightMargin">
-              <number>0</number>
+              <number>8</number>
              </property>
              <property name="bottomMargin">
-              <number>0</number>
+              <number>8</number>
              </property>
              <item>
               <widget class="QTextBrowser" name="cpapInfo">
@@ -527,12 +521,6 @@ p, li { white-space: pre-wrap; }
               <verstretch>1</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>150</height>
-             </size>
-            </property>
             <property name="styleSheet">
              <string notr="true">border: 1px solid; border-radius: 20px; background-color: #ffffd0;</string>
             </property>
@@ -544,16 +532,16 @@ p, li { white-space: pre-wrap; }
               <number>0</number>
              </property>
              <property name="leftMargin">
-              <number>0</number>
+              <number>8</number>
              </property>
              <property name="topMargin">
-              <number>0</number>
+              <number>8</number>
              </property>
              <property name="rightMargin">
-              <number>0</number>
+              <number>8</number>
              </property>
              <property name="bottomMargin">
-              <number>0</number>
+              <number>8</number>
              </property>
              <item>
               <widget class="QTextBrowser" name="oxiInfo">
