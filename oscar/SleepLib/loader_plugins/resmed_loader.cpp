@@ -84,14 +84,19 @@ ResmedLoader::ResmedLoader() {
 #ifndef UNITTEST_MODE
     const QString RMS9_ICON = ":/icons/rms9.png";
     const QString RM10_ICON = ":/icons/airsense10.png";
+    const QString RM11_ICON = ":/icons/airsense11.png";
     const QString RM10C_ICON = ":/icons/aircurve.png";
 
     m_pixmaps[STR_ResMed_S9] = QPixmap(RMS9_ICON);
     m_pixmap_paths[STR_ResMed_S9] = RMS9_ICON;
     m_pixmaps[STR_ResMed_AirSense10] = QPixmap(RM10_ICON);
     m_pixmap_paths[STR_ResMed_AirSense10] = RM10_ICON;
+    m_pixmaps[STR_ResMed_AirSense11] = QPixmap(RM11_ICON);
+    m_pixmap_paths[STR_ResMed_AirSense11] = RM11_ICON;
     m_pixmaps[STR_ResMed_AirCurve10] = QPixmap(RM10C_ICON);
     m_pixmap_paths[STR_ResMed_AirCurve10] = RM10C_ICON;
+    m_pixmaps[STR_ResMed_AirCurve11] = QPixmap(RM11_ICON);
+    m_pixmap_paths[STR_ResMed_AirCurve11] = RM11_ICON;
     m_pixmaps[STR_ResMed_Sleepmate10] = QPixmap(RM10_ICON);
     m_pixmap_paths[STR_ResMed_Sleepmate10] = RM10_ICON;
 #endif
