@@ -1646,7 +1646,10 @@ void    DailySearchTab::setColor(QPushButton* button,QString color)  {
         QString style=QString(
             "QPushButton { color: black; border: 1px solid black; padding: 5px ;background-color:%1; }").arg(color);
         button->setStyleSheet(style);
-        QCoreApplication::processEvents();
+        // Avoid nested event processing here. This is called while Daily UI is still
+        // being constructed, and re-entrant paints can flush the OpenGL-backed window
+        // before Qt/macOS has finished stabilizing its surfaces.
+        button->update();
 }
 
 void    DailySearchTab::clearStatistics() {
