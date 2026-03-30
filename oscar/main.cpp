@@ -314,11 +314,8 @@ void optionExit(int exitCode, QString error) {
     --l or --language        Force language prompt
     --datadir  <folderName>  Use folderName as Oscar Data folder. For relatve paths: <Documents folder>/<relative path>.
                              If folder does not exist then prompts user.
+    --legacy                 Use software graphics engine
     --help                   Displays this menu and exits.
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    --hires                  Enables high Resolution
-    --hiresoff               Disables high Resolution
-#endif
     -l                       Force login option. Internal OSCAR call from RestartApplication.
     )" );
     exit (exitCode);
@@ -441,8 +438,8 @@ int main(int argc, char *argv[]) {
     for (int i = 1; i < args.size(); i++) {
         if ((args[i] == "--language") || (args[i] == "--l") ) {
             settings.setValue(LangSetting,"");
-        } else if ( (args[i] == "-l") || (args[i] == "-nop") || (args[i] == "") ){
-            // do nothing. internal calls that current don't have any functions in main.
+        } else if ( (args[i] == "-l") || (args[i] == "-nop") || (args[i] == "") || (args[i] == "--legacy") ){
+            // do nothing. internal calls that current don't have any further functions in main.
         } else if (args[i] == "-p") {
             QThread::msleep(1000);
         } else if (args[i] == "--profile") {
