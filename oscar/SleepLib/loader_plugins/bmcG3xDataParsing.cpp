@@ -161,7 +161,11 @@ constexpr int kG3xEvtTypeOSA  = 0x03; ///< Obstructive sleep apnea
 constexpr int kG3xEvtTypeCSA  = 0x04; ///< Central sleep apnea
 constexpr int kG3xEvtTypeOH   = 0x07; ///< Obstructive hypopnea
 constexpr int kG3xEvtTypeCH   = 0x08; ///< Central hypopnea
-constexpr int kG3xEvtTypeHyp  = 0x09; ///< Hypopnea (unclassified subtype)
+constexpr int kG3xEvtTypePBMarker = 0x09; ///< Periodic breathing episode marker (confirmed 2026-03-30).
+                                           ///< Timestamp marks the START of the episode (unlike other
+                                           ///< respiratory events where timestamp marks the END).
+                                           ///< Duration is uint32 at offset 0x1C (low 16 | high 16 at 0x1E),
+                                           ///< in milliseconds (confirmed 2026-03-30 via Lijunjun data).
 
 /// Session boundary markers — timestamp only, value fields unused.
 constexpr int kG3xEvtTypeSessionStart = 0x40; ///< Session start (machine begins therapy recording).
@@ -792,9 +796,9 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     int rawRespType04Count = 0;
     int rawRespType07Count = 0;
     int rawRespType08Count = 0;
-    int rawRespType09Count = 0;
+    int rawRespType09Count = 0;  // counts 0x09 PB marker records (for BMCDEBUG)
     int rawRespType0ACount = 0;
-    QVector<G3xRawRespEvent> rawResp09Examples; // keep a few for diagnostics
+    QVector<BmcRespiratoryEvent> rawPbEvents;  // PB episodes from 0x09 records
 
     const QString evtFilePath = fileBasePath + ".evt";
     QFile evtFile(evtFilePath);
@@ -856,27 +860,40 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 case kG3xEvtTypeCSA:
                 case kG3xEvtTypeOH:
                 case kG3xEvtTypeCH:
-                case kG3xEvtTypeHyp:
                 case kG3xEvtTypeRERA:
                     // Respiratory events: value2 = duration in milliseconds (confirmed 2026-03-25).
+                    // Timestamp marks the END; startTime = timestamp - duration.
                     switch (messageType) {
-                    case kG3xEvtTypeUH:  ++rawRespType01Count; break;
-                    case kG3xEvtTypeUA:  ++rawRespType02Count; break;
-                    case kG3xEvtTypeOSA: ++rawRespType03Count; break;
-                    case kG3xEvtTypeCSA: ++rawRespType04Count; break;
-                    case kG3xEvtTypeOH:  ++rawRespType07Count; break;
-                    case kG3xEvtTypeCH:  ++rawRespType08Count; break;
-                    case kG3xEvtTypeHyp:
-                        ++rawRespType09Count;
-                        if (rawResp09Examples.size() < 8) {
-                            rawResp09Examples.append(G3xRawRespEvent{messageType, value2, evtTime});
-                        }
-                        break;
+                    case kG3xEvtTypeUH:   ++rawRespType01Count; break;
+                    case kG3xEvtTypeUA:   ++rawRespType02Count; break;
+                    case kG3xEvtTypeOSA:  ++rawRespType03Count; break;
+                    case kG3xEvtTypeCSA:  ++rawRespType04Count; break;
+                    case kG3xEvtTypeOH:   ++rawRespType07Count; break;
+                    case kG3xEvtTypeCH:   ++rawRespType08Count; break;
                     case kG3xEvtTypeRERA: ++rawRespType0ACount; break;
                     default: break;
                     }
                     rawRespEvents.append(G3xRawRespEvent{messageType, value2, evtTime});
                     break;
+
+                case kG3xEvtTypePBMarker:
+                {
+                    // Periodic breathing episode start marker (confirmed 2026-03-30).
+                    // Unlike other respiratory events, timestamp marks the START of the episode.
+                    // Duration is a uint32 at offset 0x1C: low 16 bits (value2) | high 16 bits at 0x1E.
+                    // Reading as uint16 only gives ~28s/23s; uint32 gives correct ~159s/154s
+                    // matching PAP-Link (confirmed 2026-03-30 via Lijunjun data).
+                    ++rawRespType09Count;
+                    const quint32 durationMs = static_cast<quint32>(value2) |
+                                               (static_cast<quint32>(ReadUInt16LEPtr(rec, 0x1E)) << 16);
+                    BmcRespiratoryEvent pbEvt;
+                    pbEvt.EventType       = BmcRespiratoryEventType::PB;
+                    pbEvt.StartTime       = evtTime;
+                    pbEvt.DurationSeconds = static_cast<int>(durationMs / 1000);
+                    pbEvt.EndTime         = pbEvt.StartTime.addSecs(pbEvt.DurationSeconds);
+                    rawPbEvents.append(pbEvt);
+                    break;
+                }
 
                 case kG3xEvtTypeBreathInspiration:
                     // Per-breath inspiration marker; one record per breath cycle.
@@ -1039,8 +1056,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             case kG3xEvtTypeOSA: mappedType = BmcRespiratoryEventType::OSA;  break;
             case kG3xEvtTypeCSA: mappedType = BmcRespiratoryEventType::CSA;  break;
             case kG3xEvtTypeOH:
-            case kG3xEvtTypeCH:
-            case kG3xEvtTypeHyp: mappedType = BmcRespiratoryEventType::HYP;  break;
+            case kG3xEvtTypeCH:  mappedType = BmcRespiratoryEventType::HYP;  break;
             case kG3xEvtTypeRERA: mappedType = BmcRespiratoryEventType::RERA; break;
             default: hasMappedType = false; break;
             }
@@ -1078,7 +1094,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                  << "raw04(CSA)"  << rawRespType04Count
                  << "raw07(OH)"   << rawRespType07Count
                  << "raw08(CH)"   << rawRespType08Count
-                 << "raw09(hyp)"  << rawRespType09Count
+                 << "raw09(PB)"   << rawRespType09Count
                  << "raw0A(RERA)" << rawRespType0ACount
                  << "mappedUA"    << mappedUaCount
                  << "mappedOSA"   << mappedOsaCount
@@ -1087,96 +1103,23 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                  << "mappedRERA"  << mappedReraCount
                  << "ignored"     << ignoredCount;
 
-        if (rawRespType09Count > 0) {
-            qDebug() << "BmcG3xData respiratory 0x09 samples day" << aDate.toString(Qt::ISODate)
-                     << "count" << rawRespType09Count
-                     << "examples" << rawResp09Examples.size();
-            for (int i = 0; i < rawResp09Examples.size(); ++i) {
-                const G3xRawRespEvent& s = rawResp09Examples.at(i);
-                qDebug() << "  0x09 sample" << (i + 1)
-                         << "ts"    << s.Timestamp.toString(Qt::ISODate)
-                         << "value2_millis" << s.Value2Millis;
-            }
-        }
 #endif // BMCDEBUG
     }
 
-    // ---- Phase 2b: Compute PB episodes from device-classified apnea events ----
+    // ---- Phase 2b: Collect PB episodes from EVT 0x09 records ----
     //
-    // Implements the AASM definition: ≥3 central apneas lasting >3 s, separated by ≤20 s
-    // of normal breathing.  Uses device-classified CSA (0x04) and CH (0x08) events from
-    // rawRespEvents, which carry device-measured durations.  CH events are also included
-    // because some firmware versions (e.g. SC.72) emit CH rather than CSA for the partial
-    // flow reductions that accompany periodic breathing on CPAP therapy.  CH events
-    // continue to be reported as hypopneas in OSCAR; the PB clustering here is separate.
-    // EVT respiratory event timestamps mark the event END (confirmed 2026-03-25);
-    // startTime is derived as endTime − durationSec.
+    // EVT type 0x09 is a periodic breathing episode marker (confirmed 2026-03-30 via
+    // Lijunjun data).  Unlike other respiratory events, the timestamp marks the START
+    // of the episode.  Duration is uint32 at offset 0x1C (low 16 bits = value2,
+    // high 16 bits at 0x1E), in milliseconds.
 
-    {
-        struct PbApnea {
-            QDateTime startTime;
-            QDateTime endTime;
-        };
-        QVector<PbApnea> pbApneas;
-        for (const G3xRawRespEvent& evt : rawRespEvents) {
-            if (evt.MessageType != kG3xEvtTypeCSA &&
-                evt.MessageType != kG3xEvtTypeCH) {
-                continue;
-            }
-            const int durationSec = evt.Value2Millis / 1000;
-            if (durationSec < kG3xPbMinApneaDurationSec) {
-                continue;
-            }
-            const QDateTime endTime   = evt.Timestamp;
-            const QDateTime startTime = endTime.addSecs(-durationSec);
-            pbApneas.append(PbApnea{startTime, endTime});
-        }
-
-        // rawRespEvents is already sorted chronologically; sort pbApneas by startTime
-        // to handle any apneas whose timestamps cross each other after duration subtraction.
-        std::sort(pbApneas.begin(), pbApneas.end(),
-                  [](const PbApnea& a, const PbApnea& b) {
-                      return a.startTime < b.startTime;
-                  });
-
-        // Group: cluster consecutive apneas whose inter-apnea normal-breathing interval
-        // (endTime[k] to startTime[k+1]) is ≤ kG3xPbMaxInterApneaNormalBreathSec.
-        // Clusters of ≥ kG3xPbMinApneasPerEpisode emit a PB episode.
-        int pbComputedCount = 0;
-        int i = 0;
-        while (i < pbApneas.size()) {
-            int clusterEnd = i;
-            for (int j = i + 1; j < pbApneas.size(); ++j) {
-                const int normalBreathSec = static_cast<int>(
-                    pbApneas.at(clusterEnd).endTime.secsTo(pbApneas.at(j).startTime));
-                if (normalBreathSec >= 0 && normalBreathSec <= kG3xPbMaxInterApneaNormalBreathSec) {
-                    clusterEnd = j;
-                } else {
-                    break;
-                }
-            }
-
-            const int apneaCount = clusterEnd - i + 1;
-            if (apneaCount >= kG3xPbMinApneasPerEpisode) {
-                BmcRespiratoryEvent pbEvt;
-                pbEvt.EventType       = BmcRespiratoryEventType::PB;
-                pbEvt.StartTime       = pbApneas.at(i).startTime;
-                pbEvt.EndTime         = pbApneas.at(clusterEnd).endTime;
-                pbEvt.DurationSeconds = static_cast<int>(pbEvt.StartTime.secsTo(pbEvt.EndTime));
-                dateSession.RespiratoryEvents.append(pbEvt);
-                ++pbComputedCount;
-                i = clusterEnd + 1;
-            } else {
-                ++i;
-            }
-        }
-
-#ifdef BMCDEBUG
-        qDebug() << "BmcG3xData computed PB day" << aDate.toString(Qt::ISODate)
-                 << "csaChEvents" << pbApneas.size()
-                 << "episodes"    << pbComputedCount;
-#endif // BMCDEBUG
+    for (const BmcRespiratoryEvent& pbEvt : rawPbEvents) {
+        dateSession.RespiratoryEvents.append(pbEvt);
     }
+#ifdef BMCDEBUG
+    qDebug() << "BmcG3xData PB day" << aDate.toString(Qt::ISODate)
+             << "episodes" << rawPbEvents.size();
+#endif // BMCDEBUG
 
     // ---- Phase 2c: Collect flow limitation events ----
 

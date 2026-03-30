@@ -4,6 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-03-30 - G3X: Periodic breathing duration wrong (uint16 vs uint32)
+
+**Files:** `bmcG3xDataParsing.cpp`
+
+**Symptom:** PB episode durations were ~28s and ~23s instead of the correct ~159s and ~154s as reported by PAP-Link.
+
+**Root cause:** EVT type 0x09 (PB marker) encodes duration as a uint32 at offset 0x1C (low 16 bits) combined with offset 0x1E (high 16 bits).  The code was reading only the low 16 bits (`value2`) and dividing by 1000, giving 28034/1000≈28s and 23390/1000≈23s.  The correct uint32 LE values are 159106 ms and 154462 ms (≈2:39 and ≈2:34 matching PAP-Link exactly), confirmed via raw byte dump: bytes [0x82,0x6D,0x02,0x00] = 0x00026D82 = 159106 and [0x5E,0x5B,0x02,0x00] = 0x00025B5E = 154462.
+
+**Fix:** In `kG3xEvtTypePBMarker` case, compute `durationMs = static_cast<quint32>(value2) | (static_cast<quint32>(ReadUInt16LEPtr(rec, 0x1E)) << 16)` before dividing by 1000.
+
+---
+
 ## 2026-03-27 - G3X: Flow limitation bars misaligned and wrong width
 
 **Files:** `bmcDataParsing.h`, `bmcG3xDataParsing.cpp`, `bmc_loader.cpp`

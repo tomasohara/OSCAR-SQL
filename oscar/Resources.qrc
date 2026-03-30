@@ -73,6 +73,5 @@
         <file>icons/resvent.png</file>
         <file>icons/bmc.png</file>
         <file>docs/system_reports.orf</file>
-        <file>docs/bmcg3x_warning.txt</file>
     </qresource>
 </RCC>

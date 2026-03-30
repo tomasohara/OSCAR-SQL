@@ -372,7 +372,7 @@ void BmcLoader::setSessionRespiratoryEvents(BmcSession* bmcSession, Session* osc
         case BmcRespiratoryEventType::CSA:  oscarCsaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),   bmcEvent.DurationSeconds); break;
         case BmcRespiratoryEventType::HYP:  oscarHypList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),   bmcEvent.DurationSeconds); break;
         case BmcRespiratoryEventType::UA:   oscarUaList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),    bmcEvent.DurationSeconds); break;
-        case BmcRespiratoryEventType::PB:   if (oscarPbList) oscarPbList->AddEvent(bmcEvent.StartTime.toMSecsSinceEpoch(), bmcEvent.DurationSeconds); break;
+        case BmcRespiratoryEventType::PB:   if (oscarPbList) oscarPbList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),   bmcEvent.DurationSeconds); break;
         case BmcRespiratoryEventType::RERA: oscarReraList->AddEvent(bmcEvent.EndTime.toMSecsSinceEpoch(),  bmcEvent.DurationSeconds); break;
         default: qDebug() << "Unknown BMC respiratory event type not added to OSCAR";
         }
