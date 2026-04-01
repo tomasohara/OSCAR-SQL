@@ -112,8 +112,12 @@ private:
      */
     bool showSecurityWarning();
 
+    /*! \brief Refresh the filename timestamp (call when profile, range, or directory changes). */
+    void refreshTimestamp();
+
     Ui::BackupDialog* ui;
-    QList<qint64>     m_profileIds;  ///< DB IDs parallel to profileCombo entries.
+    QList<qint64>     m_profileIds;    ///< DB IDs parallel to profileCombo entries.
+    QString           m_previewTimestamp; ///< Timestamp string reused across simplify/privacy toggles.
 };
 
 #endif // BACKUPDIALOG_H

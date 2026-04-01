@@ -14,6 +14,7 @@
 #include <QSettings>
 #include <QCheckBox>
 #include <QDateEdit>
+#include <QLineEdit>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
@@ -41,6 +42,7 @@ extern MainWindow *mainwin;
 BackupDialog::BackupDialog(QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::BackupDialog)
+    , m_previewTimestamp(QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd_HHmmss")))
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -57,6 +59,16 @@ BackupDialog::BackupDialog(QWidget* parent)
     applyDateRange(ui->rangeCombo->currentText());
 
     connect(ui->closeButton, &QPushButton::clicked, this, &QDialog::reject);
+
+    connect(ui->privacyCheck, &QCheckBox::toggled,
+            this, [this](bool){ updateFilenamePreview(); });
+    connect(ui->simplifyCheck, &QCheckBox::toggled,
+            this, [this](bool){ updateFilenamePreview(); });
+    connect(ui->filenameEdit, &QLineEdit::textChanged,
+            this, [this](const QString& t) {
+                ui->backupButton->setEnabled(
+                    !t.trimmed().isEmpty() && ui->filenameEdit->isEnabled());
+            });
 
     restoreSettings();
 }
@@ -100,12 +112,16 @@ void BackupDialog::populateProfiles()
 
 void BackupDialog::applyDateRange(const QString& rangeText)
 {
+    // Refresh timestamp whenever the user makes a new range/profile choice,
+    // but not when they merely toggle display options (simplify, privacy).
+    refreshTimestamp();
+
     bool isCustom = (rangeText == tr("Custom"));
 
     ui->fromDate->setEnabled(isCustom);
     ui->toDate->setEnabled(isCustom);
 
-    if (rangeText == tr("Everything")) {
+    if (rangeText == tr("Everything (including SD card backups)")) {
         // Show the actual data extent so the user can see what will be backed up.
         ui->fromDate->setDate(getFirstDataDate());
         ui->toDate->setDate(getLastDataDate());
@@ -141,37 +157,70 @@ void BackupDialog::applyDateRange(const QString& rangeText)
     updateFilenamePreview();
 }
 
+void BackupDialog::refreshTimestamp()
+{
+    m_previewTimestamp = QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd_HHmmss"));
+}
+
 void BackupDialog::updateFilenamePreview()
 {
+    ui->backupButton->setEnabled(false);
+
     if (ui->outputDirEdit->text().isEmpty()) {
-        ui->filenameLabel->setText(tr("(select a directory first)"));
-        ui->backupButton->setEnabled(false);
+        ui->filenameEdit->clear();
+        ui->filenameEdit->setPlaceholderText(tr("(select a directory first)"));
+        ui->filenameEdit->setEnabled(false);
         return;
     }
 
-    int idx = ui->profileCombo->currentIndex();
-    QString username = (idx >= 0) ? ui->profileCombo->itemText(idx) : QString();
-    if (username.isEmpty()) {
-        ui->filenameLabel->setText(tr("(no profile selected)"));
-        ui->backupButton->setEnabled(false);
+    const int idx = ui->profileCombo->currentIndex();
+    if (idx < 0 || idx >= m_profileIds.size()) {
+        ui->filenameEdit->clear();
+        ui->filenameEdit->setPlaceholderText(tr("(no profile selected)"));
+        ui->filenameEdit->setEnabled(false);
         return;
     }
 
-    QString ts = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
-    QString rangeText = ui->rangeCombo->currentText();
+    const qint64 profileId = m_profileIds[idx];
+    QString username = ui->profileCombo->itemText(idx);
+
+    // Sanitize: keep alphanumeric, underscore, hyphen; replace everything else.
+    for (QChar& c : username) {
+        if (!c.isLetterOrNumber() && c != QLatin1Char('_') && c != QLatin1Char('-')) {
+            c = QLatin1Char('_');
+        }
+    }
+
+    // Profile name portion: use "p<id>" when privacy mode is on.
+    const QString namePart = ui->privacyCheck->isChecked()
+        ? QString("p%1").arg(profileId)
+        : username;
+
+    const bool simplify = ui->simplifyCheck->isChecked();
+
+    // Always use the date fields — they are populated for every range preset,
+    // including "Everything (including SD card backups)", so the format is
+    // consistent regardless of which range is selected.
+    const QDate start = ui->fromDate->date();
+    const QDate end   = ui->toDate->date();
+
     QString filename;
-
-    bool isPartial = (rangeText != tr("Everything"));
-    if (isPartial) {
-        QString start = ui->fromDate->date().toString("yyyyMMdd");
-        QString end   = ui->toDate->date().toString("yyyyMMdd");
-        filename = QString("profile_backup_%1_%2_%3_%4.oscar")
-                       .arg(username, start, end, ts);
+    if (simplify) {
+        const int count = start.daysTo(end) + 1;
+        filename = QString("profile_%1_%2_%3.oscar")
+                       .arg(namePart,
+                            start.toString(QStringLiteral("yyyyMMdd")),
+                            QString::number(count));
     } else {
-        filename = QString("profile_backup_%1_%2.oscar").arg(username, ts);
+        filename = QString("profile_%1_%2_%3_%4.oscar")
+                       .arg(namePart,
+                            start.toString(QStringLiteral("yyyyMMdd")),
+                            end.toString(QStringLiteral("yyyyMMdd")),
+                            m_previewTimestamp);
     }
 
-    ui->filenameLabel->setText(filename);
+    ui->filenameEdit->setText(filename);
+    ui->filenameEdit->setEnabled(true);
     ui->backupButton->setEnabled(true);
 }
 
@@ -265,6 +314,7 @@ void BackupDialog::on_browseButton_clicked()
     if (!dir.isEmpty()) {
         ui->outputDirEdit->setText(dir);
         saveSettings();
+        refreshTimestamp();
         updateFilenamePreview();
     }
 }
@@ -290,6 +340,9 @@ void BackupDialog::on_backupButton_clicked()
     ui->profileCombo->setEnabled(false);
     ui->rangeCombo->setEnabled(false);
     ui->browseButton->setEnabled(false);
+    ui->privacyCheck->setEnabled(false);
+    ui->simplifyCheck->setEnabled(false);
+    ui->filenameEdit->setEnabled(false);
 
     ui->progressBar->setValue(0);
     ui->statusLabel->setText(tr("Starting backup..."));
@@ -299,8 +352,14 @@ void BackupDialog::on_backupButton_clicked()
     backup->setOutputPath(ui->outputDirEdit->text());
     backup->setPrivacyMode(ui->privacyCheck->isChecked());
 
+    // Use the user-specified (possibly edited) filename.
+    const QString filename = ui->filenameEdit->text().trimmed();
+    if (!filename.isEmpty()) {
+        backup->setFilename(filename);
+    }
+
     QString rangeText = ui->rangeCombo->currentText();
-    if (rangeText == tr("Everything")) {
+    if (rangeText == tr("Everything (including SD card backups)")) {
         backup->setIncludeSDData(true);
     } else {
         backup->setDateRange(ui->fromDate->date(), ui->toDate->date());
@@ -420,4 +479,7 @@ void BackupDialog::onBackupFailed(const QString& error)
     ui->profileCombo->setEnabled(true);
     ui->rangeCombo->setEnabled(true);
     ui->browseButton->setEnabled(true);
+    ui->privacyCheck->setEnabled(true);
+    ui->simplifyCheck->setEnabled(true);
+    ui->filenameEdit->setEnabled(true);
 }

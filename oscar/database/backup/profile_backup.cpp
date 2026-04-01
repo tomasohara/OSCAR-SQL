@@ -351,6 +351,11 @@ void ProfileBackup::setIncludeSDData(bool include)
     m_includeSDData = include;
 }
 
+void ProfileBackup::setFilename(const QString& filename)
+{
+    m_overrideFilename = filename;
+}
+
 // ---------------------------------------------------------------------------
 //  Execution
 // ---------------------------------------------------------------------------
@@ -391,12 +396,17 @@ bool ProfileBackup::createBackup()
         return false;
     }
 
-    // Determine the output file path (needs DB open, done after validateProfile).
-    m_backupPath = generateBackupPath();
-    if (m_backupPath.isEmpty()) {
-        m_errorMessage = QStringLiteral("Failed to generate backup file path");
-        emit backupFailed(m_errorMessage);
-        return false;
+    // Determine the output file path.  Use the user-specified filename when set,
+    // otherwise auto-generate from profile username and date range.
+    if (!m_overrideFilename.isEmpty()) {
+        m_backupPath = m_outputPath + QLatin1Char('/') + m_overrideFilename;
+    } else {
+        m_backupPath = generateBackupPath();
+        if (m_backupPath.isEmpty()) {
+            m_errorMessage = QStringLiteral("Failed to generate backup file path");
+            emit backupFailed(m_errorMessage);
+            return false;
+        }
     }
 
     // Resolve SD data path now (while DB is confirmed open).

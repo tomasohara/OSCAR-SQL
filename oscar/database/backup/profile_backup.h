@@ -173,6 +173,18 @@ public:
      */
     void setIncludeSDData(bool include);
 
+    /*!
+     * \brief Override the auto-generated output filename.
+     *
+     * When set (non-empty), \c createBackup() uses this filename (combined with
+     * the output path) instead of calling \c generateBackupPath().  This allows
+     * the dialog to pass the user-edited filename directly.
+     *
+     * \param filename  Bare filename (no directory), e.g. \c "profile_p3_20260116_7.oscar".
+     *                  Pass an empty string to revert to auto-generation.
+     */
+    void setFilename(const QString& filename);
+
     // -----------------------------------------------------------------------
     //  Execution
     // -----------------------------------------------------------------------
@@ -354,6 +366,7 @@ private:
 
     qint64  m_profileId;          ///< Profile database primary key.
     QString m_outputPath;         ///< Destination directory for .oscar file.
+    QString m_overrideFilename;   ///< If non-empty, used instead of auto-generated filename.
     QString m_errorMessage;       ///< Last error description.
     QString m_backupPath;         ///< Absolute path of the finished .oscar file.
     qint64  m_backupSize      = 0;///< Compressed .oscar file size in bytes.
