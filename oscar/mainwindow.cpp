@@ -76,6 +76,7 @@
 #include "newprofile.h"
 #include "backupdialog.h"
 #include "restoredialog.h"
+#include "sharedialog.h"
 #include "exports/report_exporter.h"
 #include "importprofile.h"
 #include "profileimporter.h"
@@ -2978,6 +2979,13 @@ void MainWindow::on_actionRestore_Profile_triggered()
     if (profileSelector) {
         profileSelector->updateProfileList();
     }
+}
+
+void MainWindow::on_actionShare_Profile_triggered()
+{
+    ShareDialog *dialog = new ShareDialog(this);
+    dialog->exec();
+    delete dialog;
 }
 
 void MainWindow::on_actionShow_Performance_Counters_toggled(bool arg1)

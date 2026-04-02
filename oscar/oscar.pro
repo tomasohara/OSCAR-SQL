@@ -310,6 +310,7 @@ SOURCES += \
     dailySearchTab.cpp \
     backupdialog.cpp \
     restoredialog.cpp \
+    sharedialog.cpp \
     exportcsv.cpp \
     sqleditor.cpp \
     reportmanager.cpp \
@@ -439,7 +440,11 @@ SOURCES += \
     database/backup/sql_exporter.cpp \
     database/backup/profile_backup.cpp \
     database/backup/profile_restore.cpp \
-    network/cloud_downloader.cpp
+    network/cloud_downloader.cpp \
+    network/cloud_uploader.cpp \
+    network/cloud_upload_dialog.cpp \
+    network/oauth2_handler.cpp \
+    network/dropbox_uploader.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -471,6 +476,7 @@ HEADERS  += \
     cprogressbar.h \
     backupdialog.h \
     restoredialog.h \
+    sharedialog.h \
     exportcsv.h \
     sqleditor.h \
     reportmanager.h \
@@ -603,7 +609,11 @@ HEADERS  += \
     database/backup/sql_exporter.h \
     database/backup/profile_backup.h \
     database/backup/profile_restore.h \
-    network/cloud_downloader.h
+    network/cloud_downloader.h \
+    network/cloud_uploader.h \
+    network/cloud_upload_dialog.h \
+    network/oauth2_handler.h \
+    network/dropbox_uploader.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }
@@ -617,6 +627,7 @@ FORMS += \
     newprofile.ui \
     backupdialog.ui \
     restoredialog.ui \
+    sharedialog.ui \
     exportcsv.ui \
     sqleditor.ui \
     reportmanager.ui \

@@ -367,6 +367,9 @@ class MainWindow : public QMainWindow
     /*! \brief Open the Restore Profile dialog. */
     void on_actionRestore_Profile_triggered();
 
+    /*! \brief Open the Share Profile dialog. */
+    void on_actionShare_Profile_triggered();
+
     void on_actionShow_Performance_Counters_toggled(bool arg1);
 
     void on_actionExport_CSV_triggered();

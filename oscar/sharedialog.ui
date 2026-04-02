@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>BackupDialog</class>
- <widget class="QDialog" name="BackupDialog">
+ <class>ShareDialog</class>
+ <widget class="QDialog" name="ShareDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>660</width>
-    <height>450</height>
+    <height>550</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Backup Profile</string>
+   <string>Share Profile Data</string>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
    <!-- Introductory text -->
@@ -21,7 +21,7 @@
       <string notr="true">border: 1px solid; border-radius: 6px; padding: 6px;</string>
      </property>
      <property name="text">
-      <string>Make a backup of a profile or a portion of a profile. SD card images are included only if &quot;Everything (including SD card backups)&quot; is chosen as the date range.</string>
+      <string>Prepare a copy of your OSCAR data to share with another user for review. The resulting .oscar file can be shared via a cloud storage link or any file transfer method.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -66,11 +66,6 @@
       </item>
       <item row="0" column="1" colspan="3">
        <widget class="QComboBox" name="rangeCombo">
-        <item>
-         <property name="text">
-          <string>Everything (including SD card backups)</string>
-         </property>
-        </item>
         <item>
          <property name="text">
           <string>Most Recent Day</string>
@@ -151,7 +146,7 @@
      </layout>
     </widget>
    </item>
-   <!-- Options: privacy and simplify checkboxes -->
+   <!-- Options: privacy and simplify checkboxes (checked and disabled for sharing) -->
    <item>
     <layout class="QHBoxLayout" name="optionsLayout">
      <item>
@@ -159,12 +154,24 @@
        <property name="text">
         <string>Replace personal information with blanks</string>
        </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QCheckBox" name="simplifyCheck">
        <property name="text">
         <string>Simplify file name</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -174,7 +181,7 @@
    <item>
     <widget class="QGroupBox" name="outputGroup">
      <property name="title">
-      <string>Output</string>
+      <string>Save To</string>
      </property>
      <layout class="QGridLayout" name="outputLayout">
       <item row="0" column="0">
@@ -214,6 +221,20 @@
      </layout>
     </widget>
    </item>
+   <!-- Next steps box -->
+   <item>
+    <widget class="QLabel" name="nextStepsLabel">
+     <property name="styleSheet">
+      <string notr="true">border: 1px solid; border-radius: 6px; padding: 6px;</string>
+     </property>
+     <property name="text">
+      <string>After creating the file, upload it to a cloud service (Dropbox, Google Drive, OneDrive, etc.) and share the download link. The recipient can import it using File → Profiles → Restore Profile.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
    <!-- Progress bar -->
    <item>
     <widget class="QProgressBar" name="progressBar">
@@ -247,9 +268,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="backupButton">
+      <widget class="QPushButton" name="shareButton">
        <property name="text">
-        <string>Backup</string>
+        <string>Create File</string>
        </property>
        <property name="enabled">
         <bool>false</bool>

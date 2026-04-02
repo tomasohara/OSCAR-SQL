@@ -29,6 +29,8 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 - Never touch any files in oscar/SleepLib/thirdparty.
 - Log all bug fixes in Notes/BUG_FIXES.md.
 - An "OSCAR day" starts at noon and runs until noon of the following calendar day.
+- When I ask you to commit changes, if Htmldocs/release_notes.html have not been changed, ask if I want to update them first.
+- When committing changes, include Htmldocs/release_notes.html if changed. Omit the "co-authored by" line.
 
 ## Other Notes
 

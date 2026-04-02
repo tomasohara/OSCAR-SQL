@@ -17,6 +17,9 @@
    <!-- Introductory text -->
    <item>
     <widget class="QLabel" name="introLabel">
+     <property name="styleSheet">
+      <string notr="true">border: 1px solid; border-radius: 6px; padding: 6px;</string>
+     </property>
      <property name="text">
       <string>Select a backup package to restore. You can browse for a local file or paste a cloud share link.</string>
      </property>

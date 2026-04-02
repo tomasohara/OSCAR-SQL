@@ -2408,6 +2408,8 @@ p, li { white-space: pre-wrap; }
      <addaction name="action_Import_OSCAR_Data"/>
      <addaction name="actionBackup_Profile"/>
      <addaction name="actionRestore_Profile"/>
+     <addaction name="separator"/>
+     <addaction name="actionShare_Profile"/>
     </widget>
     <widget class="QMenu" name="menuJournals">
      <property name="title">
@@ -2867,6 +2869,14 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="toolTip">
     <string>Restore a profile from a .oscar backup file</string>
+   </property>
+  </action>
+  <action name="actionShare_Profile">
+   <property name="text">
+    <string>Share Profile...</string>
+   </property>
+   <property name="toolTip">
+    <string>Prepare profile data for sharing with another OSCAR user</string>
    </property>
   </action>
   <action name="actionShow_Performance_Counters">
