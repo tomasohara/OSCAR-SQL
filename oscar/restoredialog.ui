@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>520</width>
+    <width>560</width>
     <height>640</height>
    </rect>
   </property>
@@ -14,42 +14,174 @@
    <string>Restore Profile</string>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
-   <!-- Package file selection row -->
+   <!-- Introductory text -->
    <item>
-    <widget class="QGroupBox" name="fileGroup">
-     <property name="title">
-      <string>Backup Package</string>
+    <widget class="QLabel" name="introLabel">
+     <property name="text">
+      <string>Select a backup package to restore. You can browse for a local file or paste a cloud share link.</string>
      </property>
-     <layout class="QHBoxLayout" name="fileLayout">
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <!-- Source selection group -->
+   <item>
+    <widget class="QGroupBox" name="sourceGroup">
+     <property name="title">
+      <string>Source</string>
+     </property>
+     <layout class="QVBoxLayout" name="sourceLayout">
+      <!-- Local file row -->
       <item>
-       <widget class="QLineEdit" name="packagePathEdit">
-        <property name="placeholderText">
-         <string>Select a .oscar backup file...</string>
+       <widget class="QRadioButton" name="sourceLocalRadio">
+        <property name="text">
+         <string>Local file:</string>
         </property>
-        <property name="readOnly">
+        <property name="checked">
          <bool>true</bool>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="browseButton">
+       <layout class="QHBoxLayout" name="localFileLayout">
+        <item>
+         <spacer name="localIndentSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="packagePathEdit">
+          <property name="placeholderText">
+           <string>Select a .oscar backup file...</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="browseButton">
+          <property name="text">
+           <string>Browse...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <!-- URL row -->
+      <item>
+       <widget class="QRadioButton" name="sourceUrlRadio">
         <property name="text">
-         <string>Browse...</string>
+         <string>Cloud share link:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="validateButton">
-        <property name="text">
-         <string>Validate</string>
-        </property>
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="urlLayout">
+        <item>
+         <spacer name="urlIndentSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="urlEdit">
+          <property name="placeholderText">
+           <string>Paste a share link (Dropbox, Google Drive, OneDrive, Box, ...)</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="downloadButton">
+          <property name="text">
+           <string>Download</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="providerHintLayout">
+        <item>
+         <spacer name="hintIndentSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="providerHintLabel">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="styleSheet">
+           <string>color: gray; font-size: small;</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
+   </item>
+   <!-- Validate button (separate from source group for clarity) -->
+   <item>
+    <layout class="QHBoxLayout" name="validateLayout">
+     <item>
+      <spacer name="validateSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="validateButton">
+       <property name="text">
+        <string>Validate</string>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <!-- Package info group (hidden until validated) -->
    <item>

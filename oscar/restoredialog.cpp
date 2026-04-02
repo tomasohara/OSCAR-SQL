@@ -21,6 +21,7 @@
 #include "database/backup/backup_manifest.h"
 #include "database/backup/profile_restore.h"
 #include "database/database_schema.h"
+#include "network/cloud_downloader.h"
 #include "mainwindow.h"
 #include "SleepLib/preferences.h"
 
@@ -51,10 +52,22 @@ RestoreDialog::RestoreDialog(QWidget* parent)
             [this](bool checked) { if (checked) ui->restoreButton->setEnabled(true); });
     connect(ui->abortRadio,   &QRadioButton::toggled, this,
             [this](bool checked) { if (checked) ui->restoreButton->setEnabled(false); });
+
+    // Source radio buttons toggle between local file and URL modes.
+    connect(ui->sourceLocalRadio, &QRadioButton::toggled,
+            this, &RestoreDialog::on_sourceLocalRadio_toggled);
+
+    // URL text changes update the provider hint and Download button state.
+    connect(ui->urlEdit, &QLineEdit::textChanged,
+            this, &RestoreDialog::onUrlTextChanged);
+
+    // Start in local-file mode (sourceLocalRadio is checked in .ui).
+    on_sourceLocalRadio_toggled(true);
 }
 
 RestoreDialog::~RestoreDialog()
 {
+    delete m_downloader;
     delete m_restore;
     delete ui;
 }
@@ -116,7 +129,9 @@ void RestoreDialog::showConflictGroup(bool visible)
 
 void RestoreDialog::setBusy(bool busy)
 {
-    ui->browseButton->setEnabled(!busy);
+    ui->browseButton->setEnabled(!busy && ui->sourceLocalRadio->isChecked());
+    ui->downloadButton->setEnabled(!busy && ui->sourceUrlRadio->isChecked()
+                                   && !ui->urlEdit->text().trimmed().isEmpty());
     ui->validateButton->setEnabled(!busy && !ui->packagePathEdit->text().isEmpty());
     ui->restoreButton->setEnabled(!busy);
     ui->closeButton->setEnabled(!busy);
@@ -124,6 +139,21 @@ void RestoreDialog::setBusy(bool busy)
     ui->abortRadio->setEnabled(!busy);
     ui->renameRadio->setEnabled(!busy);
     ui->replaceRadio->setEnabled(!busy);
+    ui->sourceLocalRadio->setEnabled(!busy);
+    ui->sourceUrlRadio->setEnabled(!busy);
+    ui->urlEdit->setEnabled(!busy && ui->sourceUrlRadio->isChecked());
+}
+
+void RestoreDialog::resetValidation()
+{
+    delete m_restore;
+    m_restore = nullptr;
+    showInfoGroup(false);
+    showNameGroup(false);
+    showConflictGroup(false);
+    ui->restoreButton->setEnabled(false);
+    ui->progressBar->setValue(0);
+    ui->statusLabel->clear();
 }
 
 void RestoreDialog::updateConflictForName(const QString& name)
@@ -168,7 +198,161 @@ void RestoreDialog::saveSettings()
 }
 
 // ---------------------------------------------------------------------------
-//  Slots
+//  Source mode toggling
+// ---------------------------------------------------------------------------
+
+void RestoreDialog::on_sourceLocalRadio_toggled(bool checked)
+{
+    // Local-file controls.
+    ui->packagePathEdit->setEnabled(checked);
+    ui->browseButton->setEnabled(checked);
+
+    // URL controls — enabled only in URL mode.
+    ui->urlEdit->setEnabled(!checked);
+    ui->downloadButton->setEnabled(!checked && !ui->urlEdit->text().trimmed().isEmpty());
+    ui->providerHintLabel->setVisible(!checked);
+
+    // Validate button tracks whichever mode has content.
+    if (checked) {
+        ui->validateButton->setEnabled(!ui->packagePathEdit->text().isEmpty());
+    } else {
+        ui->validateButton->setEnabled(false);
+    }
+
+    // Reset any prior validation when switching modes.
+    resetValidation();
+}
+
+// ---------------------------------------------------------------------------
+//  URL handling
+// ---------------------------------------------------------------------------
+
+void RestoreDialog::onUrlTextChanged(const QString& text)
+{
+    QString trimmed = text.trimmed();
+    bool hasText = !trimmed.isEmpty();
+    ui->downloadButton->setEnabled(hasText && ui->sourceUrlRadio->isChecked());
+
+    if (hasText) {
+        QUrl url(trimmed);
+        CloudProvider provider = CloudDownloader::identifyProvider(url);
+        if (CloudDownloader::isProviderSupported(provider)) {
+            ui->providerHintLabel->setText(
+                tr("Detected: %1").arg(CloudDownloader::providerName(provider)));
+        } else if (provider == CloudProvider::ProtonDrive) {
+            ui->providerHintLabel->setText(
+                tr("Proton Drive links require manual download"));
+        } else if (provider == CloudProvider::Unknown) {
+            ui->providerHintLabel->setText(
+                tr("Unrecognized service — you may need to download the file manually"));
+        }
+    } else {
+        ui->providerHintLabel->clear();
+    }
+}
+
+void RestoreDialog::on_downloadButton_clicked()
+{
+    QString urlText = ui->urlEdit->text().trimmed();
+    if (urlText.isEmpty()) return;
+
+    QUrl url(urlText);
+    if (!url.isValid()) {
+        QMessageBox::warning(this, tr("Restore Profile"),
+            tr("The URL you entered is not valid."));
+        return;
+    }
+
+    // Clean up any previous downloader.
+    delete m_downloader;
+    m_downloader = nullptr;
+
+    // Reset any prior validation state.
+    resetValidation();
+    ui->packagePathEdit->clear();
+
+    m_downloader = new CloudDownloader(this);
+    m_downloader->setUrl(url);
+
+    connect(m_downloader, &CloudDownloader::downloadProgress,
+            this,         &RestoreDialog::onDownloadProgress);
+    connect(m_downloader, &CloudDownloader::downloadFinished,
+            this,         &RestoreDialog::onDownloadFinished);
+    connect(m_downloader, &CloudDownloader::downloadFailed,
+            this,         &RestoreDialog::onDownloadFailed);
+
+    // Disable controls during download.
+    setBusy(true);
+
+    CloudProvider provider = CloudDownloader::identifyProvider(url);
+    ui->statusLabel->setText(tr("Downloading from %1...")
+                                 .arg(CloudDownloader::providerName(provider)));
+    ui->progressBar->setValue(0);
+
+    m_downloader->start();
+}
+
+void RestoreDialog::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+{
+    if (bytesTotal > 0) {
+        int percent = static_cast<int>(bytesReceived * 100 / bytesTotal);
+        ui->progressBar->setValue(percent);
+
+        // Show human-readable sizes.
+        QString received, total;
+        if (bytesTotal >= 1024 * 1024) {
+            received = QString::number(bytesReceived / (1024.0 * 1024.0), 'f', 1) + " MB";
+            total    = QString::number(bytesTotal / (1024.0 * 1024.0), 'f', 1) + " MB";
+        } else {
+            received = QString::number(bytesReceived / 1024.0, 'f', 0) + " KB";
+            total    = QString::number(bytesTotal / 1024.0, 'f', 0) + " KB";
+        }
+        ui->statusLabel->setText(tr("Downloading... (%1 / %2)").arg(received, total));
+    } else {
+        // Total unknown — show indeterminate progress.
+        ui->progressBar->setRange(0, 0);
+        QString received;
+        if (bytesReceived >= 1024 * 1024) {
+            received = QString::number(bytesReceived / (1024.0 * 1024.0), 'f', 1) + " MB";
+        } else {
+            received = QString::number(bytesReceived / 1024.0, 'f', 0) + " KB";
+        }
+        ui->statusLabel->setText(tr("Downloading... (%1 received)").arg(received));
+    }
+}
+
+void RestoreDialog::onDownloadFinished(const QString& localPath)
+{
+    // Restore progress bar to determinate mode.
+    ui->progressBar->setRange(0, 100);
+    ui->progressBar->setValue(100);
+    ui->statusLabel->setText(tr("Download complete. Validating..."));
+
+    // Set the package path to the downloaded temp file and auto-validate.
+    ui->packagePathEdit->setText(localPath);
+    ui->validateButton->setEnabled(true);
+
+    // Re-enable non-busy controls.
+    setBusy(false);
+
+    // Auto-trigger validation so the user doesn't have to click Validate.
+    on_validateButton_clicked();
+}
+
+void RestoreDialog::onDownloadFailed(const QString& error)
+{
+    // Restore progress bar to determinate mode.
+    ui->progressBar->setRange(0, 100);
+    ui->progressBar->setValue(0);
+    ui->statusLabel->setText(tr("Download failed."));
+
+    QMessageBox::warning(this, tr("Download Failed"), error);
+
+    setBusy(false);
+}
+
+// ---------------------------------------------------------------------------
+//  Local file browsing
 // ---------------------------------------------------------------------------
 
 void RestoreDialog::on_browseButton_clicked()
@@ -186,16 +370,15 @@ void RestoreDialog::on_browseButton_clicked()
     if (!path.isEmpty()) {
         m_lastPackageDir = QFileInfo(path).absolutePath();
         saveSettings();
+        resetValidation();
         ui->packagePathEdit->setText(path);
         ui->validateButton->setEnabled(true);
-        ui->restoreButton->setEnabled(false);
-        showInfoGroup(false);
-        showNameGroup(false);
-        showConflictGroup(false);
-        ui->progressBar->setValue(0);
-        ui->statusLabel->clear();
     }
 }
+
+// ---------------------------------------------------------------------------
+//  Validation
+// ---------------------------------------------------------------------------
 
 void RestoreDialog::on_profileNameEdit_textChanged(const QString& text)
 {
@@ -279,6 +462,10 @@ void RestoreDialog::on_validateButton_clicked()
     // Run initial conflict check against the original name.
     updateConflictForName(originalUsername);
 }
+
+// ---------------------------------------------------------------------------
+//  Restore
+// ---------------------------------------------------------------------------
 
 void RestoreDialog::on_restoreButton_clicked()
 {

@@ -438,7 +438,8 @@ SOURCES += \
     database/backup/backup_manifest.cpp \
     database/backup/sql_exporter.cpp \
     database/backup/profile_backup.cpp \
-    database/backup/profile_restore.cpp
+    database/backup/profile_restore.cpp \
+    network/cloud_downloader.cpp
 !contains(DEFINES, helpless) {
     SOURCES += help.cpp
 }
@@ -601,7 +602,8 @@ HEADERS  += \
     database/backup/backup_manifest.h \
     database/backup/sql_exporter.h \
     database/backup/profile_backup.h \
-    database/backup/profile_restore.h
+    database/backup/profile_restore.h \
+    network/cloud_downloader.h
 !contains(DEFINES, helpless) {
     HEADERS += help.h
 }
