@@ -430,8 +430,9 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
                                                       0.0, 0.0, 0.0,
                                                       waveformSampleIntervalMs);
     }
-    // Mask pressure waveform. Legacy BMC: sourced from PressureWave[25] at packet offset 0x08,
-    // gain 0.1 → cmH2O. G3X: sourced from Raw.MaskPressure, gain 0.01 → cmH2O.
+    // Mask pressure waveform. Both legacy BMC and G3X source from Raw.PressureWave.
+    // Legacy BMC: PressureWave[25] at packet offset 0x08 (gain 0.1 → cmH2O).
+    // G3X: waveform offset 0x380, 50 samples/packet (confirmed correct; 0x24A was tried but noisy).
     auto wMaskPressure = oscarSession->AddEventList(CPAP_MaskPressure, EVL_Waveform, PressureWaveformGain(), 0.0, 0.0, 0.0, waveformSampleIntervalMs);
 
     EventList* wLeak = ExportLeakRate() ? oscarSession->AddEventList(CPAP_Leak, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000) : nullptr;
@@ -471,8 +472,6 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
         if (wPressureWave) {
             wPressureWave->AddWaveform(timestamp, bmcWaveform.Raw.PressureWave, waveformSamplesPerPacket, waveformPacketDurationMs);
         }
-        // PressureWave[25] at packet offset 0x08 is confirmed as mask pressure (÷10 = cmH2O).
-        // Raw.MaskPressure is populated by the G3X loader; for legacy BMC use Raw.PressureWave.
         wMaskPressure->AddWaveform(timestamp, bmcWaveform.Raw.PressureWave, waveformSamplesPerPacket, waveformPacketDurationMs);
         if (wFlowAbnormality) {
             wFlowAbnormality->AddWaveform(timestamp, bmcWaveform.Raw.FlowAbnormality, waveformSamplesPerPacket, waveformPacketDurationMs);

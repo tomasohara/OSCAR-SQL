@@ -44,8 +44,9 @@ public:
     ///   above the initial value.
     /// Phase 2 — skip ramp: once rising, scan until PressureTrend stops
     ///   increasing, i.e., the ramp peak has been reached.
-    ///
-    /// Falls back to StartTimestamp if the pressure never rises (short/idle session).
+    /// Phase 3 — flow fallback: for fixed-pressure (CPAP) sessions where pressure
+    ///   never rises, scan forward for the first packet with sustained respiratory
+    ///   flow, indicating the patient has put on the mask.
     virtual qint64 findStableStartMs(BmcSession* bmcSession) const override {
         const auto & waveforms = bmcSession->Waveforms;
         if (waveforms.size() < 2) {
@@ -61,21 +62,63 @@ public:
                 break;
             }
         }
-        if (rampStart == 0) {
-            // Pressure never rose — session is entirely at idle, no adjustment needed.
+
+        if (rampStart > 0) {
+            // Phase 2: from rampStart, find first packet where pressure stops rising.
+            for (int i = rampStart; i + 1 < waveforms.size(); ++i) {
+                quint16 pt0 = waveforms[i].Raw.PressureTrend;
+                quint16 pt1 = waveforms[i + 1].Raw.PressureTrend;
+                if (pt0 >= pt1) {
+                    return waveforms[i].Timestamp.toMSecsSinceEpoch();
+                }
+            }
+            // Ramp never completed within this session.
             return bmcSession->StartTimestamp.toMSecsSinceEpoch();
         }
 
-        // Phase 2: from rampStart, find first packet where pressure stops rising.
-        for (int i = rampStart; i + 1 < waveforms.size(); ++i) {
-            quint16 pt0 = waveforms[i].Raw.PressureTrend;
-            quint16 pt1 = waveforms[i + 1].Raw.PressureTrend;
-            if (pt0 >= pt1) {
+        // Phase 3: pressure never rose (fixed-pressure / CPAP mode, or very short session).
+        // Scan forward for the first packet followed by a sustained run of respiratory flow.
+        // Uses the same noise floor as findStableEndMs().
+        static constexpr qint16 kMaskOnFlowNoise  = 25;
+        static constexpr int    kMaskOnSustainSec = 10; ///< Consecutive active packets required.
+
+        const int n = waveforms.size();
+        for (int i = 0; i < n; ++i) {
+            // Check whether this packet has any flow above the noise floor.
+            bool active = false;
+            const qint16* flow = waveforms[i].Raw.Flow;
+            for (int s = 0; s < kBmcExtendedWaveformSamples; ++s) {
+                if (flow[s] > kMaskOnFlowNoise || flow[s] < -kMaskOnFlowNoise) {
+                    active = true;
+                    break;
+                }
+            }
+            if (!active) {
+                continue;
+            }
+            // Count consecutive active packets from here.
+            int streak = 0;
+            for (int j = i; j < n && streak < kMaskOnSustainSec; ++j) {
+                const qint16* f = waveforms[j].Raw.Flow;
+                bool packetActive = false;
+                for (int s = 0; s < kBmcExtendedWaveformSamples; ++s) {
+                    if (f[s] > kMaskOnFlowNoise || f[s] < -kMaskOnFlowNoise) {
+                        packetActive = true;
+                        break;
+                    }
+                }
+                if (packetActive) {
+                    ++streak;
+                } else {
+                    break; // streak broken; outer loop will resume from i+1
+                }
+            }
+            if (streak >= kMaskOnSustainSec) {
                 return waveforms[i].Timestamp.toMSecsSinceEpoch();
             }
         }
 
-        // Ramp never completed within this session.
+        // Flow-based detection also failed — use full session start.
         return bmcSession->StartTimestamp.toMSecsSinceEpoch();
     }
     // Leak is now sourced from waveform packet offset 0x52A (raw × 0.16 → L/min).

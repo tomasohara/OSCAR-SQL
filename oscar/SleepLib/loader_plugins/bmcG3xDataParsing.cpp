@@ -61,7 +61,7 @@ constexpr int kLegacyWaveformPacketSize = 0x100;
 // ------------------------------------------------------------
 // Flow region: 100 int16 LE samples (200 bytes) at 0x56E.
 // Pressure wave region: 50 uint16 LE samples (100 bytes) at 0x380.
-//   0x24A (100 samples) was tried but values were large/noisy; 0x380 is being evaluated.
+//   0x24A (100 samples) was tried but values were large/noisy; 0x380 confirmed as mask pressure source.
 // Output is resampled to kBmcExtendedWaveformSamples (50) per packet.
 
 /// Flow waveform region: 100 × int16 LE at 0x56E.
@@ -70,14 +70,15 @@ constexpr int    kG3xFlowRegionOffset      = 0x56E;
 constexpr int    kG3xFlowRegionSampleCount = 100;
 constexpr qint16 kG3xFlowRawClamp          = 2000;
 
-/// Pressure wave region: 50 × uint16 LE at 0x380 (slowly-varying, pressure-like 400–1600 range).
-/// 0x24A (100 samples) was tried but produced large/noisy values; 0x380 is under evaluation.
+/// Pressure wave / mask pressure region: 50 × uint16 LE at 0x380.
+/// Confirmed as the G3X mask pressure source — output looks correct in OSCAR.
+/// 0x24A (100 samples) was tried but produced large/noisy values and is not used.
 constexpr int    kG3xPressureWaveRegionOffset      = 0x380;
 constexpr int    kG3xPressureWaveRegionSampleCount = 50;
 constexpr qint16 kG3xPressureWaveRawClamp          = 4000;
 
-/// Mask pressure region: 100 × int16 LE at 0x24A.
-/// Loaded into CPAP_MaskPressure for comparison against the 0x380 pressure wave channel.
+/// Mask pressure region at 0x24A — tried but produced large/noisy values; not used.
+/// Kept here for reference in case future investigation resumes.
 constexpr int    kG3xMaskPressureRegionOffset      = 0x24A;
 constexpr int    kG3xMaskPressureRegionSampleCount = 100;
 constexpr qint16 kG3xMaskPressureRawClamp          = 4000;
@@ -162,8 +163,7 @@ constexpr int kG3xEvtTypeCSA  = 0x04; ///< Central sleep apnea
 constexpr int kG3xEvtTypeOH   = 0x07; ///< Obstructive hypopnea
 constexpr int kG3xEvtTypeCH   = 0x08; ///< Central hypopnea
 constexpr int kG3xEvtTypePBMarker = 0x09; ///< Periodic breathing episode marker (confirmed 2026-03-30).
-                                           ///< Timestamp marks the START of the episode (unlike other
-                                           ///< respiratory events where timestamp marks the END).
+                                           ///< Like other respiratory events, timestamp marks the START.
                                            ///< Duration is uint32 at offset 0x1C (low 16 | high 16 at 0x1E),
                                            ///< in milliseconds (confirmed 2026-03-30 via Lijunjun data).
 
@@ -862,7 +862,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 case kG3xEvtTypeCH:
                 case kG3xEvtTypeRERA:
                     // Respiratory events: value2 = duration in milliseconds (confirmed 2026-03-25).
-                    // Timestamp marks the END; startTime = timestamp - duration.
+                    // Timestamp marks the START of the event (confirmed 2026-04-03 by PAP-Link position comparison).
                     switch (messageType) {
                     case kG3xEvtTypeUH:   ++rawRespType01Count; break;
                     case kG3xEvtTypeUA:   ++rawRespType02Count; break;
@@ -1186,58 +1186,84 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         currentValues.epapHundredths  = 400;
     }
 
-    // ---- Phase 3.5: Detect which leak offset to use ----
+    // ---- Phase 3.5: Select which leak offset to use ----
     //
     // Firmware SC.72 (user version G3-2.11.x) populates 0x52A with unintentional leak.
-    // Firmware SC.74+ (user version G3-2.12.x) leaves 0x52A at zero and instead uses
-    // 0x568 for total mask leak.  Sample the first 200 packets to detect which applies.
+    // Firmware SC.74+ (user version G3-2.12.x+) leaves 0x52A at zero and uses 0x568.
+    // Primary selection is by firmware version string; fall back to a packet-sampling
+    // heuristic when the version string is unavailable or unrecognised.
     //
-    const int startFileIndexForProbe = static_cast<int>(dayEntry->WaveStartOffset / kG3xWaveformFileSpan);
     int leakFieldOffset = kG3xOffsetLeak;   // default: 0x52A
     {
-        const QString probeFilepath = QString("%1.%2")
-            .arg(fileBasePath)
-            .arg(startFileIndexForProbe, 3, 10, QLatin1Char('0'));
-        QFile probeFile(probeFilepath);
-        if (probeFile.open(QIODevice::ReadOnly)) {
-            const qint64 probeStartRaw   = dayEntry->WaveStartOffset % kG3xWaveformFileSpan;
-            // Align to packet boundary (waveform offsets are normally already aligned).
-            const qint64 probeStartLocal = (probeStartRaw / kG3xWaveformPacketSize) * kG3xWaveformPacketSize;
-            probeFile.seek(std::max<qint64>(0, probeStartLocal));
+        const QString& fwVer = dateSession.MachineInfo.FirmwareVersion;
+        bool leakFieldKnown = false;
+        if (fwVer.contains(QLatin1String("G3-2.11.")) ||
+            fwVer.contains(QLatin1String(".SC.72"))) {
+            // SC.72 / G3-2.11.x: unintentional leak at 0x52A.
+            leakFieldOffset = kG3xOffsetLeak;
+            leakFieldKnown  = true;
+        } else if (fwVer.startsWith(QLatin1String("G3-2."))) {
+            // G3-2.12.x+ / SC.74+: total mask leak at 0x568.
+            leakFieldOffset = kG3xOffsetAlternateLeak;
+            leakFieldKnown  = true;
+        }
 
-            int probeTotal = 0;
-            int probeNonZero52A = 0;
-            while (probeTotal < 200) {
-                const QByteArray probePkt = probeFile.read(kG3xWaveformPacketSize);
-                if (probePkt.size() < static_cast<int>(kG3xWaveformPacketSize)) {
-                    break;
-                }
-                if (static_cast<unsigned char>(probePkt[0]) != 0xAD ||
-                    static_cast<unsigned char>(probePkt[1]) != 0xAA) {
-                    continue;
-                }
-                if (ReadUInt16LEPtr(probePkt.constData(), kG3xOffsetLeak) > 0) {
-                    ++probeNonZero52A;
-                }
-                ++probeTotal;
-            }
-            probeFile.close();
+        if (!leakFieldKnown) {
+            // Firmware version unknown — sample first 200 packets to detect which
+            // field is populated.  If fewer than 10% of packets have non-zero 0x52A,
+            // assume SC.74+ and use 0x568.
+            const int startFileIndexForProbe = static_cast<int>(dayEntry->WaveStartOffset / kG3xWaveformFileSpan);
+            const QString probeFilepath = QString("%1.%2")
+                .arg(fileBasePath)
+                .arg(startFileIndexForProbe, 3, 10, QLatin1Char('0'));
+            QFile probeFile(probeFilepath);
+            if (probeFile.open(QIODevice::ReadOnly)) {
+                const qint64 probeStartRaw   = dayEntry->WaveStartOffset % kG3xWaveformFileSpan;
+                const qint64 probeStartLocal = (probeStartRaw / kG3xWaveformPacketSize) * kG3xWaveformPacketSize;
+                probeFile.seek(std::max<qint64>(0, probeStartLocal));
 
-            // If fewer than 10% of sampled packets have non-zero 0x52A, assume
-            // firmware SC.74+ and fall back to the alternate leak field at 0x568.
-            if (probeTotal > 0 && probeNonZero52A < probeTotal / 10) {
-                leakFieldOffset = kG3xOffsetAlternateLeak;
-            }
+                int probeTotal = 0;
+                int probeNonZero52A = 0;
+                while (probeTotal < 200) {
+                    const QByteArray probePkt = probeFile.read(kG3xWaveformPacketSize);
+                    if (probePkt.size() < static_cast<int>(kG3xWaveformPacketSize)) {
+                        break;
+                    }
+                    if (static_cast<unsigned char>(probePkt[0]) != 0xAD ||
+                        static_cast<unsigned char>(probePkt[1]) != 0xAA) {
+                        continue;
+                    }
+                    if (ReadUInt16LEPtr(probePkt.constData(), kG3xOffsetLeak) > 0) {
+                        ++probeNonZero52A;
+                    }
+                    ++probeTotal;
+                }
+                probeFile.close();
+
+                if (probeTotal > 0 && probeNonZero52A < probeTotal / 10) {
+                    leakFieldOffset = kG3xOffsetAlternateLeak;
+                }
 
 #ifdef BMCDEBUG
+                qDebug() << "BmcG3xData leak field day" << aDate.toString(Qt::ISODate)
+                         << "selected by probe (firmware version unknown):"
+                         << (leakFieldOffset == kG3xOffsetLeak
+                                 ? "0x52A (unintentional; fw G3-2.11.x)"
+                                 : "0x568 (total mask leak; fw G3-2.12.x+)")
+                         << "probe:" << probeTotal << "packets,"
+                         << probeNonZero52A << "non-zero at 0x52A";
+#endif // BMCDEBUG
+            }
+        }
+#ifdef BMCDEBUG
+        else {
             qDebug() << "BmcG3xData leak field day" << aDate.toString(Qt::ISODate)
+                     << "selected by firmware version" << fwVer << ":"
                      << (leakFieldOffset == kG3xOffsetLeak
                              ? "0x52A (unintentional; fw G3-2.11.x)"
-                             : "0x568 (total mask leak; fw G3-2.12.x+)")
-                     << "probe:" << probeTotal << "packets,"
-                     << probeNonZero52A << "non-zero at 0x52A";
-#endif // BMCDEBUG
+                             : "0x568 (total mask leak; fw G3-2.12.x+)");
         }
+#endif // BMCDEBUG
     }
 
     // ---- Phase 4: Iterate waveform packets ----
@@ -1309,13 +1335,22 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 continue;
             }
 
-            // Enforce strictly monotone timestamps; skip duplicates and roll-backs.
+            // Timestamp validation: skip exact duplicates and stale ring-buffer packets.
+            // Allow backward jumps up to kMaxAllowedBackwardSecs to handle DST "fall back"
+            // (clocks go back 1 hour). Larger backward jumps indicate stale ring-buffer
+            // data from a previous recording cycle and are discarded.
+            // Matches the tolerance used by the legacy BMC loader.
+            constexpr qint64 kMaxAllowedBackwardSecs = 7200LL;
             const qint64 timestampKey = packetTimestamp.toSecsSinceEpoch();
+            if (timestampKey == lastTimestampKey) {
+                // Exact duplicate: skip silently.
+                cursor += kG3xWaveformPacketSize;
+                continue;
+            }
             if (lastTimestampKey != std::numeric_limits<qint64>::min() &&
-                timestampKey <= lastTimestampKey) {
-                if (timestampKey < lastTimestampKey) {
-                    ++outOfOrderPacketCount;
-                }
+                timestampKey < lastTimestampKey - kMaxAllowedBackwardSecs) {
+                // Large backward jump: stale data, skip.
+                ++outOfOrderPacketCount;
                 cursor += kG3xWaveformPacketSize;
                 continue;
             }
@@ -1563,14 +1598,16 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     }
 #endif // BMCDEBUG
 
-    // ---- Phase 6: Split into sessions on gaps ≥ 5 seconds ----
+    // ---- Phase 6: Split into sessions on forward gaps ≥ 5 seconds ----
+    // Only split on forward gaps (machine turned off for ≥ 5 s). Backward jumps
+    // due to DST "fall back" are negative here and must not trigger a split.
 
     BmcSession* currentSession = new BmcSession();
     QDateTime   lastPacketTimestamp;
 
     for (const BmcWaveformPacket& packet : dateSession.Waveforms) {
         if (lastPacketTimestamp.isValid() &&
-            qAbs(lastPacketTimestamp.secsTo(packet.Timestamp)) >= 5 &&
+            lastPacketTimestamp.secsTo(packet.Timestamp) >= 5 &&
             !currentSession->Waveforms.isEmpty()) {
             currentSession->StartTimestamp = currentSession->Waveforms.first().Timestamp;
             currentSession->EndTimestamp   = currentSession->Waveforms.last().Timestamp.addSecs(1);
