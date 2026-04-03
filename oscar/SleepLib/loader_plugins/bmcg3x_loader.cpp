@@ -89,7 +89,7 @@ int BmcG3xLoader::Open(const QString& dirpath)
     }
 
     // Warn if the firmware version has not been tested with this loader.
-    // Known user-facing versions: G3-2.11.x.x (SC.72) and G3-2.12.x.x (SC.74).
+    // Known user-facing versions: G3-2.11.x.x (SC.72) and G3-2.12.x.x (SC.74/SC.75).
     // The version string comes from the .log file (e.g. "G3-2.11.02.33") and matches
     // what PAP-Link and the device display report.  If the .log was unavailable, the
     // fallback is the IDX internal build string (e.g. "G3-2.SC.72.01").
@@ -98,12 +98,28 @@ int BmcG3xLoader::Open(const QString& dirpath)
         const bool knownFirmware = fwVersion.startsWith("G3-2.11.") ||
                                    fwVersion.startsWith("G3-2.12.") ||
                                    fwVersion.contains("SC.72") ||  // IDX fallback
-                                   fwVersion.contains("SC.74");    // IDX fallback
+                                   fwVersion.contains("SC.74") ||  // IDX fallback
+                                   fwVersion.contains("SC.75");    // IDX fallback
         if (!knownFirmware) {
             QMessageBox::information(QApplication::activeWindow(),
                 QObject::tr("BMC G3X — Untested Firmware"),
                 QObject::tr("Your BMC G3X device is running firmware \"%1\", which has not been tested with this version of OSCAR.").arg(fwVersion) + "\n\n" +
                 QObject::tr("It may be similar enough to known firmware versions that import works correctly, but the OSCAR developers would like a .zip copy of this device's SD card to verify support. Import will continue."),
+                QMessageBox::Ok);
+        }
+    }
+
+    // Warn if the model has not been tested with this loader.
+    // Known models (from IDX product name field 0x0100): "G3 A20" and "G3 B20A".
+    const QString model = machine_info.model;
+    if (!model.isEmpty()) {
+        const bool knownModel = model == QLatin1String("G3 A20") ||
+                                model == QLatin1String("G3 B20A");
+        if (!knownModel) {
+            QMessageBox::information(QApplication::activeWindow(),
+                QObject::tr("BMC G3X — Untested Model"),
+                QObject::tr("Your BMC G3X device model \"%1\" has not been tested with this version of OSCAR.").arg(model) + "\n\n" +
+                QObject::tr("It may be similar enough to known models that import works correctly, but the OSCAR developers would like a .zip copy of this device's SD card to verify support. Import will continue."),
                 QMessageBox::Ok);
         }
     }
