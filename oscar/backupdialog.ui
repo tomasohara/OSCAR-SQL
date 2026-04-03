@@ -21,7 +21,7 @@
       <string notr="true">border: 1px solid; border-radius: 6px; padding: 6px;</string>
      </property>
      <property name="text">
-      <string>Make a backup of a profile or a portion of a profile. SD card images are included only if &quot;Everything (including SD card backups)&quot; is chosen as the date range.</string>
+      <string>Make a backup of a profile or a portion of a profile. SD card images are included only if &lt;i&gt;Everything (including SD card backups)&lt;/i&gt; is chosen as the date range.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
