@@ -2197,9 +2197,9 @@ void scanProductObject( QJsonObject product, MachineInfo *info, QHash<QString, Q
         hash3["ProductName"] = info->model;
         if (idmap)
             idmap->QTCOMBINE(hash3);
-        if (info->model.contains("AirSense11", Qt::CaseInsensitive)) {
+        if (info->model.contains("AirSense11", Qt::CaseInsensitive) || info->model.contains("AirSense 11", Qt::CaseInsensitive)) {
             info->series = STR_ResMed_AirSense11;
-        } else if (info->model.contains("AirCurve11", Qt::CaseInsensitive)) {
+        } else if (info->model.contains("AirCurve11", Qt::CaseInsensitive) || info->model.contains("AirCurve 11", Qt::CaseInsensitive)) {
             info->series = STR_ResMed_AirCurve11;
         } else if (info->model.contains("AirSense10", Qt::CaseInsensitive) || info->model.contains("AirSense 10", Qt::CaseInsensitive)) {
             info->series = STR_ResMed_AirSense10;

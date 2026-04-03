@@ -30,7 +30,9 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 - Log all bug fixes in Notes/BUG_FIXES.md.
 - An "OSCAR day" starts at noon and runs until noon of the following calendar day.
 - When I ask you to commit changes, if Htmldocs/release_notes.html have not been changed, ask if I want to update them first.
+- Keep commit messages concise: a one-line subject and a 2-3 sentence summary. Avoid listing individual changes — anyone interested can read the diff.
 - When committing changes, include Htmldocs/release_notes.html if changed. Omit the "co-authored by" line.
+- If I ask you to push the changes, the command to use is usually "git push origin master"
 
 ## Other Notes
 
