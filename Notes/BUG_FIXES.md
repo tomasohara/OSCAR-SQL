@@ -4,6 +4,24 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-02 - AirSense 11: Wrong icon shown on Welcome page
+
+**Files:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp`, `oscar/SleepLib/machine.cpp`
+
+**Symptom:** Welcome page showed the default CPAP icon instead of the AirSense 11 icon.
+
+**Root cause (3 parts):**
+1. `scanProductObject()` (JSON path, `Identification.json`): used `indexOf("11")/left(idx+2)` to derive `info.series`, producing `"AirSense11"` (no space). The icon hash is keyed on `"AirSense 11"` (with space), so lookup failed and the default icon was returned.
+2. `parseIdentLine()` (`.tgt` path): had no checks for `STR_ResMed_AirSense11` or `STR_ResMed_AirCurve11`; these models fell through to the S9 `else` branch.
+3. `Machine::SaveToDatabase()`: when an existing machine record was found, only `machineId` was updated — `series` and other info fields were never refreshed, so stale values from old loader bugs persisted across imports.
+
+**Fix:**
+- `scanProductObject()`: replaced the `indexOf` hack with explicit `contains()` checks (case-insensitive) for each series string, matching the same constants used in the icon hash.
+- `parseIdentLine()`: added `contains()` checks for AirSense 11 and AirCurve 11 before the AirSense 10 checks; all checks made case-insensitive; also handle no-space form (`"AirSense11"`).
+- `SaveToDatabase()`: now updates `series`, `model`, and `modelNumber` in the existing record if any have changed, so a re-import from SD card self-corrects stale database entries.
+
+---
+
 ## 2026-03-30 - G3X: Periodic breathing duration wrong (uint16 vs uint32)
 
 **Files:** `bmcG3xDataParsing.cpp`

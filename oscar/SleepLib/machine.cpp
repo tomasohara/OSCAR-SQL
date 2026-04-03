@@ -1467,16 +1467,24 @@ bool Machine::SaveToDatabase()
         // Machine already exists in this profile, reuse the existing ID
         m_database_id = existing.id;
         
-        // IMPORTANT: Update the stored machine_id to match current internal ID
-        // This ensures consistency if the internal ID changed (e.g., rebuild)
-        if (existing.machineId != m_id) {
-            qDebug() << "Machine::SaveToDatabase(): Updating machine_id from"
-                     << existing.machineId << "to" << m_id << "for machine" << info.serial;
+        // Update machine_id and any info fields that may have changed since the record
+        // was first written (e.g. series corrected after a loader bug fix, or machineId
+        // changed after a rebuild-from-backup).
+        bool needsUpdate = (existing.machineId != m_id)
+                        || (existing.series    != info.series)
+                        || (existing.model     != info.model)
+                        || (existing.modelNumber != info.modelnumber);
+        if (needsUpdate) {
             MachineData updateData = existing;
-            updateData.machineId = m_id;
+            updateData.machineId    = m_id;
+            updateData.series       = info.series;
+            updateData.model        = info.model;
+            updateData.modelNumber  = info.modelnumber;
+            qDebug() << "Machine::SaveToDatabase(): Updating machine record for" << info.serial
+                     << "series:" << existing.series << "->" << info.series;
             repo.update(updateData);
         }
-        
+
         qDebug() << "Machine::SaveToDatabase(): Found existing machine"
                  << info.serial << "in profile" << profile->user->userName()
                  << "with database ID" << m_database_id;

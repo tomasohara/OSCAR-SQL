@@ -2197,8 +2197,15 @@ void scanProductObject( QJsonObject product, MachineInfo *info, QHash<QString, Q
         hash3["ProductName"] = info->model;
         if (idmap)
             idmap->QTCOMBINE(hash3);
-        int idx = info->model.indexOf("11");
-        info->series = info->model.left(idx+2);
+        if (info->model.contains("AirSense11", Qt::CaseInsensitive)) {
+            info->series = STR_ResMed_AirSense11;
+        } else if (info->model.contains("AirCurve11", Qt::CaseInsensitive)) {
+            info->series = STR_ResMed_AirCurve11;
+        } else if (info->model.contains("AirSense10", Qt::CaseInsensitive) || info->model.contains("AirSense 10", Qt::CaseInsensitive)) {
+            info->series = STR_ResMed_AirSense10;
+        } else if (info->model.contains("AirCurve10", Qt::CaseInsensitive) || info->model.contains("AirCurve 10", Qt::CaseInsensitive)) {
+            info->series = STR_ResMed_AirCurve10;
+        }
     }
 }
 
@@ -2316,13 +2323,17 @@ QHash<QString, QString> parseIdentLine( const QString line, MachineInfo * info)
         } else if (key == "PNA") {  // Product Name
             value.replace("_"," ");
 
-            if (value.contains(STR_ResMed_AirSense10)) {
+            if (value.contains(STR_ResMed_AirSense11, Qt::CaseInsensitive) || value.contains("AirSense11", Qt::CaseInsensitive)) {
+                info->series = STR_ResMed_AirSense11;
+            } else if (value.contains(STR_ResMed_AirCurve11, Qt::CaseInsensitive) || value.contains("AirCurve11", Qt::CaseInsensitive)) {
+                info->series = STR_ResMed_AirCurve11;
+            } else if (value.contains(STR_ResMed_AirSense10, Qt::CaseInsensitive)) {
         //      value.replace(STR_ResMed_AirSense10, "");
                 info->series = STR_ResMed_AirSense10;
-            } else if (value.contains(STR_ResMed_Sleepmate10)) {
+            } else if (value.contains(STR_ResMed_Sleepmate10, Qt::CaseInsensitive)) {
             //      value.replace(STR_ResMed_Sleepmate10, "");
                 info->series = STR_ResMed_Sleepmate10;
-            } else if (value.contains(STR_ResMed_AirCurve10)) {
+            } else if (value.contains(STR_ResMed_AirCurve10, Qt::CaseInsensitive)) {
         //      value.replace(STR_ResMed_AirCurve10, "");
                 info->series = STR_ResMed_AirCurve10;
             } else {    // it will be a Series 9, and might not contain (STR_ResMed_S9))
