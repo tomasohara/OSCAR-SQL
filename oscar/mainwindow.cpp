@@ -39,7 +39,6 @@
 #include <QLocale>
 #include <QSqlQuery>
 #include <QSqlError>
-#include <QScreen>
 #include <QStorageInfo>
 #include <cmath>
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
@@ -1662,30 +1661,22 @@ void MainWindow::on_action_Screenshot_triggered()
 
 void MainWindow::DelayedScreenshot()
 {
-    // Make sure to scale for high resolution displays (like Retina)
-   // qreal pr = devicePixelRatio();
+    // Grab the window client area only, excluding the OS title bar.
+    // This avoids exposing the profile name (which appears in the title bar) when
+    // users post screenshots to forums. QWidget::grab() works cross-platform
+    // (Windows, macOS, Linux/X11, Wayland, Raspberry Pi, Chromebook) and handles
+    // high-DPI/Retina displays automatically without requiring screen capture permissions.
+    QPixmap clientPixmap = grab();
 
-    auto screenshotRect = geometry();
-    auto titleBarHeight = QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
-
-    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    auto pixmap = QApplication::primaryScreen()->grabWindow(QDesktopWidget().winId(),
-                                                            screenshotRect.left(),
-                                                            screenshotRect.top() - titleBarHeight,
-                                                            screenshotRect.width(),
-                                                            screenshotRect.height() + titleBarHeight);
-    #else
-    QScreen *screen = QGuiApplication::primaryScreen();
-    QPixmap pixmap;
-    if (screen) {
-        pixmap = screen->grabWindow(0,  // 0 means grab the entire screen
-                                            screenshotRect.left(),
-                                            screenshotRect.top() - titleBarHeight,
-                                            screenshotRect.width(),
-                                            screenshotRect.height() + titleBarHeight);
-        // Use the pixmap as needed
-    }
-    #endif
+    // Prepend a plain version header to replace the title bar information.
+    int headerHeight = fontMetrics().height() + 8;
+    QPixmap pixmap(clientPixmap.width(), clientPixmap.height() + headerHeight);
+    QPainter painter(&pixmap);
+    painter.fillRect(0, 0, pixmap.width(), headerHeight, Qt::white);
+    painter.setPen(Qt::black);
+    painter.drawText(QRect(8, 0, pixmap.width(), headerHeight), Qt::AlignLeft | Qt::AlignVCenter, getMainWindowTitle());
+    painter.drawPixmap(0, headerHeight, clientPixmap);
+    painter.end();
 
     QString default_filename = "/screenshot-" + QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss") + ".png";
 
