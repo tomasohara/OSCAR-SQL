@@ -4,6 +4,23 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-05 - Import: Summary-only sessions show AHI/H = 0.00 after import from OSCAR 1.7.1
+
+**Files:** `oscar/SleepLib/session.cpp` (`LoadSummaryFromFile`)
+
+**Symptom:** After importing OSCAR 1.7.1 data, summary-only ResMed sessions (those without a `.001` events file) displayed AHI = 0.00 and Hypopnea = 0.00. Sessions with full event data imported correctly.
+
+**Root cause (two interacting issues):**
+1. `StoreSummaryStatistics()` in `resmed_loader.cpp` stores fractional event counts for summary-only sessions: `setCount(CPAP_Hypopnea, R.hi * hours)` produces e.g. 0.997 (not an integer). `SessionChannelData::count` and `SessionSummaryData::hypopneaCount` are `int`, so 0.997 truncates to 0 on storage.
+2. OSCAR 1.7.1 wrote `.000` files at version ≤ 14. `LoadSummaryFromFile()` only reads `m_availableChannels` for version ≥ 15 (version 14 had a serialization bug). With an empty `m_availableChannels`, `StoreToDatabase()` skips the session_channels block entirely — `m_cph` (event rates, stored correctly) is never written to the database.
+3. `LoadFromDatabase()`'s summary-only restore block can recover counts from `m_cph × hours`, but only if session_channels was stored. With no session_channels for CPAP_Hypopnea, the condition `m_cph.contains(CPAP_Hypopnea)` is false, the block is skipped, and the count stays 0.
+
+**Fix:** At the end of `LoadSummaryFromFile()`, if `m_availableChannels` is still empty after parsing, rebuild it from the keys in `m_cnt` and `m_cph`. This ensures `StoreToDatabase()` creates session_channels records (with correct `cph` = 0.10), enabling the existing restore block in `LoadFromDatabase()` to compute `qRound(cph × hours)` = 1 on reload.
+
+**Note:** Sessions already imported with broken data must be re-imported.
+
+---
+
 ## 2026-04-02 - AirSense 11: Wrong icon shown on Welcome page
 
 **Files:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp`, `oscar/SleepLib/machine.cpp`

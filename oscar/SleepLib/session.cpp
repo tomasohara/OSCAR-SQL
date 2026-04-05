@@ -4048,6 +4048,21 @@ bool Session::LoadSummaryFromFile(const QString& filename)
         }
     }
 
+    // Rebuild m_availableChannels if it wasn't stored in the file (version < 15 or version 14 bug).
+    // Without this, StoreToDatabase() skips session_channels entirely — losing m_cph (event rates).
+    // The restore block in LoadFromDatabase() needs m_cph to recover fractional event counts
+    // (e.g., summary-only sessions store count = rate * hours = 0.997, which truncates to 0 as int).
+    if (m_availableChannels.isEmpty()) {
+        for (auto it = m_cnt.begin(); it != m_cnt.end(); ++it) {
+            if (!m_availableChannels.contains(it.key()))
+                m_availableChannels.push_back(it.key());
+        }
+        for (auto it = m_cph.begin(); it != m_cph.end(); ++it) {
+            if (!m_availableChannels.contains(it.key()))
+                m_availableChannels.push_back(it.key());
+        }
+    }
+
     file.close();
 
     s_summary_loaded = true;
