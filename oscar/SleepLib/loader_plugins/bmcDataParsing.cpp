@@ -573,8 +573,9 @@ BmcDateSession BmcData::ReadDateSession(QDate aDate)
             break;
         }
     }
+    BmcMachineSettings defaultSettings;
     if (foundSettings == NULL)
-        foundSettings = &(AllMachineSettings.last());
+        foundSettings = AllMachineSettings.isEmpty() ? &defaultSettings : &(AllMachineSettings.last());
 
     dateSession.MacineSettings = *foundSettings;
 
@@ -711,7 +712,13 @@ void BmcData::ReadIdxFile()
         QDataStream strmPacket(&buf);
         strmPacket.setByteOrder(QDataStream::LittleEndian);
 
-        BmcIdxEntry entry(&strmPacket);
+        BmcIdxEntry entry;
+        try {
+            entry = BmcIdxEntry(&strmPacket);
+        } catch (const std::invalid_argument &e) {
+            qDebug() << "ReadIdxFile: stopping at invalid entry:" << e.what();
+            break;
+        }
         this->AllIdxEntries.append(entry);
 
         //Go back to the start of the packet and read the machine settings in it
