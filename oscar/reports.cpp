@@ -557,7 +557,7 @@ void Report::PrintReport(gGraphView *gv, QString name, QDate date)
 
         if (first) {
             QDateTime timestamp = QDateTime::currentDateTime();
-            QString footer = QString("%1 %2 %3").arg(timestamp.toString(MedDateFormat+" hh:mm"))
+            QString footer = QString("%1 %2 %3").arg(QLocale().toString(timestamp, MedDateFormat+" hh:mm"))
                                                            .arg(STR_TR_OSCAR)
                                                            .arg(getVersion());
 

@@ -334,8 +334,8 @@ Duration of longest disabled session: aa minutes, Total duration of all disabled
         case 4:
             return QString(QObject::tr( "The reporting period is %1 days between %2 and %3")
                 .arg(1+_start.daysTo(_last))
-                .arg(_start.toString(MedDateFormat))
-                .arg(_last.toString(MedDateFormat)));
+                .arg(QLocale().toString(_start, MedDateFormat))
+                .arg(QLocale().toString(_last, MedDateFormat)));
     }
 }
 
@@ -872,7 +872,7 @@ QString Statistics::getUserInfo () {
     if (!p_profile->user->firstName().isEmpty()) {
         userinfo = tr("Name: %1, %2").arg(p_profile->user->lastName()).arg(p_profile->user->firstName()) + "<br>";
         if (!p_profile->user->DOB().isNull()) {
-            userinfo += tr("DOB: %1").arg(p_profile->user->DOB().toString(MedDateFormat)) + "<br>";
+            userinfo += tr("DOB: %1").arg(QLocale().toString(p_profile->user->DOB(), MedDateFormat)) + "<br>";
         }
         if (!p_profile->user->phone().isEmpty()) {
             userinfo += tr("Phone: %1").arg(p_profile->user->phone()) + "<br>";
@@ -971,7 +971,7 @@ QString Statistics::generateFooter(bool showinfo)
         html += "<hr><div align=center><font size='-1'><i>";
             html += "<font size='+0'>";
         QDateTime timestamp = QDateTime::currentDateTime();
-        html += tr("This report was prepared on %1 by OSCAR %2").arg(timestamp.toString(MedDateFormat + " hh:mm"))
+        html += tr("This report was prepared on %1 by OSCAR %2").arg(QLocale().toString(timestamp, MedDateFormat + " hh:mm"))
                                                                      .arg(getVersion())
                 + "<br>"
                 + tr("OSCAR is free open-source CPAP report software");
@@ -1222,8 +1222,8 @@ QString Statistics::GenerateMachineList()
                     .arg(m->model() +
                          (mn.isEmpty() ? "" : QString(" (") + mn + QString(")")))
                     .arg(m->serial())
-                    .arg(d1.toString(MedDateFormat))
-                    .arg(d2.toString(MedDateFormat));
+                    .arg(QLocale().toString(d1, MedDateFormat))
+                    .arg(QLocale().toString(d2, MedDateFormat));
 
         }
 
@@ -1317,8 +1317,8 @@ QString Statistics::GenerateRXChanges()
                                                            .arg(rx.machine->modelnumber())
                                                            .arg(rx.machine->serial());
 
-        html += QString("<td>%1</td>").arg(rx.start.toString(MedDateFormat))+
-                QString("<td>%1</td>").arg(rxend.toString(MedDateFormat))+
+        html += QString("<td>%1</td>").arg(QLocale().toString(rx.start, MedDateFormat))+
+                QString("<td>%1</td>").arg(QLocale().toString(rxend, MedDateFormat))+
                 QString("<td>%1</td>").arg(rx.days)+
                 QString("<td>%1</td>").arg(ahi, 0, 'f', 2)+
                 QString("<td>%1</td>").arg(fli, 0, 'f', 2)+
@@ -1539,14 +1539,14 @@ QString Statistics::GenerateCPAPUsage()
                         arg(tr("Database has %1 day of %2 Data on %3")
                             .arg(value)
                             .arg(machine)
-                            .arg(last.toString(MedDateFormat)));
+                            .arg(QLocale().toString(last, MedDateFormat)));
             } else {
                 html+=QString("<tr><td colspan=%1 align=center>%2</td></tr>").arg(periods.size()+1).
                         arg(tr("Database has %1 days of %2 Data, between %3 and %4")
                             .arg(value)
                             .arg(machine)
-                            .arg(first.toString(MedDateFormat))
-                            .arg(last.toString(MedDateFormat)));
+                            .arg(QLocale().toString(first, MedDateFormat))
+                            .arg(QLocale().toString(last, MedDateFormat)));
             }
             continue;
         } else if (row.calc == SC_SUBHEADING) {  // subheading..

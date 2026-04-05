@@ -249,6 +249,10 @@ void initTranslations()
         }
 
         qApp->installTranslator(translator);
+
+        // Set the default QLocale to match the selected language so that
+        // QLocale().toString(date, format) produces localised day/month names.
+        QLocale::setDefault(QLocale(language));
     } else {
         qDebug() << "Using default language" << language.toLocal8Bit().data();
     }

@@ -1464,7 +1464,7 @@ void MainWindow::updateFavourites()
                             }
                             tmp += QString("<tr><td><b><a href='daily=%1'>%2</a></b>")
                                     .arg(date.toString(Qt::ISODate),
-                                    date.toString(MedDateFormat));
+                                    QLocale().toString(date, MedDateFormat));
 
                             tmp += "<list>";
 
