@@ -39,7 +39,7 @@
  * NOTES
  * ======
  *
- * So far we have 4 BYS formats, the YH-550, YH-580, YH-690 and the YH-830
+ * So far we have 4 BYS formats, the YH-550, YH-580, YH-690, YH-680 and the YH-830
  *
  * The BYS file contains either a single session or multiple sessions
  * The SD-CARD structure for both machines are completely different
@@ -1050,15 +1050,15 @@ bool YuwellFormatD::Detect() {
      *          | RunLog.bys <- 0 byte file
      *          | summer.bys <- 50 byte file containing zeroes
      *          | 00100001 (dir)
-     *            \ 0100001d.BYS <- Flow rate data
+     *            \ 0100001d.BYS <- Flow rate data (This file is optional)
      *            | 0100001m.BYS <- Minute summary data
      *            | 0100001s.BYS <- Session summary data
      *
      * Models seen
      * -----------
-     * YH-690
+     * YH-690, YH-680
      *
-     * This is possibly the BreathCare III format, will have to confirm with other BCIII units
+     * This is the BreathCare III format as confirmed with all units in the range (YH-680/YH-690)
      */
     QDir cardDir(m_filePath);
 
@@ -1206,7 +1206,7 @@ bool YuwellFormatD::OpenSession(Machine *mach, const QString & filename)
 {
     QDir sessionDir(filename);
 
-    // Read three files: *s.bys, *m.bys, *d.bys
+    // Read three files: *s.bys, *m.bys, *d.bys (last is optional)
     // Read from the session file (*s.bys) first to get the session start/stop, mode, FPS level and ramp time
     QStringList sFilters;
     sFilters << "*s.bys";
@@ -1302,6 +1302,8 @@ bool YuwellFormatD::OpenSession(Machine *mach, const QString & filename)
     EventList *CA = sess->AddEventList(CPAP_ClearAirway, EVL_Event);
     EventList *H =  sess->AddEventList(CPAP_Hypopnea, EVL_Event);
     EventList *FR =  sess->AddEventList(CPAP_FlowRate, EVL_Event, 1);
+    EventList *P =  sess->AddEventList(OXI_Pulse, EVL_Event);
+    EventList *O =  sess->AddEventList(OXI_SPO2, EVL_Event);
 
     QStringList mFilters;
     mFilters << "*m.bys";
@@ -1352,7 +1354,7 @@ bool YuwellFormatD::OpenSession(Machine *mach, const QString & filename)
             in.setVersion(QDataStream::Qt_4_8);
             in.setByteOrder(QDataStream::LittleEndian);
 
-            unsigned char pressure, oai, cai, hi, leakage;
+            unsigned char pressure, oai, cai, hi, leakage, spo2, pulse;
             in >> pressure;
             in.skipRawData(1);
             in >> oai;
@@ -1360,7 +1362,10 @@ bool YuwellFormatD::OpenSession(Machine *mach, const QString & filename)
             in >> hi;
             in.skipRawData(4);
             in >> leakage;
-            in.skipRawData(8);
+            in.skipRawData(5);
+            in >> spo2;
+            in >> pulse;
+            in.skipRawData(2);
 
             if (sess->settings[CPAP_Mode] == (int)MODE_CPAP) {
                 if (sess->settings[CPAP_Pressure] == -1) {
@@ -1390,6 +1395,12 @@ bool YuwellFormatD::OpenSession(Machine *mach, const QString & filename)
             if (leakage > 0) {
                 LK->AddEvent(ti + (i * 60000), leakage);
             }
+            if (pulse > 0 && pulse < 249) {
+                P->AddEvent(ti + (i * 60000), pulse);
+            }
+            if (spo2 > 0) {
+                O->AddEvent(ti + (i * 60000), spo2);
+            }
         }
 
         if (sess->settings[CPAP_Mode] == (int)MODE_APAP) {
@@ -1398,67 +1409,66 @@ bool YuwellFormatD::OpenSession(Machine *mach, const QString & filename)
 
         bysMFile.close();
     }
-    // Flow rate data
+    // Flow rate data, this is optional data and has only been seen with the YH-690
     QStringList dFilters;
     dFilters << "*d.bys";
     sessionDir.setNameFilters(dFilters);
 
     QFileInfoList dlist = sessionDir.entryInfoList();
-    if (dlist.size() == 0) {
-        return false;
-    }
-    QFileInfo flow_rate = dlist.at(0);
-    QFile bysDFile(filename + "/" + flow_rate.fileName());
+    if (dlist.size() > 0) {
+        QFileInfo flow_rate = dlist.at(0);
+        QFile bysDFile(filename + "/" + flow_rate.fileName());
 
-    if (bysDFile.open(QFile::ReadOnly)) {
-        QByteArray mHeader = bysDFile.read(0x08);
+        if (bysDFile.open(QFile::ReadOnly)) {
+            QByteArray mHeader = bysDFile.read(0x08);
 
-        if (mHeader.size() != 0x08) {
-            return false;
-        }
-        short int record_count;
-
-        QDataStream in(mHeader);
-        in.setVersion(QDataStream::Qt_4_8);
-        in.setByteOrder(QDataStream::LittleEndian);
-
-        in.skipRawData(6);
-
-        in >> record_count;
-
-        qint64 ti;
-        ti = qint64(ts) * 1000L;
-
-        // Records start here at 1200 bytes each
-        // For 1 minute of flow rate data. Two datasets in each minute
-        // 10 flow rate samples per second. 600 samples for each dataset
-        // Actual flow rate is in the second dataset.
-        for (int i = 0; i < record_count; i++) {
-            QCoreApplication::processEvents();
-            QByteArray record;
-
-            record = bysDFile.read(1200);
-
-            if (record.size() != 1200) {
-                qWarning() << "Yuwell Session Record Short " << minutes.fileName();
-                bysDFile.close();
+            if (mHeader.size() != 0x08) {
                 return false;
             }
+            short int record_count;
 
-            QDataStream in(record);
+            QDataStream in(mHeader);
             in.setVersion(QDataStream::Qt_4_8);
             in.setByteOrder(QDataStream::LittleEndian);
 
-            in.skipRawData(600); // Unsure what the first 600 byte dataset is in each minute
-            for (int j = 0; j < 600; j++) {
-                unsigned char flow_rate;
-                in >> flow_rate;
+            in.skipRawData(6);
 
-                // Flow rate events are every 1/10th of a second plus the minute offset
-                FR->AddEvent(ti + (i * 60000) + (j * 100), (signed int)-70 + flow_rate);
+            in >> record_count;
+
+            qint64 ti;
+            ti = qint64(ts) * 1000L;
+
+            // Records start here at 1200 bytes each
+            // For 1 minute of flow rate data. Two datasets in each minute
+            // 10 flow rate samples per second. 600 samples for each dataset
+            // Actual flow rate is in the second dataset.
+            for (int i = 0; i < record_count; i++) {
+                QCoreApplication::processEvents();
+                QByteArray record;
+
+                record = bysDFile.read(1200);
+
+                if (record.size() != 1200) {
+                    qWarning() << "Yuwell Session Record Short " << minutes.fileName();
+                    bysDFile.close();
+                    return false;
+                }
+
+                QDataStream in(record);
+                in.setVersion(QDataStream::Qt_4_8);
+                in.setByteOrder(QDataStream::LittleEndian);
+
+                in.skipRawData(600); // Unsure what the first 600 byte dataset is in each minute
+                for (int j = 0; j < 600; j++) {
+                    unsigned char flow_rate;
+                    in >> flow_rate;
+
+                    // Flow rate events are every 1/10th of a second plus the minute offset
+                    FR->AddEvent(ti + (i * 60000) + (j * 100), (signed int)-70 + flow_rate);
+                }
             }
+            bysDFile.close();
         }
-        bysDFile.close();
     }
     sess->SetChanged(true);
     Sessions[ts] = sess;
