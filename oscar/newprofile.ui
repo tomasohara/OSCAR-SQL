@@ -111,7 +111,7 @@
            <item>
             <widget class="QGroupBox" name="groupBox">
              <property name="title">
-              <string>User Information</string>
+              <string>Profile Information</string>
              </property>
              <property name="flat">
               <bool>false</bool>
@@ -137,7 +137,7 @@
                 <item>
                  <widget class="QLabel" name="label">
                   <property name="text">
-                   <string>User Name</string>
+                   <string>Profile Name</string>
                   </property>
                  </widget>
                 </item>
@@ -296,6 +296,38 @@
                <widget class="QComboBox" name="countryCombo"/>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="userInstructionSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>8</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="userPageInstructions">
+             <property name="text">
+              <string>Profile Name is required and may be any valid file name. The profile name may be displayed and should meet any security and/or privacy concerns you may have. You can change the profile name at any time. Password protection is weak and not recommended.</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::RichText</enum>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignTop</set>
+             </property>
             </widget>
            </item>
           </layout>
@@ -557,6 +589,38 @@
              </layout>
             </widget>
            </item>
+           <item>
+            <spacer name="personalInstructionSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>8</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="personalPageInstructions">
+             <property name="text">
+              <string>Personal information is displayed on the Statistics page if &lt;i&gt;View/Show Personal Data&lt;/i&gt; menu item is selected. It is not otherwise displayed.</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::RichText</enum>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignTop</set>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="cpapPage">
@@ -687,6 +751,38 @@
                </widget>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="cpapInstructionSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>8</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="cpapPageInstructions">
+             <property name="text">
+              <string>These fields are for your information and are not displayed other than in this dialog.</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::RichText</enum>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignTop</set>
+             </property>
             </widget>
            </item>
           </layout>
@@ -834,6 +930,38 @@
                </spacer>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="doctorInstructionSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>8</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="doctorPageInstructions">
+             <property name="text">
+              <string>These fields are for your information and are not displayed other than in this dialog.</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::RichText</enum>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignTop</set>
+             </property>
             </widget>
            </item>
           </layout>

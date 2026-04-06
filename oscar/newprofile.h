@@ -46,6 +46,8 @@ class NewProfile : public QDialog
 
     void on_agreeCheckbox_clicked(bool checked);
 
+    void on_passwordGroupBox_toggled(bool checked);
+
     void on_passwordEdit1_editingFinished();
 
     void on_passwordEdit2_editingFinished();

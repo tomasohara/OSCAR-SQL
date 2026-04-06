@@ -123,6 +123,8 @@ NewProfile::NewProfile(QWidget *parent, const QString *user) :
     }
     ui->versionLabel->setText("");
 
+    on_passwordGroupBox_toggled(ui->passwordGroupBox->isChecked());
+
     ui->textBrowser->setHtml(getIntroHTML());
 }
 
@@ -480,6 +482,14 @@ void NewProfile::edit(const QString name)
     m_tmp_height_cm = profile->user->height();
     m_height_modified = false;
     on_heightCombo_currentIndexChanged(i);
+}
+
+void NewProfile::on_passwordGroupBox_toggled(bool checked)
+{
+    ui->label_13->setVisible(checked);
+    ui->label_14->setVisible(checked);
+    ui->passwordEdit1->setVisible(checked);
+    ui->passwordEdit2->setVisible(checked);
 }
 
 void NewProfile::on_passwordEdit1_editingFinished()
