@@ -2,10 +2,12 @@
  *
  * Copyright (c) 2026 The OSCAR Team
  *
- * Modal dialog for preparing a .oscar profile package optimized for
- * sharing with another user.  Wraps ProfileBackup with a UI that
- * defaults to privacy mode and simplified filenames, excludes SD card
- * data, and provides next-steps guidance for the user.
+ * Modal dialog for preparing and delivering a .oscar profile package
+ * optimized for sharing with another user.  The user selects a destination
+ * (File, Dropbox, Google Drive, OneDrive) in the dialog itself; cloud
+ * destinations upload automatically and display a share link, while the
+ * File destination saves to disk.  Privacy mode and simplified filenames
+ * are always enabled.
  *
  * This file is subject to the terms and conditions of the GNU General Public
  * License. See the file COPYING in the main directory of the source code
@@ -17,22 +19,38 @@
 #include <QDate>
 #include <QDialog>
 
+class DropboxUploader;
+
 namespace Ui {
 class ShareDialog;
 }
 
+/// Identifies the share destination selected by the user.
+enum class ShareDestination {
+    File,
+    Dropbox,
+    GoogleDrive,
+    OneDrive,
+    // ZeroX0,  // Commented out: 0x0.st currently unavailable
+};
+
 /*!
  * \class ShareDialog
- * \brief Modal dialog for creating a .oscar profile package for sharing.
+ * \brief Modal dialog for creating and delivering a .oscar profile share package.
  *
- * Similar to BackupDialog but optimized for the sharing use case:
- * privacy mode and simplified filenames are always on, SD card data
- * is never included, and the default date range is "Last Week".
+ * Combines file creation and delivery into a single dialog.  The user picks
+ * a destination (File or a cloud provider) and clicks Share.  For cloud
+ * destinations a temporary file is created, uploaded, then deleted; the
+ * resulting share URL is displayed inline.  For the File destination a
+ * permanent file is written to the selected directory.
+ *
+ * Privacy mode (personal info blanked) and simplified filenames are always on.
  *
  * Typical usage:
  * \code
- * ShareDialog dialog(this);
- * dialog.exec();
+ * ShareDialog* dialog = new ShareDialog(this);
+ * dialog->exec();
+ * delete dialog;
  * \endcode
  */
 class ShareDialog : public QDialog
@@ -44,30 +62,57 @@ public:
     ~ShareDialog() override;
 
 private slots:
-    /*! \brief Refresh the filename preview when the selected profile changes. */
+    /*! \brief Re-anchor the date range to the new profile's data. */
     void on_profileCombo_currentIndexChanged(int index);
 
-    /*! \brief Adjust From/To date edits and preview when the range preset changes. */
+    /*! \brief Adjust From/To date edits when the range preset changes. */
     void on_rangeCombo_currentTextChanged(const QString& text);
 
     /*! \brief Open a directory-picker and populate outputDirEdit. */
     void on_browseButton_clicked();
 
-    /*! \brief Show sharing warning then launch ProfileBackup::createBackup(). */
+    /*! \brief Show sharing warning then start the create + deliver operation. */
     void on_shareButton_clicked();
 
-    /*! \brief Update the progress bar and status label. */
+    /*! \brief Switch provider page and update button state when destination changes. */
+    void on_destinationCombo_currentIndexChanged(int index);
+
+    /*! \brief Toggle Dropbox sign in / sign out. */
+    void onDropboxAuthButtonClicked();
+
+    /*! \brief Handle Dropbox auth result. */
+    void onDropboxAuthComplete(bool success);
+
+    /*! \brief Copy the share URL to the clipboard. */
+    void onCopyLinkClicked();
+
+    /*! \brief Open the containing folder in the system file browser. */
+    void onOpenFolderClicked();
+
+    /*! \brief Update the progress bar and status label during file creation. */
     void onProgressChanged(int percent, const QString& message);
 
-    /*! \brief Show a success message and re-enable the UI. */
+    /*! \brief File creation complete: for File destination show success; for cloud start upload. */
     void onBackupCompleted(const QString& path);
 
-    /*! \brief Show an error message and re-enable the UI. */
+    /*! \brief File creation failed: show error and re-enable the UI. */
     void onBackupFailed(const QString& error);
 
+    /*! \brief Update the progress bar during cloud upload. */
+    void onUploadProgress(qint64 bytesSent, qint64 bytesTotal);
+
+    /*! \brief Upload complete: show share URL inline and clean up temp file. */
+    void onUploadFinished(const QString& shareUrl);
+
+    /*! \brief Upload failed: show error, clean up temp file, and re-enable the UI. */
+    void onUploadFailed(const QString& error);
+
 private:
-    /*! \brief Populate profileCombo from the database, pre-selecting the current profile. */
+    /*! \brief Populate profileCombo from the database, pre-selecting the active profile. */
     void populateProfiles();
+
+    /*! \brief Populate destinationCombo with supported destinations. */
+    void populateDestinations();
 
     /*!
      * \brief Set fromDate / toDate from a named range preset.
@@ -75,38 +120,55 @@ private:
      */
     void applyDateRange(const QString& rangeText);
 
-    /*! \brief Rebuild filenameEdit based on the current profile and date range. */
+    /*! \brief Rebuild filenameEdit from the current profile and date range. */
     void updateFilenamePreview();
 
-    /*! \brief Apply locale-aware formatting and remove weekend red-highlight from calendar widgets. */
+    /*! \brief Switch the stacked widget page and update all destination-dependent controls. */
+    void updateDestinationUi();
+
+    /*! \brief Enable/disable the Share button based on the current destination and state. */
+    void updateShareButtonState();
+
+    /*! \brief Apply locale-aware date formatting and remove weekend red-highlight. */
     void setupCalendarFormatting();
 
-    /*! \brief Persist the current output directory to QSettings. */
+    /*! \brief Persist settings (output dir, last destination) to QSettings. */
     void saveSettings();
 
-    /*! \brief Restore the last-used output directory from QSettings. */
+    /*! \brief Restore settings from QSettings. */
     void restoreSettings();
 
     /*!
-     * \brief Query the earliest session date for the currently selected profile.
-     * \return The first date on which a session exists, or today as a fallback.
-     */
-    QDate getFirstDataDate() const;
-
-    /*!
-     * \brief Query the most recent session date for the currently selected profile.
-     * \return The last date on which a session exists, or today as a fallback.
+     * \brief Query the most recent session date for the selected profile.
+     * \return Last date with session data, or today as a fallback.
      */
     QDate getLastDataDate() const;
 
     /*!
-     * \brief Show a modal sharing-warning dialog before creating the file.
-     * \return true if the user confirmed and clicked Continue.
+     * \brief Show the sharing-warning dialog.
+     * \return true if the user acknowledged and clicked Continue.
      */
     bool showSharingWarning();
 
-    Ui::ShareDialog* ui;
-    QList<qint64>    m_profileIds;    ///< DB IDs parallel to profileCombo entries.
+    /*! \brief The destination currently selected in destinationCombo. */
+    ShareDestination currentDestination() const;
+
+    /*! \brief Disable/enable all input controls while an operation is running. */
+    void setUiLocked(bool locked);
+
+    /*! \brief Begin uploading \a filePath to the selected cloud provider. */
+    void startCloudUpload(const QString& filePath);
+
+    /*! \brief Delete the temp file if one was created for a cloud upload. */
+    void cleanupTempFile();
+
+    Ui::ShareDialog*  ui;
+    QList<qint64>     m_profileIds;            ///< DB IDs parallel to profileCombo.
+    DropboxUploader*  m_dropboxUploader = nullptr;
+    QString           m_tempFilePath;           ///< Temp .oscar file for cloud uploads.
+    QString           m_lastFilePath;           ///< Path of last file created (for open folder).
+    bool              m_warningAcknowledged = false;  ///< True once the sharing warning is accepted.
+    bool              m_uploadInProgress    = false;
 };
 
 #endif // SHAREDIALOG_H

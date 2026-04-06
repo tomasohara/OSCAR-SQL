@@ -442,7 +442,6 @@ SOURCES += \
     database/backup/profile_restore.cpp \
     network/cloud_downloader.cpp \
     network/cloud_uploader.cpp \
-    network/cloud_upload_dialog.cpp \
     network/oauth2_handler.cpp \
     network/dropbox_uploader.cpp
 !contains(DEFINES, helpless) {
@@ -611,7 +610,6 @@ HEADERS  += \
     database/backup/profile_restore.h \
     network/cloud_downloader.h \
     network/cloud_uploader.h \
-    network/cloud_upload_dialog.h \
     network/oauth2_handler.h \
     network/dropbox_uploader.h
 !contains(DEFINES, helpless) {

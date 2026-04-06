@@ -109,9 +109,12 @@ void OAuth2Handler::startAuth()
     query.addQueryItem(QStringLiteral("code_challenge"), codeChallenge);
     query.addQueryItem(QStringLiteral("code_challenge_method"), QStringLiteral("S256"));
     query.addQueryItem(QStringLiteral("state"), m_state);
-    query.addQueryItem(QStringLiteral("token_access_type"), QStringLiteral("offline"));
     if (!m_config.scope.isEmpty()) {
         query.addQueryItem(QStringLiteral("scope"), m_config.scope);
+    }
+    for (auto it = m_config.extraAuthParams.cbegin();
+         it != m_config.extraAuthParams.cend(); ++it) {
+        query.addQueryItem(it.key(), it.value());
     }
     authUrl.setQuery(query);
 
@@ -225,7 +228,13 @@ void OAuth2Handler::onTokenReplyFinished()
     QJsonObject obj = doc.object();
 
     m_accessToken = obj.value(QStringLiteral("access_token")).toString();
-    m_refreshToken = obj.value(QStringLiteral("refresh_token")).toString();
+    // Only update the refresh token if the response contains one.
+    // Providers like Dropbox do not return a new refresh token on refresh
+    // responses, so preserving the existing one avoids forcing re-auth.
+    const QString newRefreshToken = obj.value(QStringLiteral("refresh_token")).toString();
+    if (!newRefreshToken.isEmpty()) {
+        m_refreshToken = newRefreshToken;
+    }
 
     int expiresIn = obj.value(QStringLiteral("expires_in")).toInt(0);
     if (expiresIn > 0) {

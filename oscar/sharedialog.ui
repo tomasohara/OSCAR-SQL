@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>660</width>
-    <height>550</height>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
       <string notr="true">border: 1px solid; border-radius: 6px; padding: 6px;</string>
      </property>
      <property name="text">
-      <string>Prepare a copy of your OSCAR data to share with another user for review. The resulting .oscar file can be shared via a cloud storage link or any file transfer method.</string>
+      <string>Prepare a copy of your OSCAR data to share with another user for review. Personal information will be removed. The recipient can import the file using File → Profiles → Restore Profile.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -146,7 +146,7 @@
      </layout>
     </widget>
    </item>
-   <!-- Options: privacy and simplify checkboxes (checked and disabled for sharing) -->
+   <!-- Options row -->
    <item>
     <layout class="QHBoxLayout" name="optionsLayout">
      <item>
@@ -177,62 +177,180 @@
      </item>
     </layout>
    </item>
-   <!-- Output directory group -->
+   <!-- Destination group -->
    <item>
-    <widget class="QGroupBox" name="outputGroup">
+    <widget class="QGroupBox" name="destinationGroup">
      <property name="title">
-      <string>Save To</string>
+      <string>Destination</string>
      </property>
-     <layout class="QGridLayout" name="outputLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="dirLabel">
-        <property name="text">
-         <string>Directory:</string>
-        </property>
-       </widget>
+     <layout class="QVBoxLayout" name="destinationGroupLayout">
+      <!-- Destination selector row -->
+      <item>
+       <layout class="QHBoxLayout" name="destSelectorLayout">
+        <item>
+         <widget class="QLabel" name="destLabel">
+          <property name="text">
+           <string>Share via:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="destinationCombo">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="outputDirEdit"/>
-      </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="browseButton">
-        <property name="text">
-         <string>Browse...</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="fileLabel">
-        <property name="text">
-         <string>File:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QLineEdit" name="filenameEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="placeholderText">
-         <string>(select a directory first)</string>
-        </property>
+      <!-- Provider-specific pages -->
+      <item>
+       <widget class="QStackedWidget" name="destinationStack">
+        <!-- Page 0: File -->
+        <widget class="QWidget" name="filePage">
+         <layout class="QGridLayout" name="filePageLayout">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="dirLabel">
+            <property name="text">
+             <string>Directory:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="outputDirEdit"/>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="browseButton">
+            <property name="text">
+             <string>Browse...</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="fileLabel">
+            <property name="text">
+             <string>File:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="2">
+           <widget class="QLineEdit" name="filenameEdit">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="placeholderText">
+             <string>(select a directory first)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <!-- Page 1: Dropbox -->
+        <widget class="QWidget" name="dropboxPage">
+         <layout class="QHBoxLayout" name="dropboxPageLayout">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="dropboxStatusLabel">
+            <property name="text">
+             <string>Not signed in to Dropbox.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="dropboxSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="dropboxAuthButton">
+            <property name="text">
+             <string>Sign In...</string>
+            </property>
+            <property name="fixedWidth">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <!-- Page 2: Google Drive -->
+        <widget class="QWidget" name="googleDrivePage">
+         <layout class="QHBoxLayout" name="googleDrivePageLayout">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="googleDriveLabel">
+            <property name="text">
+             <string>Google Drive support is coming soon.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="googleDriveSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+        <!-- Page 3: OneDrive -->
+        <widget class="QWidget" name="oneDrivePage">
+         <layout class="QHBoxLayout" name="oneDrivePageLayout">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="oneDriveLabel">
+            <property name="text">
+             <string>OneDrive support is coming soon.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="oneDriveSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <!-- Next steps box -->
-   <item>
-    <widget class="QLabel" name="nextStepsLabel">
-     <property name="styleSheet">
-      <string notr="true">border: 1px solid; border-radius: 6px; padding: 6px;</string>
-     </property>
-     <property name="text">
-      <string>After creating the file, upload it to a cloud service (Dropbox, Google Drive, OneDrive, etc.) and share the download link. The recipient can import it using File → Profiles → Restore Profile.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
     </widget>
    </item>
    <!-- Progress bar -->
@@ -240,6 +358,9 @@
     <widget class="QProgressBar" name="progressBar">
      <property name="value">
       <number>0</number>
+     </property>
+     <property name="visible">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -251,9 +372,47 @@
      </property>
     </widget>
    </item>
+   <!-- Share URL row (shown after successful cloud upload) -->
+   <item>
+    <layout class="QHBoxLayout" name="urlLayout">
+     <item>
+      <widget class="QLineEdit" name="urlEdit">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>Share link will appear here after upload</string>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="copyLinkButton">
+       <property name="text">
+        <string>Copy Link</string>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
    <!-- Button row -->
    <item>
     <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <widget class="QPushButton" name="openFolderButton">
+       <property name="text">
+        <string>Open Containing Folder</string>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
      <item>
       <spacer name="buttonSpacer">
        <property name="orientation">
@@ -270,7 +429,7 @@
      <item>
       <widget class="QPushButton" name="shareButton">
        <property name="text">
-        <string>Create File</string>
+        <string>Share</string>
        </property>
        <property name="enabled">
         <bool>false</bool>

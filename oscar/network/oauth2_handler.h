@@ -14,6 +14,7 @@
 #ifndef OAUTH2_HANDLER_H
 #define OAUTH2_HANDLER_H
 
+#include <QMap>
 #include <QObject>
 #include <QString>
 #include <QUrl>
@@ -44,6 +45,7 @@ public:
         QString clientId;      ///< Application client ID.
         QString scope;         ///< Requested scopes (space-separated).
         quint16 redirectPort = 17178;  ///< Fixed local port for redirect callback.
+        QMap<QString, QString> extraAuthParams;  ///< Provider-specific authorization query parameters.
     };
 
     explicit OAuth2Handler(const Config& config, QObject* parent = nullptr);

@@ -9,26 +9,31 @@
 #include "sharedialog.h"
 #include "ui_sharedialog.h"
 #include "translation.h"
-#include "network/cloud_upload_dialog.h"
+#include "network/dropbox_uploader.h"
 
+#include <QApplication>
 #include <QCalendarWidget>
+#include <QClipboard>
 #include <QCheckBox>
 #include <QDateEdit>
 #include <QDesktopServices>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QLabel>
 #include <QLineEdit>
 #include <QLocale>
 #include <QMessageBox>
+#include <QProgressBar>
 #include <QPushButton>
 #include <QSettings>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QStandardPaths>
+#include <QTemporaryFile>
 #include <QTextCharFormat>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -49,35 +54,42 @@ ShareDialog::ShareDialog(QWidget* parent)
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
+    m_dropboxUploader = new DropboxUploader(this);
+
     setupCalendarFormatting();
     populateProfiles();
+    populateDestinations();
 
-    // Initialize date edits to "today" so they have a sensible default.
+    // Initialize date edits to today as a fallback.
     QDate today = QDate::currentDate();
     ui->fromDate->setDate(today);
     ui->toDate->setDate(today);
 
-    // "Last Week" is the default range for sharing.
+    // Apply default range — "Last Week" is suitable for sharing.
     applyDateRange(ui->rangeCombo->currentText());
 
-    connect(ui->closeButton, &QPushButton::clicked, this, &QDialog::reject);
+    connect(ui->closeButton,     &QPushButton::clicked,  this, &QDialog::reject);
+    connect(ui->copyLinkButton,  &QPushButton::clicked,  this, &ShareDialog::onCopyLinkClicked);
+    connect(ui->openFolderButton,&QPushButton::clicked,  this, &ShareDialog::onOpenFolderClicked);
+    connect(ui->dropboxAuthButton, &QPushButton::clicked,this, &ShareDialog::onDropboxAuthButtonClicked);
 
-    connect(ui->filenameEdit, &QLineEdit::textChanged,
-            this, [this](const QString& t) {
-                ui->shareButton->setEnabled(
-                    !t.trimmed().isEmpty() && ui->filenameEdit->isEnabled());
-            });
+    connect(m_dropboxUploader, &DropboxUploader::authComplete,
+            this,              &ShareDialog::onDropboxAuthComplete);
 
     restoreSettings();
 }
 
 ShareDialog::~ShareDialog()
 {
+    if (m_uploadInProgress && m_dropboxUploader) {
+        m_dropboxUploader->abort();
+    }
+    cleanupTempFile();
     delete ui;
 }
 
 // ---------------------------------------------------------------------------
-//  Private helpers
+//  Initialization
 // ---------------------------------------------------------------------------
 
 void ShareDialog::populateProfiles()
@@ -88,7 +100,6 @@ void ShareDialog::populateProfiles()
     ProfileRepository repo;
     QList<ProfileData> profiles = repo.findActive();
 
-    // Determine current profile username for pre-selection.
     QString currentUsername;
     if (p_profile && p_profile->user) {
         currentUsername = p_profile->user->userName();
@@ -108,18 +119,36 @@ void ShareDialog::populateProfiles()
     }
 }
 
+void ShareDialog::populateDestinations()
+{
+    // Order matters — index must match the stacked widget page order.
+    // Page 0 = File, Page 1 = Dropbox, Page 2 = Google Drive, Page 3 = OneDrive.
+    ui->destinationCombo->addItem(tr("File (save to disk)"),
+        static_cast<int>(ShareDestination::File));
+    ui->destinationCombo->addItem(tr("Dropbox"),
+        static_cast<int>(ShareDestination::Dropbox));
+    ui->destinationCombo->addItem(tr("Google Drive (coming soon)"),
+        static_cast<int>(ShareDestination::GoogleDrive));
+    ui->destinationCombo->addItem(tr("OneDrive (coming soon)"),
+        static_cast<int>(ShareDestination::OneDrive));
+    // ui->destinationCombo->addItem(tr("0x0.st (temporary anonymous hosting)"),
+    //     static_cast<int>(ShareDestination::ZeroX0));
+    //  ^ Commented out: 0x0.st is currently not accepting new uploads.
+
+    updateDestinationUi();
+}
+
+// ---------------------------------------------------------------------------
+//  Date range
+// ---------------------------------------------------------------------------
+
 void ShareDialog::applyDateRange(const QString& rangeText)
 {
     bool isCustom = (rangeText == tr("Custom"));
-
     ui->fromDate->setEnabled(isCustom);
     ui->toDate->setEnabled(isCustom);
 
-    if (rangeText == tr("Custom")) {
-        // Leave dates as-is; the user controls them directly.
-    } else {
-        // All presets are anchored to the last date with data for the
-        // selected profile.
+    if (!isCustom) {
         const QDate last = getLastDataDate();
 
         if (rangeText == tr("Most Recent Day")) {
@@ -146,8 +175,18 @@ void ShareDialog::applyDateRange(const QString& rangeText)
     updateFilenamePreview();
 }
 
+// ---------------------------------------------------------------------------
+//  Filename preview
+// ---------------------------------------------------------------------------
+
 void ShareDialog::updateFilenamePreview()
 {
+    // Only relevant for File destination.
+    if (currentDestination() != ShareDestination::File) {
+        updateShareButtonState();
+        return;
+    }
+
     ui->shareButton->setEnabled(false);
 
     if (ui->outputDirEdit->text().isEmpty()) {
@@ -165,13 +204,10 @@ void ShareDialog::updateFilenamePreview()
         return;
     }
 
-    const qint64 profileId = m_profileIds[idx];
-    Q_UNUSED(profileId);
-
-    // Privacy is always on for sharing — use "p<id>" as the name portion.
+    // Privacy always on — use "p<id>" as the name portion.
     const QString namePart = QString("p%1").arg(m_profileIds[idx]);
 
-    // Simplify is always on — use start date + day count format.
+    // Simplify always on — use start date + day count.
     const QDate start = ui->fromDate->date();
     const QDate end   = ui->toDate->date();
     const int count   = start.daysTo(end) + 1;
@@ -183,12 +219,76 @@ void ShareDialog::updateFilenamePreview()
 
     ui->filenameEdit->setText(filename);
     ui->filenameEdit->setEnabled(true);
-    ui->shareButton->setEnabled(true);
+    updateShareButtonState();
 }
+
+// ---------------------------------------------------------------------------
+//  Destination UI
+// ---------------------------------------------------------------------------
+
+void ShareDialog::updateDestinationUi()
+{
+    ShareDestination dest = currentDestination();
+
+    // Switch the stacked widget to the matching page.
+    switch (dest) {
+    case ShareDestination::File:
+        ui->destinationStack->setCurrentIndex(0);
+        break;
+    case ShareDestination::Dropbox:
+        ui->destinationStack->setCurrentIndex(1);
+        // Update auth button text.
+        if (m_dropboxUploader->isAuthenticated()) {
+            ui->dropboxAuthButton->setText(tr("Sign Out"));
+            ui->dropboxStatusLabel->setText(tr("Signed in to Dropbox."));
+        } else {
+            ui->dropboxAuthButton->setText(tr("Sign In..."));
+            ui->dropboxStatusLabel->setText(
+                tr("Sign in to Dropbox to upload and create a share link."));
+        }
+        break;
+    case ShareDestination::GoogleDrive:
+        ui->destinationStack->setCurrentIndex(2);
+        break;
+    case ShareDestination::OneDrive:
+        ui->destinationStack->setCurrentIndex(3);
+        break;
+    }
+
+    // URL row only relevant for cloud destinations, and only shown after upload.
+    // (Visibility is managed by onUploadFinished / setUiLocked.)
+
+    updateShareButtonState();
+}
+
+void ShareDialog::updateShareButtonState()
+{
+    ShareDestination dest = currentDestination();
+    switch (dest) {
+    case ShareDestination::File:
+        ui->shareButton->setText(tr("Create File"));
+        ui->shareButton->setEnabled(
+            !ui->outputDirEdit->text().isEmpty() &&
+            !ui->filenameEdit->text().trimmed().isEmpty());
+        break;
+    case ShareDestination::Dropbox:
+        ui->shareButton->setText(tr("Share"));
+        ui->shareButton->setEnabled(m_dropboxUploader->isAuthenticated());
+        break;
+    case ShareDestination::GoogleDrive:
+    case ShareDestination::OneDrive:
+        ui->shareButton->setText(tr("Share"));
+        ui->shareButton->setEnabled(false);
+        break;
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  Calendar formatting
+// ---------------------------------------------------------------------------
 
 void ShareDialog::setupCalendarFormatting()
 {
-    // Apply locale-aware 4-digit year format and remove weekend red-highlight.
     QLocale locale = QLocale::system();
     QString fmt = locale.dateFormat(QLocale::ShortFormat);
     if (!fmt.toLower().contains("yyyy")) {
@@ -206,8 +306,55 @@ void ShareDialog::setupCalendarFormatting()
     }
 }
 
+// ---------------------------------------------------------------------------
+//  Settings persistence
+// ---------------------------------------------------------------------------
+
+void ShareDialog::saveSettings()
+{
+    QSettings s;
+    s.beginGroup("ShareDialog");
+    s.setValue("lastOutputDir", ui->outputDirEdit->text());
+    s.setValue("lastDestination", ui->destinationCombo->currentData().toInt());
+    s.endGroup();
+}
+
+void ShareDialog::restoreSettings()
+{
+    QSettings s;
+    s.beginGroup("ShareDialog");
+    const QString lastDir  = s.value("lastOutputDir").toString();
+    const int     lastDest = s.value("lastDestination",
+        static_cast<int>(ShareDestination::File)).toInt();
+    s.endGroup();
+
+    if (!lastDir.isEmpty() && QDir(lastDir).exists()) {
+        ui->outputDirEdit->setText(lastDir);
+    }
+
+    for (int i = 0; i < ui->destinationCombo->count(); ++i) {
+        if (ui->destinationCombo->itemData(i).toInt() == lastDest) {
+            // Block signals so updateDestinationUi isn't called before
+            // populateDestinations() finishes setting everything up.
+            ui->destinationCombo->blockSignals(true);
+            ui->destinationCombo->setCurrentIndex(i);
+            ui->destinationCombo->blockSignals(false);
+            break;
+        }
+    }
+
+    updateDestinationUi();
+    updateFilenamePreview();
+}
+
+// ---------------------------------------------------------------------------
+//  Sharing warning
+// ---------------------------------------------------------------------------
+
 bool ShareDialog::showSharingWarning()
 {
+    if (m_warningAcknowledged) return true;
+
     QDialog warn(this);
     warn.setWindowTitle(tr("Sharing Medical Data"));
     warn.setWindowFlags(warn.windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -218,9 +365,8 @@ bool ShareDialog::showSharingWarning()
     layout->addWidget(title);
 
     QLabel* body = new QLabel(
-        tr("You are about to create a file containing your sleep therapy data "
-           "that will be shared with another person.\n\n"
-           "\u2022 The file will contain session data, events, and machine settings\n"
+        tr("You are about to share a file containing your sleep therapy data.\n\n"
+           "\u2022 The file contains session data, events, and machine settings\n"
            "  for the selected date range\n"
            "\u2022 Personal information (name, DOB, contact details) will be removed\n\n"
            "Make sure you trust the recipient before sharing this data."),
@@ -243,7 +389,93 @@ bool ShareDialog::showSharingWarning()
     connect(buttons, &QDialogButtonBox::accepted, &warn, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, &warn, &QDialog::reject);
 
-    return warn.exec() == QDialog::Accepted;
+    if (warn.exec() != QDialog::Accepted) return false;
+
+    m_warningAcknowledged = true;
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+//  Helpers
+// ---------------------------------------------------------------------------
+
+ShareDestination ShareDialog::currentDestination() const
+{
+    return static_cast<ShareDestination>(ui->destinationCombo->currentData().toInt());
+}
+
+void ShareDialog::setUiLocked(bool locked)
+{
+    ui->profileCombo->setEnabled(!locked);
+    ui->rangeCombo->setEnabled(!locked);
+    ui->destinationCombo->setEnabled(!locked);
+    ui->shareButton->setEnabled(!locked);
+    ui->browseButton->setEnabled(!locked);
+    ui->dropboxAuthButton->setEnabled(!locked);
+    ui->closeButton->setEnabled(!locked);
+
+    // filenameEdit is only editable for File destination when not locked.
+    bool fileEditable = !locked &&
+                        currentDestination() == ShareDestination::File &&
+                        !ui->outputDirEdit->text().isEmpty();
+    ui->filenameEdit->setEnabled(fileEditable);
+}
+
+void ShareDialog::cleanupTempFile()
+{
+    if (!m_tempFilePath.isEmpty()) {
+        QFile::remove(m_tempFilePath);
+        m_tempFilePath.clear();
+    }
+}
+
+QDate ShareDialog::getLastDataDate() const
+{
+    QDate last = QDate::currentDate();
+    const int idx = ui->profileCombo->currentIndex();
+    if (idx >= 0 && idx < m_profileIds.size()) {
+        qint64 pid = m_profileIds[idx];
+        QSqlQuery q(DatabaseManager::instance().database());
+        q.prepare(QStringLiteral(
+            "SELECT MAX(DATE(start_time/1000 - 43200, 'unixepoch', 'localtime')) "
+            "FROM sessions "
+            "WHERE machine_id IN (SELECT id FROM machines WHERE profile_id = :pid)"));
+        q.bindValue(QStringLiteral(":pid"), pid);
+        if (q.exec() && q.next() && !q.value(0).isNull()) {
+            QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+            if (d.isValid()) last = d;
+        }
+    }
+    return last;
+}
+
+// ---------------------------------------------------------------------------
+//  Cloud upload
+// ---------------------------------------------------------------------------
+
+void ShareDialog::startCloudUpload(const QString& filePath)
+{
+    m_uploadInProgress = true;
+    ShareDestination dest = currentDestination();
+
+    switch (dest) {
+    case ShareDestination::Dropbox:
+        m_dropboxUploader->setFilePath(filePath);
+        connect(m_dropboxUploader, &DropboxUploader::uploadProgress,
+                this, &ShareDialog::onUploadProgress, Qt::UniqueConnection);
+        connect(m_dropboxUploader, &DropboxUploader::uploadFinished,
+                this, &ShareDialog::onUploadFinished, Qt::UniqueConnection);
+        connect(m_dropboxUploader, &DropboxUploader::uploadFailed,
+                this, &ShareDialog::onUploadFailed, Qt::UniqueConnection);
+        m_dropboxUploader->startUpload();
+        break;
+    // case ShareDestination::GoogleDrive:
+    //     (future implementation)
+    // case ShareDestination::OneDrive:
+    //     (future implementation)
+    default:
+        break;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -252,13 +484,26 @@ bool ShareDialog::showSharingWarning()
 
 void ShareDialog::on_profileCombo_currentIndexChanged(int /*index*/)
 {
-    // Re-apply the current range preset so dates re-anchor to the new profile's data.
     applyDateRange(ui->rangeCombo->currentText());
 }
 
 void ShareDialog::on_rangeCombo_currentTextChanged(const QString& text)
 {
     applyDateRange(text);
+}
+
+void ShareDialog::on_destinationCombo_currentIndexChanged(int /*index*/)
+{
+    // Hide URL row and folder button when destination changes.
+    ui->urlEdit->setVisible(false);
+    ui->copyLinkButton->setVisible(false);
+    ui->openFolderButton->setVisible(false);
+    ui->shareButton->setVisible(true);
+    ui->statusLabel->clear();
+
+    saveSettings();
+    updateDestinationUi();
+    updateFilenamePreview();
 }
 
 void ShareDialog::on_browseButton_clicked()
@@ -280,43 +525,63 @@ void ShareDialog::on_browseButton_clicked()
 
 void ShareDialog::on_shareButton_clicked()
 {
-    int idx = ui->profileCombo->currentIndex();
+    const int idx = ui->profileCombo->currentIndex();
     if (idx < 0 || idx >= m_profileIds.size()) {
         QMessageBox::warning(this, tr("Share Profile"), tr("No profile selected."));
         return;
     }
-    if (ui->outputDirEdit->text().isEmpty()) {
-        QMessageBox::warning(this, tr("Share Profile"), tr("Please select an output directory."));
-        return;
-    }
-    if (!showSharingWarning()) {
-        return;
-    }
 
-    // Disable controls while running.
-    ui->shareButton->setEnabled(false);
-    ui->closeButton->setEnabled(false);
-    ui->profileCombo->setEnabled(false);
-    ui->rangeCombo->setEnabled(false);
-    ui->browseButton->setEnabled(false);
-    ui->filenameEdit->setEnabled(false);
+    if (!showSharingWarning()) return;
 
+    setUiLocked(true);
+    ui->progressBar->setVisible(true);
+    ui->progressBar->setRange(0, 100);
     ui->progressBar->setValue(0);
-    ui->statusLabel->setText(tr("Creating sharing file..."));
+    ui->statusLabel->setText(tr("Creating file..."));
 
-    qint64 profileId = m_profileIds[idx];
+    const qint64 profileId = m_profileIds[idx];
     ProfileBackup* backup = new ProfileBackup(profileId, this);
-    backup->setOutputPath(ui->outputDirEdit->text());
-    backup->setPrivacyMode(true);     // Always on for sharing.
-    backup->setIncludeSDData(false);  // Never include SD data for sharing.
 
-    // Use the user-specified (possibly edited) filename.
-    const QString filename = ui->filenameEdit->text().trimmed();
-    if (!filename.isEmpty()) {
-        backup->setFilename(filename);
+    ShareDestination dest = currentDestination();
+
+    if (dest == ShareDestination::File) {
+        // Permanent file in the user-chosen directory.
+        if (ui->outputDirEdit->text().isEmpty()) {
+            QMessageBox::warning(this, tr("Share Profile"),
+                tr("Please select an output directory."));
+            setUiLocked(false);
+            ui->progressBar->setVisible(false);
+            return;
+        }
+        backup->setOutputPath(ui->outputDirEdit->text());
+        const QString filename = ui->filenameEdit->text().trimmed();
+        if (!filename.isEmpty()) {
+            backup->setFilename(filename);
+        }
+    } else {
+        // Temporary file for cloud upload — write to temp dir.
+        // Use QTemporaryFile to generate a unique name, then let ProfileBackup
+        // write to that path (ProfileBackup creates its own file handle).
+        QTemporaryFile tmpNameFile(QDir::tempPath() + "/oscar_share_XXXXXX.oscar");
+        tmpNameFile.setAutoRemove(false);
+        if (!tmpNameFile.open()) {
+            QMessageBox::critical(this, tr("Share Profile"),
+                tr("Could not create a temporary file for upload."));
+            setUiLocked(false);
+            ui->progressBar->setVisible(false);
+            return;
+        }
+        m_tempFilePath = tmpNameFile.fileName();
+        tmpNameFile.close();
+        // Remove the placeholder so ProfileBackup can write to it cleanly.
+        QFile::remove(m_tempFilePath);
+
+        backup->setOutputPath(QDir::tempPath());
+        backup->setFilename(QFileInfo(m_tempFilePath).fileName());
     }
 
-    // Always set a date range (no "Everything" option for sharing).
+    backup->setPrivacyMode(true);
+    backup->setIncludeSDData(false);
     backup->setDateRange(ui->fromDate->date(), ui->toDate->date());
 
     connect(backup, &ProfileBackup::progressChanged,
@@ -329,6 +594,29 @@ void ShareDialog::on_shareButton_clicked()
     backup->createBackup();
 }
 
+void ShareDialog::onDropboxAuthButtonClicked()
+{
+    if (m_dropboxUploader->isAuthenticated()) {
+        m_dropboxUploader->signOut();
+        updateDestinationUi();
+    } else {
+        ui->dropboxStatusLabel->setText(tr("Opening browser for sign in..."));
+        ui->dropboxAuthButton->setEnabled(false);
+        m_dropboxUploader->authenticate();
+    }
+}
+
+void ShareDialog::onDropboxAuthComplete(bool success)
+{
+    ui->dropboxAuthButton->setEnabled(true);
+    if (success) {
+        ui->dropboxStatusLabel->setText(tr("Signed in to Dropbox."));
+    } else {
+        ui->dropboxStatusLabel->setText(tr("Dropbox sign in failed."));
+    }
+    updateDestinationUi();
+}
+
 void ShareDialog::onProgressChanged(int percent, const QString& message)
 {
     ui->progressBar->setValue(percent);
@@ -338,125 +626,106 @@ void ShareDialog::onProgressChanged(int percent, const QString& message)
 void ShareDialog::onBackupCompleted(const QString& path)
 {
     ui->progressBar->setValue(100);
-    ui->statusLabel->setText(tr("File created."));
+    m_lastFilePath = path;
 
-    QFileInfo fi(path);
-    QString sizeStr;
-    qint64 bytes = fi.size();
-    if (bytes >= 1024 * 1024) {
-        sizeStr = QString::number(bytes / (1024.0 * 1024.0), 'f', 1) + " MB";
+    ShareDestination dest = currentDestination();
+    if (dest == ShareDestination::File) {
+        // Done — show success and open-folder button.
+        QFileInfo fi(path);
+        QString sizeStr;
+        qint64 bytes = fi.size();
+        if (bytes >= 1024 * 1024) {
+            sizeStr = QString::number(bytes / (1024.0 * 1024.0), 'f', 1) + " MB";
+        } else {
+            sizeStr = QString::number(bytes / 1024.0, 'f', 1) + " KB";
+        }
+        ui->statusLabel->setText(
+            tr("File created: %1  (%2)").arg(fi.fileName(), sizeStr));
+        ui->openFolderButton->setVisible(true);
+        ui->shareButton->setVisible(false);
+        ui->closeButton->setEnabled(true);
+        // Leave other controls locked so the user sees the result before closing.
     } else {
-        sizeStr = QString::number(bytes / 1024.0, 'f', 1) + " KB";
+        // Cloud destination — now upload the temp file.
+        ui->progressBar->setRange(0, 0);  // Indeterminate during upload.
+        ui->statusLabel->setText(tr("Uploading..."));
+        startCloudUpload(path);
     }
-
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(tr("File Created Successfully"));
-    msgBox.setIcon(QMessageBox::Information);
-    msgBox.setText(
-        tr("Your sharing file has been created.\n\n"
-           "File: %1\n"
-           "Size: %2\n\n"
-           "To share this file:\n"
-           "\u2022 Upload it to Dropbox, Google Drive, OneDrive, or another\n"
-           "  cloud service and share the download link\n"
-           "\u2022 Or use \"Upload to Cloud\" to upload to a temporary\n"
-           "  hosting service and get a link immediately\n\n"
-           "The recipient can import it in OSCAR using\n"
-           "  File \u2192 Profiles \u2192 Restore Profile")
-            .arg(fi.fileName(), sizeStr));
-
-    QPushButton* uploadBtn = msgBox.addButton(tr("Upload to Cloud..."), QMessageBox::ActionRole);
-    QPushButton* openFolderBtn = msgBox.addButton(tr("Open Containing Folder"), QMessageBox::ActionRole);
-    msgBox.addButton(QMessageBox::Close);
-
-    msgBox.exec();
-
-    if (msgBox.clickedButton() == uploadBtn) {
-        CloudUploadDialog uploadDialog(path, this);
-        uploadDialog.exec();
-    } else if (msgBox.clickedButton() == openFolderBtn) {
-        QDesktopServices::openUrl(QUrl::fromLocalFile(fi.absolutePath()));
-    }
-
-    accept();
 }
 
 void ShareDialog::onBackupFailed(const QString& error)
 {
+    cleanupTempFile();
+    ui->progressBar->setRange(0, 100);
     ui->progressBar->setValue(0);
-    ui->statusLabel->setText(tr("Failed to create sharing file."));
-
+    ui->statusLabel->setText(tr("Failed to create file."));
     QMessageBox::critical(this, tr("Share Failed"),
-        tr("The sharing file could not be created.\n\n%1").arg(error));
+        tr("Could not create the sharing file.\n\n%1").arg(error));
+    setUiLocked(false);
+    ui->progressBar->setVisible(false);
+}
 
-    // Re-enable controls.
-    ui->shareButton->setEnabled(true);
+void ShareDialog::onUploadProgress(qint64 bytesSent, qint64 bytesTotal)
+{
+    if (bytesTotal > 0) {
+        ui->progressBar->setRange(0, 100);
+        int percent = static_cast<int>(bytesSent * 100 / bytesTotal);
+        ui->progressBar->setValue(percent);
+
+        QString sent, total;
+        if (bytesTotal >= 1024 * 1024) {
+            sent  = QString::number(bytesSent / (1024.0 * 1024.0), 'f', 1) + " MB";
+            total = QString::number(bytesTotal / (1024.0 * 1024.0), 'f', 1) + " MB";
+        } else {
+            sent  = QString::number(bytesSent / 1024.0, 'f', 0) + " KB";
+            total = QString::number(bytesTotal / 1024.0, 'f', 0) + " KB";
+        }
+        ui->statusLabel->setText(tr("Uploading... (%1 / %2)").arg(sent, total));
+    }
+}
+
+void ShareDialog::onUploadFinished(const QString& shareUrl)
+{
+    m_uploadInProgress = false;
+    cleanupTempFile();
+
+    ui->progressBar->setRange(0, 100);
+    ui->progressBar->setValue(100);
+    ui->statusLabel->setText(tr("Upload complete. Share this link with the recipient:"));
+
+    ui->urlEdit->setText(shareUrl);
+    ui->urlEdit->setVisible(true);
+    ui->urlEdit->selectAll();
+    ui->copyLinkButton->setVisible(true);
+    ui->shareButton->setVisible(false);
     ui->closeButton->setEnabled(true);
-    ui->profileCombo->setEnabled(true);
-    ui->rangeCombo->setEnabled(true);
-    ui->browseButton->setEnabled(true);
-    ui->filenameEdit->setEnabled(true);
 }
 
-void ShareDialog::restoreSettings()
+void ShareDialog::onUploadFailed(const QString& error)
 {
-    QSettings s;
-    s.beginGroup("ShareDialog");
-    const QString lastDir = s.value("lastOutputDir").toString();
-    s.endGroup();
+    m_uploadInProgress = false;
+    cleanupTempFile();
 
-    if (!lastDir.isEmpty() && QDir(lastDir).exists()) {
-        ui->outputDirEdit->setText(lastDir);
-        updateFilenamePreview();
+    ui->progressBar->setRange(0, 100);
+    ui->progressBar->setValue(0);
+    ui->statusLabel->setText(tr("Upload failed."));
+
+    QMessageBox::warning(this, tr("Upload Failed"), error);
+
+    setUiLocked(false);
+    updateShareButtonState();
+}
+
+void ShareDialog::onCopyLinkClicked()
+{
+    QApplication::clipboard()->setText(ui->urlEdit->text());
+    ui->statusLabel->setText(tr("Link copied to clipboard."));
+}
+
+void ShareDialog::onOpenFolderClicked()
+{
+    if (!m_lastFilePath.isEmpty()) {
+        QDesktopServices::openUrl(
+            QUrl::fromLocalFile(QFileInfo(m_lastFilePath).absolutePath()));
     }
-}
-
-void ShareDialog::saveSettings()
-{
-    QSettings s;
-    s.beginGroup("ShareDialog");
-    s.setValue("lastOutputDir", ui->outputDirEdit->text());
-    s.endGroup();
-}
-
-QDate ShareDialog::getFirstDataDate() const
-{
-    QDate first = QDate::currentDate();
-
-    int idx = ui->profileCombo->currentIndex();
-    if (idx >= 0 && idx < m_profileIds.size()) {
-        qint64 pid = m_profileIds[idx];
-        QSqlQuery q(DatabaseManager::instance().database());
-        q.prepare(QStringLiteral(
-            "SELECT MIN(DATE(start_time/1000 - 43200, 'unixepoch', 'localtime')) "
-            "FROM sessions "
-            "WHERE machine_id IN (SELECT id FROM machines WHERE profile_id = :pid)"));
-        q.bindValue(QStringLiteral(":pid"), pid);
-        if (q.exec() && q.next() && !q.value(0).isNull()) {
-            QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
-            if (d.isValid()) first = d;
-        }
-    }
-    return first;
-}
-
-QDate ShareDialog::getLastDataDate() const
-{
-    QDate last = QDate::currentDate();
-
-    int idx = ui->profileCombo->currentIndex();
-    if (idx >= 0 && idx < m_profileIds.size()) {
-        qint64 pid = m_profileIds[idx];
-        QSqlQuery q(DatabaseManager::instance().database());
-        q.prepare(QStringLiteral(
-            "SELECT MAX(DATE(start_time/1000 - 43200, 'unixepoch', 'localtime')) "
-            "FROM sessions "
-            "WHERE machine_id IN (SELECT id FROM machines WHERE profile_id = :pid)"));
-        q.bindValue(QStringLiteral(":pid"), pid);
-        if (q.exec() && q.next() && !q.value(0).isNull()) {
-            QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
-            if (d.isValid()) last = d;
-        }
-    }
-    return last;
 }

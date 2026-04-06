@@ -40,6 +40,8 @@ DropboxUploader::DropboxUploader(QObject* parent)
     config.clientId = QLatin1String(DROPBOX_APP_KEY);
     // Dropbox scopes for app folder access + sharing.
     config.scope = QStringLiteral("files.content.write sharing.write");
+    // Dropbox-specific: request offline access (returns a refresh token).
+    config.extraAuthParams[QStringLiteral("token_access_type")] = QStringLiteral("offline");
 
     m_oauth = new OAuth2Handler(config, this);
     m_oauth->loadTokens(QLatin1String(PROVIDER_KEY));
