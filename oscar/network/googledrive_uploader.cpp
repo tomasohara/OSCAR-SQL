@@ -11,16 +11,20 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QUrlQuery>
 #include <QDebug>
 
 // Google OAuth2 and Drive API endpoints.
 static const QUrl AUTH_URL(QStringLiteral("https://accounts.google.com/o/oauth2/v2/auth"));
 static const QUrl TOKEN_URL(QStringLiteral("https://oauth2.googleapis.com/token"));
+// Folder / file metadata endpoint.
+static const QUrl FILES_URL(QStringLiteral("https://www.googleapis.com/drive/v3/files"));
 // Resumable upload: metadata + content type declared upfront, file sent in follow-up PUT.
 static const QUrl UPLOAD_INITIATE_URL(QStringLiteral(
     "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable"));
@@ -30,6 +34,8 @@ static const QString PERMISSIONS_URL_TEMPLATE(QStringLiteral(
 // Shareable link template: %1 is the fileId.
 static const QString SHARE_URL_TEMPLATE(QStringLiteral(
     "https://drive.google.com/file/d/%1/view?usp=sharing"));
+// Name of the Drive folder where shared profiles are stored.
+static const QString SHARE_FOLDER_NAME(QStringLiteral("OSCAR Shared Profiles"));
 
 // ---------------------------------------------------------------------------
 //  Construction / destruction
@@ -117,7 +123,7 @@ void GoogleDriveUploader::startUpload()
     }
 
     if (m_oauth->hasValidToken()) {
-        doUpload();
+        findOrCreateFolder();
     } else if (m_oauth->hasRefreshToken()) {
         m_pendingUpload = true;
         m_oauth->refreshToken();
@@ -147,7 +153,7 @@ void GoogleDriveUploader::onAuthenticated(const QString& accessToken)
 
     if (m_pendingUpload) {
         m_pendingUpload = false;
-        doUpload();
+        findOrCreateFolder();
     }
 }
 
@@ -156,6 +162,129 @@ void GoogleDriveUploader::onAuthFailed(const QString& error)
     m_pendingUpload = false;
     emit authComplete(false);
     emit uploadFailed(tr("Google authentication failed: %1").arg(error));
+}
+
+// ---------------------------------------------------------------------------
+//  Upload — step 0a: search for the destination folder
+// ---------------------------------------------------------------------------
+
+void GoogleDriveUploader::findOrCreateFolder()
+{
+    // If we already resolved the folder ID this session, skip the search.
+    if (!m_folderId.isEmpty()) {
+        doUpload();
+        return;
+    }
+
+    // Search for an existing app-created folder with the target name.
+    // Use QUrlQuery so the q parameter is percent-encoded correctly
+    // (the folder name contains spaces, and the query uses = and / characters).
+    QUrl url(FILES_URL);
+    QUrlQuery query;
+    query.addQueryItem(QStringLiteral("q"),
+        QStringLiteral("name='%1' and mimeType='application/vnd.google-apps.folder' and trashed=false")
+            .arg(SHARE_FOLDER_NAME));
+    query.addQueryItem(QStringLiteral("fields"),   QStringLiteral("files(id)"));
+    query.addQueryItem(QStringLiteral("pageSize"), QStringLiteral("1"));
+    url.setQuery(query);
+    QNetworkRequest request(url);
+    request.setRawHeader("Authorization",
+        QStringLiteral("Bearer %1").arg(m_oauth->accessToken()).toUtf8());
+
+    qDebug() << "GoogleDriveUploader: searching for folder" << SHARE_FOLDER_NAME;
+
+    m_reply = m_nam->get(request);
+    connect(m_reply, &QNetworkReply::finished,
+            this,    &GoogleDriveUploader::onFolderSearchFinished);
+}
+
+void GoogleDriveUploader::onFolderSearchFinished()
+{
+    if (!m_reply) return;
+
+    QByteArray body = m_reply->readAll();
+    int httpStatus = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    m_reply->deleteLater();
+    m_reply = nullptr;
+
+    if (m_aborted) {
+        emit uploadFailed(tr("Upload was cancelled."));
+        return;
+    }
+
+    if (httpStatus != 200) {
+        emit uploadFailed(tr("Google Drive folder search failed (HTTP %1).").arg(httpStatus));
+        return;
+    }
+
+    QJsonDocument doc = QJsonDocument::fromJson(body);
+    QJsonArray files = doc.object().value(QStringLiteral("files")).toArray();
+
+    if (!files.isEmpty()) {
+        // Folder already exists — use its ID.
+        m_folderId = files.first().toObject().value(QStringLiteral("id")).toString();
+        qDebug() << "GoogleDriveUploader: found folder, id =" << m_folderId;
+        doUpload();
+    } else {
+        // Folder does not exist — create it.
+        createFolder();
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  Upload — step 0b: create the destination folder
+// ---------------------------------------------------------------------------
+
+void GoogleDriveUploader::createFolder()
+{
+    QJsonObject metadata;
+    metadata[QStringLiteral("name")]     = SHARE_FOLDER_NAME;
+    metadata[QStringLiteral("mimeType")] = QStringLiteral("application/vnd.google-apps.folder");
+    QByteArray jsonBody = QJsonDocument(metadata).toJson(QJsonDocument::Compact);
+
+    QNetworkRequest request(FILES_URL);
+    request.setRawHeader("Authorization",
+        QStringLiteral("Bearer %1").arg(m_oauth->accessToken()).toUtf8());
+    request.setHeader(QNetworkRequest::ContentTypeHeader,
+        QStringLiteral("application/json"));
+
+    qDebug() << "GoogleDriveUploader: creating folder" << SHARE_FOLDER_NAME;
+
+    m_reply = m_nam->post(request, jsonBody);
+    connect(m_reply, &QNetworkReply::finished,
+            this,    &GoogleDriveUploader::onFolderCreateFinished);
+}
+
+void GoogleDriveUploader::onFolderCreateFinished()
+{
+    if (!m_reply) return;
+
+    QByteArray body = m_reply->readAll();
+    int httpStatus = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    m_reply->deleteLater();
+    m_reply = nullptr;
+
+    if (m_aborted) {
+        emit uploadFailed(tr("Upload was cancelled."));
+        return;
+    }
+
+    if (httpStatus != 200 && httpStatus != 201) {
+        emit uploadFailed(
+            tr("Google Drive folder creation failed (HTTP %1).").arg(httpStatus));
+        return;
+    }
+
+    m_folderId = QJsonDocument::fromJson(body).object()
+                     .value(QStringLiteral("id")).toString();
+
+    if (m_folderId.isEmpty()) {
+        emit uploadFailed(tr("Google Drive folder was created but returned no ID."));
+        return;
+    }
+
+    qDebug() << "GoogleDriveUploader: created folder, id =" << m_folderId;
+    doUpload();
 }
 
 // ---------------------------------------------------------------------------
@@ -170,9 +299,12 @@ void GoogleDriveUploader::doUpload()
         return;
     }
 
-    // Build the file metadata JSON — Drive will use this as the file name.
+    // Build the file metadata JSON — Drive uses this for the file name and location.
     QJsonObject metadata;
     metadata[QStringLiteral("name")] = fi.fileName();
+    if (!m_folderId.isEmpty()) {
+        metadata[QStringLiteral("parents")] = QJsonArray{ m_folderId };
+    }
     QByteArray metadataJson = QJsonDocument(metadata).toJson(QJsonDocument::Compact);
 
     QNetworkRequest request(UPLOAD_INITIATE_URL);

@@ -90,11 +90,15 @@ signals:
 private slots:
     void onAuthenticated(const QString& accessToken);
     void onAuthFailed(const QString& error);
+    void onFolderSearchFinished();
+    void onFolderCreateFinished();
     void onInitiateReplyFinished();
     void onUploadReplyFinished();
     void onPermissionReplyFinished();
 
 private:
+    void findOrCreateFolder();
+    void createFolder();
     void doUpload();
     void uploadToSession(const QUrl& sessionUri);
     void createPermission(const QString& fileId);
@@ -119,6 +123,7 @@ private:
     QFile*                  m_file          = nullptr;
     QString                 m_filePath;
     QString                 m_shareUrl;
+    QString                 m_folderId;     ///< Cached Drive folder ID; resolved once per session.
     bool                    m_pendingUpload = false;
     bool                    m_aborted       = false;
 };
