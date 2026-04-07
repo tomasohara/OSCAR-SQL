@@ -120,6 +120,9 @@ private:
      */
     void applyDateRange(const QString& rangeText);
 
+    /*! \brief Build the share filename from the current profile and date range. */
+    QString buildShareFilename() const;
+
     /*! \brief Rebuild filenameEdit from the current profile and date range. */
     void updateFilenamePreview();
 

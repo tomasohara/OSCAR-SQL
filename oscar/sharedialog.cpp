@@ -33,7 +33,6 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QStandardPaths>
-#include <QTemporaryFile>
 #include <QTextCharFormat>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -121,6 +120,10 @@ void ShareDialog::populateProfiles()
 
 void ShareDialog::populateDestinations()
 {
+    // Block signals while adding items so the currentIndexChanged slot doesn't
+    // fire (and call saveSettings()) before restoreSettings() has run.
+    ui->destinationCombo->blockSignals(true);
+
     // Order matters — index must match the stacked widget page order.
     // Page 0 = File, Page 1 = Dropbox, Page 2 = Google Drive, Page 3 = OneDrive.
     ui->destinationCombo->addItem(tr("File (save to disk)"),
@@ -134,6 +137,8 @@ void ShareDialog::populateDestinations()
     // ui->destinationCombo->addItem(tr("0x0.st (temporary anonymous hosting)"),
     //     static_cast<int>(ShareDestination::ZeroX0));
     //  ^ Commented out: 0x0.st is currently not accepting new uploads.
+
+    ui->destinationCombo->blockSignals(false);
 
     updateDestinationUi();
 }
@@ -179,6 +184,25 @@ void ShareDialog::applyDateRange(const QString& rangeText)
 //  Filename preview
 // ---------------------------------------------------------------------------
 
+QString ShareDialog::buildShareFilename() const
+{
+    const int idx = ui->profileCombo->currentIndex();
+    if (idx < 0 || idx >= m_profileIds.size()) return QString();
+
+    // Privacy always on — use "p<id>" as the name portion.
+    const QString namePart = QString("p%1").arg(m_profileIds[idx]);
+
+    // Simplify always on — use start date + day count.
+    const QDate start = ui->fromDate->date();
+    const QDate end   = ui->toDate->date();
+    const int count   = start.daysTo(end) + 1;
+
+    return QString("share_%1_%2_%3.oscar")
+               .arg(namePart,
+                    start.toString(QStringLiteral("yyyyMMdd")),
+                    QString::number(count));
+}
+
 void ShareDialog::updateFilenamePreview()
 {
     // Only relevant for File destination.
@@ -196,26 +220,13 @@ void ShareDialog::updateFilenamePreview()
         return;
     }
 
-    const int idx = ui->profileCombo->currentIndex();
-    if (idx < 0 || idx >= m_profileIds.size()) {
+    const QString filename = buildShareFilename();
+    if (filename.isEmpty()) {
         ui->filenameEdit->clear();
         ui->filenameEdit->setPlaceholderText(tr("(no profile selected)"));
         ui->filenameEdit->setEnabled(false);
         return;
     }
-
-    // Privacy always on — use "p<id>" as the name portion.
-    const QString namePart = QString("p%1").arg(m_profileIds[idx]);
-
-    // Simplify always on — use start date + day count.
-    const QDate start = ui->fromDate->date();
-    const QDate end   = ui->toDate->date();
-    const int count   = start.daysTo(end) + 1;
-
-    QString filename = QString("share_%1_%2_%3.oscar")
-                           .arg(namePart,
-                                start.toString(QStringLiteral("yyyyMMdd")),
-                                QString::number(count));
 
     ui->filenameEdit->setText(filename);
     ui->filenameEdit->setEnabled(true);
@@ -559,25 +570,15 @@ void ShareDialog::on_shareButton_clicked()
             backup->setFilename(filename);
         }
     } else {
-        // Temporary file for cloud upload — write to temp dir.
-        // Use QTemporaryFile to generate a unique name, then let ProfileBackup
-        // write to that path (ProfileBackup creates its own file handle).
-        QTemporaryFile tmpNameFile(QDir::tempPath() + "/oscar_share_XXXXXX.oscar");
-        tmpNameFile.setAutoRemove(false);
-        if (!tmpNameFile.open()) {
-            QMessageBox::critical(this, tr("Share Profile"),
-                tr("Could not create a temporary file for upload."));
-            setUiLocked(false);
-            ui->progressBar->setVisible(false);
-            return;
-        }
-        m_tempFilePath = tmpNameFile.fileName();
-        tmpNameFile.close();
-        // Remove the placeholder so ProfileBackup can write to it cleanly.
+        // Temporary file for cloud upload — use the same meaningful filename
+        // as the File destination so the name in Dropbox etc. is readable.
+        const QString filename = buildShareFilename();
+        m_tempFilePath = QDir::tempPath() + "/" + filename;
+        // Remove any leftover file at this path before writing.
         QFile::remove(m_tempFilePath);
 
         backup->setOutputPath(QDir::tempPath());
-        backup->setFilename(QFileInfo(m_tempFilePath).fileName());
+        backup->setFilename(filename);
     }
 
     backup->setPrivacyMode(true);
