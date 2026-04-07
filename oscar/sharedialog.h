@@ -20,6 +20,7 @@
 #include <QDialog>
 
 class DropboxUploader;
+class GoogleDriveUploader;
 
 namespace Ui {
 class ShareDialog;
@@ -82,6 +83,12 @@ private slots:
 
     /*! \brief Handle Dropbox auth result. */
     void onDropboxAuthComplete(bool success);
+
+    /*! \brief Toggle Google Drive sign in / sign out. */
+    void onGoogleDriveAuthButtonClicked();
+
+    /*! \brief Handle Google Drive auth result. */
+    void onGoogleDriveAuthComplete(bool success);
 
     /*! \brief Copy the share URL to the clipboard. */
     void onCopyLinkClicked();
@@ -165,13 +172,14 @@ private:
     /*! \brief Delete the temp file if one was created for a cloud upload. */
     void cleanupTempFile();
 
-    Ui::ShareDialog*  ui;
-    QList<qint64>     m_profileIds;            ///< DB IDs parallel to profileCombo.
-    DropboxUploader*  m_dropboxUploader = nullptr;
-    QString           m_tempFilePath;           ///< Temp .oscar file for cloud uploads.
-    QString           m_lastFilePath;           ///< Path of last file created (for open folder).
-    bool              m_warningAcknowledged = false;  ///< True once the sharing warning is accepted.
-    bool              m_uploadInProgress    = false;
+    Ui::ShareDialog*      ui;
+    QList<qint64>         m_profileIds;                    ///< DB IDs parallel to profileCombo.
+    DropboxUploader*      m_dropboxUploader     = nullptr;
+    GoogleDriveUploader*  m_googleDriveUploader = nullptr;
+    QString               m_tempFilePath;                  ///< Temp .oscar file for cloud uploads.
+    QString               m_lastFilePath;                  ///< Path of last file created (for open folder).
+    bool                  m_warningAcknowledged = false;   ///< True once the sharing warning is accepted.
+    bool                  m_uploadInProgress    = false;
 };
 
 #endif // SHAREDIALOG_H

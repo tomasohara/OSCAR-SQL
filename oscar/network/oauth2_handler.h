@@ -43,6 +43,7 @@ public:
         QUrl    authUrl;       ///< Authorization endpoint.
         QUrl    tokenUrl;      ///< Token exchange endpoint.
         QString clientId;      ///< Application client ID.
+        QString clientSecret;  ///< Client secret (required by some providers, e.g. Google, even for native apps).
         QString scope;         ///< Requested scopes (space-separated).
         quint16 redirectPort = 17178;  ///< Fixed local port for redirect callback.
         QMap<QString, QString> extraAuthParams;  ///< Provider-specific authorization query parameters.

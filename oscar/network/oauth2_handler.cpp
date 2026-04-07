@@ -198,6 +198,9 @@ void OAuth2Handler::exchangeCodeForToken(const QString& authCode)
     postData.addQueryItem(QStringLiteral("grant_type"), QStringLiteral("authorization_code"));
     postData.addQueryItem(QStringLiteral("code"), authCode);
     postData.addQueryItem(QStringLiteral("client_id"), m_config.clientId);
+    if (!m_config.clientSecret.isEmpty()) {
+        postData.addQueryItem(QStringLiteral("client_secret"), m_config.clientSecret);
+    }
     postData.addQueryItem(QStringLiteral("code_verifier"), m_codeVerifier);
     postData.addQueryItem(QStringLiteral("redirect_uri"), m_redirectUri);
 
@@ -267,6 +270,9 @@ void OAuth2Handler::refreshToken()
     postData.addQueryItem(QStringLiteral("grant_type"), QStringLiteral("refresh_token"));
     postData.addQueryItem(QStringLiteral("refresh_token"), m_refreshToken);
     postData.addQueryItem(QStringLiteral("client_id"), m_config.clientId);
+    if (!m_config.clientSecret.isEmpty()) {
+        postData.addQueryItem(QStringLiteral("client_secret"), m_config.clientSecret);
+    }
 
     QNetworkRequest request(m_config.tokenUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader,

@@ -10,6 +10,7 @@
 #include "ui_sharedialog.h"
 #include "translation.h"
 #include "network/dropbox_uploader.h"
+#include "network/googledrive_uploader.h"
 
 #include <QApplication>
 #include <QCalendarWidget>
@@ -53,7 +54,8 @@ ShareDialog::ShareDialog(QWidget* parent)
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-    m_dropboxUploader = new DropboxUploader(this);
+    m_dropboxUploader     = new DropboxUploader(this);
+    m_googleDriveUploader = new GoogleDriveUploader(this);
 
     setupCalendarFormatting();
     populateProfiles();
@@ -70,18 +72,24 @@ ShareDialog::ShareDialog(QWidget* parent)
     connect(ui->closeButton,     &QPushButton::clicked,  this, &QDialog::reject);
     connect(ui->copyLinkButton,  &QPushButton::clicked,  this, &ShareDialog::onCopyLinkClicked);
     connect(ui->openFolderButton,&QPushButton::clicked,  this, &ShareDialog::onOpenFolderClicked);
-    connect(ui->dropboxAuthButton, &QPushButton::clicked,this, &ShareDialog::onDropboxAuthButtonClicked);
+    connect(ui->dropboxAuthButton, &QPushButton::clicked,
+            this, &ShareDialog::onDropboxAuthButtonClicked);
+    connect(ui->googleDriveAuthButton, &QPushButton::clicked,
+            this, &ShareDialog::onGoogleDriveAuthButtonClicked);
 
     connect(m_dropboxUploader, &DropboxUploader::authComplete,
             this,              &ShareDialog::onDropboxAuthComplete);
+    connect(m_googleDriveUploader, &GoogleDriveUploader::authComplete,
+            this,                  &ShareDialog::onGoogleDriveAuthComplete);
 
     restoreSettings();
 }
 
 ShareDialog::~ShareDialog()
 {
-    if (m_uploadInProgress && m_dropboxUploader) {
-        m_dropboxUploader->abort();
+    if (m_uploadInProgress) {
+        if (m_dropboxUploader)     m_dropboxUploader->abort();
+        if (m_googleDriveUploader) m_googleDriveUploader->abort();
     }
     cleanupTempFile();
     delete ui;
@@ -130,7 +138,7 @@ void ShareDialog::populateDestinations()
         static_cast<int>(ShareDestination::File));
     ui->destinationCombo->addItem(tr("Dropbox"),
         static_cast<int>(ShareDestination::Dropbox));
-    ui->destinationCombo->addItem(tr("Google Drive (coming soon)"),
+    ui->destinationCombo->addItem(tr("Google Drive"),
         static_cast<int>(ShareDestination::GoogleDrive));
     ui->destinationCombo->addItem(tr("OneDrive (coming soon)"),
         static_cast<int>(ShareDestination::OneDrive));
@@ -260,6 +268,14 @@ void ShareDialog::updateDestinationUi()
         break;
     case ShareDestination::GoogleDrive:
         ui->destinationStack->setCurrentIndex(2);
+        if (m_googleDriveUploader->isAuthenticated()) {
+            ui->googleDriveAuthButton->setText(tr("Sign Out"));
+            ui->googleDriveStatusLabel->setText(tr("Signed in to Google Drive."));
+        } else {
+            ui->googleDriveAuthButton->setText(tr("Sign In..."));
+            ui->googleDriveStatusLabel->setText(
+                tr("Sign in to Google Drive to upload and create a share link."));
+        }
         break;
     case ShareDestination::OneDrive:
         ui->destinationStack->setCurrentIndex(3);
@@ -287,6 +303,9 @@ void ShareDialog::updateShareButtonState()
         ui->shareButton->setEnabled(m_dropboxUploader->isAuthenticated());
         break;
     case ShareDestination::GoogleDrive:
+        ui->shareButton->setText(tr("Share"));
+        ui->shareButton->setEnabled(m_googleDriveUploader->isAuthenticated());
+        break;
     case ShareDestination::OneDrive:
         ui->shareButton->setText(tr("Share"));
         ui->shareButton->setEnabled(false);
@@ -423,6 +442,7 @@ void ShareDialog::setUiLocked(bool locked)
     ui->shareButton->setEnabled(!locked);
     ui->browseButton->setEnabled(!locked);
     ui->dropboxAuthButton->setEnabled(!locked);
+    ui->googleDriveAuthButton->setEnabled(!locked);
     ui->closeButton->setEnabled(!locked);
 
     // filenameEdit is only editable for File destination when not locked.
@@ -480,8 +500,16 @@ void ShareDialog::startCloudUpload(const QString& filePath)
                 this, &ShareDialog::onUploadFailed, Qt::UniqueConnection);
         m_dropboxUploader->startUpload();
         break;
-    // case ShareDestination::GoogleDrive:
-    //     (future implementation)
+    case ShareDestination::GoogleDrive:
+        m_googleDriveUploader->setFilePath(filePath);
+        connect(m_googleDriveUploader, &GoogleDriveUploader::uploadProgress,
+                this, &ShareDialog::onUploadProgress, Qt::UniqueConnection);
+        connect(m_googleDriveUploader, &GoogleDriveUploader::uploadFinished,
+                this, &ShareDialog::onUploadFinished, Qt::UniqueConnection);
+        connect(m_googleDriveUploader, &GoogleDriveUploader::uploadFailed,
+                this, &ShareDialog::onUploadFailed, Qt::UniqueConnection);
+        m_googleDriveUploader->startUpload();
+        break;
     // case ShareDestination::OneDrive:
     //     (future implementation)
     default:
@@ -692,7 +720,9 @@ void ShareDialog::onUploadFinished(const QString& shareUrl)
 
     ui->progressBar->setRange(0, 100);
     ui->progressBar->setValue(100);
-    ui->statusLabel->setText(tr("Upload complete. Share this link with the recipient:"));
+
+    QApplication::clipboard()->setText(shareUrl);
+    ui->statusLabel->setText(tr("Upload complete. Link copied to clipboard."));
 
     ui->urlEdit->setText(shareUrl);
     ui->urlEdit->setVisible(true);
@@ -729,4 +759,27 @@ void ShareDialog::onOpenFolderClicked()
         QDesktopServices::openUrl(
             QUrl::fromLocalFile(QFileInfo(m_lastFilePath).absolutePath()));
     }
+}
+
+void ShareDialog::onGoogleDriveAuthButtonClicked()
+{
+    if (m_googleDriveUploader->isAuthenticated()) {
+        m_googleDriveUploader->signOut();
+        updateDestinationUi();
+    } else {
+        ui->googleDriveStatusLabel->setText(tr("Opening browser for sign in..."));
+        ui->googleDriveAuthButton->setEnabled(false);
+        m_googleDriveUploader->authenticate();
+    }
+}
+
+void ShareDialog::onGoogleDriveAuthComplete(bool success)
+{
+    ui->googleDriveAuthButton->setEnabled(true);
+    if (success) {
+        ui->googleDriveStatusLabel->setText(tr("Signed in to Google Drive."));
+    } else {
+        ui->googleDriveStatusLabel->setText(tr("Google Drive sign in failed."));
+    }
+    updateDestinationUi();
 }
