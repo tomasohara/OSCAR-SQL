@@ -1450,7 +1450,7 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
             }
             if ( (lastOn >= 0) && (lastOff >= 0) ) {
                 if ((R.maskon[lastOn] > 0) && (R.maskoff[lastOff] == 0)) {
-                    R.maskoff[lastOff] = QDateTime(date,QTime(12,0,0), EDFInfo::localNoDST).addDays(1).toSecsSinceEpoch() - 1;
+                    R.maskoff[lastOff] = QDateTime(date.addDays(1), QTime(12,0,0), EDFInfo::localNoDST).toSecsSinceEpoch() - 1;
                 }
             }
 

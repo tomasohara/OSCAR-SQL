@@ -1898,8 +1898,8 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
         // Build the session link.  Use the IDX calendar date (not the waveform
         // timestamp date) to avoid duplicate imports when recordings cross midnight.
         BmcDataLink link;
-        link.UsrSession.StartTimestamp  = QDateTime(dayEntry.Date, QTime(12, 0, 0));
-        link.UsrSession.EndTimestamp    = link.UsrSession.StartTimestamp.addDays(1).addSecs(-1);
+        link.UsrSession.StartTimestamp  = QDateTime(dayEntry.Date, QTime(12, 0, 0), Qt::LocalTime);
+        link.UsrSession.EndTimestamp    = QDateTime(dayEntry.Date.addDays(1), QTime(12, 0, 0), Qt::LocalTime).addSecs(-1);
         const qint64 durationMinutes    = std::max<qint64>(1,
             dayEntry.StartTimestamp.secsTo(dayEntry.EndTimestamp) / 60);
         link.UsrSession.DurationMinutes = static_cast<int>(durationMinutes);

@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-08 - DST timestamp fixes from codebase audit
+
+**Files:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp`, `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp`, `oscar/SleepLib/loader_plugins/resmed_loader.cpp`, `oscar/SleepLib/machine.cpp`
+
+**Findings (audit 2026-04-08):**
+
+1. **bmcDataParsing.cpp:24** (`DecodeDate`) — `QDateTime(date, QTime(12,0,0))` had no explicit timezone; added `Qt::LocalTime`.
+2. **resmed_loader.cpp:1453** — Mask-off end time used `QDateTime::addDays(1)` (adds exactly 86 400 s); on spring-forward night this overshoots into the next OSCAR day. Fixed by using `QDate::addDays(1)` then reconstructing the QDateTime with `EDFInfo::localNoDST`.
+3. **machine.cpp:373, 275** — `AddSession` and `pickDate` compared `QTime time` against `split_time`; during fall-back the same local time appears twice and cannot be disambiguated. Replaced with epoch comparison: `s->first() < QDateTime(d2.date(), split_time, Qt::LocalTime).toMSecsSinceEpoch()`. Removed now-unused `QTime time` local variable; surviving reference at line 385 replaced with `d2.time()`.
+4. **bmcDataParsing.cpp:69, 126** — In-progress and historic session `EndTimestamp` used `StartTimestamp.addDays(1)` (adds 86 400 s). Fixed with `QDate::addDays(1)` then reconstruct preserving same time-of-day and timeSpec.
+5. **bmcG3xDataParsing.cpp:1902** — Same `addDays(1).addSecs(-1)` pattern on QDateTime. Fixed using `QDate::addDays(1)` then construct noon on next date minus 1 s. Also added explicit `Qt::LocalTime` to StartTimestamp construction.
+
+**Root cause (all):** `QDateTime::addDays(N)` adds exactly N×86 400 seconds; on DST transition nights the local noon-to-noon window is 82 800 s (spring-forward) or 90 000 s (fall-back), so the computed boundary falls in the wrong OSCAR day. `QDate::addDays(N)` performs calendar arithmetic and is DST-safe.
+
+---
+
 ## 2026-04-08 - Crash/stale-pointer fixes from codebase audit
 
 **Files:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp`, `oscar/SleepLib/deviceconnection.cpp`, `oscar/statistics.cpp`

@@ -21,7 +21,7 @@ QDateTime BmcEncodedDate::DecodeDate(quint16 encodedDate)
     year += 2000;
     int month = (encodedDate >> 5) & 0x0f;
     int day = encodedDate & 0x1f;
-    return QDateTime(QDate(year, month, day), QTime(12, 0, 0));
+    return QDateTime(QDate(year, month, day), QTime(12, 0, 0), Qt::LocalTime);
 }
 
 
@@ -66,7 +66,8 @@ void BmcUsrSession::ReadInProgressSession(QDataStream* strm)
     strm->device()->seek(0x431);
     *strm >> tmp16;
     this->StartTimestamp = BmcEncodedDate::DecodeDate(tmp16);
-    this->EndTimestamp = this->StartTimestamp.addDays(1);
+    this->EndTimestamp = QDateTime(this->StartTimestamp.date().addDays(1),
+                                   this->StartTimestamp.time(), this->StartTimestamp.timeSpec());
     strm->device()->seek(0x441);
 
     while (true)
@@ -122,7 +123,8 @@ void BmcUsrSession::ReadHistoricSession(QDataStream* strm)
 
     *strm >> tmp16;
     this->StartTimestamp = BmcEncodedDate::DecodeDate(tmp16);
-    this->EndTimestamp = this->StartTimestamp.addDays(1);
+    this->EndTimestamp = QDateTime(this->StartTimestamp.date().addDays(1),
+                                   this->StartTimestamp.time(), this->StartTimestamp.timeSpec());
 
     strm->device()->seek(0x0f);
     *strm >> tmp16;

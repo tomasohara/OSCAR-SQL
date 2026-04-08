@@ -268,11 +268,11 @@ QDate Machine::pickDate(qint64 first)
     QDateTime d2 = QDateTime::fromSecsSinceEpoch(first / 1000);
 
     QDate date = d2.date();
-    QTime time = d2.time();
 
     int closest_session = 0;
 
-    if (time < split_time) {
+    qint64 splitEpoch = QDateTime(d2.date(), split_time, Qt::LocalTime).toMSecsSinceEpoch();
+    if (first < splitEpoch) {
         date = date.addDays(-1);
     } else if (combine_sessions > 0) {
         QMap<QDate, Day *>::iterator dit = day.find(date.addDays(-1)); // Check Day Before
@@ -360,7 +360,6 @@ bool Machine::AddSession(Session *s, bool allowOldSessions)
     QDateTime d2 = QDateTime::fromSecsSinceEpoch(s->first() / 1000);
 
     QDate date = d2.date();
-    QTime time = d2.time();
 
     QMap<QDate, Day *>::iterator dit, nextday;
 
@@ -370,7 +369,8 @@ bool Machine::AddSession(Session *s, bool allowOldSessions)
 
     // Multithreaded import screws this up. :(
 
-    if (time < split_time) {
+    qint64 splitEpoch = QDateTime(d2.date(), split_time, Qt::LocalTime).toMSecsSinceEpoch();
+    if (s->first() < splitEpoch) {
         date = date.addDays(-1);
     } else if (combine_sessions > 0) {
         dit = day.find(date.addDays(-1)); // Check Day Before
@@ -382,7 +382,7 @@ bool Machine::AddSession(Session *s, bool allowOldSessions)
             if (closest_session < combine_sessions) {
                 date = date.addDays(-1);
             } else {
-                if ((split_time < time) && (split_time.secsTo(time) < 2)) {
+                if ((split_time < d2.time()) && (split_time.secsTo(d2.time()) < 2)) {
                     if (s->machine()->loaderName() == STR_MACH_ResMed) {
                         date = date.addDays(-1);
                     }
