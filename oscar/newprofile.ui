@@ -317,7 +317,7 @@
            <item>
             <widget class="QLabel" name="userPageInstructions">
              <property name="text">
-              <string>Profile Name is required and may be any valid file name. The profile name may be displayed and should meet any security and/or privacy concerns you may have. You can change the profile name at any time. Password protection is weak and not recommended.</string>
+              <string>Profile Name is required and may be any valid file name. &lt;font color=&quot;red&quot;&gt;For privacy, we recommend you not use your real name as the profile name.&lt;/font&gt; You can change the profile name at any time. Password protection is weak and not recommended.</string>
              </property>
              <property name="textFormat">
               <enum>Qt::RichText</enum>
