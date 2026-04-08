@@ -1437,7 +1437,7 @@ QString Statistics::GenerateCPAPUsage()
         StatisticsRow &row = (*i);
         QString name;
 
-        if (row.calc == SC_HEADING) {  // All sections begin with a heading
+        if (row.calc == SC_HEADING && summaryInfo.size() > 0) {  // All sections begin with a heading
             first = summaryInfo.first();
             last = summaryInfo.last();
 

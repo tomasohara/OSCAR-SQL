@@ -564,20 +564,21 @@ BmcDateSession BmcData::ReadDateSession(QDate aDate)
     dateSession.RespiratoryEvents = foundLink->UsrSession.RespiratoryEvents;
     dateSession.Waveforms = ReadWaveforms(*foundLink);
 
-    BmcMachineSettings* foundSettings = NULL;
-    for (auto &msettings : this->AllMachineSettings)
+    BmcMachineSettings foundSettings;
+    bool settingsFound = false;
+    for (const auto &msettings : this->AllMachineSettings)
     {
         if (msettings.Timestamp > foundLink->UsrSession.StartTimestamp.date())
         {
-            foundSettings = &msettings;
+            foundSettings = msettings;
+            settingsFound = true;
             break;
         }
     }
-    BmcMachineSettings defaultSettings;
-    if (foundSettings == NULL)
-        foundSettings = AllMachineSettings.isEmpty() ? &defaultSettings : &(AllMachineSettings.last());
+    if (!settingsFound && !AllMachineSettings.isEmpty())
+        foundSettings = AllMachineSettings.last();
 
-    dateSession.MacineSettings = *foundSettings;
+    dateSession.MacineSettings = foundSettings;
 
 
     //Split the day sessions up by gaps in the waveform longer than 5 seconds
@@ -587,7 +588,8 @@ BmcDateSession BmcData::ReadDateSession(QDate aDate)
     {
         // Only split on forward gaps (machine turned off for ≥5 s). Backward jumps
         // due to DST "fall back" are negative here and must not trigger a split.
-        if (lastPacketTimestamp.isValid() && lastPacketTimestamp.secsTo(packet.Timestamp) >= 5)
+        if (lastPacketTimestamp.isValid() && lastPacketTimestamp.secsTo(packet.Timestamp) >= 5
+            && !session->Waveforms.isEmpty())
         {
             session->StartTimestamp = session->Waveforms.first().Timestamp;
             session->EndTimestamp = lastPacketTimestamp;
@@ -599,7 +601,7 @@ BmcDateSession BmcData::ReadDateSession(QDate aDate)
         lastPacketTimestamp = packet.Timestamp;
     }
 
-    if (lastPacketTimestamp.isValid()){
+    if (lastPacketTimestamp.isValid() && !session->Waveforms.isEmpty()){
         session->StartTimestamp = session->Waveforms.first().Timestamp;
         session->EndTimestamp = lastPacketTimestamp;
         dateSession.Sessions.append(session);

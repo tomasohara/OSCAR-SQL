@@ -423,7 +423,7 @@ public:
     {
         set(name, value);
     }
-    virtual const QString id() const { return m_keys.first(); }
+    virtual const QString id() const { return m_keys.isEmpty() ? QString() : m_keys.first(); }
 };
 REGISTER_XMLREPLAYEVENT("set", SetValueEvent);
 
@@ -435,7 +435,7 @@ public:
     {
         set(id, 0);
     }
-    virtual const QString id() const { return m_keys.first(); }
+    virtual const QString id() const { return m_keys.isEmpty() ? QString() : m_keys.first(); }
     void setValue(qint64 value)
     {
         if (m_keys.isEmpty()) {

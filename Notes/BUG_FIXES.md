@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-08 - Crash/stale-pointer fixes from codebase audit
+
+**Files:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp`, `oscar/SleepLib/deviceconnection.cpp`, `oscar/statistics.cpp`
+
+**Findings (audit 2026-04-08):**
+
+1. **bmcDataParsing.cpp:590** — `session->Waveforms.first()` called when `Waveforms` could be empty on a mid-loop split. Added `&& !session->Waveforms.isEmpty()` guard.
+2. **bmcDataParsing.cpp:603** — Same crash at loop exit; added same guard to the post-loop `if`.
+3. **bmcDataParsing.cpp:567–580** — `foundSettings` stored a raw pointer into `AllMachineSettings` (via `&msettings` in range-for and `&AllMachineSettings.last()`), which is invalidated by container reallocation. Replaced with copy-by-value.
+4. **deviceconnection.cpp:426,438** — `SetValueEvent::id()` and `GetValueEvent::id()` called `m_keys.first()` unconditionally; default constructor leaves `m_keys` empty. Added isEmpty() guard returning `QString()`.
+5. **statistics.cpp:1441** — `summaryInfo.first()/last()` called inside `SC_HEADING` branch with no check for empty; crashes on a profile with zero recorded nights. Added `summaryInfo.size() > 0` guard.
+
+**Fix:** Guards added at each call site; `bmcDataParsing` settings lookup converted from pointer to value.
+
+---
+
 ## 2026-04-05 - Import: Summary-only sessions show AHI/H = 0.00 after import from OSCAR 1.7.1
 
 **Files:** `oscar/SleepLib/session.cpp` (`LoadSummaryFromFile`)
