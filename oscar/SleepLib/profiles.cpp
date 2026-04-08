@@ -839,7 +839,7 @@ void showInGraphicalShell(const QString & pathIn)
     const QString error = QString::fromLocal8Bit(browserProc.readAllStandardError());
     success = success && error.isEmpty();
     if (!success) {
-        QMessageBox::warning(NULL,STR_MessageBox_Error, "Could not find the file browser for your system, you will have to find your profile directory yourself."+"\n\n"+error, QMessageBox::Ok);
+        QMessageBox::warning(NULL,STR_MessageBox_Error, tr("Could not find the file browser for your system, you will have to find your profile directory yourself.")+"\n\n"+error, QMessageBox::Ok);
 //        showGraphicalShellError(parent, app, error);
     }*/
 #endif

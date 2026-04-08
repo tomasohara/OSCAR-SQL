@@ -767,7 +767,7 @@ void ProfileSelector::on_selectionChanged(const QModelIndex &index, const QModel
                 ui->diskSpaceInfo->setText("<a href='hide'>"+tr("Hide disk usage information")+"</a>"+getProfileDiskInfo(prof.value()));
             }
         } else {
-           ui->diskSpaceInfo->setText("Something went wrong");
+           ui->diskSpaceInfo->setText(tr("Something went wrong"));
         }
     }
     ui->buttonOpenProfile->setEnabled(enabled);

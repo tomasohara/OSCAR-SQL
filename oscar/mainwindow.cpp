@@ -551,7 +551,7 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
 
     p_profile = prof;
     ProgressDialog * progress = new ProgressDialog(this);
-    progress->setWindowTitle("Opening " + profileName);
+    progress->setWindowTitle(tr("Opening %1").arg(profileName));
 
     progress->setMessage(QObject::tr("Loading profile \"%1\"...").arg(profileName));
     progress->open();

@@ -155,6 +155,8 @@ void initTranslations()
         QFont font;
         font.setPointSize(12);
         langsel.setFont(font);
+        // Intentionally not tr()-wrapped: this dialog appears before any language is loaded,
+        // so we show the word "Language" in several languages simultaneously.
         langsel.setWindowTitle("Language / Taal / Sprache / Langue / \xe8\xaf\xad\xe8\xa8\x80 / ... ");
         QHBoxLayout lang_layout(&langsel);
 

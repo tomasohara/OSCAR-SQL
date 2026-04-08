@@ -149,7 +149,7 @@ Overview::Overview(QWidget *parent, gGraphView *shared) :
     ///////////////////////////////////////////////////////////////////////////////
     dateLabel = new MyLabel(this);
     dateLabel->setAlignment(Qt::AlignVCenter);
-    dateLabel->setText("[Date Widget]");
+    dateLabel->setText(tr("[Date Widget]"));
     QFont font = dateLabel->font();
     font.setPointSizeF(font.pointSizeF()*1.3F);
     dateLabel->setFont(font);

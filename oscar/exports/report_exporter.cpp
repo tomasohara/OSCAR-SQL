@@ -219,7 +219,7 @@ QWidget* ReportExporter::createRightPanel()
     // Date range
     m_startDateEdit = new QDateEdit(QDate::currentDate().addDays(-1), panel);
     m_startDateEdit->setCalendarPopup(true);
-    m_startDateEdit->setDisplayFormat("MM/dd/yyyy");
+    m_startDateEdit->setDisplayFormat(QLocale().dateFormat(QLocale::ShortFormat));
     m_startDateEdit->setEnabled(false);  // Enabled only for Custom range
     form->addRow(tr("Start Date:"), m_startDateEdit);
 

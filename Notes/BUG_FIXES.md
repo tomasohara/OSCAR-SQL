@@ -4,6 +4,21 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-08 - i18n fixes from codebase audit
+
+**Files:** `oscar/SleepLib/profiles.cpp`, `oscar/mainwindow.cpp`, `oscar/profileselector.cpp`, `oscar/overview.cpp`, `oscar/exports/report_exporter.cpp`, `oscar/translation.cpp`
+
+**Findings (audit 2026-04-08):**
+
+1. **profiles.cpp:842** — `QMessageBox::warning` string not wrapped in `tr()` (inside commented-out block; fixed for if it is re-enabled).
+2. **mainwindow.cpp:554** — `"Opening " + profileName` not translated; changed to `tr("Opening %1").arg(profileName)`.
+3. **profileselector.cpp:770** — `"Something went wrong"` not wrapped in `tr()`.
+4. **overview.cpp:152** — `"[Date Widget]"` placeholder not wrapped in `tr()`.
+5. **report_exporter.cpp:222,228** — Date format hardcoded as `"MM/dd/yyyy"` (US-only); replaced with `QLocale().dateFormat(QLocale::ShortFormat)`.
+6. **translation.cpp:158** — Multi-language window title intentionally not `tr()`-wrapped (dialog appears before any language is loaded); added comment documenting this.
+
+---
+
 ## 2026-04-08 - DST timestamp fixes from codebase audit
 
 **Files:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp`, `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp`, `oscar/SleepLib/loader_plugins/resmed_loader.cpp`, `oscar/SleepLib/machine.cpp`
