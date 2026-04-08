@@ -4,6 +4,25 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-08 - Qt5→Qt6 locale regression in date/time display
+
+**Files:** `oscar/overview.cpp`, `oscar/daily.cpp`, `oscar/Graphs/gGraphView.cpp`
+
+**Symptom:** In Qt6, `QDateTime::toString(format)` uses the C locale, so month/day names (MMM, MMMM, dddd) always appear in English regardless of the user's system locale.
+
+**Findings (audit 2026-04-08):**
+
+1. **overview.cpp:445** — `dt.toString("dd MMM yyyy (dddd)")` — date label on Overview page.
+2. **daily.cpp:2482** — `dt.toString("MMM dd HH:mm:ss.zzz")` — date display on Daily page.
+3. **gGraphView.cpp:885** — `dt.toString("MMM dd yyyy")` — log panel entry.
+4. **gGraphView.cpp:1755,1757** — `st/et.toString("d MMM...")` — date range label (same-year and different-year cases).
+5. **gGraphView.cpp:1771,1773** — `st/et.toString("d MMM...")` — range string with time (same/different year).
+6. **gGraphView.cpp:1785** — `st.toString(tr("d MMM yyyy [ %1 - %2 ]")...)` — single-day range string.
+
+**Fix:** Replaced all `dt.toString(fmt)` calls with `QLocale().toString(dt, fmt)`. `QLocale()` respects the default locale set by `QLocale::setDefault()` in `translation.cpp`.
+
+---
+
 ## 2026-04-08 - i18n fixes from codebase audit
 
 **Files:** `oscar/SleepLib/profiles.cpp`, `oscar/mainwindow.cpp`, `oscar/profileselector.cpp`, `oscar/overview.cpp`, `oscar/exports/report_exporter.cpp`, `oscar/translation.cpp`

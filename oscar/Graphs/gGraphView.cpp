@@ -882,7 +882,7 @@ void gGraphView::dumpInfo()
     if (day) {
         QDateTime dt=QDateTime::fromMSecsSinceEpoch(day->first(), QTimeZone::systemTimeZone());
 
-        mainwin->log(QString("Available Channels for %1").arg(dt.toString("MMM dd yyyy")));
+        mainwin->log(QString("Available Channels for %1").arg(QLocale().toString(dt, "MMM dd yyyy")));
         QHash<schema::ChanType, QList<schema::Channel *> > list;
 
         for (const auto & sess : day->sessions) {
@@ -1752,9 +1752,9 @@ QString gGraphView::getRangeInDaysString()
     QDate etd = et.date();
 
     if (std.year() == etd.year())
-        return st.toString(" d MMM") + " - " +  et.toString("d MMM yyyy");
+        return QLocale().toString(st, " d MMM") + " - " +  QLocale().toString(et, "d MMM yyyy");
     else
-        return st.toString(" d MMM yyyy") + " - " +  et.toString("d MMM yyyy");
+        return QLocale().toString(st, " d MMM yyyy") + " - " +  QLocale().toString(et, "d MMM yyyy");
 }
 
 QString gGraphView::getRangeString()
@@ -1768,9 +1768,9 @@ QString gGraphView::getRangeString()
     // Format if Begin and End are on different days
     if (std != etd) {  // further adjust formatting if on different years
         if (std.year() == etd.year())
-            return st.toString(" d MMM [ HH:mm:ss") + " - " +  et.toString("HH:mm:ss ] d MMM yyyy");
+            return QLocale().toString(st, " d MMM [ HH:mm:ss") + " - " +  QLocale().toString(et, "HH:mm:ss ] d MMM yyyy");
         else
-            return st.toString(" d MMM yyyy [ HH:mm:ss") + " - " +  et.toString("HH:mm:ss ] d MMM yyyy");
+            return QLocale().toString(st, " d MMM yyyy [ HH:mm:ss") + " - " +  QLocale().toString(et, "HH:mm:ss ] d MMM yyyy");
     }
 
     // Range is within one (local) day
@@ -1782,7 +1782,7 @@ QString gGraphView::getRangeString()
         } else {
             fmt = "HH:mm:ss:zzz";
         }
-    QString txt = st.toString(QObject::tr("d MMM yyyy [ %1 - %2 ]").arg(fmt).arg(et.toString(fmt))) ;
+    QString txt = QLocale().toString(st, QObject::tr("d MMM yyyy [ %1 - %2 ]").arg(fmt).arg(et.toString(fmt))) ;
 
     return txt;
 
