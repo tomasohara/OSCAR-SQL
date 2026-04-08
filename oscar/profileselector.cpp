@@ -404,6 +404,13 @@ void ProfileSelector::on_resetFilterButton_clicked()
     ui->profileFilter->clear();
 }
 
+QString ProfileSelector::selectedProfileName() const
+{
+    const QModelIndex idx = ui->profileView->currentIndex();
+    if (!idx.isValid()) return QString();
+    return proxy->data(proxy->index(idx.row(), 0, QModelIndex()), Qt::UserRole + 2).toString();
+}
+
 void ProfileSelector::on_buttonOpenProfile_clicked()
 {
     if (ui->profileView->currentIndex().isValid()) {

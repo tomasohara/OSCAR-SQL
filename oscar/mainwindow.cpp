@@ -2540,6 +2540,14 @@ void MainWindow::saveProfilePath(QString folderProfileName , QString pathName) {
         (*p_profile)[folderProfileName] = pathName;
 }
 
+QString MainWindow::selectedProfileName() const
+{
+    if (profileSelector) {
+        return profileSelector->selectedProfileName();
+    }
+    return QString();
+}
+
 void MainWindow::importNonCPAP(MachineLoader &loader)
 {
     // get save location from profile.

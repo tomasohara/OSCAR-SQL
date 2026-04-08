@@ -123,6 +123,15 @@ private:
     /*! \brief Reset validation state (info/name/conflict groups, restore button). */
     void resetValidation();
 
+    /*!
+     * \brief Recompute and set the Restore button enabled state.
+     *
+     * The button is enabled only when: a validated package is loaded
+     * (\a m_restore is non-null), the profile name is non-empty, and if a
+     * conflict was detected the user has chosen Rename or Replace (not Abort).
+     */
+    void updateRestoreButtonState();
+
     /*! \brief Persist the last-used package directory to QSettings. */
     void saveSettings();
 

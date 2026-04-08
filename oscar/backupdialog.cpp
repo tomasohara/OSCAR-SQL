@@ -60,10 +60,16 @@ BackupDialog::BackupDialog(QWidget* parent)
 
     connect(ui->closeButton, &QPushButton::clicked, this, &QDialog::reject);
 
+    connect(ui->outputDirEdit, &QLineEdit::textChanged,
+            this, [this](const QString&){ updateFilenamePreview(); });
     connect(ui->privacyCheck, &QCheckBox::toggled,
             this, [this](bool){ updateFilenamePreview(); });
     connect(ui->simplifyCheck, &QCheckBox::toggled,
             this, [this](bool){ updateFilenamePreview(); });
+    connect(ui->fromDate, &QDateEdit::dateChanged,
+            this, [this](const QDate&){ updateFilenamePreview(); });
+    connect(ui->toDate, &QDateEdit::dateChanged,
+            this, [this](const QDate&){ updateFilenamePreview(); });
     connect(ui->filenameEdit, &QLineEdit::textChanged,
             this, [this](const QString& t) {
                 ui->backupButton->setEnabled(
@@ -90,24 +96,24 @@ void BackupDialog::populateProfiles()
     ProfileRepository repo;
     QList<ProfileData> profiles = repo.findActive();
 
-    // Determine current profile username for pre-selection.
-    QString currentUsername;
+    // Priority: (1) currently open profile, (2) highlighted in profile selector, (3) none.
+    QString targetUsername;
     if (p_profile && p_profile->user) {
-        currentUsername = p_profile->user->userName();
+        targetUsername = p_profile->user->userName();
+    } else if (mainwin) {
+        targetUsername = mainwin->selectedProfileName();
     }
 
-    int preSelectIndex = 0;
+    int preSelectIndex = -1;
     for (int i = 0; i < profiles.size(); ++i) {
         ui->profileCombo->addItem(profiles[i].username);
         m_profileIds.append(profiles[i].id);
-        if (profiles[i].username == currentUsername) {
+        if (!targetUsername.isEmpty() && profiles[i].username == targetUsername) {
             preSelectIndex = i;
         }
     }
 
-    if (!m_profileIds.isEmpty()) {
-        ui->profileCombo->setCurrentIndex(preSelectIndex);
-    }
+    ui->profileCombo->setCurrentIndex(preSelectIndex);
 }
 
 void BackupDialog::applyDateRange(const QString& rangeText)
@@ -166,9 +172,12 @@ void BackupDialog::updateFilenamePreview()
 {
     ui->backupButton->setEnabled(false);
 
-    if (ui->outputDirEdit->text().isEmpty()) {
+    const QString dirText = ui->outputDirEdit->text().trimmed();
+    if (dirText.isEmpty() || !QDir(dirText).exists()) {
         ui->filenameEdit->clear();
-        ui->filenameEdit->setPlaceholderText(tr("(select a directory first)"));
+        ui->filenameEdit->setPlaceholderText(
+            dirText.isEmpty() ? tr("(select a directory first)")
+                              : tr("(directory does not exist)"));
         ui->filenameEdit->setEnabled(false);
         return;
     }
@@ -352,8 +361,9 @@ void BackupDialog::on_backupButton_clicked()
     backup->setOutputPath(ui->outputDirEdit->text());
     backup->setPrivacyMode(ui->privacyCheck->isChecked());
 
-    // Use the user-specified (possibly edited) filename.
-    const QString filename = ui->filenameEdit->text().trimmed();
+    // Use the user-specified (possibly edited) filename, stripping any path
+    // components to prevent traversal outside the selected output directory.
+    const QString filename = QFileInfo(ui->filenameEdit->text().trimmed()).fileName();
     if (!filename.isEmpty()) {
         backup->setFilename(filename);
     }

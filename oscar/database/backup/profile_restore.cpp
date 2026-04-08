@@ -1089,9 +1089,14 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
 
         // Execute the INSERT using parameterized binding so that text values
         // containing newlines or other special characters are stored correctly.
+        // channel_options uses INSERT OR IGNORE because the data is global (keyed
+        // on channel code, not profile) — rows already present from other profiles
+        // are identical and should be silently skipped.
 //        qDebug() << "ProfileRestore::executeSqlFile() execute the INSERT";
         const QStringList placeholders(newVals.count(), QStringLiteral("?"));
-        const QString sql = QString("INSERT INTO %1 (%2) VALUES (%3)")
+        const bool useIgnore = (tableName == QLatin1String("channel_options"));
+        const QString sql = QString(useIgnore ? "INSERT OR IGNORE INTO %1 (%2) VALUES (%3)"
+                                              : "INSERT INTO %1 (%2) VALUES (%3)")
                                 .arg(stmt.tableName,
                                      newCols.join(QStringLiteral(", ")),
                                      placeholders.join(QStringLiteral(", ")));
@@ -1165,6 +1170,7 @@ bool ProfileRestore::restoreInTransaction()
         QStringLiteral("doctor_info"),
         QStringLiteral("profile_preferences"),
         QStringLiteral("channels"),
+        QStringLiteral("channel_options"),
         QStringLiteral("machines"),
         QStringLiteral("sessions"),
         QStringLiteral("session_settings"),

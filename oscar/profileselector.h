@@ -89,6 +89,10 @@ public:
     Profile *SelectProfile(QString profname, bool skippassword);
     void updateProfileHighlight(QString name);
 
+    /// Returns the username of the currently highlighted (single-clicked) profile,
+    /// or an empty string if nothing is selected.
+    QString selectedProfileName() const;
+
 private slots:
     void on_profileView_doubleClicked(const QModelIndex &index);
 

@@ -190,6 +190,9 @@ class MainWindow : public QMainWindow
     QString profilePath(QString folderProfileName );
     void saveProfilePath(QString folderProfileName , QString pathName);
 
+    /// Returns the username highlighted in the profile selector screen, or empty if none.
+    QString selectedProfileName() const;
+
   protected:
     void closeEvent(QCloseEvent *) override;
     void keyPressEvent(QKeyEvent *event) override;

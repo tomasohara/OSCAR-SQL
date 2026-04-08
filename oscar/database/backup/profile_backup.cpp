@@ -389,13 +389,6 @@ bool ProfileBackup::createBackup()
         return false;
     }
 
-    // Ensure the output directory exists.
-    if (!QDir().mkpath(m_outputPath)) {
-        m_errorMessage = QString("Cannot create output directory: %1").arg(m_outputPath);
-        emit backupFailed(m_errorMessage);
-        return false;
-    }
-
     // Determine the output file path.  Use the user-specified filename when set,
     // otherwise auto-generate from profile username and date range.
     if (!m_overrideFilename.isEmpty()) {
@@ -557,27 +550,20 @@ bool ProfileBackup::validateProfile()
         return false;
     }
 
-    // Verify the output path is reachable and writable.
+    // Verify the output directory exists and is writable.
+    // Directory creation is the user's responsibility (via the Browse button).
     const QDir outDir(m_outputPath);
-    if (outDir.exists()) {
-        // Directory exists — test write permission with a probe file.
-        QFile probe(m_outputPath + QStringLiteral("/.oscar_write_test"));
-        if (!probe.open(QIODevice::WriteOnly)) {
-            m_errorMessage = QString("Output directory is not writable: %1").arg(m_outputPath);
-            return false;
-        }
-        probe.close();
-        probe.remove();
-    } else {
-        // Directory will be created later; check that at least its grandparent exists.
-        QDir parent(m_outputPath);
-        parent.cdUp();
-        if (!parent.exists()) {
-            m_errorMessage = QString("Cannot create output directory (parent missing): %1")
-                                 .arg(m_outputPath);
-            return false;
-        }
+    if (!outDir.exists()) {
+        m_errorMessage = QString("Output directory does not exist: %1").arg(m_outputPath);
+        return false;
     }
+    QFile probe(m_outputPath + QStringLiteral("/.oscar_write_test"));
+    if (!probe.open(QIODevice::WriteOnly)) {
+        m_errorMessage = QString("Output directory is not writable: %1").arg(m_outputPath);
+        return false;
+    }
+    probe.close();
+    probe.remove();
     return true;
 }
 
@@ -672,6 +658,21 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
         exp.setColumnPlaceholders({{"profile_id", "@PROFILE_ID@"}});
         if (!exp.exportTable("channels", pidWhere, dbDir + "/channels.sql")) {
             m_errorMessage = QString("Failed to export channels: %1").arg(exp.errorMessage());
+            return false;
+        }
+    }
+
+    // channel_options — lookup value mappings for LOOKUP-type channels (e.g. CPAP mode names).
+    // channel_options.channel_id stores the channel code (ChannelID), not the channels.id PK,
+    // so no placeholder remapping is needed.  The data is effectively global; during restore
+    // INSERT OR IGNORE is used so that rows already present from other profiles are skipped.
+    {
+        const QString coWhere = QString(
+            "channel_id IN (SELECT channel_id FROM channels WHERE profile_id = %1)")
+                .arg(m_profileId);
+        SqlExporter exp;
+        if (!exp.exportTable("channel_options", coWhere, dbDir + "/channel_options.sql")) {
+            m_errorMessage = QString("Failed to export channel_options: %1").arg(exp.errorMessage());
             return false;
         }
     }

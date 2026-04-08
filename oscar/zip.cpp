@@ -441,7 +441,29 @@ bool UnzipFile::ExtractAll(const QString& destDir)
         }
 
         const QString archiveName = QString::fromUtf8(stat.m_filename);
+
+        // Zip Slip guard: reject absolute paths and any entry whose canonical
+        // destination escapes the extraction root.
+        if (QFileInfo(archiveName).isAbsolute()) {
+            qWarning() << "UnzipFile::ExtractAll: rejecting absolute entry path:" << archiveName;
+            return false;
+        }
         const QString destPath    = QDir(destDir).filePath(archiveName);
+        const QString canonDest   = QFileInfo(destPath).canonicalFilePath();
+        const QString canonRoot   = QFileInfo(destDir).canonicalFilePath();
+        // canonicalFilePath() returns "" for paths that don't exist yet, so
+        // fall back to the cleaned absolute path for new files/directories.
+        const QString safeDest    = canonDest.isEmpty()
+                                        ? QDir::cleanPath(QFileInfo(destPath).absoluteFilePath())
+                                        : canonDest;
+        const QString safeRoot    = canonRoot.isEmpty()
+                                        ? QDir::cleanPath(QFileInfo(destDir).absoluteFilePath())
+                                        : canonRoot;
+        if (!safeDest.startsWith(safeRoot + "/") && safeDest != safeRoot) {
+            qWarning() << "UnzipFile::ExtractAll: rejecting entry that escapes extraction root:"
+                       << archiveName;
+            return false;
+        }
 
         if (stat.m_is_directory) {
             QDir().mkpath(destPath);

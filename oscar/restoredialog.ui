@@ -354,6 +354,19 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QLabel" name="noReplaceLabel">
+        <property name="text">
+         <string>Replace is not available: this backup does not include SD card data, so replacing would delete the existing SD card data permanently. Use Rename to import under a different name.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="visible">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

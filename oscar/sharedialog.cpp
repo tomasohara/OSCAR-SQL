@@ -69,6 +69,15 @@ ShareDialog::ShareDialog(QWidget* parent)
     // Apply default range — "Last Week" is suitable for sharing.
     applyDateRange(ui->rangeCombo->currentText());
 
+    connect(ui->outputDirEdit, &QLineEdit::textChanged,
+            this, [this](const QString&){ updateFilenamePreview(); });
+    connect(ui->filenameEdit, &QLineEdit::textChanged,
+            this, [this](const QString&){ updateShareButtonState(); });
+    connect(ui->fromDate, &QDateEdit::dateChanged,
+            this, [this](const QDate&){ updateFilenamePreview(); });
+    connect(ui->toDate, &QDateEdit::dateChanged,
+            this, [this](const QDate&){ updateFilenamePreview(); });
+
     connect(ui->closeButton,     &QPushButton::clicked,  this, &QDialog::reject);
     connect(ui->copyLinkButton,  &QPushButton::clicked,  this, &ShareDialog::onCopyLinkClicked);
     connect(ui->openFolderButton,&QPushButton::clicked,  this, &ShareDialog::onOpenFolderClicked);
@@ -107,23 +116,24 @@ void ShareDialog::populateProfiles()
     ProfileRepository repo;
     QList<ProfileData> profiles = repo.findActive();
 
-    QString currentUsername;
+    // Priority: (1) currently open profile, (2) highlighted in profile selector, (3) none.
+    QString targetUsername;
     if (p_profile && p_profile->user) {
-        currentUsername = p_profile->user->userName();
+        targetUsername = p_profile->user->userName();
+    } else if (mainwin) {
+        targetUsername = mainwin->selectedProfileName();
     }
 
-    int preSelectIndex = 0;
+    int preSelectIndex = -1;
     for (int i = 0; i < profiles.size(); ++i) {
         ui->profileCombo->addItem(profiles[i].username);
         m_profileIds.append(profiles[i].id);
-        if (profiles[i].username == currentUsername) {
+        if (!targetUsername.isEmpty() && profiles[i].username == targetUsername) {
             preSelectIndex = i;
         }
     }
 
-    if (!m_profileIds.isEmpty()) {
-        ui->profileCombo->setCurrentIndex(preSelectIndex);
-    }
+    ui->profileCombo->setCurrentIndex(preSelectIndex);
 }
 
 void ShareDialog::populateDestinations()
@@ -221,9 +231,12 @@ void ShareDialog::updateFilenamePreview()
 
     ui->shareButton->setEnabled(false);
 
-    if (ui->outputDirEdit->text().isEmpty()) {
+    const QString dirText = ui->outputDirEdit->text().trimmed();
+    if (dirText.isEmpty() || !QDir(dirText).exists()) {
         ui->filenameEdit->clear();
-        ui->filenameEdit->setPlaceholderText(tr("(select a directory first)"));
+        ui->filenameEdit->setPlaceholderText(
+            dirText.isEmpty() ? tr("(select a directory first)")
+                              : tr("(directory does not exist)"));
         ui->filenameEdit->setEnabled(false);
         return;
     }
@@ -593,7 +606,9 @@ void ShareDialog::on_shareButton_clicked()
             return;
         }
         backup->setOutputPath(ui->outputDirEdit->text());
-        const QString filename = ui->filenameEdit->text().trimmed();
+        // Strip any path components from the user-entered filename to prevent
+        // traversal (e.g. "../evil") writing outside the selected directory.
+        const QString filename = QFileInfo(ui->filenameEdit->text().trimmed()).fileName();
         if (!filename.isEmpty()) {
             backup->setFilename(filename);
         }

@@ -45,13 +45,14 @@ RestoreDialog::RestoreDialog(QWidget* parent)
 
     restoreSettings();
 
-    // Radio button state → Restore button enabled/disabled.
+    // Any change to the conflict-resolution radio buttons re-evaluates
+    // whether the Restore button should be enabled.
     connect(ui->renameRadio,  &QRadioButton::toggled, this,
-            [this](bool checked) { if (checked) ui->restoreButton->setEnabled(true); });
+            [this](bool) { updateRestoreButtonState(); });
     connect(ui->replaceRadio, &QRadioButton::toggled, this,
-            [this](bool checked) { if (checked) ui->restoreButton->setEnabled(true); });
+            [this](bool) { updateRestoreButtonState(); });
     connect(ui->abortRadio,   &QRadioButton::toggled, this,
-            [this](bool checked) { if (checked) ui->restoreButton->setEnabled(false); });
+            [this](bool) { updateRestoreButtonState(); });
 
     // Source radio buttons toggle between local file and URL modes.
     connect(ui->sourceLocalRadio, &QRadioButton::toggled,
@@ -125,6 +126,11 @@ void RestoreDialog::showNameGroup(bool visible)
 void RestoreDialog::showConflictGroup(bool visible)
 {
     ui->conflictGroup->setVisible(visible);
+    if (!visible) {
+        // Reset to default state so it's clean next time it appears.
+        ui->replaceRadio->setEnabled(true);
+        ui->noReplaceLabel->setVisible(false);
+    }
 }
 
 void RestoreDialog::setBusy(bool busy)
@@ -133,7 +139,6 @@ void RestoreDialog::setBusy(bool busy)
     ui->downloadButton->setEnabled(!busy && ui->sourceUrlRadio->isChecked()
                                    && !ui->urlEdit->text().trimmed().isEmpty());
     ui->validateButton->setEnabled(!busy && !ui->packagePathEdit->text().isEmpty());
-    ui->restoreButton->setEnabled(!busy);
     ui->closeButton->setEnabled(!busy);
     ui->profileNameEdit->setEnabled(!busy);
     ui->abortRadio->setEnabled(!busy);
@@ -142,6 +147,22 @@ void RestoreDialog::setBusy(bool busy)
     ui->sourceLocalRadio->setEnabled(!busy);
     ui->sourceUrlRadio->setEnabled(!busy);
     ui->urlEdit->setEnabled(!busy && ui->sourceUrlRadio->isChecked());
+
+    if (busy) {
+        ui->restoreButton->setEnabled(false);
+    } else {
+        updateRestoreButtonState();
+    }
+}
+
+void RestoreDialog::updateRestoreButtonState()
+{
+    // Require a validated package, a non-empty name, and (if a conflict exists)
+    // an explicit resolution other than Abort.
+    bool ready = m_restore != nullptr
+              && !ui->profileNameEdit->text().trimmed().isEmpty()
+              && (!ui->conflictGroup->isVisible() || !ui->abortRadio->isChecked());
+    ui->restoreButton->setEnabled(ready);
 }
 
 void RestoreDialog::resetValidation()
@@ -162,23 +183,31 @@ void RestoreDialog::updateConflictForName(const QString& name)
 
     if (name.trimmed().isEmpty()) {
         showConflictGroup(false);
-        ui->restoreButton->setEnabled(false);
         ui->statusLabel->setText(tr("Profile name cannot be empty."));
+        updateRestoreButtonState();
         return;
     }
 
     ConflictStatus conflict = m_restore->checkConflicts(name);
     if (conflict == ConflictStatus::UsernameExists) {
         showConflictGroup(true);
+
+        // Replace is forbidden when the package has no SD data: restoring would
+        // delete the existing profile's SD card files with nothing to replace them.
+        const bool packageHasSD = m_restore->manifestJson()
+                                      [QStringLiteral("export_options")].toObject()
+                                      [QStringLiteral("includes_sd_data")].toBool(false);
+        ui->replaceRadio->setEnabled(packageHasSD);
+        ui->noReplaceLabel->setVisible(!packageHasSD);
+
         // Default is Abort radio — Restore stays disabled until user picks Rename or Replace.
         ui->abortRadio->setChecked(true);
-        ui->restoreButton->setEnabled(false);
         ui->statusLabel->setText(tr("A profile named \"%1\" already exists. Select a resolution option.").arg(name));
     } else {
         showConflictGroup(false);
-        ui->restoreButton->setEnabled(true);
         ui->statusLabel->setText(tr("Package validated successfully."));
     }
+    updateRestoreButtonState();
 }
 
 void RestoreDialog::restoreSettings()
