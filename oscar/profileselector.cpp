@@ -465,6 +465,11 @@ void ProfileSelector::on_buttonNewProfile_clicked()
             QString name = p_profile->user->userName();
             p_profile = nullptr;
             mainwin->OpenProfile(name, true); // open profile, skipping the already entered password
+            // Mark this profile as locally created.
+            if (p_profile) {
+                p_profile->user->setSource(QStringLiteral("Local"));
+                p_profile->Save();
+            }
         } else {
             qWarning() << AppSetting->profileName() << "yielded a null profile";
             p_profile=nullptr;

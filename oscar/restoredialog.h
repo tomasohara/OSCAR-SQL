@@ -132,6 +132,15 @@ private:
      */
     void updateRestoreButtonState();
 
+    /*!
+     * \brief Rebuild the status-label content from current dialog state.
+     *
+     * Shows the normal conflict/validation message, and appends a red
+     * warning when Replace is selected and both the incoming package and
+     * the existing profile contain SD card data.
+     */
+    void updateStatusLabel();
+
     /*! \brief Persist the last-used package directory to QSettings. */
     void saveSettings();
 
@@ -142,6 +151,9 @@ private:
     ProfileRestore*     m_restore    = nullptr;   ///< Heap-allocated; owned by this dialog.
     CloudDownloader*    m_downloader = nullptr;   ///< Heap-allocated; owned by this dialog.
     QString             m_lastPackageDir;         ///< Last directory used to browse for a package.
+    bool                m_packageIsShare  = false; ///< True if filename begins with "share_".
+    bool                m_backupHasSD     = false; ///< True if the package includes SD card data.
+    bool                m_existingHasSD   = false; ///< True if the target profile has a Backup dir.
 };
 
 #endif // RESTOREDIALOG_H

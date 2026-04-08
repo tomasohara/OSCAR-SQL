@@ -21,6 +21,8 @@
 #include "database/backup/backup_manifest.h"
 #include "database/backup/profile_restore.h"
 #include "database/database_schema.h"
+#include "database/preferences_repository.h"
+#include "database/profile_repository.h"
 #include "network/cloud_downloader.h"
 #include "mainwindow.h"
 #include "SleepLib/preferences.h"
@@ -48,11 +50,11 @@ RestoreDialog::RestoreDialog(QWidget* parent)
     // Any change to the conflict-resolution radio buttons re-evaluates
     // whether the Restore button should be enabled.
     connect(ui->renameRadio,  &QRadioButton::toggled, this,
-            [this](bool) { updateRestoreButtonState(); });
+            [this](bool) { updateRestoreButtonState(); updateStatusLabel(); });
     connect(ui->replaceRadio, &QRadioButton::toggled, this,
-            [this](bool) { updateRestoreButtonState(); });
+            [this](bool) { updateRestoreButtonState(); updateStatusLabel(); });
     connect(ui->abortRadio,   &QRadioButton::toggled, this,
-            [this](bool) { updateRestoreButtonState(); });
+            [this](bool) { updateRestoreButtonState(); updateStatusLabel(); });
 
     // Source radio buttons toggle between local file and URL modes.
     connect(ui->sourceLocalRadio, &QRadioButton::toggled,
@@ -168,7 +170,10 @@ void RestoreDialog::updateRestoreButtonState()
 void RestoreDialog::resetValidation()
 {
     delete m_restore;
-    m_restore = nullptr;
+    m_restore       = nullptr;
+    m_packageIsShare = false;
+    m_backupHasSD   = false;
+    m_existingHasSD = false;
     showInfoGroup(false);
     showNameGroup(false);
     showConflictGroup(false);
@@ -194,20 +199,68 @@ void RestoreDialog::updateConflictForName(const QString& name)
 
         // Replace is forbidden when the package has no SD data: restoring would
         // delete the existing profile's SD card files with nothing to replace them.
-        const bool packageHasSD = m_restore->manifestJson()
-                                      [QStringLiteral("export_options")].toObject()
-                                      [QStringLiteral("includes_sd_data")].toBool(false);
-        ui->replaceRadio->setEnabled(packageHasSD);
-        ui->noReplaceLabel->setVisible(!packageHasSD);
+        m_backupHasSD = m_restore->manifestJson()
+                            [QStringLiteral("export_options")].toObject()
+                            [QStringLiteral("includes_sd_data")].toBool(false);
+        ui->replaceRadio->setEnabled(m_backupHasSD);
+        ui->noReplaceLabel->setVisible(!m_backupHasSD);
+
+        // Check whether the existing profile also has SD card data.
+        // SD card backups live in a Backup/ subdirectory under each machine directory
+        // (e.g. ProfileName/ResMed_12345678/Backup/), so scan one level down.
+        const QString profilesDir = p_pref->Get(QStringLiteral("{home}/Profiles"));
+        const QDir existingProfileDir(profilesDir + QLatin1Char('/') + name);
+        m_existingHasSD = false;
+        if (existingProfileDir.exists()) {
+            const QStringList machineDirs =
+                existingProfileDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            for (const QString& machineDir : machineDirs) {
+                if (QDir(existingProfileDir.filePath(machineDir)
+                         + QStringLiteral("/Backup")).exists()) {
+                    m_existingHasSD = true;
+                    break;
+                }
+            }
+        }
 
         // Default is Abort radio — Restore stays disabled until user picks Rename or Replace.
         ui->abortRadio->setChecked(true);
-        ui->statusLabel->setText(tr("A profile named \"%1\" already exists. Select a resolution option.").arg(name));
     } else {
+        m_backupHasSD   = false;
+        m_existingHasSD = false;
         showConflictGroup(false);
-        ui->statusLabel->setText(tr("Package validated successfully."));
     }
+    updateStatusLabel();
     updateRestoreButtonState();
+}
+
+void RestoreDialog::updateStatusLabel()
+{
+    // Build the base message from current state.
+    QString msg;
+    if (ui->conflictGroup->isVisible()) {
+        const QString name = ui->profileNameEdit->text().trimmed();
+        msg = tr("A profile named \"%1\" already exists. Select a resolution option.").arg(name);
+    } else if (m_restore) {
+        msg = tr("Package validated successfully.");
+    }
+
+    // Append a red SD-data warning when Replace is chosen and both sides have SD data.
+    if (m_backupHasSD && m_existingHasSD
+            && ui->conflictGroup->isVisible()
+            && ui->replaceRadio->isChecked()) {
+        const QString warning = tr("WARNING: SD card images in profile will be deleted and "
+                                   "replaced by those in the backup file.");
+        msg = msg.toHtmlEscaped()
+            + QStringLiteral("<br><span style='color:red; font-weight:bold;'>")
+            + warning.toHtmlEscaped()
+            + QStringLiteral("</span>");
+        ui->statusLabel->setTextFormat(Qt::RichText);
+    } else {
+        ui->statusLabel->setTextFormat(Qt::AutoText);
+    }
+
+    ui->statusLabel->setText(msg);
 }
 
 void RestoreDialog::restoreSettings()
@@ -471,6 +524,10 @@ void RestoreDialog::on_validateButton_clicked()
         }
     }
 
+    // Detect whether this is a share package by inspecting the filename.
+    m_packageIsShare = QFileInfo(path).fileName()
+                           .startsWith(QStringLiteral("share_"), Qt::CaseInsensitive);
+
     // Show manifest info.  Reuse the already-parsed manifest from ProfileRestore.
     BackupManifest displayManifest;
     displayManifest.fromJson(m_restore->manifestJson());
@@ -481,15 +538,22 @@ void RestoreDialog::on_validateButton_clicked()
         originalUsername = displayManifest.username();
     }
 
-    // Show the profile name field pre-filled with the original username.
+    // Pre-fill the profile name.  For share packages append " (Shared)" so the
+    // restored profile is visually distinguished from the owner's own profiles.
+    QString defaultName = originalUsername;
+    if (m_packageIsShare && !defaultName.isEmpty()) {
+        defaultName += QStringLiteral(" (Shared)");
+    }
+
+    // Show the profile name field pre-filled with the (possibly decorated) username.
     // The user may edit it freely; changing the name re-checks for conflicts.
     ui->profileNameEdit->blockSignals(true);
-    ui->profileNameEdit->setText(originalUsername);
+    ui->profileNameEdit->setText(defaultName);
     ui->profileNameEdit->blockSignals(false);
     showNameGroup(true);
 
-    // Run initial conflict check against the original name.
-    updateConflictForName(originalUsername);
+    // Run initial conflict check against the default name.
+    updateConflictForName(defaultName);
 }
 
 // ---------------------------------------------------------------------------
@@ -581,10 +645,20 @@ void RestoreDialog::onProgressChanged(int percent, const QString& message)
     qDebug() << "RestoreDialog::onProgressChanged:" << percent << message;
 }
 
-void RestoreDialog::onRestoreCompleted(qint64 /*profileId*/, const QString& username)
+void RestoreDialog::onRestoreCompleted(qint64 profileId, const QString& username)
 {
     ui->progressBar->setValue(100);
     ui->statusLabel->setText(tr("Restore complete."));
+
+    // Record how this profile originated so it can be identified later.
+    if (profileId > 0) {
+        const QString source = m_packageIsShare
+            ? QStringLiteral("Share")
+            : QStringLiteral("Backup");
+        PreferencesRepository prefRepo;
+        prefRepo.savePreference(profileId, QStringLiteral("profile"),
+                                QStringLiteral("Source"), source);
+    }
 
     QMessageBox::information(this, tr("Restore Complete"),
         tr("Profile \"%1\" restored successfully.").arg(username));

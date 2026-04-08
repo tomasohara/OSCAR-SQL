@@ -87,6 +87,8 @@
 #include "SleepLib/importcontext.h"
 #include "database/database_manager.h"
 #include "database/machine_repository.h"
+#include "database/profile_repository.h"
+#include "database/preferences_repository.h"
 #include "SleepLib/performance_timer.h"
 #include "reports.h"
 #include "statistics.h"
@@ -1224,6 +1226,17 @@ void MainWindow::on_action_Import_OSCAR_Data_triggered()
     progress.close();
     
     if (success) {
+        // Mark this profile as originating from an OSCAR 1.x import.
+        {
+            ProfileRepository profileRepo;
+            ProfileData pd = profileRepo.findByUsername(newName);
+            if (pd.id > 0) {
+                PreferencesRepository prefRepo;
+                prefRepo.savePreference(pd.id, QStringLiteral("profile"),
+                                        QStringLiteral("Source"), QStringLiteral("Import"));
+            }
+        }
+
         QMessageBox::information(this, tr("Import Complete"),
             tr("Profile '%1' has been successfully imported.\n\n"
                "You can now select it from the profile selector.").arg(newName));

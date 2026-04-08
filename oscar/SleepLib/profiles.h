@@ -339,6 +339,9 @@ const QString STR_UI_Gender = "Gender";
 const QString STR_UI_TimeZone = "TimeZone";
 const QString STR_UI_DST = "DST";
 
+// Profile origin (stored in profile_preferences via saveProfilePreferencesToDatabase)
+const QString STR_PI_Source = "Source"; ///< How the profile was created: "Local", "Backup", "Share", or "Import"
+
 // OxiSettings Strings
 const QString STR_OS_EnableOximetry = "EnableOximetry";
 const QString STR_OS_DefaultDevice = "DefaultOxiDevice";
@@ -517,6 +520,11 @@ class UserInfo : public PrefSettings
     void setGender(Gender g) { setPref(STR_UI_Gender, (int)g); }
     void setTimeZone(QString tz) { setPref(STR_UI_TimeZone, tz); }
     void setDaylightSaving(bool ds) { setPref(STR_UI_DST, ds); }
+
+    /// \brief Return how this profile was originally created ("Local", "Backup", "Share", or "Import").
+    const QString source() const { return getPref(STR_PI_Source).toString(); }
+    /// \brief Set how this profile was originally created.
+    void setSource(const QString& src) { setPref(STR_PI_Source, src); }
 
     bool hasPassword() { return !getPref(STR_UI_Password).toString().isEmpty(); }
 
