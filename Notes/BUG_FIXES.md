@@ -4,6 +4,25 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-09 - OSCAR 1.x → 2.0 import: missing layoutSettings and preferences ✓ tested
+
+**Files:** `oscar/profileimporter.cpp`, `oscar/profileimporter.h`
+
+**Symptoms:**
+1. After importing an OSCAR 1.x profile, the `layoutSettings` folder (saved graph layouts) was missing in OSCAR 2.0.
+2. Session settings such as "do not import sessions before date" (`IgnoreOlderSessions`/`IgnoreOlderSessionsDate`) reverted to defaults after import.
+3. App-level tab preferences (`OpenTabAtStart`, `OpenTabAfterImport`) were not carried over.
+
+**Root causes:**
+
+1. **layoutSettings not copied** — The `layoutSettings` folder lives in the OSCAR 1.x data root (two levels above the profile folder), not inside the profile folder. The importer only handled files within the profile folder. Fix: new `copyLayoutSettings()` method computes the source data root and copies files not already present in the destination.
+
+2. **Profile preferences overwritten on save** — `profileimporter.cpp` correctly saved source preferences to the "session"/"cpap"/etc. DB categories via `prefRepo.saveAllPreferences()`. However, the subsequent `profile->Save()` call invoked `saveProfilePreferencesToDatabase()` on the *destination* profile (which held defaults), writing those defaults to the "profile" DB category. Since `loadExtendedDataFromDatabase()` treats the "profile" category as authoritative (it runs last and overwrites), source settings were lost on next open. Fix: copy `sourceProfile->p_preferences` into `profile->p_preferences` (skipping `DataFolder`, `UserName`, `VersionString`) before `profile->Save()`.
+
+3. **App-level preferences not migrated** — All user-configurable settings stored in `AppWideSetting` / `p_pref` (Preferences.xml at the data root) — including `AutoOpenLastUsed`, `OpenTabAtStart`, `OpenTabAfterImport`, graph appearance settings, etc. — are not inside the profile and were not migrated. Fix: new `migrateAppSettings()` method opens the source `Preferences.xml` and bulk-copies all keys to the live `p_pref`, skipping OSCAR 2.0-specific tracking values (`VersionString`, `Profile`, `Skipped*Version`, `UpdatesLastChecked`).
+
+---
+
 ## 2026-04-08 - Qt5→Qt6 locale regression in date/time display
 
 **Files:** `oscar/overview.cpp`, `oscar/daily.cpp`, `oscar/Graphs/gGraphView.cpp`

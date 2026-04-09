@@ -152,17 +152,34 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
         } else {
             qWarning() << "ProfileImporter: Could not find destination profile in database to save preferences";
         }
-        
-//        qDebug() << "ProfileImporter: After copy - user firstname:" << profile->user->firstName();
-//        qDebug() << "ProfileImporter: After copy - user lastname:" << profile->user->lastName();
-//        qDebug() << "ProfileImporter: After copy - doctor name:" << profile->doctor->name();
-        
+
+        // Copy source profile's raw preference hash into the destination profile.
+        // profile->Save() calls saveProfilePreferencesToDatabase() which persists p_preferences
+        // to the "profile" DB category. That category is authoritative over "session"/"cpap"/etc.
+        // per loadExtendedDataFromDatabase(). Without this copy, the new-profile defaults
+        // written by Save() would overwrite the source settings on next open.
+        static const QSet<QString> skipKeys = {
+            STR_GEN_DataFolder, STR_UI_UserName, STR_PREF_VersionString
+        };
+        for (auto it = sourceProfile->p_preferences.begin();
+             it != sourceProfile->p_preferences.end(); ++it) {
+            if (!skipKeys.contains(it.key())) {
+                profile->p_preferences[it.key()] = it.value();
+            }
+        }
+
         // Note: We'll save user/doctor info in Profile::Save() below
         // Don't save here because profile might not be in database yet
     } else {
         qWarning() << "ProfileImporter: Failed to open source profile or profile not open";
     }
     delete sourceProfile;
+
+    // Migrate app-level data that lives in the OSCAR 1.x data root
+    // (two levels up from the profile folder: OSCAR_Data/Profiles/ProfileName → OSCAR_Data)
+    QString sourceDataPath = QDir::cleanPath(QDir(sourcePath).absolutePath() + "/../..");
+    copyLayoutSettings(sourceDataPath);
+    migrateAppSettings(sourceDataPath);
     
     reportProgress(40, 100, tr("Loading session data from files..."));
 
@@ -865,13 +882,99 @@ Machine* ProfileImporter::findMachineByFolderName(Profile* profile, const QStrin
 void ProfileImporter::reportProgress(int current, int total, const QString& message)
 {
     emit progressChanged(current, total, message);
-    
+
     if (m_progress) {
         m_progress->setMessage(message);
         m_progress->setProgressMax(total);
         m_progress->setProgressValue(current);
-        
+
         // Process events to keep UI responsive
         QApplication::processEvents();
+    }
+}
+
+/*!
+ * \brief Copy the layoutSettings folder from the OSCAR 1.x data root to OSCAR 2.0.
+ *
+ * layoutSettings is stored at the data-root level (shared across profiles), not inside
+ * any individual profile folder.  Only files not already present in the destination are
+ * copied, so existing OSCAR 2.0 layouts are never overwritten.
+ */
+void ProfileImporter::copyLayoutSettings(const QString& sourceDataPath)
+{
+    QString sourceLayoutPath = sourceDataPath + "/layoutSettings";
+    QString destLayoutPath   = GetAppData() + "/layoutSettings";
+
+    QDir sourceDir(sourceLayoutPath);
+    if (!sourceDir.exists()) {
+        qDebug() << "ProfileImporter::copyLayoutSettings: No layoutSettings folder in source";
+        return;
+    }
+
+    QDir().mkpath(destLayoutPath);
+
+    QStringList files = sourceDir.entryList(QDir::Files);
+    int copied = 0;
+    for (const QString& fileName : files) {
+        QString destFile = destLayoutPath + "/" + fileName;
+        if (!QFile::exists(destFile)) {
+            if (QFile::copy(sourceLayoutPath + "/" + fileName, destFile)) {
+                copied++;
+            } else {
+                qWarning() << "ProfileImporter::copyLayoutSettings: Failed to copy" << fileName;
+            }
+        }
+    }
+    qDebug() << "ProfileImporter::copyLayoutSettings: Copied" << copied << "of"
+             << files.size() << "file(s) from" << sourceLayoutPath;
+}
+
+/*!
+ * \brief Migrate app-level preferences from OSCAR 1.x Preferences.xml.
+ *
+ * All user-configurable app settings (graph appearance, tab selection, startup behaviour,
+ * etc.) live in the global Preferences.xml (backed by p_pref / AppSetting), not in the
+ * profile.  Copy every key from the source file, skipping a handful of OSCAR 2.0-specific
+ * tracking values that should not be overwritten.
+ */
+void ProfileImporter::migrateAppSettings(const QString& sourceDataPath)
+{
+    QString sourcePrefFile = sourceDataPath + "/Preferences.xml";
+    if (!QFile::exists(sourcePrefFile)) {
+        qDebug() << "ProfileImporter::migrateAppSettings: No Preferences.xml in source data folder";
+        return;
+    }
+
+    Preferences sourcePref("Preferences", sourcePrefFile);
+    if (!sourcePref.Open()) {
+        qWarning() << "ProfileImporter::migrateAppSettings: Failed to open" << sourcePrefFile;
+        return;
+    }
+
+    // Keys that must NOT be overwritten with source values:
+    //   VersionString    — keep OSCAR 2.0's own version identifier
+    //   Profile          — last-opened profile name may differ in OSCAR 2.0; leave as-is
+    //   Skipped*Version  — update-skip tracking is version-specific to this installation
+    //   UpdatesLastChecked — let OSCAR 2.0 do its own update check
+    static const QSet<QString> skipKeys = {
+        STR_PREF_VersionString,
+        STR_GEN_Profile,
+        STR_GEN_SkippedReleaseVersion,
+        STR_GEN_SkippedTestVersion,
+        STR_GEN_UpdatesLastChecked,
+    };
+
+    int copied = 0;
+    for (auto it = sourcePref.begin(); it != sourcePref.end(); ++it) {
+        if (!skipKeys.contains(it.key())) {
+            p_pref->Set(it.key(), it.value());
+            copied++;
+        }
+    }
+
+    if (copied > 0) {
+        p_pref->Save();
+        qDebug() << "ProfileImporter::migrateAppSettings: Migrated" << copied
+                 << "app settings from" << sourcePrefFile;
     }
 }

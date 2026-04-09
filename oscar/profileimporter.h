@@ -108,6 +108,10 @@ private:
     
     // Progress reporting helpers
     void reportProgress(int current, int total, const QString& message);
+
+    // Migrate data from OSCAR 1.x data root (shared across all profiles)
+    void copyLayoutSettings(const QString& sourceDataPath);
+    void migrateAppSettings(const QString& sourceDataPath);
 };
 
 #endif // PROFILEIMPORTER_H
