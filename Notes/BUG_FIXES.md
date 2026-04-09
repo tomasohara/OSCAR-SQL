@@ -4,6 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-09 - Statistics page shows labels but no data columns (regression from 4bbbf9b8)
+
+**Files:** `oscar/statistics.cpp`
+
+**Symptom:** Statistics page shows row headings (Total Days, AHI, Leak, etc.) but all data columns are absent. Reported against imported 1.7.1 profiles but affects all profiles.
+
+**Root cause:** Commit `4bbbf9b8` changed `if (row.calc == SC_HEADING)` to `if (row.calc == SC_HEADING && summaryInfo.size() > 0)` to guard against a crash on zero-session profiles. However, `summaryInfo.size()` returns `numDisabledsessions` (count of disabled sessions), which is 0 for any profile with all sessions enabled (the normal case). The heading block — which builds the `periods` list of column time-ranges — was therefore never entered, leaving `periods` empty and all data rows with no columns.
+
+**Fix:** Restored `if (row.calc == SC_HEADING)` and added a proper date-validity guard: if `summaryInfo.first()` or `summaryInfo.last()` is invalid (true only for a zero-data profile), set `skipsection = true` and `continue`. This preserves the crash protection while restoring column display for normal profiles.
+
+---
+
 ## 2026-04-09 - OAuth2 crash: delete-sender-in-slot in OAuth2Handler::onNewConnection
 
 **Files:** `oscar/network/oauth2_handler.cpp`
