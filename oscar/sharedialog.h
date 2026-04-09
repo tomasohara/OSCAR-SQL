@@ -21,6 +21,7 @@
 
 class DropboxUploader;
 class GoogleDriveUploader;
+class OneDriveUploader;
 
 namespace Ui {
 class ShareDialog;
@@ -89,6 +90,12 @@ private slots:
 
     /*! \brief Handle Google Drive auth result. */
     void onGoogleDriveAuthComplete(bool success);
+
+    /*! \brief Toggle OneDrive sign in / sign out. */
+    void onOneDriveAuthButtonClicked();
+
+    /*! \brief Handle OneDrive auth result. */
+    void onOneDriveAuthComplete(bool success);
 
     /*! \brief Copy the share URL to the clipboard. */
     void onCopyLinkClicked();
@@ -176,6 +183,7 @@ private:
     QList<qint64>         m_profileIds;                    ///< DB IDs parallel to profileCombo.
     DropboxUploader*      m_dropboxUploader     = nullptr;
     GoogleDriveUploader*  m_googleDriveUploader = nullptr;
+    OneDriveUploader*     m_oneDriveUploader    = nullptr;
     QString               m_tempFilePath;                  ///< Temp .oscar file for cloud uploads.
     QString               m_lastFilePath;                  ///< Path of last file created (for open folder).
     bool                  m_warningAcknowledged = false;   ///< True once the sharing warning is accepted.

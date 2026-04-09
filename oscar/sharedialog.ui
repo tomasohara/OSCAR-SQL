@@ -340,9 +340,12 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="oneDriveLabel">
+           <widget class="QLabel" name="oneDriveStatusLabel">
             <property name="text">
-             <string>OneDrive support is coming soon.</string>
+             <string>Not signed in to OneDrive.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -358,6 +361,16 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="oneDriveAuthButton">
+            <property name="text">
+             <string>Sign In...</string>
+            </property>
+            <property name="fixedWidth">
+             <number>100</number>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

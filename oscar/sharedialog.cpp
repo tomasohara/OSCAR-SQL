@@ -11,6 +11,7 @@
 #include "translation.h"
 #include "network/dropbox_uploader.h"
 #include "network/googledrive_uploader.h"
+#include "network/onedrive_uploader.h"
 
 #include <QApplication>
 #include <QCalendarWidget>
@@ -56,6 +57,7 @@ ShareDialog::ShareDialog(QWidget* parent)
 
     m_dropboxUploader     = new DropboxUploader(this);
     m_googleDriveUploader = new GoogleDriveUploader(this);
+    m_oneDriveUploader    = new OneDriveUploader(this);
 
     setupCalendarFormatting();
     populateProfiles();
@@ -85,11 +87,15 @@ ShareDialog::ShareDialog(QWidget* parent)
             this, &ShareDialog::onDropboxAuthButtonClicked);
     connect(ui->googleDriveAuthButton, &QPushButton::clicked,
             this, &ShareDialog::onGoogleDriveAuthButtonClicked);
+    connect(ui->oneDriveAuthButton, &QPushButton::clicked,
+            this, &ShareDialog::onOneDriveAuthButtonClicked);
 
     connect(m_dropboxUploader, &DropboxUploader::authComplete,
             this,              &ShareDialog::onDropboxAuthComplete);
     connect(m_googleDriveUploader, &GoogleDriveUploader::authComplete,
             this,                  &ShareDialog::onGoogleDriveAuthComplete);
+    connect(m_oneDriveUploader, &OneDriveUploader::authComplete,
+            this,               &ShareDialog::onOneDriveAuthComplete);
 
     restoreSettings();
 }
@@ -99,6 +105,7 @@ ShareDialog::~ShareDialog()
     if (m_uploadInProgress) {
         if (m_dropboxUploader)     m_dropboxUploader->abort();
         if (m_googleDriveUploader) m_googleDriveUploader->abort();
+        if (m_oneDriveUploader)    m_oneDriveUploader->abort();
     }
     cleanupTempFile();
     delete ui;
@@ -150,8 +157,10 @@ void ShareDialog::populateDestinations()
         static_cast<int>(ShareDestination::Dropbox));
     ui->destinationCombo->addItem(tr("Google Drive"),
         static_cast<int>(ShareDestination::GoogleDrive));
-    ui->destinationCombo->addItem(tr("OneDrive (coming soon)"),
-        static_cast<int>(ShareDestination::OneDrive));
+    // OneDrive omitted until Azure app registration is completed — add back by
+    // uncommenting the line below and supplying OD_CLIENT_ID in onedrive_uploader.h.
+    // ui->destinationCombo->addItem(tr("OneDrive"),
+    //     static_cast<int>(ShareDestination::OneDrive));
     // ui->destinationCombo->addItem(tr("0x0.st (temporary anonymous hosting)"),
     //     static_cast<int>(ShareDestination::ZeroX0));
     //  ^ Commented out: 0x0.st is currently not accepting new uploads.
@@ -292,6 +301,14 @@ void ShareDialog::updateDestinationUi()
         break;
     case ShareDestination::OneDrive:
         ui->destinationStack->setCurrentIndex(3);
+        if (m_oneDriveUploader->isAuthenticated()) {
+            ui->oneDriveAuthButton->setText(tr("Sign Out"));
+            ui->oneDriveStatusLabel->setText(tr("Signed in to OneDrive."));
+        } else {
+            ui->oneDriveAuthButton->setText(tr("Sign In..."));
+            ui->oneDriveStatusLabel->setText(
+                tr("Sign in to OneDrive to upload and create a share link."));
+        }
         break;
     }
 
@@ -321,7 +338,7 @@ void ShareDialog::updateShareButtonState()
         break;
     case ShareDestination::OneDrive:
         ui->shareButton->setText(tr("Share"));
-        ui->shareButton->setEnabled(false);
+        ui->shareButton->setEnabled(m_oneDriveUploader->isAuthenticated());
         break;
     }
 }
@@ -456,6 +473,7 @@ void ShareDialog::setUiLocked(bool locked)
     ui->browseButton->setEnabled(!locked);
     ui->dropboxAuthButton->setEnabled(!locked);
     ui->googleDriveAuthButton->setEnabled(!locked);
+    ui->oneDriveAuthButton->setEnabled(!locked);
     ui->closeButton->setEnabled(!locked);
 
     // filenameEdit is only editable for File destination when not locked.
@@ -523,8 +541,16 @@ void ShareDialog::startCloudUpload(const QString& filePath)
                 this, &ShareDialog::onUploadFailed, Qt::UniqueConnection);
         m_googleDriveUploader->startUpload();
         break;
-    // case ShareDestination::OneDrive:
-    //     (future implementation)
+    case ShareDestination::OneDrive:
+        m_oneDriveUploader->setFilePath(filePath);
+        connect(m_oneDriveUploader, &OneDriveUploader::uploadProgress,
+                this, &ShareDialog::onUploadProgress, Qt::UniqueConnection);
+        connect(m_oneDriveUploader, &OneDriveUploader::uploadFinished,
+                this, &ShareDialog::onUploadFinished, Qt::UniqueConnection);
+        connect(m_oneDriveUploader, &OneDriveUploader::uploadFailed,
+                this, &ShareDialog::onUploadFailed, Qt::UniqueConnection);
+        m_oneDriveUploader->startUpload();
+        break;
     default:
         break;
     }
@@ -795,6 +821,29 @@ void ShareDialog::onGoogleDriveAuthComplete(bool success)
         ui->googleDriveStatusLabel->setText(tr("Signed in to Google Drive."));
     } else {
         ui->googleDriveStatusLabel->setText(tr("Google Drive sign in failed."));
+    }
+    updateDestinationUi();
+}
+
+void ShareDialog::onOneDriveAuthButtonClicked()
+{
+    if (m_oneDriveUploader->isAuthenticated()) {
+        m_oneDriveUploader->signOut();
+        updateDestinationUi();
+    } else {
+        ui->oneDriveStatusLabel->setText(tr("Opening browser for sign in..."));
+        ui->oneDriveAuthButton->setEnabled(false);
+        m_oneDriveUploader->authenticate();
+    }
+}
+
+void ShareDialog::onOneDriveAuthComplete(bool success)
+{
+    ui->oneDriveAuthButton->setEnabled(true);
+    if (success) {
+        ui->oneDriveStatusLabel->setText(tr("Signed in to OneDrive."));
+    } else {
+        ui->oneDriveStatusLabel->setText(tr("OneDrive sign in failed."));
     }
     updateDestinationUi();
 }

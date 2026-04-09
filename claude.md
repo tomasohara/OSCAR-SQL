@@ -42,3 +42,16 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 - We use git and GitLab for version control.
 - Final product is distributed to about 25 different environments (Mac, Linux, etc.).
 
+## Debugging
+
+When fixing bugs, always search for ALL root causes before applying a fix. Multiple sessions showed first fixes missed secondary causes (e.g., scrollTo() auto-expand, empty AllMachineSettings list, QLocale::setDefault needed separately).
+## Qt Framework Notes
+
+This project uses Qt6 (migrated from Qt5). Be aware of Qt5→Qt6 behavior changes, especially: QDate::toString no longer uses system locale (use QLocale), stylesheet dimming on disabled widgets behaves differently (prefer hide/show).
+
+## BMC Loader
+
+When modifying BMC loader code, confirm scope first: changes must not affect the sibling BMC/G3X loader unless explicitly requested.
+## Workflow
+
+After making fixes, log them to the persistent notes file per project convention.
