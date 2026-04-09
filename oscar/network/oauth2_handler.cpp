@@ -19,6 +19,7 @@
 #include <QSettings>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QTimer>
 #include <QUrlQuery>
 #include <QDebug>
 
@@ -140,7 +141,7 @@ void OAuth2Handler::onNewConnection()
         QUrl requestUrl(QStringLiteral("http://localhost") + path);
         QUrlQuery query(requestUrl);
 
-        QString code = query.queryItemValue(QStringLiteral("code"));
+        QString code  = query.queryItemValue(QStringLiteral("code"));
         QString state = query.queryItemValue(QStringLiteral("state"));
         QString error = query.queryItemValue(QStringLiteral("error"));
 
@@ -168,27 +169,28 @@ void OAuth2Handler::onNewConnection()
         socket->flush();
         socket->disconnectFromHost();
 
-        // Stop the server — we only need one callback.
-        stopServer();
+        // IMPORTANT: stopServer() deletes m_server, which is socket's parent and
+        // therefore deletes socket too.  Doing that here — while we are executing
+        // inside socket's readyRead signal — would destroy the sender mid-emission
+        // and crash Qt's signal machinery.  Defer everything to after this slot
+        // returns by posting a zero-delay timer.
+        QTimer::singleShot(0, this, [this, code, state, error]() {
+            stopServer();
 
-        // Validate state.
-        if (state != m_state) {
-            emit authFailed(tr("OAuth state mismatch — possible CSRF attack. Authorization aborted."));
-            return;
-        }
-
-        if (!error.isEmpty()) {
-            emit authFailed(tr("Authorization denied: %1").arg(error));
-            return;
-        }
-
-        if (code.isEmpty()) {
-            emit authFailed(tr("No authorization code received."));
-            return;
-        }
-
-        // Exchange the code for tokens.
-        exchangeCodeForToken(code);
+            if (state != m_state) {
+                emit authFailed(tr("OAuth state mismatch — possible CSRF attack. Authorization aborted."));
+                return;
+            }
+            if (!error.isEmpty()) {
+                emit authFailed(tr("Authorization denied: %1").arg(error));
+                return;
+            }
+            if (code.isEmpty()) {
+                emit authFailed(tr("No authorization code received."));
+                return;
+            }
+            exchangeCodeForToken(code);
+        });
     });
 }
 

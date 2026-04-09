@@ -4,6 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-09 - OAuth2 crash: delete-sender-in-slot in OAuth2Handler::onNewConnection
+
+**Files:** `oscar/network/oauth2_handler.cpp`
+
+**Symptom:** OSCAR crashed immediately after the user completed both Google OAuth web pages. Stack trace showed `doActivate<false>` / `QAbstractSocketPrivate::emitReadyRead`.
+
+**Root cause:** `onNewConnection()` connected a lambda to `QTcpSocket::readyRead`. The lambda called `stopServer()`, which does `delete m_server`. Because `QTcpServer::nextPendingConnection()` returns a socket whose parent is the server, deleting the server also deleted the socket. This happened while Qt's signal machinery was still executing the `readyRead` emission on that socket — destroying the sender mid-emission crashes `doActivate`.
+
+**Fix:** Moved `stopServer()` and `exchangeCodeForToken()` (and all validation) into a `QTimer::singleShot(0, ...)` callback so they execute after the `readyRead` slot returns and signal emission is complete.
+
+---
+
 ## 2026-04-09 - OSCAR 1.x → 2.0 import: missing layoutSettings and preferences ✓ tested
 
 **Files:** `oscar/profileimporter.cpp`, `oscar/profileimporter.h`
