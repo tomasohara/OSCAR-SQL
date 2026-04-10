@@ -99,6 +99,7 @@ private:
     void createUploadSession();
     void doUpload(const QUrl& uploadUrl);
     void createShareLink(const QString& fileId);
+    void cleanupReply();
 
     static constexpr const char* PROVIDER_KEY = "OneDrive";
 

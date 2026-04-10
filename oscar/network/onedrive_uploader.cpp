@@ -155,11 +155,31 @@ void OneDriveUploader::onAuthFailed(const QString& error)
 //  Upload — step 1: create an upload session
 // ---------------------------------------------------------------------------
 
+void OneDriveUploader::cleanupReply()
+{
+    if (m_reply) {
+        m_reply->disconnect(this);
+        m_reply->deleteLater();
+        m_reply = nullptr;
+    }
+    delete m_file;
+    m_file = nullptr;
+}
+
 void OneDriveUploader::createUploadSession()
 {
     QFileInfo fi(m_filePath);
     if (!fi.exists()) {
         emit uploadFailed(tr("File does not exist: %1").arg(m_filePath));
+        return;
+    }
+
+    // Microsoft Graph upload sessions accept a maximum of 60 MiB per request chunk.
+    static constexpr qint64 MAX_UPLOAD_SIZE = 60LL * 1024 * 1024;
+    if (fi.size() > MAX_UPLOAD_SIZE) {
+        emit uploadFailed(tr("File is too large for OneDrive upload (%1 MB). "
+                             "Maximum is 60 MB.")
+                              .arg(fi.size() / (1024.0 * 1024.0), 0, 'f', 1));
         return;
     }
 
@@ -197,8 +217,7 @@ void OneDriveUploader::onUploadSessionReplyFinished()
 
     QByteArray body = m_reply->readAll();
     int httpStatus = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    m_reply->deleteLater();
-    m_reply = nullptr;
+    cleanupReply();
 
     if (m_aborted) {
         emit uploadFailed(tr("Upload was cancelled."));
@@ -269,8 +288,7 @@ void OneDriveUploader::doUpload(const QUrl& uploadUrl)
 void OneDriveUploader::onUploadReplyFinished()
 {
     if (m_aborted) {
-        if (m_reply) { m_reply->deleteLater(); m_reply = nullptr; }
-        delete m_file; m_file = nullptr;
+        cleanupReply();
         emit uploadFailed(tr("Upload was cancelled."));
         return;
     }
@@ -283,15 +301,13 @@ void OneDriveUploader::onUploadReplyFinished()
     if (m_reply->error() != QNetworkReply::NoError) {
         qDebug() << "OneDriveUploader: upload failed:" << httpStatus << body;
         QString errorStr = m_reply->errorString();
-        m_reply->deleteLater(); m_reply = nullptr;
-        delete m_file; m_file = nullptr;
+        cleanupReply();
         emit uploadFailed(tr("OneDrive upload failed (HTTP %1): %2")
                               .arg(httpStatus).arg(errorStr));
         return;
     }
 
-    m_reply->deleteLater(); m_reply = nullptr;
-    delete m_file; m_file = nullptr;
+    cleanupReply();
 
     // 200 = file replaced (shouldn't happen with rename behavior), 201 = created.
     if (httpStatus != 200 && httpStatus != 201) {
@@ -345,8 +361,7 @@ void OneDriveUploader::onShareLinkReplyFinished()
     QByteArray body = m_reply->readAll();
     int httpStatus = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-    m_reply->deleteLater();
-    m_reply = nullptr;
+    cleanupReply();
 
     if (httpStatus != 200 && httpStatus != 201) {
         qDebug() << "OneDriveUploader: share link creation failed:" << httpStatus << body;

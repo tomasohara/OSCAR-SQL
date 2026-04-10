@@ -17,7 +17,7 @@
 #include <QObject>
 #include <QUrl>
 
-class QFile;
+class QTemporaryFile;
 class QNetworkAccessManager;
 class QNetworkReply;
 
@@ -109,7 +109,7 @@ private:
 
     QNetworkAccessManager* m_nam       = nullptr;
     QNetworkReply*         m_reply     = nullptr;
-    QFile*                 m_tempFile  = nullptr;
+    QTemporaryFile*        m_tempFile  = nullptr;
     QUrl                   m_originalUrl;
     CloudProvider          m_provider  = CloudProvider::Unknown;
     QString                m_localPath;

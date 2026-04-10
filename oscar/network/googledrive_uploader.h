@@ -102,6 +102,7 @@ private:
     void doUpload();
     void uploadToSession(const QUrl& sessionUri);
     void createPermission(const QString& fileId);
+    void cleanupReply();
 
     static constexpr const char* PROVIDER_KEY = "GoogleDrive";
 

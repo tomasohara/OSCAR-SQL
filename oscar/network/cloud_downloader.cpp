@@ -9,8 +9,8 @@
 #include "cloud_downloader.h"
 
 #include <QDir>
-#include <QFile>
 #include <QFileInfo>
+#include <QTemporaryFile>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -96,22 +96,19 @@ void CloudDownloader::start()
     qDebug() << "CloudDownloader: provider =" << providerName(m_provider)
              << "download URL =" << downloadUrl.toString();
 
-    // Create a temp file in the system temp directory.
+    // Create a uniquely-named temp file in the system temp directory.
     QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-    QString tempPath = tempDir + QStringLiteral("/oscar_download_XXXXXX.oscar");
-
-    // QFile doesn't have mkstemp-style naming, so use a timestamp-based name.
-    tempPath = tempDir + QStringLiteral("/oscar_download_%1.oscar")
-                   .arg(QDateTime::currentMSecsSinceEpoch());
-
-    m_tempFile = new QFile(tempPath, this);
-    if (!m_tempFile->open(QIODevice::WriteOnly)) {
-        emit downloadFailed(tr("Could not create temporary file:\n%1").arg(m_tempFile->errorString()));
+    m_tempFile = new QTemporaryFile(
+        tempDir + QStringLiteral("/oscar_download_XXXXXX.oscar"), this);
+    m_tempFile->setAutoRemove(false);  // File must outlive this object after success.
+    if (!m_tempFile->open()) {
+        emit downloadFailed(tr("Could not create temporary file:\n%1")
+                                .arg(m_tempFile->errorString()));
         delete m_tempFile;
         m_tempFile = nullptr;
         return;
     }
-    m_localPath = tempPath;
+    m_localPath = m_tempFile->fileName();
 
     startRequest(downloadUrl);
 }
@@ -326,10 +323,7 @@ void CloudDownloader::startRequest(const QUrl& url)
     request.setHeader(QNetworkRequest::UserAgentHeader, userAgent);
 
     // Follow redirects automatically (cloud services redirect frequently).
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-                         QNetworkRequest::NoLessSafeRedirectPolicy);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 9, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 9, 0)
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
                          QNetworkRequest::NoLessSafeRedirectPolicy);
 #else
@@ -434,5 +428,13 @@ void CloudDownloader::onReplyFinished()
     qDebug() << "CloudDownloader: download complete," << fi.size() << "bytes saved to" << m_localPath;
 
     cleanupReply();
+
+    // Release the QTemporaryFile object without removing the file on disk.
+    // (autoRemove is false, so delete only frees the object.)
+    // The destructor's remove() guard only fires if m_tempFile is non-null,
+    // so we must null it here to prevent deleting a file the caller now owns.
+    delete m_tempFile;
+    m_tempFile = nullptr;
+
     emit downloadFinished(m_localPath);
 }

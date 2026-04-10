@@ -645,3 +645,27 @@ The SpO2 finger probe remained on the patient's finger, so OXI_SPO2 and OXI_Puls
 **Root cause:** `QFileDialog` defaults to the native OS file picker. Native dialogs render their own buttons outside Qt's widget and translation system, so `tr()` has no effect on them.
 
 **Fix:** Added `w.setOption(QFileDialog::DontUseNativeDialog, true)` so Qt renders the dialog itself. Qt's own dialog widgets are fully subject to the translation system, and the buttons are translated correctly.
+
+---
+
+## 2026-04-09 - Network module: QTemporaryFile destructor deletes downloaded file; missing size checks and cleanup helpers
+
+**Files:** `oscar/network/cloud_downloader.{h,cpp}`, `oscar/network/dropbox_uploader.{h,cpp}`, `oscar/network/onedrive_uploader.{h,cpp}`, `oscar/network/oauth2_handler.cpp`
+
+**Bug 1 — CloudDownloader deleted the downloaded file on destruction**
+On successful download, `onReplyFinished()` left `m_tempFile` non-null. The destructor called `m_tempFile->remove()` on it, deleting the temp file from disk even though the caller still held the path. Fixed by adding `delete m_tempFile; m_tempFile = nullptr;` in the success path (without calling `remove()`, since `autoRemove` is false).
+
+**Bug 2 — Timestamp-based temp file name**
+`start()` constructed the temp file path using `QDateTime::currentMSecsSinceEpoch()`, leaving a dead XXXXXX-template assignment above it. Replaced with `QTemporaryFile` (template `oscar_download_XXXXXX.oscar`, `setAutoRemove(false)`) for a secure, unique name.
+
+**Bug 3 — Redundant Qt version guards in startRequest()**
+The `#if QT_VERSION >= Qt6` and `#elif >= Qt5.9` branches in `startRequest()` were identical. Collapsed to a single `#if >= 5.9` / `#else` guard.
+
+**Bug 4 — Duplicated manual cleanup in Dropbox/OneDrive uploaders**
+Manual `m_reply->deleteLater(); m_reply = nullptr; delete m_file; m_file = nullptr;` was repeated across abort, error, and success branches. Added a `cleanupReply()` helper to both uploaders (matching the pattern already in `CloudUploader`) and replaced all call sites.
+
+**Bug 5 — OneDrive uploader had no file-size guard**
+`createUploadSession()` sent the entire file with no size check, despite Microsoft Graph API's 60 MiB per-chunk limit. Added a 60 MiB hard limit with a user-facing error, mirroring the Dropbox uploader's 150 MB guard.
+
+**Bug 6 — OAuth2 token expiry persisted as ISO date string**
+`saveTokens()` wrote `m_tokenExpiry.toString(Qt::ISODate)`; `loadTokens()` parsed it back with `QDateTime::fromString`. Changed to `toMSecsSinceEpoch()` / `fromMSecsSinceEpoch()` (stored as `qint64`) for unambiguous UTC round-tripping.

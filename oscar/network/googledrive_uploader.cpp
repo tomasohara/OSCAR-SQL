@@ -69,11 +69,18 @@ GoogleDriveUploader::GoogleDriveUploader(QObject* parent)
 
 GoogleDriveUploader::~GoogleDriveUploader()
 {
+    cleanupReply();
+}
+
+void GoogleDriveUploader::cleanupReply()
+{
     if (m_reply) {
         m_reply->disconnect(this);
         m_reply->deleteLater();
+        m_reply = nullptr;
     }
     delete m_file;
+    m_file = nullptr;
 }
 
 // ---------------------------------------------------------------------------
@@ -204,8 +211,7 @@ void GoogleDriveUploader::onFolderSearchFinished()
 
     QByteArray body = m_reply->readAll();
     int httpStatus = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    m_reply->deleteLater();
-    m_reply = nullptr;
+    cleanupReply();
 
     if (m_aborted) {
         emit uploadFailed(tr("Upload was cancelled."));
@@ -261,8 +267,7 @@ void GoogleDriveUploader::onFolderCreateFinished()
 
     QByteArray body = m_reply->readAll();
     int httpStatus = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    m_reply->deleteLater();
-    m_reply = nullptr;
+    cleanupReply();
 
     if (m_aborted) {
         emit uploadFailed(tr("Upload was cancelled."));
@@ -327,7 +332,7 @@ void GoogleDriveUploader::doUpload()
 void GoogleDriveUploader::onInitiateReplyFinished()
 {
     if (m_aborted) {
-        if (m_reply) { m_reply->deleteLater(); m_reply = nullptr; }
+        cleanupReply();
         emit uploadFailed(tr("Upload was cancelled."));
         return;
     }
@@ -347,15 +352,14 @@ void GoogleDriveUploader::onInitiateReplyFinished()
                            .arg(httpStatus).arg(m_reply->errorString());
         }
         qDebug() << "GoogleDriveUploader: initiate failed:" << httpStatus << body;
-        m_reply->deleteLater(); m_reply = nullptr;
+        cleanupReply();
         emit uploadFailed(errorMsg);
         return;
     }
 
     // The session URI is returned in the Location header.
     QUrl sessionUri = m_reply->header(QNetworkRequest::LocationHeader).toUrl();
-    m_reply->deleteLater();
-    m_reply = nullptr;
+    cleanupReply();
 
     if (!sessionUri.isValid() || sessionUri.isEmpty()) {
         emit uploadFailed(tr("Google Drive did not return an upload session URI."));
@@ -399,8 +403,7 @@ void GoogleDriveUploader::uploadToSession(const QUrl& sessionUri)
 void GoogleDriveUploader::onUploadReplyFinished()
 {
     if (m_aborted) {
-        if (m_reply) { m_reply->deleteLater(); m_reply = nullptr; }
-        delete m_file; m_file = nullptr;
+        cleanupReply();
         emit uploadFailed(tr("Upload was cancelled."));
         return;
     }
@@ -413,15 +416,13 @@ void GoogleDriveUploader::onUploadReplyFinished()
     if (m_reply->error() != QNetworkReply::NoError) {
         qDebug() << "GoogleDriveUploader: upload failed:" << httpStatus << body;
         QString errorStr = m_reply->errorString();
-        m_reply->deleteLater(); m_reply = nullptr;
-        delete m_file; m_file = nullptr;
+        cleanupReply();
         emit uploadFailed(tr("Google Drive upload failed (HTTP %1): %2")
                               .arg(httpStatus).arg(errorStr));
         return;
     }
 
-    m_reply->deleteLater(); m_reply = nullptr;
-    delete m_file; m_file = nullptr;
+    cleanupReply();
 
     // Parse the fileId from the response JSON.
     QJsonDocument doc = QJsonDocument::fromJson(body);
@@ -470,8 +471,7 @@ void GoogleDriveUploader::onPermissionReplyFinished()
     QByteArray body = m_reply->readAll();
     int httpStatus = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-    m_reply->deleteLater();
-    m_reply = nullptr;
+    cleanupReply();
 
     if (httpStatus != 200 && httpStatus != 201) {
         qDebug() << "GoogleDriveUploader: permission creation failed:" << httpStatus << body;

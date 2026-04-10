@@ -87,6 +87,7 @@ private slots:
 private:
     void doUpload();
     void createShareLink(const QString& dropboxPath);
+    void cleanupReply();
 
     static constexpr const char* PROVIDER_KEY   = "Dropbox";
     static constexpr const char* DROPBOX_APP_KEY = "zriwl29dto0v1e6";

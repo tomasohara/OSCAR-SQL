@@ -208,11 +208,21 @@ void DropboxUploader::doUpload()
             this,    &DropboxUploader::onUploadReplyFinished);
 }
 
+void DropboxUploader::cleanupReply()
+{
+    if (m_reply) {
+        m_reply->disconnect(this);
+        m_reply->deleteLater();
+        m_reply = nullptr;
+    }
+    delete m_file;
+    m_file = nullptr;
+}
+
 void DropboxUploader::onUploadReplyFinished()
 {
     if (m_aborted) {
-        if (m_reply) { m_reply->deleteLater(); m_reply = nullptr; }
-        delete m_file; m_file = nullptr;
+        cleanupReply();
         emit uploadFailed(tr("Upload was cancelled."));
         return;
     }
@@ -232,16 +242,12 @@ void DropboxUploader::onUploadReplyFinished()
                            .arg(httpStatus).arg(m_reply->errorString());
         }
         qDebug() << "DropboxUploader: upload failed:" << httpStatus << body;
-        m_reply->deleteLater(); m_reply = nullptr;
-        delete m_file; m_file = nullptr;
+        cleanupReply();
         emit uploadFailed(errorMsg);
         return;
     }
 
-    m_reply->deleteLater();
-    m_reply = nullptr;
-    delete m_file;
-    m_file = nullptr;
+    cleanupReply();
 
     // Parse the response to get the actual path (may be auto-renamed).
     QJsonDocument doc = QJsonDocument::fromJson(body);
@@ -302,7 +308,7 @@ void DropboxUploader::onShareLinkReplyFinished()
 
         if (!m_shareUrl.isEmpty()) {
             qDebug() << "DropboxUploader: reusing existing shared link:" << m_shareUrl;
-            m_reply->deleteLater(); m_reply = nullptr;
+            cleanupReply();
             emit uploadFinished(m_shareUrl);
             return;
         }
@@ -310,7 +316,7 @@ void DropboxUploader::onShareLinkReplyFinished()
 
     if (m_reply->error() != QNetworkReply::NoError) {
         qDebug() << "DropboxUploader: share link creation failed:" << httpStatus << body;
-        m_reply->deleteLater(); m_reply = nullptr;
+        cleanupReply();
         emit uploadFailed(tr("File uploaded to Dropbox but could not create a shared link (HTTP %1).")
                               .arg(httpStatus));
         return;
@@ -319,8 +325,7 @@ void DropboxUploader::onShareLinkReplyFinished()
     QJsonDocument doc = QJsonDocument::fromJson(body);
     m_shareUrl = doc.object().value(QStringLiteral("url")).toString();
 
-    m_reply->deleteLater();
-    m_reply = nullptr;
+    cleanupReply();
 
     if (m_shareUrl.isEmpty()) {
         emit uploadFailed(tr("File uploaded but Dropbox did not return a share link."));

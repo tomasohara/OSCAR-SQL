@@ -317,7 +317,7 @@ void OAuth2Handler::saveTokens(const QString& providerKey)
     s.setValue(QStringLiteral("refreshToken"), m_refreshToken);
     s.setValue(QStringLiteral("accessToken"), m_accessToken);
     if (m_tokenExpiry.isValid()) {
-        s.setValue(QStringLiteral("tokenExpiry"), m_tokenExpiry.toString(Qt::ISODate));
+        s.setValue(QStringLiteral("tokenExpiry"), m_tokenExpiry.toMSecsSinceEpoch());
     }
     s.endGroup();
 }
@@ -328,9 +328,16 @@ void OAuth2Handler::loadTokens(const QString& providerKey)
     s.beginGroup(QStringLiteral("CloudAuth/%1").arg(providerKey));
     m_refreshToken = s.value(QStringLiteral("refreshToken")).toString();
     m_accessToken = s.value(QStringLiteral("accessToken")).toString();
-    QString expiry = s.value(QStringLiteral("tokenExpiry")).toString();
-    if (!expiry.isEmpty()) {
-        m_tokenExpiry = QDateTime::fromString(expiry, Qt::ISODate);
+    QVariant expiryVar = s.value(QStringLiteral("tokenExpiry"));
+    if (expiryVar.isValid()) {
+        bool ok = false;
+        qint64 epochMs = expiryVar.toLongLong(&ok);
+        if (ok && epochMs > 0) {
+            m_tokenExpiry = QDateTime::fromMSecsSinceEpoch(epochMs);
+        } else {
+            // Migrate: legacy format stored as ISO 8601 string.
+            m_tokenExpiry = QDateTime::fromString(expiryVar.toString(), Qt::ISODate);
+        }
     }
     s.endGroup();
 }
