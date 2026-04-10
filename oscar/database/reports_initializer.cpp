@@ -92,16 +92,13 @@ bool ReportsInitializer::checkAndUpdateReportVersion(QSqlDatabase& db)
     QString savedVersion = getSavedReportVersion();
     QString currentVersion = getVersion().displayString();
     
-    if (savedVersion.isEmpty()) {
-        // No saved version (upgrading from version before version tracking)
-        qDebug() << "ReportsInitializer: No saved report version found, saving current version:" << currentVersion;
-        saveReportVersion(db);
-        return true;
-    }
-    
     if (savedVersion != currentVersion) {
-        qDebug() << "ReportsInitializer: OSCAR version changed from" << savedVersion << "to" << currentVersion;
-        qDebug() << "ReportsInitializer: Reinitializing system reports to update queries...";
+        if (savedVersion.isEmpty()) {
+            qDebug() << "ReportsInitializer: No saved report version found, reinitializing system reports...";
+        } else {
+            qDebug() << "ReportsInitializer: OSCAR version changed from" << savedVersion << "to" << currentVersion;
+            qDebug() << "ReportsInitializer: Reinitializing system reports to update queries...";
+        }
         
         if (!reinitializeSystemReports(db)) {
             qCritical() << "ReportsInitializer: Failed to reinitialize system reports";

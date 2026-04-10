@@ -311,6 +311,87 @@ WHERE re.profile_id = #PROFILE_ID
 ORDER BY re.start_time
 SQL
 
+=== Report: Statistics/Summary ===
+Description: Monthly summary matching the Statistics page — one row per month
+Query: <<SQL
+-- Monthly aggregation of daily_summaries, matching the Statistics page layout.
+-- Notes:
+--   AHI = total event count / total hours (month-wide ratio, not avg of daily AHI)
+--   Pressure_WAvg and Leak_WAvg are hours-weighted daily averages
+--   Pressure_95th and Leak_95th are the simple average of the stored daily 95th-pct values
+--     (approximation — actual page computes the true 95th pct across all raw waveform samples
+--      combined; if your upper-percentile preference differs from 95, there is an additional
+--      mismatch on the percentile level itself)
+--   Median_Hours and Median_AHI use the lower-middle row for even-count months
+--   is_compliant uses a fixed 4-hour threshold; adjust CASE expression if needed
+--   FlowLimit, FLG, SensAwake, CSR, EPAP, IPAP are not in daily_summaries;
+--     use Statistics/Sessions for per-channel per-session details
+WITH
+  raw AS (
+    SELECT *,
+           strftime('%Y-%m', date) AS month
+    FROM   daily_summaries
+    WHERE  profile_id = #PROFILE_ID
+      AND  date >= #START_DATE
+      AND  date <= #END_DATE
+      AND  mask_on_hours > 0
+  ),
+  ranked AS (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY month ORDER BY mask_on_hours) AS rn_h,
+           ROW_NUMBER() OVER (PARTITION BY month ORDER BY ahi)            AS rn_a,
+           COUNT(*)     OVER (PARTITION BY month)                         AS month_n
+    FROM   raw
+  )
+SELECT
+  month                                                                                 AS Period,
+  -- Usage
+  COUNT(*)                                                                              AS Days_With_Data,
+  SUM(is_compliant)                                                                     AS Days_Compliant,
+  ROUND(SUM(is_compliant) * 100.0 / NULLIF(COUNT(*), 0), 1)                           AS Pct_Compliant,
+  ROUND(SUM(mask_on_hours) / NULLIF(COUNT(*), 0), 2)                                  AS Avg_Hours,
+  ROUND(AVG(CASE WHEN rn_h = (month_n + 1) / 2 THEN mask_on_hours END), 2)           AS Median_Hours,
+  -- Therapy Efficacy
+  ROUND((SUM(obstructive_count) + SUM(unclassified_count)
+       + SUM(hypopnea_count)    + SUM(clear_airway_count))
+        / NULLIF(SUM(mask_on_hours), 0), 2)                                            AS AHI,
+  ROUND(AVG(CASE WHEN rn_a = (month_n + 1) / 2 THEN ahi END), 2)                     AS Median_AHI,
+  -- Event indices (events per hour)
+  ROUND((SUM(obstructive_count) + SUM(unclassified_count)
+       + SUM(hypopnea_count)    + SUM(clear_airway_count))
+        / NULLIF(SUM(mask_on_hours), 0), 2)                                            AS AllApnea_Index,
+  ROUND(SUM(obstructive_count)  / NULLIF(SUM(mask_on_hours), 0), 2)                   AS OA_Index,
+  ROUND(SUM(hypopnea_count)     / NULLIF(SUM(mask_on_hours), 0), 2)                   AS H_Index,
+  ROUND(SUM(unclassified_count) / NULLIF(SUM(mask_on_hours), 0), 2)                   AS UA_Index,
+  ROUND(SUM(clear_airway_count) / NULLIF(SUM(mask_on_hours), 0), 2)                   AS CA_Index,
+  ROUND(SUM(rera_count)         / NULLIF(SUM(mask_on_hours), 0), 2)                   AS RERA_Index,
+  -- Leak
+  ROUND(SUM(leak_total_avg * mask_on_hours)
+        / NULLIF(SUM(CASE WHEN leak_total_avg IS NOT NULL
+                          THEN mask_on_hours ELSE 0 END), 0), 2)                       AS Leak_WAvg,
+  ROUND(AVG(leak_total_95th), 2)                                                       AS Leak_95th,
+  -- Pressure
+  ROUND(SUM(pressure_avg * mask_on_hours)
+        / NULLIF(SUM(CASE WHEN pressure_avg IS NOT NULL
+                          THEN mask_on_hours ELSE 0 END), 0), 2)                       AS Pressure_WAvg,
+  ROUND(MIN(pressure_min), 2)                                                          AS Pressure_Min,
+  ROUND(MAX(pressure_max), 2)                                                          AS Pressure_Max,
+  ROUND(AVG(pressure_95th), 2)                                                         AS Pressure_95th,
+  -- Oximetry (NULL when no oximetry data recorded in this period)
+  ROUND(SUM(spo2_avg * mask_on_hours)
+        / NULLIF(SUM(CASE WHEN spo2_avg IS NOT NULL
+                          THEN mask_on_hours ELSE 0 END), 0), 2)                       AS SPO2_WAvg,
+  ROUND(MIN(spo2_min), 2)                                                              AS SPO2_Min,
+  ROUND(SUM(pulse_avg * mask_on_hours)
+        / NULLIF(SUM(CASE WHEN pulse_avg IS NOT NULL
+                          THEN mask_on_hours ELSE 0 END), 0), 2)                       AS Pulse_WAvg,
+  ROUND(MIN(pulse_min), 2)                                                             AS Pulse_Min,
+  ROUND(MAX(pulse_max), 2)                                                             AS Pulse_Max
+FROM   ranked
+GROUP  BY month
+ORDER  BY month
+SQL
+
 === Report: Statistics/Sessions ===
 Description: Detailed per-session channel statistics (selected respiratory channels)
 Query: <<SQL

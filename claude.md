@@ -12,6 +12,7 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
   - oscar/SleepLib - modules that manipulate internal OSCAR data
   - oscar/SleepLib/loader_plugins - modules that read data from CPAP machine's SD cards
   - oscar/database - modules that talk to the database
+  - oscar/network - modules that talk to the network
   - oscar/exports - modules that export information from OSCAR to other applications
   - oscar/docs - files that are bound to the application and used during execution (icons, etc.)
   - Notes - design and progress notes
@@ -45,13 +46,15 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 ## Debugging
 
 When fixing bugs, always search for ALL root causes before applying a fix. Multiple sessions showed first fixes missed secondary causes (e.g., scrollTo() auto-expand, empty AllMachineSettings list, QLocale::setDefault needed separately).
+
 ## Qt Framework Notes
 
 This project uses Qt6 (migrated from Qt5). Be aware of Qt5→Qt6 behavior changes, especially: QDate::toString no longer uses system locale (use QLocale), stylesheet dimming on disabled widgets behaves differently (prefer hide/show).
 
-## BMC Loader
+## Loader
 
-When modifying BMC loader code, confirm scope first: changes must not affect the sibling BMC/G3X loader unless explicitly requested.
+When modifying loader code, confirm scope first: changes must not affect other loaders unless explicitly requested.
+
 ## Workflow
 
-After making fixes, log them to the persistent notes file per project convention.
+After making fixes, log them to Notes/BUG_FIXES.md per project convention.

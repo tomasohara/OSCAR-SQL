@@ -47,6 +47,7 @@ static const char* const names[] = {
     QT_TRANSLATE_NOOP("SystemReports", "Profiles"),
     QT_TRANSLATE_NOOP("SystemReports", "Profiles with Data"),
     QT_TRANSLATE_NOOP("SystemReports", "Respiratory Events"),
+    QT_TRANSLATE_NOOP("SystemReports", "Summary"),
     QT_TRANSLATE_NOOP("SystemReports", "Sessions"),
 };
 
@@ -64,5 +65,6 @@ static const char* const descriptions[] = {
     QT_TRANSLATE_NOOP("SystemReports", "All profiles in the database"),
     QT_TRANSLATE_NOOP("SystemReports", "Profiles that have imported CPAP data with date ranges"),
     QT_TRANSLATE_NOOP("SystemReports", "Individual respiratory events with timestamps (AHI-contributing only)"),
+    QT_TRANSLATE_NOOP("SystemReports", "Monthly summary matching the Statistics page — one row per month"),
     QT_TRANSLATE_NOOP("SystemReports", "Detailed per-session channel statistics (selected respiratory channels)"),
 };
