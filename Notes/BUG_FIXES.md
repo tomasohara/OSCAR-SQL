@@ -4,6 +4,20 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-09 - Code review fixes: mainwindow.cpp
+
+**Files:** `oscar/mainwindow.cpp`
+
+**Fix 1 — ProgressDialog leak in zip exporters:** `on_actionCreate_Card_zip_triggered()`, `on_actionCreate_Log_zip_triggered()`, and `on_actionCreate_OSCAR_Data_zip_triggered()` all allocated a `ProgressDialog` on the heap but never deleted it. Added `prog->close(); delete prog;` after `z.Close()` in each function.
+
+**Fix 2 — Dead code in `finishCPAPImport()`:** Removed a large block of commented-out session-save code with confusing stale comments (`(?)savesession`). Session saving is now handled by `ctx->Commit()` inside `importCPAP()`.
+
+**Fix 3 — Syntax noise in `SetupGUI`:** Removed a stray extra semicolon (`; ;`) and trailing `};` in the `m_clinicalMode` check block.
+
+**Fix 4 — Removed Win32 fallback in `purgeMachine()`:** The `#ifdef Q_OS_WIN` block used `SetFileAttributes`/`RemoveDirectory` to attempt removal of the machine directory. Since the intent is to leave the directory intact if it is non-empty (i.e. has unexpected contents), the Win32 code added no value over the cross-platform `QDir::rmdir()`. Replaced with a single `qWarning()` on failure.
+
+---
+
 ## 2026-04-09 - Bulk import progress bar stayed at 0; single import caused OS "hung" reports
 
 **Files:** `oscar/main.cpp`, `oscar/profileimporter.cpp`

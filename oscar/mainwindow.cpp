@@ -927,19 +927,6 @@ void MainWindow::finishCPAPImport()
     if (daily)
         daily->Unload(daily->getDate());
 
-    // IMPORTANT: Save machines first so they have database IDs
-//    p_profile->StoreMachines();
-    
-    // CRITICAL: Now save all sessions to database -- has already been done (?)savesession
-    // This was missing - sessions were never being saved!
-//    QList<Machine *> machines = p_profile->GetMachines(MT_CPAP);
-//    for (Machine * mach : machines) {
-//        qDebug() << "MainWindow::finishCPAPImport(): Saving" << mach->sessionlist.size() << "sessions for machine" << mach->serial();
-//        mach->Save();  // This saves sessions to database
-//        mach->saveSessionInfo();
-//        mach->SaveSummaryCache();
-//    }
-
     qDebug() << "MainWindow::finishCPAPImport(): calling GenerateStatistics";
     GenerateStatistics();
     qDebug() << "MainWindow::finishCPAPImport(): calling updateProfileList";
@@ -1601,10 +1588,10 @@ void MainWindow::on_action_Preferences_triggered()
         setApplicationFont();
 
 
-        if (m_clinicalMode != p_profile->cpap->clinicalMode() ) {
-            m_clinicalMode = p_profile->cpap->clinicalMode(); ;
+        if (m_clinicalMode != p_profile->cpap->clinicalMode()) {
+            m_clinicalMode = p_profile->cpap->clinicalMode();
             reloadProfile();
-        };
+        }
 
         if (daily) {
             daily->RedrawGraphs();
@@ -2208,31 +2195,9 @@ void MainWindow::purgeMachine(Machine * mach)
 
         p_profile->DelMachine(mach);
         delete mach;
-        // remove the directory unless it's got unexpected crap in it..
-        bool deleted = false;
-        if ( ! dir.rmdir(path)) {
-#ifdef Q_OS_WIN
-            wchar_t* directoryPtr = (wchar_t*)path.utf16();
-            SetFileAttributes(directoryPtr, GetFileAttributes(directoryPtr) & ~FILE_ATTRIBUTE_READONLY);
-            if (!::RemoveDirectory(directoryPtr)) {
-               DWORD lastError = ::GetLastError();
-               qDebug() << "RemoveDirectory" << path << "GetLastError: " << lastError << "(Error 145 is expected)";
-               if (lastError == 145) {
-                   qDebug() << path << "remaining directory contents are" << QDir(path).entryList();
-               }
-
-            } else {
-               qDebug() << "Success on second attempt deleting folder with windows API " << path;
-               deleted = true;
-            }
-#else
-            qWarning() << "Couldn't remove directory" << path;
-#endif
-        } else {
-            deleted = true;
-        }
-        if ( ! deleted) {
-            qWarning() << "Leaving backup folder intact";
+        // Remove the directory only if it is empty; leave it intact if anything unexpected remains.
+        if (!dir.rmdir(path)) {
+            qWarning() << "Could not remove device directory (may not be empty), leaving intact:" << path;
         }
 
         PopulatePurgeMenu();
@@ -3107,6 +3072,8 @@ void MainWindow::on_actionCreate_Card_zip_triggered()
             // Create the zip.
             ok = z.AddFiles(files, prog);
             z.Close();
+            prog->close();
+            delete prog;
         } else {
             qWarning() << "Unable to open" << filename;
         }
@@ -3157,6 +3124,8 @@ void MainWindow::on_actionCreate_Log_zip_triggered()
         // Create the zip.
         ok = z.AddFiles(files, prog);
         z.Close();
+        prog->close();
+        delete prog;
     } else {
         qWarning() << "Unable to open" << filename;
     }
@@ -3290,6 +3259,8 @@ void MainWindow::on_actionCreate_OSCAR_Data_zip_triggered()
         // Create the zip.
         ok = z.AddFiles(files, prog);
         z.Close();
+        prog->close();
+        delete prog;
     } else {
         qWarning() << "Unable to open" << filename;
     }
