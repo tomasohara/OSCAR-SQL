@@ -4,6 +4,38 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-09 - Bulk import progress bar stayed at 0; single import caused OS "hung" reports
+
+**Files:** `oscar/main.cpp`, `oscar/profileimporter.cpp`
+
+**Symptom 1:** During bulk startup import, the progress bar value never advanced until an entire profile was
+complete, making it appear frozen (especially for single-profile users where it went 0→100 with no
+intermediate movement).
+
+**Root cause:** The `progressChanged` signal lambda in `migrateFromOSCAR()` updated only the label text;
+it never called `progress.setValue()`. The dialog range was `0..profileList.size()*100`, so only the
+coarse per-profile increments at `i*100` and `(i+1)*100` moved the bar.
+
+**Fix:** Changed dialog range to `0..100` (per-profile). The lambda now calls `progress.setValue(current)`
+so the bar advances through all import stages (0→10→20…→100) for each profile. The label still shows
+"n of n profiles" for overall context. Bar resets to 0 at the start of each new profile.
+
+**Symptom 2:** During single-profile import (File → Profiles → Import Profile from OSCAR) the UI could
+appear hung to the OS, because `QApplication::processEvents()` was only called every 10 sessions and
+there were no UI yields before the `calculateSummaries()`, `profile->Save()`, or `dbMgr.commit()` calls.
+
+**Fix (first pass):** Reduced session update interval from 10→5. Added `reportProgress()` calls at key
+phases.
+
+**Further fix:** Added `QApplication::processEvents()` per file in `copyDirectoryRecursively` to keep
+the UI alive while the Backup folder is being copied. Split the single large import transaction into
+three smaller ones: (1) profile metadata only (committed before session loading), (2) one transaction
+per machine for session data (so each commit is small), (3) calculateSummaries + profile->Save(). On
+failure after partial commits `ProfileRepository::remove()` cascade-deletes the partial profile from
+the database before filesystem cleanup.
+
+---
+
 ## 2026-04-09 - Statistics page shows labels but no data columns (regression from 4bbbf9b8)
 
 **Files:** `oscar/statistics.cpp`

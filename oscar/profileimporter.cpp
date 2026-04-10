@@ -28,6 +28,7 @@
 ProfileImporter::ProfileImporter(QObject *parent)
     : QObject(parent)
     , m_progress(nullptr)
+    , m_cancelled(false)
     , m_totalSessions(0)
     , m_loadedSessions(0)
 {
@@ -43,6 +44,7 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
 {
     m_progress = progress;
     m_lastError.clear();
+    m_cancelled = false;
     m_totalSessions = 0;
     m_loadedSessions = 0;
     
@@ -180,7 +182,25 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     QString sourceDataPath = QDir::cleanPath(QDir(sourcePath).absolutePath() + "/../..");
     copyLayoutSettings(sourceDataPath);
     migrateAppSettings(sourceDataPath);
-    
+
+    // ===== COMMIT TRANSACTION 1: profile metadata (small, fast) =====
+    // Profile record, machines, user/doctor info, and preferences are now committed.
+    // Session data is loaded separately so each machine's commit is small and the
+    // UI stays responsive throughout.
+    reportProgress(35, 100, tr("Saving profile metadata..."));
+    if (!dbMgr.commit()) {
+        m_lastError = tr("Failed to commit profile metadata: %1").arg(dbMgr.lastError().text());
+        qWarning() << "ProfileImporter: Failed to commit metadata transaction";
+        rollbackImport(newPath);
+        delete profile;
+        return false;
+    }
+
+    // Record the profile's DB id so we can clean up via cascade delete if session
+    // loading fails after the metadata transaction has already been committed.
+    ProfileRepository profileRepo2;
+    qint64 profileId = profileRepo2.findByUsername(newProfileName).id;
+
     reportProgress(40, 100, tr("Loading session data from files..."));
 
     // CRITICAL: Initialize schema before loading sessions
@@ -198,52 +218,78 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     Profile* savedProfile = p_profile;
     p_profile = profile;
 
+    // loadSessionsFromFiles commits one small transaction per machine so that each
+    // individual commit covers only one machine's session data rather than the entire
+    // import, keeping the UI responsive.
     bool sessionsLoaded = loadSessionsFromFiles(profile, sourcePath);
-    
+
     if (!sessionsLoaded) {
-        p_profile = savedProfile;  // Restore before failing
-        dbMgr.rollback();
-        qWarning() << "ProfileImporter: Rolled back transaction due to loadSessionsFromFiles failure";
-        rollbackImport(newPath);
-        delete profile;
-        return false;
-    }
-    
-    reportProgress(90, 100, tr("Calculating daily summaries..."));
-    
-    if (!calculateSummaries(profile)) {
-        // Don't fail for this - summaries can be regenerated
-        qWarning() << "Failed to calculate summaries, but import succeeded";
-    }
-    
-    // IMPORTANT: Set opened state to true so Profile::Save() doesn't return early
-    profile->setOpened(true);
-    
-    // Save profile (still needs p_profile set)
-    if (!profile->Save()) {
-        m_lastError = tr("Failed to save profile to database");
-        qWarning() << "ProfileImporter: Rolled back transaction due to profile Save() failure";
-        dbMgr.rollback();
         p_profile = savedProfile;
+        qWarning() << "ProfileImporter: Session loading failed; cleaning up committed metadata";
+        if (profileId > 0) {
+            ProfileRepository cleanupRepo;
+            cleanupRepo.remove(profileId);
+        }
         rollbackImport(newPath);
         delete profile;
         return false;
     }
 
-    // ===== COMMIT THE ENTIRE TRANSACTION =====
-    // All database operations succeeded - commit everything at once
-    if (!dbMgr.commit()) {
-        m_lastError = tr("Failed to commit database transaction: %1").arg(dbMgr.lastError().text());
-        qWarning() << "ProfileImporter: Failed to commit transaction - rolling back";
-        dbMgr.rollback();
+    // ===== TRANSACTION 2: summaries + profile save (small, fast) =====
+    if (!dbMgr.transaction()) {
+        m_lastError = tr("Failed to begin transaction for summaries: %1").arg(dbMgr.lastError().text());
         p_profile = savedProfile;
+        if (profileId > 0) {
+            ProfileRepository cleanupRepo;
+            cleanupRepo.remove(profileId);
+        }
         rollbackImport(newPath);
         delete profile;
         return false;
     }
-    
-//    qDebug() << "ProfileImporter: Successfully committed entire import transaction";
-//    qDebug() << "ProfileImporter: Import completed - all data saved to database";
+
+    reportProgress(85, 100, tr("Calculating daily summaries..."));
+
+    if (!calculateSummaries(profile)) {
+        // Don't fail for this - summaries can be regenerated
+        qWarning() << "Failed to calculate summaries, but import succeeded";
+    }
+
+    reportProgress(92, 100, tr("Saving profile data..."));
+
+    // IMPORTANT: Set opened state to true so Profile::Save() doesn't return early
+    profile->setOpened(true);
+
+    // Save profile (still needs p_profile set)
+    if (!profile->Save()) {
+        m_lastError = tr("Failed to save profile to database");
+        qWarning() << "ProfileImporter: Rolled back summaries transaction due to profile Save() failure";
+        dbMgr.rollback();
+        p_profile = savedProfile;
+        if (profileId > 0) {
+            ProfileRepository cleanupRepo;
+            cleanupRepo.remove(profileId);
+        }
+        rollbackImport(newPath);
+        delete profile;
+        return false;
+    }
+
+    reportProgress(96, 100, tr("Committing final data..."));
+
+    if (!dbMgr.commit()) {
+        m_lastError = tr("Failed to commit final data: %1").arg(dbMgr.lastError().text());
+        qWarning() << "ProfileImporter: Failed to commit summaries transaction";
+        dbMgr.rollback();
+        p_profile = savedProfile;
+        if (profileId > 0) {
+            ProfileRepository cleanupRepo;
+            cleanupRepo.remove(profileId);
+        }
+        rollbackImport(newPath);
+        delete profile;
+        return false;
+    }
 
     // Initialize channels for this profile immediately after import.
     // Without this, channels are only populated when the profile is first opened
@@ -255,13 +301,13 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     }
 
     reportProgress(100, 100, tr("Import complete!"));
-    
+
     // Delete profile (still needs p_profile set - destructor may call Session methods)
     delete profile;
-    
+
     // Restore p_profile AFTER profile is deleted
     p_profile = savedProfile;
-    
+
     return true;
 }
 
@@ -356,11 +402,11 @@ bool ProfileImporter::copyDirectoryRecursively(const QString& sourcePath, const 
     for (const QString& fileName : files) {
         QString srcFilePath = sourcePath + "/" + fileName;
         QString dstFilePath = destPath + "/" + fileName;
-        
+
         if (!QFile::copy(srcFilePath, dstFilePath)) {
             qWarning() << "Failed to copy file:" << srcFilePath << "to" << dstFilePath;
         }
-        // Don't log every file - too verbose for large backup folders
+        QApplication::processEvents();
     }
     
     // Recursively copy subdirectories
@@ -547,12 +593,14 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
     return (errorCount == 0);
 }
 
-bool ProfileImporter::loadSessionsFromFiles(Profile* profile, 
+bool ProfileImporter::loadSessionsFromFiles(Profile* profile,
                                            const QString& oldPath)
 {
     // NOTE: p_profile is already set by caller (importProfile)
     // We don't set or restore it here
-    
+
+    DatabaseManager& dbMgr = DatabaseManager::instance();
+
     // Scan for machine folders in old profile
     QDir oldDir(oldPath);
     QStringList entries = oldDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
@@ -606,7 +654,21 @@ bool ProfileImporter::loadSessionsFromFiles(Profile* profile,
 
 //        qDebug() << "Loading sessions for machine:" << machine->hexid() << "from folder:" << entry;
 
+        // Each machine gets its own transaction so the commit covers only one machine's
+        // session data, keeping individual commits small and the UI responsive.
+        if (!dbMgr.transaction()) {
+            m_lastError = tr("Failed to start transaction for machine: %1").arg(entry);
+            return false;
+        }
         if (!loadMachineSessions(machine, oldMachinePath)) {
+            dbMgr.rollback();
+            return false;
+        }
+        int saveProgress = 40 + (m_loadedSessions * 45 / qMax(1, m_totalSessions));
+        reportProgress(saveProgress, 100,
+            tr("Saving sessions for machine %1 of %2...").arg(currentMachine).arg(machineCount));
+        if (!dbMgr.commit()) {
+            m_lastError = tr("Failed to commit sessions for machine: %1").arg(entry);
             return false;
         }
 
@@ -660,7 +722,18 @@ bool ProfileImporter::loadSessionsFromFiles(Profile* profile,
                                << skipped << "to machine serial:" << assigned->serial()
                                << "hexid:" << assigned->hexid();
                     unmatchedMachines.removeOne(assigned);
+                    if (!dbMgr.transaction()) {
+                        m_lastError = tr("Failed to start transaction for machine: %1").arg(skipped);
+                        return false;
+                    }
                     if (!loadMachineSessions(assigned, oldMachinePath)) {
+                        dbMgr.rollback();
+                        return false;
+                    }
+                    int saveProgress = 40 + (m_loadedSessions * 45 / qMax(1, m_totalSessions));
+                    reportProgress(saveProgress, 100, tr("Saving sessions..."));
+                    if (!dbMgr.commit()) {
+                        m_lastError = tr("Failed to commit sessions for machine: %1").arg(skipped);
                         return false;
                     }
                 } else {
@@ -715,6 +788,11 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
     int eventFailures = 0;
 
     for (const QFileInfo& fileInfo : files) {
+        if (m_cancelled) {
+            m_lastError = tr("Import cancelled by user");
+            return false;
+        }
+
         // Parse session ID from filename (hex)
         QString baseName = fileInfo.baseName();
         bool ok;
@@ -768,8 +846,8 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
         
         m_loadedSessions++;
         
-        // Update progress every 10 sessions or so to avoid too many updates
-        if (m_loadedSessions % 10 == 0 || m_loadedSessions == m_totalSessions) {
+        // Update progress every 5 sessions to keep the UI responsive
+        if (m_loadedSessions % 5 == 0 || m_loadedSessions == m_totalSessions) {
             int progress = 40 + (m_loadedSessions * 45 / qMax(1, m_totalSessions));
             reportProgress(progress, 100,
                 tr("Loaded %1 of %2 sessions...").arg(m_loadedSessions).arg(m_totalSessions));

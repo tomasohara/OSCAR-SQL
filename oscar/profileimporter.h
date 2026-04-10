@@ -65,7 +65,12 @@ public:
      * \return Error message from last operation, or empty string
      */
     QString lastError() const { return m_lastError; }
-    
+    bool wasCancelled() const { return m_cancelled; }
+
+public slots:
+    /*! \brief Request cancellation of an in-progress import. Safe to call from a signal. */
+    void cancel() { m_cancelled = true; }
+
 signals:
     /*!
      * \brief Emitted when import progress changes
@@ -78,6 +83,7 @@ signals:
 private:
     QString m_lastError;
     ProgressDialog* m_progress;
+    bool m_cancelled;
     int m_totalSessions;
     int m_loadedSessions;
     

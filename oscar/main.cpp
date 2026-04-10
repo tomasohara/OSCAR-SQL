@@ -158,15 +158,19 @@ bool migrateFromOSCAR(QString destDir) {
         }
     }
 
-    // Create a progress dialog for the migration
+    // Create a progress dialog for the migration.
+    // Range 0-100 shows per-profile progress; the label shows overall n-of-n count.
     QProgressDialog progress(QObject::tr("Migrating Profiles"),
                             QObject::tr("Cancel"),
-                            0, profileList.size() * 100,
+                            0, 100,
                             nullptr,
                             Qt::WindowSystemMenuHint | Qt::WindowTitleHint);
     progress.setWindowModality(Qt::ApplicationModal);
     progress.setMinimumWidth(400);
     progress.setWindowTitle(QObject::tr("Migrating OSCAR data"));
+    progress.setMinimumDuration(0);
+    progress.setAutoReset(false);   // Don't reset when value reaches maximum
+    progress.setAutoClose(false);   // Don't hide when value reaches maximum
     progress.show();
     QApplication::processEvents();
 
@@ -188,23 +192,40 @@ bool migrateFromOSCAR(QString destDir) {
         
         QString profileSourcePath = sourcePath + "/Profiles/" + profileDir;
         
-        // Update progress dialog with current profile
+        // Reset progress bar to 0 for this profile, show n-of-n in label.
+        progress.setValue(0);
         progress.setLabelText(QObject::tr("Migrating profile: %1\n(%2 of %3)\n\nStarting import...")
                             .arg(profileDir)
                             .arg(i + 1)
                             .arg(profileList.size()));
-        progress.setValue(i * 100);
         QApplication::processEvents();
 
-        // Create ProfileImporter and connect to our existing progress dialog
+        // Create ProfileImporter and connect to our existing progress dialog.
+        // The progress bar advances per-profile (0-100); the label shows the n-of-n count.
         ProfileImporter importer;
-        
-        // Connect ProfileImporter progress to update the overall progress dialog's message
+
+        // Order matters: show the "Cancelling..." UI before setting the flag so the
+        // user sees feedback immediately. Qt delivers direct connections in connection order.
+        QObject::connect(&progress, &QProgressDialog::canceled,
+                        [&progress, profileDir, i, &profileList]() {
+                            progress.setCancelButton(nullptr);  // Remove button — already cancelling
+                            progress.setLabelText(
+                                QObject::tr("Cancelling: %1\n(%2 of %3)\n\nCleaning up, please wait...")
+                                    .arg(profileDir)
+                                    .arg(i + 1)
+                                    .arg(profileList.size()));
+                            progress.show();
+                            QApplication::processEvents();
+                        });
+        QObject::connect(&progress, &QProgressDialog::canceled, &importer, &ProfileImporter::cancel);
+
         QObject::connect(&importer, &ProfileImporter::progressChanged,
                         [&progress, profileDir, i, &profileList](int current, int total, const QString& message) {
-                            Q_UNUSED(current)
                             Q_UNUSED(total)
-                            // Update the label with profile info + current step
+                            // Don't touch the dialog after the user cancels — setValue()
+                            // internally calls show(), which would make the dialog reappear.
+                            if (progress.wasCanceled()) return;
+                            progress.setValue(current);
                             progress.setLabelText(QObject::tr("Migrating profile: %1\n(%2 of %3)\n\n%4")
                                                 .arg(profileDir)
                                                 .arg(i + 1)
@@ -225,9 +246,11 @@ bool migrateFromOSCAR(QString destDir) {
             qWarning() << "Failed to migrate profile:" << profileDir;
             qWarning() << "Error:" << importer.lastError();
         }
-        
-        progress.setValue((i + 1) * 100);
-        QApplication::processEvents();
+
+        if (!progress.wasCanceled()) {
+            progress.setValue(100);
+            QApplication::processEvents();
+        }
     }
 
     auto endTime = std::chrono::steady_clock::now();
@@ -237,7 +260,18 @@ bool migrateFromOSCAR(QString destDir) {
 
     // Report results
     QString resultMessage;
-    if (profilesSucceeded > 0 && profilesFailed == 0) {
+    if (progress.wasCanceled()) {
+        resultMessage = QObject::tr("Migration cancelled.");
+        if (profilesSucceeded > 0) {
+            resultMessage += "\n\n" + QObject::tr("The following profile(s) were fully imported before cancellation:")
+                           + "\n" + successfulProfiles.join("\n");
+        } else {
+            resultMessage += "\n\n" + QObject::tr("No profiles were imported.");
+        }
+        qDebug() << resultMessage;
+        QMessageBox::information(nullptr, QObject::tr("Migration Cancelled"), resultMessage);
+        success = profilesSucceeded > 0;
+    } else if (profilesSucceeded > 0 && profilesFailed == 0) {
         resultMessage = QObject::tr("Successfully migrated %1 profile(s) in %2 seconds.")
                        .arg(profilesSucceeded)
                        .arg(elapsed.count());
