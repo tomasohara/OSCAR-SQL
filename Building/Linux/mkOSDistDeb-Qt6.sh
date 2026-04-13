@@ -14,7 +14,6 @@ if [  -z ${ITERATION} ]; then
     ITERATION="1"
 fi
 
-#SRC=/home/$USER/OSCAR/OSCAR-code/oscar
 SRC=${PWD%/*/*}/oscar
 
 VERSION=`awk '/#define VERSION / { gsub(/"/, "", $3); print $3 }' ${SRC}/VERSION`
@@ -96,12 +95,6 @@ if [ "$test" != "0" ]; then
   exit
 fi
 
-# if deb file exists, fatal error
-#if [ -f "./$deb_file" ]; then
-#    echo "destination file (./$deb_file) exists. fatal error"
-#    exit
-#fi
-
 getPkg libqt6printsupport
 libprintsup=$PKGNAME
 
@@ -122,6 +115,7 @@ fi
 if [ -d "${temp_folder}" ]; then
     rm -r ${temp_folder}
 fi
+
 mkdir ${temp_folder}
 if [ ! -d "${temp_folder}" ]; then
     echo "Folder (${temp_folder}) not created : fatal error."
@@ -153,7 +147,6 @@ mkdir ${temp_folder}/share/applications
 # Notice : ${appli_name} must be use : it is ${base_name} added with -test suffix if necessary
 strip -s -o ${temp_folder}/bin/${appli_name} ${build_folder}/oscar/${base_name}
 
-# 2>/dev/null : errors does not appear : we don't care about them
 cp -r ${build_folder}/oscar/Help ${temp_folder}/share/${appli_name} 2>/dev/null
 cp -r ${build_folder}/oscar/Html ${temp_folder}/share/${appli_name} 2>/dev/null
 cp -r ${build_folder}/oscar/Translations ${temp_folder}/share/${appli_name} 2>/dev/null
@@ -161,8 +154,6 @@ cp ./${icon_name}.png ${temp_folder}/share/icons/hicolor/48x48/apps/${icon_name}
 cp ./${icon_name}.svg ${temp_folder}/share/icons/hicolor/scalable/apps/${icon_name}.svg
 cp ./${icon_name}.desktop ${temp_folder}/share/applications/${icon_name}.desktop
 
-#echo "Copyright 2019-2020 oscar-team.org <oscar@oscar-team.org>" > $share_doc_folder/copyright
-#echo "Licensed under /usr/share/common-licenses/GPL-3" >> $share_doc_folder/copyright
 cp ./copyright $share_doc_folder/copyright
 
 changelog_file="./changelog"

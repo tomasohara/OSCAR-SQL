@@ -58,18 +58,18 @@ function remove_deb_file ()
 
 function retrieve_names ()
 {
-    # Modified application name code
-    OSCARPRO=${PWD%/*/*}/oscar/"oscar.pro"
-    assignmentcnt=$(($(grep -cE '(^|[[:space:]])TARGET[[:space:]]*=' $OSCARPRO)-1))
-    if [[ $assignmentcnt -lt 1 ]]; then
-        assignmentcnt=1
-    fi
-    PROGNAME=$(awk -F'=' -v n=$assignmentcnt '/TARGET[[:space:]]*=/{count++; if(count==n){gsub(/^[ \t]+|[ \t]+$/,"",$2); print $2}}' $OSCARPRO)
-    if [ -z "$PROGNAME" ]; then
-        PROGNAME="OSCAR"
-    fi
+  # Modified application name code
+  OSCARPRO=${PWD%/*/*}/oscar/"oscar.pro"
+  assignmentcnt=$(($(grep -cE '(^|[[:space:]])TARGET[[:space:]]*=' $OSCARPRO)-1))
+  if [[ $assignmentcnt -lt 1 ]]; then
+    assignmentcnt=1
+  fi
+  PROGNAME=$(awk -F'=' -v n=$assignmentcnt '/TARGET[[:space:]]*=/{count++; if(count==n){gsub(/^[ \t]+|[ \t]+$/,"",$2); print $2}}' $OSCARPRO)
+  if [ -z "$PROGNAME" ]; then
+    PROGNAME="OSCAR"
+  fi
 
-    icon_name=$PROGNAME
+  icon_name=$PROGNAME
 }
 
 # function to generates the scripts which will be included in deb file struture
@@ -152,3 +152,4 @@ function getPkg () {
             fi ;
         done <<< $(dpkg -l | grep $1)
 }
+
