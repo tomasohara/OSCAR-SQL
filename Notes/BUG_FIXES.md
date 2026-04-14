@@ -4,6 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-13 - Blank progress dialog during Resync Device Detected Events
+
+**File:** `oscar/mainwindow.cpp` — `MainWindow::doReprocessEvents()`
+
+**Symptom:** When enabling Custom CPAP User Event flagging and selecting "Resync Device Detected Events", a blank popup appeared and stayed on screen for the ~1 minute duration of the operation.
+
+**Root cause:** `doReprocessEvents()` created and opened a `ProgressDialog` but never called `QApplication::processEvents()` inside the processing loop, so Qt's event loop had no opportunity to paint the dialog or update its progress bar. `doRecompressEvents()` (the equivalent function for recompression) correctly called both `progress.setProgressValue(++idx)` and `QApplication::processEvents()` per day.
+
+**Fix:** Added `int idx = 0;` before the loop and `progress.setProgressValue(++idx); QApplication::processEvents();` at the end of each day iteration, matching the pattern in `doRecompressEvents()`.
+
+---
+
 ## 2026-04-09 - Code review fixes: mainwindow.cpp
 
 **Files:** `oscar/mainwindow.cpp`

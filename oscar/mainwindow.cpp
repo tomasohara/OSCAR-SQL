@@ -2372,6 +2372,7 @@ void MainWindow::doReprocessEvents()
         overview = nullptr;
     }
 
+    int idx = 0;
     for (Day * day : p_profile->daylist) {
         for (Session * sess : day->sessions) {
             bool isopen = sess->eventsLoaded();
@@ -2404,6 +2405,8 @@ void MainWindow::doReprocessEvents()
                 sess->TrashEvents();
             }
         }
+        progress.setProgressValue(++idx);
+        QApplication::processEvents();
     }
     progress.close();
 
