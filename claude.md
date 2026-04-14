@@ -4,6 +4,8 @@
 
 OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to present the data to the user in an understandable fashion and keep historical records.
 
+"OSCAR" means OSCAR 2.0 (this codebase) unless explicitly stated otherwise. OSCAR 1.7.1 source lives at c:/oscar17/oscar-code — same overall structure but no database layer. Backports to 1.7.1 will be described explicitly when needed.
+
 ## Project Structure
 
 - c:/OSCAR/OSCAR-code is the root directory for all OSCAR files
@@ -22,7 +24,7 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 ## Conventions
 
 - All code must be in c++17 and compile clean with Qt 6.10.2.
-- Include a brief description of the module and in the file header and, in new modules, "Copyright (c) 2026 The OSCAR Team".
+- Include a brief description of the module in the file header and, in new modules, "Copyright (c) 2026 The OSCAR Team".
 - Document all .h and .cpp files in Doxygen style. Document code for understanding by a programmer reading the code.
 - Avoid platform-specific APIs; code must be cross-platform compatible.
 - Place any progress, design notes, etc. in Notes folder. If searching for a file that was there before, it may have been moved to Notes/temp folder.
@@ -30,17 +32,19 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 - Never touch any files in oscar/SleepLib/thirdparty.
 - Log all bug fixes in Notes/BUG_FIXES.md.
 - An "OSCAR day" starts at noon and runs until noon of the following calendar day.
-- When I ask you to commit changes, if Htmldocs/release_notes.html have not been changed, ask if I want to update them first.
-- Keep commit messages concise: a one-line subject and a 2-3 sentence summary. Avoid listing individual changes — anyone interested can read the diff.
-- When committing changes, include Htmldocs/release_notes.html if changed. Omit the "co-authored by" line.
-- If I ask you to push the changes, the command to use is usually "git push origin master"
+
+## Database
+
+- The application uses SQLite.
+- Schema reference: Notes/DATABASE_SCHEMA_REFERENCE.md (all tables, fields, relationships — schema v13)
+- ER diagram: Notes/Database-ER-Diagram.png
+- Useful queries: Notes/USEFUL_QUERIES.sql, Notes/HOW_TO_USE_QUERIES.md
 
 ## Other Notes
 
-- The application uses SQLite.
-- Developer builds application using QtCreator and will forward error messages.
+- Developer builds incrementally in QtCreator. For command-line compile checks, use `Building/Windows/FastBuild.bat` (incremental, no deploy). Uncomment the qmake line (line 39) when oscar.pro changes, then re-comment it.
 - Primary development environment is Windows 11.
-- We use git and GitLab for version control.
+- We use git and GitLab for version control: https://gitlab.com/Seeker4/OSCAR-code
 - Final product is distributed to about 25 different environments (Mac, Linux, etc.).
 
 ## Debugging
@@ -57,4 +61,6 @@ When modifying loader code, confirm scope first: changes must not affect other l
 
 ## Workflow
 
-After making fixes, log them to Notes/BUG_FIXES.md per project convention.
+ - After making fixes, log them to Notes/BUG_FIXES.md.
+ - When committing: keep messages concise (one-line subject, 2-3 sentence summary; no change lists). Omit the "co-authored by" line. Include Htmldocs/release_notes.html if changed; if it hasn't been changed, ask whether I want to to update it before committing.
+  - To push: git push origin master
