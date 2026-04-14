@@ -550,6 +550,7 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     }
 
     p_profile = prof;
+    Statistics::resetReportDate();  // force updateReportDate() to refresh on first GenerateStatistics() for this profile
     ProgressDialog * progress = new ProgressDialog(this);
     progress->setWindowTitle(tr("Opening %1").arg(profileName));
 

@@ -2129,6 +2129,10 @@ QString StatisticsRow::value(QDate start, QDate end)
 
 QDate lastdate;
 QDate firstdate;
+void Statistics::resetReportDate() {
+    lastdate = QDate();
+    firstdate = QDate();
+}
 void Statistics::updateReportDate() {
     if (p_profile) {
         QDate last = lastGoodDay();

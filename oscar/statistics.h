@@ -216,6 +216,7 @@ class Statistics : public QObject
     static void printReport(QWidget *parent = nullptr);
 
     static void updateReportDate();
+    static void resetReportDate();
 
     void adjustRange(QDate& start , QDate& last);
 

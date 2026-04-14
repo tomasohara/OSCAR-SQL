@@ -16,6 +16,36 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-14 - Statistics end-date drift and purge-all notes recreation
+
+**Files:** `oscar/SleepLib/profiles.cpp`, `oscar/daily.h`, `oscar/daily.cpp`, `oscar/mainwindow.cpp`
+
+**Symptom 1 (Statistics):** On the Statistics page, the reporting period end date (and "Most Recent" period end) could be later than the CPAP database range end date. In affected cases, the extra day had no CPAP data.
+
+**Root cause 1:** `Profile::FirstGoodDay(MT_*)` / `Profile::LastGoodDay(MT_*)` treated no-data typed ranges as valid by falling back through `FirstDay(mt)`/`LastDay(mt)` behavior. For types with no data (notably oximeter), this let overall profile bounds (which can be extended by Journal days) leak into statistics report-date calculations.
+
+**Fix 1:** Added inverted-range guards in both methods:
+- `FirstGoodDay(MT_*)` now returns invalid when `FirstDay(mt) > LastDay(mt)`.
+- `LastGoodDay(MT_*)` now returns invalid when `LastDay(mt) < FirstDay(mt)`.
+
+**Symptom 2 (Purge):** Daily page "Data -> Advanced -> Purge selected day -> Delete all include Notes" could appear to delete notes, but notes reappeared immediately.
+
+**Root cause 2:** After purge deleted the journal session, Daily reload called `Unload(previous_date)`. The notes editor still contained pre-purge text, so unload re-saved/recreated the journal entry.
+
+**Fix 2:** Added `Daily::clearJournalNotesEditor()` and call it from `MainWindow::purgeDay()` when purging `MT_JOURNAL`, before `LoadDate(date)`, so reload cannot re-create the deleted note.
+
+## 2026-04-14 - Statistics report-date stale across profile switches
+
+**Files:** `oscar/statistics.h`, `oscar/statistics.cpp`, `oscar/mainwindow.cpp`
+
+**Symptom:** For users with multiple profiles, the statistics report end date could show a stale value when switching profiles, if both profiles' `lastGoodDay()` happened to match the cached value from the previous profile.
+
+**Root cause:** `Statistics::updateReportDate()` uses two file-scope `QDate` statics (`lastdate`, `firstdate`) to skip redundant recalculations. These statics are process-global and not reset between profile switches, so the early-return could fire on the first `GenerateStatistics()` call for a newly-opened profile, leaving the new profile's `statReportDate` unrefreshed.
+
+**Fix:** Added `Statistics::resetReportDate()` which invalidates both statics, and call it in `MainWindow::OpenProfile()` immediately after `p_profile = prof`, ensuring the first `updateReportDate()` call for each new profile always does a full refresh.
+
+---
+
 ## 2026-04-09 - Code review fixes: mainwindow.cpp
 
 **Files:** `oscar/mainwindow.cpp`
@@ -247,15 +277,15 @@ the database before filesystem cleanup.
 
 ---
 
-## 2026-03-25 - G3X: Replace 0x44-based PB with AASM computed PB from 0x0C breath markers
+## ~~2026-03-25 - G3X: Replace 0x44-based PB with AASM computed PB from 0x0C breath markers~~
 
-**Files:** `bmcG3xDataParsing.cpp`, `bmcg3x_loader.h`
+~~**Files:** `bmcG3xDataParsing.cpp`, `bmcg3x_loader.h`~~
 
-**Symptom:** Periodic breathing was never shown in OSCAR for any G3X device. Firmware SC.72 (JCCPAP/Luna G3X) emits no EVT 0x44 records at all. On SC.74+/SC.75 the 0x44 records had not been validated and PB output was explicitly suppressed.
+~~**Symptom:** Periodic breathing was never shown in OSCAR for any G3X device. Firmware SC.72 (JCCPAP/Luna G3X) emits no EVT 0x44 records at all. On SC.74+/SC.75 the 0x44 records had not been validated and PB output was explicitly suppressed.~~
 
-**Root cause:** PB detection depended entirely on firmware-emitted 0x44 event records, which are absent on SC.72. No universal PB signal existed.
+~~**Root cause:** PB detection depended entirely on firmware-emitted 0x44 event records, which are absent on SC.72. No universal PB signal existed.~~
 
-**Fix:** Replaced 0x44-based detection with an AASM algorithm applied to device-classified CSA (central apnea) events from `rawRespEvents`. Each event carries a device-measured duration; startTime is derived as endTime − duration. The algorithm groups consecutive central apneas (≥3 s each) separated by ≤20 s of normal breathing into PB episodes (≥3 qualifying apneas per episode). Works on all firmware. `ExportPeriodicBreathing()` in `BmcG3xLoader` changed from `false` to `true`.
+~~**Fix:** Replaced 0x44-based detection with an AASM algorithm applied to device-classified CSA (central apnea) events from `rawRespEvents`. Each event carries a device-measured duration; startTime is derived as endTime − duration. The algorithm groups consecutive central apneas (≥3 s each) separated by ≤20 s of normal breathing into PB episodes (≥3 qualifying apneas per episode). Works on all firmware. `ExportPeriodicBreathing()` in `BmcG3xLoader` changed from `false` to `true`.~~
 
 ---
 
@@ -275,7 +305,7 @@ the database before filesystem cleanup.
 
 **Files:** `bmc_loader.h`, `bmc_loader.cpp`, `bmcg3x_loader.h`, `bmcg3x_loader.cpp`
 
-**Periodic breathing:** EVT type 0x44 ("PB") was being emitted to the CPAP_PB channel for all G3X sessions. The flag has not been validated against PAP-Link for any G3X firmware, and on SC.74+ firmware it produces clearly nonsensical output. Added `ExportPeriodicBreathing()` virtual method to `BmcLoader` (base returns `true` for legacy BMC). `BmcG3xLoader` overrides to `false`, which suppresses creation of the CPAP_PB event list entirely. The raw 0x44 records are still collected in the parser for future analysis.
+~~**Periodic breathing:** EVT type 0x44 ("PB") was being emitted to the CPAP_PB channel for all G3X sessions. The flag has not been validated against PAP-Link for any G3X firmware, and on SC.74+ firmware it produces clearly nonsensical output. Added `ExportPeriodicBreathing()` virtual method to `BmcLoader` (base returns `true` for legacy BMC). `BmcG3xLoader` overrides to `false`, which suppresses creation of the CPAP_PB event list entirely. The raw 0x44 records are still collected in the parser for future analysis.~~
 
 **Unknown-firmware warning:** BMC G3X firmware version is read from the companion `.log` file (first 6 KB scanned for a null-terminated ASCII string starting with `"G3-2."`; offset varies by device — ~0x0420 in small G3 A20 logs, ~0x1420 in larger G3 B20A ring-buffer logs). Falls back to IDX offset `0x0345` (internal SC build string, e.g. `"G3-2.SC.72.01"`) if the `.log` is unavailable. The version is stored in `MachineInfo.properties["firmware"]` (added in `PeekInfo()`). In `Open()`, if the firmware string is non-empty and does not start with a known user-facing prefix (`"G3-2.11."` or `"G3-2.12."`, or contain `"SC.72"` / `"SC.74"` as IDX-fallback identifiers), a `QMessageBox::information` dialog is shown asking the user to send their SD card .zip to the OSCAR team. Import then continues normally.
 
@@ -317,12 +347,12 @@ the database before filesystem cleanup.
 
 ---
 
-## 2026-03-26 - G3X: PB detection expanded to include CH (central hypopnea) events
+## ~~2026-03-26 - G3X: PB detection expanded to include CH (central hypopnea) events~~
 
-**Files:** `bmcG3xDataParsing.cpp`
-**Symptom:** JCCPAP-2 (SC.72 firmware) periodic breathing episode missed. SC.72 emits one CSA plus generic/central hypopneas during a PB event; CSA-only clustering cannot form a ≥3-apnea cluster from one CSA.
-**Root cause:** Phase 2b PB clustering filtered only on `kG3xEvtTypeCSA` (0x04). On CPAP devices CH (0x08, central hypopnea) also indicates absent/reduced central drive and is part of the same periodic-breathing cluster.
-**Fix:** Expanded Phase 2b filter to include `kG3xEvtTypeCH` (0x08) alongside CSA. CH events continue to be reported as hypopneas in OSCAR (unchanged); only the PB episode detection input changes.
+~~**Files:** `bmcG3xDataParsing.cpp`~~
+~~**Symptom:** JCCPAP-2 (SC.72 firmware) periodic breathing episode missed. SC.72 emits one CSA plus generic/central hypopneas during a PB event; CSA-only clustering cannot form a ≥3-apnea cluster from one CSA.~~
+~~**Root cause:** Phase 2b PB clustering filtered only on `kG3xEvtTypeCSA` (0x04). On CPAP devices CH (0x08, central hypopnea) also indicates absent/reduced central drive and is part of the same periodic-breathing cluster.~~
+~~**Fix:** Expanded Phase 2b filter to include `kG3xEvtTypeCH` (0x08) alongside CSA. CH events continue to be reported as hypopneas in OSCAR (unchanged); only the PB episode detection input changes.~~
 
 ---
 
@@ -510,15 +540,15 @@ the database before filesystem cleanup.
 
 ---
 
-## 2026-03-15 — QFileDialog: DontUseNativeDialog required for button translation (design note)
+## ~~2026-03-15 — QFileDialog: DontUseNativeDialog required for button translation (design note)~~
 
-**Files:** All call sites using `QFileDialog` throughout OSCAR.
+~~**Files:** All call sites using `QFileDialog` throughout OSCAR.~~
 
-**Background:** `QFileDialog::DontUseNativeDialog` was added to every `QFileDialog` call so that button labels (Open, Save, Cancel, etc.) are translated to the user's selected OSCAR language.
+~~**Background:** `QFileDialog::DontUseNativeDialog` was added to every `QFileDialog` call so that button labels (Open, Save, Cancel, etc.) are translated to the user's selected OSCAR language.~~
 
-**Investigation:** We considered whether there was an alternative that would allow native OS dialogs to be used while still translating the buttons. There is not. Native dialogs are rendered entirely by the OS platform layer (e.g. COMDLG32 on Windows) and always use the OS locale. Qt has no mechanism to inject translated text into native dialogs on any supported platform. `QFileDialog::setLabelText()` is documented to have no effect on native dialogs on most platforms.
+~~**Investigation:** We considered whether there was an alternative that would allow native OS dialogs to be used while still translating the buttons. There is not. Native dialogs are rendered entirely by the OS platform layer (e.g. COMDLG32 on Windows) and always use the OS locale. Qt has no mechanism to inject translated text into native dialogs on any supported platform. `QFileDialog::setLabelText()` is documented to have no effect on native dialogs on most platforms.~~
 
-**Conclusion:** `DontUseNativeDialog` is the only correct cross-platform solution when the app language may differ from the OS language. The trade-off is that Qt-rendered dialogs have a slightly different appearance and may be marginally slower than native dialogs on some platforms.
+~~**Conclusion:** `DontUseNativeDialog` is the only correct cross-platform solution when the app language may differ from the OS language. The trade-off is that Qt-rendered dialogs have a slightly different appearance and may be marginally slower than native dialogs on some platforms.~~
 
 ---
 
