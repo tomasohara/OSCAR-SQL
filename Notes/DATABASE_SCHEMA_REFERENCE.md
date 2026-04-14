@@ -464,7 +464,7 @@ CREATE TABLE event_lists (
 
 **Purpose:** Stores metadata for each EventList (one row per EventList). Replaces .001 file headers. Includes timing, scaling, dimensional information, and compression statistics.
 
-**Event Types:** 0=Event, 1=Waveform, 2=Series
+**Event Types:** 0=Waveform (`EVL_Waveform`), 1=Event (`EVL_Event`). Values match the C++ `EventListType` enum in `oscar/SleepLib/event.h`.
 
 ### 17. event_data ⚡ **NEW IN v8 - DATABASE-ONLY MODE**
 Binary waveform and event data storage.
@@ -835,7 +835,7 @@ User (root, source=user)
 | profile_id | INTEGER | FK | NO | → profiles(id) (denormalized, NEW IN v12) |
 | channel_id | INTEGER | | NO | OSCAR channel ID |
 | eventlist_index | INTEGER | | NO | Index when multiple EventLists per channel |
-| event_type | INTEGER | | NO | 0=Event, 1=Waveform, 2=Series |
+| event_type | INTEGER | | NO | 0=Waveform, 1=Event (matches `EventListType` enum) |
 | first_time | INTEGER | | NO | First timestamp (Unix ms) |
 | last_time | INTEGER | | NO | Last timestamp (Unix ms) |
 | count | INTEGER | | NO | Number of data points |
