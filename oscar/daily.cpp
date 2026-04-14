@@ -2302,6 +2302,11 @@ void Daily::clearLastDay()
     lastcpapday=nullptr;
 }
 
+void Daily::clearJournalNotesEditor()
+{
+    ui->JournalNotes->clear();
+}
+
 void Daily::Unload(QDate date)
 {
     if (!date.isValid()) {

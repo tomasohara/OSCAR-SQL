@@ -2443,8 +2443,8 @@ QDate Profile::FirstGoodDay(MachineType mt)
     QDate d = FirstDay(mt);
     QDate l = LastDay(mt);
 
-    // No data will return invalid date records
-    if (!d.isValid() || !l.isValid()) {
+    // No data for this type can yield an inverted typed range.
+    if (!d.isValid() || !l.isValid() || (d > l)) {
         return QDate();
     }
 
@@ -2467,7 +2467,8 @@ QDate Profile::LastGoodDay(MachineType mt)
     QDate d = LastDay(mt);
     QDate f = FirstDay(mt);
 
-    if (!(d.isValid() && f.isValid())) {
+    // No data for this type can yield an inverted typed range.
+    if (!(d.isValid() && f.isValid()) || (d < f)) {
         return QDate();
     }
 

@@ -2049,6 +2049,11 @@ void MainWindow::purgeDay(MachineType type)
     day = p_profile->GetDay(date, MT_UNKNOWN);
     Q_UNUSED(day);
 
+    // Prevent immediate reload from re-creating a deleted journal entry via Unload(previous_date).
+    if (type == MT_JOURNAL) {
+        daily->clearJournalNotesEditor();
+    }
+
     daily->clearLastDay();
     daily->LoadDate(date);
     if (overview)

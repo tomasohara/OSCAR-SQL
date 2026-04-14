@@ -129,6 +129,7 @@ public:
     gGraph * eventBreakdownPie() { return graphlist["EventBreakdown"]; }
 
     void clearLastDay();
+    void clearJournalNotesEditor();
 
     /*! \fn Unload(QDate date)
         \brief Saves any journal changes for the provided date.
