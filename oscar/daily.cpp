@@ -2250,11 +2250,19 @@ void Daily::set_JournalWeightValue(QDate& date, double kg) {
     }
     if (kg > zeroD) {
         journal->settings[Journal_Weight]=kg;
+        // Save BMI alongside weight so the Overview BMI graph has data
+        if (user_height_cm > zeroD) {
+            journal->settings[Journal_BMI] = calculateBMI(kg, user_height_cm);
+        }
     } else {
-        // Weight now zero - remove from journal
+        // Weight now zero - remove weight and BMI from journal
         auto jit = journal->settings.find(Journal_Weight);
         if (jit != journal->settings.end()) {
             journal->settings.erase(jit);
+        }
+        auto bit = journal->settings.find(Journal_BMI);
+        if (bit != journal->settings.end()) {
+            journal->settings.erase(bit);
         }
     }
     journal->SetChanged(true);

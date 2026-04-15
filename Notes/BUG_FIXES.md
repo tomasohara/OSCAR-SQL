@@ -4,6 +4,20 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-15 - Overview BMI graph missing or unpopulated
+
+**File:** `oscar/daily.cpp` — `Daily::set_JournalWeightValue()`
+
+**Symptom:** The BMI graph on the Overview page either did not appear at all, or appeared but showed no data points.
+
+**Root cause:** `set_JournalWeightValue()` saved `Journal_Weight` to the journal session but never saved `Journal_BMI`. BMI was only calculated and displayed in the UI label (`set_BmiUI`). Since `Journal_BMI` was never persisted, `day->settingExists(Journal_BMI)` always returned false in `gOverviewGraph::SetDay()`, so `m_goodcodes` stayed all-false, `m_empty` stayed true, and `gGraphView` skipped the graph entirely. Users with older data where BMI had been stored saw the graph appear but all new days had no data points.
+
+**Fix:** In `set_JournalWeightValue()`, after saving weight, also calculate and save `Journal_BMI` (using `user_height_cm`) when weight > 0 and height is available. When weight is cleared, also erase `Journal_BMI` from journal settings.
+
+Also fixed in `profileimporter.cpp::migrateJournalFromSource()`: during the 1.7.1 → 2.0 import, the importer now reads the source user's height and backfills `Journal_BMI` into each journal session that contains `Journal_Weight` before storing it to the database. This ensures historical weight data produces a populated BMI graph immediately after import.
+
+---
+
 ## 2026-04-13 - Blank progress dialog during Resync Device Detected Events
 
 **File:** `oscar/mainwindow.cpp` — `MainWindow::doReprocessEvents()`

@@ -530,13 +530,25 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
 //        qDebug() << "ProfileImporter::migrateJournalFromSource() - No .000 files found in source";
         return true;  // Not an error
     }
-    
+
+    // Read the source user's height to backfill Journal_BMI during migration.
+    // Height is not yet copied into `profile` at this stage of the import, so
+    // open the source profile briefly just to read it.
+    double userHeightCm = 0.0;
+    {
+        Profile* srcProfile = new Profile(sourcePath, true);
+        if (srcProfile && srcProfile->isOpen()) {
+            userHeightCm = srcProfile->user->height();
+        }
+        delete srcProfile;
+    }
+
 //    qDebug() << "ProfileImporter::migrateJournalFromSource() - Found" << files.size() << ".000 files to migrate";
-    
+
     // Migrate each file
     int migratedCount = 0;
     int errorCount = 0;
-    
+
     for (const QString& filename : files) {
         // Parse date from filename
         QString baseName = filename.section(".", 0, -2);  // Remove .000 extension
@@ -570,7 +582,17 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
             errorCount++;
             continue;
         }
-        
+
+        // Backfill Journal_BMI: OSCAR 1.7.1 stored weight but never stored BMI.
+        // Inject it now so the Overview BMI graph is populated after import.
+        if (userHeightCm > 0.0 && sess->settings.contains(Journal_Weight)) {
+            double kg = sess->settings[Journal_Weight].toDouble();
+            if (kg > 0.0) {
+                double h = userHeightCm / 100.0;
+                sess->settings[Journal_BMI] = kg / (h * h);
+            }
+        }
+
         // IMPORTANT: Store session to database with the machine's database ID
         // The session must be associated with the correct machine_id for foreign keys to work
         if (!sess->StoreToDatabase()) {
