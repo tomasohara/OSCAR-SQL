@@ -4,6 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-16 - Purge machine reappears after restart
+
+**Files:** `oscar/mainwindow.cpp` — `purgeMachine()`
+
+**Symptom:** After purging a device via Data/Advanced/Purge all device data, the machine reappeared in the list after restarting OSCAR (session data was gone, but the machine record persisted).
+
+**Root cause:** `purgeMachine()` called `p_profile->DelMachine(mach)` which removes the machine from the in-memory list only. It never called `MachineRepository::remove()` to delete the machine record from the SQLite database.
+
+**Fix:** Capture `mach->getDatabaseId()` before deleting the object, then call `MachineRepository::remove(dbId)` to delete the database record.
+
+---
+
 ## 2026-04-16 - Feelings (ZombieMeter) imported with wrong values / displayed incorrectly
 
 **Files:** `oscar/profileimporter.cpp` — `migrateJournalFromSource()`; `oscar/daily.cpp` — `setup_ZombieUIWidgets()`, `on_ZombieSlider_valueChanged()`, `on_Units10_100_clicked()`

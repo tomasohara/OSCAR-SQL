@@ -2199,8 +2199,13 @@ void MainWindow::purgeMachine(Machine * mach)
         path.chop(1);
         qDebug() << "path to device" << path;
 
+        qint64 dbId = mach->getDatabaseId();
         p_profile->DelMachine(mach);
         delete mach;
+        if (dbId > 0) {
+            MachineRepository repo;
+            repo.remove(dbId);
+        }
         // Remove the directory only if it is empty; leave it intact if anything unexpected remains.
         if (!dir.rmdir(path)) {
             qWarning() << "Could not remove device directory (may not be empty), leaving intact:" << path;
