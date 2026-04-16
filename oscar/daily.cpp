@@ -2880,40 +2880,23 @@ void Daily::on_bookmarkTable_itemChanged(QTableWidgetItem *)
 }
 
 /*
-Feelings (Zombie originally used in Code)
-Originally had a range for 1-10. with 0 being null.
-the value stored on disk was just an integer.
-Adding a new range of 1-100 without destroying the original range of 1-10
-the value 1-10 are the min/max for the original feature.
-the value displayed are called uiValues, which are seen by the end user.
-the value stored on disk and used are call ZombieValues.
-ZombieValues have
-    0          null
-    1-10       range 1-10
-    N+(1-100)  range 1-100
-The user will have a double spinBox to display the value.
-    and a push button that display the range and toggles range
-The slider will be display the current range.
-in the range 1-10  the user can input a number between 0-10 with tenths
-in the range 1-100  the user can input a number between 0-100
-ZombieValue saved in journal
+Feelings (historically called "ZombieMeter" in code)
 
+Values are stored in the database as an integer in the range 0–100, where 0 means "not set".
+The UI offers two display modes, toggled by the /10 / /100 button:
+  - /100 mode: spinbox shows 0–100, single-step 10
+  - /10  mode: spinbox shows 0.0–10.0 (value/10), single-step 1
+The slider always moves in the 0–100 range and maps directly to the stored value.
+
+Historical note: OSCAR 1.x used a mixed encoding — old data used 0–10 (5 = not set),
+newer 1.x data used value+20 (stored 20–120 for 0–100). Both encodings were normalised
+to 0–100 during the 1.x → 2.0 import.
 */
-static int ZombieModeOffset = 20;
-
 void Daily::setup_ZombieUIWidgets(int zombieValue, bool zombieMode, bool setup) {
     ui->ZombieSpinBox->blockSignals(true);
     ui->ZombieSlider->blockSignals(true);
-    int value100;
-    if (zombieValue<ZombieModeOffset) {
-        value100 = zombieValue * 10;
-    } else {
-        value100= zombieValue-ZombieModeOffset;
-    }
-    if (value100<0||value100>100) {
-        // illegal value detected.
-        value100=0;
-    }
+    // Feelings values are stored as 0–100 (0 = not set). Clamp any out-of-range value.
+    int value100 = qBound(0, zombieValue, 100);
 
     ui->ZombieSlider->setValue(value100);
 
@@ -2938,9 +2921,9 @@ void Daily::set_ZombieUI(int zombieValue, bool init)
 
 void Daily::on_ZombieSlider_valueChanged(int uiValue)
 {
-    int zombieValue = uiValue+ZombieModeOffset;
-    set_ZombieUI(zombieValue);
-    set_JournalZombie(previous_date,zombieValue);
+    // Slider position is the value (0–100 = not set to maximum).
+    set_ZombieUI(uiValue);
+    set_JournalZombie(previous_date, uiValue);
     mainwin->updateOverview();
 }
 
@@ -2956,8 +2939,7 @@ void Daily::on_Units10_100_clicked(){
     bool mode=p_profile->appearance->zombieMode();
     p_profile->appearance->setZombieMode(!mode);
     int uiValue = ui->ZombieSlider->value();
-    int zombieValue = uiValue+ZombieModeOffset;
-    set_ZombieUI(zombieValue,true);
+    set_ZombieUI(uiValue, true);
 }
 
 void Daily::on_weightSpinBox_valueChanged(double )

@@ -593,6 +593,28 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
             }
         }
 
+        // Normalise Journal_ZombieMeter (Feelings) to a clean 0–100 range.
+        // OSCAR 1.x used two encodings in the same field:
+        //   Old encoding: 0–10, where 5 was a sentinel meaning "not set".
+        //   New encoding: user_value + 20 (stored 20–120 for 0–100), with 0 meaning "not set".
+        // Convert both to a 0–100 range (0 = not set) so the database holds clean values.
+        if (sess->settings.contains(Journal_ZombieMeter)) {
+            int feelings = sess->settings[Journal_ZombieMeter].toInt();
+            int converted;
+            if (feelings >= 20) {
+                converted = feelings - 20;      // new encoding: strip the +20 offset
+            } else if (feelings == 5) {
+                converted = 0;                  // old "not set" sentinel
+            } else {
+                converted = feelings * 10;      // old 1–10 scale → 0–100
+            }
+            if (converted == 0) {
+                sess->settings.remove(Journal_ZombieMeter);   // 0 = not set; omit the key
+            } else {
+                sess->settings[Journal_ZombieMeter] = converted;
+            }
+        }
+
         // IMPORTANT: Store session to database with the machine's database ID
         // The session must be associated with the correct machine_id for foreign keys to work
         if (!sess->StoreToDatabase()) {

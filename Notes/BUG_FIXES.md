@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-16 - Feelings (ZombieMeter) imported with wrong values / displayed incorrectly
+
+**Files:** `oscar/profileimporter.cpp` — `migrateJournalFromSource()`; `oscar/daily.cpp` — `setup_ZombieUIWidgets()`, `on_ZombieSlider_valueChanged()`, `on_Units10_100_clicked()`
+
+**Symptom:** After a 1.7.1 → 2.0 import, Feelings values on the Daily Notes tab showed wrong numbers.
+
+**Root cause:** OSCAR 1.x stored the Feelings field (`Journal_ZombieMeter`) in two mixed encodings: an old 0–10 scale (where 5 was a "not set" sentinel) and a newer 0–100 scale stored as value+20. The importer wrote these raw values into the 2.0 database without normalising them. The display code in `setup_ZombieUIWidgets` applied a runtime decoding (< 20 → ×10, ≥ 20 → −20) to handle both formats on the fly, but this was fragile and produced confusing results for the user.
+
+**Fix (import):** In `migrateJournalFromSource()`, after loading each journal session, normalise `Journal_ZombieMeter` to a clean 0–100 range before storing: values ≥ 20 have 20 subtracted (strip the offset); value 5 is converted to 0 (old "not set" sentinel); all other values (0–4, 6–10) are multiplied by 10. A result of 0 removes the key entirely (not set).
+
+**Fix (display):** Removed the runtime decoding from `setup_ZombieUIWidgets` — values are now stored as 0–100 directly, so the function uses `qBound(0, zombieValue, 100)` unchanged. Removed the `+ZombieModeOffset` offset from `on_ZombieSlider_valueChanged()` and `on_Units10_100_clicked()` so newly entered values are also stored as 0–100.
+
+**Note:** Users with existing OSCAR 2.0 feelings data must reimport from 1.7.1 to correct stored values.
+
+---
+
 ## 2026-04-15 - Overview BMI graph missing or unpopulated
 
 **File:** `oscar/daily.cpp` — `Daily::set_JournalWeightValue()`
