@@ -31,7 +31,7 @@
 #include <mainwindow.h>
 #include "ui_preferencesdialog.h"
 #include "SleepLib/machine_common.h"
-#include "highresolution.h"
+
 #include "daily.h"
 
 extern QFont *defaultfont;
@@ -274,12 +274,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     // clinicalMode and permissiveMode are radio buttons and must be set to opposite values. Once clinicalMode is used.
     // Radio Buttons illustrate the operating mode.
     ui->permissiveMode->setChecked(!profile->cpap->clinicalMode());
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    HighResolution::checkBox(false,ui->highResolution);
-#else
-    ui->highResolution->setChecked(true);
-    ui->highResolution->setEnabled(false);
-#endif
+
     ui->alternatingColorsCombo->setCurrentIndex(AppSetting->alternatingColorsCombo());
     ui->autoLaunchImporter->setChecked(AppSetting->autoLaunchImport());
 #ifndef NO_CHECKUPDATES
@@ -418,10 +413,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
 
     ui->waveView->sortByColumn(0, Qt::AscendingOrder);
     ui->chanView->sortByColumn(0, Qt::AscendingOrder);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    ui->highResolution->setChecked(true);
-    ui->highResolution->setEnabled(false);
-#endif
+
     //added by Sheila 1/5/2026 for marks1
 
     if(ui->baseSpO2Option->count()<1)
@@ -944,12 +936,7 @@ bool PreferencesDialog::Save()
 #endif
 #endif
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    if (HighResolution::checkBox(true,ui->highResolution) ) {
-        QTimer::singleShot(0, mainwin, SLOT(RestartApplication(true, "-p")));
-        return true; // save profile
-    }
-#endif
+
 
     if (ui->alternatingColorsCombo->currentIndex() != AppSetting->alternatingColorsCombo()) {
         AppSetting->setAlternatingColorsCombo(ui->alternatingColorsCombo->currentIndex());

@@ -315,7 +315,6 @@ SOURCES += \
     sqleditor.cpp \
     reportmanager.cpp \
     reportvarietyeditor.cpp \
-    highresolution.cpp \
     importprofile.cpp \
     profileimporter.cpp \
     logger.cpp \
@@ -468,7 +467,6 @@ HEADERS  += \
     checkupdates.h \
     database/reports_initializer.h \
     notifyMessageBox.h \
-    highresolution.h \
     dailySearchTab.h \
     daily.h \
     saveGraphLayoutSettings.h \

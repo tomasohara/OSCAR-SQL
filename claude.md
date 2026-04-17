@@ -42,7 +42,7 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 
 ## Other Notes
 
-- Developer builds incrementally in QtCreator. For command-line compile checks, use `Building/Windows/FastBuild.bat` (incremental, no deploy). Uncomment the qmake line (line 39) when oscar.pro changes, then re-comment it.
+- Developer builds incrementally in QtCreator. For command-line compile checks, use `Building/Windows/FastBuild.bat` (incremental, no deploy).
 - Primary development environment is Windows 11.
 - We use git and GitLab for version control: https://gitlab.com/Seeker4/OSCAR-code
 - Final product is distributed to about 25 different environments (Mac, Linux, etc.).

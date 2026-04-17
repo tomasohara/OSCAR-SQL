@@ -3180,16 +3180,7 @@ Try it and see if you like it.</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <widget class="QCheckBox" name="highResolution">
-                     <property name="toolTip">
-                      <string> Enables High Resoluton Mode. Changes take effect when Oscar is restarted.</string>
-                     </property>
-                     <property name="text">
-                      <string>Enables High Resolutiom Mode</string>
-                     </property>
-                    </widget>
-                   </item>
+
                    <item>
                     <widget class="QCheckBox" name="useFusionTheme">
                      <property name="toolTip">

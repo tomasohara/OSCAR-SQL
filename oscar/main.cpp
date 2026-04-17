@@ -37,9 +37,7 @@
 #include "SleepLib/common.h"
 #include "SleepLib/deviceconnection.h"
 #include "Graphs/gGraph.h"
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include "highresolution.h"
-#endif
+
 
 #include <ctime>
 #include <chrono>
@@ -376,29 +374,9 @@ int main(int argc, char *argv[]) {
 //    QGuiApplication::styleHints()->colorScheme();  // Copies OS light or dark style to OSCAR,
                                                      // but supporting dark mode would require an exhaustive change to OSCAR
 //    QApplication::setStyle("Fusion");
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    HighResolution::init();
-    bool hiResEnabled=false;
-
-    for (int i = 1; i < argc; i++) {
-        if (0 == strcmp(argv[i] ,"--hires"))  {
-            HighResolution::init(HighResolution::HRM_ENABLED);
-        } else if (0 == strcmp(argv[i] ,"--hiresoff"))  {
-            HighResolution::init(HighResolution::HRM_DISABLED);
-        } else if (0 == strcmp(argv[i] ,"--datadir"))  { i++;
-        } else if (0 == strcmp(argv[i] ,"-profile"))  { i++;
-        }
-    }
-    if (HighResolution::isEnabled()) {
-        hiResEnabled=true;
-        QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    }
-#else
-        // high resolution is enable by default
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
         Qt::HighDpiScaleFactorRoundingPolicy::RoundPreferFloor
         );
-#endif
 
     QSettings settings;
 
@@ -526,9 +504,7 @@ int main(int argc, char *argv[]) {
     qDebug() << "APP-NAME:" << QCoreApplication::applicationName();
     qDebug() << "APP-PATH:" << QCoreApplication::applicationDirPath();
     qDebug() << "APP-RESOURCES:" << appResourcePath();
-    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    HighResolution::display(hiResEnabled);
-    #endif
+
 
 #ifdef QT_DEBUG
     QString relinfo = " debug";
