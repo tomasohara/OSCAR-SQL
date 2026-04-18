@@ -617,6 +617,8 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     if (daily) {
         qCritical() << "OpenProfile called with active Daily object!";
         qDebug() << "Abandon opening Profile";
+        progress->close();
+        delete progress;
         return false;
     }
     SpeedCheck sc(500);
@@ -638,6 +640,8 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     if (overview) {
         qCritical() << "OpenProfile called with active Overview object!";
         qDebug() << "Abandon opening Profile";
+        progress->close();
+        delete progress;
         return false;
     }
     sc.check("loaded Daily graphs");
@@ -1499,14 +1503,13 @@ void MainWindow::updateFavourites()
 void MainWindow::on_dailyButton_clicked()
 {
     if (daily) {
-        ui->tabWidget->setCurrentWidget(daily);
-        daily->RedrawGraphs();
+        QTimer::singleShot(0, this, [this]{ ui->tabWidget->setCurrentWidget(daily); daily->RedrawGraphs(); });
     }
 }
 void MainWindow::on_overviewButton_clicked()
 {
     if (overview) {
-        ui->tabWidget->setCurrentWidget(overview);
+        QTimer::singleShot(0, this, [this]{ ui->tabWidget->setCurrentWidget(overview); });
     }
 }
 
@@ -2682,7 +2685,7 @@ void MainWindow::JumpOxiWizard()
 void MainWindow::on_statisticsButton_clicked()
 {
     if (p_profile) {
-        ui->tabWidget->setCurrentWidget(ui->statisticsTab);
+        QTimer::singleShot(0, this, [this]{ ui->tabWidget->setCurrentWidget(ui->statisticsTab); });
     }
 }
 

@@ -4,6 +4,66 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-17 - Remove High Resolution Mode (Qt5-only feature)
+
+**Files:** `oscar/highresolution.h`, `oscar/highresolution.cpp` (deleted), `oscar/main.cpp`, `oscar/oscar.pro`, `oscar/preferencesdialog.cpp`, `oscar/preferencesdialog.ui`
+
+**Symptom:** Preferences > Appearance showed a disabled "Enable High Resolution Mode" checkbox with no function in Qt6.
+
+**Root cause:** The feature was Qt5-only — in Qt6, high DPI scaling is always on. The checkbox was already disabled/forced-checked in Qt6 builds, but the entire module and its UI element remained.
+
+**Fix:** Deleted `highresolution.h`/`.cpp`, removed the checkbox from `preferencesdialog.ui`, and removed all `#if QT_VERSION < 6` guarded references in `main.cpp` and `preferencesdialog.cpp`. The setting was stored in a separate file (`hiResolutionMode.txt`), not in `Preferences.xml`, so profile import is unaffected.
+
+---
+
+## 2026-04-17 - ProgressDialog left open on error returns in OpenProfile
+
+**Files:** `oscar/mainwindow.cpp` — `OpenProfile()`
+
+**Symptom:** Two defensive checks in `OpenProfile()` (active `daily` or `overview` object detected) called `return false` without closing or deleting the `ProgressDialog` that had already been shown via `progress->open()`. The dialog would remain visible on screen with no way to dismiss it.
+
+**Root cause:** Both early-return paths at the `if (daily)` and `if (overview)` guards branched out before the normal `progress->close(); delete progress;` at the end of the function.
+
+**Fix:** Added `progress->close(); delete progress;` before each `return false`.
+
+---
+
+## 2026-04-17 - Daily::leakchart member variable never initialised
+
+**Files:** `oscar/daily.cpp` — `Daily::Daily()`, `oscar/daily.h`
+
+**Symptom:** The class member `gLineChart *leakchart` (intended to allow preference-driven threshold resets) was never assigned in the constructor. A local variable of the same name shadowed it, leaving the member holding an indeterminate pointer for the life of the object.
+
+**Root cause:** Refactoring introduced `gLineChart *leakchart = new gLineChart(...)` as a local variable in the constructor, shadowing the class member declared in the header. The class member was never assigned or initialised.
+
+**Fix (option 2B):** Removed the type prefix from the constructor declaration, turning it into an assignment to `this->leakchart`. Also added `leakchart = nullptr` near the other member initialisations at the top of the constructor body for safety.
+
+---
+
+## 2026-04-17 - Redundant repaint() calls in Welcome::refreshPage()
+
+**Files:** `oscar/welcome.cpp` — `refreshPage()`
+
+**Symptom:** Five explicit `repaint()` calls forced immediate synchronous redraws of the Welcome page toolbar buttons after each call to `setEnabled()`. Qt already schedules a deferred paint event when widget state changes, making these calls redundant overhead on every profile open.
+
+**Root cause:** Unnecessary calls added; Qt handles repainting automatically when widget state changes.
+
+**Fix:** Removed all five `repaint()` calls.
+
+---
+
+## 2026-04-17 - CProgressBar heap-allocated on every Overview range change
+
+**Files:** `oscar/overview.cpp` — `on_rangeCombo_activated()`
+
+**Symptom:** `CProgressBar` was heap-allocated with `new` and explicitly deleted at the end of every range-change handler, adding unnecessary heap churn on a frequently called code path.
+
+**Root cause:** No reason for heap allocation; `CProgressBar` is not a QWidget subclass and has no parent-ownership requirements.
+
+**Fix:** Changed to stack allocation. Removed `new`/`delete`; replaced `->` member access with `.`.
+
+---
+
 ## 2026-04-16 - Purge machine reappears after restart
 
 **Files:** `oscar/mainwindow.cpp` — `purgeMachine()`

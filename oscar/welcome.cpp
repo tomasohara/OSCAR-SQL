@@ -11,6 +11,8 @@
 #define TEST_MACROS_ENABLEDoff
 #include <test_macros.h>
 
+#include <QTimer>
+
 #include "welcome.h"
 #include "ui_welcome.h"
 
@@ -91,18 +93,17 @@ void Welcome::refreshPage()
 
 void Welcome::on_dailyButton_clicked()
 {
-
-    mainwin->JumpDaily();
+    QTimer::singleShot(0, mainwin, []{ mainwin->JumpDaily(); });
 }
 
 void Welcome::on_overviewButton_clicked()
 {
-    mainwin->JumpOverview();
+    QTimer::singleShot(0, mainwin, []{ mainwin->JumpOverview(); });
 }
 
 void Welcome::on_statisticsButton_clicked()
 {
-    mainwin->JumpStatistics();
+    QTimer::singleShot(0, mainwin, []{ mainwin->JumpStatistics(); });
 }
 
 void Welcome::on_oximetryButton_clicked()

@@ -766,9 +766,9 @@ void Overview::on_rangeCombo_activated(int index)
     int size = start.daysTo(end);
     // qDebug() << "Overview range combo from" << start << "to" << end << "with" << size << "days";
     QDate dateback = end;
-    CProgressBar * progress = new CProgressBar (QObject::tr("Loading summaries"), mainwin, size);
+    CProgressBar progress(QObject::tr("Loading summaries"), mainwin, size);
     for (int i=1; i < size; ++i) {
-        progress->add(1);
+        progress.add(1);
         auto di = p_profile->daylist.find(dateback);
         dateback = dateback.addDays(-1);
         if (di == p_profile->daylist.end())  // Check for no Day entry
@@ -780,8 +780,7 @@ void Overview::on_rangeCombo_activated(int index)
             continue;
         day->OpenSummary();     // This can be slow if summary needs to be updated to new version
     }
-    progress->close();
-    delete progress;
+    progress.close();
 
     setRange(start, end);
 }
