@@ -4,6 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-17 - Short/ignored sessions leaked in UnloadMachineData
+
+**Files:** `oscar/SleepLib/profiles.cpp` — `Profile::UnloadMachineData()`
+
+**Symptom:** Memory allocated for short sessions (under the "ignore sessions shorter than" threshold, default 5 minutes) was never freed when closing a profile. Each open/close cycle leaked one Session object per short session in the profile.
+
+**Root cause:** `Machine::AddSession()` adds every session to `sessionlist` unconditionally (to prevent re-importing), but returns early without adding it to a `Day` when the session is below the ignore threshold. `UnloadMachineData()` called `sessionlist.clear()` which empties the QHash without deleting the Session pointers. Sessions in Days were freed correctly via `Day::~Day()`, but these day-less sessions had no other owner.
+
+**Fix:** Before clearing `sessionlist`, collect all Session pointers that are in a Day (via `mach->day`), then explicitly delete any sessions in `sessionlist` not in that set.
+
+---
+
 ## 2026-04-17 - Remove High Resolution Mode (Qt5-only feature)
 
 **Files:** `oscar/highresolution.h`, `oscar/highresolution.cpp` (deleted), `oscar/main.cpp`, `oscar/oscar.pro`, `oscar/preferencesdialog.cpp`, `oscar/preferencesdialog.ui`

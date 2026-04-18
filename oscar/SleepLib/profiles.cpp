@@ -14,6 +14,7 @@
 
 #include <QString>
 #include <QDateTime>
+#include <QSet>
 #include <QDir>
 #include <QMessageBox>
 #include <QDebug>
@@ -949,6 +950,22 @@ void Profile::UnloadMachineData()
         if (mach->getDatabaseId() == 0) {
             mach->saveSessionInfo();  // Legacy path only: machine not in DB
         }
+        // Sessions in Days will be deleted by Day::~Day() below.
+        // Sessions only in sessionlist (short/ignored sessions that AddSession()
+        // kept for duplicate-import prevention but never added to a Day) must be
+        // deleted here because sessionlist.clear() does not delete the pointers.
+        QSet<Session*> sessionsInDays;
+        for (auto & day : mach->day) {
+            for (auto it = day->begin(); it != day->end(); ++it) {
+                sessionsInDays.insert(*it);
+            }
+        }
+        for (auto & sess : mach->sessionlist) {
+            if (!sessionsInDays.contains(sess)) {
+                delete sess;
+            }
+        }
+
         mach->sessionlist.clear();
         mach->day.clear();
     }
