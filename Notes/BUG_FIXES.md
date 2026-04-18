@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-17 - OpenProfile rollback on late failure now fully cleans partial state
+
+**Files:** `oscar/mainwindow.cpp` — `OpenProfile()`
+
+**Symptom:** A defensive failure path could still leave a partially opened profile in memory if `OpenProfile()` aborted after `p_profile` assignment and data load had already started. This was most visible in the active-page guard checks.
+
+**Root cause:** Although `ProgressDialog` cleanup had been added, late returns in `OpenProfile()` did not consistently roll back loaded profile data and partially created pages.
+
+**Fix:** Added a pre-open sanity guard to abort before assigning `p_profile` when page objects are unexpectedly still active, and introduced a single rollback helper (`abortOpenProfile`) for late failures. The rollback now:
+- closes/deletes progress dialog,
+- deletes any partially created Welcome/Daily/Overview pages,
+- unloads machine data, removes lock, and nulls `p_profile`,
+- and calls `ensureCleanDatabaseState()`.
+
+---
+
 ## 2026-04-17 - Daily constructor: skip graphs for channels absent from loaded data
 
 **Files:** `oscar/daily.cpp` — `Daily::Daily()`

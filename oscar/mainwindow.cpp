@@ -525,6 +525,16 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
         }
     }
 
+    // Opening a profile assumes these pages are not already live. If they are,
+    // abort before assigning p_profile or allocating progress/UI objects.
+    if (daily || overview || welcome) {
+        qCritical() << "OpenProfile called with active page objects remaining:"
+                    << "daily=" << (daily != nullptr)
+                    << "overview=" << (overview != nullptr)
+                    << "welcome=" << (welcome != nullptr);
+        return false;
+    }
+
     prof = profileSelector->SelectProfile(profileName, skippassword);  // asks for the password and updates stuff in profileSelector tab
     if (!prof) {
         return false;
@@ -552,6 +562,41 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     p_profile = prof;
     Statistics::resetReportDate();  // force updateReportDate() to refresh on first GenerateStatistics() for this profile
     ProgressDialog * progress = new ProgressDialog(this);
+
+    auto abortOpenProfile = [&](const char *reason) {
+        qCritical() << reason;
+
+        if (progress) {
+            progress->close();
+            delete progress;
+            progress = nullptr;
+        }
+
+        // Roll back any partially created pages from this open attempt.
+        if (overview) {
+            delete overview;
+            overview = nullptr;
+        }
+        if (daily) {
+            delete daily;
+            daily = nullptr;
+        }
+        if (welcome) {
+            delete welcome;
+            welcome = nullptr;
+        }
+
+        // Roll back partially opened profile data.
+        if (p_profile) {
+            p_profile->UnloadMachineData();
+            p_profile->removeLock();
+            p_profile = nullptr;
+        }
+
+        ensureCleanDatabaseState();
+        return false;
+    };
+
     progress->setWindowTitle(tr("Opening %1").arg(profileName));
 
     progress->setMessage(QObject::tr("Loading profile \"%1\"...").arg(profileName));
@@ -615,11 +660,7 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
 
     // Reload everything profile related
     if (daily) {
-        qCritical() << "OpenProfile called with active Daily object!";
-        qDebug() << "Abandon opening Profile";
-        progress->close();
-        delete progress;
-        return false;
+        return abortOpenProfile("OpenProfile called with active Daily object!");
     }
     SpeedCheck sc(500);
     PERF_TIMER_START("MW::OP::Welcome");
@@ -638,11 +679,7 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     daily->ReloadGraphs();
 
     if (overview) {
-        qCritical() << "OpenProfile called with active Overview object!";
-        qDebug() << "Abandon opening Profile";
-        progress->close();
-        delete progress;
-        return false;
+        return abortOpenProfile("OpenProfile called with active Overview object!");
     }
     sc.check("loaded Daily graphs");
     PERF_TIMER_STOP("MW::OP::ReloadDailyGraphs");
