@@ -4,6 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-17 - Daily constructor: skip graphs for channels absent from loaded data
+
+**Files:** `oscar/daily.cpp` — `Daily::Daily()`
+
+**Symptom:** Daily page constructor always created graph objects for every possible channel (Prisma, BMC, PRS1-specific, Zeo, Position, Oximeter, etc.) regardless of whether the loaded profile contained any data for those channels. This wasted memory and had latent null-pointer risk if any channel's graph entry was ever missing from the creation loops but referenced in the hardcoded AddLayer calls.
+
+**Root cause:** The `cpapcodes[]` and `oximetercodes[]` creation loops had no availability check. All ~25 hardcoded `graphlist[schema::channel[CODE].code()]->AddLayer(...)` calls after the loops used `operator[]` (which inserts null on miss) rather than `.value()` (which returns null without inserting), so a missing graph entry would crash.
+
+**Fix:** Before the creation loops, build a `QSet<ChannelID>` from all machines' `availableChannels(0)`. Skip graph creation in both loops for channels not in the set (empty set = no data loaded = create all). Changed all hardcoded `graphlist[...]->AddLayer(...)` calls to use `graphlist.value(...)` with null guards so absent graphs are safely skipped.
+
+---
+
 ## 2026-04-17 - Short/ignored sessions leaked in UnloadMachineData
 
 **Files:** `oscar/SleepLib/profiles.cpp` — `Profile::UnloadMachineData()`

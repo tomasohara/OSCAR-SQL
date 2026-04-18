@@ -279,6 +279,15 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     sleepFlags = SF;
     SF->setPinned(true);
 
+    // Build union of channels with actual data across all loaded machines.
+    // Empty set (no machines/data loaded) means all channel graphs will be created.
+    QSet<ChannelID> availableChannels;
+    for (auto * mach : p_profile->m_machlist) {
+        for (ChannelID code : mach->availableChannels(0)) {
+            availableChannels.insert(code);
+        }
+    }
+
     //============================================
     // Create graphs from 'interesting' CPAP codes
     //
@@ -303,6 +312,7 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
 
     for (int i=0; i < cpapsize; ++i) {
         ChannelID code = cpapcodes[i];
+        if (!availableChannels.isEmpty() && !availableChannels.contains(code)) continue;
         QString cpap_label = schema::channel[code].code();
         DEBUGXD O(i) O(code) O(cpap_label);
         if (graphlist.contains(cpap_label)) {
@@ -325,6 +335,7 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     //int oxigrp=p_profile->ExistsAndTrue("SyncOximetry") ? 0 : 1; // Contemplating killing this setting...
     for (int i=0; i < oxisize; ++i) {
         ChannelID code = oximetercodes[i];
+        if (!availableChannels.isEmpty() && !availableChannels.contains(code)) continue;
         graphlist[schema::channel[code].code()] = new gGraph(schema::channel[code].code(), GraphView, schema::channel[code].label(), channelInfo(code), default_height);
     }
 
@@ -394,29 +405,30 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     }
 
 
-    gLineChart *l;
-    l=new gLineChart(CPAP_FlowRate,false,false);
-
-    gGraph *FRW = graphlist[schema::channel[CPAP_FlowRate].code()];
-    FRW->AddLayer(l);
-    l -> setMinimumHeight(80);      // set the layer height to 80. or about 130 graph height.
-
-//    FRW->AddLayer(AddOXI(new gLineOverlayBar(OXI_SPO2Drop, COLOR_SPO2Drop, STR_TR_O2)));
+    gLineChart *l = new gLineChart(CPAP_FlowRate,false,false);
+    if (gGraph *FRW = graphlist.value(schema::channel[CPAP_FlowRate].code())) {
+        FRW->AddLayer(l);
+        l->setMinimumHeight(80);      // set the layer height to 80. or about 130 graph height.
+//      FRW->AddLayer(AddOXI(new gLineOverlayBar(OXI_SPO2Drop, COLOR_SPO2Drop, STR_TR_O2)));
+    } else {
+        delete l; l = nullptr;
+    }
 
     bool square=AppSetting->squareWavePlots();
-    gLineChart *pc=new gLineChart(CPAP_Pressure, square);
-    graphlist[schema::channel[CPAP_Pressure].code()]->AddLayer(pc);
-
-  //  graphlist[schema::channel[CPAP_Pressure].code()]->AddLayer(AddCPAP(new gLineOverlayBar(CPAP_Ramp, COLOR_Ramp, schema::channel[CPAP_Ramp].label(), FT_Span)));
-
-    pc->addPlot(CPAP_EPAP, square);
-    pc->addPlot(CPAP_IPAPLo, square);
-    pc->addPlot(CPAP_IPAP, square);
-    pc->addPlot(CPAP_IPAPHi, square);
-    pc->addPlot(CPAP_EEPAP, square);
-    pc->addPlot(CPAP_PressureSet, false);
-    pc->addPlot(CPAP_EPAPSet, false);
-    pc->addPlot(CPAP_IPAPSet, false);
+    gLineChart *pc = nullptr;
+    if (gGraph *g = graphlist.value(schema::channel[CPAP_Pressure].code())) {
+        pc = new gLineChart(CPAP_Pressure, square);
+        g->AddLayer(pc);
+      //  g->AddLayer(AddCPAP(new gLineOverlayBar(CPAP_Ramp, COLOR_Ramp, schema::channel[CPAP_Ramp].label(), FT_Span)));
+        pc->addPlot(CPAP_EPAP, square);
+        pc->addPlot(CPAP_IPAPLo, square);
+        pc->addPlot(CPAP_IPAP, square);
+        pc->addPlot(CPAP_IPAPHi, square);
+        pc->addPlot(CPAP_EEPAP, square);
+        pc->addPlot(CPAP_PressureSet, false);
+        pc->addPlot(CPAP_EPAPSet, false);
+        pc->addPlot(CPAP_IPAPSet, false);
+    }
 
     // Create Timea at Pressure graph
     gGraph * TAP2;
@@ -437,62 +449,65 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
 
     // this is class wide because the leak redline can be reset in preferences..
     // Better way would be having a search for linechart layers in graphlist[...]
-    leakchart=new gLineChart(CPAP_Leak, square);
-  //  graphlist[schema::channel[CPAP_Leak].code()]->AddLayer(AddCPAP(new gLineOverlayBar(CPAP_LargeLeak, COLOR_LargeLeak, STR_TR_LL, FT_Span)));
-
-    leakchart->addPlot(CPAP_LeakTotal, square);
-    leakchart->addPlot(CPAP_MaxLeak, square);
-//    schema::channel[CPAP_Leak].setUpperThresholdColor(Qt::red);
-//    schema::channel[CPAP_Leak].setLowerThresholdColor(Qt::green);
-
-    graphlist[schema::channel[CPAP_Leak].code()]->AddLayer(leakchart);
+    if (gGraph *g = graphlist.value(schema::channel[CPAP_Leak].code())) {
+        leakchart=new gLineChart(CPAP_Leak, square);
+  //    g->AddLayer(AddCPAP(new gLineOverlayBar(CPAP_LargeLeak, COLOR_LargeLeak, STR_TR_LL, FT_Span)));
+        leakchart->addPlot(CPAP_LeakTotal, square);
+        leakchart->addPlot(CPAP_MaxLeak, square);
+//      schema::channel[CPAP_Leak].setUpperThresholdColor(Qt::red);
+//      schema::channel[CPAP_Leak].setLowerThresholdColor(Qt::green);
+        g->AddLayer(leakchart);
+    }
     //LEAK->AddLayer(AddCPAP(new gLineChart(CPAP_Leak, COLOR_Leak,square)));
     //LEAK->AddLayer(AddCPAP(new gLineChart(CPAP_MaxLeak, COLOR_MaxLeak,square)));
-    graphlist[schema::channel[CPAP_Snore].code()]->AddLayer(new gLineChart(CPAP_Snore, true));
-    graphlist[schema::channel[BMC_FlowAbnormality].code()]->AddLayer(new gLineChart(BMC_FlowAbnormality, square));
-    graphlist[schema::channel[BMC_PressureWave].code()]->AddLayer(new gLineChart(BMC_PressureWave, square));
-    graphlist[schema::channel[BMC_IE_Ratio].code()]->AddLayer(new gLineChart(BMC_IE_Ratio, square));
-    graphlist[schema::channel[CPAP_PTB].code()]->AddLayer(new gLineChart(CPAP_PTB, square));
-    graphlist[schema::channel[PRS1_PeakFlow].code()]->AddLayer(new gLineChart(PRS1_PeakFlow, square));
+    if (auto *g = graphlist.value(schema::channel[CPAP_Snore].code())) g->AddLayer(new gLineChart(CPAP_Snore, true));
+    if (auto *g = graphlist.value(schema::channel[BMC_FlowAbnormality].code())) g->AddLayer(new gLineChart(BMC_FlowAbnormality, square));
+    if (auto *g = graphlist.value(schema::channel[BMC_PressureWave].code())) g->AddLayer(new gLineChart(BMC_PressureWave, square));
+    if (auto *g = graphlist.value(schema::channel[BMC_IE_Ratio].code())) g->AddLayer(new gLineChart(BMC_IE_Ratio, square));
+    if (auto *g = graphlist.value(schema::channel[CPAP_PTB].code())) g->AddLayer(new gLineChart(CPAP_PTB, square));
+    if (auto *g = graphlist.value(schema::channel[PRS1_PeakFlow].code())) g->AddLayer(new gLineChart(PRS1_PeakFlow, square));
 
-    graphlist[schema::channel[Prisma_ObstructLevel].code()]->AddLayer(new gLineChart(Prisma_ObstructLevel, square));
-    graphlist[schema::channel[Prisma_PressureMeasured].code()]->AddLayer(new gLineChart(Prisma_PressureMeasured, square));
-    graphlist[schema::channel[Prisma_rRMV].code()]->AddLayer(new gLineChart(Prisma_rRMV, square));
-    graphlist[schema::channel[Prisma_rMVFluctuation].code()]->AddLayer(new gLineChart(Prisma_rMVFluctuation, square));
-    graphlist[schema::channel[Prisma_FlowFull].code()]->AddLayer(new gLineChart(Prisma_FlowFull, square));
+    if (auto *g = graphlist.value(schema::channel[Prisma_ObstructLevel].code())) g->AddLayer(new gLineChart(Prisma_ObstructLevel, square));
+    if (auto *g = graphlist.value(schema::channel[Prisma_PressureMeasured].code())) g->AddLayer(new gLineChart(Prisma_PressureMeasured, square));
+    if (auto *g = graphlist.value(schema::channel[Prisma_rRMV].code())) g->AddLayer(new gLineChart(Prisma_rRMV, square));
+    if (auto *g = graphlist.value(schema::channel[Prisma_rMVFluctuation].code())) g->AddLayer(new gLineChart(Prisma_rMVFluctuation, square));
+    if (auto *g = graphlist.value(schema::channel[Prisma_FlowFull].code())) g->AddLayer(new gLineChart(Prisma_FlowFull, square));
     #if defined(STEADY_BREATHING)
     if (AppSetting->steadyBreathing()==SB_ACTIVE) {
-        graphlist[schema::channel[CPAP_SteadyBreathing].code()]->AddLayer(new gLineChart(CPAP_SteadyBreathing, false));
+        if (auto *g = graphlist.value(schema::channel[CPAP_SteadyBreathing].code())) g->AddLayer(new gLineChart(CPAP_SteadyBreathing, false));
     }
     #endif
-    graphlist[schema::channel[CPAP_Test1].code()]->AddLayer(new gLineChart(CPAP_Test1, square));
+    if (auto *g = graphlist.value(schema::channel[CPAP_Test1].code())) g->AddLayer(new gLineChart(CPAP_Test1, square));
     //graphlist[schema::channel[CPAP_Test2].code()]->AddLayer(new gLineChart(CPAP_Test2, square));
 
 
     gLineChart *lc = nullptr;
-    graphlist[schema::channel[CPAP_MaskPressure].code()]->AddLayer(new gLineChart(CPAP_MaskPressure, false));
-    graphlist[schema::channel[CPAP_RespRate].code()]->AddLayer(lc=new gLineChart(CPAP_RespRate, square));
+    if (auto *g = graphlist.value(schema::channel[CPAP_MaskPressure].code())) g->AddLayer(new gLineChart(CPAP_MaskPressure, false));
+    if (auto *g = graphlist.value(schema::channel[CPAP_RespRate].code())) g->AddLayer(lc=new gLineChart(CPAP_RespRate, square));
 
-    graphlist[schema::channel[POS_Inclination].code()]->AddLayer(new gLineChart(POS_Inclination));
-    graphlist[schema::channel[POS_Orientation].code()]->AddLayer(new gLineChart(POS_Orientation));
-    graphlist[schema::channel[POS_Movement].code()]->AddLayer(new gLineChart(POS_Movement));
+    if (auto *g = graphlist.value(schema::channel[POS_Inclination].code())) g->AddLayer(new gLineChart(POS_Inclination));
+    if (auto *g = graphlist.value(schema::channel[POS_Orientation].code())) g->AddLayer(new gLineChart(POS_Orientation));
+    if (auto *g = graphlist.value(schema::channel[POS_Movement].code())) g->AddLayer(new gLineChart(POS_Movement));
 
-    graphlist[schema::channel[CPAP_MinuteVent].code()]->AddLayer(lc=new gLineChart(CPAP_MinuteVent, square));
-    lc->addPlot(CPAP_TgMV, square);
+    if (auto *g = graphlist.value(schema::channel[CPAP_MinuteVent].code())) {
+        g->AddLayer(lc=new gLineChart(CPAP_MinuteVent, square));
+        lc->addPlot(CPAP_TgMV, square);
+    }
 
-
-    graphlist[schema::channel[CPAP_TidalVolume].code()]->AddLayer(lc=new gLineChart(CPAP_TidalVolume, square));
-    //lc->addPlot(CPAP_Test2,COLOR_DarkYellow,square);
+    if (auto *g = graphlist.value(schema::channel[CPAP_TidalVolume].code())) {
+        g->AddLayer(lc=new gLineChart(CPAP_TidalVolume, square));
+        //lc->addPlot(CPAP_Test2,COLOR_DarkYellow,square);
+    }
 
     //graphlist[schema::channel[CPAP_TidalVolume].code()]->AddLayer(AddCPAP(new gLineChart("TidalVolume2", square)));
-    graphlist[schema::channel[CPAP_FLG].code()]->AddLayer(new gLineChart(CPAP_FLG, true));
+    if (auto *g = graphlist.value(schema::channel[CPAP_FLG].code())) g->AddLayer(new gLineChart(CPAP_FLG, true));
     //graphlist[schema::channel[CPAP_RespiratoryEvent].code()]->AddLayer(AddCPAP(new gLineChart(CPAP_RespiratoryEvent, true)));
-    graphlist[schema::channel[CPAP_IE].code()]->AddLayer(lc=new gLineChart(CPAP_IE, false));      // this should be inverse of supplied value
-    graphlist[schema::channel[CPAP_Te].code()]->AddLayer(lc=new gLineChart(CPAP_Te, false));
-    graphlist[schema::channel[CPAP_Ti].code()]->AddLayer(lc=new gLineChart(CPAP_Ti, false));
+    if (auto *g = graphlist.value(schema::channel[CPAP_IE].code())) g->AddLayer(lc=new gLineChart(CPAP_IE, false));      // this should be inverse of supplied value
+    if (auto *g = graphlist.value(schema::channel[CPAP_Te].code())) g->AddLayer(lc=new gLineChart(CPAP_Te, false));
+    if (auto *g = graphlist.value(schema::channel[CPAP_Ti].code())) g->AddLayer(lc=new gLineChart(CPAP_Ti, false));
     //lc->addPlot(CPAP_Test2,COLOR:DarkYellow,square);
 
-    graphlist[schema::channel[ZEO_SleepStage].code()]->AddLayer(new gLineChart(ZEO_SleepStage, true));
+    if (auto *g = graphlist.value(schema::channel[ZEO_SleepStage].code())) g->AddLayer(new gLineChart(ZEO_SleepStage, true));
 
 //    gLineOverlaySummary *los1=new gLineOverlaySummary(STR_UNIT_EventsPerHour,5,-4);
 //    gLineOverlaySummary *los2=new gLineOverlaySummary(STR_UNIT_EventsPerHour,5,-4);
@@ -501,10 +516,10 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
 //    graphlist[schema::channel[OXI_SPO2].code()]->AddLayer(AddOXI(los2->add(new gLineOverlayBar(OXI_SPO2Drop, COLOR_SPO2Drop, STR_TR_O2,FT_Span))));
 //    graphlist[schema::channel[OXI_SPO2].code()]->AddLayer(AddOXI(los2));
 
-    graphlist[schema::channel[OXI_Pulse].code()]->AddLayer(new gLineChart(OXI_Pulse, square));
-    graphlist[schema::channel[OXI_SPO2].code()]->AddLayer(new gLineChart(OXI_SPO2, true));
-    graphlist[schema::channel[OXI_Perf].code()]->AddLayer(new gLineChart(OXI_Perf, false));
-    graphlist[schema::channel[OXI_Plethy].code()]->AddLayer(new gLineChart(OXI_Plethy, false));
+    if (auto *g = graphlist.value(schema::channel[OXI_Pulse].code())) g->AddLayer(new gLineChart(OXI_Pulse, square));
+    if (auto *g = graphlist.value(schema::channel[OXI_SPO2].code())) g->AddLayer(new gLineChart(OXI_SPO2, true));
+    if (auto *g = graphlist.value(schema::channel[OXI_Perf].code())) g->AddLayer(new gLineChart(OXI_Perf, false));
+    if (auto *g = graphlist.value(schema::channel[OXI_Plethy].code())) g->AddLayer(new gLineChart(OXI_Plethy, false));
 
 
     // Fix me
@@ -517,8 +532,8 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
 //    graphlist["INTSPO2"]->AddLayer(AddCPAP(los4));
 //    graphlist["INTSPO2"]->AddLayer(AddCPAP(new gLineChart(OXI_SPO2, true)));
 
-    graphlist[schema::channel[CPAP_PTB].code()]->setForceMaxY(100);
-    graphlist[schema::channel[OXI_SPO2].code()]->setForceMaxY(100);
+    if (auto *g = graphlist.value(schema::channel[CPAP_PTB].code())) g->setForceMaxY(100);
+    if (auto *g = graphlist.value(schema::channel[OXI_SPO2].code())) g->setForceMaxY(100);
 
     for (it = graphlist.begin(); it != graphlist.end(); ++it) {
         if (skipgraph.contains(it.key())) continue;
