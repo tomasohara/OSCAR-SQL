@@ -4,6 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-19 - Debug log flushed to disk on every message (crash-safe logging)
+
+**Files:** `oscar/logger.cpp` — `LogThread::appendClean()`, `LogThread::run()`
+
+**Symptom:** On crash, recent debug messages were lost because they were buffered in `LogThread::buffer` (a QList) and in the `QTextStream` — neither was flushed before the process died.
+
+**Root cause:** `appendClean()` only enqueued messages; `run()` dequeued them asynchronously. Any messages not yet dequeued at crash time were lost. Additionally, the `QTextStream` write had no `QFile::flush()` call to push data past the C library buffer.
+
+**Fix:** Moved the file write into `appendClean()`, under the existing `strlock`, with `Qt::endl` (flushes stream) plus `m_logFile->flush()` (flushes C library buffer to kernel). The `run()` thread now only emits `outputLog()` for UI display. The OS writes kernel-buffered data to disk on process exit, so a normal crash loses nothing.
+
+---
+
 ## 2026-04-17 - OpenProfile rollback on late failure now fully cleans partial state
 
 **Files:** `oscar/mainwindow.cpp` — `OpenProfile()`

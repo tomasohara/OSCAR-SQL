@@ -165,7 +165,13 @@ void LogThread::appendClean(QString msg)
 {
     fprintf(stderr, "%s\n", msg.toLocal8Bit().constData());
     strlock.lock();
-    buffer.append(msg);
+    // Write directly to file under the lock so the file is always current.
+    // On crash the OS flushes the kernel buffer, so no messages are lost.
+    if (m_logStream) {
+        *m_logStream << msg << Qt::endl;  // Qt::endl flushes the stream buffer
+        m_logFile->flush();               // fflush() to the kernel buffer
+    }
+    buffer.append(msg);     // retained for UI display only
     logTrigger.wakeAll();
     strlock.unlock();
 }
@@ -190,16 +196,9 @@ void LogThread::run()
     s_LoggerRunning.unlock();  // unlock as soon as the thread begins to run
     do {
         logTrigger.wait(&strlock);  // releases strlock while it waits
-        while (connected && m_logFile && !buffer.isEmpty()) {
+        while (connected && !buffer.isEmpty()) {
             QString msg = buffer.takeFirst();
-            if (m_logStream) {
-                #if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-                    *m_logStream << msg << Qt::endl;
-                #else
-                    *m_logStream << msg << endl;
-                #endif
-            }
-            emit outputLog(msg);
+            emit outputLog(msg);   // file write already done in appendClean()
         }
     } while (running);
 
