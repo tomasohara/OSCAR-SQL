@@ -4,6 +4,35 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-19 - Restore dialog blocked UI for several minutes during Validate
+
+**Files:** `oscar/restoredialog.{h,cpp}`, `oscar/oscar.pro`
+
+**Symptom:** Clicking Validate in the Restore Profile dialog caused the UI to freeze for several minutes (extraction + SHA-256 hash of all .sql files ran on the main thread).
+
+**Root cause:** `ProfileRestore::validatePackage()` was called synchronously in `on_validateButton_clicked()`, blocking the Qt event loop until the ZIP extraction and checksum computation finished.
+
+**Fix:** Moved `validatePackage()` to a thread-pool worker via `QtConcurrent::run`. The dialog immediately shows an indeterminate progress bar and disables all controls. `QFutureWatcher<bool>::finished` fires on the main thread when done, where the rest of the validation UI logic runs unchanged. Added `concurrent` to `QT +=` in oscar.pro.
+
+---
+
+## 2026-04-19 - Schema v14: Preferences.xml and graph layouts migrated to DB
+
+**Files:** `oscar/database/database_schema.{h,cpp}`, `oscar/database/database_manager.cpp`, `oscar/database/app_preferences_repository.{h,cpp}`, `oscar/database/graph_layouts_repository.{h,cpp}`, `oscar/SleepLib/preferences.cpp`, `oscar/Graphs/gGraphView.{h,cpp}`, `oscar/saveGraphLayoutSettings.{h,cpp}`, `oscar/main.cpp`, `oscar/oscar.pro`
+
+**Change:** Schema bumped from v13 to v14. Two new tables replace filesystem files:
+- `app_preferences` — replaces `Preferences.xml` (global app preferences singleton)
+- `graph_layouts` — replaces `layoutSettings/*.shg` (named layouts) and per-profile `daily.shg`/`overview.shg` (current layouts)
+Also: `blob_value BLOB` column added to `profile_preferences` for future use.
+
+**Migration:** `DatabaseManager` now calls `DatabaseSchema::upgradeSchema()` (formerly a stub) when the DB version is below current. `migrateV13ToV14()` is additive-only (CREATE TABLE IF NOT EXISTS + ALTER TABLE ADD COLUMN).
+
+**Legacy file import:** Preferences.xml is imported once on first launch (in `Preferences::Open()` fallthrough) then deleted. Named `.shg` files in `layoutSettings/` are imported by `importLegacyNamedLayouts()` in `main.cpp` then deleted. Per-profile `daily.shg`/`overview.shg` are imported lazily in `gGraphView::LoadSettings()` on first load then deleted.
+
+**Initialization order fix:** DB initialization in `main.cpp` moved to before `p_pref->Open()` so the DB routing in `Preferences::Open()` sees an open database.
+
+---
+
 ## 2026-04-19 - Debug log flushed to disk on every message (crash-safe logging)
 
 **Files:** `oscar/logger.cpp` — `LogThread::appendClean()`, `LogThread::run()`

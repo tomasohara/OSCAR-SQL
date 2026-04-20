@@ -47,6 +47,9 @@
 #include "Graphs/gFlagsLine.h"
 #include "SleepLib/profiles.h"
 #include "overview.h"
+#include "database/database_manager.h"
+#include "database/graph_layouts_repository.h"
+#include "database/profile_repository.h"
 extern bool openOk;
 
 
@@ -3656,7 +3659,7 @@ void gGraphView::SaveDefaultSettings() {
 }
 
 const quint32 gVmagic = 0x41756728;   //'Aug('
-const quint16 gVversion = 5;    // version 5 has same format as 4, used to override settings in shg files on upgrade to version 5.
+extern const quint16 gVversion = 5;    // version 5 has same format as 4, used to override settings in shg files on upgrade to version 5.
 
 QString gGraphView::settingsFilename (QString title,QString folderName, QString ext) {
     if (folderName.size()==0) {
@@ -3678,34 +3681,29 @@ QString gGraphView::settingsFilename (QString title,QString folderName, QString 
 *   ...
 */
 
-void gGraphView::SaveSettings(QString title,QString folderName)
+QByteArray gGraphView::serializeSettings()
 {
-    qDebug() << "Saving" << title << "settings";
-    QString filename=settingsFilename(title,folderName) ;
-    QFile f(filename);
-    openOk = f.open(QFile::WriteOnly);
-    QDataStream out(&f);
+    QByteArray buffer;
+    QDataStream out(&buffer, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_4_6);
     out.setByteOrder(QDataStream::LittleEndian);
 
     out << (quint32)gVmagic;
     out << (quint16)gVversion;
-
     out << (qint16)size();
 
-    for (auto & graph : m_graphs) {
+    for (auto& graph : m_graphs) {
         if (!graph) continue;
         if (graph->isSnapshot()) continue;
-// qDebug() << "Saving graph" << title << graph->name();
         out << graph->name();
         out << graph->height();
         out << graph->visible();
         out << graph->RecMinY();
         out << graph->RecMaxY();
-        out << (short)graph->zoomY();   // the return type of zoomY was changed from a short to an enum (int) so much type cast it here
+        out << (short)graph->zoomY();
         out << (bool)graph->isPinned();
 
-        gLineChart * lc = dynamic_cast<gLineChart *>(findLayer(graph, LT_LineChart));
+        gLineChart* lc = dynamic_cast<gLineChart*>(findLayer(graph, LT_LineChart));
         if (lc) {
             out << (quint32)LT_LineChart;
             out << lc->m_flags_enabled;
@@ -3715,14 +3713,32 @@ void gGraphView::SaveSettings(QString title,QString folderName)
             out << (quint32)LT_Other;
         }
     }
-    #if 0
-    // add changes for additional settings
-    for (auto & graph : m_graphs) {
+    return buffer;
+}
 
+void gGraphView::SaveSettings(QString title, QString folderName)
+{
+    qDebug() << "Saving" << title << "settings";
+    QByteArray data = serializeSettings();
+
+    if (folderName.isEmpty() && DatabaseManager::instance().isOpen()) {
+        ProfileRepository profRepo;
+        ProfileData pd = profRepo.findByUsername(p_profile->user->userName());
+        if (pd.id > 0) {
+            GraphLayoutsRepository repo;
+            repo.saveCurrentLayout(pd.id, title.toLower(), gVversion, data);
+            return;
+        }
     }
-    #endif
 
-    f.close();
+    // File fallback
+    QString filename = settingsFilename(title, folderName);
+    QFile f(filename);
+    openOk = f.open(QFile::WriteOnly);
+    if (openOk) {
+        f.write(data);
+        f.close();
+    }
 }
 
 
@@ -3737,39 +3753,21 @@ template <class T> inline void hashMerge(T & a, const T & b)
 }
 
 
-bool gGraphView::LoadSettings(QString title,QString folderName)
+bool gGraphView::deserializeSettings(const QByteArray& buffer)
 {
-    //qDebug() << "Loading" << title << "settings";
-    QString filename=settingsFilename (title,folderName) ;
-    QFile f(filename);
-
-    if (!f.exists()) {
-        return false;
-    }
-
-    openOk = f.open(QFile::ReadOnly);
-    QDataStream in(&f);
+    QDataStream in(buffer);
     in.setVersion(QDataStream::Qt_4_6);
     in.setByteOrder(QDataStream::LittleEndian);
 
     quint32 t1;
     quint16 version;
-
     in >> t1;
 
     if (t1 != gVmagic) {
-        qDebug() << "gGraphView" << title << "settings magic doesn't match" << t1 << gVmagic;
+        qDebug() << "gGraphView deserializeSettings: magic doesn't match" << t1 << gVmagic;
         return false;
     }
-
     in >> version;
-
-    //The first version of OSCAR 1.0.0-release started at gVversion 4. and the OSCAR 1.4.0 still uses gVversion 4
-    // This section of code is being simplified  to remove dependances on lower version.
-
-    //if (version < gVversion) {
-        //qDebug() << "gGraphView" << title << "settings will be upgraded.";
-    //}
 
     qint16 numGraphs;
     QString name;
@@ -3778,8 +3776,8 @@ bool gGraphView::LoadSettings(QString title,QString folderName)
     EventDataType recminy, recmaxy;
     bool pinned;
     short zoomy = 0;
-    QList<gGraph *> neworder;
-    QHash<QString, gGraph *>::iterator gi;
+    QList<gGraph*> neworder;
+    QHash<QString, gGraph*>::iterator gi;
 
     in >> numGraphs;
     for (int i = 0; i < numGraphs; i++) {
@@ -3788,15 +3786,14 @@ bool gGraphView::LoadSettings(QString title,QString folderName)
         in >> vis;
         in >> recminy;
         in >> recmaxy;
-//qDebug() << "Loading graph" << title << name;
         in >> zoomy;
-
         in >> pinned;
+
         QHash<ChannelID, bool> flags_enabled;
         QHash<ChannelID, bool> plots_enabled;
-        QHash<ChannelID, QHash<quint32, bool> > dot_enabled;
+        QHash<ChannelID, QHash<quint32, bool>> dot_enabled;
 
-        // Warning: Do not break the follow section up!!!
+        // Warning: Do not break the following section up!
         quint32 layertype;
         in >> layertype;
         if (layertype == LT_LineChart) {
@@ -3805,7 +3802,7 @@ bool gGraphView::LoadSettings(QString title,QString folderName)
             in >> dot_enabled;
         }
 
-        gGraph *g = nullptr;
+        gGraph* g = nullptr;
         gi = m_graphsbyname.find(name);
         if (gi == m_graphsbyname.end()) {
             qDebug() << "Graph" << name << "has been renamed or removed";
@@ -3823,48 +3820,55 @@ bool gGraphView::LoadSettings(QString title,QString folderName)
             g->setPinned(pinned);
 
             if (layertype == LT_LineChart) {
-                gLineChart * lc = dynamic_cast<gLineChart *>(findLayer(g, LT_LineChart));
+                gLineChart* lc = dynamic_cast<gLineChart*>(findLayer(g, LT_LineChart));
                 if (lc) {
                     hashMerge(lc->m_flags_enabled, flags_enabled);
                     hashMerge(lc->m_enabled, plots_enabled);
                     hashMerge(lc->m_dot_enabled, dot_enabled);
-
-                    // the following check forces the flowRate graph to have a Zero dotted line enabled when the the current version changes from 4 to 5
-                    // still allows the end user user to to remove the zero dotted line.
-                    // currently this would be executed on each graphview version (gVversion) change
-                    // could be changed.
-                    // This is a one time change.
-                    if (version==4 && gVversion>4) {
+                    if (version == 4 && gVversion > 4) {
                         lc->resetGraphViewSettings();
                     }
                 }
             }
         }
     }
-    // Do this for gVersion 5
-    #if 0
-    // Version 5 had no changes
-    if (version>=gVversion)
-    for (int i = 0; i < numGraphs; i++) {
-    }
-    #endif
-
-    // Do this for gVersion 6 ...
-    #if 0
-    // repeat this for each additional version change
-    // this for the next additions to the saved information.
-    if (version>=gVversion)
-    for (int i = 0; i < numGraphs; i++) {
-    }
-    #endif
 
     if (neworder.size() == m_graphs.size()) {
         m_graphs = neworder;
     }
-
-    f.close();
-    updateScale();
     return true;
+}
+
+bool gGraphView::LoadSettings(QString title, QString folderName)
+{
+    if (folderName.isEmpty() && DatabaseManager::instance().isOpen()) {
+        ProfileRepository profRepo;
+        ProfileData pd = profRepo.findByUsername(p_profile->user->userName());
+        if (pd.id > 0) {
+            GraphLayoutsRepository repo;
+            GraphLayoutData layoutData;
+            if (repo.loadCurrentLayout(pd.id, title.toLower(), layoutData)) {
+                bool ok = deserializeSettings(layoutData.data);
+                if (ok) updateScale();
+                return ok;
+            }
+            return false;  // No saved layout for this profile/view — use defaults
+        }
+    }
+
+    // File fallback (named layouts or no DB)
+    QString filename = settingsFilename(title, folderName);
+    QFile f(filename);
+    if (!f.exists()) return false;
+
+    openOk = f.open(QFile::ReadOnly);
+    if (!openOk) return false;
+    QByteArray data = f.readAll();
+    f.close();
+
+    bool ok = deserializeSettings(data);
+    if (ok) updateScale();
+    return ok;
 }
 
 gGraph *gGraphView::findGraph(QString name)

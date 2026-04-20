@@ -25,6 +25,7 @@
 #include <QFontDatabase>
 #include <QStandardPaths>
 #include <QProgressDialog>
+#include <QRegularExpression>
 #include <QStyleHints>
 #include <QStyleFactory>
 
@@ -66,6 +67,7 @@
 #include "database/profile_repository.h"
 #include "database/machine_repository.h"
 #include "database/migration_manager.h"
+#include "database/graph_layouts_repository.h"
 #include "profileimporter.h"
 #include "SleepLib/progressdialog.h"
 
@@ -310,6 +312,113 @@ bool migrateFromOSCAR(QString destDir) {
     }
 
     return success;
+}
+
+// One-shot import of legacy layoutSettings/*.shg named layouts into the DB.
+// Reads the raw .shg bytes, parses the descriptions.txt file for display names,
+// inserts rows into graph_layouts, and deletes the files after successful import.
+void importLegacyNamedLayouts()
+{
+    if (!DatabaseManager::instance().isOpen()) return;
+
+    const QString layoutDir = GetAppData() + "/layoutSettings/";
+    QDir dir(layoutDir);
+    if (!dir.exists()) return;
+
+    // Parse format_version from raw .shg bytes (magic=4 bytes, version=2 bytes)
+    auto peekVersion = [](const QByteArray& data) -> int {
+        if (data.size() < 6) return 0;
+        quint16 ver;
+        memcpy(&ver, data.constData() + 4, 2);
+        return static_cast<int>(ver);
+    };
+
+    GraphLayoutsRepository repo;
+    const QStringList viewNames = { "daily", "overview" };
+
+    for (const QString& viewName : viewNames) {
+        // Read descriptions from <viewName>.descriptions.txt
+        QMap<QString, QString> descriptions;
+        QFile descFile(layoutDir + viewName + ".descriptions.txt");
+        if (descFile.open(QFile::ReadOnly)) {
+            QTextStream in(&descFile);
+            QString line;
+            while (in.readLineInto(&line)) {
+                int sep = line.indexOf(':');
+                if (sep > 0) {
+                    descriptions[line.left(sep)] = line.mid(sep + 1);
+                }
+            }
+        }
+
+        // Enumerate <title>.<layoutNNN>.shg files
+        QRegularExpression re(QString("^%1\\.(layout(\\d+))\\.shg$").arg(viewName));
+        const QFileInfoList files = dir.entryInfoList(QDir::Files, QDir::Name);
+        bool allOk = true;
+        for (const QFileInfo& fi : files) {
+            QRegularExpressionMatch m = re.match(fi.fileName());
+            if (!m.hasMatch()) continue;
+            int slotIndex = m.captured(2).toInt();
+            QString fileKey = m.captured(1);
+            QString desc = descriptions.value(fileKey, fileKey);
+
+            QFile f(fi.absoluteFilePath());
+            if (!f.open(QFile::ReadOnly)) { allOk = false; continue; }
+            QByteArray data = f.readAll();
+            f.close();
+
+            if (!repo.saveNamedLayout(viewName, slotIndex, desc, peekVersion(data), data)) {
+                allOk = false;
+                continue;
+            }
+            f.remove();
+        }
+        if (allOk) {
+            descFile.remove();
+        }
+    }
+
+    // If layoutSettings dir is now empty, remove it
+    if (dir.entryList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot).isEmpty()) {
+        dir.rmdir(layoutDir);
+    }
+}
+
+// One-shot import of per-profile daily.shg / overview.shg files into the DB.
+// Scans all known profiles in the DB, reads their legacy layout files, inserts
+// rows into graph_layouts (is_current=1), and deletes the files.
+void importLegacyProfileLayouts()
+{
+    if (!DatabaseManager::instance().isOpen()) return;
+
+    auto peekVersion = [](const QByteArray& data) -> int {
+        if (data.size() < 6) return 0;
+        quint16 ver;
+        memcpy(&ver, data.constData() + 4, 2);
+        return static_cast<int>(ver);
+    };
+
+    ProfileRepository profRepo;
+    GraphLayoutsRepository layoutRepo;
+    const QList<ProfileData> profiles = profRepo.findAll();
+    const QString profilesBase = GetAppData() + "/Profiles/";
+
+    for (const ProfileData& pd : profiles) {
+        const QString profileDir = profilesBase + pd.username;
+        for (const QString& viewName : { QString("daily"), QString("overview") }) {
+            const QString shgPath = profileDir + "/" + viewName + ".shg";
+            QFile f(shgPath);
+            if (!f.exists()) continue;
+            if (!f.open(QFile::ReadOnly)) continue;
+            QByteArray data = f.readAll();
+            f.close();
+            if (layoutRepo.saveCurrentLayout(pd.id, viewName, peekVersion(data), data)) {
+                f.remove();
+            } else {
+                qWarning() << "importLegacyProfileLayouts: failed to import" << shgPath;
+            }
+        }
+    }
 }
 
 #ifdef UNITTEST_MODE
@@ -660,6 +769,29 @@ int main(int argc, char *argv[]) {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    // Initialize database (must be before preferences so Open() can route to DB)
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    QString dbPath = GetAppData() + "/oscar.db";
+
+    QObject::connect(&DatabaseManager::instance(), &DatabaseManager::databaseError,
+                     [](const QString& error) {
+                         qCritical() << "Database Manager Error:" << error;
+                         QMessageBox::critical(nullptr, STR_MessageBox_Error,
+                                               QObject::tr("Database Error") + "\n\n" + error);
+                     });
+
+    if (!DatabaseManager::instance().initialize(dbPath)) {
+        qCritical() << "Main: Database initialization failed";
+        return 0;
+    }
+
+    qDebug() << "Main: Database initialized successfully!";
+    qDebug() << "Main: Database file:" << dbPath;
+
+    importLegacyNamedLayouts();
+    importLegacyProfileLayouts();
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     // Initialize preferences system (Don't use p_pref before this point!)
     ///////////////////////////////////////////////////////////////////////////////////////////
     p_pref = new Preferences("Preferences");
@@ -687,29 +819,6 @@ int main(int argc, char *argv[]) {
     p_pref->Erase(STR_GEN_SkipLogin);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    // Initialize database (MUST be before migration)
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    QString dbPath = GetAppData() + "/oscar.db";
-
-    // Connect database error signal to show detailed error messages
-    QObject::connect(&DatabaseManager::instance(), &DatabaseManager::databaseError,
-                     [](const QString& error) {
-                         qCritical() << "Database Manager Error:" << error;
-                         QMessageBox::critical(nullptr, STR_MessageBox_Error,
-                                               QObject::tr("Database Error") + "\n\n" + error);
-                     });
-
-    if (!DatabaseManager::instance().initialize(dbPath)) {
-        // The detailed error message has already been shown via the signal
-        // This is a fallback in case initialize fails without emitting a signal
-        qCritical() << "Main: Database initialization failed";
-        return 0;
-    }
-
-    qDebug() << "Main: Database initialized successfully!";
-    qDebug() << "Main: Database file:" << dbPath;
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
     // Migrate from OSCAR 1.x if needed
     ///////////////////////////////////////////////////////////////////////////////////////////
     if (haveNewFolder)
@@ -719,6 +828,9 @@ int main(int argc, char *argv[]) {
                                   QObject::tr("Click [OK] to go to the next screen or [No] if you do not wish to use any OSCAR 1.x data."),
                                   QMessageBox::Ok|QMessageBox::No, QMessageBox::Ok) == QMessageBox::Ok) {
             migrateFromOSCAR( GetAppData() );              // doesn't matter if no migration
+            // Migrate any .shg files copied in by the 1.x importer
+            importLegacyNamedLayouts();
+            importLegacyProfileLayouts();
         }
     }
 

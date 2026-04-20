@@ -25,7 +25,7 @@ lessThan(QT_MAJOR_VERSION,6) {
 # get rid of the help browser, at least for now
 DEFINES += helpless
 
-QT += core gui network xml printsupport serialport sql widgets help
+QT += core gui network xml printsupport serialport sql widgets help concurrent
 contains(DEFINES, helpless) {
     QT -= help
 }
@@ -415,6 +415,8 @@ SOURCES += \
     database/user_info_repository.cpp \
     database/doctor_info_repository.cpp \
     database/preferences_repository.cpp \
+    database/app_preferences_repository.cpp \
+    database/graph_layouts_repository.cpp \
     database/session_repository.cpp \
     database/session_settings_repository.cpp \
     database/session_channels_repository.cpp \
@@ -586,6 +588,8 @@ HEADERS  += \
     database/user_info_repository.h \
     database/doctor_info_repository.h \
     database/preferences_repository.h \
+    database/app_preferences_repository.h \
+    database/graph_layouts_repository.h \
     database/session_repository.h \
     database/session_settings_repository.h \
     database/session_channels_repository.h \

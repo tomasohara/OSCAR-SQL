@@ -24,11 +24,11 @@
  * the OSCAR database schema. It handles schema creation, versioning,
  * and future upgrades.
  *
- * Current schema version: 13
- * Version 13: Report tree redesign
- * - Replaced reports/report_contents with single report_tree table
- * - Hierarchical tree structure with System and User roots
- * - System reports loaded from external .orf file
+ * Current schema version: 14
+ * Version 14: All file-based data moved to database
+ * - Added app_preferences table (replaces Preferences.xml)
+ * - Added graph_layouts table (replaces layoutSettings/ and per-profile .shg files)
+ * - Added blob_value column to profile_preferences
  */
 class DatabaseSchema
 {
@@ -38,6 +38,13 @@ public:
      *
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
+     *
+     * Version 14: All file-based settings moved to database
+     * - Added app_preferences table (replaces Preferences.xml)
+     * - Added graph_layouts unified table (replaces layoutSettings/ named .shg files and
+     *   per-profile daily.shg/overview.shg; profile_id NULL = shared named slot)
+     * - Added blob_value BLOB column to profile_preferences and app_preferences for
+     *   future binary-valued preferences
      *
      * Version 13: Report tree redesign
      * - Replaced reports/report_contents tables with single report_tree table
@@ -49,9 +56,8 @@ public:
      * - Added profile_id and channel_id to respiratory_events
      * - Added type field to channels
      * - Removed events_file and summary_file from sessions (no longer needed)
-     * - New policy: Version mismatch requires fresh database (no incremental migration)
      */
-    static const int CURRENT_SCHEMA_VERSION = 13;
+    static const int CURRENT_SCHEMA_VERSION = 14;
 
     /*!
      * \brief Oldest schema version that can be restored into the current database.
@@ -96,7 +102,8 @@ public:
      * \param fromVersion Current version in database
      * \return true if successful, false otherwise
      *
-     * Future use: handles schema migrations from older versions.
+     * Applies incremental migrations until the database is at CURRENT_SCHEMA_VERSION.
+     * Each version-specific migration is additive; no existing data is destroyed.
      */
     static bool upgradeSchema(QSqlDatabase& db, int fromVersion);
 
@@ -142,6 +149,15 @@ private:
 
     // Report tree table (schema version 13 - replaces reports/report_contents)
     static bool createReportTreeTable(QSqlDatabase& db);
+
+    // Global preferences table (schema version 14 - replaces Preferences.xml)
+    static bool createAppPreferencesTable(QSqlDatabase& db);
+
+    // Unified graph layouts table (schema version 14 - replaces .shg files)
+    static bool createGraphLayoutsTable(QSqlDatabase& db);
+
+    // Migration from v13 to v14
+    static bool migrateV13ToV14(QSqlDatabase& db);
 
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);

@@ -1,13 +1,13 @@
 # OSCAR Database Schema Reference
-**Version:** Schema Version 13
-**Last Updated:** 2026 Q1
+**Version:** Schema Version 14
+**Last Updated:** 2026 Q2
 **Database Type:** SQLite
 
 ---
 
 ## Overview
 
-The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 13.
+The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 14.
 
 **Key Design Principles:**
 - **Profile-centric**: All data organized around user profiles
@@ -19,7 +19,7 @@ The OSCAR database uses SQLite to store user profiles, machine configurations, s
 - **Flexible preferences**: Key-value storage for settings
 - **Cascade deletes**: Removing a profile removes all associated data
 - **Database-only mode**: Waveform and event data stored in database BLOBs (replaces .001 files) ⚡ NEW IN v8
-- **No-migration policy**: Schema version mismatch requires a fresh database (v12+)
+- **Migration policy**: Schema version mismatch requires migration after v13.
 
 ---
 
@@ -38,8 +38,9 @@ The OSCAR database uses SQLite to store user profiles, machine configurations, s
 | 9 | 2026 Q1 | 📝 **ENHANCEMENT**: Added json_value column to session_settings for journal migration and complex data types |
 | 10 | 2026 Q1 | 🔧 **SEMANTIC FIX**: Renamed central_count to unclassified_count (semantically correct) and added clear_airway_count to session_summaries |
 | 11 | 2026 Q1 | 📊 **NEW FEATURE**: Added reports and report_contents tables for CSV export report management with macro-based query templates |
-| 12 | 2026 Q1 | 🔧 **DENORMALIZATION**: Added profile_id to session_settings, session_channels, session_summaries, event_lists; added profile_id and channel_id to respiratory_events; added type to channels; removed events_file and summary_file from sessions. **No-migration policy introduced.** |
+| 12 | 2026 Q1 | 🔧 **DENORMALIZATION**: Added profile_id to session_settings, session_channels, session_summaries, event_lists; added profile_id and channel_id to respiratory_events; added type to channels; removed events_file and summary_file from sessions. |
 | 13 | 2026 Q1 | 🌲 **REPORT TREE REDESIGN**: Replaced reports/report_contents with single report_tree table; hierarchical structure with System/User roots; system reports loaded from external .orf file |
+| 14 | 2026 Q2 | 🗄️ **FILE-TO-DB MIGRATION**: Added `app_preferences` table (replaces Preferences.xml); added `graph_layouts` table (replaces layoutSettings/*.shg and per-profile daily.shg/overview.shg); added `blob_value BLOB` column to `profile_preferences`. Legacy files imported once on first launch then deleted. |
 
 ---
 
@@ -541,6 +542,63 @@ User (root, source=user)
 **Query Templates:** Report leaf nodes store SQL with macros (`#PROFILE_ID`, `#START_DATE`, `#END_DATE`) replaced at runtime.
 
 **Not Profile-Specific:** `report_tree` is global to the database and is **not** included in profile backups. System nodes are auto-populated from the `.orf` file; user nodes are preserved across upgrades.
+
+---
+
+### 19. app_preferences 🗄️ **NEW IN v14 — replaces Preferences.xml**
+Global application preferences (not profile-specific).
+
+```sql
+CREATE TABLE app_preferences (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    category    TEXT NOT NULL DEFAULT 'general',
+    key         TEXT NOT NULL,
+    value       TEXT,
+    blob_value  BLOB,
+    data_type   TEXT,
+    created_at  TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(category, key)
+)
+```
+
+**data_type values:** `'string'`, `'int'`, `'float'`, `'bool'`, `'datetime'`, `'date'`, `'time'`, `'blob'`
+
+**Seeding:** On first launch after upgrade, legacy `Preferences.xml` is read and its contents inserted, then the XML file is deleted.
+
+---
+
+### 20. graph_layouts 🗄️ **NEW IN v14 — replaces layoutSettings/*.shg and per-profile *.shg**
+Unified storage for both named graph layout slots (shared, cross-profile) and per-profile current layouts.
+
+```sql
+CREATE TABLE graph_layouts (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id     INTEGER,
+    view_name      TEXT NOT NULL,
+    slot_index     INTEGER NOT NULL,
+    is_current     INTEGER NOT NULL DEFAULT 0,
+    description    TEXT,
+    format_version INTEGER NOT NULL,
+    data           BLOB NOT NULL,
+    created_at     TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+)
+
+CREATE UNIQUE INDEX idx_graph_layouts_named
+    ON graph_layouts(view_name, slot_index) WHERE profile_id IS NULL;
+CREATE UNIQUE INDEX idx_graph_layouts_current
+    ON graph_layouts(profile_id, view_name) WHERE is_current = 1;
+```
+
+**Row types (discriminated by profile_id and is_current):**
+- `profile_id IS NULL, is_current=0` — shared named layout slot (user-saved, cross-profile)
+- `profile_id NOT NULL, is_current=1` — per-profile current layout (restored on open)
+
+**data:** Raw `QDataStream` binary payload identical to old `.shg` file format (magic `0x41756728`, version 5+).
+
+**Seeding:** On first launch after upgrade, legacy `layoutSettings/*.shg` files and per-profile `daily.shg`/`overview.shg` files are imported, then deleted.
 
 ---
 

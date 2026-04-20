@@ -32,6 +32,8 @@
 
 #include "common.h"
 #include "preferences.h"
+#include "../database/app_preferences_repository.h"
+#include "../database/database_manager.h"
 
 const QString &getUserName()
 {
@@ -180,6 +182,22 @@ bool Preferences::Open(QString filename)
 {
     if (!filename.isEmpty()) {
         p_filename = filename;
+    }
+
+    // When the DB is open and this is the app's own Preferences singleton, load from DB.
+    if (p_name == "Preferences" && DatabaseManager::instance().isOpen()
+            && p_filename.startsWith(GetAppData())) {
+        AppPreferencesRepository repo;
+        const QList<AppPrefData> rows = repo.loadAll();
+        if (!rows.isEmpty()) {
+            p_preferences.clear();
+            for (const AppPrefData& row : rows) {
+                if (row.dataType == "blob") continue; // blobs not exposed as QVariant here
+                p_preferences[row.key] = repo.variantFromString(row.value, row.dataType);
+            }
+            return true;
+        }
+        // Table empty — fall through to XML import below (one-shot seeding on upgrade)
     }
 
     QDomDocument doc(p_name);
@@ -335,6 +353,24 @@ bool Preferences::Open(QString filename)
             }
         }
     }
+
+    // One-shot seeding: if the DB is open and this is the app's own Preferences.xml
+    // (not a foreign file opened by the importer), seed the DB and delete the file.
+    if (p_name == "Preferences" && DatabaseManager::instance().isOpen()
+            && p_filename.startsWith(GetAppData())) {
+        AppPreferencesRepository repo;
+        bool seeded = true;
+        for (auto i = p_preferences.begin(); i != p_preferences.end(); ++i) {
+            if (i.value().typeId() == QMetaType::UnknownType) continue;
+            if (!repo.save("general", i.key(), i.value())) seeded = false;
+        }
+        if (seeded) {
+            QFile::remove(p_filename);
+        } else {
+            qWarning() << "Preferences::Open(): Failed to seed app_preferences table from XML; keeping XML file";
+        }
+    }
+
     return true;
 }
 
@@ -342,6 +378,18 @@ bool Preferences::Save(QString filename)
 {
     if (!filename.isEmpty()) {
         p_filename = filename;
+    }
+
+    // When the DB is open and this is the app's own Preferences singleton, save to DB.
+    if (p_name == "Preferences" && DatabaseManager::instance().isOpen()
+            && p_filename.startsWith(GetAppData())) {
+        AppPreferencesRepository repo;
+        bool ok = true;
+        for (auto i = p_preferences.begin(); i != p_preferences.end(); ++i) {
+            if (i.value().typeId() == QMetaType::UnknownType) continue;
+            if (!repo.save("general", i.key(), i.value())) ok = false;
+        }
+        return ok;
     }
 
     QDomDocument doc(p_name);

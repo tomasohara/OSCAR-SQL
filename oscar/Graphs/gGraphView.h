@@ -10,6 +10,7 @@
 #ifndef GGRAPHVIEW_H
 #define GGRAPHVIEW_H
 
+#include <QByteArray>
 #include <QMainWindow>
 #include <QScrollBar>
 #include <QResizeEvent>
@@ -422,10 +423,16 @@ class gGraphView
 
     QString settingsFilename (QString title,QString folderName="" ,QString ext=".shg");
 
-    //! \brief Saves the current graph order, heights, min & Max Y values to disk
+    //! \brief Serializes graph layout state (order, heights, min/max Y, pinning) to a raw byte array.
+    QByteArray serializeSettings();
+
+    //! \brief Deserializes graph layout state from a raw byte array. Returns false on format error.
+    bool deserializeSettings(const QByteArray& data);
+
+    //! \brief Saves the current graph layout. Routes to DB when folderName is empty and DB is open.
     void SaveSettings(QString title,QString folderName="");
 
-    //! \brief Loads the current graph order, heights, min & max Y values from disk
+    //! \brief Loads the current graph layout. Routes to DB when folderName is empty and DB is open.
     bool LoadSettings(QString title,QString folderName="");
 
     //! \brief Saves the current (initial) graph order, heights, min & Max Y values for future recovery
@@ -790,5 +797,7 @@ protected slots:
     void onOverlaysClicked(QAction *);
     void onSnapshotGraphToggle();
 };
+
+extern const quint16 gVversion;   //!< Current .shg layout format version (defined in gGraphView.cpp)
 
 #endif // GGRAPHVIEW_H

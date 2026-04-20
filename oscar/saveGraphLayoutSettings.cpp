@@ -19,15 +19,15 @@
 #include <QPixmap>
 #include <QSize>
 #include <QChar>
-#include <QDir>
+#include <QDateTime>
 #include <QRegularExpression>
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QVBoxLayout>
 #include "SleepLib/profiles.h"
 #include "saveGraphLayoutSettings.h"
-
-
+#include "database/database_manager.h"
+#include "database/graph_layouts_repository.h"
 
 #define USE_FRAMELESS_WINDOW_off
 #define USE_PROFILE_SPECIFIC_FOLDERoff      // off implies saved layouts worked for all profiles.
@@ -35,14 +35,9 @@ extern bool openOk;
 
 SaveGraphLayoutSettings::SaveGraphLayoutSettings(QString title,QWidget* parent) : parent(parent),title(title)
 {
-    createSaveFolder();
-    if (dir==nullptr) return;
-    dir->setFilter(QDir::Files | QDir::Readable | QDir::Writable | QDir::NoSymLinks);
+    if (!DatabaseManager::instance().isOpen()) return;
 
-    QString descFileName = dirName+title.toLower()+".descriptions.txt";
-    descriptionMap = new DescriptionMap (dir,descFileName);
-
-    createMenu() ;
+    createMenu();
 
     menu.dialog->connect(menuAddFullBtn, SIGNAL(clicked()), this, SLOT (addFull_feature()  ));
     menu.dialog->connect(menuAddBtn,     SIGNAL(clicked()), this, SLOT (add_feature()  ));
@@ -54,17 +49,12 @@ SaveGraphLayoutSettings::SaveGraphLayoutSettings(QString title,QWidget* parent) 
     menu.dialog->connect(menuList,       SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(itemChanged(QListWidgetItem*)   ));
     menu.dialog->connect(menuList,       SIGNAL(itemSelectionChanged()), this, SLOT(itemSelectionChanged()   ));
 
-
-
     singleLineRe = new QRegularExpression( QString("^\\s*([^\\r\\n]{0,%1})").arg(1+maxDescriptionLen) );
-    fileNumRe = new QRegularExpression( QString("%1(\\d+)(.shg)?$").arg(fileBaseName) );
-    parseFilenameRe = new QRegularExpression(QString("^(%1[.](%2(\\d*)))[.]shg$").arg(title).arg(fileBaseName));
 }
 
 SaveGraphLayoutSettings::~SaveGraphLayoutSettings()
 {
-
-    if (dir==nullptr) {return;}
+    if (!menu.dialog) return;
     menu.dialog->disconnect(menuAddFullBtn, SIGNAL(clicked()), this, SLOT (addFull_feature()  ));
     menu.dialog->disconnect(menuAddBtn,     SIGNAL(clicked()), this, SLOT (add_feature()  ));
     menu.dialog->disconnect(menuRestoreBtn, SIGNAL(clicked()), this, SLOT (restore_feature()  ));
@@ -76,52 +66,11 @@ SaveGraphLayoutSettings::~SaveGraphLayoutSettings()
     menu.dialog->disconnect(menuList,       SIGNAL(itemSelectionChanged()), this, SLOT(itemSelectionChanged()   ));
     helpDestructor();
 
-
-    delete descriptionMap;
     delete singleLineRe;
-    delete fileNumRe;
-    delete parseFilenameRe;
 }
 
 void SaveGraphLayoutSettings::createSaveFolder() {
-    // Insure that the save folder exists
-    // Get the directory name for the save files
-    //QString layoutFileFolder = "savedGraphLayoutSettings/";
-    QString layoutFileFolder = "layoutSettings/";
-
-    #if 0
-    // home directory for the current  profile.
-    QString baseName = p_profile->Get("{DataFolder}/");
-
-    #else
-    // home directory for all profiles.
-    // allows settings to be shared accross profiles.
-    QString baseName = p_pref->Get("{home}/");
-
-    #endif
-
-    dirName = baseName+layoutFileFolder;
-
-    // Check if the save folder exists
-    QDir* tmpDir = new QDir(dirName);
-    if (!tmpDir->exists()) {
-        QDir* baseDir=new QDir(baseName);
-        if (!baseDir->exists()) {
-            // Base folder does not exist - terminate
-            return ;
-        }
-        // saved Setting folder does not exist. make it
-        if (!baseDir->mkdir(dirName)) {
-            // Did not create the folder.
-            return ;
-        }
-        tmpDir = new QDir(dirName);
-        // double check if save folder exists or not.
-        if (!tmpDir->exists()) {
-            return ;
-        }
-    }
-    dir=tmpDir;
+    // No-op: layouts are now stored in the DB (graph_layouts table).
 }
 
 QPushButton*  SaveGraphLayoutSettings::menuBtn(QString name, QIcon* icon, QString style,QSizePolicy::Policy hPolicy,QString tooltip) {
@@ -550,13 +499,9 @@ void SaveGraphLayoutSettings::manageButtonApperance() {
 
 void SaveGraphLayoutSettings::add_feature() {
     if(!graphView) return;
-    QString fileName = QString("%1%2").arg(fileBaseName).arg(nextNumToUse,fileNumMaxLength,10,QLatin1Char('0'));
-    writeSettings(fileName);
-    // create a default description - use formatted datetime.
-    QString desc=QDateTime::currentDateTime().toString();
-    descriptionMap->add(fileName,desc);
-    descriptionMap->save();
-    QListWidgetItem* item = updateFileList( fileName);
+    QString desc = QDateTime::currentDateTime().toString();
+    writeSettings(nextNumToUse, desc);
+    QListWidgetItem* item = updateFileList(nextNumToUse);
     if (item!=nullptr) {
         menuList->setCurrentItem(item,QItemSelectionModel::ClearAndSelect);
         menuList->editItem(item);
@@ -571,21 +516,21 @@ void SaveGraphLayoutSettings::addFull_feature() {
 
 void SaveGraphLayoutSettings::update_feature() {
     if(!graphView) return;
-    QListWidgetItem *	item=menuList->currentItem();
-    if (!verifyItem(item,  tr("No Item Selected") ,  m_icon_update)) return ;
-    if(!confirmAction( item->text(), tr("Ok to Update?") , m_icon_update) ) return;
-    QString fileName = item->data(fileNameRole).toString();
-    writeSettings(fileName);
-};
+    QListWidgetItem* item = menuList->currentItem();
+    if (!verifyItem(item, tr("No Item Selected"), m_icon_update)) return;
+    if(!confirmAction(item->text(), tr("Ok to Update?"), m_icon_update)) return;
+    int slotIndex = item->data(fileNameRole).toInt();
+    writeSettings(slotIndex, item->text());
+}
 
 void SaveGraphLayoutSettings::restore_feature() {
     if(!graphView) return;
-    QListWidgetItem *	item=menuList->currentItem();
-    if (!verifyItem(item,  tr("No Item Selected") ,  m_icon_restore)) return ;
-    QString fileName = item->data(fileNameRole).toString();
-    loadSettings(fileName);
+    QListWidgetItem* item = menuList->currentItem();
+    if (!verifyItem(item, tr("No Item Selected"), m_icon_restore)) return;
+    int slotIndex = item->data(fileNameRole).toInt();
+    loadSettings(slotIndex);
     closeMenu();
-};
+}
 
 void SaveGraphLayoutSettings::rename_feature() {
     if(!graphView) return;
@@ -618,17 +563,15 @@ void SaveGraphLayoutSettings::help_feature() {
 
 void SaveGraphLayoutSettings::delete_feature() {
     if(!graphView) return;
-    QListWidgetItem *	item=menuList->currentItem();
-    if (!verifyItem(item,  tr("No Item Selected") ,  m_icon_delete)) return ;
-    if(!confirmAction(item->text(),  tr("Ok To Delete?") ,m_icon_delete) ) return;
+    QListWidgetItem* item = menuList->currentItem();
+    if (!verifyItem(item, tr("No Item Selected"), m_icon_delete)) return;
+    if(!confirmAction(item->text(), tr("Ok To Delete?"), m_icon_delete)) return;
 
-    QString fileName = item->data(fileNameRole).toString();
-    descriptionMap->remove(fileName);
-    descriptionMap->save();
-    deleteSettings(fileName);
+    int slotIndex = item->data(fileNameRole).toInt();
+    deleteSettings(slotIndex);
     delete item;
-    if (nextNumToUse<0) {
-        nextNumToUse=fileNum(fileName);
+    if (nextNumToUse < 0) {
+        nextNumToUse = slotIndex;
     }
     manageButtonApperance();
     resizeMenu();
@@ -636,34 +579,34 @@ void SaveGraphLayoutSettings::delete_feature() {
 
 void SaveGraphLayoutSettings::itemChanged(QListWidgetItem *item)
 {
-    QString fileName=item->data(fileNameRole).toString();
-    QString desc= item->text();
+    int slotIndex = item->data(fileNameRole).toInt();
+    QString desc = item->text();
 
     // use only the first line in a multiline string. Can be set using cut and paste
     QRegularExpressionMatch match = singleLineRe->match(desc);
     if (match.hasMatch()) {
-        // captured match is the first line and has been truncated
-        desc=match.captured(1).trimmed();   // reoves spaces at end.
+        desc = match.captured(1).trimmed();
     } else {
-        // no match.
-        // an invalid name was entered.  too much white space or empty
-        desc="";
+        desc = "";
     }
-    if (desc.length()>maxDescriptionLen) {
+    if (desc.length() > maxDescriptionLen) {
         desc.append("...");
     }
-    if (desc.length() <=0) {
-        // returns name back to previous saved name
-        desc=descriptionMap->get(fileName);
+    if (desc.length() > 0) {
+        GraphLayoutsRepository repo;
+        repo.updateNamedLayoutDescription(title.toLower(), slotIndex, desc);
     } else {
-        descriptionMap->add(fileName,desc);
-        descriptionMap->save();
+        // Restore previous description from DB
+        GraphLayoutData layoutData;
+        GraphLayoutsRepository repo;
+        if (repo.loadNamedLayout(title.toLower(), slotIndex, layoutData)) {
+            desc = layoutData.description;
+        }
     }
     item->setText(desc);
     menuList->sortItems();
     menuList->setCurrentItem(item);
     resizeMenu();
-
 }
 
 void SaveGraphLayoutSettings::itemSelectionChanged()
@@ -688,27 +631,26 @@ void SaveGraphLayoutSettings::initminMenuListSize() {
     }
 };
 
-void SaveGraphLayoutSettings::writeSettings(QString filename) {
-    graphView->SaveSettings(title+"."+filename,dirName);
-};
-
-void SaveGraphLayoutSettings::loadSettings(QString filename) {
-    graphView->LoadSettings(title+"."+filename,dirName);
-};
-
-void SaveGraphLayoutSettings::deleteSettings(QString filename) {
-    QString fileName=graphView->settingsFilename (title+"."+filename,dirName) ;
-    dir->remove(fileName);
-};
-
-int SaveGraphLayoutSettings::fileNum(QString fileName) {
-    QRegularExpressionMatch match = fileNumRe->match(fileName);
-    int value=-1;
-    if (match.hasMatch()) {
-        value=match.captured(1).toInt();
-    }
-    return value;
+void SaveGraphLayoutSettings::writeSettings(int slotIndex, const QString& description) {
+    QByteArray data = graphView->serializeSettings();
+    GraphLayoutsRepository repo;
+    repo.saveNamedLayout(title.toLower(), slotIndex, description, gVversion, data);
 }
+
+void SaveGraphLayoutSettings::loadSettings(int slotIndex) {
+    GraphLayoutsRepository repo;
+    GraphLayoutData layoutData;
+    if (repo.loadNamedLayout(title.toLower(), slotIndex, layoutData)) {
+        graphView->deserializeSettings(layoutData.data);
+        graphView->updateScale();
+    }
+}
+
+void SaveGraphLayoutSettings::deleteSettings(int slotIndex) {
+    GraphLayoutsRepository repo;
+    repo.deleteNamedLayout(title.toLower(), slotIndex);
+}
+
 
 
 QSize  SaveGraphLayoutSettings::maxSize(const QSize AA , const QSize BB ) {
@@ -780,54 +722,35 @@ QSize SaveGraphLayoutSettings::calculateMenuDialogSize() {
     return returnValue;
 }
 
-QListWidgetItem* SaveGraphLayoutSettings::updateFileList(QString find) {
-    QListWidgetItem* ret=nullptr;
+QListWidgetItem* SaveGraphLayoutSettings::updateFileList(int findSlot) {
+    QListWidgetItem* ret = nullptr;
     manageButtonApperance();
-    dir->refresh();
-    QFileInfoList filelist = dir->entryInfoList( QDir::Files | QDir::Readable | QDir::Writable | QDir::NoSymLinks,QDir::Name);
-
-    // Restrict number of files. easy to find availble unused entry for add function.
-
-    int row=0;
-    int count=0;
     menuList->clear();
-    nextNumToUse=-1;
-    descriptionMap->load();
-    for (int i = 0; i < filelist.size(); ++i) {
-        QFileInfo fileInfo = filelist.at(i);
-        QString fileName = fileInfo.fileName();
-        QRegularExpressionMatch match = parseFilenameRe->match(fileName);
-        if (match.hasMatch()) {
-            if (match.lastCapturedIndex()==3) {
-                QString fileName=match.captured(2);
-                if (nextNumToUse<0) {
-                    // check if an entry is availavle to use
-                    int fileNum=match.captured(3).toInt();
-                    // find an available file name(number);
-                    if (fileNum!=count) {
-                       nextNumToUse=count;
-                    }
-                }
-                count++;
+    nextNumToUse = -1;
 
-                QListWidgetItem *item = new QListWidgetItem(descriptionMap->get(fileName));
-                item->setData(fileNameRole,fileName);
-                item->setFlags(item->flags() | Qt::ItemIsEditable);
-                menuList->insertItem(row,item);
-                row++;
-                if (find!=nullptr && fileName==find) {
-                    ret=item;
-                }
-            }
+    GraphLayoutsRepository repo;
+    QList<GraphLayoutData> layouts = repo.loadAllNamedLayouts(title.toLower());
+
+    int count = 0;
+    for (const GraphLayoutData& layout : layouts) {
+        if (nextNumToUse < 0 && layout.slotIndex != count) {
+            nextNumToUse = count;   // first gap found
+        }
+        count++;
+
+        QListWidgetItem* item = new QListWidgetItem(layout.description);
+        item->setData(fileNameRole, layout.slotIndex);
+        item->setFlags(item->flags() | Qt::ItemIsEditable);
+        menuList->addItem(item);
+        if (findSlot >= 0 && layout.slotIndex == findSlot) {
+            ret = item;
         }
     }
-    if (nextNumToUse<0) { // check if there is an existing empty slot
-        // if not then the next available slot is at the end. CHeck if at max files.
-        if (count<maxFiles) {
-            // a slot is available
-            nextNumToUse=count;
-        }
+
+    if (nextNumToUse < 0) {
+        nextNumToUse = (count < maxFiles) ? count : -1;
     }
+
     manageButtonApperance();
     menuList->sortItems();
     return ret;
@@ -855,11 +778,7 @@ void SaveGraphLayoutSettings::closeMenu() {
 }
 
 void SaveGraphLayoutSettings::triggerLayout(gGraphView* graphView) {
-    if (dir==nullptr) {
-        //const char* err=qPrintable(QString("Cannot find directory %1").arg(dirName));
-        //qWarning(err);
-        return;
-    }
+    if (!menu.dialog) return;
     if (menu.open) {
         closeMenu();
         return;
@@ -901,63 +820,6 @@ void SaveGraphLayoutSettings::hintHelp() {
 }
 
 
-//====================================================================================================
-//====================================================================================================
-// Descriptions map class with file storage
-
-DescriptionMap::DescriptionMap(QDir* dir, QString _filename)
-{
-    filename  = dir->absoluteFilePath(_filename);
-    parseDescriptionsRe = new QRegularExpression(QString("^\\s*(\\w+)%1(.*)$").arg(delimiter) );
-};
-
-DescriptionMap::~DescriptionMap() {
-    delete parseDescriptionsRe;
-};
-
-void DescriptionMap::add(QString key,QString desc) {
-    descriptions.insert(key,desc);
-};
-
-void DescriptionMap::remove(QString key) {
-    descriptions.remove(key);
-}
-QString DescriptionMap::get(QString key) {
-    QString ret =descriptions.value(key,key);
-    return ret;
-}
-
-void DescriptionMap::save() {
-    QFile file(filename);
-    openOk = file.open(QFile::WriteOnly);
-    QTextStream out(&file);
-    QMapIterator<QString, QString>it(descriptions);
-    while (it.hasNext()) {
-        it.next();
-        QString line=QString("%1%2%3\n").arg(it.key()).arg(delimiter).arg(it.value());
-        out <<line;
-    }
-    file.close();
-}
-
-void DescriptionMap::load() {
-    QString line;
-    QFile file(filename);
-    descriptions.clear();
-    if (!file.exists()) return;
-    openOk = file.open(QFile::ReadOnly);
-    QTextStream instr(&file);
-    while (instr.readLineInto(&line)) {
-        QRegularExpressionMatch match = parseDescriptionsRe->match(line);
-        if (match.hasMatch()) {
-            QString fileName = match.captured(1);
-            QString desc = match.captured(2);
-            add(fileName,desc);
-        } else {
-            DEBUGF QQ("MATCH ERROR",line);
-        }
-    }
-}
 
 
 //====================================================================================================

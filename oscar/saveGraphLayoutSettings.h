@@ -17,27 +17,10 @@ class QVBoxLayout;
 class QListWidget;
 class QListWidgetItem;
 class QRegularExpression;
-class QDir;
 class QPushButton;
 
 #include "Graphs/gGraphView.h"
 
-class DescriptionMap
-{
-public:
-    DescriptionMap(QDir* dir, QString filename) ;
-    virtual ~DescriptionMap();
-    void add(QString key,QString desc);
-    void remove(QString key);
-    QString get(QString key);
-    void load();
-    void save();
-private:
-    QString filename;
-    QMap <QString,QString> descriptions;
-    const QRegularExpression* parseDescriptionsRe;
-    const QChar delimiter = QChar(':');
-};
 
 class HelpData {
 public:
@@ -103,9 +86,7 @@ private:
     QSize maxSize(const QSize AA , const QSize BB ) ;
     bool  sizeEqual(const QSize AA , const QSize BB ) ;
 
-    const QRegularExpression* singleLineRe;
-    const QRegularExpression* fileNumRe;
-    const QRegularExpression* parseFilenameRe;
+    const QRegularExpression* singleLineRe = nullptr;
 
 
     QWidget*            parent;
@@ -132,10 +113,8 @@ private:
     void         helpDestructor();
     QString      helpInfo();
 
-    QDir*   dir = nullptr;
-    QString dirName;
     int     nextNumToUse;
-    QListWidgetItem* updateFileList(QString find = QString());
+    QListWidgetItem* updateFileList(int findSlot = -1);
     QListWidgetItem* widestItem=nullptr;
     QString styleOn;
     QString styleOff;
@@ -145,7 +124,6 @@ private:
 
     QString calculateButtonStyle(bool on,bool border);
     void    looksOn(QPushButton* button,bool on);
-    DescriptionMap* descriptionMap;
     bool    confirmAction(QString name,QString question,QIcon* icon,
                 QMessageBox::StandardButtons flags = (QMessageBox::Cancel|QMessageBox::Yes) ,
                 QMessageBox::StandardButton adefault = QMessageBox::Cancel,
@@ -167,10 +145,9 @@ private:
     void    manageButtonApperance();
     void    resizeMenu();
 
-    int     fileNum(QString fileName);
-    void    writeSettings(QString filename);
-    void    loadSettings(QString filename);
-    void    deleteSettings(QString filename);
+    void    writeSettings(int slotIndex, const QString& description);
+    void    loadSettings(int slotIndex);
+    void    deleteSettings(int slotIndex);
     void    closeMenu();
     void    closeHelp();
 

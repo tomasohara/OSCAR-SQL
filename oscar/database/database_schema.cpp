@@ -133,6 +133,18 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
+    // Global app preferences table (schema version 14 - replaces Preferences.xml)
+    if (!createAppPreferencesTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create app_preferences table";
+        return false;
+    }
+
+    // Unified graph layouts table (schema version 14 - replaces .shg files)
+    if (!createGraphLayoutsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create graph_layouts table";
+        return false;
+    }
+
     // Create indexes
     if (!createIndexes(db)) {
         qCritical() << "DatabaseSchema: Failed to create indexes";
@@ -187,28 +199,34 @@ int DatabaseSchema::getSchemaVersion(QSqlDatabase& db)
  *   db - Database connection to use
  *   fromVersion - Current version in database
  *
- * Returns: false - Schema v12+ does not support incremental migrations
+ * Returns: true if upgrade succeeded, false otherwise
  *
- * SCHEMA V12 POLICY: No incremental migrations. If schema version doesn't match,
- * user must start with fresh database and reimport data. This ensures data integrity
- * and simplifies maintenance. The database_manager will display an appropriate
- * error message to the user.
+ * Applies incremental, additive migrations. No existing data is destroyed.
+ * Each step calls the relevant createXxx / ALTER TABLE helpers and then advances
+ * the stored schema version before moving to the next step.
  */
 bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
 {
-    Q_UNUSED(db);
-    
-    qCritical() << "DatabaseSchema: Schema version mismatch detected";
-    qCritical() << "DatabaseSchema: Database version:" << fromVersion;
-    qCritical() << "DatabaseSchema: Required version:" << CURRENT_SCHEMA_VERSION;
-    qCritical() << "DatabaseSchema: Incremental migration not supported in schema v12+";
-    qCritical() << "DatabaseSchema: Please start with a fresh database and reimport your data";
-    
-    return false;
-    
-    // Legacy migration code removed in schema v12
-    // Users upgrading from v11 or earlier must reimport data
-    // This ensures data integrity and simplifies maintenance
+    qDebug() << "DatabaseSchema::upgradeSchema: from" << fromVersion << "to" << CURRENT_SCHEMA_VERSION;
+
+    if (fromVersion == 13) {
+        if (!migrateV13ToV14(db)) {
+            qCritical() << "DatabaseSchema: v13->v14 migration failed";
+            return false;
+        }
+        fromVersion = 14;
+    }
+
+    if (fromVersion != CURRENT_SCHEMA_VERSION) {
+        qCritical() << "DatabaseSchema: No migration path from version" << fromVersion;
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema::upgradeSchema: complete";
+    return true;
+
+    // Legacy migration code (versions < 12) no longer reached — users on those
+    // versions must reimport data.
 
     // Upgrade from version 2 to version 3: Add session tables
     if (fromVersion < 3) {
@@ -1499,5 +1517,135 @@ bool DatabaseSchema::createReportTreeTable(QSqlDatabase& db)
 bool DatabaseSchema::checkAndUpdateReportVersion(QSqlDatabase& db)
 {
     return ReportsInitializer::checkAndUpdateReportVersion(db);
+}
+
+/*
+ * Create the app_preferences table (schema version 14)
+ *
+ * Stores all global application preferences (formerly Preferences.xml).
+ * Supports both scalar values (TEXT) and future binary values (BLOB).
+ * Same shape as profile_preferences minus profile_id.
+ */
+bool DatabaseSchema::createAppPreferencesTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+
+    QString sql =
+        "CREATE TABLE IF NOT EXISTS app_preferences ("
+        "    id         INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    category   TEXT NOT NULL DEFAULT 'general',"
+        "    key        TEXT NOT NULL,"
+        "    value      TEXT,"
+        "    blob_value BLOB,"
+        "    data_type  TEXT,"
+        "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    UNIQUE(category, key)"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create app_preferences table:"
+                    << query.lastError().text();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: app_preferences table created";
+    return true;
+}
+
+/*
+ * Create the graph_layouts table (schema version 14)
+ *
+ * Unified table for both shared named layouts (profile_id IS NULL) and
+ * the per-profile current layout (profile_id NOT NULL, is_current = 1).
+ * Data is a raw QDataStream BLOB — identical format to the old .shg files.
+ */
+bool DatabaseSchema::createGraphLayoutsTable(QSqlDatabase& db)
+{
+    QSqlQuery query(db);
+
+    QString sql =
+        "CREATE TABLE IF NOT EXISTS graph_layouts ("
+        "    id             INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    profile_id     INTEGER,"
+        "    view_name      TEXT NOT NULL,"
+        "    slot_index     INTEGER NOT NULL DEFAULT 0,"
+        "    is_current     INTEGER NOT NULL DEFAULT 0,"
+        "    description    TEXT,"
+        "    format_version INTEGER NOT NULL,"
+        "    data           BLOB NOT NULL,"
+        "    created_at     TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    updated_at     TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE"
+        ")";
+
+    if (!query.exec(sql)) {
+        qCritical() << "DatabaseSchema: Failed to create graph_layouts table:"
+                    << query.lastError().text();
+        return false;
+    }
+
+    // Unique index for shared named slots (profile_id IS NULL)
+    if (!query.exec(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_graph_layouts_named "
+            "ON graph_layouts(view_name, slot_index) WHERE profile_id IS NULL")) {
+        qWarning() << "DatabaseSchema: Failed to create idx_graph_layouts_named:"
+                   << query.lastError().text();
+    }
+
+    // Unique index for per-profile current layouts
+    if (!query.exec(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_graph_layouts_current "
+            "ON graph_layouts(profile_id, view_name) WHERE is_current = 1")) {
+        qWarning() << "DatabaseSchema: Failed to create idx_graph_layouts_current:"
+                   << query.lastError().text();
+    }
+
+    qDebug() << "DatabaseSchema: graph_layouts table created";
+    return true;
+}
+
+/*
+ * Migrate database from schema version 13 to 14
+ *
+ * All changes are purely additive — no existing data is touched.
+ *   1. Create app_preferences table
+ *   2. Create graph_layouts table (with partial unique indexes)
+ *   3. Add blob_value column to profile_preferences
+ *   4. Advance schema_version to 14
+ */
+bool DatabaseSchema::migrateV13ToV14(QSqlDatabase& db)
+{
+    qDebug() << "DatabaseSchema: Migrating v13 -> v14";
+
+    if (!createAppPreferencesTable(db)) {
+        qCritical() << "DatabaseSchema: migrateV13ToV14: createAppPreferencesTable failed";
+        return false;
+    }
+
+    if (!createGraphLayoutsTable(db)) {
+        qCritical() << "DatabaseSchema: migrateV13ToV14: createGraphLayoutsTable failed";
+        return false;
+    }
+
+    // Add blob_value column to profile_preferences (idempotent via IF NOT EXISTS workaround:
+    // SQLite has no ALTER TABLE ADD COLUMN IF NOT EXISTS, so we ignore "duplicate column" errors)
+    QSqlQuery q(db);
+    if (!q.exec("ALTER TABLE profile_preferences ADD COLUMN blob_value BLOB")) {
+        QString err = q.lastError().text();
+        if (!err.contains("duplicate column", Qt::CaseInsensitive)) {
+            qCritical() << "DatabaseSchema: migrateV13ToV14: ALTER TABLE profile_preferences failed:" << err;
+            return false;
+        }
+        // Column already exists — safe to continue
+    }
+
+    if (!setSchemaVersion(db, 14)) {
+        qCritical() << "DatabaseSchema: migrateV13ToV14: setSchemaVersion failed";
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: Migration v13->v14 complete";
+    return true;
 }
 

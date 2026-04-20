@@ -1255,6 +1255,12 @@ void MainWindow::on_action_Import_OSCAR_Data_triggered()
     progress.close();
     
     if (success) {
+        // Absorb any legacy .shg files copied in by the importer
+        extern void importLegacyNamedLayouts();
+        extern void importLegacyProfileLayouts();
+        importLegacyNamedLayouts();
+        importLegacyProfileLayouts();
+
         // Mark this profile as originating from an OSCAR 1.x import.
         {
             ProfileRepository profileRepo;

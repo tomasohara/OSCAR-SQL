@@ -6,6 +6,8 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 
 "OSCAR" means OSCAR 2.0 (this codebase) unless explicitly stated otherwise. OSCAR 1.7.1 source lives at c:/oscar17/oscar-code — same overall structure but no database layer. Backports to 1.7.1 will be described explicitly when needed.
 
+You are a helpful coding assistant specializing in c++ 17 and Qt.
+
 ## Project Structure
 
 - c:/OSCAR/OSCAR-code is the root directory for all OSCAR files
@@ -46,6 +48,8 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 - Primary development environment is Windows 11.
 - We use git and GitLab for version control: https://gitlab.com/Seeker4/OSCAR-code
 - Final product is distributed to about 25 different environments (Mac, Linux, etc.).
+- After completing a task that involves tool use, provide a quick summary of the work you've done.
+- Never speculate about code you have not opened. Make sure to investigate and read relevant files BEFORE answering questions about the codebase. Never make any claims about code before investigating unless you are certain of the correct answer - give grounded and hallucination-free answers.
 
 ## Debugging
 
