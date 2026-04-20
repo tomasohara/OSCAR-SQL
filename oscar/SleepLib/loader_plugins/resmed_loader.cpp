@@ -393,6 +393,199 @@ void backupSTRfiles( const QString strpath, const QString importPath, const QStr
                         MachineInfo & info, QMap<QDate, STRFile> & STRmap );                    // forward
 ResMedEDFInfo * fetchSTRandVerify( QString filename, QString serialNumber );                    // forward
 
+#if 0 // ResMed Leak95 investigation diagnostics (temporarily disabled)
+struct StrLeak95Aggregate
+{
+    bool valid = false;
+    int dayCount = 0;
+    double avg = 0.0;          // simple average of daily STR Leak95
+    double weightedAvg = 0.0;  // weighted by STR mask duration when available
+    double totalWeight = 0.0;
+};
+
+struct OscarLeak95Aggregate
+{
+    bool valid = false;
+    int dayCount = 0;
+    double avg = 0.0;          // simple average of daily OSCAR day p95 values
+    double weightedAvg = 0.0;  // weighted by OSCAR CPAP usage hours
+    double totalWeight = 0.0;
+};
+
+static StrLeak95Aggregate CalculateStrLeak95Aggregate(const QMap<QDate, ResMedDay> &resdayList,
+                                                      const QDate &start, const QDate &end)
+{
+    StrLeak95Aggregate result;
+    if (!start.isValid() || !end.isValid() || (start > end)) {
+        return result;
+    }
+
+    double sum = 0.0;
+    double weightedSum = 0.0;
+    double totalWeight = 0.0;
+    int count = 0;
+
+    for (auto it = resdayList.lowerBound(start), mapEnd = resdayList.end();
+         (it != mapEnd) && (it.key() <= end); ++it) {
+        const STRRecord &str = it.value().str;
+        if (!str.date.isValid() || (str.leak95 < 0)) {
+            continue;
+        }
+
+        const double leak95 = double(str.leak95);
+        sum += leak95;
+        ++count;
+
+        // STR "Mask Dur"/"Duration" is expected to represent usage duration.
+        // If unavailable or invalid, we fall back to unweighted averaging.
+        const double weight = (str.maskdur > 0) ? double(str.maskdur) : 0.0;
+        if (weight > 0.0) {
+            totalWeight += weight;
+            weightedSum += (leak95 * weight);
+        }
+    }
+
+    if (count <= 0) {
+        return result;
+    }
+
+    result.valid = true;
+    result.dayCount = count;
+    result.avg = sum / double(count);
+    result.totalWeight = totalWeight;
+    result.weightedAvg = (totalWeight > 0.0) ? (weightedSum / totalWeight) : result.avg;
+    return result;
+}
+
+static OscarLeak95Aggregate CalculateOscarDailyLeak95Aggregate(Machine *mach,
+                                                               const QMap<QDate, ResMedDay> &resdayList,
+                                                               const QDate &start, const QDate &end)
+{
+    OscarLeak95Aggregate result;
+    if (!mach || !p_profile || !start.isValid() || !end.isValid() || (start > end)) {
+        return result;
+    }
+
+    double sum = 0.0;
+    double weightedSum = 0.0;
+    double totalWeight = 0.0;
+    int count = 0;
+
+    for (auto it = resdayList.lowerBound(start), mapEnd = resdayList.end();
+         (it != mapEnd) && (it.key() <= end); ++it) {
+        const STRRecord &str = it.value().str;
+        if (!str.date.isValid() || (str.leak95 < 0)) {
+            continue;
+        }
+
+        auto dayIt = p_profile->daylist.find(it.key());
+        if (dayIt == p_profile->daylist.end()) {
+            continue;
+        }
+
+        Day *day = dayIt.value();
+        if (!day || !day->hasMachine(mach)) {
+            continue;
+        }
+
+        const double leak95 = double(day->percentile(CPAP_Leak, 0.95F));
+        sum += leak95;
+        ++count;
+
+        const double weight = double(day->hours(MT_CPAP));
+        if (weight > 0.0) {
+            totalWeight += weight;
+            weightedSum += (leak95 * weight);
+        }
+    }
+
+    if (count <= 0) {
+        return result;
+    }
+
+    result.valid = true;
+    result.dayCount = count;
+    result.avg = sum / double(count);
+    result.totalWeight = totalWeight;
+    result.weightedAvg = (totalWeight > 0.0) ? (weightedSum / totalWeight) : result.avg;
+    return result;
+}
+
+static void LogLeak95PeriodDiagnostics(Machine *mach, const QMap<QDate, ResMedDay> &resdayList)
+{
+    if (!mach || resdayList.isEmpty()) {
+        return;
+    }
+    if (mach->loaderName() != STR_MACH_ResMed) {
+        return;
+    }
+
+    const QDate lastDay = mach->LastDay();
+    if (!lastDay.isValid()) {
+        return;
+    }
+
+    QDate firstDay = mach->FirstDay();
+    if (!firstDay.isValid()) {
+        firstDay = lastDay;
+    }
+
+    const QVector<int> windows { 30, 90, 365 };
+    const double epsilon = 1.0e-6;
+    const EventDataType periodPercent = 0.95F;
+
+    for (int windowDays : windows) {
+        QDate start = lastDay.addDays(-(windowDays - 1));
+        if (start < firstDay) {
+            start = firstDay;
+        }
+        const int actualDays = 1 + start.daysTo(lastDay);
+
+        StrLeak95Aggregate strAgg = CalculateStrLeak95Aggregate(resdayList, start, lastDay);
+        if (!strAgg.valid) {
+            continue;
+        }
+        OscarLeak95Aggregate oscarDayAgg = CalculateOscarDailyLeak95Aggregate(mach, resdayList, start, lastDay);
+
+        const EventDataType oscarPeriodP95 = p_profile->calcPercentile(CPAP_Leak, periodPercent, MT_CPAP, start, lastDay);
+        const double strRef = strAgg.weightedAvg;
+        const double diff = double(oscarPeriodP95) - strRef;
+        const double absDiff = std::fabs(diff);
+        const double strAbs = std::fabs(strRef);
+
+        double relDiffPercent = 0.0;
+        bool exceedsThreshold = false;
+        if (strAbs > epsilon) {
+            relDiffPercent = (absDiff / strAbs) * 100.0;
+            exceedsThreshold = (relDiffPercent > 5.0);
+        } else {
+            exceedsThreshold = (absDiff > epsilon);
+            relDiffPercent = exceedsThreshold ? 100.0 : 0.0;
+        }
+
+        if (!exceedsThreshold) {
+            continue;
+        }
+
+        const bool calcLessThanStr = (oscarPeriodP95 < strRef);
+        qDebug().nospace()
+            << "ResMed Leak95 period diagnostic windowDays=" << windowDays
+            << " actualDays=" << actualDays
+            << " range=" << start.toString("yyyy-MM-dd") << ".." << lastDay.toString("yyyy-MM-dd")
+            << " OSCAR_period_p95=" << oscarPeriodP95
+            << " OSCAR_day_p95_wavg=" << (oscarDayAgg.valid ? oscarDayAgg.weightedAvg : -1.0)
+            << " OSCAR_day_p95_avg=" << (oscarDayAgg.valid ? oscarDayAgg.avg : -1.0)
+            << " OSCAR_day_count=" << oscarDayAgg.dayCount
+            << " STR_p95_wavg=" << strAgg.weightedAvg
+            << " STR_p95_avg=" << strAgg.avg
+            << " STR_day_count=" << strAgg.dayCount
+            << " diff=" << diff
+            << " relDiffPct=" << relDiffPercent
+            << (calcLessThanStr ? " [CALC_LT_STR !!!]" : " [CALC_GT_STR]");
+    }
+}
+#endif // ResMed Leak95 investigation diagnostics
+
 int ResmedLoader::OpenWithCallback(const QString & dirpath, ResDaySaveCallback s)               // alternate for unit testing
 {
     ResDaySaveCallback origCallback = saveCallback;
@@ -835,6 +1028,9 @@ void edfDebugInit();
     qDebug() << "ResmedLoader::Open: About to call finishAddingSessions()";
     finishAddingSessions();
     qDebug() << "ResmedLoader::Open: Finshed finishAddingSessions() with" << sessionCount << "new sessions";
+
+    // Import-time diagnostic to compare period leak p95 (OSCAR) vs STR-derived period aggregates.
+    // LogLeak95PeriodDiagnostics(mach, resdayList);
     
     // Save machine and all sessions to database
 //    mach->Save();
@@ -2718,6 +2914,66 @@ struct OverlappingEDF {
     Session * sess;
 };
 
+#if 0 // ResMed Leak95 investigation diagnostics (temporarily disabled)
+static void LogLeakP95MismatchIfNeeded(ResmedLoader *loader, Machine *mach, ResMedDay *resday)
+{
+    if (!loader || !mach || !resday) {
+        return;
+    }
+
+    STRRecord &str = resday->str;
+    if (!str.date.isValid() || (str.leak95 < 0)) {
+        return;
+    }
+
+    Day *day = nullptr;
+    loader->sessionMutex.lock();
+    auto it = p_profile->daylist.find(resday->date);
+    if (it != p_profile->daylist.end()) {
+        day = it.value();
+    }
+    loader->sessionMutex.unlock();
+
+    if (!day || !day->hasMachine(mach)) {
+        return;
+    }
+
+    const EventDataType strLeak95 = str.leak95;
+    const EventDataType calcLeak95 = day->percentile(CPAP_Leak, 0.95F);
+
+    const double diff = double(calcLeak95) - double(strLeak95);
+    const double absDiff = std::fabs(diff);
+    const double strAbs = std::fabs(double(strLeak95));
+    const double epsilon = 1.0e-6;
+
+    double relDiffPercent = 0.0;
+    bool exceedsThreshold = false;
+
+    if (strAbs > epsilon) {
+        relDiffPercent = (absDiff / strAbs) * 100.0;
+        exceedsThreshold = (relDiffPercent > 5.0);
+    } else {
+        // Avoid divide-by-zero: when STR is 0, any non-trivial calc value is a mismatch.
+        exceedsThreshold = (absDiff > epsilon);
+        relDiffPercent = exceedsThreshold ? 100.0 : 0.0;
+    }
+
+    if (!exceedsThreshold) {
+        return;
+    }
+
+    const bool calcLessThanStr = (calcLeak95 < strLeak95);
+
+    qDebug().nospace()
+        << "ResMed Leak95 diagnostic day=" << resday->date.toString("yyyy-MM-dd")
+        << " STR_p95=" << strLeak95
+        << " PLD_day_p95=" << calcLeak95
+        << " diff=" << diff
+        << " relDiffPct=" << relDiffPercent
+        << (calcLessThanStr ? " [CALC_LT_STR !!!]" : " [CALC_GT_STR]");
+}
+#endif // ResMed Leak95 investigation diagnostics
+
 void ResDayTask::run()
 {
 #ifdef SESSION_DEBUG
@@ -3072,6 +3328,9 @@ void ResDayTask::run()
         sess->TrashEvents();
 //      delete sess;
     }   // end for-loop walking the overlaps (file groups per session
+
+    // Diagnostic: compare day-level PLD-derived p95 against STR Leak95 when they differ >5%.
+    // LogLeakP95MismatchIfNeeded(loader, mach, resday);
 }
 
 void ResmedLoader::SaveSession(ResmedLoader* loader, Session* sess)
