@@ -156,9 +156,11 @@ private:
     CloudDownloader*        m_downloader       = nullptr; ///< Heap-allocated; owned by this dialog.
     QFutureWatcher<bool>*   m_validateWatcher  = nullptr; ///< Tracks the background validation future.
     QString             m_lastPackageDir;         ///< Last directory used to browse for a package.
-    bool                m_packageIsShare  = false; ///< True if filename begins with "share_".
-    bool                m_backupHasSD     = false; ///< True if the package includes SD card data.
-    bool                m_existingHasSD   = false; ///< True if the target profile has a Backup dir.
+    bool                m_packageIsShare    = false; ///< True if filename begins with "share_".
+    bool                m_backupHasSD       = false; ///< True if the package includes SD card data.
+    bool                m_existingHasSD     = false; ///< True if the target profile has a Backup dir.
+    bool                m_restoreInProgress = false; ///< True while restoreProfile() is running.
+    bool                m_cancelRequested   = false; ///< True after user clicks Cancel during restore.
 };
 
 #endif // RESTOREDIALOG_H

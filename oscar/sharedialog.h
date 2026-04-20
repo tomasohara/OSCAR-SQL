@@ -22,6 +22,7 @@
 class DropboxUploader;
 class GoogleDriveUploader;
 class OneDriveUploader;
+class ProfileBackup;
 
 namespace Ui {
 class ShareDialog;
@@ -184,10 +185,13 @@ private:
     DropboxUploader*      m_dropboxUploader     = nullptr;
     GoogleDriveUploader*  m_googleDriveUploader = nullptr;
     OneDriveUploader*     m_oneDriveUploader    = nullptr;
+    ProfileBackup*        m_backup              = nullptr; ///< Active backup object (non-owning; parent owns).
     QString               m_tempFilePath;                  ///< Temp .oscar file for cloud uploads.
     QString               m_lastFilePath;                  ///< Path of last file created (for open folder).
     bool                  m_warningAcknowledged = false;   ///< True once the sharing warning is accepted.
     bool                  m_uploadInProgress    = false;
+    bool                  m_operationActive     = false;   ///< True while file creation or upload is running.
+    bool                  m_cancelRequested     = false;   ///< True after user clicks Cancel.
 };
 
 #endif // SHAREDIALOG_H

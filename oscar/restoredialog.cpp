@@ -45,14 +45,36 @@ RestoreDialog::RestoreDialog(QWidget* parent)
     showInfoGroup(false);
     showConflictGroup(false);
 
-    connect(ui->closeButton, &QPushButton::clicked, this, &QDialog::reject);
+    connect(ui->closeButton, &QPushButton::clicked, this, [this]() {
+        if (m_restoreInProgress) {
+            m_cancelRequested = true;
+            if (m_restore) m_restore->requestCancel();
+            ui->closeButton->setEnabled(false);
+            ui->closeButton->setText(tr("Cancelling..."));
+        } else {
+            reject();
+        }
+    });
 
     restoreSettings();
 
     // Any change to the conflict-resolution radio buttons re-evaluates
     // whether the Restore button should be enabled.
-    connect(ui->renameRadio,  &QRadioButton::toggled, this,
-            [this](bool) { updateRestoreButtonState(); updateStatusLabel(); });
+    connect(ui->renameRadio, &QRadioButton::toggled, this,
+            [this](bool checked) {
+                if (checked) {
+                    const QString baseName = ui->profileNameEdit->text().trimmed();
+                    if (!baseName.isEmpty()) {
+                        // Updating the text triggers on_profileNameEdit_textChanged,
+                        // which re-checks for conflicts and hides the conflict group
+                        // when the new name is clear.
+                        ui->profileNameEdit->setText(baseName + QStringLiteral("_restored"));
+                        return;
+                    }
+                }
+                updateRestoreButtonState();
+                updateStatusLabel();
+            });
     connect(ui->replaceRadio, &QRadioButton::toggled, this,
             [this](bool) { updateRestoreButtonState(); updateStatusLabel(); });
     connect(ui->abortRadio,   &QRadioButton::toggled, this,
@@ -667,7 +689,11 @@ void RestoreDialog::on_restoreButton_clicked()
             this,      &RestoreDialog::onRestoreFailed,
             Qt::UniqueConnection);
 
+    m_cancelRequested   = false;
+    m_restoreInProgress = true;
     setBusy(true);
+    ui->closeButton->setText(tr("Cancel"));
+    ui->closeButton->setEnabled(true);
     ui->progressBar->setValue(0);
     ui->statusLabel->setText(tr("Starting restore..."));
 
@@ -683,6 +709,7 @@ void RestoreDialog::onProgressChanged(int percent, const QString& message)
 
 void RestoreDialog::onRestoreCompleted(qint64 profileId, const QString& username)
 {
+    m_restoreInProgress = false;
     ui->progressBar->setValue(100);
     ui->statusLabel->setText(tr("Restore complete."));
 
@@ -704,11 +731,18 @@ void RestoreDialog::onRestoreCompleted(qint64 profileId, const QString& username
 
 void RestoreDialog::onRestoreFailed(const QString& error)
 {
+    m_restoreInProgress = false;
     ui->progressBar->setValue(0);
-    ui->statusLabel->setText(tr("Restore failed."));
-
-    QMessageBox::critical(this, tr("Restore Failed"),
-        tr("The restore could not be completed. The database was not modified.\n\n%1").arg(error));
-
     setBusy(false);
+    ui->closeButton->setText(tr("Close"));
+    ui->closeButton->setEnabled(true);
+
+    if (m_cancelRequested) {
+        m_cancelRequested = false;
+        ui->statusLabel->setText(tr("Restore cancelled."));
+    } else {
+        ui->statusLabel->setText(tr("Restore failed."));
+        QMessageBox::critical(this, tr("Restore Failed"),
+            tr("The restore could not be completed. The database was not modified.\n\n%1").arg(error));
+    }
 }

@@ -27,6 +27,8 @@
 #ifndef PROFILE_BACKUP_H
 #define PROFILE_BACKUP_H
 
+#include <atomic>
+
 #include <QDate>
 #include <QJsonObject>
 #include <QObject>
@@ -208,6 +210,14 @@ public:
      */
     bool createBackup();
 
+    /*!
+     * \brief Request cancellation of a running createBackup() call.
+     *
+     * Thread-safe.  The backup checks this flag between major phases and
+     * emits backupFailed() with "Operation cancelled." at the next checkpoint.
+     */
+    void requestCancel();
+
     // -----------------------------------------------------------------------
     //  Status / result accessors
     // -----------------------------------------------------------------------
@@ -331,6 +341,14 @@ private:
     QString generateBackupPath() const;
 
     /*!
+     * \brief Process pending Qt events and return true if cancellation was requested.
+     *
+     * Sets m_errorMessage to "Operation cancelled." before returning true so
+     * callers can simply \c return false after a positive result.
+     */
+    bool checkCancelled();
+
+    /*!
      * \brief Calculate the SHA-256 hex digest of a file.
      *
      * \param filePath  Absolute path to the file to hash.
@@ -378,6 +396,7 @@ private:
     QDate   m_startDate;          ///< Export start date (invalid = no filter).
     QDate   m_endDate;            ///< Export end date (invalid = no filter).
     QString m_profileDataDir;     ///< Resolved Profiles/<username> path (set in createBackup).
+    std::atomic<bool> m_cancelRequested{false}; ///< Set by requestCancel(); checked between phases.
 };
 
 #endif // PROFILE_BACKUP_H

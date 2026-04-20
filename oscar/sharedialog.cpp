@@ -80,7 +80,21 @@ ShareDialog::ShareDialog(QWidget* parent)
     connect(ui->toDate, &QDateEdit::dateChanged,
             this, [this](const QDate&){ updateFilenamePreview(); });
 
-    connect(ui->closeButton,     &QPushButton::clicked,  this, &QDialog::reject);
+    connect(ui->closeButton, &QPushButton::clicked, this, [this]() {
+        if (m_operationActive) {
+            m_cancelRequested = true;
+            if (m_backup) m_backup->requestCancel();
+            if (m_uploadInProgress) {
+                if (m_dropboxUploader)     m_dropboxUploader->abort();
+                if (m_googleDriveUploader) m_googleDriveUploader->abort();
+                if (m_oneDriveUploader)    m_oneDriveUploader->abort();
+            }
+            ui->closeButton->setEnabled(false);
+            ui->closeButton->setText(tr("Cancelling..."));
+        } else {
+            reject();
+        }
+    });
     connect(ui->copyLinkButton,  &QPushButton::clicked,  this, &ShareDialog::onCopyLinkClicked);
     connect(ui->openFolderButton,&QPushButton::clicked,  this, &ShareDialog::onOpenFolderClicked);
     connect(ui->dropboxAuthButton, &QPushButton::clicked,
@@ -464,6 +478,7 @@ ShareDestination ShareDialog::currentDestination() const
 
 void ShareDialog::setUiLocked(bool locked)
 {
+    m_operationActive = locked;
     ui->profileCombo->setEnabled(!locked);
     ui->rangeCombo->setEnabled(!locked);
     ui->destinationCombo->setEnabled(!locked);
@@ -472,7 +487,10 @@ void ShareDialog::setUiLocked(bool locked)
     ui->dropboxAuthButton->setEnabled(!locked);
     ui->googleDriveAuthButton->setEnabled(!locked);
     ui->oneDriveAuthButton->setEnabled(!locked);
-    ui->closeButton->setEnabled(!locked);
+
+    // Close button becomes Cancel while locked; restored when unlocked.
+    ui->closeButton->setText(locked ? tr("Cancel") : tr("Close"));
+    ui->closeButton->setEnabled(true);
 
     // filenameEdit is only editable for File destination when not locked.
     bool fileEditable = !locked &&
@@ -609,6 +627,7 @@ void ShareDialog::on_shareButton_clicked()
 
     if (!showSharingWarning()) return;
 
+    m_cancelRequested = false;
     setUiLocked(true);
     ui->progressBar->setVisible(true);
     ui->progressBar->setRange(0, 100);
@@ -616,7 +635,8 @@ void ShareDialog::on_shareButton_clicked()
     ui->statusLabel->setText(tr("Creating file..."));
 
     const qint64 profileId = m_profileIds[idx];
-    ProfileBackup* backup = new ProfileBackup(profileId, this);
+    m_backup = new ProfileBackup(profileId, this);
+    ProfileBackup* backup = m_backup;
 
     ShareDestination dest = currentDestination();
 
@@ -693,6 +713,7 @@ void ShareDialog::onProgressChanged(int percent, const QString& message)
 
 void ShareDialog::onBackupCompleted(const QString& path)
 {
+    m_backup = nullptr;
     ui->progressBar->setValue(100);
     m_lastFilePath = path;
 
@@ -723,12 +744,18 @@ void ShareDialog::onBackupCompleted(const QString& path)
 
 void ShareDialog::onBackupFailed(const QString& error)
 {
+    m_backup = nullptr;
     cleanupTempFile();
     ui->progressBar->setRange(0, 100);
     ui->progressBar->setValue(0);
-    ui->statusLabel->setText(tr("Failed to create file."));
-    QMessageBox::critical(this, tr("Share Failed"),
-        tr("Could not create the sharing file.\n\n%1").arg(error));
+    if (m_cancelRequested) {
+        m_cancelRequested = false;
+        ui->statusLabel->setText(tr("Share cancelled."));
+    } else {
+        ui->statusLabel->setText(tr("Failed to create file."));
+        QMessageBox::critical(this, tr("Share Failed"),
+            tr("Could not create the sharing file.\n\n%1").arg(error));
+    }
     setUiLocked(false);
     ui->progressBar->setVisible(false);
 }
@@ -778,9 +805,13 @@ void ShareDialog::onUploadFailed(const QString& error)
 
     ui->progressBar->setRange(0, 100);
     ui->progressBar->setValue(0);
-    ui->statusLabel->setText(tr("Upload failed."));
-
-    QMessageBox::warning(this, tr("Upload Failed"), error);
+    if (m_cancelRequested) {
+        m_cancelRequested = false;
+        ui->statusLabel->setText(tr("Share cancelled."));
+    } else {
+        ui->statusLabel->setText(tr("Upload failed."));
+        QMessageBox::warning(this, tr("Upload Failed"), error);
+    }
 
     setUiLocked(false);
     updateShareButtonState();

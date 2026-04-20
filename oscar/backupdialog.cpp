@@ -58,7 +58,16 @@ BackupDialog::BackupDialog(QWidget* parent)
     // "Everything" is the default range — dates stay disabled.
     applyDateRange(ui->rangeCombo->currentText());
 
-    connect(ui->closeButton, &QPushButton::clicked, this, &QDialog::reject);
+    connect(ui->closeButton, &QPushButton::clicked, this, [this]() {
+        if (m_operationActive) {
+            m_cancelRequested = true;
+            if (m_backup) m_backup->requestCancel();
+            ui->closeButton->setEnabled(false);
+            ui->closeButton->setText(tr("Cancelling..."));
+        } else {
+            reject();
+        }
+    });
 
     connect(ui->outputDirEdit, &QLineEdit::textChanged,
             this, [this](const QString&){ updateFilenamePreview(); });
@@ -343,9 +352,11 @@ void BackupDialog::on_backupButton_clicked()
         return;
     }
 
-    // Disable controls while running.
+    // Disable controls while running; keep Close as Cancel.
+    m_cancelRequested  = false;
+    m_operationActive  = true;
     ui->backupButton->setEnabled(false);
-    ui->closeButton->setEnabled(false);
+    ui->closeButton->setText(tr("Cancel"));
     ui->profileCombo->setEnabled(false);
     ui->rangeCombo->setEnabled(false);
     ui->browseButton->setEnabled(false);
@@ -357,7 +368,8 @@ void BackupDialog::on_backupButton_clicked()
     ui->statusLabel->setText(tr("Starting backup..."));
 
     qint64 profileId = m_profileIds[idx];
-    ProfileBackup* backup = new ProfileBackup(profileId, this);
+    m_backup = new ProfileBackup(profileId, this);
+    ProfileBackup* backup = m_backup;
     backup->setOutputPath(ui->outputDirEdit->text());
     backup->setPrivacyMode(ui->privacyCheck->isChecked());
 
@@ -393,6 +405,8 @@ void BackupDialog::onProgressChanged(int percent, const QString& message)
 
 void BackupDialog::onBackupCompleted(const QString& path)
 {
+    m_operationActive = false;
+    m_backup = nullptr;
     ui->progressBar->setValue(100);
     ui->statusLabel->setText(tr("Backup complete."));
 
@@ -477,15 +491,23 @@ QDate BackupDialog::getLastDataDate() const
 
 void BackupDialog::onBackupFailed(const QString& error)
 {
+    m_operationActive = false;
+    m_backup = nullptr;
     ui->progressBar->setValue(0);
-    ui->statusLabel->setText(tr("Backup failed."));
+    ui->closeButton->setText(tr("Close"));
+    ui->closeButton->setEnabled(true);
 
-    QMessageBox::critical(this, tr("Backup Failed"),
-        tr("The backup could not be completed.\n\n%1").arg(error));
+    if (m_cancelRequested) {
+        m_cancelRequested = false;
+        ui->statusLabel->setText(tr("Backup cancelled."));
+    } else {
+        ui->statusLabel->setText(tr("Backup failed."));
+        QMessageBox::critical(this, tr("Backup Failed"),
+            tr("The backup could not be completed.\n\n%1").arg(error));
+    }
 
     // Re-enable controls.
     ui->backupButton->setEnabled(true);
-    ui->closeButton->setEnabled(true);
     ui->profileCombo->setEnabled(true);
     ui->rangeCombo->setEnabled(true);
     ui->browseButton->setEnabled(true);

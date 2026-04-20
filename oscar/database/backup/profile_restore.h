@@ -26,6 +26,8 @@
 #ifndef PROFILE_RESTORE_H
 #define PROFILE_RESTORE_H
 
+#include <atomic>
+
 #include <QJsonObject>
 #include <QMap>
 #include <QObject>
@@ -215,6 +217,14 @@ public:
      * \note Implemented in Phase 3.
      */
     bool restoreProfile();
+
+    /*!
+     * \brief Request cancellation of a running restoreProfile() call.
+     *
+     * Thread-safe.  The restore checks this flag between table imports and
+     * rolls back the transaction before emitting restoreFailed().
+     */
+    void requestCancel();
 
     // -----------------------------------------------------------------------
     //  Status / result accessors
@@ -429,6 +439,8 @@ private:
     QJsonObject        m_manifestJson;        ///< Loaded manifest (populated by validatePackage).
 
     bool               m_includesSDData = false; ///< True if package contains SD card data.
+
+    std::atomic<bool> m_cancelRequested{false}; ///< Set by requestCancel(); checked between table imports.
 
     // ID mapping tables (old backup ID → new database ID)
     QMap<qint64, qint64> m_profileIdMap;        ///< profile_id remapping.

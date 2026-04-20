@@ -25,6 +25,7 @@
 // mechanism as Profiles::Scan() so the path is always consistent.
 extern Preferences *p_pref;
 
+#include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
@@ -356,6 +357,21 @@ void ProfileBackup::setFilename(const QString& filename)
     m_overrideFilename = filename;
 }
 
+void ProfileBackup::requestCancel()
+{
+    m_cancelRequested.store(true);
+}
+
+bool ProfileBackup::checkCancelled()
+{
+    QCoreApplication::processEvents();
+    if (m_cancelRequested.load()) {
+        m_errorMessage = QStringLiteral("Operation cancelled.");
+        return true;
+    }
+    return false;
+}
+
 // ---------------------------------------------------------------------------
 //  Execution
 // ---------------------------------------------------------------------------
@@ -381,6 +397,7 @@ bool ProfileBackup::createBackup()
     m_backupPath.clear();
     m_backupSize       = 0;
     m_uncompressedSize = 0;
+    m_cancelRequested.store(false);
 
     emit progressChanged(5, QStringLiteral("Validating profile..."));
 
@@ -417,6 +434,11 @@ bool ProfileBackup::createBackup()
         }
     }
 
+    if (checkCancelled()) {
+        emit backupFailed(m_errorMessage);
+        return false;
+    }
+
     emit progressChanged(10, QStringLiteral("Preparing temporary workspace..."));
 
     QTemporaryDir tmpDir;
@@ -436,18 +458,30 @@ bool ProfileBackup::createBackup()
 
     // --- Export phase ------------------------------------------------------
     qDebug() << "ProfileBackup::createBackup entering export phase";
+    if (checkCancelled()) {
+        emit backupFailed(m_errorMessage);
+        return false;
+    }
     emit progressChanged(15, QStringLiteral("Exporting profile data..."));
     if (!exportProfileMetadata(tmpPath)) {
         emit backupFailed(m_errorMessage);
         return false;
     }
 
+    if (checkCancelled()) {
+        emit backupFailed(m_errorMessage);
+        return false;
+    }
     emit progressChanged(40, QStringLiteral("Exporting sessions and events..."));
     if (!exportMachinesAndSessions(tmpPath)) {
         emit backupFailed(m_errorMessage);
         return false;
     }
 
+    if (checkCancelled()) {
+        emit backupFailed(m_errorMessage);
+        return false;
+    }
     emit progressChanged(70, QStringLiteral("Exporting daily summaries..."));
     if (!exportDailySummaries(tmpPath)) {
         emit backupFailed(m_errorMessage);
@@ -458,6 +492,10 @@ bool ProfileBackup::createBackup()
     m_uncompressedSize = directorySize(dbDir);
 
     // --- Manifest ----------------------------------------------------------
+    if (checkCancelled()) {
+        emit backupFailed(m_errorMessage);
+        return false;
+    }
     emit progressChanged(80, QStringLiteral("Writing manifest..."));
     QJsonObject manifestJson;
     if (!createManifest(tmpPath, manifestJson)) {
@@ -467,6 +505,10 @@ bool ProfileBackup::createBackup()
     qDebug() << "ProfileBackup: manifest has" << manifestJson.size() << "fields";
 
     // --- Package -----------------------------------------------------------
+    if (checkCancelled()) {
+        emit backupFailed(m_errorMessage);
+        return false;
+    }
     emit progressChanged(90, QStringLiteral("Packaging..."));
     if (!createPackage(tmpPath)) {
         emit backupFailed(m_errorMessage);
@@ -589,6 +631,7 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     const QString pidWhere = QString("profile_id = %1").arg(m_profileId);
 
@@ -612,6 +655,7 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     // doctor_info — same privacy logic.
     if (m_privacyMode) {
@@ -632,6 +676,7 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     // profile_preferences — privacy mode blanks the value of personal key rows.
     if (m_privacyMode) {
@@ -651,6 +696,7 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     // graph_layouts — per-profile current layouts (profile_id IS NOT NULL rows only)
     {
@@ -661,6 +707,7 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     // channels
     {
@@ -671,6 +718,7 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     // channel_options — lookup value mappings for LOOKUP-type channels (e.g. CPAP mode names).
     // channel_options.channel_id stores the channel code (ChannelID), not the channels.id PK,
@@ -686,6 +734,7 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     return true;
 }
@@ -717,6 +766,7 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     // ---- sessions ---------------------------------------------------------
     // sessions has no profile_id column; machine_id references machines.id (PK).
@@ -736,6 +786,7 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     // Subquery that produces the set of exported session IDs.
     const QString sessSubq = QString("SELECT id FROM sessions WHERE %1").arg(sessionWhere);
@@ -751,6 +802,7 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
         m_errorMessage = QString("Failed to export session_settings: %1").arg(exp.errorMessage());
         return false;
     }
+    if (checkCancelled()) return false;
 
     // ---- session_channels (has profile_id) --------------------------------
     if (!exp.exportTable("session_channels", bySession,
@@ -758,6 +810,7 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
         m_errorMessage = QString("Failed to export session_channels: %1").arg(exp.errorMessage());
         return false;
     }
+    if (checkCancelled()) return false;
 
     // ---- session_channel_values (no profile_id — references session_channels.id) ---
     {
@@ -772,6 +825,7 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     // ---- respiratory_events (has profile_id) ------------------------------
     if (!exp.exportTable("respiratory_events", bySession,
@@ -779,6 +833,7 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
         m_errorMessage = QString("Failed to export respiratory_events: %1").arg(exp.errorMessage());
         return false;
     }
+    if (checkCancelled()) return false;
 
     // ---- session_summaries (has profile_id) -------------------------------
     if (!exp.exportTable("session_summaries", bySession,
@@ -786,6 +841,7 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
         m_errorMessage = QString("Failed to export session_summaries: %1").arg(exp.errorMessage());
         return false;
     }
+    if (checkCancelled()) return false;
 
     // ---- session_slices (no profile_id — references sessions.id) ----------
     {
@@ -797,12 +853,14 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     // ---- event_lists (has profile_id) -------------------------------------
     if (!exp.exportTable("event_lists", bySession, dbDir + "/event_lists.sql")) {
         m_errorMessage = QString("Failed to export event_lists: %1").arg(exp.errorMessage());
         return false;
     }
+    if (checkCancelled()) return false;
 
     // ---- event_data (no profile_id — references event_lists.id; contains BLOBs) ---
     {
@@ -820,6 +878,7 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
             return false;
         }
     }
+    if (checkCancelled()) return false;
 
     return true;
 }

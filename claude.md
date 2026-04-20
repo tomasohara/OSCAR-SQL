@@ -34,6 +34,8 @@ You are a helpful coding assistant specializing in c++ 17 and Qt.
 - Never touch any files in oscar/SleepLib/thirdparty.
 - Log all bug fixes in Notes/BUG_FIXES.md.
 - An "OSCAR day" starts at noon and runs until noon of the following calendar day.
+- When modifying a UI component, make sure the UX is as user would expect. E.g., when a button is clicked on, show that it has been clicked on.
+- If user clicks on Cancel button, cancellation should take effect within a few seconds if not immediately.
 
 ## Database
 

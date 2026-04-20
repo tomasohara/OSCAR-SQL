@@ -314,7 +314,7 @@
    <item>
     <widget class="QGroupBox" name="conflictGroup">
      <property name="title">
-      <string>Username Conflict</string>
+      <string>Profile Name Conflict</string>
      </property>
      <property name="visible">
       <bool>false</bool>
@@ -323,7 +323,7 @@
       <item>
        <widget class="QLabel" name="conflictLabel">
         <property name="text">
-         <string>A profile with this username already exists. Choose how to resolve:</string>
+         <string>A profile with this name already exists. Choose how to resolve:</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -343,7 +343,7 @@
       <item>
        <widget class="QRadioButton" name="renameRadio">
         <property name="text">
-         <string>Rename — import as &lt;username&gt;_restored</string>
+         <string>Rename — import as &lt;profile name&gt;_restored</string>
         </property>
        </widget>
       </item>

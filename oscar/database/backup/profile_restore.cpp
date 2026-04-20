@@ -23,6 +23,7 @@
 // same mechanism as Profiles::Scan().
 extern Preferences *p_pref;
 
+#include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
@@ -649,8 +650,9 @@ ConflictStatus ProfileRestore::checkConflicts(const QString& targetUsername)
 bool ProfileRestore::restoreProfile()
 {
     qDebug () << "ProfileRestore::restoreProfile entered";
-        m_errorMessage.clear();
+    m_errorMessage.clear();
     m_newProfileId = -1;
+    m_cancelRequested.store(false);
 
     // Clear all ID mapping tables from any previous run.
     m_profileIdMap.clear();
@@ -734,6 +736,11 @@ bool ProfileRestore::restoreProfile()
     emit progressChanged(100, QStringLiteral("Restore complete."));
     emit restoreCompleted(m_newProfileId, m_newUsername);
     return true;
+}
+
+void ProfileRestore::requestCancel()
+{
+    m_cancelRequested.store(true);
 }
 
 // ---------------------------------------------------------------------------
@@ -1226,6 +1233,12 @@ bool ProfileRestore::restoreInTransaction()
 
         const int pct = 20 + (tableNum * 60) / total;
         emit progressChanged(pct, QString("Restoring %1...").arg(tableName));
+        QCoreApplication::processEvents();
+        if (m_cancelRequested.load()) {
+            m_errorMessage = QStringLiteral("Operation cancelled.");
+            db.rollback();
+            return false;
+        }
 
         if (!executeSqlFile(sqlFile)) {
             db.rollback();

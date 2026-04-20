@@ -952,3 +952,21 @@ Manual `m_reply->deleteLater(); m_reply = nullptr; delete m_file; m_file = nullp
 
 **Bug 6 — OAuth2 token expiry persisted as ISO date string**
 `saveTokens()` wrote `m_tokenExpiry.toString(Qt::ISODate)`; `loadTokens()` parsed it back with `QDateTime::fromString`. Changed to `toMSecsSinceEpoch()` / `fromMSecsSinceEpoch()` (stored as `qint64`) for unambiguous UTC round-tripping.
+
+
+---
+
+## 2026-04-19 - No way to cancel Restore, Backup, or Share Profile operations
+
+**Files:** `oscar/database/backup/profile_backup.{h,cpp}`, `oscar/database/backup/profile_restore.{h,cpp}`, `oscar/restoredialog.{h,cpp}`, `oscar/backupdialog.{h,cpp}`, `oscar/sharedialog.{h,cpp}`
+
+**Symptom:** Once Restore / Backup / Share was started, the user had no way to stop it. The Close button was disabled for the duration, which could be many minutes for large profiles.
+
+**Root cause:** `ProfileBackup::createBackup()` and `ProfileRestore::restoreProfile()` ran synchronously on the main thread with no cancellation mechanism. All three dialogs disabled the Close button during the operation.
+
+**Fix:**
+- Added `requestCancel()` + `std::atomic<bool> m_cancelRequested` to both `ProfileBackup` and `ProfileRestore`.
+- Added `QCoreApplication::processEvents()` calls between each major phase in `createBackup()`, and after each table-import emit in `restoreInTransaction()`, so the Cancel click is processed promptly.
+- Changed all three dialogs to keep the Close button enabled during operation, relabelled "Cancel". Clicking it calls `requestCancel()` on the active object (and `abort()` on the cloud uploader if an upload is in progress). The button becomes "Cancelling..." and is disabled once clicked.
+- Cancellation is treated as a non-error: no QMessageBox is shown; status label shows "Cancelled." and the UI resets normally.
+- For restore: if cancelled mid-transaction, `restoreInTransaction()` rolls back cleanly before returning.

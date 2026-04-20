@@ -18,6 +18,8 @@
 #include <QDate>
 #include <QDialog>
 
+class ProfileBackup;
+
 namespace Ui {
 class BackupDialog;
 }
@@ -116,8 +118,11 @@ private:
     void refreshTimestamp();
 
     Ui::BackupDialog* ui;
-    QList<qint64>     m_profileIds;    ///< DB IDs parallel to profileCombo entries.
+    QList<qint64>     m_profileIds;       ///< DB IDs parallel to profileCombo entries.
     QString           m_previewTimestamp; ///< Timestamp string reused across simplify/privacy toggles.
+    ProfileBackup*    m_backup           = nullptr; ///< Active backup object (non-owning view; parent owns).
+    bool              m_operationActive  = false;   ///< True while createBackup() is running.
+    bool              m_cancelRequested  = false;   ///< True after user clicks Cancel.
 };
 
 #endif // BACKUPDIALOG_H
