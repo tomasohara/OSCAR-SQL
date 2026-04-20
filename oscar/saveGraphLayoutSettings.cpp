@@ -590,7 +590,7 @@ void SaveGraphLayoutSettings::itemChanged(QListWidgetItem *item)
         desc = "";
     }
     if (desc.length() > maxDescriptionLen) {
-        desc.append("...");
+        desc = desc.left(maxDescriptionLen - 3) + "...";
     }
     if (desc.length() > 0) {
         GraphLayoutsRepository repo;

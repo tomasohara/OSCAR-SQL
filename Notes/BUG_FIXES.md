@@ -4,6 +4,28 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-19 - Four bugs from data-migration code review
+
+**Files:** `oscar/SleepLib/preferences.cpp`, `oscar/main.cpp`, `oscar/saveGraphLayoutSettings.cpp`
+
+**Bug 1 — Crash during XML→DB migration leaves preferences permanently half-seeded**
+Symptom: A power failure mid-import caused the `app_preferences` table to be partially populated. On the next launch `rows.isEmpty()` returned false so the code loaded the partial data and never looked at `Preferences.xml` again, silently losing the remaining keys.
+Fix: Wrapped the `Open()` seeding loop in a `db.transaction()`/`db.commit()`. A crash now rolls back to an empty table so the next launch falls through to XML seeding again.
+
+**Bug 2 — Erased app preferences resurrected from DB on next launch**
+Symptom: `Preferences::Erase()` removed a key from the in-memory hash, but `Save()` only UPSERTed — it never deleted rows. Erased keys (e.g. `STR_AppName`, `STR_GEN_SkipLogin`) were reloaded from the DB on the next `Open()`.
+Fix: Changed the DB path in `Save()` to delete-then-reinsert the whole `"general"` category inside a transaction, so erased keys are not carried forward.
+
+**Bug 3 — No transactions around legacy layout import loops**
+Symptom: `importLegacyNamedLayouts()` and `importLegacyProfileLayouts()` wrote to the DB one row per file with no transaction; a crash left partial DB state with some source files already deleted.
+Fix: Restructured both functions to two phases — read all files into memory first, then write all to DB inside a single `db.transaction()`; delete source files only after `db.commit()`.
+
+**Bug 4 — Layout description truncation appended "..." beyond the allowed length**
+Symptom: In `SaveGraphLayoutSettings::itemChanged()`, a description exactly one character over `maxDescriptionLen` (80) had `"..."` appended, yielding 84 characters instead of being capped at 80.
+Fix: Changed `desc.append("...")` to `desc = desc.left(maxDescriptionLen - 3) + "..."`.
+
+---
+
 ## 2026-04-19 - Restore dialog blocked UI for several minutes during Validate
 
 **Files:** `oscar/restoredialog.{h,cpp}`, `oscar/oscar.pro`

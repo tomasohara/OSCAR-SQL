@@ -356,17 +356,23 @@ bool Preferences::Open(QString filename)
 
     // One-shot seeding: if the DB is open and this is the app's own Preferences.xml
     // (not a foreign file opened by the importer), seed the DB and delete the file.
+    // Wrapped in a transaction so a mid-loop crash rolls back to an empty table,
+    // causing the next launch to fall through to XML seeding again.
     if (p_name == "Preferences" && DatabaseManager::instance().isOpen()
             && p_filename.startsWith(GetAppData())) {
         AppPreferencesRepository repo;
+        QSqlDatabase db = DatabaseManager::instance().database();
+        db.transaction();
         bool seeded = true;
         for (auto i = p_preferences.begin(); i != p_preferences.end(); ++i) {
             if (i.value().typeId() == QMetaType::UnknownType) continue;
             if (!repo.save("general", i.key(), i.value())) seeded = false;
         }
         if (seeded) {
+            db.commit();
             QFile::remove(p_filename);
         } else {
+            db.rollback();
             qWarning() << "Preferences::Open(): Failed to seed app_preferences table from XML; keeping XML file";
         }
     }
@@ -381,13 +387,25 @@ bool Preferences::Save(QString filename)
     }
 
     // When the DB is open and this is the app's own Preferences singleton, save to DB.
+    // Delete-then-reinsert inside a transaction so that keys removed via Erase() are
+    // not resurrected on the next Open(), and so a partial write is never committed.
     if (p_name == "Preferences" && DatabaseManager::instance().isOpen()
             && p_filename.startsWith(GetAppData())) {
         AppPreferencesRepository repo;
-        bool ok = true;
-        for (auto i = p_preferences.begin(); i != p_preferences.end(); ++i) {
-            if (i.value().typeId() == QMetaType::UnknownType) continue;
-            if (!repo.save("general", i.key(), i.value())) ok = false;
+        QSqlDatabase db = DatabaseManager::instance().database();
+        db.transaction();
+        bool ok = repo.removeCategory("general");
+        if (ok) {
+            for (auto i = p_preferences.begin(); i != p_preferences.end(); ++i) {
+                if (i.value().typeId() == QMetaType::UnknownType) continue;
+                if (!repo.save("general", i.key(), i.value())) { ok = false; break; }
+            }
+        }
+        if (ok) {
+            db.commit();
+        } else {
+            db.rollback();
+            qWarning() << "Preferences::Save(): DB save failed, rolled back";
         }
         return ok;
     }

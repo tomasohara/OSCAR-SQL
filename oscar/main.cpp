@@ -315,8 +315,9 @@ bool migrateFromOSCAR(QString destDir) {
 }
 
 // One-shot import of legacy layoutSettings/*.shg named layouts into the DB.
-// Reads the raw .shg bytes, parses the descriptions.txt file for display names,
-// inserts rows into graph_layouts, and deletes the files after successful import.
+// Reads all .shg bytes and descriptions.txt first, then writes to the DB inside a
+// single transaction per view. A crash during the write rolls back the transaction,
+// leaving the source files intact so the next launch retries cleanly.
 void importLegacyNamedLayouts()
 {
     if (!DatabaseManager::instance().isOpen()) return;
@@ -325,7 +326,6 @@ void importLegacyNamedLayouts()
     QDir dir(layoutDir);
     if (!dir.exists()) return;
 
-    // Parse format_version from raw .shg bytes (magic=4 bytes, version=2 bytes)
     auto peekVersion = [](const QByteArray& data) -> int {
         if (data.size() < 6) return 0;
         quint16 ver;
@@ -334,6 +334,7 @@ void importLegacyNamedLayouts()
     };
 
     GraphLayoutsRepository repo;
+    QSqlDatabase db = DatabaseManager::instance().database();
     const QStringList viewNames = { "daily", "overview" };
 
     for (const QString& viewName : viewNames) {
@@ -349,32 +350,49 @@ void importLegacyNamedLayouts()
                     descriptions[line.left(sep)] = line.mid(sep + 1);
                 }
             }
+            descFile.close();
         }
 
-        // Enumerate <title>.<layoutNNN>.shg files
+        // Phase 1: read all layout files into memory.
+        struct LayoutEntry { int slotIndex; QString desc; int version; QByteArray data; QString filePath; };
+        QList<LayoutEntry> entries;
+        bool readOk = true;
         QRegularExpression re(QString("^%1\\.(layout(\\d+))\\.shg$").arg(viewName));
         const QFileInfoList files = dir.entryInfoList(QDir::Files, QDir::Name);
-        bool allOk = true;
         for (const QFileInfo& fi : files) {
             QRegularExpressionMatch m = re.match(fi.fileName());
             if (!m.hasMatch()) continue;
-            int slotIndex = m.captured(2).toInt();
-            QString fileKey = m.captured(1);
-            QString desc = descriptions.value(fileKey, fileKey);
-
             QFile f(fi.absoluteFilePath());
-            if (!f.open(QFile::ReadOnly)) { allOk = false; continue; }
-            QByteArray data = f.readAll();
+            if (!f.open(QFile::ReadOnly)) { readOk = false; continue; }
+            LayoutEntry e;
+            e.slotIndex = m.captured(2).toInt();
+            e.desc = descriptions.value(m.captured(1), m.captured(1));
+            e.data = f.readAll();
+            e.version = peekVersion(e.data);
+            e.filePath = fi.absoluteFilePath();
             f.close();
+            entries.append(e);
+        }
 
-            if (!repo.saveNamedLayout(viewName, slotIndex, desc, peekVersion(data), data)) {
+        if (entries.isEmpty()) continue;
+
+        // Phase 2: write all to DB atomically, then delete source files on success.
+        db.transaction();
+        bool allOk = readOk;
+        for (const LayoutEntry& e : entries) {
+            if (!repo.saveNamedLayout(viewName, e.slotIndex, e.desc, e.version, e.data)) {
                 allOk = false;
-                continue;
+                break;
             }
-            f.remove();
         }
         if (allOk) {
+            db.commit();
+            for (const LayoutEntry& e : entries) {
+                QFile::remove(e.filePath);
+            }
             descFile.remove();
+        } else {
+            db.rollback();
         }
     }
 
@@ -385,8 +403,9 @@ void importLegacyNamedLayouts()
 }
 
 // One-shot import of per-profile daily.shg / overview.shg files into the DB.
-// Scans all known profiles in the DB, reads their legacy layout files, inserts
-// rows into graph_layouts (is_current=1), and deletes the files.
+// Reads all layout files into memory first, then writes everything in a single
+// transaction. A crash during the write rolls back so source files remain and
+// the next launch retries cleanly.
 void importLegacyProfileLayouts()
 {
     if (!DatabaseManager::instance().isOpen()) return;
@@ -402,7 +421,11 @@ void importLegacyProfileLayouts()
     GraphLayoutsRepository layoutRepo;
     const QList<ProfileData> profiles = profRepo.findAll();
     const QString profilesBase = GetAppData() + "/Profiles/";
+    QSqlDatabase db = DatabaseManager::instance().database();
 
+    // Phase 1: read all layout files into memory.
+    struct LayoutEntry { qint64 profileId; QString viewName; int version; QByteArray data; QString filePath; };
+    QList<LayoutEntry> entries;
     for (const ProfileData& pd : profiles) {
         const QString profileDir = profilesBase + pd.username;
         for (const QString& viewName : { QString("daily"), QString("overview") }) {
@@ -410,14 +433,36 @@ void importLegacyProfileLayouts()
             QFile f(shgPath);
             if (!f.exists()) continue;
             if (!f.open(QFile::ReadOnly)) continue;
-            QByteArray data = f.readAll();
+            LayoutEntry e;
+            e.profileId = pd.id;
+            e.viewName  = viewName;
+            e.data      = f.readAll();
+            e.version   = peekVersion(e.data);
+            e.filePath  = shgPath;
             f.close();
-            if (layoutRepo.saveCurrentLayout(pd.id, viewName, peekVersion(data), data)) {
-                f.remove();
-            } else {
-                qWarning() << "importLegacyProfileLayouts: failed to import" << shgPath;
-            }
+            entries.append(e);
         }
+    }
+
+    if (entries.isEmpty()) return;
+
+    // Phase 2: write all to DB atomically, then delete source files on success.
+    db.transaction();
+    bool allOk = true;
+    for (const LayoutEntry& e : entries) {
+        if (!layoutRepo.saveCurrentLayout(e.profileId, e.viewName, e.version, e.data)) {
+            qWarning() << "importLegacyProfileLayouts: failed to import" << e.filePath;
+            allOk = false;
+            break;
+        }
+    }
+    if (allOk) {
+        db.commit();
+        for (const LayoutEntry& e : entries) {
+            QFile::remove(e.filePath);
+        }
+    } else {
+        db.rollback();
     }
 }
 
