@@ -10,6 +10,8 @@
 #include "ui_restoredialog.h"
 #include "translation.h"
 
+#include <QtConcurrent>
+
 #include <QDir>
 #include <QFileDialog>
 #include <QSettings>
@@ -70,6 +72,10 @@ RestoreDialog::RestoreDialog(QWidget* parent)
 
 RestoreDialog::~RestoreDialog()
 {
+    if (m_validateWatcher && m_validateWatcher->isRunning()) {
+        m_validateWatcher->waitForFinished();
+    }
+    delete m_validateWatcher;
     delete m_downloader;
     delete m_restore;
     delete ui;
@@ -471,7 +477,7 @@ void RestoreDialog::on_profileNameEdit_textChanged(const QString& text)
 void RestoreDialog::on_validateButton_clicked()
 {
     qDebug() << "RestoreDialog::validateButton_clicked()";
-    QString path = ui->packagePathEdit->text();
+    const QString path = ui->packagePathEdit->text();
     if (path.isEmpty()) return;
 
     // Reset state from any previous validation.
@@ -483,9 +489,37 @@ void RestoreDialog::on_validateButton_clicked()
     ui->restoreButton->setEnabled(false);
     ui->statusLabel->setText(tr("Validating..."));
 
+    // Disable controls and show an indeterminate progress bar while the
+    // package is being extracted and checksummed in the background.
+    setBusy(true);
+    ui->progressBar->setRange(0, 0);
+
     m_restore = new ProfileRestore(path, this);
 
-    if (!m_restore->validatePackage()) {
+    // Clean up any previous watcher before creating a new one.
+    delete m_validateWatcher;
+    m_validateWatcher = new QFutureWatcher<bool>(this);
+    connect(m_validateWatcher, &QFutureWatcher<bool>::finished,
+            this, &RestoreDialog::onValidationFinished);
+
+    // Run validatePackage() on a thread-pool thread.  validatePackage() does
+    // no signal emission and does not interact with the Qt event loop, so it
+    // is safe to call from a worker thread while the main thread is idle.
+    m_validateWatcher->setFuture(QtConcurrent::run([this]() {
+        return m_restore->validatePackage();
+    }));
+}
+
+void RestoreDialog::onValidationFinished()
+{
+    // Restore determinate progress bar before any early returns.
+    ui->progressBar->setRange(0, 100);
+    ui->progressBar->setValue(0);
+    setBusy(false);
+
+    const bool valid = m_validateWatcher->result();
+
+    if (!valid) {
         ui->statusLabel->setText(tr("Validation failed: %1").arg(m_restore->getErrorMessage()));
         QMessageBox::warning(this, tr("Restore Profile"),
             tr("The selected file is not a valid backup package.\n\n%1")
@@ -523,6 +557,8 @@ void RestoreDialog::on_validateButton_clicked()
                     .arg(DatabaseSchema::CURRENT_SCHEMA_VERSION));
         }
     }
+
+    const QString path = ui->packagePathEdit->text();
 
     // Detect whether this is a share package by inspecting the filename.
     m_packageIsShare = QFileInfo(path).fileName()

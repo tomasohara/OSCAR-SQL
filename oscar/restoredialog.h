@@ -15,6 +15,7 @@
 #define RESTOREDIALOG_H
 
 #include <QDialog>
+#include <QFutureWatcher>
 
 class BackupManifest;
 class CloudDownloader;
@@ -82,6 +83,9 @@ private slots:
     /*! \brief Handle download failure: show error and re-enable controls. */
     void onDownloadFailed(const QString& error);
 
+    /*! \brief Handle completion of the background validatePackage() call. */
+    void onValidationFinished();
+
     /*! \brief Update the progress bar and status label during restore. */
     void onProgressChanged(int percent, const QString& message);
 
@@ -147,9 +151,10 @@ private:
     /*! \brief Restore the last-used package directory from QSettings. */
     void restoreSettings();
 
-    Ui::RestoreDialog*  ui;
-    ProfileRestore*     m_restore    = nullptr;   ///< Heap-allocated; owned by this dialog.
-    CloudDownloader*    m_downloader = nullptr;   ///< Heap-allocated; owned by this dialog.
+    Ui::RestoreDialog*      ui;
+    ProfileRestore*         m_restore          = nullptr; ///< Heap-allocated; owned by this dialog.
+    CloudDownloader*        m_downloader       = nullptr; ///< Heap-allocated; owned by this dialog.
+    QFutureWatcher<bool>*   m_validateWatcher  = nullptr; ///< Tracks the background validation future.
     QString             m_lastPackageDir;         ///< Last directory used to browse for a package.
     bool                m_packageIsShare  = false; ///< True if filename begins with "share_".
     bool                m_backupHasSD     = false; ///< True if the package includes SD card data.
