@@ -867,13 +867,14 @@ bool DatabaseSchema::createProfilePreferencesTable(QSqlDatabase& db)
 {
     QSqlQuery query(db);
     
-    QString sql = 
+    QString sql =
         "CREATE TABLE IF NOT EXISTS profile_preferences ("
         "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "    profile_id INTEGER NOT NULL,"
         "    category TEXT NOT NULL,"
         "    key TEXT NOT NULL,"
         "    value TEXT,"
+        "    blob_value BLOB,"
         "    data_type TEXT,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
@@ -1589,16 +1590,18 @@ bool DatabaseSchema::createGraphLayoutsTable(QSqlDatabase& db)
     if (!query.exec(
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_graph_layouts_named "
             "ON graph_layouts(view_name, slot_index) WHERE profile_id IS NULL")) {
-        qWarning() << "DatabaseSchema: Failed to create idx_graph_layouts_named:"
-                   << query.lastError().text();
+        qCritical() << "DatabaseSchema: Failed to create idx_graph_layouts_named:"
+                    << query.lastError().text();
+        return false;
     }
 
     // Unique index for per-profile current layouts
     if (!query.exec(
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_graph_layouts_current "
             "ON graph_layouts(profile_id, view_name) WHERE is_current = 1")) {
-        qWarning() << "DatabaseSchema: Failed to create idx_graph_layouts_current:"
-                   << query.lastError().text();
+        qCritical() << "DatabaseSchema: Failed to create idx_graph_layouts_current:"
+                    << query.lastError().text();
+        return false;
     }
 
     qDebug() << "DatabaseSchema: graph_layouts table created";

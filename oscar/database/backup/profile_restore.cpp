@@ -1169,6 +1169,7 @@ bool ProfileRestore::restoreInTransaction()
         QStringLiteral("user_info"),
         QStringLiteral("doctor_info"),
         QStringLiteral("profile_preferences"),
+        QStringLiteral("graph_layouts"),
         QStringLiteral("channels"),
         QStringLiteral("channel_options"),
         QStringLiteral("machines"),

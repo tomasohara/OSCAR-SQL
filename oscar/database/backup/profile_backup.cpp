@@ -570,7 +570,7 @@ bool ProfileBackup::validateProfile()
 /*!
  * \brief Export profile-level tables (always full, not date-filtered).
  *
- * Exports: profiles, user_info, doctor_info, profile_preferences, channels.
+ * Exports: profiles, user_info, doctor_info, profile_preferences, graph_layouts, channels.
  * When privacy mode is active, personal fields in user_info and doctor_info
  * are replaced with NULL via exportPrivacyTable().
  * All profile_id values are written as the @PROFILE_ID@ placeholder.
@@ -648,6 +648,16 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
                              dbDir + "/profile_preferences.sql")) {
             m_errorMessage = QString("Failed to export profile_preferences: %1")
                                  .arg(exp.errorMessage());
+            return false;
+        }
+    }
+
+    // graph_layouts — per-profile current layouts (profile_id IS NOT NULL rows only)
+    {
+        SqlExporter exp;
+        exp.setColumnPlaceholders({{"profile_id", "@PROFILE_ID@"}});
+        if (!exp.exportTable("graph_layouts", pidWhere, dbDir + "/graph_layouts.sql")) {
+            m_errorMessage = QString("Failed to export graph_layouts: %1").arg(exp.errorMessage());
             return false;
         }
     }

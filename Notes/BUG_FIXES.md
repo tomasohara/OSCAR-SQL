@@ -38,6 +38,28 @@ Fix: Changed `desc.append("...")` to `desc = desc.left(maxDescriptionLen - 3) + 
 
 ---
 
+## 2026-04-19 - Four bugs from Codex code-review of schema v14 migration
+
+**Files:** `oscar/database/database_schema.cpp`, `oscar/database/app_preferences_repository.cpp`, `oscar/database/backup/profile_backup.cpp`, `oscar/database/backup/profile_restore.cpp`
+
+**Bug 1 — Fresh v14 databases missing `blob_value` column in `profile_preferences`**
+Symptom: `createProfilePreferencesTable()` did not include `blob_value BLOB`, but the v13→v14 migration adds it via `ALTER TABLE`. Any code writing `blob_value` to a fresh install would fail with "no such column".
+Fix: Added `blob_value BLOB` to the `CREATE TABLE` DDL in `createProfilePreferencesTable()`.
+
+**Bug 2 — QDateTime app preferences saved in Qt::TextDate format, read back with Qt::ISODate**
+Symptom: `AppPreferencesRepository::save()` used `value.toString()` which for QDateTime produces Qt::TextDate (e.g. "Sat Apr 19 12:00:00 2026"). `variantFromString()` parsed with `Qt::ISODate`, which fails, returning an invalid QDateTime. Affected `UpdatesLastChecked` and any other datetime pref.
+Fix: Added explicit ISO 8601 serialization for QDateTime/QDate/QTime types in `save()`.
+
+**Bug 3 — `graph_layouts` not included in profile backup/restore**
+Symptom: Per-profile current daily/overview layouts (rows with `profile_id = this profile`) were silently dropped on backup and not restored, losing the user's layout customizations.
+Fix: Added `graph_layouts` export to `exportProfileMetadata()` in `profile_backup.cpp` and added it to the `restoreOrder` list in `profile_restore.cpp`.
+
+**Bug 4 — `createGraphLayoutsTable()` returns true even if unique indexes fail**
+Symptom: Both partial unique index creations used `qWarning()` + fall-through on failure. The schema version could advance to 14 without the indexes. Repository upserts using `ON CONFLICT` on those indexes would then insert duplicate rows instead of updating.
+Fix: Changed both index creation failure paths to `qCritical()` + `return false`.
+
+---
+
 ## 2026-04-19 - Schema v14: Preferences.xml and graph layouts migrated to DB
 
 **Files:** `oscar/database/database_schema.{h,cpp}`, `oscar/database/database_manager.cpp`, `oscar/database/app_preferences_repository.{h,cpp}`, `oscar/database/graph_layouts_repository.{h,cpp}`, `oscar/SleepLib/preferences.cpp`, `oscar/Graphs/gGraphView.{h,cpp}`, `oscar/saveGraphLayoutSettings.{h,cpp}`, `oscar/main.cpp`, `oscar/oscar.pro`

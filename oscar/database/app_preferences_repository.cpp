@@ -71,9 +71,19 @@ bool AppPreferencesRepository::save(const QString& category, const QString& key,
         "  value = excluded.value, data_type = excluded.data_type, "
         "  updated_at = CURRENT_TIMESTAMP"
     );
+    // Serialize QDateTime/QDate/QTime to ISO 8601 so variantFromString() can round-trip them.
+    // value.toString() would produce Qt::TextDate for temporal types, which Qt::ISODate can't parse.
+    QString serialized;
+    switch (value.typeId()) {
+    case QMetaType::QDateTime: serialized = value.toDateTime().toString(Qt::ISODate); break;
+    case QMetaType::QDate:     serialized = value.toDate().toString(Qt::ISODate);     break;
+    case QMetaType::QTime:     serialized = value.toTime().toString(Qt::ISODate);     break;
+    default:                   serialized = value.toString();                         break;
+    }
+
     q.addBindValue(category);
     q.addBindValue(key);
-    q.addBindValue(value.toString());
+    q.addBindValue(serialized);
     q.addBindValue(dataTypeFromVariant(value));
 
     if (!q.exec()) {
