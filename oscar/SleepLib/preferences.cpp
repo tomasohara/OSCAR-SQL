@@ -421,38 +421,19 @@ bool Preferences::Save(QString filename)
     QDomElement root = doc.createElement(p_name);
     droot.appendChild(root);
     for (QHash<QString, QVariant>::iterator i = p_preferences.begin(); i != p_preferences.end(); i++) {
-        #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-            QVariant::Type type = i.value().type();
-        #else
-            int type = i.value().typeId();
-        #endif
-
-        #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-            if (type == QVariant::Invalid) { continue; }
-        #else
-            if (type == QMetaType::UnknownType) { continue; }
-        #endif
+        int type = i.value().typeId();
+        if (type == QMetaType::UnknownType) { continue; }
 
         QDomElement cn = doc.createElement(i.key());
         cn.setAttribute("type", i.value().typeName());
 
-        #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-            if (type == QVariant::DateTime) {
-                cn.appendChild(doc.createTextNode(i.value().toDateTime().toString("yyyy-MM-dd HH:mm:ss")));
-            } else if (type == QVariant::Time) {
-                cn.appendChild(doc.createTextNode(i.value().toTime().toString("hh:mm:ss")));
-            } else {
-                cn.appendChild(doc.createTextNode(i.value().toString()));
-            }
-        #else
-            if (type == QMetaType::QDateTime) {
-                cn.appendChild(doc.createTextNode(i.value().toDateTime().toString("yyyy-MM-dd HH:mm:ss")));
-            } else if (type == QMetaType::QTime) {
-                cn.appendChild(doc.createTextNode(i.value().toTime().toString("hh:mm:ss")));
-            } else {
-                cn.appendChild(doc.createTextNode(i.value().toString()));
-            }
-        #endif
+        if (type == QMetaType::QDateTime) {
+            cn.appendChild(doc.createTextNode(i.value().toDateTime().toString("yyyy-MM-dd HH:mm:ss")));
+        } else if (type == QMetaType::QTime) {
+            cn.appendChild(doc.createTextNode(i.value().toTime().toString("hh:mm:ss")));
+        } else {
+            cn.appendChild(doc.createTextNode(i.value().toString()));
+        }
 
         root.appendChild(cn);
     }
@@ -465,11 +446,6 @@ bool Preferences::Save(QString filename)
     }
 
     QTextStream ts(&file);
-    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    ts.setCodec("UTF-8");
-    #else
-    // UTF-8 is default for qt6
-    #endif
     ts.setGenerateByteOrderMark(true);
     ts << doc.toString();
     file.close();

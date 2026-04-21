@@ -358,14 +358,16 @@ void importLegacyNamedLayouts()
         // Phase 1: read all layout files into memory.
         struct LayoutEntry { int slotIndex; QString desc; int version; QByteArray data; QString filePath; };
         QList<LayoutEntry> entries;
-        bool readOk = true;
         QRegularExpression re(QString("^%1\\.(layout(\\d+))\\.shg$").arg(viewName));
         const QFileInfoList files = dir.entryInfoList(QDir::Files, QDir::Name);
         for (const QFileInfo& fi : files) {
             QRegularExpressionMatch m = re.match(fi.fileName());
             if (!m.hasMatch()) continue;
             QFile f(fi.absoluteFilePath());
-            if (!f.open(QFile::ReadOnly)) { readOk = false; continue; }
+            if (!f.open(QFile::ReadOnly)) {
+                qWarning() << "importLegacyNamedLayouts: cannot open" << fi.absoluteFilePath() << "- skipping";
+                continue;
+            }
             LayoutEntry e;
             e.slotIndex = m.captured(2).toInt();
             e.desc = descriptions.value(m.captured(1), m.captured(1));
@@ -373,6 +375,10 @@ void importLegacyNamedLayouts()
             e.version = peekShgVersion(e.data);
             e.filePath = fi.absoluteFilePath();
             f.close();
+            if (e.version == 0) {
+                qWarning() << "importLegacyNamedLayouts: skipping corrupt/undersized file" << fi.absoluteFilePath();
+                continue;
+            }
             entries.append(e);
         }
 
@@ -380,7 +386,7 @@ void importLegacyNamedLayouts()
 
         // Phase 2: write all to DB atomically, then delete source files on success.
         db.transaction();
-        bool allOk = readOk;
+        bool allOk = true;
         for (const LayoutEntry& e : entries) {
             if (!repo.saveNamedLayout(viewName, e.slotIndex, e.desc, e.version, e.data)) {
                 allOk = false;

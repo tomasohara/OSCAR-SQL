@@ -3728,6 +3728,8 @@ void gGraphView::SaveSettings(QString title, QString folderName)
         if (pd.id > 0) {
             GraphLayoutsRepository repo;
             openOk = repo.saveCurrentLayout(pd.id, title.toLower(), gVversion, data);
+            if (!openOk)
+                qWarning() << "gGraphView::SaveSettings: failed to save layout to DB for" << title;
             return;
         }
     }
@@ -3855,7 +3857,8 @@ bool gGraphView::LoadSettings(QString title, QString folderName)
                 return ok;
             }
             openOk = false;
-            return false;  // No saved layout for this profile/view — use defaults
+            // importLegacyProfileLayouts() must have run before this point; no DB layout means use defaults.
+            return false;
         }
     }
 

@@ -448,10 +448,12 @@ bool DatabaseManager::configureDatabaseSettings()
         return false;
     }
 
-    // Enable WAL mode for better concurrency
+    // Enable WAL mode; pragma returns the resulting mode as a row, not an error code.
     if (!query.exec("PRAGMA journal_mode = WAL")) {
         qWarning() << "DatabaseManager: Failed to enable WAL mode:" << query.lastError().text();
-        // Not critical, continue anyway
+    } else if (query.next() && query.value(0).toString() != "wal") {
+        qWarning() << "DatabaseManager: WAL mode not active (journal_mode ="
+                   << query.value(0).toString() << ") — possibly on a network filesystem";
     }
 
     // Set synchronous mode to NORMAL for better performance

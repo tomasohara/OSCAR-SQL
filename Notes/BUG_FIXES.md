@@ -4,6 +4,38 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-21 - Eight issues from Claude code-review of schema v14 additions
+
+**Files:** `oscar/database/app_preferences_repository.{h,cpp}`, `oscar/database/database_manager.cpp`, `oscar/database/database_schema.cpp`, `oscar/SleepLib/preferences.cpp`, `oscar/Graphs/gGraphView.cpp`, `oscar/main.cpp`
+
+**Bug 1 — Stale sibling column after scalar ↔ blob type switch (`app_preferences`)**
+Symptom: `save()` upserted `value`/`data_type` but left `blob_value` from any prior `saveBlob()` call intact (and vice-versa). Although `data_type` identifies the authoritative column on read, the stale column wastes row width and surprises direct SQL queries.
+Fix: Added `blob_value = NULL` to `save()`'s UPDATE clause; added `value = NULL` to `saveBlob()`'s UPDATE clause.
+
+**Bug 2 — `importLegacyNamedLayouts` aborted entire view on single unreadable file**
+Symptom: If one `.shg` file couldn't be opened, `readOk = false` propagated to `allOk`, causing DB rollback for the entire view — all successfully-read layouts were discarded and left permanently in legacy form.
+Fix: Skip unreadable files individually with a `qWarning`, removing `readOk`. Also skip version-0 files (corrupt or under 6 bytes) rather than importing garbage that silently fails to deserialize.
+
+**Fix 3 — Dead migration code after `return true` in `upgradeSchema`**
+~285 lines of v3–v11 migration code were unreachable after the `return true` at the end of active migration logic. Deleted.
+
+**Fix 4 — Qt5 `#if QT_VERSION` guards in `Preferences::Save()` XML path**
+Three conditional blocks using `QVariant::Type` / `QVariant::Invalid` / `ts.setCodec` were unnecessary in the Qt6-only build. Removed; kept Qt6 branch inline.
+
+**Fix 5 — `gGraphView::SaveSettings` silently swallowed DB save failures**
+No warning was emitted when `repo.saveCurrentLayout()` returned false; `openOk` was set but callers had no console signal. Added `qWarning` on failure.
+
+**Fix 6 — `PRAGMA journal_mode = WAL` result not checked**
+`exec()` succeeds even if SQLite stays in delete mode (e.g. on a network filesystem). The pragma returns the resulting mode as a row. Now reads the result and emits `qWarning` if it isn't "wal".
+
+**Style 7 — `dataTypeFromVariant`/`variantFromString` were non-static instance methods**
+Neither method accesses instance state. Declared `static` in the header.
+
+**Style 8 — `hasData()` used `toInt()` for a `COUNT(*)` result**
+Changed to `toLongLong()` to match the id type and other count sites.
+
+---
+
 ## 2026-04-19 - Four bugs from data-migration code review
 
 **Files:** `oscar/SleepLib/preferences.cpp`, `oscar/main.cpp`, `oscar/saveGraphLayoutSettings.cpp`

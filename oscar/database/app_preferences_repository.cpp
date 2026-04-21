@@ -68,7 +68,7 @@ bool AppPreferencesRepository::save(const QString& category, const QString& key,
         "INSERT INTO app_preferences (category, key, value, data_type, updated_at) "
         "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP) "
         "ON CONFLICT(category, key) DO UPDATE SET "
-        "  value = excluded.value, data_type = excluded.data_type, "
+        "  value = excluded.value, blob_value = NULL, data_type = excluded.data_type, "
         "  updated_at = CURRENT_TIMESTAMP"
     );
     // Serialize QDateTime/QDate/QTime to ISO 8601 so variantFromString() can round-trip them.
@@ -106,7 +106,7 @@ bool AppPreferencesRepository::saveBlob(const QString& category, const QString& 
         "INSERT INTO app_preferences (category, key, blob_value, data_type, updated_at) "
         "VALUES (?, ?, ?, 'blob', CURRENT_TIMESTAMP) "
         "ON CONFLICT(category, key) DO UPDATE SET "
-        "  blob_value = excluded.blob_value, data_type = 'blob', "
+        "  blob_value = excluded.blob_value, value = NULL, data_type = 'blob', "
         "  updated_at = CURRENT_TIMESTAMP"
     );
     q.addBindValue(category);
@@ -226,5 +226,5 @@ bool AppPreferencesRepository::hasData()
 
     QSqlQuery q(db);
     if (!q.exec("SELECT COUNT(*) FROM app_preferences")) return false;
-    return q.next() && q.value(0).toInt() > 0;
+    return q.next() && q.value(0).toLongLong() > 0;
 }

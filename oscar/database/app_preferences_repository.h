@@ -69,8 +69,8 @@ public:
     //! \brief True when the table exists and has at least one row.
     bool hasData();
 
-    QString    dataTypeFromVariant(const QVariant& v);
-    QVariant   variantFromString(const QString& value, const QString& dataType);
+    static QString    dataTypeFromVariant(const QVariant& v);
+    static QVariant   variantFromString(const QString& value, const QString& dataType);
 
 private:
 };
