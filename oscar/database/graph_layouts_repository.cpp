@@ -29,7 +29,7 @@ bool GraphLayoutsRepository::saveCurrentLayout(qint64 profileId, const QString& 
     }
 
     QSqlQuery q(db);
-    // Upsert: on conflict update data, format_version, and timestamp; preserve description.
+    // Upsert: on conflict update data, format_version, and timestamp.
     q.prepare(
         "INSERT INTO graph_layouts "
         "  (profile_id, view_name, slot_index, is_current, format_version, data, updated_at) "
@@ -55,7 +55,10 @@ bool GraphLayoutsRepository::loadCurrentLayout(qint64 profileId, const QString& 
                                                 GraphLayoutData& out)
 {
     QSqlDatabase db = DatabaseManager::instance().database();
-    if (!db.isOpen()) return false;
+    if (!db.isOpen()) {
+        qWarning() << "GraphLayoutsRepository::loadCurrentLayout() - DB not open";
+        return false;
+    }
 
     QSqlQuery q(db);
     q.prepare(
@@ -144,11 +147,14 @@ bool GraphLayoutsRepository::loadNamedLayout(const QString& viewName, int slotIn
                                               GraphLayoutData& out)
 {
     QSqlDatabase db = DatabaseManager::instance().database();
-    if (!db.isOpen()) return false;
+    if (!db.isOpen()) {
+        qWarning() << "GraphLayoutsRepository::loadNamedLayout() - DB not open";
+        return false;
+    }
 
     QSqlQuery q(db);
     q.prepare(
-        "SELECT id, view_name, slot_index, is_current, description, format_version, data "
+        "SELECT id, view_name, slot_index, description, format_version, data "
         "FROM graph_layouts WHERE profile_id IS NULL AND view_name = ? AND slot_index = ?"
     );
     q.addBindValue(viewName.toLower());
@@ -166,9 +172,9 @@ bool GraphLayoutsRepository::loadNamedLayout(const QString& viewName, int slotIn
     out.viewName      = q.value(1).toString();
     out.slotIndex     = q.value(2).toInt();
     out.isCurrent     = false;
-    out.description   = q.value(4).toString();
-    out.formatVersion = q.value(5).toInt();
-    out.data          = q.value(6).toByteArray();
+    out.description   = q.value(3).toString();
+    out.formatVersion = q.value(4).toInt();
+    out.data          = q.value(5).toByteArray();
     return true;
 }
 

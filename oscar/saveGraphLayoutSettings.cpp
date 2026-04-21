@@ -69,10 +69,6 @@ SaveGraphLayoutSettings::~SaveGraphLayoutSettings()
     delete singleLineRe;
 }
 
-void SaveGraphLayoutSettings::createSaveFolder() {
-    // No-op: layouts are now stored in the DB (graph_layouts table).
-}
-
 QPushButton*  SaveGraphLayoutSettings::menuBtn(QString name, QIcon* icon, QString style,QSizePolicy::Policy hPolicy,QString tooltip) {
     return newBtnRtn(menuLayoutButtons, name, icon, style, hPolicy,tooltip) ;
 }

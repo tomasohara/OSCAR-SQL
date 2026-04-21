@@ -138,7 +138,6 @@ private:
 
     void    createMenu();
     void    createStyleSheets();
-    void    createSaveFolder();
     QPushButton*  newBtnRtn(QHBoxLayout*, QString name, QIcon* icon, QString style,QSizePolicy::Policy hPolicy,QString tooltip);
     QPushButton*  menuBtn(                QString name, QIcon* icon, QString style,QSizePolicy::Policy hPolicy,QString tooltip);
 

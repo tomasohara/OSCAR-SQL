@@ -3659,7 +3659,8 @@ void gGraphView::SaveDefaultSettings() {
 }
 
 const quint32 gVmagic = 0x41756728;   //'Aug('
-extern const quint16 gVversion = 5;    // version 5 has same format as 4, used to override settings in shg files on upgrade to version 5.
+// extern needed: const at file scope defaults to internal linkage; version 5 has same format as 4 (used to override settings in shg files on upgrade)
+extern const quint16 gVversion = 5;
 
 QString gGraphView::settingsFilename (QString title,QString folderName, QString ext) {
     if (folderName.size()==0) {
@@ -3726,7 +3727,7 @@ void gGraphView::SaveSettings(QString title, QString folderName)
         ProfileData pd = profRepo.findByUsername(p_profile->user->userName());
         if (pd.id > 0) {
             GraphLayoutsRepository repo;
-            repo.saveCurrentLayout(pd.id, title.toLower(), gVversion, data);
+            openOk = repo.saveCurrentLayout(pd.id, title.toLower(), gVversion, data);
             return;
         }
     }
@@ -3850,8 +3851,10 @@ bool gGraphView::LoadSettings(QString title, QString folderName)
             if (repo.loadCurrentLayout(pd.id, title.toLower(), layoutData)) {
                 bool ok = deserializeSettings(layoutData.data);
                 if (ok) updateScale();
+                openOk = ok;
                 return ok;
             }
+            openOk = false;
             return false;  // No saved layout for this profile/view — use defaults
         }
     }

@@ -1621,13 +1621,20 @@ bool DatabaseSchema::migrateV13ToV14(QSqlDatabase& db)
 {
     qDebug() << "DatabaseSchema: Migrating v13 -> v14";
 
+    if (!db.transaction()) {
+        qCritical() << "DatabaseSchema: migrateV13ToV14: failed to start transaction";
+        return false;
+    }
+
     if (!createAppPreferencesTable(db)) {
         qCritical() << "DatabaseSchema: migrateV13ToV14: createAppPreferencesTable failed";
+        db.rollback();
         return false;
     }
 
     if (!createGraphLayoutsTable(db)) {
         qCritical() << "DatabaseSchema: migrateV13ToV14: createGraphLayoutsTable failed";
+        db.rollback();
         return false;
     }
 
@@ -1638,6 +1645,7 @@ bool DatabaseSchema::migrateV13ToV14(QSqlDatabase& db)
         QString err = q.lastError().text();
         if (!err.contains("duplicate column", Qt::CaseInsensitive)) {
             qCritical() << "DatabaseSchema: migrateV13ToV14: ALTER TABLE profile_preferences failed:" << err;
+            db.rollback();
             return false;
         }
         // Column already exists — safe to continue
@@ -1645,6 +1653,13 @@ bool DatabaseSchema::migrateV13ToV14(QSqlDatabase& db)
 
     if (!setSchemaVersion(db, 14)) {
         qCritical() << "DatabaseSchema: migrateV13ToV14: setSchemaVersion failed";
+        db.rollback();
+        return false;
+    }
+
+    if (!db.commit()) {
+        qCritical() << "DatabaseSchema: migrateV13ToV14: commit failed";
+        db.rollback();
         return false;
     }
 

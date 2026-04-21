@@ -38,6 +38,31 @@ Fix: Changed `desc.append("...")` to `desc = desc.left(maxDescriptionLen - 3) + 
 
 ---
 
+## 2026-04-20 - Six issues from Gemini code-review of schema v14 migration
+
+**Files:** `oscar/database/database_schema.cpp`, `oscar/database/graph_layouts_repository.cpp`, `oscar/main.cpp`, `oscar/Graphs/gGraphView.cpp`, `oscar/saveGraphLayoutSettings.{h,cpp}`
+
+**Issue 1 — `migrateV13ToV14` had no transaction wrapper**
+Symptom: If any of the four DDL/DML steps succeeded but a later step failed, the DB was left with v13 schema version but v14 tables already created — relying on idempotency to recover on retry.
+Fix: Wrapped the migration body in `db.transaction()` / `db.commit()` / `db.rollback()`.
+
+**Issue 2 & 3 — `peekVersion` lambda duplicated; importers lacked `static`**
+Symptom: Identical lambda duplicated in `importLegacyNamedLayouts()` and `importLegacyProfileLayouts()`; both functions had external linkage.
+Fix: Extracted to a `static int peekShgVersion(const QByteArray&)` file-scope helper; added `static` to both importer functions.
+
+**Issue 4 — `loadNamedLayout` selected `is_current` but silently skipped it**
+Symptom: SELECT included `is_current` at column index 3 but the mapping code jumped directly to `q.value(4)` for `description`, reading the wrong column if ordering ever changed.
+Fix: Removed `is_current` from the SELECT; shifted `description`/`format_version`/`data` to indices 3/4/5.
+
+**Issue 5 — `openOk` global not set in DB branches of `SaveSettings`/`LoadSettings`**
+Symptom: Callers reading `openOk` after a DB-path call would see stale state from the previous file operation.
+Fix: Set `openOk` to the DB operation result in both `SaveSettings` and `LoadSettings` DB branches.
+
+**Issue 6 (style) — Misleading comment and vestigial stub**
+Fix: Corrected `saveCurrentLayout` comment (removed "preserve description" which doesn't apply to current-layout upserts); removed no-op `createSaveFolder()` definition from `saveGraphLayoutSettings.cpp` and declaration from `.h`; added `extern` linkage explanation to `gVversion` declaration; added `qWarning` to DB-not-open paths in load methods.
+
+---
+
 ## 2026-04-19 - Four bugs from Codex code-review of schema v14 migration
 
 **Files:** `oscar/database/database_schema.cpp`, `oscar/database/app_preferences_repository.cpp`, `oscar/database/backup/profile_backup.cpp`, `oscar/database/backup/profile_restore.cpp`

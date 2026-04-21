@@ -314,6 +314,15 @@ bool migrateFromOSCAR(QString destDir) {
     return success;
 }
 
+// Returns the format version stored in bytes 4-5 of an .shg file, or 0 if too short.
+static int peekShgVersion(const QByteArray& data)
+{
+    if (data.size() < 6) return 0;
+    quint16 ver;
+    memcpy(&ver, data.constData() + 4, 2);
+    return static_cast<int>(ver);
+}
+
 // One-shot import of legacy layoutSettings/*.shg named layouts into the DB.
 // Reads all .shg bytes and descriptions.txt first, then writes to the DB inside a
 // single transaction per view. A crash during the write rolls back the transaction,
@@ -325,13 +334,6 @@ void importLegacyNamedLayouts()
     const QString layoutDir = GetAppData() + "/layoutSettings/";
     QDir dir(layoutDir);
     if (!dir.exists()) return;
-
-    auto peekVersion = [](const QByteArray& data) -> int {
-        if (data.size() < 6) return 0;
-        quint16 ver;
-        memcpy(&ver, data.constData() + 4, 2);
-        return static_cast<int>(ver);
-    };
 
     GraphLayoutsRepository repo;
     QSqlDatabase db = DatabaseManager::instance().database();
@@ -368,7 +370,7 @@ void importLegacyNamedLayouts()
             e.slotIndex = m.captured(2).toInt();
             e.desc = descriptions.value(m.captured(1), m.captured(1));
             e.data = f.readAll();
-            e.version = peekVersion(e.data);
+            e.version = peekShgVersion(e.data);
             e.filePath = fi.absoluteFilePath();
             f.close();
             entries.append(e);
@@ -410,13 +412,6 @@ void importLegacyProfileLayouts()
 {
     if (!DatabaseManager::instance().isOpen()) return;
 
-    auto peekVersion = [](const QByteArray& data) -> int {
-        if (data.size() < 6) return 0;
-        quint16 ver;
-        memcpy(&ver, data.constData() + 4, 2);
-        return static_cast<int>(ver);
-    };
-
     ProfileRepository profRepo;
     GraphLayoutsRepository layoutRepo;
     const QList<ProfileData> profiles = profRepo.findAll();
@@ -437,7 +432,7 @@ void importLegacyProfileLayouts()
             e.profileId = pd.id;
             e.viewName  = viewName;
             e.data      = f.readAll();
-            e.version   = peekVersion(e.data);
+            e.version   = peekShgVersion(e.data);
             e.filePath  = shgPath;
             f.close();
             entries.append(e);
