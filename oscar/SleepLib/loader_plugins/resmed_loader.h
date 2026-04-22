@@ -119,6 +119,14 @@ class ResmedLoader : public CPAPLoader
     //! This contains the Pressure, Leak, Respiratory Rate, Minute Ventilation, Tidal Volume, etc..
     bool LoadPLD(Session *sess, const QString & path);
 
+    //! \brief Validate edf.startdate against sess->session() (which is the STR.edf
+    //! mask-on time) and repair it if the EDF header ASCII datetime field is
+    //! corrupt. Also recomputes edf.enddate from the still-valid record count and
+    //! duration fields. Call immediately after edf.Parse().
+    //! \return true if startdate was valid or was successfully repaired.
+    bool repairEDFStartFromSession(ResMedEDFInfo &edf, Session *sess,
+                                   const QString &path);
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Now for some CPAPLoader overrides
