@@ -106,6 +106,7 @@ There are two QT Oscar project files: OSCAR_QT.pro in the Oscar-code directory, 
 - Click on the **Build** line
 - In the Build settings in the center panel, select “Release” rather than the default “Debug” in the pull-down at the top of the Build Settings.
 - By default, “Enable Qt Quick Compiler” is checked. Remove that check – errors result if it is on. QT will ask if you want to recompile everything now. **Don’t**, as there is more to do before compiling. 
+- For the make (not qmake) command, add "SHELL=cmd.exe" as a parameter.
 - Make this same change for the Debug build for the kit. 
 - If you want to use the QT Creator Debug tools, Select the Build Debug pull-down and disable the QT Quick Compiler there as well.
 - 'Build' menu > 'Build Project "OSCAR_QT"' menu item.
@@ -135,9 +136,9 @@ If you prefer to run deploy.bat as a separate deployment step,
 -   Batch files buildall-qt6.bat and deploy.bat are used.
 -   buildall-qt6.bat creates a build folder, compiles and executes deploy.bat
 -   Supports 64 bit Windows
--   Supports Qt 6.9.3 or 6.10.0
+-   Supports Qt 6.9.3 or 6.10.x
 -   Auto detection for which compiler to use.
--   buildall-qt6.bat has one command Line option: the Qt6 version to use (e.g, "buildall-qt6.bat 6.10.0")
+-   buildall-qt6.bat has one command Line option: the Qt6 version to use (e.g, "buildall-qt6.bat 6.10.2")
 -   deploy.bat creates a release version and an install version.
 -   deploy.bat is also used by QtCreator
 -   The release folder contains OSCAR.exe and all other files necessary to run OSCAR

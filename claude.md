@@ -40,7 +40,7 @@ You are a helpful coding assistant specializing in c++ 17 and Qt.
 ## Database
 
 - The application uses SQLite.
-- Schema reference: Notes/DATABASE_SCHEMA_REFERENCE.md (all tables, fields, relationships — schema v13)
+- Schema reference: Notes/DATABASE_SCHEMA_REFERENCE.md (all tables, fields, relationships — schema v14)
 - ER diagram: Notes/Database-ER-Diagram.png
 - Useful queries: Notes/USEFUL_QUERIES.sql, Notes/HOW_TO_USE_QUERIES.md
 

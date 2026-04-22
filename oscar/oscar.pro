@@ -117,9 +117,12 @@ gitinfotarget.target = git_info.h
 gitinfotarget.depends = FORCE
 
 win32 {
-    system("$$_PRO_FILE_PWD_/update_gitinfo.bat");
+    system("cmd /c \"$$_PRO_FILE_PWD_/update_gitinfo.bat\"")
     message("Updating gitinfo.h for Windows build")
-    gitinfotarget.commands = "$$_PRO_FILE_PWD_/update_gitinfo.bat"
+    gitinfotarget.commands = "cmd /c \"$$_PRO_FILE_PWD_/update_gitinfo.bat\""
+#   system("$$_PRO_FILE_PWD_/update_gitinfo.bat");
+#   message("Updating gitinfo.h for Windows build")
+#   gitinfotarget.commands = "$$_PRO_FILE_PWD_/update_gitinfo.bat"
 } else {
     system("/bin/bash $$_PRO_FILE_PWD_/update_gitinfo.sh");
     message("Updating gitinfo.h for non-Windows build")
@@ -204,21 +207,23 @@ macx  {
 TRANSLATIONS = $$files($$PWD/../Translations/*.ts)
 TRANSLATIONS += $$files($$PWD/../Translations/qt/*.ts)
 
-qtPrepareTool(LRELEASE, lrelease)
+# qtPrepareTool(LRELEASE, lrelease)
+LRELEASE = $$[QT_INSTALL_BINS]/lrelease
+win32: LRELEASE = $${LRELEASE}.exe
 
 for(file, TRANSLATIONS) {
 
- qmfile = $$absolute_path($$basename(file), $$PWD/translations/)
- qmfile ~= s,.ts$,.qm,
+    qmfile = $$absolute_path($$basename(file), $$PWD/translations/)
+    qmfile ~= s,.ts$,.qm,
 
- qmdir = $$PWD/translations
- !exists($$qmdir) {
-     mkpath($$qmdir)|error("Aborting.")
- }
- qmout = $$qmfile
- command = $$LRELEASE -removeidentical $$file -qm $$qmfile
- system($$command)|error("Failed to run: $$command")
- TRANSLATIONS_FILES += $$qmfile
+    qmdir = $$PWD/translations
+    !exists($$qmdir) {
+        mkpath($$qmdir)|error("Aborting.")
+    }
+    qmout = $$qmfile
+    command = $$quote($$LRELEASE) -removeidentical $$quote($$file) -qm $$quote($$qmfile)
+    system($$command)|error("Failed to run: $$command")
+    TRANSLATIONS_FILES += $$qmfile
 }
 
 HTML_FILES = $$files($$PWD/../Htmldocs/*.html)

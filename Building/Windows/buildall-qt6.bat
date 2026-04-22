@@ -38,7 +38,7 @@ cd %basedir%\%dirname%
 ::: timer /nologo
 %qtpath%\%qtVersion%\mingw_64\bin\qmake.exe ..\oscar\oscar.pro -spec win32-g++ %extraparams% >qmake.log 2>&1 && %qtpath%\Tools\mingw1310_64\bin\mingw32-make.exe qmake_all >>qmake.log 2>&1 
 set /A CPUS=%NUMBER_OF_PROCESSORS%
-%qtpath%\Tools\mingw1310_64\bin\mingw32-make.exe -j%CPUS% >make.log 2>&1 || goto :makefail
+%qtpath%\Tools\mingw1310_64\bin\mingw32-make.exe -j%CPUS% SHELL=cmd.exe >make.log 2>&1 || goto :makefail
 ::: timer /s /nologo
   
 ::: timer /nologo
