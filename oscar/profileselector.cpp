@@ -483,15 +483,29 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
 {
     if (ui->profileView->currentIndex().isValid()) {
         QString name = proxy->data(proxy->index(ui->profileView->currentIndex().row(), 0, QModelIndex()), Qt::UserRole+2).toString();
-        Profile * profile = Profiles::profiles[name];
-        QString path = profile->Get(PrefMacro(STR_GEN_DataFolder));
+        // profiles.value() avoids inserting a null entry when the profile has a missing directory
+        Profile * profile = Profiles::profiles.value(name, nullptr);
+
+        // For profiles whose directory is missing (e.g. a cancelled import that left a DB
+        // row behind), profile is null. Resolve the path from the database instead.
+        QString path;
+        if (profile) {
+            path = profile->Get(PrefMacro(STR_GEN_DataFolder));
+        } else {
+            ProfileRepository pathRepo;
+            ProfileData pd = pathRepo.findByUsername(name);
+            if (pd.id > 0) {
+                path = ProfileRepository::resolvePath(pd.dataFolder, GetAppData() + "/Profiles");
+            }
+        }
+
         if (path == (GetAppData() + "/Profiles/")) {
             QMessageBox::warning(this, STR_MessageBox_Error, tr("The selected profile does not appear to contain any data and cannot be removed by OSCAR"), QMessageBox::Ok);
             return;
         }
 
         bool verified = true;
-        if (profile->user->hasPassword()) {
+        if (profile && profile->user->hasPassword()) {
             QDialog dialog(this, Qt::Dialog);
             QLineEdit *e = new QLineEdit(&dialog);
             e->setEchoMode(QLineEdit::Password);

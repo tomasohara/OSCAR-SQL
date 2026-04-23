@@ -67,6 +67,42 @@ This project uses Qt6 (migrated from Qt5). Be aware of Qt5→Qt6 behavior change
 
 When modifying loader code, confirm scope first: changes must not affect other loaders unless explicitly requested.
 
+## Bug Tracking
+
+Bugs are tracked in GitLab Issues: https://gitlab.com/Seeker4/OSCAR-code/-/issues
+
+When fixing a bug during a session:
+1. Create a GitLab issue first (use the Python snippet below) and note the returned IID.
+2. Fix the bug.
+3. Log the fix in Notes/BUG_FIXES.md.
+4. When committing, include `Closes #IID` in the commit message body — GitLab will
+   auto-close the issue when pushed to master.
+
+To create an issue from Python (token from env var GITLAB_TOKEN):
+```python
+import json, os, urllib.request
+tok = os.environ["GITLAB_TOKEN"]
+data = json.dumps({"title": "...", "description": "...", "labels": "bug"}).encode()
+req = urllib.request.Request(
+    "https://gitlab.com/api/v4/projects/Seeker4%2FOSCAR-code/issues",
+    data=data, headers={"PRIVATE-TOKEN": tok, "Content-Type": "application/json"})
+with urllib.request.urlopen(req) as r:
+    iid = json.loads(r.read())["iid"]
+print(f"Created issue #{iid}")
+```
+
+To close an issue (replace IID):
+```python
+req = urllib.request.Request(
+    f"https://gitlab.com/api/v4/projects/Seeker4%2FOSCAR-code/issues/{iid}",
+    data=json.dumps({"state_event": "close"}).encode(),
+    headers={"PRIVATE-TOKEN": tok, "Content-Type": "application/json"},
+    method="PUT")
+urllib.request.urlopen(req)
+```
+
+If GITLAB_TOKEN is not set, ask the user to provide the token or set the environment variable.
+
 ## Workflow
 
  - After making fixes, log them to Notes/BUG_FIXES.md.

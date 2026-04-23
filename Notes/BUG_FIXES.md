@@ -4,6 +4,53 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-23 - Crash deleting a profile whose directory is missing
+
+**File:** `oscar/profileselector.cpp` — `on_buttonDestroyProfile_clicked()`
+
+A cancelled (or otherwise failed) profile import can leave a row in the `profiles` table while
+the profile directory is absent. `Profiles::Scan()` skips such profiles (marks them `missing` and
+does not add them to the in-memory `Profiles::profiles` map). `updateProfileList()` still shows
+them because it queries the DB directly. Clicking Delete on such a profile called
+`Profiles::profiles[name]`, which — because `QHash::operator[]` inserts a default value on a
+missing key — silently returned `nullptr`. The immediately following `profile->Get(...)` call
+dereferenced that null pointer → crash (`QHash::find` via `Preferences::Get` at
+`profileselector.cpp:487`).
+
+Fix: use `Profiles::profiles.value(name, nullptr)` to avoid inserting a null entry. When the
+returned pointer is null, resolve the profile path directly from the database via
+`ProfileRepository::resolvePath()`. Guard the password-check block with `if (profile && ...)`.
+`removeDirWithProgress()` already handles a non-existent directory safely (returns true), so the
+rest of the deletion flow works unchanged.
+
+---
+
+## 2026-04-23 - Fix profile import failing with "cannot commit - no transaction is active"; cancellation leaves incomplete DB data
+
+**Files:** `oscar/SleepLib/preferences.cpp`, `oscar/profileimporter.cpp`
+
+`Preferences::Save()` and `Preferences::Open()` called `db.transaction()` / `db.commit()` /
+`db.rollback()` directly on the raw `QSqlDatabase` object, bypassing
+`DatabaseManager::m_inTransaction` tracking. When `ProfileImporter::importProfile()` called
+`migrateAppSettings()` → `p_pref->Save()` while the outer metadata transaction was active, the
+direct `db.commit()` committed the outer transaction. `DatabaseManager` still believed
+`m_inTransaction = true`, so when `importProfile()` then tried its own commit, SQLite correctly
+reported "cannot commit - no transaction is active". The code path for a failed commit did not
+call `ProfileRepository::remove()`, so the already-committed metadata (profile record, machines,
+user info) remained in the DB with no directory and no sessions. This manifested as two user-
+visible bugs: (1) an error message on every import attempt, and (2) after cancellation of a bulk
+import, the first profile appeared in the DB with incomplete data.
+
+Fix 1 (`preferences.cpp`): use `ownTransaction = !dbMgr.inTransaction()` in both `Save()` and
+`Open()`. When an outer transaction is already active the writes join it; when called standalone
+the function starts and commits its own transaction as before.
+
+Fix 2 (`profileimporter.cpp`): move the `profileId` lookup to BEFORE the metadata commit so the
+ID is available on the failure path. Add a defensive `cleanupRepo.remove(profileId)` call in the
+commit-failure path to remove any metadata that may have been committed via a bypassed path.
+
+---
+
 ## 2026-04-22 - Fix restore failure for pre-v15 backups containing removed columns
 
 **Files:** `oscar/database/backup/profile_restore.cpp`

@@ -358,22 +358,28 @@ bool Preferences::Open(QString filename)
     // (not a foreign file opened by the importer), seed the DB and delete the file.
     // Wrapped in a transaction so a mid-loop crash rolls back to an empty table,
     // causing the next launch to fall through to XML seeding again.
+    // If an outer transaction is already active, join it rather than starting a nested
+    // one to avoid committing the outer transaction via a direct db.commit() call.
     if (p_name == "Preferences" && DatabaseManager::instance().isOpen()
             && p_filename.startsWith(GetAppData())) {
         AppPreferencesRepository repo;
-        QSqlDatabase db = DatabaseManager::instance().database();
-        db.transaction();
+        DatabaseManager& dbMgr = DatabaseManager::instance();
+        bool ownTransaction = !dbMgr.inTransaction();
+        QSqlDatabase db = dbMgr.database();
+        if (ownTransaction) db.transaction();
         bool seeded = true;
         for (auto i = p_preferences.begin(); i != p_preferences.end(); ++i) {
             if (i.value().typeId() == QMetaType::UnknownType) continue;
             if (!repo.save("general", i.key(), i.value())) seeded = false;
         }
-        if (seeded) {
-            db.commit();
-            QFile::remove(p_filename);
-        } else {
-            db.rollback();
-            qWarning() << "Preferences::Open(): Failed to seed app_preferences table from XML; keeping XML file";
+        if (ownTransaction) {
+            if (seeded) {
+                db.commit();
+                QFile::remove(p_filename);
+            } else {
+                db.rollback();
+                qWarning() << "Preferences::Open(): Failed to seed app_preferences table from XML; keeping XML file";
+            }
         }
     }
 
@@ -389,11 +395,19 @@ bool Preferences::Save(QString filename)
     // When the DB is open and this is the app's own Preferences singleton, save to DB.
     // Delete-then-reinsert inside a transaction so that keys removed via Erase() are
     // not resurrected on the next Open(), and so a partial write is never committed.
+    // If an outer transaction is already active (e.g. during profile import), join it
+    // instead of starting a nested one — direct db.transaction()/commit() bypasses
+    // DatabaseManager::m_inTransaction tracking and would commit the outer transaction.
     if (p_name == "Preferences" && DatabaseManager::instance().isOpen()
             && p_filename.startsWith(GetAppData())) {
         AppPreferencesRepository repo;
-        QSqlDatabase db = DatabaseManager::instance().database();
-        db.transaction();
+        DatabaseManager& dbMgr = DatabaseManager::instance();
+        bool ownTransaction = !dbMgr.inTransaction();
+        QSqlDatabase db = dbMgr.database();
+        if (ownTransaction && !db.transaction()) {
+            qWarning() << "Preferences::Save(): Failed to start transaction";
+            return false;
+        }
         bool ok = repo.removeCategory("general");
         if (ok) {
             for (auto i = p_preferences.begin(); i != p_preferences.end(); ++i) {
@@ -401,11 +415,13 @@ bool Preferences::Save(QString filename)
                 if (!repo.save("general", i.key(), i.value())) { ok = false; break; }
             }
         }
-        if (ok) {
-            db.commit();
-        } else {
-            db.rollback();
-            qWarning() << "Preferences::Save(): DB save failed, rolled back";
+        if (ownTransaction) {
+            if (ok) {
+                db.commit();
+            } else {
+                db.rollback();
+                qWarning() << "Preferences::Save(): DB save failed, rolled back";
+            }
         }
         return ok;
     }

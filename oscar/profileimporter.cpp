@@ -187,19 +187,27 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     // Profile record, machines, user/doctor info, and preferences are now committed.
     // Session data is loaded separately so each machine's commit is small and the
     // UI stays responsive throughout.
+    //
+    // Look up the profile's DB id NOW, before the commit, so we can clean up via
+    // cascade delete if the commit fails. (The profile row is visible to the same
+    // connection inside the uncommitted transaction.)
+    ProfileRepository profileRepo2;
+    qint64 profileId = profileRepo2.findByUsername(newProfileName).id;
+
     reportProgress(35, 100, tr("Saving profile metadata..."));
     if (!dbMgr.commit()) {
         m_lastError = tr("Failed to commit profile metadata: %1").arg(dbMgr.lastError().text());
         qWarning() << "ProfileImporter: Failed to commit metadata transaction";
+        // Defensively remove any metadata that may have been committed via a
+        // path that bypassed DatabaseManager (e.g. a future Preferences::Save() regression).
+        if (profileId > 0) {
+            ProfileRepository cleanupRepo;
+            cleanupRepo.remove(profileId);
+        }
         rollbackImport(newPath);
         delete profile;
         return false;
     }
-
-    // Record the profile's DB id so we can clean up via cascade delete if session
-    // loading fails after the metadata transaction has already been committed.
-    ProfileRepository profileRepo2;
-    qint64 profileId = profileRepo2.findByUsername(newProfileName).id;
 
     reportProgress(40, 100, tr("Loading session data from files..."));
 
