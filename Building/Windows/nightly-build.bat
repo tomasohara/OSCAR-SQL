@@ -89,6 +89,7 @@ git stash
 call %BUILD_SCRIPT%
 git stash pop
 set BUILD_RESULT=%errorlevel%
+:::pause
 
 :: -----------------------------------------------------------------------
 :: Step 6: Return to master branch regardless of build outcome.
@@ -103,6 +104,7 @@ if %BUILD_RESULT% neq 0 (
     echo ERROR: Build failed with error %BUILD_RESULT%.
     exit /b %BUILD_RESULT%
 )
+:::pause
 
 :: -----------------------------------------------------------------------
 :: Step 7: Locate the newly-built installer.
@@ -120,6 +122,7 @@ if not defined NEW_INSTALLER (
 )
 
 echo Found installer: !NEW_INSTALLER!
+:::pause
 
 :: -----------------------------------------------------------------------
 :: Step 8: Remove the old nightly build from Dropbox, then copy the new
@@ -133,8 +136,9 @@ if %errorlevel% neq 0 (
     echo ERROR: Failed to copy installer to Dropbox.
     exit /b 1
 )
-
+::: pause
 echo.
 echo Nightly build complete: %DROPBOX_DIR%\!NIGHTLY_NEW_NAME!
 endlocal
+pause
 exit /b 0
