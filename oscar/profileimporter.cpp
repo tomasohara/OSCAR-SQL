@@ -1043,13 +1043,16 @@ void ProfileImporter::copyLayoutSettings(const QString& sourceDataPath)
         return;
     }
 
-    QDir().mkpath(destLayoutPath);
-
     QStringList files = sourceDir.entryList(QDir::Files);
     int copied = 0;
+    bool destCreated = false;
     for (const QString& fileName : files) {
         QString destFile = destLayoutPath + "/" + fileName;
         if (!QFile::exists(destFile)) {
+            if (!destCreated) {
+                QDir().mkpath(destLayoutPath);
+                destCreated = true;
+            }
             if (QFile::copy(sourceLayoutPath + "/" + fileName, destFile)) {
                 copied++;
             } else {

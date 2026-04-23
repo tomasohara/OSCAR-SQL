@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-23 - Bulk import creates empty layoutSettings folder in app data
+
+**File:** `oscar/profileimporter.cpp` — `copyLayoutSettings()`
+
+After a bulk import from OSCAR 1.7.1, an empty (or near-empty) `layoutSettings` folder
+was left in the OSCAR 2.0 app data directory. The source folder existed but contained only
+a `.txt` file with no saved layouts. `QDir().mkpath(destLayoutPath)` was called
+unconditionally after confirming the source folder exists, before checking whether any
+files actually needed to be copied. The destination folder was created even when no files
+required copying.
+
+Fix: moved `mkpath()` inside the copy loop, guarded by a `destCreated` flag so the
+destination directory is created only when the first file actually needs to be copied there.
+
+---
+
 ## 2026-04-23 - Crash deleting a profile whose directory is missing
 
 **File:** `oscar/profileselector.cpp` — `on_buttonDestroyProfile_clicked()`
