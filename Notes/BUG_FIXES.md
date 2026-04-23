@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-23 - layoutSettings folder not removed after import when source has no saved layouts
+
+**File:** `oscar/main.cpp` — `importLegacyNamedLayouts()`
+
+After importing from OSCAR 1.7.1, the `layoutSettings` folder persisted in OSCAR 2.0's app
+data when the source had a `.descriptions.txt` file but no `.shg` layout files. The function
+removes `.descriptions.txt` only inside the `if (allOk)` block that runs after committing
+`.shg` entries to the DB. When no `.shg` files exist for a view, `entries.isEmpty()` causes
+an early `continue`, skipping `descFile.remove()`. The file remains, the folder is non-empty,
+and the `dir.rmdir()` cleanup at the end cannot remove it.
+
+Fix: call `descFile.remove()` in the `entries.isEmpty()` path before `continue` so the
+descriptions file is always cleaned up.
+
+---
+
 ## 2026-04-23 - Bulk import creates empty layoutSettings folder in app data
 
 **File:** `oscar/profileimporter.cpp` — `copyLayoutSettings()`

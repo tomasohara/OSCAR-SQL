@@ -382,7 +382,12 @@ void importLegacyNamedLayouts()
             entries.append(e);
         }
 
-        if (entries.isEmpty()) continue;
+        if (entries.isEmpty()) {
+            // No layout files for this view — remove the descriptions file now
+            // so it doesn't prevent the folder from being cleaned up below.
+            descFile.remove();
+            continue;
+        }
 
         // Phase 2: write all to DB atomically, then delete source files on success.
         db.transaction();
