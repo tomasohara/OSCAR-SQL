@@ -2660,36 +2660,55 @@ EDFduration getEDFDuration(const QString & filename)
         gzclose(f);
     }
 
+    // Derive the filename-based start time up front so we can use it as a
+    // fallback when the EDF header's ASCII datetime field is corrupted.
+    // ResMed writes both from the same RTC at the same moment; it's very
+    // common for bad-flash corruption to hit one copy and leave the other.
+    QString filedate = filename.section("/",-1).section("_",0,1);
+    QDate   d2_file = QDate::fromString( filedate.left(8), "yyyyMMdd");
+    QTime   t2_file = QTime::fromString( filedate.right(6), "hhmmss");
+    QDateTime dt2   = QDateTime( d2_file, t2_file, EDFInfo::localNoDST );
+    const quint32 st2 = dt2.isValid() ? dt2.toSecsSinceEpoch() : 0;
+
     QDate d2 = startDate.date();
 
     if (d2.year() < 2000) {
         d2.setDate(d2.year() + 100, d2.month(), d2.day());
         startDate.setDate(d2);
     }
-    if ( (! startDate.isValid()) || ( startDate > QDateTime::currentDateTime()) ) {
-        qDebug() << "Invalid date time retreieved parsing EDF duration for" << filename;
+
+    // Plausibility check: header must be parseable, not in the future, not
+    // before ResMed machines existed, and not wildly off from the filename time.
+    static constexpr int    EDF_YEAR_MIN       = 2005;            // S9 launched 2010
+    static constexpr qint64 EDF_HEADER_TOL_S   = 6LL * 60 * 60;   // 6 hours
+    bool headerOk = startDate.isValid()
+                    && (startDate <= QDateTime::currentDateTime())
+                    && (startDate.date().year() >= EDF_YEAR_MIN);
+
+    if (!(ok1 && ok2))
+        return EDFduration(0, 0, filename);     // record count/duration bad — give up
+
+    quint32 start;
+    if (headerOk) {
+        start = startDate.toSecsSinceEpoch();
+        if (st2 > 0 && qAbs(qint64(start) - qint64(st2)) > EDF_HEADER_TOL_S) {
+            qWarning() << "ResMed: EDF header time disagrees with filename for"
+                       << filename << "- using filename-derived start time";
+            start = st2;
+        }
+    } else if (st2 > 0) {
+        qWarning() << "ResMed: corrupt EDF header time in" << filename
+                   << "- falling back to filename-derived start time";
+        start = st2;
+    } else {
+        qDebug() << "Invalid date time and unparseable filename for" << filename;
         qDebug() << "Time zone(Utc) is" << startDate.timeZone().abbreviation(QDateTime::currentDateTimeUtc());
         qDebug() << "Time zone is" << startDate.timeZone().abbreviation(QDateTime::currentDateTime());
         return EDFduration(0, 0, filename);
     }
 
-    if (!(ok1 && ok2))
-        return EDFduration(0, 0, filename);
-
-    quint32 start = startDate.toSecsSinceEpoch();
     quint32 end = start + rec_duration * num_records;
-
-    QString filedate = filename.section("/",-1).section("_",0,1);
-//  QDateTime dt2 = QDateTime::fromString(filedate, "yyyyMMdd_hhmmss");
-    d2 = QDate::fromString( filedate.left(8), "yyyyMMdd");
-    QTime t2 = QTime::fromString( filedate.right(6), "hhmmss");
-    QDateTime dt2 = QDateTime( d2, t2, EDFInfo::localNoDST );
-    quint32 st2 = dt2.toSecsSinceEpoch();
-
-    start = qMin(st2, start);	// They should be the same, usually
-
-    if (end < start)
-        end = qMax(st2, start);
+    if (end < start) end = start;    // overflow guard
 
     EDFduration dur(start, end, filename);
 
@@ -3349,6 +3368,60 @@ void ResmedLoader::SaveSession(ResmedLoader* loader, Session* sess)
 }
 
 bool matchSignal(ChannelID ch, const QString & name);		// forward
+bool ResmedLoader::repairEDFStartFromSession(ResMedEDFInfo &edf,
+                                             Session *sess,
+                                             const QString &path)
+{
+    // sess->session() was assigned from ovr.start, which was assigned from
+    // resday->str.maskon[i] during overlap construction in ResDayTask::run.
+    // So sess->session() * 1000LL is the STR.edf mask-on time in milliseconds,
+    // i.e. the authoritative session start time.
+    const qint64 expected = qint64(sess->session()) * 1000LL;
+
+    static constexpr int    EDF_YEAR_MIN     = 2005;
+    static constexpr int    EDF_YEAR_MAX     = 2099;
+    static constexpr qint64 EDF_START_TOL_MS = 6LL * 60 * 60 * 1000;   // 6 hours
+
+    // Sanity-check what edf.Parse() stored.
+    QDateTime dt = QDateTime::fromMSecsSinceEpoch(edf.startdate, Qt::UTC);
+    bool ok = dt.isValid();
+    if (ok) {
+        const int y = dt.date().year();
+        if (y < EDF_YEAR_MIN || y > EDF_YEAR_MAX) ok = false;
+    }
+    if (ok && expected > 0 && qAbs(edf.startdate - expected) > EDF_START_TOL_MS)
+        ok = false;
+    if (ok) return true;                        // Header intact - no repair needed.
+
+    if (expected <= 0) {
+        qWarning().noquote() << "ResMed: corrupt EDF startdate in"
+                             << path.section("/", -2, -1)
+                             << "and no STR/session fallback; skipping file.";
+        return false;
+    }
+
+    // Repair. num_data_records and dur_data_record live in different header
+    // bytes than the ASCII datetime field and almost always survive.
+    const qint64 oldStart = edf.startdate;
+    edf.startdate = expected;
+    if (edf.GetNumDataRecords() > 0 && edf.GetDurationMillis() > 0) {
+        edf.enddate = edf.startdate +
+                      qint64(edf.GetNumDataRecords()) * edf.GetDurationMillis();
+    } else {
+        edf.enddate = edf.startdate;
+    }
+
+    qWarning().noquote()
+        << "ResMed: repaired corrupt EDF startdate in"
+        << path.section("/", -2, -1)
+        << "header:"
+        << QDateTime::fromMSecsSinceEpoch(oldStart, Qt::UTC).toString(Qt::ISODate)
+        << "-> STR/session:"
+        << QDateTime::fromMSecsSinceEpoch(expected, Qt::UTC).toString(Qt::ISODate);
+    return true;
+}
+
+
 bool ResmedLoader::LoadCSL(Session *sess, const QString & path)
 {
 #ifdef DEBUG_EFFICIENCY
@@ -3374,6 +3447,9 @@ bool ResmedLoader::LoadCSL(Session *sess, const QString & path)
         qDebug() << "LoadCSL failed to parse" << filename;
         return false;
     }
+
+    if (!repairEDFStartFromSession(edf, sess, path))
+        return false;
 
 #ifdef DEBUG_EFFICIENCY
     int edfparsetime = time.elapsed();
@@ -3453,6 +3529,9 @@ bool ResmedLoader::LoadEVE(Session *sess, const QString & path)
         qDebug() << "LoadEVE failed to parse" << filename;
         return false;
     }
+
+    if (!repairEDFStartFromSession(edf, sess, path))
+        return false;
 
 #ifdef DEBUG_EFFICIENCY
     int edfparsetime = time.elapsed();
@@ -3548,6 +3627,9 @@ bool ResmedLoader::LoadBRP(Session *sess, const QString & path)
 #endif
         return false;
     }
+
+    if (!repairEDFStartFromSession(edf, sess, path))
+        return false;
 #ifdef DEBUG_EFFICIENCY
     int edfparsetime = time.elapsed();
     time.start();
@@ -3655,6 +3737,9 @@ bool ResmedLoader::LoadSAD(Session *sess, const QString & path)
         return false;
     }
 
+    if (!repairEDFStartFromSession(edf, sess, path))
+        return false;
+
 #ifdef DEBUG_EFFICIENCY
     int edfparsetime = time.elapsed();
     time.start();
@@ -3730,6 +3815,9 @@ bool ResmedLoader::LoadPLD(Session *sess, const QString & path)
 #endif
         return false;
     }
+
+    if (!repairEDFStartFromSession(edf, sess, path))
+        return false;
 
 #ifdef DEBUG_EFFICIENCY
     int edfparsetime = time.elapsed();
