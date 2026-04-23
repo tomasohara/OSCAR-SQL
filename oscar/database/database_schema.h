@@ -39,6 +39,9 @@ public:
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
      *
+     * Version 15: Remove dead DST field
+     * - Dropped dst_enabled column from user_info (stored but never read)
+     *
      * Version 14: All file-based settings moved to database
      * - Added app_preferences table (replaces Preferences.xml)
      * - Added graph_layouts unified table (replaces layoutSettings/ named .shg files and
@@ -57,7 +60,7 @@ public:
      * - Added type field to channels
      * - Removed events_file and summary_file from sessions (no longer needed)
      */
-    static const int CURRENT_SCHEMA_VERSION = 14;
+    static const int CURRENT_SCHEMA_VERSION = 15;
 
     /*!
      * \brief Oldest schema version that can be restored into the current database.
@@ -158,6 +161,9 @@ private:
 
     // Migration from v13 to v14
     static bool migrateV13ToV14(QSqlDatabase& db);
+
+    // Migration from v14 to v15
+    static bool migrateV14ToV15(QSqlDatabase& db);
 
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);

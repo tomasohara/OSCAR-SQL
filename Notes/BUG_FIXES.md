@@ -4,6 +4,38 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-22 - Fix restore failure for pre-v15 backups containing removed columns
+
+**Files:** `oscar/database/backup/profile_restore.cpp`
+
+`executeSqlFile()` reconstructed INSERT statements verbatim from backup SQL files and
+passed them to SQLite unchanged. When a backup from schema v12–v14 contained a column
+that was subsequently removed (e.g. `user_info.dst_enabled` dropped in v15,
+`sessions.events_file`/`summary_file` dropped in v12), SQLite rejected the INSERT with
+"table has no column named X", aborting the entire restore. The existing table-level
+guard (`sqlite_master` check) handled missing *tables* but not missing *columns*.
+Fix: query `PRAGMA table_info(<table>)` once per file to build a valid-column set; skip
+any column in the backup INSERT that is absent from the set. This closes the latent bug
+for all past and future column removals without needing per-migration restore patches.
+
+---
+
+## 2026-04-22 - Remove dead DST Zone field (schema v15)
+
+**Files:** `oscar/newprofile.ui`, `oscar/newprofile.cpp`, `oscar/SleepLib/profiles.h`,
+`oscar/database/user_info_repository.{h,cpp}`, `oscar/database/database_schema.{h,cpp}`,
+`Notes/DATABASE_SCHEMA_REFERENCE.md`
+
+The "DST Zone" checkbox in the New Profile dialog was stored and persisted to the
+`user_info.dst_enabled` database column, but was never read by any loader, timestamp
+calculation, or display code. `EDFInfo::localNoDST` (the only DST-related mechanism)
+derives its offset from the system timezone at startup, independently of this field.
+Removed the checkbox, `STR_UI_DST` constant, `daylightSaving()`/`setDaylightSaving()`
+accessors, `dstEnabled` struct member, all SQL references, and the database column.
+Schema bumped from v14 to v15; migration drops the column via `ALTER TABLE DROP COLUMN`.
+
+---
+
 ## 2026-04-21 - Eight issues from Claude code-review of schema v14 additions
 
 **Files:** `oscar/database/app_preferences_repository.{h,cpp}`, `oscar/database/database_manager.cpp`, `oscar/database/database_schema.cpp`, `oscar/SleepLib/preferences.cpp`, `oscar/Graphs/gGraphView.cpp`, `oscar/main.cpp`

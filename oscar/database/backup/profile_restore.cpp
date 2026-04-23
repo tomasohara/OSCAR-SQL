@@ -926,6 +926,19 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
         }
     }
 
+    // Build the set of columns that currently exist in this table so that
+    // INSERT statements from older backups can silently drop removed columns
+    // (e.g. dst_enabled removed in v15, events_file/summary_file in v12).
+    QSet<QString> validColumns;
+    {
+        QSqlDatabase db2 = DatabaseManager::instance().database();
+        QSqlQuery pragma(db2);
+        pragma.exec(QString("PRAGMA table_info(%1)").arg(tableName));
+        while (pragma.next()) {
+            validColumns.insert(pragma.value(1).toString()); // column 1 = name
+        }
+    }
+
     qDebug() << "ProfileRestore::executeSqlFile(): set up mappingTables";
     // Tables whose auto-increment PK we must track for FK remapping.
     static const QSet<QString> mappingTables = {
@@ -973,6 +986,11 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
         for (int i = 0; i < stmt.columns.count(); ++i) {
             const QString& col = stmt.columns.at(i);
             const QString& val = stmt.values.at(i);
+
+            // 0. Drop columns removed from the schema since the backup was taken.
+            if (!validColumns.isEmpty() && !validColumns.contains(col)) {
+                continue;
+            }
 
             // 1. Strip the primary key column.
             if (col == QLatin1String("id")) {

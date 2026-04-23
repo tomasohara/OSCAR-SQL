@@ -231,19 +231,7 @@
               <property name="spacing">
                <number>6</number>
               </property>
-              <item row="4" column="0">
-               <widget class="QCheckBox" name="DSTcheckbox">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>DST Zone</string>
-                </property>
-               </widget>
-              </item>
+
               <item row="2" column="0">
                <widget class="QLabel" name="label_27">
                 <property name="sizePolicy">

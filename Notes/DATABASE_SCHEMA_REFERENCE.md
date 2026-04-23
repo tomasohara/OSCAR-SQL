@@ -1,5 +1,5 @@
 # OSCAR Database Schema Reference
-**Version:** Schema Version 14
+**Version:** Schema Version 15
 **Last Updated:** 2026 Q2
 **Database Type:** SQLite
 
@@ -7,7 +7,7 @@
 
 ## Overview
 
-The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 14.
+The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 15.
 
 **Key Design Principles:**
 - **Profile-centric**: All data organized around user profiles
@@ -113,7 +113,6 @@ CREATE TABLE user_info (
     height REAL,
     gender INTEGER,
     timezone TEXT,
-    dst_enabled INTEGER,
     password_hash TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -652,7 +651,6 @@ CREATE UNIQUE INDEX idx_graph_layouts_current
 | height | REAL | | YES | Height (units per preferences) |
 | gender | INTEGER | | YES | 0=Not specified, 1=Male, 2=Female |
 | timezone | TEXT | | YES | IANA timezone |
-| dst_enabled | INTEGER | | YES | DST flag (0/1) |
 | password_hash | TEXT | | YES | SHA1 password hash |
 | created_at | TEXT | | NO | Creation timestamp |
 | updated_at | TEXT | | NO | Update timestamp |

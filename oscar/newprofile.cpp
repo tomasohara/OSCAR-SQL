@@ -287,7 +287,6 @@ void NewProfile::on_nextButton_clicked()
             profile->doctor->setPatientID(ui->doctorPatientIDEdit->text());
             profile->user->setTimeZone(ui->timezoneCombo->currentText());
             profile->user->setCountry(ui->countryCombo->currentText());
-            profile->user->setDaylightSaving(ui->DSTcheckbox->isChecked());
 
             UnitSystem us = US_Metric;
             if (ui->heightCombo->currentIndex() == 1) { us = US_English; };
@@ -451,7 +450,6 @@ void NewProfile::edit(const QString name)
     ui->doctorAddressEdit->setText(profile->doctor->address());
     ui->doctorPatientIDEdit->setText(profile->doctor->patientID());
 
-    ui->DSTcheckbox->setChecked(profile->user->daylightSaving());
     // If we can't find the timezone (old data), just set the local time zone as a best guess
     int i = ui->timezoneCombo->findText(profile->user->timeZone());
     if (i == -1) {

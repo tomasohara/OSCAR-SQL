@@ -19,7 +19,8 @@ You are a helpful coding assistant specializing in c++ 17 and Qt.
   - oscar/network - modules that talk to the network
   - oscar/exports - modules that export information from OSCAR to other applications
   - oscar/docs - files that are bound to the application and used during execution (icons, etc.)
-  - Notes - design and progress notes
+  - Notes - design, progress, bug fix, and other notes
+  - Building - instructions and aids for building on different platforms
 - Main program is oscar/main.cpp
 - Qt pro file is oscar/oscar.pro
 
@@ -40,7 +41,7 @@ You are a helpful coding assistant specializing in c++ 17 and Qt.
 ## Database
 
 - The application uses SQLite.
-- Schema reference: Notes/DATABASE_SCHEMA_REFERENCE.md (all tables, fields, relationships — schema v14)
+- Schema reference: Notes/DATABASE_SCHEMA_REFERENCE.md (all tables, fields, relationships — schema v15)
 - ER diagram: Notes/Database-ER-Diagram.png
 - Useful queries: Notes/USEFUL_QUERIES.sql, Notes/HOW_TO_USE_QUERIES.md
 
@@ -69,5 +70,5 @@ When modifying loader code, confirm scope first: changes must not affect other l
 ## Workflow
 
  - After making fixes, log them to Notes/BUG_FIXES.md.
- - When committing: keep messages concise (one-line subject, 2-3 sentence summary; no change lists). Omit the "co-authored by" line. Include Htmldocs/release_notes.html if changed; if it hasn't been changed, ask whether I want to to update it before committing.
+ - When committing: keep messages concise (one-line subject, 2-3 sentence summary; no change lists). Write summary in lines not exceeding 90 characters. Omit the "co-authored by" line. Include Htmldocs/release_notes.html if changed; if it hasn't been changed, ask whether I want to to update it before committing.
   - To push: git push origin master

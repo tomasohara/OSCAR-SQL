@@ -337,7 +337,6 @@ const QString STR_UI_Country = "Country";
 const QString STR_UI_Height = "Height";
 const QString STR_UI_Gender = "Gender";
 const QString STR_UI_TimeZone = "TimeZone";
-const QString STR_UI_DST = "DST";
 
 // Profile origin (stored in profile_preferences via saveProfilePreferencesToDatabase)
 const QString STR_PI_Source = "Source"; ///< How the profile was created: "Local", "Backup", "Share", or "Import"
@@ -492,7 +491,6 @@ class UserInfo : public PrefSettings
         initPref(STR_UI_Height, 0.0);
         initPref(STR_UI_Gender, (int)GenderNotSpecified);
         initPref(STR_UI_TimeZone, QString());
-        initPref(STR_UI_DST, false);
     }
 
     QDate DOB() const { return getPref(STR_UI_DOB).toDate(); }
@@ -506,7 +504,6 @@ class UserInfo : public PrefSettings
     const QString country() const { return getPref(STR_UI_Country).toString(); }
     Gender gender() const { return (Gender)getPref(STR_UI_Gender).toInt(); }
     const QString timeZone() const { return getPref(STR_UI_TimeZone).toString(); }
-    bool daylightSaving() const { return getPref(STR_UI_DST).toBool(); }
 
     void setDOB(QDate date) { setPref(STR_UI_DOB, date); }
     void setFirstName(QString name) { setPref(STR_UI_FirstName, name); }
@@ -519,7 +516,6 @@ class UserInfo : public PrefSettings
     void setCountry(QString country) { setPref(STR_UI_Country, country); }
     void setGender(Gender g) { setPref(STR_UI_Gender, (int)g); }
     void setTimeZone(QString tz) { setPref(STR_UI_TimeZone, tz); }
-    void setDaylightSaving(bool ds) { setPref(STR_UI_DST, ds); }
 
     /// \brief Return how this profile was originally created ("Local", "Backup", "Share", or "Import").
     const QString source() const { return getPref(STR_PI_Source).toString(); }

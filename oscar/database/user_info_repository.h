@@ -36,7 +36,6 @@ struct UserInfoData
     double height = 0.0;
     int gender = 0;        // 0=NotSpecified, 1=Male, 2=Female
     QString timezone;
-    bool dstEnabled = false;
     QString passwordHash;  // SHA1 hash if password set
 };
 

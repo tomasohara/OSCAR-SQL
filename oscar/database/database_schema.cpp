@@ -217,6 +217,14 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         fromVersion = 14;
     }
 
+    if (fromVersion == 14) {
+        if (!migrateV14ToV15(db)) {
+            qCritical() << "DatabaseSchema: v14->v15 migration failed";
+            return false;
+        }
+        fromVersion = 15;
+    }
+
     if (fromVersion != CURRENT_SCHEMA_VERSION) {
         qCritical() << "DatabaseSchema: No migration path from version" << fromVersion;
         return false;
@@ -509,7 +517,6 @@ bool DatabaseSchema::createUserInfoTable(QSqlDatabase& db)
         "    height REAL,"
         "    gender INTEGER,"
         "    timezone TEXT,"
-        "    dst_enabled INTEGER,"
         "    password_hash TEXT,"
         "    created_at TEXT DEFAULT CURRENT_TIMESTAMP,"
         "    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
@@ -1377,6 +1384,56 @@ bool DatabaseSchema::migrateV13ToV14(QSqlDatabase& db)
     }
 
     qDebug() << "DatabaseSchema: Migration v13->v14 complete";
+    return true;
+}
+
+/*
+ * Migrate database from schema version 14 to 15
+ *
+ * Removes the dst_enabled column from user_info — it was stored but never
+ * read by any computation, making it dead code.
+ */
+bool DatabaseSchema::migrateV14ToV15(QSqlDatabase& db)
+{
+    qDebug() << "DatabaseSchema: Migrating v14 -> v15";
+
+    if (!db.transaction()) {
+        qCritical() << "DatabaseSchema: migrateV14ToV15: failed to start transaction";
+        return false;
+    }
+
+    QSqlQuery q(db);
+    if (!q.exec("ALTER TABLE user_info DROP COLUMN dst_enabled")) {
+        QString err = q.lastError().text();
+        // Column may already be absent (e.g. fresh install migrated past v14 cleanly)
+        if (!err.contains("no such column", Qt::CaseInsensitive)) {
+            qCritical() << "DatabaseSchema: migrateV14ToV15: DROP COLUMN failed:" << err;
+            db.rollback();
+            return false;
+        }
+    }
+
+    // Remove orphaned "DST" preference rows that UserInfo::initPref() used to write.
+    if (!q.exec("DELETE FROM profile_preferences WHERE key = 'DST'")) {
+        qCritical() << "DatabaseSchema: migrateV14ToV15: DELETE profile_preferences failed:"
+                    << q.lastError().text();
+        db.rollback();
+        return false;
+    }
+
+    if (!setSchemaVersion(db, 15)) {
+        qCritical() << "DatabaseSchema: migrateV14ToV15: setSchemaVersion failed";
+        db.rollback();
+        return false;
+    }
+
+    if (!db.commit()) {
+        qCritical() << "DatabaseSchema: migrateV14ToV15: commit failed";
+        db.rollback();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: Migration v14->v15 complete";
     return true;
 }
 
