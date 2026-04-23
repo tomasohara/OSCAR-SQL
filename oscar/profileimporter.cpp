@@ -181,7 +181,9 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     // (two levels up from the profile folder: OSCAR_Data/Profiles/ProfileName → OSCAR_Data)
     QString sourceDataPath = QDir::cleanPath(QDir(sourcePath).absolutePath() + "/../..");
     copyLayoutSettings(sourceDataPath);
-    migrateAppSettings(sourceDataPath);
+    if (!migrateAppSettings(sourceDataPath)) {
+        qWarning() << "ProfileImporter: App settings migration failed; continuing import";
+    }
 
     // ===== COMMIT TRANSACTION 1: profile metadata (small, fast) =====
     // Profile record, machines, user/doctor info, and preferences are now committed.
@@ -198,8 +200,8 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     if (!dbMgr.commit()) {
         m_lastError = tr("Failed to commit profile metadata: %1").arg(dbMgr.lastError().text());
         qWarning() << "ProfileImporter: Failed to commit metadata transaction";
-        // Defensively remove any metadata that may have been committed via a
-        // path that bypassed DatabaseManager (e.g. a future Preferences::Save() regression).
+        // Belt-and-braces: remove any metadata that may have been committed outside
+        // DatabaseManager's transaction tracking (guard against future regressions).
         if (profileId > 0) {
             ProfileRepository cleanupRepo;
             cleanupRepo.remove(profileId);
@@ -1067,18 +1069,18 @@ void ProfileImporter::copyLayoutSettings(const QString& sourceDataPath)
  * profile.  Copy every key from the source file, skipping a handful of OSCAR 2.0-specific
  * tracking values that should not be overwritten.
  */
-void ProfileImporter::migrateAppSettings(const QString& sourceDataPath)
+bool ProfileImporter::migrateAppSettings(const QString& sourceDataPath)
 {
     QString sourcePrefFile = sourceDataPath + "/Preferences.xml";
     if (!QFile::exists(sourcePrefFile)) {
         qDebug() << "ProfileImporter::migrateAppSettings: No Preferences.xml in source data folder";
-        return;
+        return true;
     }
 
     Preferences sourcePref("Preferences", sourcePrefFile);
     if (!sourcePref.Open()) {
         qWarning() << "ProfileImporter::migrateAppSettings: Failed to open" << sourcePrefFile;
-        return;
+        return false;
     }
 
     // Keys that must NOT be overwritten with source values:
@@ -1103,8 +1105,12 @@ void ProfileImporter::migrateAppSettings(const QString& sourceDataPath)
     }
 
     if (copied > 0) {
-        p_pref->Save();
+        if (!p_pref->Save()) {
+            qWarning() << "ProfileImporter::migrateAppSettings: Failed to save migrated app settings";
+            return false;
+        }
         qDebug() << "ProfileImporter::migrateAppSettings: Migrated" << copied
                  << "app settings from" << sourcePrefFile;
     }
+    return true;
 }

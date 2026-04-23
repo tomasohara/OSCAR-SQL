@@ -117,7 +117,7 @@ private:
 
     // Migrate data from OSCAR 1.x data root (shared across all profiles)
     void copyLayoutSettings(const QString& sourceDataPath);
-    void migrateAppSettings(const QString& sourceDataPath);
+    bool migrateAppSettings(const QString& sourceDataPath);
 };
 
 #endif // PROFILEIMPORTER_H
