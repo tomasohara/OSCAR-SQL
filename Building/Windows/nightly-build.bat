@@ -49,7 +49,7 @@ if not defined NIGHTLY_LOGGED (
 cd /d "%REPO_DIR%"
 
 if /i "%~f0" == "%BUILD_DIR%\nightly-build.bat" (
-    git diff --quiet HEAD -- Building/Windows/nightly-build.bat
+    git diff --quiet --ignore-cr-at-eol HEAD -- Building/Windows/nightly-build.bat
     if !errorlevel! neq 0 (
         echo ERROR: nightly-build.bat has local modifications.
         echo git stash would corrupt this script's own execution.
