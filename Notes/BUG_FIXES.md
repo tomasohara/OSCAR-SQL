@@ -4,6 +4,25 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-24 - nightly-build.bat corrupts itself when git stash runs mid-execution (#83)
+
+**File:** `Building/Windows/nightly-build.bat`, `Building/Windows/nightly-notify.ps1`
+
+**Symptom:** Running `nightly-build.bat` when the file had local modifications produced
+garbled commands (e.g. `l buildall-qt6.bat`) and failed immediately.
+
+**Root cause:** `git stash` inside the script restored the old version of the file on
+disk. Since cmd.exe reads batch files by byte offset, the interpreter then read from
+the wrong offset in the restored (differently-sized) file.
+
+**Fix:** Moved `git stash`/`pop` to before the fetch step so the script is never
+modified mid-execution. Added a self-modification guard (skipped when running a copy
+from outside the repo). Added `--ignore-cr-at-eol` to guard's `git diff` to avoid
+false positives from CRLF/LF differences. Added logging to `C:\OSCAR\nightly-build.log`
+and a modal failure notification via `nightly-notify.ps1`.
+
+---
+
 ## 2026-04-23 - layoutSettings folder not removed after import when source has no saved layouts
 
 **File:** `oscar/main.cpp` — `importLegacyNamedLayouts()`
