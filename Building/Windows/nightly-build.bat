@@ -15,15 +15,65 @@ set REPO_DIR=C:\OSCAR\OSCAR-code
 set BUILD_DIR=C:\OSCAR\OSCAR-code\Building\Windows
 set BUILD_SCRIPT=buildall-qt6.bat
 set INSTALLER_DIR=C:\OSCAR\OSCAR-code\build-oscar-win_64_bit\Installer
+set LOG_FILE=C:\OSCAR\nightly-build.log
+set NOTIFY_SCRIPT=%~dp0nightly-notify.ps1
+
+:: -----------------------------------------------------------------------
+:: Logging: re-invoke this script with all output redirected to the log.
+::          NIGHTLY_LOGGED prevents infinite recursion.
+:: -----------------------------------------------------------------------
+if not defined NIGHTLY_LOGGED (
+    set NIGHTLY_LOGGED=1
+    echo. >> "%LOG_FILE%"
+    echo ======================================================== >> "%LOG_FILE%"
+    echo [%date% %time%] Nightly build started >> "%LOG_FILE%"
+    echo ======================================================== >> "%LOG_FILE%"
+    call "%~f0" >> "%LOG_FILE%" 2>&1
+    set EXIT_CODE=!errorlevel!
+    if !EXIT_CODE! neq 0 (
+        powershell -WindowStyle Hidden -File "%NOTIFY_SCRIPT%" "OSCAR nightly build FAILED (code !EXIT_CODE!) -- see %LOG_FILE%"
+    )
+    exit /b !EXIT_CODE!
+)
+
+:: -----------------------------------------------------------------------
+:: Guard: refuse to run if this script itself is modified.
+::
+::   cmd.exe reads .bat files by byte offset.  A git stash while this file
+::   is dirty restores the old content on disk; the interpreter then seeks
+::   to the old offset in the new (shorter/longer) file and executes garbage.
+::
+::   Skip this check when running a copy from outside the repo — the stash
+::   cannot touch a file that is not inside the repo working tree.
+:: -----------------------------------------------------------------------
+cd /d "%REPO_DIR%"
+
+if /i "%~f0" == "%BUILD_DIR%\nightly-build.bat" (
+    git diff --quiet HEAD -- Building/Windows/nightly-build.bat
+    if !errorlevel! neq 0 (
+        echo ERROR: nightly-build.bat has local modifications.
+        echo git stash would corrupt this script's own execution.
+        echo Please commit or reset these changes first, then re-run.
+        exit /b 1
+    )
+)
+
+:: -----------------------------------------------------------------------
+:: Step 0: Stash any other local changes NOW, before all other operations,
+::         so they are not visible as dirty during the build.
+::         (Safe here because the guard above confirmed this file is clean.)
+:: -----------------------------------------------------------------------
+git stash
+:: errorlevel 1 just means "nothing to stash" — that is fine.
 
 :: -----------------------------------------------------------------------
 :: Step 1: Fetch latest from GitLab and record the remote master HEAD hash.
 :: -----------------------------------------------------------------------
-cd /d "%REPO_DIR%"
 echo Fetching latest from origin...
 git fetch origin master
 if %errorlevel% neq 0 (
     echo ERROR: git fetch failed.
+    git stash pop 2>nul
     exit /b 1
 )
 
@@ -65,6 +115,7 @@ if defined NIGHTLY_HASH (
     echo %REMOTE_FULL_HASH% | findstr /B /I "!NIGHTLY_HASH!" >nul
     if !errorlevel! == 0 (
         echo Remote HEAD matches current nightly build. No action needed.
+        git stash pop 2>nul
         exit /b 0
     )
 )
@@ -78,16 +129,16 @@ cd /d "%REPO_DIR%"
 git checkout %REMOTE_FULL_HASH%
 if %errorlevel% neq 0 (
     echo ERROR: git checkout %REMOTE_FULL_HASH% failed.
+    git stash pop 2>nul
     exit /b 1
 )
 
 :: -----------------------------------------------------------------------
 :: Step 5: Run the full build from the required working directory.
+::         (No stash/pop here — already done in Step 0.)
 :: -----------------------------------------------------------------------
 cd /d "%BUILD_DIR%"
-git stash
 call %BUILD_SCRIPT%
-git stash pop
 set BUILD_RESULT=%errorlevel%
 :::pause
 
@@ -99,6 +150,9 @@ git checkout master
 if %errorlevel% neq 0 (
     echo WARNING: git checkout master failed - you may be in detached HEAD state.
 )
+
+:: Restore any local changes that were stashed in Step 0.
+git stash pop 2>nul
 
 if %BUILD_RESULT% neq 0 (
     echo ERROR: Build failed with error %BUILD_RESULT%.
@@ -136,9 +190,9 @@ if %errorlevel% neq 0 (
     echo ERROR: Failed to copy installer to Dropbox.
     exit /b 1
 )
-::: pause
+
 echo.
 echo Nightly build complete: %DROPBOX_DIR%\!NIGHTLY_NEW_NAME!
 endlocal
-pause
+:::pause
 exit /b 0
