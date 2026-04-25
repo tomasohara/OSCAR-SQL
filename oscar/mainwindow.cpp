@@ -2631,11 +2631,52 @@ void MainWindow::importNonCPAP(MachineLoader &loader)
         connect(&loader, &MachineLoader::deviceIsUntested, &importui, &ImportUI::onDeviceIsUntested);
         connect(&loader, &MachineLoader::deviceIsUnsupported, &importui, &ImportUI::onDeviceIsUnsupported);
 
+        DatabaseManager& dbMgr = DatabaseManager::instance();
+        if (!dbMgr.transaction()) {
+            QString errText = dbMgr.lastError().text();
+            qWarning() << "MainWindow::importNonCPAP() - Failed to start database transaction:" << errText;
+            if (size > 1) {
+                disconnect(&loader, SIGNAL(setProgressValue(int)), &progress, SLOT(setProgressValue(int)));
+                disconnect(&progress, SIGNAL(abortClicked()), &loader, SLOT(abortImport()));
+                progress.close();
+            }
+            loader.SetContext(nullptr);
+            delete ctx;
+            QMessageBox::critical(this, tr("Database Locked"),
+                tr("Cannot import data: the OSCAR database is locked by another application.\n\n"
+                   "If you have the database open in a SQLite viewer or editor, "
+                   "please close it and try again.\n\nError: %1").arg(errText));
+            return;
+        }
+
         int res = loader.Open(files);
 
         progress.setMessage(QObject::tr("Finishing up..."));
         QCoreApplication::processEvents();
         ctx->Commit();
+
+        if (res > 0) {
+            QDateTime now = QDateTime::currentDateTime();
+            MachineRepository repo;
+            for (Machine* m : p_profile->GetMachines()) {
+                if (m->loaderName() == loader.loaderName() && m->getDatabaseId() > 0) {
+                    m->info.lastimported = now;
+                    MachineData data = repo.findById(m->getDatabaseId());
+                    if (data.id > 0) {
+                        data.lastImported = now.toString(Qt::ISODate);
+                        repo.update(data);
+                    }
+                }
+            }
+        }
+
+        QString commitError;
+        if (!dbMgr.commit()) {
+            commitError = dbMgr.lastError().text();
+            qWarning() << "MainWindow::importNonCPAP() - Failed to commit database transaction:" << commitError;
+            dbMgr.rollback();
+            res = -1;
+        }
 
         loader.SetContext(nullptr);
         delete ctx;
@@ -2646,6 +2687,16 @@ void MainWindow::importNonCPAP(MachineLoader &loader)
             progress.close();
             QCoreApplication::processEvents();
         }
+
+        if (!commitError.isEmpty()) {
+            QMessageBox::critical(this, tr("Import Failed"),
+                tr("The imported data could not be saved to the database. No data was stored.\n\n"
+                   "If you have the OSCAR database open in another application "
+                   "(e.g., a SQLite viewer or editor), please close it and try again.\n\nError: %1")
+                .arg(commitError));
+            return;
+        }
+
         if (res < 0) {
             // res is used as an index to an array and will cause a crash if not handled.
             // Negative numbers indicate a problem with the file format or the file does not exist.

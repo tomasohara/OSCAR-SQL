@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-25 - importNonCPAP() ran without a database transaction (#87)
+
+**File:** `oscar/mainwindow.cpp` — `MainWindow::importNonCPAP()`
+
+**Symptom:** Imports of Zeo, Dreem, Somnopose, and Viatom data ran outside any
+database transaction. A failure mid-import would leave the database in a partially
+written state with no way to roll back.
+
+**Root cause:** `importCPAP()` wraps the entire import in `dbMgr.transaction()` /
+`dbMgr.commit()` with rollback on failure, but `importNonCPAP()` had no equivalent
+wrapping — it called `loader.Open()` and `ctx->Commit()` with no transaction guard.
+
+**Fix:** Added `dbMgr.transaction()` before `loader.Open()` in `importNonCPAP()`,
+with the same failure handling as `importCPAP()`: error dialog + early return on
+transaction-start failure, rollback + critical dialog on commit failure. Also added
+the `lastImported` timestamp update (inside the transaction) that `importCPAP()` already
+performs, which was also missing.
+
+---
+
 ## 2026-04-24 - nightly-build.bat corrupts itself when git stash runs mid-execution (#83)
 
 **File:** `Building/Windows/nightly-build.bat`, `Building/Windows/nightly-notify.ps1`
