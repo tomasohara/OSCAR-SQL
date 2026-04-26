@@ -729,9 +729,9 @@ CREATE UNIQUE INDEX idx_graph_layouts_current
 | wavg | REAL | | NO | Weighted average |
 | min | REAL | | NO | Minimum |
 | max | REAL | | NO | Maximum |
-| median | REAL | | NO | Median (50th percentile) |
-| p90 | REAL | | NO | 90th percentile |
-| p95 | REAL | | NO | 95th percentile |
+| median | REAL | | NO | Median (50th percentile) ¹ |
+| p90 | REAL | | NO | 90th percentile ¹ |
+| p95 | REAL | | NO | 95th percentile ¹ |
 | phys_min | REAL | | NO | Physical minimum |
 | phys_max | REAL | | NO | Physical maximum |
 | cph | REAL | | NO | Count per hour |
@@ -740,6 +740,12 @@ CREATE UNIQUE INDEX idx_graph_layouts_current
 | last_time | INTEGER | | YES | Last occurrence timestamp |
 | gain | REAL | | NO | Scale factor |
 | created_at | TEXT | | NO | Creation timestamp |
+
+¹ `median`, `p90`, and `p95` are 0 for oximetry sessions imported before the
+2026-04-25 bug fix (issue #88). A bug in `Machine::Save()` caused these values
+to be overwritten with 0 whenever `Profile::Save()` was called on a session whose
+events were not loaded in memory. Data imported after the fix is correct.
+Re-import is required to repair pre-fix rows; the discontinuity is accepted.
 
 ### session_channel_values 🐛 **NEW IN v7**
 
