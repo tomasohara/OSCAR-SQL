@@ -4,6 +4,52 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-25 - session_channels p95/median stored as 0 for OXI_Pulse and other channels (#88)
+
+**Files:** `oscar/SleepLib/machine.cpp` — `Machine::Save()`;
+`oscar/SleepLib/session.cpp` — `Session::StoreToDatabase()`, `Session::updateCountSummary()`
+
+**Symptom:** `session_channels.p95` and `session_channels.median` contain 0 for OXI_Pulse
+(channel_id 6144) and potentially other channels even though data was correctly imported.
+
+**Root causes:**
+
+1. **Primary — overwrite on re-save:** `Machine::Save()` called `StoreToDatabase()` on
+   every session unconditionally. When `Profile::Save()` triggered `Machine::Save()` (e.g.
+   user changes preferences), events were not loaded in memory. `StoreToDatabase()` deleted
+   the existing `session_channels` rows and re-inserted them with p95=0.
+
+2. **Missing fallback in `StoreToDatabase()`:** When events weren't loaded, the code
+   unconditionally set p95=0 even when `m_valuesummary`/`m_timesummary` were already
+   populated (loaded from the DB). No attempt was made to use these loaded summaries.
+
+3. **EVL_Event single-event list:** For change-only compressed channels where the value
+   never changed during the session, `ToTimeDelta()` creates a 1-event EventList. The loop
+   in `updateCountSummary()` never runs for cnt==1, leaving `valsum` empty.
+   `calculatePercentiles()` then returns `valid=false` → p95=0.
+
+4. **EVL_Waveform multi-EventList time accumulation:** When a channel has multiple
+   EventLists (e.g. separated by recording gaps), `updateCountSummary()` iterated the
+   global cumulative `valsum` for the timesum calculation on each EventList. Counts from
+   earlier EventLists were double-counted into subsequent EventLists' time weights,
+   giving inflated (wrong) p95 values when gaps exist.
+
+**Fixes:**
+
+- `Machine::Save()`: skip `StoreToDatabase()` for sessions where `sessionRowId() > 0`
+  and `!changed()`. New sessions (rowId==0) and sessions explicitly marked changed still
+  always save.
+- `StoreToDatabase()`: added `hasSummaryData` check — if events aren't loaded but
+  `m_valuesummary` and `m_timesummary` are populated (DB-loaded), use them via
+  `calculatePercentiles()` instead of writing 0.
+- `updateCountSummary()` EVL_Event: after the loop, if `valsum` is still empty (cnt==1),
+  add `lastraw` to valsum with a time weight of 1 so `calculatePercentiles()` can return
+  the single constant value as the percentile.
+- `updateCountSummary()` EVL_Waveform: use a per-EventList `localValsum` for the timesum
+  calculation so each EventList contributes only its own sample counts to the time weights.
+
+---
+
 ## 2026-04-25 - importNonCPAP() ran without a database transaction (#87)
 
 **File:** `oscar/mainwindow.cpp` — `MainWindow::importNonCPAP()`

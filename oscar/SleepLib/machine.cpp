@@ -1299,7 +1299,11 @@ bool Machine::Save()
         // Save all sessions (within existing or new transaction)
         for (s = sessionlist.begin(); s != sessionlist.end(); s++) {
             Session *sess = s.value();
-            if (sess->first() != 0) {  // Only save valid sessions
+            // Save new sessions (never persisted) or sessions explicitly marked changed.
+            // Skipping unchanged DB-loaded sessions prevents overwriting correct
+            // percentile values with 0 when events are not in memory.
+            if (sess->first() != 0
+                    && (sess->sessionRowId() == 0 || sess->changed())) {
                 if (sess->StoreToDatabase()) {
                     savedCount++;
                 } else {

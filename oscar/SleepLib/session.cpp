@@ -1264,20 +1264,10 @@ void Session::updateCountSummary(ChannelID code)
             // if the count is zero then tptr is a null pointer and triggers the crash.
             // when the count is zero then just continue to process the next event list.
             if (cnt==0) {
-                #if 0
-                if (tptr) {
-                    DEBUGCI NAME(code) Q((void*)&e) Q((void*)tptr) Q((void*)dptr) Q(start) Q(cnt) Q(ev_size) ;
-                }
-                #endif
                 continue;
             }
-            #if defined(FIX_FOR_SINGLE_EVENT)
-            lastraw = *dptr;
-            lasttime = start + *tptr;
-            #else
             lastraw = *dptr++;
             lasttime = start + *tptr++;
-            #endif
             // Event version
 
             for (; dptr < eptr; dptr++) {
@@ -1293,24 +1283,31 @@ void Session::updateCountSummary(ChannelID code)
 
                 lastraw = raw;
                 lasttime = time;
-            } 
+            }
+
+            // Single-event lists: the loop body never runs so valsum stays empty.
+            // Add the sole value with a minimal time weight so calculatePercentiles()
+            // can return a valid (and trivially correct) result.
+            if (valsum.isEmpty()) {
+                valsum[lastraw]++;
+                timesum[lastraw] += 1;
+            }
         } else {
-            // Waveform version, first just count
+            // Waveform version: count this EventList's samples into a local map,
+            // then accumulate the time weight using ONLY this EventList's counts.
+            // Using the global valsum here would double-count earlier EventLists'
+            // entries when multiple EventLists exist for the same channel.
+            QHash<EventStoreType, EventStoreType> localValsum;
             for (; dptr < eptr; dptr++) {
                 raw = *dptr;
+                localValsum[raw]++;
                 valsum[raw]++;
             }
 
-            // Then process the list of values, time is simply (rate * count)
+            // Time weight is (count * rate_ms) for waveform data
             rate = e.rate();
-            EventDataType t;
-
-            QHash<EventStoreType, EventStoreType>::iterator it = valsum.begin();
-            QHash<EventStoreType, EventStoreType>::iterator valsum_end = valsum.end();
-
-            for (; it != valsum_end; ++it) {
-                t = EventDataType(it.value()) * rate;
-                timesum[it.key()] += t;
+            for (auto it = localValsum.cbegin(); it != localValsum.cend(); ++it) {
+                timesum[it.key()] += EventDataType(it.value()) * rate;
             }
         }
     }
@@ -2957,8 +2954,16 @@ bool Session::StoreToDatabase()
                                 !eventlist[id].isEmpty() &&
                                 eventlist[id][0]->count() > 0;
 
+            // Fallback: value/time summaries loaded from the DB are sufficient
+            // for percentile calculation even when events aren't in memory.
+            // Without this, StoreToDatabase() called on a DB-loaded session
+            // (events not loaded) overwrites correct p95/median with 0.
+            bool hasSummaryData = needsPercentiles && !hasEventData &&
+                                  m_valuesummary.contains(id) &&
+                                  m_timesummary.contains(id);
+
             PERF_TIMER_START("Session::StoreDB::Channels::Calc");
-            if (hasEventData) {
+            if (hasEventData || hasSummaryData) {
                 // Use optimized multi-percentile calculator (~3x faster than calling percentile() 3 times)
                 PercentilesResult percentiles = calculatePercentiles(id);
                 if (percentiles.valid) {
