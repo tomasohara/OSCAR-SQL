@@ -173,3 +173,11 @@ See the full collection of queries in `USEFUL_QUERIES.sql` which includes:
 - Compliance tracking
 - Data quality checks
 - Statistical summaries
+
+## Specialized Query Files
+
+| File | Purpose |
+|------|---------|
+| `USEFUL_QUERIES.sql` | General-purpose queries (profiles, sessions, compliance, stats) |
+| `QUERY_RECENT_SESSION_SETTINGS.sql` | Session settings and machine configuration |
+| `QUERY_PULSE_P95.sql` | Oximetry pulse rate percentiles — two variants: fast (pre-calculated from `session_channels`) and accurate (recomputed from raw `session_channel_values` histogram). Useful for verifying p95/median values after issue #88 fix. |

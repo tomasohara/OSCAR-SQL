@@ -1268,8 +1268,12 @@ void Session::updateCountSummary(ChannelID code)
             }
             lastraw = *dptr++;
             lasttime = start + *tptr++;
-            // Event version
 
+            // After priming, dptr >= eptr iff cnt==1. Capture this per-EventList
+            // so the fallback fires even when an earlier list already populated valsum.
+            bool singleEvent = (dptr >= eptr);
+
+            // Event version
             for (; dptr < eptr; dptr++) {
                 time = start + *tptr++;
                 raw = *dptr;
@@ -1285,10 +1289,10 @@ void Session::updateCountSummary(ChannelID code)
                 lasttime = time;
             }
 
-            // Single-event lists: the loop body never runs so valsum stays empty.
-            // Add the sole value with a minimal time weight so calculatePercentiles()
-            // can return a valid (and trivially correct) result.
-            if (valsum.isEmpty()) {
+            // cnt==1: loop never ran, so this EventList contributed nothing to valsum
+            // or timesum. Give the sole constant value a minimal weight (true duration
+            // is zero for a 1-event list) so calculatePercentiles() returns it.
+            if (singleEvent) {
                 valsum[lastraw]++;
                 timesum[lastraw] += 1;
             }
@@ -3063,6 +3067,8 @@ bool Session::StoreToDatabase()
 #ifdef DBDEBUG
     qDebug() << "Session::StoreToDatabase(): Saved session" << s_session << "to database with ID" << m_sessionrow_id;
 #endif
+    // Clear dirty flag directly; don't use SetChanged() which has a side-effect on s_events_loaded.
+    s_changed = false;
     return true;
 }
 
