@@ -47,7 +47,7 @@ static const char* const names[] = {
     QT_TRANSLATE_NOOP("SystemReports", "Profiles"),
     QT_TRANSLATE_NOOP("SystemReports", "Profiles with Data"),
     QT_TRANSLATE_NOOP("SystemReports", "Respiratory Events"),
-    QT_TRANSLATE_NOOP("SystemReports", "Summary"),
+    QT_TRANSLATE_NOOP("SystemReports", "Monthly Summary"),
     QT_TRANSLATE_NOOP("SystemReports", "Sessions"),
 };
 

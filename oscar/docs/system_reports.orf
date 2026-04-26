@@ -311,7 +311,7 @@ WHERE re.profile_id = #PROFILE_ID
 ORDER BY re.start_time
 SQL
 
-=== Report: Statistics/Summary ===
+=== Report: Statistics/Monthly Summary ===
 Description: Monthly summary matching the Statistics page — one row per month
 Query: <<SQL
 -- Monthly aggregation of daily_summaries, matching the Statistics page layout.
