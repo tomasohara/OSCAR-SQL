@@ -1082,6 +1082,11 @@ void OximeterImport::on_saveButton_clicked()
     session->Min(OXI_SPO2);
     session->Max(OXI_Pulse);
     session->Max(OXI_SPO2);
+    // avg/wavg are needed so daily_summaries.spo2_avg and pulse_avg are correct
+    session->avg(OXI_Pulse);
+    session->avg(OXI_SPO2);
+    session->wavg(OXI_Pulse);
+    session->wavg(OXI_SPO2);
 
     session->really_set_last(ti);
     session->SetChanged(true);
@@ -1094,6 +1099,7 @@ void OximeterImport::on_saveButton_clicked()
     mach->Save();
     mach->SaveSummaryCache();
     p_profile->StoreMachines();
+    p_profile->calculateDailySummaries();
 
     mainwin->EnableTabs(true);  // somebody has to do it...
 

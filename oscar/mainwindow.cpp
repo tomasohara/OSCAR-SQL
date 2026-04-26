@@ -2716,6 +2716,11 @@ void MainWindow::importNonCPAP(MachineLoader &loader)
         } else {
             Notify(tr("%1 Data Import complete").arg(name));
         }
+        if (res > 0) {
+            // Refresh daily_summaries for the newly imported days so that
+            // oximetry stats (spo2_avg, pulse_avg/min/max, has_oximetry) appear.
+            p_profile->calculateDailySummaries();
+        }
         PopulatePurgeMenu();
         if (overview) overview->ReloadGraphs();
         if (welcome) welcome->refreshPage();

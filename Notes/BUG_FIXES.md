@@ -4,6 +4,39 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-26 - SpO2 and pulse data missing from daily_summaries after oximetry import (#89)
+
+**Files:** `oscar/mainwindow.cpp` — `MainWindow::importNonCPAP()`;
+`oscar/oximeterimport.cpp`
+
+**Symptom:** After importing oximetry data (via the oximeter wizard or file-based
+loaders), `daily_summaries.spo2_avg`, `pulse_avg`, `pulse_min`, `pulse_max`, and
+`has_oximetry` remain 0/false even though data is correctly in `session_channels`
+and `session_summaries`.
+
+**Root causes:**
+
+1. `calculateDailySummaries()` is called only once at profile load when
+   `existingCount == 0`. After any subsequent import no code calls it again, so
+   the `daily_summaries` rows for affected dates are never updated with oximetry
+   stats. (`mach->day[date]` and `profile->daylist[date]` point to the same Day
+   object, so a single call sees combined CPAP+oxi sessions; `INSERT OR REPLACE`
+   updates existing rows idempotently.)
+
+2. `oximeterimport.cpp` called `count()`, `Min()`, and `Max()` for OXI_SPO2 and
+   OXI_Pulse but not `avg()` or `wavg()`, leaving those fields as 0 in both
+   `session_channels` and, consequently, `daily_summaries.spo2_avg`/`pulse_avg`.
+
+**Fixes:**
+
+- `importNonCPAP()`: call `p_profile->calculateDailySummaries()` after a
+  successful import (`res > 0`). Covers Viatom, Dreem, Zeo, Somnopose.
+- `oximeterimport.cpp`: add `session->avg()` and `session->wavg()` for
+  OXI_Pulse and OXI_SPO2 before `mach->Save()`, then call
+  `p_profile->calculateDailySummaries()` after `StoreMachines()`.
+
+---
+
 ## 2026-04-25 - session_channels p95/median stored as 0 for OXI_Pulse and other channels (#88)
 
 **Files:** `oscar/SleepLib/machine.cpp` — `Machine::Save()`;
