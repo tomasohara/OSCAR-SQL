@@ -1303,7 +1303,7 @@ bool Machine::Save()
             // Skipping unchanged DB-loaded sessions prevents overwriting correct
             // percentile values with 0 when events are not in memory.
             if (sess->first() != 0
-                    && (sess->sessionRowId() == 0 || sess->changed())) {
+                    && (sess->sessionRowId() == 0 || sess->IsChanged())) {
                 if (sess->StoreToDatabase()) {
                     savedCount++;
                 } else {
