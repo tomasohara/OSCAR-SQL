@@ -141,12 +141,24 @@ void JournalNotesDialog::applyDateRange(const QString& rangeText)
     if (isCustom) return;
 
     if (rangeText == tr("All")) {
-        ui->fromDate->setDate(getFirstJournalDate());
-        ui->toDate->setDate(getLastJournalDate());
+        const QDate first = getFirstJournalDate();
+        const QDate last  = getLastJournalDate();
+        if (!first.isValid() || !last.isValid()) {
+            ui->exportButton->setEnabled(false);
+            return;
+        }
+        ui->exportButton->setEnabled(true);
+        ui->fromDate->setDate(first);
+        ui->toDate->setDate(last);
         return;
     }
 
     const QDate last = getLastJournalDate();
+    if (!last.isValid()) {
+        ui->exportButton->setEnabled(false);
+        return;
+    }
+    ui->exportButton->setEnabled(true);
 
     if (rangeText == tr("Last Week")) {
         ui->fromDate->setDate(last.addDays(-6));
@@ -202,20 +214,24 @@ void JournalNotesDialog::loadSettings()
 
 QDate JournalNotesDialog::getFirstJournalDate() const
 {
-    if (p_profile) {
+    // FirstDay(MT_JOURNAL) returns m_last as a fallback when no MT_JOURNAL day
+    // exists, so verify the returned date actually has journal data.
+    if (p_profile && p_profile->GetMachine(MT_JOURNAL)) {
         QDate d = p_profile->FirstDay(MT_JOURNAL);
-        if (d.isValid()) return d;
+        if (d.isValid() && p_profile->FindDay(d, MT_JOURNAL)) return d;
     }
-    return QDate::currentDate();
+    return QDate();
 }
 
 QDate JournalNotesDialog::getLastJournalDate() const
 {
-    if (p_profile) {
+    // LastDay(MT_JOURNAL) returns m_first as a fallback when no MT_JOURNAL day
+    // exists, so verify the returned date actually has journal data.
+    if (p_profile && p_profile->GetMachine(MT_JOURNAL)) {
         QDate d = p_profile->LastDay(MT_JOURNAL);
-        if (d.isValid()) return d;
+        if (d.isValid() && p_profile->FindDay(d, MT_JOURNAL)) return d;
     }
-    return QDate::currentDate();
+    return QDate();
 }
 
 // ---------------------------------------------------------------------------
