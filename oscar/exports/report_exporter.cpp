@@ -794,9 +794,9 @@ void ReportExporter::updateStatusLabel(const QModelIndex& index)
         QStringList path;
         QStandardItem* p = item;
         while (p) { path.prepend(p->text()); p = p->parent(); }
-        m_statusLabel->setText(tr("Report: %1 (%2)").arg(path.join(" / "), source));
+        m_statusLabel->setText(tr("Report: %1 (%2) — right-click for options").arg(path.join(" / "), source));
     } else if (isFolderNode(item)) {
-        m_statusLabel->setText(tr("Folder: %1 — select a report to export").arg(item->text()));
+        m_statusLabel->setText(tr("Folder: %1 — right-click for options").arg(item->text()));
     } else if (isRootNode(item)) {
         m_statusLabel->setText(tr("%1 branch — right-click for options").arg(item->text()));
     }
