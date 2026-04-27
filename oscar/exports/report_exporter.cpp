@@ -657,7 +657,9 @@ void ReportExporter::onEditDescription()
         tr("Description for \"%1\":").arg(item->text()),
         item->data(ReportTreeModel::DescriptionRole).toString(), &ok);
 
-    if (ok) m_model->updateDescription(item, newDesc);
+    if (ok && !m_model->updateDescription(item, newDesc)) {
+        QMessageBox::warning(this, tr("Edit Description"), tr("Failed to save description."));
+    }
 }
 
 void ReportExporter::onImportReports()

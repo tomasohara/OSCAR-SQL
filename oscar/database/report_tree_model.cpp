@@ -450,6 +450,34 @@ QStandardItem* ReportTreeModel::findItemById(qint64 nodeId, QStandardItem* paren
 }
 
 /*
+ * setData override — persists inline renames (Qt::EditRole) to the database
+ * before letting the base class update the in-memory item text.
+ * Without this, F2 / right-click Rename only changes the model in memory.
+ */
+bool ReportTreeModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+    if (role == Qt::EditRole && index.isValid()) {
+        QStandardItem* item = itemFromIndex(index);
+        if (item && isUserNode(item) && !isRootNode(item)) {
+            QString newName = value.toString().trimmed();
+            if (newName.isEmpty()) {
+                return false;  // Reject empty names
+            }
+            qint64 nodeId = getNodeId(item);
+            ReportTreeNode dbNode = m_repository.findById(nodeId);
+            if (dbNode.id != 0) {
+                dbNode.name = newName;
+                if (!m_repository.update(dbNode)) {
+                    qWarning() << "ReportTreeModel::setData: Failed to persist rename for node" << nodeId;
+                    return false;
+                }
+            }
+        }
+    }
+    return QStandardItemModel::setData(index, value, role);
+}
+
+/*
  * Drag and drop support
  */
 

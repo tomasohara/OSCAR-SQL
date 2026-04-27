@@ -80,6 +80,10 @@ public:
     bool isFolderNode(QStandardItem* item) const;
     bool isRootNode(QStandardItem* item) const;
 
+    // QAbstractItemModel overrides
+    bool setData(const QModelIndex& index, const QVariant& value,
+                 int role = Qt::EditRole) override;
+
     // Drag and drop support
     Qt::DropActions supportedDropActions() const override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;

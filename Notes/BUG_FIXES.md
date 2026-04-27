@@ -4,6 +4,31 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-27 - CSV Export Wizard: rename/description not persisted to database (#94)
+
+**Files:** `oscar/database/report_tree_model.{h,cpp}`,
+`oscar/exports/report_exporter.cpp`
+
+**Symptom:** Renaming a user report/folder or editing a description in the
+CSV Export Wizard appeared to succeed, but changes were lost on close/reopen.
+
+**Root cause (rename):** `ReportTreeModel` did not override `setData()`.
+When Qt commits an inline edit (F2 or right-click → Rename), it calls
+`QAbstractItemModel::setData()` with `Qt::EditRole`. Without the override,
+the base `QStandardItemModel::setData()` ran — updating only the in-memory
+item text — while `renameNode()` (which writes to DB) was never called.
+
+**Root cause (description):** `onEditDescription()` discarded the bool
+return value of `updateDescription()`, so silent DB failures showed no error.
+
+**Fix:** Override `setData()` in `ReportTreeModel` to detect `Qt::EditRole`
+changes on user non-root nodes, persist the new name to the database, then
+fall through to the base class to update the model text. Added
+`QMessageBox::warning` in `onEditDescription()` when `updateDescription()`
+returns false.
+
+---
+
 ## 2026-04-26 - Purge oximetry: stale stats remain in daily_summaries (#91)
 
 **Files:** `oscar/mainwindow.cpp` — `MainWindow::purgeDay()`,
