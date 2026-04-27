@@ -184,16 +184,22 @@ void JournalNotesDialog::applyDateRange(const QString& rangeText)
     ui->fromDate->setEnabled(isCustom);
     ui->toDate->setEnabled(isCustom);
 
-    if (isCustom) return;
+    if (isCustom) {
+        ui->exportButton->setEnabled(true);
+        ui->statusLabel->clear();
+        return;
+    }
 
     if (rangeText == tr("All")) {
         const QDate first = getFirstJournalDate();
         const QDate last  = getLastJournalDate();
         if (!first.isValid() || !last.isValid()) {
             ui->exportButton->setEnabled(false);
+            ui->statusLabel->setText(tr("No journal notes found for this profile."));
             return;
         }
         ui->exportButton->setEnabled(true);
+        ui->statusLabel->clear();
         ui->fromDate->setDate(first);
         ui->toDate->setDate(last);
         return;
@@ -202,9 +208,11 @@ void JournalNotesDialog::applyDateRange(const QString& rangeText)
     const QDate last = getLastJournalDate();
     if (!last.isValid()) {
         ui->exportButton->setEnabled(false);
+        ui->statusLabel->setText(tr("No journal notes found for this profile."));
         return;
     }
     ui->exportButton->setEnabled(true);
+    ui->statusLabel->clear();
 
     if (rangeText == tr("Last Week")) {
         ui->fromDate->setDate(last.addDays(-6));

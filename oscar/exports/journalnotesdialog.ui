@@ -194,17 +194,20 @@
    <item>
     <layout class="QHBoxLayout" name="buttonLayout">
      <item>
-      <spacer name="buttonSpacer">
-       <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
+      <widget class="QLabel" name="statusLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
+       <property name="styleSheet">
+        <string notr="true">color: #c05000; font-style: italic;</string>
        </property>
-      </spacer>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="exportButton">
