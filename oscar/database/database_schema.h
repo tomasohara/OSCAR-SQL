@@ -39,6 +39,13 @@ public:
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
      *
+     * Version 16: One daily summary per profile-day
+     * - daily_summaries no longer carries machine_id; the row is a profile-day
+     *   rollup that already aggregates across CPAP and oximetry machines.
+     * - Dropped machine_id column, its FK to machines, the
+     *   idx_daily_summaries_profile_machine index, and changed the natural
+     *   key from (profile_id, date, machine_id) to (profile_id, date).
+     *
      * Version 15: Remove dead DST field
      * - Dropped dst_enabled column from user_info (stored but never read)
      *
@@ -60,7 +67,7 @@ public:
      * - Added type field to channels
      * - Removed events_file and summary_file from sessions (no longer needed)
      */
-    static const int CURRENT_SCHEMA_VERSION = 15;
+    static const int CURRENT_SCHEMA_VERSION = 16;
 
     /*!
      * \brief Oldest schema version that can be restored into the current database.
@@ -164,6 +171,9 @@ private:
 
     // Migration from v14 to v15
     static bool migrateV14ToV15(QSqlDatabase& db);
+
+    // Migration from v15 to v16
+    static bool migrateV15ToV16(QSqlDatabase& db);
 
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);

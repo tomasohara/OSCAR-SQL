@@ -4,6 +4,56 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-27 - daily_summaries: drop bogus per-machine dimension (schema v16, #95)
+
+**Files:** `oscar/database/database_schema.{h,cpp}`,
+`oscar/database/daily_summary_repository.{h,cpp}`,
+`oscar/database/backup/profile_restore.cpp`,
+`oscar/SleepLib/profiles.cpp`, `oscar/mainwindow.cpp`,
+`Notes/DATABASE_SCHEMA_REFERENCE.md`
+
+**Symptom:** None visible to users — but the schema was internally
+inconsistent and three repository finders were unreachable from any call
+site that used their default arguments.
+
+**Root cause:** `daily_summaries` was defined with `machine_id` as part of
+its natural key (`UNIQUE(profile_id, date, machine_id)`), even though a
+row is a profile-day rollup that already aggregates across every machine
+contributing sessions to the OSCAR day. Every caller passed `machineId =
+0` intending "combined", but `calculateFromDay()` silently rewrote that
+to the first enabled CPAP session's machine id; `create()` then stored
+the row with that id rather than NULL. Meanwhile `findByProfileAndDate`,
+`findRange`, and `exists` translated `machineId = 0` into
+`WHERE machine_id IS NULL`, so they could never read back what the writer
+had stored. The mismatch was invisible because none of those three
+finders had any in-tree callers.
+
+**Fix (schema v15 → v16):**
+- Dropped `machine_id` column, its FK to `machines`, and
+  `idx_daily_summaries_profile_machine`.
+- Changed `UNIQUE(profile_id, date, machine_id)` to
+  `UNIQUE(profile_id, date)`.
+- `migrateV15ToV16` rebuilds the table (SQLite cannot drop a column
+  inside a UNIQUE constraint without a rebuild). The data copy is
+  `INSERT OR REPLACE` ordered to prefer machine-bound rows over NULL ones
+  on the (profile_id, date) key — defensive only; current databases have
+  exactly one row per (profile_id, date) already.
+- `DailySummaryRepository` API simplified: the optional `machineId`
+  parameter is gone from `findByProfileAndDate`, `findRange`,
+  `calculateAndStore`, `calculateAndStoreFromDay`, and `exists`.
+  `DailySummaryData::machineId` removed.
+- Backup compatibility: v15 backups restore cleanly because
+  `executeSqlFile()`'s existing `validColumns` filter (built from
+  `PRAGMA table_info`) silently drops columns absent from the v16
+  schema. The dead FK-remap special case for
+  `daily_summaries.machine_id` was removed.
+
+**Side effect:** Deleting a machine no longer touches `daily_summaries`
+(previously the FK was `ON DELETE SET NULL`). This is consistent with
+the new "rollup is a profile-day, not a machine-day" semantics.
+
+---
+
 ## 2026-04-27 - CSV Export Wizard: rename/description not persisted to database (#94)
 
 **Files:** `oscar/database/report_tree_model.{h,cpp}`,

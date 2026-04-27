@@ -1060,8 +1060,7 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
                     qint64 newFk = -1;
 
                     if (col == QLatin1String("machine_id")
-                        && (tableName == QLatin1String("sessions")
-                            || tableName == QLatin1String("daily_summaries"))) {
+                        && tableName == QLatin1String("sessions")) {
                         newFk = m_machineIdMap.value(oldFk, -1);
 
                     } else if (col == QLatin1String("session_id")
@@ -1093,10 +1092,6 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
                                 "Restore order may be incorrect.")
                                 .arg(col).arg(oldFk).arg(tableName);
                             return false;
-                        } else if (col == QLatin1String("machine_id")
-                                   && tableName == QLatin1String("daily_summaries")) {
-                            // Nullable FK — use NULL if machine was not exported.
-                            remapped = QStringLiteral("NULL");
                         }
                         // All other columns: keep original value (no remapping needed).
                     }

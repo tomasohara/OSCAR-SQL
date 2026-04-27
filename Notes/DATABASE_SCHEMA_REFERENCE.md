@@ -1,5 +1,5 @@
 # OSCAR Database Schema Reference
-**Version:** Schema Version 15
+**Version:** Schema Version 16
 **Last Updated:** 2026 Q2
 **Database Type:** SQLite
 
@@ -41,6 +41,8 @@ The OSCAR database uses SQLite to store user profiles, machine configurations, s
 | 12 | 2026 Q1 | 🔧 **DENORMALIZATION**: Added profile_id to session_settings, session_channels, session_summaries, event_lists; added profile_id and channel_id to respiratory_events; added type to channels; removed events_file and summary_file from sessions. |
 | 13 | 2026 Q1 | 🌲 **REPORT TREE REDESIGN**: Replaced reports/report_contents with single report_tree table; hierarchical structure with System/User roots; system reports loaded from external .orf file |
 | 14 | 2026 Q2 | 🗄️ **FILE-TO-DB MIGRATION**: Added `app_preferences` table (replaces Preferences.xml); added `graph_layouts` table (replaces layoutSettings/*.shg and per-profile daily.shg/overview.shg); added `blob_value BLOB` column to `profile_preferences`. Legacy files imported once on first launch then deleted. |
+| 15 | 2026 Q2 | 🧹 **CLEANUP**: Dropped `dst_enabled` column from `user_info` (stored but never read); deleted orphaned `DST` rows from `profile_preferences`. |
+| 16 | 2026 Q2 | 🔧 **DESIGN FIX**: Dropped `machine_id` column, its FK to `machines`, and `idx_daily_summaries_profile_machine` from `daily_summaries`. Natural key is now `(profile_id, date)`. Each row is a profile-day rollup that already aggregates across all machines for that date — the per-machine dimension was a design mistake never used by callers. |
 
 ---
 
@@ -374,22 +376,23 @@ CREATE TABLE channel_options (
 )
 ```
 
-### 15. daily_summaries ⭐ NEW IN v6
-Pre-calculated daily aggregate statistics for fast reporting.
+### 15. daily_summaries ⭐ NEW IN v6 (per-machine dimension dropped in v16)
+Pre-calculated daily aggregate statistics for fast reporting. One row per
+(profile, date) — the row already aggregates across all machines that
+contributed sessions to that OSCAR day.
 
 ```sql
 CREATE TABLE daily_summaries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     profile_id INTEGER NOT NULL,
     date TEXT NOT NULL,
-    machine_id INTEGER,
-    
+
     session_count INTEGER DEFAULT 0,
     enabled_session_count INTEGER DEFAULT 0,
-    
+
     total_hours REAL DEFAULT 0,
     mask_on_hours REAL DEFAULT 0,
-    
+
     ahi REAL DEFAULT 0,
     rdi REAL DEFAULT 0,
     obstructive_count INTEGER DEFAULT 0,
@@ -397,36 +400,39 @@ CREATE TABLE daily_summaries (
     hypopnea_count INTEGER DEFAULT 0,
     rera_count INTEGER DEFAULT 0,
     clear_airway_count INTEGER DEFAULT 0,
-    
+
     pressure_avg REAL,
     pressure_min REAL,
     pressure_max REAL,
     pressure_95th REAL,
-    
+
     leak_total_avg REAL,
     leak_total_95th REAL,
     leak_total_max REAL,
     leak_unintentional_avg REAL,
-    
+
     spo2_avg REAL,
     spo2_min REAL,
     pulse_avg REAL,
     pulse_min REAL,
     pulse_max REAL,
-    
+
     is_compliant INTEGER DEFAULT 0,
     has_oximetry INTEGER DEFAULT 0,
-    
+
     calculated_at TEXT DEFAULT CURRENT_TIMESTAMP,
     sessions_hash TEXT,
-    
+
     FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
-    FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE SET NULL,
-    UNIQUE(profile_id, date, machine_id)
+    UNIQUE(profile_id, date)
 )
 ```
 
 **Purpose:** Dramatically speeds up Overview and Statistics screens by pre-calculating daily aggregates.
+
+**v16 change:** The `machine_id` column, its FK to `machines`, and the
+`idx_daily_summaries_profile_machine` index were removed; the natural key
+changed from `(profile_id, date, machine_id)` to `(profile_id, date)`.
 
 ### 16. event_lists ⚡ **NEW IN v8 - DATABASE-ONLY MODE**
 EventList metadata for waveform and event data.
@@ -849,14 +855,13 @@ Re-import is required to repair pre-fix rows; the discontinuity is accepted.
 | option_value | TEXT | | NO | Text value |
 | created_at | TEXT | | NO | Creation timestamp |
 
-### daily_summaries ⭐ NEW
+### daily_summaries ⭐ NEW (per-machine dimension dropped in v16)
 
 | Field | Type | Key | Null | Description |
 |-------|------|-----|------|-------------|
 | id | INTEGER | PK | NO | Auto-increment ID |
 | profile_id | INTEGER | FK | NO | → profiles(id) |
-| date | TEXT | | NO | Date (YYYY-MM-DD) |
-| machine_id | INTEGER | FK | YES | → machines(id), NULL=combined |
+| date | TEXT | | NO | Date (YYYY-MM-DD); UNIQUE with profile_id |
 | session_count | INTEGER | | NO | Total sessions |
 | enabled_session_count | INTEGER | | NO | Enabled sessions |
 | total_hours | REAL | | NO | Total CPAP hours |
@@ -1016,10 +1021,9 @@ idx_channel_options_channel ON channel_options(channel_id)
 idx_channel_options_lookup ON channel_options(channel_id, option_key)
 ```
 
-### Daily Summaries Indexes ⭐ NEW IN v6
+### Daily Summaries Indexes ⭐ NEW IN v6 (profile_machine index dropped in v16)
 ```sql
 idx_daily_summaries_profile_date ON daily_summaries(profile_id, date)
-idx_daily_summaries_profile_machine ON daily_summaries(profile_id, machine_id, date)
 idx_daily_summaries_ahi ON daily_summaries(ahi)
 idx_daily_summaries_compliance ON daily_summaries(profile_id, is_compliant)
 idx_daily_summaries_date_range ON daily_summaries(profile_id, date DESC)
@@ -1074,8 +1078,7 @@ profiles (1) ──┬─< machines (N)
                ├─< event_lists (N)         [denormalized profile_id, v12]
                └─< respiratory_events (N)  [denormalized profile_id, v12]
 
-machines (1) ──┬─< sessions (N)
-               └─< daily_summaries (N)
+machines (1) ──── sessions (N)
 
 sessions (1) ──┬─< session_settings (N)
                ├─< session_channels (N)
@@ -1104,7 +1107,6 @@ report_tree (N) - global (not profile-specific) 🌲 NEW IN v13
 | profile_preferences | profile_id | profiles | id | CASCADE |
 | channels | profile_id | profiles | id | CASCADE |
 | daily_summaries | profile_id | profiles | id | CASCADE |
-| daily_summaries | machine_id | machines | id | SET NULL |
 | sessions | machine_id | machines | id | CASCADE |
 | session_settings | session_id | sessions | id | CASCADE |
 | session_settings | profile_id | profiles | id | CASCADE |
@@ -1123,7 +1125,7 @@ report_tree (N) - global (not profile-specific) 🌲 NEW IN v13
 
 **Cascade Delete Behavior:**
 - Deleting **profile** removes: machines, user_info, doctor_info, preferences, channels, daily_summaries, session_settings, session_channels, session_summaries, event_lists, respiratory_events (all denormalized profile_id FKs)
-- Deleting **machine** removes: sessions (and their data), sets daily_summaries.machine_id to NULL
+- Deleting **machine** removes: sessions (and their data). `daily_summaries` rows survive, since v16 they no longer reference a machine.
 - Deleting **session** removes: settings, channels, events, summaries, slices, event_lists (which cascades to event_data)
 - Deleting **event_list** removes: event_data (waveform/event binary data)
 - Deleting **report_tree node** removes: all child nodes (self-referencing cascade)
@@ -1167,7 +1169,7 @@ The daily_summaries table (new in v6) provides:
 - **Automatic population** during data load
 - **35 statistics per day** including AHI, RDI, pressure, leak, oximetry
 - **Fast queries** for Overview and Statistics screens (<100ms vs 2-3 seconds)
-- **Machine-specific or combined** summaries via optional machine_id
+- **One row per profile-day** (machine_id removed in v16; see v16 highlights below)
 - **Cache invalidation** via sessions_hash field
 
 ## Schema v7 Highlights 🐛 **BUG FIX**
@@ -1325,6 +1327,45 @@ The schema v11 changes introduced database-driven CSV export reports (later rede
 
 ---
 
-**Document Version:** 8.0
-**Schema Version:** 13
-**Generated:** 2026 Q1
+## Schema v16 Highlights 🔧 **DAILY SUMMARIES — REMOVE PER-MACHINE DIMENSION**
+
+**What Changed:**
+- Dropped `machine_id` column, its FK to `machines`, and the
+  `idx_daily_summaries_profile_machine` index from `daily_summaries`.
+- Natural key changed from `UNIQUE(profile_id, date, machine_id)` to
+  `UNIQUE(profile_id, date)`.
+- `DailySummaryRepository` API methods that previously took an optional
+  `machineId` parameter (`findByProfileAndDate`, `findRange`,
+  `calculateAndStore`, `calculateAndStoreFromDay`, `exists`) now take only
+  the profile/date arguments.
+- Restore code's special-case for remapping `daily_summaries.machine_id`
+  was removed; v15 backups still restore cleanly because the existing
+  `validColumns` filter (built from `PRAGMA table_info`) silently drops
+  the column.
+
+**Why:**
+A `daily_summaries` row is a profile-day rollup. The `Day` object it
+mirrors already aggregates across all machines that contributed sessions
+to that OSCAR day (one CPAP plus zero or more oximetry/auxiliary devices).
+The `machine_id` column was a design mistake: every caller passed `0`
+intending "combined", but the calculation code silently rewrote that to
+the first enabled CPAP session's machine id, contradicting the original
+"NULL = combined" documentation. The corresponding read-side helpers
+(`findByProfileAndDate` with default args, `findRange`, `exists`) queried
+`machine_id IS NULL` and so could never find the rows the writer stored.
+None of those finders had any in-tree callers, which is why the mismatch
+was invisible.
+
+**Migration:**
+`migrateV15ToV16` rebuilds the table (SQLite cannot drop a column inside
+a UNIQUE constraint without a rebuild). Data is copied via
+`INSERT OR REPLACE` ordered to prefer machine-bound rows over NULL rows
+on the (profile_id, date) key. In current deployments every existing row
+already maps cleanly to a unique (profile_id, date) tuple, so the dedup
+is defensive only.
+
+---
+
+**Document Version:** 8.1
+**Schema Version:** 16
+**Generated:** 2026 Q2

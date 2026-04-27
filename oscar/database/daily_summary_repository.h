@@ -15,14 +15,12 @@
 
 // Forward declarations
 class Day;
-class Machine;
 
 struct DailySummaryData {
     qint64 id = 0;
     qint64 profileId = 0;
     QString date;  // ISO format YYYY-MM-DD
-    qint64 machineId = 0;  // 0 = combined all machines
-    
+
     // Session counts
     int sessionCount = 0;
     int enabledSessionCount = 0;
@@ -81,29 +79,29 @@ public:
     
     // Query methods
     DailySummaryData findById(qint64 id);
-    DailySummaryData findByProfileAndDate(qint64 profileId, const QDate& date, qint64 machineId = 0);
+    DailySummaryData findByProfileAndDate(qint64 profileId, const QDate& date);
     QList<DailySummaryData> findByProfile(qint64 profileId);
-    QList<DailySummaryData> findRange(qint64 profileId, const QDate& startDate, const QDate& endDate, qint64 machineId = 0);
-    
+    QList<DailySummaryData> findRange(qint64 profileId, const QDate& startDate, const QDate& endDate);
+
     // Calculation methods
-    bool calculateAndStore(qint64 profileId, const QDate& date, qint64 machineId = 0);
-    bool calculateAndStoreFromDay(Day* day, qint64 profileId, qint64 machineId = 0);
+    bool calculateAndStore(qint64 profileId, const QDate& date);
+    bool calculateAndStoreFromDay(Day* day, qint64 profileId);
     bool calculateRange(qint64 profileId, const QDate& startDate, const QDate& endDate);
-    
+
     // Cache invalidation
     bool invalidateDate(qint64 profileId, const QDate& date);
     bool invalidateRange(qint64 profileId, const QDate& startDate, const QDate& endDate);
-    
+
     // Utility methods
-    bool exists(qint64 profileId, const QDate& date, qint64 machineId = 0);
+    bool exists(qint64 profileId, const QDate& date);
     int countDays(qint64 profileId, const QDate& startDate, const QDate& endDate);
-    
+
 private:
     QSqlDatabase db;
-    
+
     DailySummaryData mapResultToData(const QSqlQuery& query);
     QString generateSessionsHash(qint64 profileId, const QDate& date);
-    DailySummaryData calculateFromDay(Day* day, qint64 machineId);
+    DailySummaryData calculateFromDay(Day* day);
 };
 
 #endif // DAILY_SUMMARY_REPOSITORY_H

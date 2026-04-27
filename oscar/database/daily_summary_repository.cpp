@@ -36,7 +36,7 @@ qint64 DailySummaryRepository::create(const DailySummaryData& data)
     // Use INSERT OR REPLACE for idempotent operation
     query.prepare(R"(
         INSERT OR REPLACE INTO daily_summaries (
-            profile_id, date, machine_id,
+            profile_id, date,
             session_count, enabled_session_count,
             total_hours, mask_on_hours,
             ahi, rdi, obstructive_count, unclassified_count, hypopnea_count, rera_count, clear_airway_count,
@@ -44,12 +44,11 @@ qint64 DailySummaryRepository::create(const DailySummaryData& data)
             leak_total_avg, leak_total_95th, leak_total_max, leak_unintentional_avg,
             spo2_avg, spo2_min, pulse_avg, pulse_min, pulse_max,
             is_compliant, has_oximetry, sessions_hash
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     )");
-    
+
     query.addBindValue(data.profileId);
     query.addBindValue(data.date);
-    query.addBindValue(data.machineId > 0 ? data.machineId : QVariant());
     query.addBindValue(data.sessionCount);
     query.addBindValue(data.enabledSessionCount);
     query.addBindValue(data.totalHours);
@@ -125,30 +124,23 @@ DailySummaryData DailySummaryRepository::findById(qint64 id)
     return DailySummaryData();
 }
 
-DailySummaryData DailySummaryRepository::findByProfileAndDate(qint64 profileId, const QDate& date, qint64 machineId)
+DailySummaryData DailySummaryRepository::findByProfileAndDate(qint64 profileId, const QDate& date)
 {
     QSqlQuery query(db);
-    
-    if (machineId > 0) {
-        query.prepare("SELECT * FROM daily_summaries WHERE profile_id = ? AND date = ? AND machine_id = ?");
-        query.addBindValue(profileId);
-        query.addBindValue(date.toString(Qt::ISODate));
-        query.addBindValue(machineId);
-    } else {
-        query.prepare("SELECT * FROM daily_summaries WHERE profile_id = ? AND date = ? AND machine_id IS NULL");
-        query.addBindValue(profileId);
-        query.addBindValue(date.toString(Qt::ISODate));
-    }
-    
+
+    query.prepare("SELECT * FROM daily_summaries WHERE profile_id = ? AND date = ?");
+    query.addBindValue(profileId);
+    query.addBindValue(date.toString(Qt::ISODate));
+
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::findByProfileAndDate failed:" << query.lastError().text();
         return DailySummaryData();
     }
-    
+
     if (query.next()) {
         return mapResultToData(query);
     }
-    
+
     return DailySummaryData();
 }
 
@@ -172,38 +164,30 @@ QList<DailySummaryData> DailySummaryRepository::findByProfile(qint64 profileId)
     return summaries;
 }
 
-QList<DailySummaryData> DailySummaryRepository::findRange(qint64 profileId, const QDate& startDate, const QDate& endDate, qint64 machineId)
+QList<DailySummaryData> DailySummaryRepository::findRange(qint64 profileId, const QDate& startDate, const QDate& endDate)
 {
     QList<DailySummaryData> summaries;
-    
+
     QSqlQuery query(db);
-    
-    if (machineId > 0) {
-        query.prepare("SELECT * FROM daily_summaries WHERE profile_id = ? AND date BETWEEN ? AND ? AND machine_id = ? ORDER BY date");
-        query.addBindValue(profileId);
-        query.addBindValue(startDate.toString(Qt::ISODate));
-        query.addBindValue(endDate.toString(Qt::ISODate));
-        query.addBindValue(machineId);
-    } else {
-        query.prepare("SELECT * FROM daily_summaries WHERE profile_id = ? AND date BETWEEN ? AND ? AND machine_id IS NULL ORDER BY date");
-        query.addBindValue(profileId);
-        query.addBindValue(startDate.toString(Qt::ISODate));
-        query.addBindValue(endDate.toString(Qt::ISODate));
-    }
-    
+
+    query.prepare("SELECT * FROM daily_summaries WHERE profile_id = ? AND date BETWEEN ? AND ? ORDER BY date");
+    query.addBindValue(profileId);
+    query.addBindValue(startDate.toString(Qt::ISODate));
+    query.addBindValue(endDate.toString(Qt::ISODate));
+
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::findRange failed:" << query.lastError().text();
         return summaries;
     }
-    
+
     while (query.next()) {
         summaries.append(mapResultToData(query));
     }
-    
+
     return summaries;
 }
 
-bool DailySummaryRepository::calculateAndStore(qint64 profileId, const QDate& date, qint64 machineId)
+bool DailySummaryRepository::calculateAndStore(qint64 profileId, const QDate& date)
 {
     // Get the Day object from profile
     Profile* profile = p_profile;  // Global profile pointer
@@ -211,83 +195,68 @@ bool DailySummaryRepository::calculateAndStore(qint64 profileId, const QDate& da
         qWarning() << "DailySummaryRepository::calculateAndStore - No active profile";
         return false;
     }
-    
+
     Day* day = profile->GetDay(date, MT_UNKNOWN);
     if (!day) {
         qDebug() << "DailySummaryRepository::calculateAndStore - No data for date" << date.toString();
         return false;
     }
-    
-    return calculateAndStoreFromDay(day, profileId, machineId);
+
+    return calculateAndStoreFromDay(day, profileId);
 }
 
-bool DailySummaryRepository::calculateAndStoreFromDay(Day* day, qint64 profileId, qint64 machineId)
+bool DailySummaryRepository::calculateAndStoreFromDay(Day* day, qint64 profileId)
 {
     if (!day) {
         qWarning() << "DailySummaryRepository::calculateAndStoreFromDay - Day is null";
         return false;
     }
-    
+
     // Calculate statistics from day
-    DailySummaryData data = calculateFromDay(day, machineId);
+    DailySummaryData data = calculateFromDay(day);
     data.profileId = profileId;
     data.date = day->date().toString(Qt::ISODate);
-    
-    // Don't overwrite machineId if calculateFromDay found one
-    if (data.machineId == 0) {
-        data.machineId = machineId;
-    }
-    
+
     // Check if we got any meaningful data (CPAP or oximetry)
     if (data.totalHours <= 0) {
         qDebug() << "DailySummaryRepository::calculateAndStoreFromDay: Skipping" << data.date << "- no session hours";
         return false;
     }
-    
+
     // Store in database
     qint64 id = create(data);
-    
+
     if (id > 0) {
-//        qDebug() << "DailySummaryRepository::calculateAndStoreFromDay: Stored daily summary for" << data.date
-//                 << "AHI:" << data.ahi << "Hours:" << data.totalHours
-//                 << "Machine:" << data.machineId;
         return true;
     } else {
         qWarning() << "DailySummaryRepository::calculateAndStoreFromDay: Failed to store daily summary for" << data.date;
     }
-    
+
     return false;
 }
 
-DailySummaryData DailySummaryRepository::calculateFromDay(Day* day, qint64 machineId)
+DailySummaryData DailySummaryRepository::calculateFromDay(Day* day)
 {
     DailySummaryData data;
-    
+
     if (!day) {
         return data;
     }
-    
+
     // Ensure summaries are loaded
     day->OpenSummary();
-    
+
     // Count sessions and get hours using Day's built-in method
     data.sessionCount = day->sessions.size();
     data.enabledSessionCount = 0;
-    
-    // Count enabled sessions and get machine ID from first CPAP session if not specified
+
     for (Session* sess : day->sessions) {
         if (!sess) continue;
-        
         if (sess->enabled()) {
             data.enabledSessionCount++;
-            
-            // Get machine ID from first enabled CPAP session if not specified
-            if (machineId == 0 && sess->type() == MT_CPAP && sess->machine()) {
-                machineId = sess->machine()->getDatabaseId();
-            }
         }
     }
-    
+
     // Use Day's hours() method for accurate time calculation
     // Include hours from all therapy machines, not just CPAP
     data.totalHours = day->hours(MT_CPAP);
@@ -354,13 +323,10 @@ DailySummaryData DailySummaryRepository::calculateFromDay(Day* day, qint64 machi
     
     // Compliance flag (4 hours minimum by default)
     data.isCompliant = (data.totalHours >= 4.0);
-    
-    // Store the machine ID we found
-    data.machineId = machineId;
-    
+
     // Generate hash for cache invalidation
     data.sessionsHash = generateSessionsHash(0, day->date());
-    
+
     return data;
 }
 
@@ -381,7 +347,7 @@ bool DailySummaryRepository::calculateRange(qint64 profileId, const QDate& start
     while (date <= endDate) {
         Day* day = profile->GetDay(date, MT_UNKNOWN);
         if (day && day->hasEnabledSessions()) {
-            if (calculateAndStoreFromDay(day, profileId, 0)) {
+            if (calculateAndStoreFromDay(day, profileId)) {
                 successCount++;
             }
         }
@@ -424,30 +390,23 @@ bool DailySummaryRepository::invalidateRange(qint64 profileId, const QDate& star
     return true;
 }
 
-bool DailySummaryRepository::exists(qint64 profileId, const QDate& date, qint64 machineId)
+bool DailySummaryRepository::exists(qint64 profileId, const QDate& date)
 {
     QSqlQuery query(db);
-    
-    if (machineId > 0) {
-        query.prepare("SELECT COUNT(*) FROM daily_summaries WHERE profile_id = ? AND date = ? AND machine_id = ?");
-        query.addBindValue(profileId);
-        query.addBindValue(date.toString(Qt::ISODate));
-        query.addBindValue(machineId);
-    } else {
-        query.prepare("SELECT COUNT(*) FROM daily_summaries WHERE profile_id = ? AND date = ? AND machine_id IS NULL");
-        query.addBindValue(profileId);
-        query.addBindValue(date.toString(Qt::ISODate));
-    }
-    
+
+    query.prepare("SELECT COUNT(*) FROM daily_summaries WHERE profile_id = ? AND date = ?");
+    query.addBindValue(profileId);
+    query.addBindValue(date.toString(Qt::ISODate));
+
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::exists failed:" << query.lastError().text();
         return false;
     }
-    
+
     if (query.next()) {
         return query.value(0).toInt() > 0;
     }
-    
+
     return false;
 }
 
@@ -488,8 +447,7 @@ DailySummaryData DailySummaryRepository::mapResultToData(const QSqlQuery& query)
     data.id = query.value("id").toLongLong();
     data.profileId = query.value("profile_id").toLongLong();
     data.date = query.value("date").toString();
-    data.machineId = query.value("machine_id").toLongLong();
-    
+
     data.sessionCount = query.value("session_count").toInt();
     data.enabledSessionCount = query.value("enabled_session_count").toInt();
     

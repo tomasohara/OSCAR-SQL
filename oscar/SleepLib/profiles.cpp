@@ -3023,10 +3023,10 @@ void Profile::calculateDailySummaries()
             // Ensure summaries are loaded before calculating
             day->OpenSummary();
             
-            // Calculate and store combined daily summary (machineId = 0)
-            // This ensures successive imports update the same daily summary entry
-            // rather than creating separate entries per machine
-            if (summaryRepo.calculateAndStoreFromDay(day, profileId, 0)) {
+            // Calculate and store the daily summary. As of v16, daily_summaries
+            // is keyed only by (profile_id, date); successive imports refresh the
+            // same row whether the day comes via a CPAP or oximetry machine iter.
+            if (summaryRepo.calculateAndStoreFromDay(day, profileId)) {
                 calculatedCount++;
 #ifdef DBDEBUG
                 qDebug() << "Profile::calculateDailySummaries() - SUCCESS for day" << day->date();

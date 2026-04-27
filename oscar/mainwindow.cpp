@@ -2101,7 +2101,7 @@ void MainWindow::purgeDay(MachineType type)
         ProfileData profileData = profileRepo.findByUsername(p_profile->user->userName());
         if (profileData.id > 0) {
             DailySummaryRepository summaryRepo;
-            bool recalculated = day && summaryRepo.calculateAndStoreFromDay(day, profileData.id, 0);
+            bool recalculated = day && summaryRepo.calculateAndStoreFromDay(day, profileData.id);
             if (!recalculated) {
                 summaryRepo.invalidateDate(profileData.id, date);
             }
@@ -2959,7 +2959,7 @@ void MainWindow::on_actionPurgeCurrentDaysOximetry_triggered()
             if (profileData.id > 0) {
                 DailySummaryRepository summaryRepo;
                 Day* updatedDay = p_profile->GetDay(date, MT_UNKNOWN);
-                bool recalculated = updatedDay && summaryRepo.calculateAndStoreFromDay(updatedDay, profileData.id, 0);
+                bool recalculated = updatedDay && summaryRepo.calculateAndStoreFromDay(updatedDay, profileData.id);
                 if (!recalculated) {
                     summaryRepo.invalidateDate(profileData.id, date);
                 }

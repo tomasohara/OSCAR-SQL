@@ -225,6 +225,14 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         fromVersion = 15;
     }
 
+    if (fromVersion == 15) {
+        if (!migrateV15ToV16(db)) {
+            qCritical() << "DatabaseSchema: v15->v16 migration failed";
+            return false;
+        }
+        fromVersion = 16;
+    }
+
     if (fromVersion != CURRENT_SCHEMA_VERSION) {
         qCritical() << "DatabaseSchema: No migration path from version" << fromVersion;
         return false;
@@ -414,9 +422,8 @@ bool DatabaseSchema::createIndexes(QSqlDatabase& db)
     indexes << "CREATE INDEX IF NOT EXISTS idx_channel_options_channel ON channel_options(channel_id)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_channel_options_lookup ON channel_options(channel_id, option_key)";
 
-    // Daily summaries indexes (schema version 6)
+    // Daily summaries indexes (schema version 6; profile-machine index removed in v16)
     indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_profile_date ON daily_summaries(profile_id, date)";
-    indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_profile_machine ON daily_summaries(profile_id, machine_id, date)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_ahi ON daily_summaries(ahi)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_compliance ON daily_summaries(profile_id, is_compliant)";
     indexes << "CREATE INDEX IF NOT EXISTS idx_daily_summaries_date_range ON daily_summaries(profile_id, date DESC)";
@@ -1017,12 +1024,11 @@ bool DatabaseSchema::createDailySummariesTable(QSqlDatabase& db)
 {
     QSqlQuery query(db);
     
-    QString sql = 
+    QString sql =
         "CREATE TABLE IF NOT EXISTS daily_summaries ("
         "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "    profile_id INTEGER NOT NULL,"
         "    date TEXT NOT NULL,"
-        "    machine_id INTEGER,"
         "    "
         "    session_count INTEGER DEFAULT 0,"
         "    enabled_session_count INTEGER DEFAULT 0,"
@@ -1061,8 +1067,7 @@ bool DatabaseSchema::createDailySummariesTable(QSqlDatabase& db)
         "    sessions_hash TEXT,"
         "    "
         "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,"
-        "    FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE SET NULL,"
-        "    UNIQUE(profile_id, date, machine_id)"
+        "    UNIQUE(profile_id, date)"
         ")";
 
     if (!query.exec(sql)) {
@@ -1434,6 +1439,173 @@ bool DatabaseSchema::migrateV14ToV15(QSqlDatabase& db)
     }
 
     qDebug() << "DatabaseSchema: Migration v14->v15 complete";
+    return true;
+}
+
+/*
+ * Migrate database from schema version 15 to 16
+ *
+ * Removes the machine_id column from daily_summaries.  Each row is a
+ * profile-day rollup that already aggregates across all machines for that
+ * date (one CPAP + zero or more oximetry/auxiliary devices), so the
+ * machine_id key fragment was a design mistake.  The natural key changes
+ * from (profile_id, date, machine_id) to (profile_id, date).
+ *
+ * Implementation note: SQLite cannot drop a column referenced by a UNIQUE
+ * constraint or non-trivial index, so we follow the standard
+ * rebuild-and-rename recipe.  The dedup safeguard
+ * (ORDER BY machine_id IS NULL ASC, id ASC) is a no-op in current
+ * deployments — every existing row maps cleanly to a unique
+ * (profile_id, date) — but it protects against pathological databases
+ * that ended up with both a NULL row and a machine-bound row for the
+ * same date.
+ */
+bool DatabaseSchema::migrateV15ToV16(QSqlDatabase& db)
+{
+    qDebug() << "DatabaseSchema: Migrating v15 -> v16";
+
+    if (!db.transaction()) {
+        qCritical() << "DatabaseSchema: migrateV15ToV16: failed to start transaction";
+        return false;
+    }
+
+    QSqlQuery q(db);
+
+    // 1. Create the replacement table with the v16 shape.
+    const char* createNewTable =
+        "CREATE TABLE daily_summaries_new ("
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "    profile_id INTEGER NOT NULL,"
+        "    date TEXT NOT NULL,"
+        "    session_count INTEGER DEFAULT 0,"
+        "    enabled_session_count INTEGER DEFAULT 0,"
+        "    total_hours REAL DEFAULT 0,"
+        "    mask_on_hours REAL DEFAULT 0,"
+        "    ahi REAL DEFAULT 0,"
+        "    rdi REAL DEFAULT 0,"
+        "    obstructive_count INTEGER DEFAULT 0,"
+        "    unclassified_count INTEGER DEFAULT 0,"
+        "    hypopnea_count INTEGER DEFAULT 0,"
+        "    rera_count INTEGER DEFAULT 0,"
+        "    clear_airway_count INTEGER DEFAULT 0,"
+        "    pressure_avg REAL,"
+        "    pressure_min REAL,"
+        "    pressure_max REAL,"
+        "    pressure_95th REAL,"
+        "    leak_total_avg REAL,"
+        "    leak_total_95th REAL,"
+        "    leak_total_max REAL,"
+        "    leak_unintentional_avg REAL,"
+        "    spo2_avg REAL,"
+        "    spo2_min REAL,"
+        "    pulse_avg REAL,"
+        "    pulse_min REAL,"
+        "    pulse_max REAL,"
+        "    is_compliant INTEGER DEFAULT 0,"
+        "    has_oximetry INTEGER DEFAULT 0,"
+        "    calculated_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+        "    sessions_hash TEXT,"
+        "    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,"
+        "    UNIQUE(profile_id, date)"
+        ")";
+    if (!q.exec(createNewTable)) {
+        qCritical() << "DatabaseSchema: migrateV15ToV16: CREATE replacement table failed:"
+                    << q.lastError().text();
+        db.rollback();
+        return false;
+    }
+
+    // 2. Copy data, dropping machine_id.  INSERT OR REPLACE keyed on the new
+    //    UNIQUE(profile_id, date) constraint dedups any pre-existing rows; the
+    //    ORDER BY makes machine-bound rows win over NULL ones.
+    const char* copyData =
+        "INSERT OR REPLACE INTO daily_summaries_new ("
+        "    id, profile_id, date,"
+        "    session_count, enabled_session_count,"
+        "    total_hours, mask_on_hours,"
+        "    ahi, rdi, obstructive_count, unclassified_count,"
+        "    hypopnea_count, rera_count, clear_airway_count,"
+        "    pressure_avg, pressure_min, pressure_max, pressure_95th,"
+        "    leak_total_avg, leak_total_95th, leak_total_max, leak_unintentional_avg,"
+        "    spo2_avg, spo2_min, pulse_avg, pulse_min, pulse_max,"
+        "    is_compliant, has_oximetry, calculated_at, sessions_hash"
+        ") "
+        "SELECT "
+        "    id, profile_id, date,"
+        "    session_count, enabled_session_count,"
+        "    total_hours, mask_on_hours,"
+        "    ahi, rdi, obstructive_count, unclassified_count,"
+        "    hypopnea_count, rera_count, clear_airway_count,"
+        "    pressure_avg, pressure_min, pressure_max, pressure_95th,"
+        "    leak_total_avg, leak_total_95th, leak_total_max, leak_unintentional_avg,"
+        "    spo2_avg, spo2_min, pulse_avg, pulse_min, pulse_max,"
+        "    is_compliant, has_oximetry, calculated_at, sessions_hash "
+        "FROM daily_summaries "
+        "ORDER BY (machine_id IS NULL) ASC, id ASC";
+    if (!q.exec(copyData)) {
+        qCritical() << "DatabaseSchema: migrateV15ToV16: copy data failed:"
+                    << q.lastError().text();
+        db.rollback();
+        return false;
+    }
+
+    // 3. Drop the old table and rename the new one into place.
+    if (!q.exec("DROP TABLE daily_summaries")) {
+        qCritical() << "DatabaseSchema: migrateV15ToV16: DROP old table failed:"
+                    << q.lastError().text();
+        db.rollback();
+        return false;
+    }
+    if (!q.exec("ALTER TABLE daily_summaries_new RENAME TO daily_summaries")) {
+        qCritical() << "DatabaseSchema: migrateV15ToV16: RENAME failed:"
+                    << q.lastError().text();
+        db.rollback();
+        return false;
+    }
+
+    // 4. Drop the now-stale per-machine index name (if it survived). The
+    //    rebuild above dropped the table-bound indexes; this is belt-and-braces
+    //    in case a future SQLite quirk leaves a stranded index entry.
+    if (!q.exec("DROP INDEX IF EXISTS idx_daily_summaries_profile_machine")) {
+        qCritical() << "DatabaseSchema: migrateV15ToV16: DROP INDEX failed:"
+                    << q.lastError().text();
+        db.rollback();
+        return false;
+    }
+
+    // 5. Recreate the daily_summaries indexes that the rebuild dropped.
+    static const char* recreateIndexes[] = {
+        "CREATE INDEX IF NOT EXISTS idx_daily_summaries_profile_date "
+            "ON daily_summaries(profile_id, date)",
+        "CREATE INDEX IF NOT EXISTS idx_daily_summaries_ahi "
+            "ON daily_summaries(ahi)",
+        "CREATE INDEX IF NOT EXISTS idx_daily_summaries_compliance "
+            "ON daily_summaries(profile_id, is_compliant)",
+        "CREATE INDEX IF NOT EXISTS idx_daily_summaries_date_range "
+            "ON daily_summaries(profile_id, date DESC)",
+    };
+    for (const char* indexSql : recreateIndexes) {
+        if (!q.exec(indexSql)) {
+            qCritical() << "DatabaseSchema: migrateV15ToV16: index rebuild failed:"
+                        << q.lastError().text();
+            db.rollback();
+            return false;
+        }
+    }
+
+    if (!setSchemaVersion(db, 16)) {
+        qCritical() << "DatabaseSchema: migrateV15ToV16: setSchemaVersion failed";
+        db.rollback();
+        return false;
+    }
+
+    if (!db.commit()) {
+        qCritical() << "DatabaseSchema: migrateV15ToV16: commit failed";
+        db.rollback();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: Migration v15->v16 complete";
     return true;
 }
 
