@@ -51,7 +51,7 @@
    <item>
     <widget class="QGroupBox" name="dateRangeGroup">
      <property name="title">
-      <string>Date Range</string>
+      <string>Journal Date Range</string>
      </property>
      <layout class="QGridLayout" name="dateRangeLayout">
       <item row="0" column="0">
