@@ -88,6 +88,7 @@
 #include "database/database_manager.h"
 #include "database/machine_repository.h"
 #include "database/profile_repository.h"
+#include "database/daily_summary_repository.h"
 #include "database/preferences_repository.h"
 #include "SleepLib/performance_timer.h"
 #include "reports.h"
@@ -2094,7 +2095,17 @@ void MainWindow::purgeDay(MachineType type)
         return;
     }
     day = p_profile->GetDay(date, MT_UNKNOWN);
-    Q_UNUSED(day);
+    {
+        ProfileRepository profileRepo;
+        ProfileData profileData = profileRepo.findByUsername(p_profile->user->userName());
+        if (profileData.id > 0) {
+            DailySummaryRepository summaryRepo;
+            bool recalculated = day && summaryRepo.calculateAndStoreFromDay(day, profileData.id, 0);
+            if (!recalculated) {
+                summaryRepo.invalidateDate(profileData.id, date);
+            }
+        }
+    }
 
     // Prevent immediate reload from re-creating a deleted journal entry via Unload(previous_date).
     if (type == MT_JOURNAL) {
@@ -2941,6 +2952,18 @@ void MainWindow::on_actionPurgeCurrentDaysOximetry_triggered()
             mach->SaveSummaryCache();
         }
 
+        {
+            ProfileRepository profileRepo;
+            ProfileData profileData = profileRepo.findByUsername(p_profile->user->userName());
+            if (profileData.id > 0) {
+                DailySummaryRepository summaryRepo;
+                Day* updatedDay = p_profile->GetDay(date, MT_UNKNOWN);
+                bool recalculated = updatedDay && summaryRepo.calculateAndStoreFromDay(updatedDay, profileData.id, 0);
+                if (!recalculated) {
+                    summaryRepo.invalidateDate(profileData.id, date);
+                }
+            }
+        }
 
         if (daily) {
             daily->Unload(date);

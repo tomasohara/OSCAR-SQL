@@ -4,6 +4,30 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-26 - Purge oximetry: stale stats remain in daily_summaries (#91)
+
+**Files:** `oscar/mainwindow.cpp` — `MainWindow::purgeDay()`,
+`MainWindow::on_actionPurgeCurrentDaysOximetry_triggered()`
+
+**Symptom:** After purging oximetry data for a day, `daily_summaries.spo2_avg`,
+`pulse_avg`, `pulse_min`, `pulse_max`, and `has_oximetry` retain the old values.
+Statistics pages continue to show oximetry stats that no longer exist.
+
+**Root cause:** `Session::Destroy()` calls `SessionRepository::remove()` which
+cascade-deletes `session_summaries` (has `ON DELETE CASCADE` from sessions).
+However, `daily_summaries` has no FK relationship to sessions — it is only linked
+to profiles and machines — so deleting sessions has no effect on it. Neither purge
+code path called `DailySummaryRepository::calculateAndStoreFromDay()` or
+`invalidateDate()` after destroying the sessions.
+
+**Fix:** After the session-destroy loop in both purge paths, look up the updated
+`Day*` for the affected date. If sessions remain (e.g. CPAP data still present),
+call `calculateAndStoreFromDay()` to recalculate the row via INSERT OR REPLACE.
+If no sessions remain (day was entirely purged), call `invalidateDate()` to delete
+the now-stale row.
+
+---
+
 ## 2026-04-26 - SpO2 and pulse data missing from daily_summaries after oximetry import (#89)
 
 **Files:** `oscar/mainwindow.cpp` — `MainWindow::importNonCPAP()`;
