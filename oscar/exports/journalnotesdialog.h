@@ -3,7 +3,8 @@
  * Copyright (c) 2026 The OSCAR Team
  *
  * Modal dialog that exports journal notes for a date range to an HTML
- * or Markdown file.
+ * or Markdown file.  Reads entirely from the database so no profile
+ * needs to be open when the dialog is invoked.
  *
  * This file is subject to the terms and conditions of the GNU General Public
  * License. See the file COPYING in the main directory of the source code
@@ -15,8 +16,6 @@
 #include <QDate>
 #include <QDialog>
 
-class Session;
-
 namespace Ui {
 class JournalNotesDialog;
 }
@@ -25,9 +24,10 @@ class JournalNotesDialog;
  * \class JournalNotesDialog
  * \brief Exports journal notes for a selected date range to HTML or Markdown.
  *
- * Presents a date-range picker (mirroring BackupDialog) and a format selector.
- * Clicking Export opens a Save File dialog; the file is written immediately.
- * Days with no notes are silently skipped.
+ * Presents a profile selector, date-range picker, and format selector.
+ * All data is read directly from the database so the profile does not need
+ * to be open. Clicking Export opens a Save File dialog; the file is written
+ * immediately.  Days with no content are silently skipped.
  *
  * Usage:
  * \code
@@ -44,6 +44,9 @@ public:
     ~JournalNotesDialog() override;
 
 private slots:
+    /*! \brief Re-apply date range when the selected profile changes. */
+    void on_profileCombo_currentIndexChanged(int index);
+
     /*! \brief Adjust From/To date edits when the range preset changes. */
     void on_rangeCombo_currentTextChanged(const QString& text);
 
@@ -54,6 +57,15 @@ private slots:
     void on_closeButton_clicked();
 
 private:
+    /*! \brief Populate profileCombo from active profiles, pre-selecting the open one. */
+    void populateProfiles();
+
+    /*! \brief Return the database ID of the currently selected profile, or -1 if none. */
+    qint64 selectedProfileId() const;
+
+    /*! \brief Return the username of the currently selected profile. */
+    QString selectedUserName() const;
+
     /*! \brief Set fromDate/toDate from the named range preset. */
     void applyDateRange(const QString& rangeText);
 
@@ -67,14 +79,14 @@ private:
     void loadSettings();
 
     /*!
-     * \brief Query the earliest date that has a journal session for this profile.
-     * \return Earliest journal date, or today as a fallback.
+     * \brief Query the earliest journal session date for the selected profile.
+     * \return Valid QDate, or invalid QDate() if no journal data exists.
      */
     QDate getFirstJournalDate() const;
 
     /*!
-     * \brief Query the most recent date that has a journal session for this profile.
-     * \return Latest journal date, or today as a fallback.
+     * \brief Query the most recent journal session date for the selected profile.
+     * \return Valid QDate, or invalid QDate() if no journal data exists.
      */
     QDate getLastJournalDate() const;
 
@@ -83,7 +95,7 @@ private:
      * \param filename  Absolute path of the output file.
      * \param start     First date to include.
      * \param end       Last date to include.
-     * \return Number of days with notes written, or -1 on file error.
+     * \return Number of days written, or -1 on file error.
      */
     int exportToHtml(const QString& filename, QDate start, QDate end);
 
@@ -92,31 +104,31 @@ private:
      * \param filename  Absolute path of the output file.
      * \param start     First date to include.
      * \param end       Last date to include.
-     * \return Number of days with notes written, or -1 on file error.
+     * \return Number of days written, or -1 on file error.
      */
     int exportToMarkdown(const QString& filename, QDate start, QDate end);
 
     /*!
-     * \brief Build a display string for feelings and weight from a journal session.
-     * \return Formatted string, e.g. "Feelings: 7.5/10  Weight: 82.5 kg", or empty if neither is set.
+     * \brief Build a metrics display string from raw DB values.
+     * \param feelings  Raw 0–100 feelings value (0 = not set).
+     * \param weight_kg Raw weight in kg (0 = not set).
+     * \param zombieMode  True if feelings are displayed on a /100 scale.
+     * \param metric      True if weight should be shown in kg, false for lbs.
+     * \return Formatted string, or empty if neither value is set.
      */
-    QString metricsString(Session* sess) const;
+    static QString metricsString(int feelings, double weight_kg,
+                                 bool zombieMode, bool metric);
 
     /*!
      * \brief Extract the inner body content from a Qt QTextEdit HTML document.
-     *
-     * Qt's QTextEdit::toHtml() produces a full HTML document.  This helper
-     * strips the outer <html>/<head>/<body> wrapper so the content can be
-     * embedded inside a composite export document.
-     *
      * \param html  Full HTML string from QTextEdit::toHtml().
-     * \return Content between <body ...> and </body>, or \a html unchanged if
-     *         the tags cannot be found.
+     * \return Content between <body ...> and </body>, or \a html unchanged.
      */
     static QString extractBodyContent(const QString& html);
 
     Ui::JournalNotesDialog* ui;
-    QString m_lastDir;  ///< Last-used output directory, loaded once at construction.
+    QList<qint64> m_profileIds;  ///< DB IDs parallel to profileCombo entries.
+    QString       m_lastDir;     ///< Last-used output directory.
 };
 
 #endif // JOURNALNOTESDIALOG_H

@@ -3078,20 +3078,6 @@ void MainWindow::on_actionExport_Journal_triggered()
 
 void MainWindow::on_actionExport_Journal_Notes_triggered()
 {
-    if (!p_profile) {
-        QMessageBox::warning(this, tr("Journal Report"),
-                             tr("No profile is currently open."));
-        return;
-    }
-    // Guard: confirm there is at least one journal day before opening the dialog.
-    {
-        QDate d = p_profile->FirstDay(MT_JOURNAL);
-        if (!d.isValid() || !p_profile->FindDay(d, MT_JOURNAL)) {
-            QMessageBox::information(this, tr("Journal Report"),
-                                     tr("No journal data found for this profile."));
-            return;
-        }
-    }
     JournalNotesDialog *dialog = new JournalNotesDialog(this);
     dialog->exec();
     delete dialog;

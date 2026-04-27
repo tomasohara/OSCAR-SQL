@@ -10,9 +10,8 @@
 #include "ui_journalnotesdialog.h"
 
 #include <QBrush>
-#include <QDesktopServices>
-#include <QUrl>
 #include <QCalendarWidget>
+#include <QDesktopServices>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -21,16 +20,22 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSettings>
+#include <QSqlError>
+#include <QSqlQuery>
 #include <QStandardPaths>
 #include <QTextCharFormat>
 #include <QTextDocument>
 #include <QTextStream>
+#include <QUrl>
 
 #include "SleepLib/common.h"
-#include "SleepLib/day.h"
 #include "SleepLib/machine_common.h"
 #include "SleepLib/profiles.h"
-#include "SleepLib/session.h"
+#include "database/database_manager.h"
+#include "database/profile_repository.h"
+#include "mainwindow.h"
+
+extern MainWindow* mainwin;
 
 JournalNotesDialog::JournalNotesDialog(QWidget* parent)
     : QDialog(parent)
@@ -40,13 +45,14 @@ JournalNotesDialog::JournalNotesDialog(QWidget* parent)
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     setupCalendarFormatting();
+    populateProfiles();
+    loadSettings();
 
     QDate today = QDate::currentDate();
     ui->fromDate->setDate(today);
     ui->toDate->setDate(today);
 
     applyDateRange(ui->rangeCombo->currentText());
-    loadSettings();
 }
 
 JournalNotesDialog::~JournalNotesDialog()
@@ -57,6 +63,11 @@ JournalNotesDialog::~JournalNotesDialog()
 // ---------------------------------------------------------------------------
 //  Slots
 // ---------------------------------------------------------------------------
+
+void JournalNotesDialog::on_profileCombo_currentIndexChanged(int /*index*/)
+{
+    applyDateRange(ui->rangeCombo->currentText());
+}
 
 void JournalNotesDialog::on_rangeCombo_currentTextChanged(const QString& text)
 {
@@ -69,7 +80,7 @@ void JournalNotesDialog::on_exportButton_clicked()
     const QDate end   = ui->toDate->date();
 
     if (start > end) {
-        QMessageBox::warning(this, tr("Journal Report"),
+        QMessageBox::warning(this, tr("Export Journal Notes"),
                              tr("The start date must not be later than the end date."));
         return;
     }
@@ -79,24 +90,19 @@ void JournalNotesDialog::on_exportButton_clicked()
     const QString filter = useHtml ? tr("HTML Files (*.html)") : tr("Markdown Files (*.md)");
 
     QString dir = m_lastDir;
-    if (dir.isEmpty() || !QDir(dir).exists()) {
+    if (dir.isEmpty() || !QDir(dir).exists())
         dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    }
 
-    const QString userName = (p_profile && p_profile->user)
-        ? p_profile->user->userName()
-        : QStringLiteral("journal");
-
+    const QString userName = selectedUserName();
     const QString suggestion = dir + QDir::separator()
         + tr("%1_journal_notes_%2_%3.%4")
-              .arg(userName,
+              .arg(userName.isEmpty() ? QStringLiteral("journal") : userName,
                    start.toString(QStringLiteral("yyyyMMdd")),
                    end.toString(QStringLiteral("yyyyMMdd")),
                    ext);
 
     const QString filename = QFileDialog::getSaveFileName(
-        this, tr("Journal Report"), suggestion, filter);
-
+        this, tr("Export Journal Notes"), suggestion, filter);
     if (filename.isEmpty()) return;
 
     saveSettings(QFileInfo(filename).absolutePath());
@@ -105,19 +111,19 @@ void JournalNotesDialog::on_exportButton_clicked()
                         : exportToMarkdown(filename, start, end);
 
     if (count < 0) {
-        QMessageBox::critical(this, tr("Journal Report"),
+        QMessageBox::critical(this, tr("Export Journal Notes"),
                               tr("Could not write file:\n%1").arg(filename));
         return;
     }
 
     if (count == 0) {
-        QMessageBox::information(this, tr("Journal Report"),
+        QMessageBox::information(this, tr("Export Journal Notes"),
                                  tr("No journal notes found in this date range."));
     } else {
         if (ui->openAfterExportCheck->isChecked()) {
             QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
         } else {
-            QMessageBox::information(this, tr("Journal Report"),
+            QMessageBox::information(this, tr("Export Journal Notes"),
                                      tr("Exported notes for %n day(s).", "", count));
         }
     }
@@ -131,6 +137,46 @@ void JournalNotesDialog::on_closeButton_clicked()
 // ---------------------------------------------------------------------------
 //  Private helpers
 // ---------------------------------------------------------------------------
+
+void JournalNotesDialog::populateProfiles()
+{
+    ui->profileCombo->clear();
+    m_profileIds.clear();
+
+    ProfileRepository repo;
+    const QList<ProfileData> profiles = repo.findActive();
+
+    QString targetUsername;
+    if (p_profile && p_profile->user)
+        targetUsername = p_profile->user->userName();
+    else if (mainwin)
+        targetUsername = mainwin->selectedProfileName();
+
+    int preSelectIndex = -1;
+    for (int i = 0; i < profiles.size(); ++i) {
+        ui->profileCombo->addItem(profiles[i].username);
+        m_profileIds.append(profiles[i].id);
+        if (!targetUsername.isEmpty() && profiles[i].username == targetUsername)
+            preSelectIndex = i;
+    }
+
+    if (preSelectIndex >= 0)
+        ui->profileCombo->setCurrentIndex(preSelectIndex);
+}
+
+qint64 JournalNotesDialog::selectedProfileId() const
+{
+    const int idx = ui->profileCombo->currentIndex();
+    if (idx < 0 || idx >= m_profileIds.size()) return -1;
+    return m_profileIds[idx];
+}
+
+QString JournalNotesDialog::selectedUserName() const
+{
+    const int idx = ui->profileCombo->currentIndex();
+    if (idx < 0) return QString();
+    return ui->profileCombo->itemText(idx);
+}
 
 void JournalNotesDialog::applyDateRange(const QString& rangeText)
 {
@@ -176,9 +222,8 @@ void JournalNotesDialog::setupCalendarFormatting()
 {
     QLocale locale = QLocale::system();
     QString fmt = locale.dateFormat(QLocale::ShortFormat);
-    if (!fmt.toLower().contains(QLatin1String("yyyy"))) {
+    if (!fmt.toLower().contains(QLatin1String("yyyy")))
         fmt.replace(QLatin1String("yy"), QLatin1String("yyyy"));
-    }
     ui->fromDate->setDisplayFormat(fmt);
     ui->toDate->setDisplayFormat(fmt);
 
@@ -214,54 +259,59 @@ void JournalNotesDialog::loadSettings()
 
 QDate JournalNotesDialog::getFirstJournalDate() const
 {
-    // FirstDay(MT_JOURNAL) returns m_last as a fallback when no MT_JOURNAL day
-    // exists, so verify the returned date actually has journal data.
-    if (p_profile && p_profile->GetMachine(MT_JOURNAL)) {
-        QDate d = p_profile->FirstDay(MT_JOURNAL);
-        if (d.isValid() && p_profile->FindDay(d, MT_JOURNAL)) return d;
+    const qint64 pid = selectedProfileId();
+    if (pid < 0) return QDate();
+    QSqlQuery q(DatabaseManager::instance().database());
+    q.prepare(QStringLiteral(
+        "SELECT MIN(DATE(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) "
+        "FROM sessions s JOIN machines m ON s.machine_id = m.id "
+        "WHERE m.profile_id = :pid AND m.machine_type = 4"));
+    q.bindValue(QStringLiteral(":pid"), pid);
+    if (q.exec() && q.next() && !q.value(0).isNull()) {
+        QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+        if (d.isValid()) return d;
     }
     return QDate();
 }
 
 QDate JournalNotesDialog::getLastJournalDate() const
 {
-    // LastDay(MT_JOURNAL) returns m_first as a fallback when no MT_JOURNAL day
-    // exists, so verify the returned date actually has journal data.
-    if (p_profile && p_profile->GetMachine(MT_JOURNAL)) {
-        QDate d = p_profile->LastDay(MT_JOURNAL);
-        if (d.isValid() && p_profile->FindDay(d, MT_JOURNAL)) return d;
+    const qint64 pid = selectedProfileId();
+    if (pid < 0) return QDate();
+    QSqlQuery q(DatabaseManager::instance().database());
+    q.prepare(QStringLiteral(
+        "SELECT MAX(DATE(s.start_time/1000 - 43200, 'unixepoch', 'localtime')) "
+        "FROM sessions s JOIN machines m ON s.machine_id = m.id "
+        "WHERE m.profile_id = :pid AND m.machine_type = 4"));
+    q.bindValue(QStringLiteral(":pid"), pid);
+    if (q.exec() && q.next() && !q.value(0).isNull()) {
+        QDate d = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+        if (d.isValid()) return d;
     }
     return QDate();
 }
 
 // ---------------------------------------------------------------------------
-//  Export
+//  Export helpers
 // ---------------------------------------------------------------------------
 
-QString JournalNotesDialog::metricsString(Session* sess) const
+QString JournalNotesDialog::metricsString(int feelings, double weight_kg,
+                                          bool zombieMode, bool metric)
 {
     QStringList parts;
 
-    if (sess->settings.contains(Journal_ZombieMeter)) {
-        int value = sess->settings[Journal_ZombieMeter].toInt();
-        if (value > 0) {
-            if (p_profile->appearance->zombieMode()) {
-                parts << tr("Feelings: %1/100").arg(value);
-            } else {
-                parts << tr("Feelings: %1/10").arg(value / 10.0, 0, 'f', 1);
-            }
-        }
+    if (feelings > 0) {
+        if (zombieMode)
+            parts << QObject::tr("Feelings: %1/100").arg(feelings);
+        else
+            parts << QObject::tr("Feelings: %1/10").arg(feelings / 10.0, 0, 'f', 1);
     }
 
-    if (sess->settings.contains(Journal_Weight)) {
-        double kg = sess->settings[Journal_Weight].toDouble();
-        if (kg > 0.0001) {
-            if (p_profile->general->unitSystem() == US_Metric) {
-                parts << tr("Weight: %1 kg").arg(kg, 0, 'f', 1);
-            } else {
-                parts << tr("Weight: %1 lbs").arg(kg * pounds_per_kg, 0, 'f', 1);
-            }
-        }
+    if (weight_kg > 0.0001) {
+        if (metric)
+            parts << QObject::tr("Weight: %1 kg").arg(weight_kg, 0, 'f', 1);
+        else
+            parts << QObject::tr("Weight: %1 lbs").arg(weight_kg * pounds_per_kg, 0, 'f', 1);
     }
 
     return parts.join(QStringLiteral("  "));
@@ -269,7 +319,7 @@ QString JournalNotesDialog::metricsString(Session* sess) const
 
 QString JournalNotesDialog::extractBodyContent(const QString& html)
 {
-    const int bodyTag = html.indexOf(QLatin1String("<body"));
+    const int bodyTag     = html.indexOf(QLatin1String("<body"));
     if (bodyTag == -1) return html;
     const int contentStart = html.indexOf(QLatin1Char('>'), bodyTag) + 1;
     const int bodyEnd      = html.lastIndexOf(QLatin1String("</body>"));
@@ -277,10 +327,72 @@ QString JournalNotesDialog::extractBodyContent(const QString& html)
     return html.mid(contentStart, bodyEnd - contentStart).trimmed();
 }
 
+// ---------------------------------------------------------------------------
+//  Shared DB query used by both export methods
+// ---------------------------------------------------------------------------
+//
+// Returns one row per journal day in [start,end]:
+//   col 0 = day_date  (ISO text)
+//   col 1 = notes     (HTML, from json_value; NULL if no notes)
+//   col 2 = feelings  (integer 0–100, from value; NULL if not set)
+//   col 3 = weight_kg (real; NULL if not set)
+
+static QSqlQuery buildExportQuery(qint64 pid, QDate start, QDate end)
+{
+    QSqlQuery q(DatabaseManager::instance().database());
+    q.prepare(QStringLiteral(
+        "SELECT "
+        "  DATE(s.start_time/1000 - 43200, 'unixepoch', 'localtime') AS day_date, "
+        "  MAX(CASE WHEN ss.channel_id = :notes_id   THEN ss.json_value END) AS notes, "
+        "  MAX(CASE WHEN ss.channel_id = :zombie_id  THEN CAST(ss.value AS INTEGER) END) AS feelings, "
+        "  MAX(CASE WHEN ss.channel_id = :weight_id  THEN ss.value END) AS weight "
+        "FROM sessions s "
+        "JOIN machines m ON s.machine_id = m.id "
+        "LEFT JOIN session_settings ss ON ss.session_id = s.id "
+        "WHERE m.profile_id = :pid AND m.machine_type = 4 "
+        "  AND DATE(s.start_time/1000 - 43200, 'unixepoch', 'localtime') "
+        "      BETWEEN :start AND :end "
+        "GROUP BY day_date "
+        "ORDER BY day_date"));
+    q.bindValue(QStringLiteral(":notes_id"),  (int)Journal_Notes);
+    q.bindValue(QStringLiteral(":zombie_id"), (int)Journal_ZombieMeter);
+    q.bindValue(QStringLiteral(":weight_id"), (int)Journal_Weight);
+    q.bindValue(QStringLiteral(":pid"),   pid);
+    q.bindValue(QStringLiteral(":start"), start.toString(Qt::ISODate));
+    q.bindValue(QStringLiteral(":end"),   end.toString(Qt::ISODate));
+    q.exec();
+    return q;
+}
+
+// Query a single boolean/integer profile preference value (default 0).
+static int profilePref(qint64 pid, const QString& key)
+{
+    QSqlQuery q(DatabaseManager::instance().database());
+    q.prepare(QStringLiteral(
+        "SELECT value FROM profile_preferences "
+        "WHERE profile_id = :pid AND key = :key LIMIT 1"));
+    q.bindValue(QStringLiteral(":pid"), pid);
+    q.bindValue(QStringLiteral(":key"), key);
+    if (q.exec() && q.next()) return q.value(0).toInt();
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+//  Export
+// ---------------------------------------------------------------------------
+
 int JournalNotesDialog::exportToHtml(const QString& filename, QDate start, QDate end)
 {
-    const QString userName = (p_profile && p_profile->user)
-        ? p_profile->user->userName() : QString();
+    const qint64 pid       = selectedProfileId();
+    const QString userName = selectedUserName();
+    const bool withExtras  = ui->extraDataCheck->isChecked();
+
+    bool zombieMode = false;
+    bool metric     = true;
+    if (pid >= 0 && withExtras) {
+        zombieMode = profilePref(pid, QStringLiteral("ZombieMode")) != 0;
+        metric     = profilePref(pid, QStringLiteral("UnitSystem")) == US_Metric;
+    }
 
     QLocale locale = QLocale::system();
 
@@ -296,52 +408,40 @@ int JournalNotesDialog::exportToHtml(const QString& filename, QDate start, QDate
         ".meta { color: #777; font-size: 0.9em; margin-bottom: 1.5em; }\n"
         ".notes   { margin-left: 1.5em; margin-top: 0; }\n"
         ".metrics { text-align: right; font-size: 0.85em; color: #555; margin-top: 0.1em; }\n"
-        "@media print {\n"
-        "  .meta { display: none; }\n"
-        "}\n"
+        "@media print { .meta { display: none; } }\n"
         "</style>\n</head>\n<body>\n");
 
-    if (!userName.isEmpty()) {
-        html += QStringLiteral("<h1>") + tr("Journal Notes — %1").arg(userName.toHtmlEscaped())
-              + QStringLiteral("</h1>\n");
-    } else {
+    if (!userName.isEmpty())
+        html += QStringLiteral("<h1>") + tr("Journal Notes — %1").arg(userName.toHtmlEscaped()) + QStringLiteral("</h1>\n");
+    else
         html += QStringLiteral("<h1>") + tr("Journal Notes") + QStringLiteral("</h1>\n");
-    }
+
     html += QStringLiteral("<p class=\"meta\">")
-          + tr("From %1 to %2")
-                .arg(locale.toString(start, QLocale::LongFormat),
-                     locale.toString(end,   QLocale::LongFormat))
+          + tr("From %1 to %2").arg(locale.toString(start, QLocale::LongFormat),
+                                    locale.toString(end,   QLocale::LongFormat))
           + QStringLiteral("</p>\n");
 
-    const bool withExtras = ui->extraDataCheck->isChecked();
-
+    QSqlQuery q = buildExportQuery(pid, start, end);
     int count = 0;
-    for (QDate date = start; date <= end; date = date.addDays(1)) {
-        Day* day = p_profile->GetDay(date, MT_JOURNAL);
-        if (!day) continue;
-        Session* sess = day->firstSession(MT_JOURNAL);
-        if (!sess) continue;
 
-        const QString notesHtml = sess->settings.contains(Journal_Notes)
-            ? sess->settings[Journal_Notes].toString() : QString();
-        const bool hasNotes = !notesHtml.trimmed().isEmpty();
-        const QString metrics = withExtras ? metricsString(sess) : QString();
+    while (q.next()) {
+        const QDate   date     = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+        const QString notesHtml = q.value(1).toString();
+        const int     feelings  = q.value(2).toInt();
+        const double  weight    = q.value(3).toDouble();
+
+        const bool hasNotes   = !notesHtml.trimmed().isEmpty();
+        const QString metrics = withExtras ? metricsString(feelings, weight, zombieMode, metric) : QString();
         const bool hasMetrics = !metrics.isEmpty();
         if (!hasNotes && !hasMetrics) continue;
 
         html += QStringLiteral("<p class=\"day\">")
               + locale.toString(date, QLocale::LongFormat).toHtmlEscaped()
               + QStringLiteral("</p>\n");
-        if (hasNotes) {
-            html += QStringLiteral("<div class=\"notes\">")
-                  + extractBodyContent(notesHtml)
-                  + QStringLiteral("</div>\n");
-        }
-        if (hasMetrics) {
-            html += QStringLiteral("<p class=\"metrics\">")
-                  + metrics.toHtmlEscaped()
-                  + QStringLiteral("</p>\n");
-        }
+        if (hasNotes)
+            html += QStringLiteral("<div class=\"notes\">") + extractBodyContent(notesHtml) + QStringLiteral("</div>\n");
+        if (hasMetrics)
+            html += QStringLiteral("<p class=\"metrics\">") + metrics.toHtmlEscaped() + QStringLiteral("</p>\n");
         ++count;
     }
 
@@ -357,34 +457,39 @@ int JournalNotesDialog::exportToHtml(const QString& filename, QDate start, QDate
 
 int JournalNotesDialog::exportToMarkdown(const QString& filename, QDate start, QDate end)
 {
-    const QString userName = (p_profile && p_profile->user)
-        ? p_profile->user->userName() : QString();
+    const qint64 pid       = selectedProfileId();
+    const QString userName = selectedUserName();
+    const bool withExtras  = ui->extraDataCheck->isChecked();
+
+    bool zombieMode = false;
+    bool metric     = true;
+    if (pid >= 0 && withExtras) {
+        zombieMode = profilePref(pid, QStringLiteral("ZombieMode")) != 0;
+        metric     = profilePref(pid, QStringLiteral("UnitSystem")) == US_Metric;
+    }
 
     QLocale locale = QLocale::system();
 
     QString md;
-    if (!userName.isEmpty()) {
+    if (!userName.isEmpty())
         md += QStringLiteral("# ") + tr("Journal Notes — %1").arg(userName) + QStringLiteral("\n\n");
-    } else {
+    else
         md += QStringLiteral("# ") + tr("Journal Notes") + QStringLiteral("\n\n");
-    }
-    md += tr("From %1 to %2")
-              .arg(locale.toString(start, QLocale::LongFormat),
-                   locale.toString(end,   QLocale::LongFormat))
+
+    md += tr("From %1 to %2").arg(locale.toString(start, QLocale::LongFormat),
+                                  locale.toString(end,   QLocale::LongFormat))
         + QStringLiteral("\n\n");
 
-    const bool withExtras = ui->extraDataCheck->isChecked();
-
+    QSqlQuery q = buildExportQuery(pid, start, end);
     int count = 0;
-    for (QDate date = start; date <= end; date = date.addDays(1)) {
-        Day* day = p_profile->GetDay(date, MT_JOURNAL);
-        if (!day) continue;
-        Session* sess = day->firstSession(MT_JOURNAL);
-        if (!sess) continue;
 
-        const QString notesHtml = sess->settings.contains(Journal_Notes)
-            ? sess->settings[Journal_Notes].toString() : QString();
-        const QString metrics = withExtras ? metricsString(sess) : QString();
+    while (q.next()) {
+        const QDate   date      = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+        const QString notesHtml = q.value(1).toString();
+        const int     feelings  = q.value(2).toInt();
+        const double  weight    = q.value(3).toDouble();
+
+        const QString metrics = withExtras ? metricsString(feelings, weight, zombieMode, metric) : QString();
         const bool hasMetrics = !metrics.isEmpty();
 
         QString notesMd;
@@ -396,14 +501,11 @@ int JournalNotesDialog::exportToMarkdown(const QString& filename, QDate start, Q
         const bool hasNotes = !notesMd.isEmpty();
         if (!hasNotes && !hasMetrics) continue;
 
-        md += QStringLiteral("##### ") + locale.toString(date, QLocale::LongFormat)
-            + QStringLiteral("\n\n");
-        if (hasNotes) {
+        md += QStringLiteral("##### ") + locale.toString(date, QLocale::LongFormat) + QStringLiteral("\n\n");
+        if (hasNotes)
             md += notesMd + QStringLiteral("\n\n");
-        }
-        if (hasMetrics) {
+        if (hasMetrics)
             md += QStringLiteral("*") + metrics + QStringLiteral("*\n\n");
-        }
         ++count;
     }
 
