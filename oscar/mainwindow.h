@@ -364,6 +364,9 @@ class MainWindow : public QMainWindow
 
     void on_actionImport_Journal_triggered();
 
+    /*! \brief Open the Journal Notes export dialog. */
+    void on_actionExport_Journal_Notes_triggered();
+
     /*! \brief Open the Backup Profile dialog. */
     void on_actionBackup_Profile_triggered();
 

@@ -77,6 +77,7 @@
 #include "restoredialog.h"
 #include "sharedialog.h"
 #include "exports/report_exporter.h"
+#include "exports/journalnotesdialog.h"
 #include "importprofile.h"
 #include "profileimporter.h"
 #include "SleepLib/schema.h"
@@ -3073,6 +3074,18 @@ void MainWindow::on_actionExport_Journal_triggered()
 			(*p_profile)[STR_PREF_LastJournalPath] = dir.absolutePath();
 		}
 	}
+}
+
+void MainWindow::on_actionExport_Journal_Notes_triggered()
+{
+    if (!p_profile) {
+        QMessageBox::warning(this, tr("Journal Report"),
+                             tr("No profile is currently open."));
+        return;
+    }
+    JournalNotesDialog *dialog = new JournalNotesDialog(this);
+    dialog->exec();
+    delete dialog;
 }
 
 void MainWindow::on_actionBackup_Profile_triggered()

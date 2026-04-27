@@ -2417,6 +2417,7 @@ p, li { white-space: pre-wrap; }
      </property>
      <addaction name="actionExport_Journal"/>
      <addaction name="actionImport_Journal"/>
+     <addaction name="actionExport_Journal_Notes"/>
     </widget>
     <addaction name="action_Import_Data"/>
     <addaction name="action_Preferences"/>
@@ -2921,6 +2922,14 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="toolTip">
     <string>Manage CSV export report definitions</string>
+   </property>
+  </action>
+  <action name="actionExport_Journal_Notes">
+   <property name="text">
+    <string>Report...</string>
+   </property>
+   <property name="toolTip">
+    <string>Export journal notes for a date range to HTML or Markdown</string>
    </property>
   </action>
   <action name="actionExport_Review">

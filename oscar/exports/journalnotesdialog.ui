@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>JournalNotesDialog</class>
+ <widget class="QDialog" name="JournalNotesDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>480</width>
+    <height>290</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Journal Report</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <item>
+    <widget class="QLabel" name="introLabel">
+     <property name="styleSheet">
+      <string notr="true">border: 1px solid; border-radius: 6px; padding: 6px;</string>
+     </property>
+     <property name="text">
+      <string>Export journal notes for a range of days to an HTML or Markdown file. Days with no notes are skipped.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="dateRangeGroup">
+     <property name="title">
+      <string>Date Range</string>
+     </property>
+     <layout class="QGridLayout" name="dateRangeLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="rangeLabel">
+        <property name="text">
+         <string>Range:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="3">
+       <widget class="QComboBox" name="rangeCombo">
+        <item>
+         <property name="text">
+          <string>All</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Last Week</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Last Month</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Last 6 Months</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Last Year</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Custom</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="fromLabel">
+        <property name="text">
+         <string>From:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDateEdit" name="fromDate">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="currentSection">
+         <enum>QDateTimeEdit::Section::DaySection</enum>
+        </property>
+        <property name="calendarPopup">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="toLabel">
+        <property name="text">
+         <string>To:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QDateEdit" name="toDate">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="currentSection">
+         <enum>QDateTimeEdit::Section::DaySection</enum>
+        </property>
+        <property name="calendarPopup">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="formatGroup">
+     <property name="title">
+      <string>Format</string>
+     </property>
+     <layout class="QHBoxLayout" name="formatLayout">
+      <item>
+       <widget class="QRadioButton" name="htmlRadio">
+        <property name="text">
+         <string>HTML (viewable and printable in a browser)</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="markdownRadio">
+        <property name="text">
+         <string>Markdown</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="extraDataCheck">
+     <property name="text">
+      <string>Include feelings and weight</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="openAfterExportCheck">
+     <property name="text">
+      <string>Open file after export</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>8</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <spacer name="buttonSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="exportButton">
+       <property name="text">
+        <string>Export...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="closeButton">
+       <property name="text">
+        <string>Close</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
