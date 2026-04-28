@@ -4,6 +4,23 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-28 - viatom_loader: SpO2=100 triggers spurious "Untested Data" warning
+
+**File:** `oscar/SleepLib/loader_plugins/viatom_loader.cpp`
+
+**Symptom:** Importing from a WellUe/Viatom OsRing_S oximeter triggered the
+"Your Viatom device generated data that OSCAR has never seen before" warning
+dialog, even though the data was valid.
+
+**Root cause:** The SpO2 valid range check was `61–99%`. The OsRing_S can
+record `SpO2=100`, which is a legitimate reading but fell outside the check,
+producing an `UNEXPECTED_VALUE` warning.
+
+**Fix:** Raised the upper bound from 99 to 100 in both `ParseFileViatom` (the
+main Viatom path) and `ParseFilePOD2` (the POD2 path).
+
+---
+
 ## 2026-04-27 - daily_summaries: drop bogus per-machine dimension (schema v16, #95)
 
 **Files:** `oscar/database/database_schema.{h,cpp}`,

@@ -208,8 +208,8 @@ Session* ViatomLoader::ParseFilePOD2(const QString & filename, bool *existing)
             // Viatom advertises (and graphs) a range of 70% - 99%, but apparently records down to 61%.
             // The official software graphs 61%-70% as 70%.
             // TODO: Consider whether we should import 61%-70% as 70% to match the official reports.
-            if (rec.spo2>0 && (rec.spo2 < 61 || rec.spo2 > 99)) {
-                UNEXPECTED_VALUE(rec.spo2, "61-99%");
+            if (rec.spo2>0 && (rec.spo2 < 61 || rec.spo2 > 100)) {
+                UNEXPECTED_VALUE(rec.spo2, "61-100%");
             }
             else
             {
@@ -364,8 +364,9 @@ Session* ViatomLoader::ParseFileViatom(const QString & filename, bool *existing)
                 // Viatom advertises (and graphs) a range of 70% - 99%, but apparently records down to 61%.
                 // The official software graphs 61%-70% as 70%.
                 // TODO: Consider whether we should import 61%-70% as 70% to match the official reports.
-                if (rec.spo2 < 61 || rec.spo2 > 99) {
-                    UNEXPECTED_VALUE(rec.spo2, "61-99%");
+                // Some devices (e.g. OsRing_S) can record 100%, so the upper limit is 100.
+                if (rec.spo2 < 61 || rec.spo2 > 100) {
+                    UNEXPECTED_VALUE(rec.spo2, "61-100%");
                 }
                 AddEvent(OXI_SPO2, time_ms, rec.spo2);
             }
