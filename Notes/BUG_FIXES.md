@@ -4,6 +4,36 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-29 - Viatom import silently fails after 1.7.1 migration (#97)
+
+**Files:** `oscar/SleepLib/profiles.cpp` (`Profile::CreateMachine`),
+`oscar/SleepLib/machine.cpp` (`Machine::SaveToDatabase`)
+
+**Symptom:** After migrating a profile from OSCAR 1.7.1, importing Viatom oximeter
+data appeared to succeed ("Imported 5 sessions") but all sessions were silently
+discarded. All oximeter plots on the Daily page showed as disabled. Debug log
+contained `UNIQUE constraint failed: machines.profile_id, machines.machine_id`
+followed by "Machine not in database yet, skipping database storage" for every session.
+
+**Root cause:** The 1.7.1 migration stored the Viatom machine with `serial_number=""`
+in the DB (machines.xml had no serial element). `loadMachinesFromDatabase()` indexed
+it in `MachineList["Viatom"][""]`. The Viatom loader called `CreateMachine()` with
+`serial="25C2303495"` — not found under the empty key — so a new `Machine` object was
+created with the same `m_id` but `m_database_id=0`. `SaveToDatabase()` tried to INSERT,
+hitting `UNIQUE(profile_id, machine_id)`. With `m_database_id==0`, `Session::Store()`
+logged a warning and returned without saving any events.
+
+**Fix 1 (`CreateMachine`):** After the folder-scan determines `id` is non-zero, scan
+the loader's existing `MachineList` entries by `m_id`. If found under a different serial
+key, re-index it to the new serial and return the existing machine (preserving
+`m_database_id`).
+
+**Fix 2 (`SaveToDatabase`):** When `findBySerialLoaderAndProfile()` returns no match,
+fall back to `findByProfileAndMachineId()`. If that finds a machine with the same
+loader, adopt its DB ID and update the serial in the DB.
+
+---
+
 ## 2026-04-28 - viatom_loader: SpO2=100 triggers spurious "Untested Data" warning
 
 **File:** `oscar/SleepLib/loader_plugins/viatom_loader.cpp`

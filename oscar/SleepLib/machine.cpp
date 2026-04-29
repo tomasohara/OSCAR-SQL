@@ -1463,24 +1463,40 @@ bool Machine::SaveToDatabase()
         qDebug() << "Machine::SaveToDatabase(): Set profile database ID to" << profileData.id;
     }
 
-    // Check if this machine already exists in THIS PROFILE's database
-    // We search by serial+loader+profile to handle cases where machine internal ID changes
-    // (e.g., during rebuild from backup when a new random ID is generated)
+    // Check if this machine already exists in THIS PROFILE's database.
+    // Primary lookup: by serial+loader+profile (handles renamed machines and backup restore).
     MachineData existing = repo.findBySerialLoaderAndProfile(info.serial, info.loadername, profileData.id);
+
+    // Fallback lookup: by (profile_id, machine_id).  Needed when a machine was migrated from
+    // OSCAR 1.x with an empty serial — the DB record has serial_number="" while the loader
+    // now supplies the real serial, so the primary lookup finds nothing even though the record
+    // is there.  Only accept the fallback if the loader name matches to avoid stealing a record
+    // that belongs to a different loader.
+    if (existing.id == 0 && m_id != 0) {
+        MachineData byId = repo.findByProfileAndMachineId(profileData.id, m_id);
+        if (byId.id > 0 && byId.loaderName == info.loadername) {
+            qDebug() << "Machine::SaveToDatabase(): Serial lookup missed; found by machine_id"
+                     << m_id << "(DB serial was" << byId.serialNumber << ", loader provides" << info.serial << ")";
+            existing = byId;
+        }
+    }
+
     if (existing.id > 0) {
         // Machine already exists in this profile, reuse the existing ID
         m_database_id = existing.id;
-        
+
         // Update machine_id and any info fields that may have changed since the record
-        // was first written (e.g. series corrected after a loader bug fix, or machineId
-        // changed after a rebuild-from-backup).
-        bool needsUpdate = (existing.machineId != m_id)
-                        || (existing.series    != info.series)
-                        || (existing.model     != info.model)
-                        || (existing.modelNumber != info.modelnumber);
+        // was first written (e.g. series corrected after a loader bug fix, machineId changed
+        // after a rebuild-from-backup, or serial updated after a 1.x migration).
+        bool needsUpdate = (existing.machineId    != m_id)
+                        || (existing.series        != info.series)
+                        || (existing.model         != info.model)
+                        || (existing.modelNumber   != info.modelnumber)
+                        || (existing.serialNumber  != info.serial);
         if (needsUpdate) {
             MachineData updateData = existing;
             updateData.machineId    = m_id;
+            updateData.serialNumber = info.serial;
             updateData.series       = info.series;
             updateData.model        = info.model;
             updateData.modelNumber  = info.modelnumber;

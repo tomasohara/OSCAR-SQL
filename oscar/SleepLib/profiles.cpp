@@ -1129,6 +1129,27 @@ Machine * Profile::CreateMachine(MachineInfo info, MachineID id)
         }
     }
 
+    // If we now have a machine_id, check whether an existing machine in MachineList has
+    // the same internal ID under a different serial key.  This happens when a machine was
+    // migrated from OSCAR 1.x with an empty serial and the loader now provides the real
+    // serial: the DB-loaded machine lives under MachineList[loader][""] while the caller
+    // passes the real serial.  Return the same object after re-indexing it so that we
+    // don't end up with two machine objects pointing at the same database record.
+    if (id != 0 && mlit != MachineList.end()) {
+        for (auto it = mlit.value().begin(); it != mlit.value().end(); ++it) {
+            if (it.value()->id() == id) {
+                Machine* sameIdMachine = it.value();
+                QString oldSerial = it.key();
+                sameIdMachine->setInfo(info);
+                if (oldSerial != info.serial) {
+                    mlit.value()[info.serial] = sameIdMachine;
+                    mlit.value().erase(it);
+                }
+                return sameIdMachine;
+            }
+        }
+    }
+
     switch (info.type) {
     case MT_CPAP:
         m = new CPAP(this, id);
