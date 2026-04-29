@@ -4,6 +4,31 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-29 - Statistics page hides Oximeter section when oxi data comes from CPAP
+
+**Files:** `oscar/statistics.h`, `oscar/statistics.cpp`
+(`StatisticsRow::value`, `Statistics::GenerateCPAPUsage`)
+
+**Symptom:** The "Oximeter Statistics" block on the Statistics page was not shown for
+users whose CPAP machine has built-in oximetry (oxi channels stored in MT_CPAP
+sessions rather than a dedicated MT_OXIMETER machine).
+
+**Root cause:** The section-skip guard called `countDays(MT_OXIMETER, ...)` which
+returns 0 when there is no dedicated oximeter machine, so `skipsection = true` hid
+the entire block. All downstream `calcWavg/calcMin/etc.(channel, MT_OXIMETER, ...)`
+calls also returned zero/null because `GetGoodDay(date, MT_OXIMETER)` cannot find
+days whose only sessions are of type MT_CPAP.
+
+**Fix:** Before the row-rendering loop in `GenerateCPAPUsage`, detect which machine
+type actually holds oximetry data: `MT_OXIMETER` if a dedicated oximeter has data in
+the report range, `MT_CPAP` if the SPO2/Pulse channels are available in CPAP sessions
+but no dedicated oximeter data exists. This `oxiSourceType` is then substituted for
+`MT_OXIMETER` in the `SC_HEADING` day-count check, the `SC_DAYS_HEADER` data lookups,
+and passed as a new `typeOverride` parameter to `StatisticsRow::value()`, which uses
+it instead of the row's nominal `type` for all Profile-level calc calls.
+
+---
+
 ## 2026-04-29 - Viatom import silently fails after 1.7.1 migration (#97)
 
 **Files:** `oscar/SleepLib/profiles.cpp` (`Profile::CreateMachine`),

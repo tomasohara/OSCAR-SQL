@@ -1430,6 +1430,19 @@ QString Statistics::GenerateCPAPUsage()
     first = lastcpap;
     QList<Period> periods;
 
+    // Determine the machine type that actually holds oximetry data for this profile.
+    // Devices with built-in oximetry (e.g. some BMC or Viatom machines) store OXI_
+    // channels inside MT_CPAP sessions rather than in a dedicated MT_OXIMETER machine.
+    MachineType oxiSourceType = MT_OXIMETER;
+    if (p_profile->countDays(MT_OXIMETER, firstcpap, lastcpap) == 0) {
+        ChannelID spo2id  = schema::channel["SPO2"].id();
+        ChannelID pulseid = schema::channel["Pulse"].id();
+        if ((spo2id  != NoChannel && p_profile->channelAvailable(spo2id))
+                || (pulseid != NoChannel && p_profile->channelAvailable(pulseid))) {
+            oxiSourceType = MT_CPAP;
+        }
+    }
+
     bool skipsection = false;;
     int alternatingColorCounter = 0 ;
     // Loop through all rows of the Statistics report
@@ -1485,7 +1498,8 @@ QString Statistics::GenerateCPAPUsage()
                 }
             }
 
-            int days = p_profile->countDays(row.type, first, last);
+            MachineType sectionType = (row.type == MT_OXIMETER) ? oxiSourceType : row.type;
+            int days = p_profile->countDays(sectionType, first, last);
             skipsection = (days == 0);
             if (days > 0) {
                 html+=QString("<tr bgcolor='%1'><th colspan=%2 align=center><font size='+2'>%3</font></th></tr>").
@@ -1529,11 +1543,12 @@ QString Statistics::GenerateCPAPUsage()
             html += "</tr>";
             continue;
         } else if (row.calc == SC_DAYS_HEADER) {
-            QDate first=p_profile->FirstDay(row.type);
-            QDate last=p_profile->LastDay(row.type);
+            MachineType headerLookupType = (row.type == MT_OXIMETER) ? oxiSourceType : row.type;
+            QDate first=p_profile->FirstDay(headerLookupType);
+            QDate last=p_profile->LastDay(headerLookupType);
             // there no relationship to reports date. It just specifies the number of days used for a cetain range of dates.
             QString & machine = machinenames[row.type];
-            int value=p_profile->countDays(row.type, first, last );
+            int value=p_profile->countDays(headerLookupType, first, last );
 
             if (value == 0) {
                 html+=QString("<tr><td colspan=%1 align=center>%2</td></tr>").arg(periods.size()+1).
@@ -1604,7 +1619,8 @@ QString Statistics::GenerateCPAPUsage()
             width = j < np-1 ? dataWidth : 100 - (headerWidth + dataWidth*(np-1));
             line += QString("<td width='%1%'>").arg(width);
             if (!periods.at(j).header.isEmpty()) {
-                line += row.value(periods.at(j).start, periods.at(j).end);
+                MachineType rowLookupType = (row.type == MT_OXIMETER) ? oxiSourceType : MT_UNKNOWN;
+                line += row.value(periods.at(j).start, periods.at(j).end, rowLookupType);
             } else {
                 line +="&nbsp;";
             }
@@ -2006,17 +2022,21 @@ QString Statistics::UpdateRecordsBox()
     return html;
 }
 
-QString StatisticsRow::value(QDate start, QDate end)
+QString StatisticsRow::value(QDate start, QDate end, MachineType typeOverride)
 {
     const int decimals=2;
     QString value;
     float percentile=p_profile->general->prefCalcPercentile()/100.0;    // Pholynyk, 10Mar2016
     EventDataType percent = percentile;                                 // was 0.90F
 
+    // typeOverride allows the caller to substitute a different machine type (e.g. MT_CPAP
+    // when oximetry data lives in CPAP sessions rather than a dedicated oximeter).
+    MachineType effectiveType = (typeOverride != MT_UNKNOWN) ? typeOverride : type;
+
     float  daysUsed=0;
     { // hide days to prevent divide by zero crashes.
         // Use integer values here
-        int  days = p_profile->countDays(type, start, end);
+        int  days = p_profile->countDays(effectiveType, start, end);
 
         //  HAndle number of days
        //  with no divide - avoid divide by zero
@@ -2054,21 +2074,21 @@ QString StatisticsRow::value(QDate start, QDate end)
         value = QString::number((1+start.daysTo(end)) - daysUsed);
     } else if (calc == SC_USED_DAY_PERCENT) {
         value = QString("%1%").arg( ( (
-            ((100.0*(EventDataType)p_profile->countCompliantDays(type, start, end )) / (EventDataType)daysUsed) )
+            ((100.0*(EventDataType)p_profile->countCompliantDays(effectiveType, start, end )) / (EventDataType)daysUsed) )
             ), 0, 'f', decimals);
     } else if (calc == SC_DAYS_LT_COMPLAINCE_HOURS) {
-        int value1 =  ( daysUsed - p_profile->countCompliantDays(type, start, end ) );
+        int value1 =  ( daysUsed - p_profile->countCompliantDays(effectiveType, start, end ) );
         if (value1<0) value1 =0;
         value = QString::number(value1);
     } else if (calc == SC_HOURS) {
-        value = formatTime(p_profile->calcHours(type, start, end) / daysUsed);
+        value = formatTime(p_profile->calcHours(effectiveType, start, end) / daysUsed);
     } else if (calc == SC_TOTAL_DAYS_PERCENT) {
-        float daysCompliant = p_profile->countCompliantDays(type, start, end );
+        float daysCompliant = p_profile->countCompliantDays(effectiveType, start, end );
         int daysTotal = 1+start.daysTo(end);
         float p = (100.0 *daysCompliant / (float)daysTotal) ;
         value = QString("%1%").arg(p, 0, 'f', 2);
     } else if (calc == SC_DAYS_GE_COMPLIANCE_HOURS) {
-        value =  QString::number(p_profile->countCompliantDays(type, start, end ));
+        value =  QString::number(p_profile->countCompliantDays(effectiveType, start, end ));
     } else if ((calc == SC_COLUMNHEADERS) || (calc == SC_SUBHEADING) || (calc == SC_UNDEFINED))  {
     } else {
         //
@@ -2079,39 +2099,37 @@ QString StatisticsRow::value(QDate start, QDate end)
         if (code != NoChannel) {
             switch(calc) {
             case SC_AVG:
-                val = p_profile->calcAvg(code, type, start, end);
+                val = p_profile->calcAvg(code, effectiveType, start, end);
                 break;
             case SC_WAVG:
-                val = p_profile->calcWavg(code, type, start, end);
+                val = p_profile->calcWavg(code, effectiveType, start, end);
                 break;
             case SC_MEDIAN:
-                val = p_profile->calcPercentile(code, 0.5F, type, start, end);
+                val = p_profile->calcPercentile(code, 0.5F, effectiveType, start, end);
                 break;
             case SC_90P:
-                val = p_profile->calcPercentile(code, percent, type, start, end);
+                val = p_profile->calcPercentile(code, percent, effectiveType, start, end);
                 break;
             case SC_MIN:
-                val = p_profile->calcMin(code, type, start, end);
+                val = p_profile->calcMin(code, effectiveType, start, end);
                 break;
             case SC_MAX:
-                val = p_profile->calcMax(code, type, start, end);
+                val = p_profile->calcMax(code, effectiveType, start, end);
                 break;
             case SC_CPH:
-                val = p_profile->calcCount(code, type, start, end) / p_profile->calcHours(type, start, end);
+                val = p_profile->calcCount(code, effectiveType, start, end) / p_profile->calcHours(effectiveType, start, end);
                 break;
             case SC_SPH:
                 fmt += "%";
-                val = 100.0 / p_profile->calcHours(type, start, end) * p_profile->calcSum(code, type, start, end) / 3600.0;
+                val = 100.0 / p_profile->calcHours(effectiveType, start, end) * p_profile->calcSum(code, effectiveType, start, end) / 3600.0;
                 break;
             case SC_ABOVE:
                 fmt += "%";
-                val = 100.0 / p_profile->calcHours(type, start, end) * (p_profile->calcAboveThreshold(code, schema::channel[code].upperThreshold(), type, start, end) / 60.0);
-//                qDebug() << "channel" << code << "hours" << p_profile->calcHours(type, start, end)
-//                         << "above threshold" << p_profile->calcAboveThreshold(code, schema::channel[code].upperThreshold(), type, start, end);
+                val = 100.0 / p_profile->calcHours(effectiveType, start, end) * (p_profile->calcAboveThreshold(code, schema::channel[code].upperThreshold(), effectiveType, start, end) / 60.0);
                 break;
             case SC_BELOW:
                 fmt += "%";
-                val = 100.0 / p_profile->calcHours(type, start, end) * (p_profile->calcBelowThreshold(code, schema::channel[code].lowerThreshold(), type, start, end) / 60.0);
+                val = 100.0 / p_profile->calcHours(effectiveType, start, end) * (p_profile->calcBelowThreshold(code, schema::channel[code].lowerThreshold(), effectiveType, start, end) / 60.0);
                 break;
             default:
                 break;

@@ -149,7 +149,7 @@ struct StatisticsRow {
         return schema::channel[src].id();
     }
 
-    QString value(QDate start, QDate end );
+    QString value(QDate start, QDate end, MachineType typeOverride = MT_UNKNOWN);
 };
 
 //! \class Prescription (device) setting
