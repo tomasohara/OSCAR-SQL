@@ -344,7 +344,7 @@ void MainWindow::closeEvent(QCloseEvent * event)
     Q_UNUSED(event);
     static bool runonce = false;
     if (!runonce) {
-        if (AppSetting->removeCardReminder()) {
+        if (AppSetting->removeCardReminder() && AppSetting->hasSDCardImport()) {
             Notify(QObject::tr("Don't forget to place your datacard back in your CPAP device"), QObject::tr("OSCAR Reminder"));
             QThread::msleep(1000);
             QApplication::processEvents();
@@ -1428,6 +1428,16 @@ void MainWindow::importCPAPDataCards(const QList<ImportPath> & datacards)
             if (c >= 0) {
                 QDir d(dir.section("/",0,-1));
                 (*p_profile)[STR_PREF_LastCPAPPath] = d.absolutePath();
+
+                if (!AppSetting->hasSDCardImport()) {
+                    const QStringList drives = getDriveList();
+                    for (const QString &drive : drives) {
+                        if (dir.startsWith(drive)) {
+                            AppSetting->setHasSDCardImport(true);
+                            break;
+                        }
+                    }
+                }
             }
 
             if (c > 0) {

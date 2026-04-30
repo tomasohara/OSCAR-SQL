@@ -75,6 +75,7 @@ const QString STR_US_OpenTabAtStart = "OpenTabAtStart";
 const QString STR_US_OpenTabAfterImport = "OpenTabAfterImport";
 const QString STR_US_AutoLaunchImport = "AutoLaunchImport";
 const QString STR_US_RemoveCardReminder = "RemoveCardReminder";
+const QString STR_US_HasSDCardImport = "HasSDCardImport";
 const QString STR_US_NotifyMessagBoxOption = "NotifyMessagBoxOption";
 const QString STR_US_DontAskWhenSavingScreenshots = "DontAskWhenSavingScreenshots";
 const QString STR_US_ShowPersonalData = "ShowPersonalData";
@@ -191,6 +192,8 @@ public:
   int openTabAtStart() const { return getPref(STR_US_OpenTabAtStart).toInt(); }
   int openTabAfterImport() const { return getPref(STR_US_OpenTabAfterImport).toInt(); }
   bool removeCardReminder() const { return getPref(STR_US_RemoveCardReminder).toBool(); }
+  //! \brief Returns true if any profile has ever imported from a physical SD card (removable drive).
+  bool hasSDCardImport() const { return getPref(STR_US_HasSDCardImport).toBool(); }
   bool notifyMessagBoxOption() const { return getPref(STR_US_NotifyMessagBoxOption).toBool(); }
   bool dontAskWhenSavingScreenshots() const { return getPref(STR_US_DontAskWhenSavingScreenshots).toBool(); }
   bool autoOpenLastUsed() const { return getPref(STR_GEN_AutoOpenLastUsed).toBool(); }
@@ -263,6 +266,8 @@ public:
   void setOpenTabAtStart(int idx) { setPref(STR_US_OpenTabAtStart, idx); }
   void setOpenTabAfterImport(int idx) { setPref(STR_US_OpenTabAfterImport, idx); }
   void setRemoveCardReminder(bool b) { setPref(STR_US_RemoveCardReminder, b); }
+  //! \brief Records that a physical SD card (removable drive) has been used for import.
+  void setHasSDCardImport(bool b) { setPref(STR_US_HasSDCardImport, b); }
   void setNotifyMessagBoxOption(bool b) { setPref(STR_US_NotifyMessagBoxOption, b); }
   void setDontAskWhenSavingScreenshots(bool b) { setPref(STR_US_DontAskWhenSavingScreenshots, b); }
   void setShowPersonalData(bool b) { setPref(STR_US_ShowPersonalData, b); }
