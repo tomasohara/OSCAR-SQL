@@ -392,8 +392,6 @@ void Overview::RebuildGraphs(bool reset)
     disconnectgSummaryCharts() ;
     GraphView->trashGraphs(true);       // Remove all existing graphs
     CreateAllGraphs();
-    GraphView->LoadSettings("Overview");
-    settingsLoaded = true;
 
     if (reset) {
         GraphView->resetLayout();
@@ -402,6 +400,10 @@ void Overview::RebuildGraphs(bool reset)
         GraphView->resetLayout();
         updateGraphCombo();
     }
+
+    // Load after resetLayout so user-adjusted heights are not overwritten by defaults.
+    GraphView->LoadSettings("Overview");
+    settingsLoaded = true;
 }
 
 // Create an overview graph, adding it to the overview gGraphView object

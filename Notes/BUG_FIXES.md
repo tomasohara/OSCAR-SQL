@@ -4,6 +4,23 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-30 - Overview graph heights reset when File/Preferences OK clicked (#108)
+
+**File:** `oscar/overview.cpp` — `Overview::RebuildGraphs()`
+
+**Symptom:** After the user manually adjusts graph heights on the Overview page, opening
+File/Preferences and clicking OK (even with no changes) resets all heights to the default.
+
+**Root cause:** `mainwindow.cpp` unconditionally calls `overview->RebuildGraphs(true)` after
+the Preferences dialog closes. Inside `RebuildGraphs`, `GraphView->LoadSettings("Overview")`
+restored the correct heights, but the `if (reset)` block that follows immediately called
+`GraphView->resetLayout()` (twice), overwriting every graph height with the global default.
+
+**Fix:** Moved `LoadSettings("Overview")` and `settingsLoaded = true` to after the
+`if (reset)` block, so saved heights are applied last and are not clobbered by `resetLayout()`.
+
+---
+
 ## 2026-04-30 - Overview pressure graph scaled to setting instead of observed pressure (#104)
 
 **File:** `oscar/Graphs/gPressureChart.cpp` / `gPressureChart.h`
