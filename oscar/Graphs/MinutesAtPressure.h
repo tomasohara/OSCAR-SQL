@@ -136,6 +136,7 @@ protected:
         layer->m_lastmaxx = m_lastmaxx;
         layer->ipap = ipap;
         layer->epap = epap;
+        layer->initialized = initialized;
         layer->numCloned=numCloned+1;
 
         timelock.unlock();

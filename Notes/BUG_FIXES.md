@@ -4,6 +4,32 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-30 - Pop-out Time at Pressure graph shows incorrect X-axis (#109)
+
+**Files:** `oscar/Graphs/gGraphView.cpp` — `gGraphView::popoutGraph()`,
+`oscar/Graphs/MinutesAtPressure.h` — `MinutesAtPressure::CloneInto()`
+
+**Symptom:** On the Daily page, popping out the Time at Pressure graph produces a window
+where the X-axis (pressure axis) is enlarged/cut off and only part of the graph is shown.
+
+**Root cause:** In `popoutGraph()`, the new pop-out `gGraphView` (`gv`) has `m_minx = 0`
+and `m_maxx = 0` throughout its lifetime. `setDay()` is called before any graphs are added
+to `gv`, so `ResetBounds()` finds an empty graph list and never sets `m_minx`/`m_maxx`.
+When `MinutesAtPressure::RecalcMAP::setSelectionRange()` calls `gv->GetXBounds()`, it
+receives `(0, 0)` instead of the day's actual time range. The recalculation then uses
+`minTime = 0, maxTime = 0`, producing an incorrect pressure distribution. An existing
+workaround in `updateTimesForEventList` partially compensated for the zero minTime but
+failed entirely when clock drift was non-zero.
+
+**Fix 1:** After setting `newgraph->min_x`/`max_x` in `popoutGraph()`, immediately copy
+those values into `gv->m_minx`/`gv->m_maxx`. This ensures `GetXBounds()` returns the
+correct day range for the recalculation.
+
+**Fix 2:** Copy `initialized` in `CloneInto()` so the pop-out renders immediately with
+the cloned pressure distribution data rather than showing a blank first frame.
+
+---
+
 ## 2026-04-30 - Overview graph heights reset when File/Preferences OK clicked (#108)
 
 **File:** `oscar/overview.cpp` — `Overview::RebuildGraphs()`

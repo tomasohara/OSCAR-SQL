@@ -717,6 +717,12 @@ void gGraphView::popoutGraph()
         newgraph->min_x = graph->min_x;
         newgraph->max_x = graph->max_x;
 
+        // The pop-out graphview's m_minx/m_maxx must match the graph bounds so that
+        // GetXBounds() returns the correct day range when MinutesAtPressure::RecalcMAP
+        // calls it from setSelectionRange() during recalculation.
+        gv->m_minx = newgraph->min_x;
+        gv->m_maxx = newgraph->max_x;
+
         newgraph->setBlockSelect(false);
         newgraph->setZoomY(graph->zoomY());
 
