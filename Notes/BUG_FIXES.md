@@ -4,6 +4,21 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-29 - Show calendar day in italic if it has a bookmark (#99)
+
+**File:** `oscar/daily.cpp` (`Daily::UpdateCalendarDay`)
+
+**Feature:** Calendar days that have at least one bookmark are now displayed in italic,
+consistent with the existing visual encoding (bold = journal data, underline = position
+data, colour = CPAP/oximeter presence).
+
+**Implementation:** Retained the `Day*` pointer from `FindDay(date, MT_JOURNAL)` and
+added a `hasbookmarks` check using `settingExists(Bookmark_Start)` plus a non-empty
+list test on the journal session. `setFontItalic(true)` is applied to the
+`QTextCharFormat` when the check passes.
+
+---
+
 ## 2026-04-29 - Statistics page hides Oximeter section when oxi data comes from CPAP
 
 **Files:** `oscar/statistics.h`, `oscar/statistics.cpp`

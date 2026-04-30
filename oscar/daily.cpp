@@ -1007,9 +1007,13 @@ void Daily::UpdateCalendarDay(QDate date)
 
     bool hascpap = p_profile->FindDay(date, MT_CPAP)!=nullptr;
     bool hasoxi = p_profile->FindDay(date, MT_OXIMETER)!=nullptr;
-    bool hasjournal = p_profile->FindDay(date, MT_JOURNAL)!=nullptr;
+    Day * journalDay = p_profile->FindDay(date, MT_JOURNAL);
+    bool hasjournal = journalDay != nullptr;
     bool hasstage = p_profile->FindDay(date, MT_SLEEPSTAGE)!=nullptr;
     bool haspos = p_profile->FindDay(date, MT_POSITION)!=nullptr;
+
+    bool hasbookmarks = hasjournal && journalDay->settingExists(Bookmark_Start)
+                        && !journalDay->firstSession(MT_JOURNAL)->settings[Bookmark_Start].toList().isEmpty();
 
     if (hascpap) {
         if (hasoxi) {
@@ -1023,6 +1027,10 @@ void Daily::UpdateCalendarDay(QDate date)
 
     if (hasjournal) {
         charAttr.setFontWeight(QFont::Bold);        // Journal data present
+    }
+
+    if (hasbookmarks) {
+        charAttr.setFontItalic(true);               // has bookmarks
     }
 
     if (hasstage) {
