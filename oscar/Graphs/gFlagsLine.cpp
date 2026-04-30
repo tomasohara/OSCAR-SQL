@@ -245,6 +245,16 @@ void gFlagsGroup::paint(QPainter &painter, gGraph &g, const QRegion &region)
     painter.setPen(COLOR_Outline);
     painter.drawRect(outline);
 
+    if (AppSetting->lineCursorMode()) {
+        double time = g.currentTime();
+        if ((time > minx) && (time < maxx)) {
+            double xmult = double(width) / double(maxx - minx);
+            double xpos = (time - double(minx)) * xmult;
+            painter.setPen(QPen(QBrush(QColor(0, 255, 0, 255)), 1));
+            painter.drawLine(left+xpos, top-g.marginTop()-3, left+xpos, top+height+g.bottom-1);
+        }
+    }
+
     if (m_rebuild_cpap) {
 
         QString txt = QObject::tr("Database Outdated\nPlease Rebuild CPAP Data");

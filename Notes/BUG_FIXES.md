@@ -4,6 +4,21 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-29 - Extend line cursor through Event Flags graph (#102)
+
+**File:** `oscar/Graphs/gFlagsLine.cpp` (`gFlagsGroup::paint`)
+
+**Symptom:** The green vertical line cursor on the Daily page did not extend through the
+Event Flags graph, breaking visual continuity.
+
+**Root cause:** `gFlagsGroup::paint()` never implemented the cursor line drawing that
+`gLineChart` and `gOverviewGraph` both have. No architectural barrier — simply an omission.
+
+**Fix:** Added the standard 10-line cursor block (same pattern as `gLineChart::paint`)
+after the outline rect is drawn, so the green line renders on top of the graph border.
+
+---
+
 ## 2026-04-29 - Show calendar day in italic if it has a bookmark (#99)
 
 **File:** `oscar/daily.cpp` (`Daily::UpdateCalendarDay`)
