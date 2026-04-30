@@ -1504,7 +1504,7 @@ QString Daily::getStatisticsInfo(Day * day)
         return html;
     }
     html+="<table cellspacing=0 cellpadding=0 border=0 width='100%'>\n";
-    html+=QString("<tr><td><b>%1</b></td><td><b>%2</b></td><td><b>%3</b></td><td><b>%4</b></td><td><b>%5</b></td></tr>")
+    html+=QString("<tr><td><b>%1</b></td><td align=center><b>%2</b></td><td align=center><b>%3</b></td><td align=center><b>%4</b></td><td align=center><b>%5</b></td></tr>")
             .arg(STR_TR_Channel)
             .arg(STR_TR_Min)
             .arg(midname)
@@ -1572,7 +1572,7 @@ QString Daily::getStatisticsInfo(Day * day)
         tooltip.replace("'", "&apos;");
 //        qDebug() << schema::channel[code].label() << "old tooltip" << oldtip << "; new tooltip" << tooltip ;
 
-        html+=QString("<tr><td align=left title='%6'>%1</td><td>%2</td><td>%3</td><td>%4</td><td>%5</td></tr>")
+        html+=QString("<tr><td align=left title='%6'>%1</td><td align=center>%2</td><td align=center>%3</td><td align=center>%4</td><td align=center>%5</td></tr>")
             .arg(schema::channel[code].label())
             .arg(mn,0,'f',2)
             .arg(med,0,'f',2)
