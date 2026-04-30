@@ -64,6 +64,16 @@ SummaryCalcItem* gPressureChart::getCalc(ChannelID code, SummaryType type)
 }
 
 
+EventDataType gPressureChart::Maxy()
+{
+    // m_maxy is already ceil(peak bar value) from the paint loop.
+    // populate() now uses observed pressure for the top bar, so m_maxy
+    // reflects observed data. Add 1 cmH2O of headroom so the top bar
+    // has breathing room above it.
+    return m_maxy + 1;
+}
+
+
 void gPressureChart::afterDraw(QPainter &, gGraph &graph, QRectF rect)
 {
     QStringList presstr;
@@ -180,6 +190,27 @@ void gPressureChart::sortSlices() {
     m_sort_slices.clear();
 }
 
+void gPressureChart::addObservedIPAPMax()
+{
+    // Use the observed peak pressure (combined waveform max stored in session
+    // summary) instead of the machine's IPAPHi setting ceiling.
+    // Try CPAP_Pressure first (combined waveform), then CPAP_IPAP (per-breath
+    // peaks), then fall back to the setting if neither has data.
+    float value = m_day->Max(CPAP_Pressure);
+    if (value <= 0) {
+        value = m_day->Max(CPAP_IPAP);
+    }
+    if (value <= 0) {
+        addSlice(CPAP_IPAPHi);
+        return;
+    }
+    SummaryCalcItem* calc = getCalc(CPAP_IPAP, ST_SETMAX);
+    QColor color = getCalc(CPAP_IPAPHi, ST_SETMAX)->color;
+    m_sort_slices.insert(value, SummaryChartSlice(calc, value, 0,
+        schema::channel[CPAP_IPAPHi].label(), color));
+}
+
+
 void gPressureChart::populate(Day * day, int idx)
 {
     CPAPMode mode =  (CPAPMode)(int)qRound(day->settings_wavg(CPAP_Mode));
@@ -215,7 +246,7 @@ void gPressureChart::populate(Day * day, int idx)
             addSlice(CPAP_IPAP, ST_MID);
             addSlice(CPAP_IPAP, ST_90P);
         }
-        addSlice(CPAP_IPAPHi);
+        addObservedIPAPMax();
 
     } else if ((mode == MODE_BILEVEL_AUTO_VARIABLE_PS) || (mode == MODE_ASV_VARIABLE_EPAP)) {
         addSlice(CPAP_EPAPLo);
@@ -234,7 +265,7 @@ void gPressureChart::populate(Day * day, int idx)
             addSlice(ipap, ST_MID);
             addSlice(ipap, ST_90P);
         }
-        addSlice(CPAP_IPAPHi);
+        addObservedIPAPMax();
 
     } else if (mode == MODE_TRILEVEL_AUTO_VARIABLE_PDIFF) {
         addSlice(CPAP_EEPAPLo);
@@ -246,7 +277,7 @@ void gPressureChart::populate(Day * day, int idx)
             addSlice(ipap, ST_MID);
             addSlice(ipap, ST_90P);
         }
-        addSlice(CPAP_IPAPHi);
+        addObservedIPAPMax();
 
     } else if (mode == MODE_ASV) {
         addSlice(CPAP_EPAP);
@@ -254,7 +285,7 @@ void gPressureChart::populate(Day * day, int idx)
             addSlice(CPAP_IPAP, ST_MID);
             addSlice(CPAP_IPAP, ST_90P);
         }
-        addSlice(CPAP_IPAPHi);
+        addObservedIPAPMax();
 
     } else if (mode == MODE_AVAPS) {
         addSlice(CPAP_EPAP);
@@ -262,7 +293,7 @@ void gPressureChart::populate(Day * day, int idx)
             addSlice(CPAP_IPAP, ST_MID);
             addSlice(CPAP_IPAP, ST_90P);
         }
-        addSlice(CPAP_IPAPHi);
+        addObservedIPAPMax();
     }
     sortSlices();
 }

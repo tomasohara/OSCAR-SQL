@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-30 - Overview pressure graph scaled to setting instead of observed pressure (#104)
+
+**File:** `oscar/Graphs/gPressureChart.cpp` / `gPressureChart.h`
+
+**Symptom:** On the Overview page, the pressure bar chart's top bar and Y-axis maximum
+were always driven by the machine's IPAPHi (or equivalent) pressure setting ceiling,
+not by the pressure actually observed during therapy. For bilevel auto machines the top
+bar showed the setting even when observed peak pressure was meaningfully lower.
+
+**Root cause:** `populate()` called `addSlice(CPAP_IPAPHi)` for all auto/variable bilevel
+modes, which reads `day->settings_max(CPAP_IPAPHi)` — the setting, not observed data.
+
+**Fix:** Added `addObservedIPAPMax()` which reads `Day::Max(CPAP_Pressure)` (peak of the
+combined pressure waveform stored in the session summary), falling back to
+`Day::Max(CPAP_IPAP)` then to the setting if neither has data. All five
+`addSlice(CPAP_IPAPHi)` calls in `populate()` replaced with `addObservedIPAPMax()`.
+Added `Maxy()` override returning `m_maxy + 1` for 1 cmH2O headroom above the bars.
+
+---
+
 ## 2026-04-29 - Extend line cursor through Event Flags graph (#102)
 
 **File:** `oscar/Graphs/gFlagsLine.cpp` (`gFlagsGroup::paint`)
