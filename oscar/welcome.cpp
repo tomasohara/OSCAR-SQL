@@ -349,12 +349,25 @@ QString Welcome::GenerateOxiHTML()
     auto oximeters = p_profile->GetMachines(MT_OXIMETER);
 
     bool haveoximeterdata = false;
+    MachineType oxiSourceType = MT_OXIMETER;
 
     for (auto & mach : oximeters) {
         int daysize = mach->day.size();
         if (daysize > 0) {
             haveoximeterdata = true;
             break;
+        }
+    }
+
+    // If no dedicated oximeter machine, oximetry data may live in CPAP sessions
+    // (some CPAP devices have built-in SpO2/pulse channels).
+    ChannelID spo2id  = schema::channel["SPO2"].id();
+    ChannelID pulseid = schema::channel["Pulse"].id();
+    if (!haveoximeterdata) {
+        if ((spo2id  != NoChannel && p_profile->channelAvailable(spo2id))
+                || (pulseid != NoChannel && p_profile->channelAvailable(pulseid))) {
+            haveoximeterdata = true;
+            oxiSourceType = MT_CPAP;
         }
     }
 
@@ -371,7 +384,24 @@ QString Welcome::GenerateOxiHTML()
     html += "<font size='+0'>" ;
 
     if (haveoximeterdata) {
-        QDate oxidate=p_profile->LastDay(MT_OXIMETER);
+        QDate oxidate;
+        if (oxiSourceType == MT_OXIMETER) {
+            oxidate = p_profile->LastDay(MT_OXIMETER);
+        } else {
+            // Walk back from the last CPAP day to find one with oximetry channel data.
+            QDate first = p_profile->FirstDay(MT_CPAP);
+            QDate d = p_profile->LastDay(MT_CPAP);
+            while (d.isValid() && first.isValid() && d >= first) {
+                Day * day = p_profile->GetDay(d, MT_CPAP);
+                if (day && ((spo2id != NoChannel && day->channelHasData(spo2id))
+                            || (pulseid != NoChannel && day->channelHasData(pulseid)))) {
+                    oxidate = d;
+                    break;
+                }
+                d = d.addDays(-1);
+            }
+            if (!oxidate.isValid()) oxidate = p_profile->LastDay(MT_CPAP);
+        }
         int daysto = oxidate.daysTo(QDate::currentDate());
 
         html += "<p>"+QObject::tr("Most recent Oximetry data: <a onclick='alert(\"daily=%2\");'>%1</a> ").arg(oxidate.toString(QLocale::system().dateFormat(QLocale::LongFormat))).arg(oxidate.toString(Qt::ISODate));

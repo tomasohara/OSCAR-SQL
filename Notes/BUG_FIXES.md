@@ -19,6 +19,26 @@ list test on the journal session. `setFontItalic(true)` is applied to the
 
 ---
 
+## 2026-04-29 - Welcome page hides Oximetry block when oxi data comes from CPAP
+
+**File:** `oscar/welcome.cpp` (`Welcome::GenerateOxiHTML`)
+
+**Symptom:** The Welcome page's oximetry info block (icon, frame, "Most recent
+Oximetry data...") was hidden for users whose CPAP machine has built-in oximetry,
+because no dedicated `MT_OXIMETER` machine exists.
+
+**Root cause:** `GetMachines(MT_OXIMETER)` returned an empty list, so
+`haveoximeterdata` stayed false and the block was hidden. `LastDay(MT_OXIMETER)`
+likewise returned an invalid date for the report link.
+
+**Fix:** When no dedicated oximeter machine has data, fall back to checking
+`channelAvailable("SPO2"|"Pulse")`. If oxi channels are present, set
+`haveoximeterdata = true` with `oxiSourceType = MT_CPAP`. For the displayed date,
+walk back from the last CPAP day to find one with SPO2/Pulse data; otherwise use
+`LastDay(MT_CPAP)`. Mirrors the fix to `Statistics::GenerateCPAPUsage`.
+
+---
+
 ## 2026-04-29 - Statistics page hides Oximeter section when oxi data comes from CPAP
 
 **Files:** `oscar/statistics.h`, `oscar/statistics.cpp`
