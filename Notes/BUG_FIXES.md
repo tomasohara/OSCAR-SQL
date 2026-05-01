@@ -4,6 +4,31 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-04-30 - Warn when importing from a different CPAP machine (#107)
+
+**Files:** `oscar/mainwindow.cpp` — `MainWindow::selectCPAPDataCards()`;
+`oscar/SleepLib/profiles.h` — `CPAPSettings`; `oscar/preferencesdialog.ui/cpp`;
+`oscar/database/preferences_repository.cpp`
+
+**Symptom / Feature:** No warning was shown when a user imported from an SD card belonging
+to a different CPAP machine than the one previously imported into the profile. This could
+silently mix data from two machines into one profile.
+
+**Root cause:** The import flow had no serial-number cross-check before proceeding.
+
+**Fix:** In `selectCPAPDataCards()`, after `PeekInfo()` retrieves the card's serial:
+1. Check if the path is on a physical removable (FAT/VFAT) drive via `getDriveList()`.
+2. If so, and if the new `WarnOnDifferentSDCard` CPAP preference is enabled (default: true),
+   compare the card's serial against the most-recently-imported CPAP machine in the profile
+   (`p_profile->GetMachine(MT_CPAP)`).
+3. If both serials are non-empty and differ, show a `QMessageBox::Warning` naming both
+   machines and require the user to click **Continue**; **Cancel** aborts the import.
+The check is skipped for folder/hard-drive/network imports (Use Case #3).
+A new "Warn when SD card is from a different machine" checkbox in Preferences → Import lets
+users with two machines on one profile (Use Case #2/4) disable the check.
+
+---
+
 ## 2026-04-30 - Pop-out Time at Pressure graph shows incorrect X-axis (#109)
 
 **Files:** `oscar/Graphs/gGraphView.cpp` — `gGraphView::popoutGraph()`,

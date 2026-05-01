@@ -375,6 +375,9 @@ const QString STR_CS_DateDiagnosed = "DateDiagnosed";
 const QString STR_CS_UserEventFlagging = "UserEventFlagging";
 const QString STR_CS_AutoImport = "AutoImport";
 const QString STR_CS_BrickWarning = "BrickWarning";
+const QString STR_CS_WarnOnDifferentSDCard = "WarnOnDifferentSDCard";
+const QString STR_CS_LastSDCardSerial = "LastSDCardSerial";
+const QString STR_CS_LastSDCardLoader = "LastSDCardLoader";
 
 const QString STR_CS_UserFlowRestriction = "UserFlowRestriction";
 const QString STR_CS_UserEventDuration = "UserEventDuration";
@@ -655,6 +658,9 @@ class CPAPSettings : public PrefSettings
         m_resyncFromUserFlagging = initPref(STR_CS_ResyncFromUserFlagging, false).toBool();
         initPref(STR_CS_AutoImport, false);
         initPref(STR_CS_BrickWarning, true);
+        initPref(STR_CS_WarnOnDifferentSDCard, true);
+        initPref(STR_CS_LastSDCardSerial, QString());
+        initPref(STR_CS_LastSDCardLoader, QString());
 
         // From old zMaskProfile::calcLeak comments:
         // Average mask leak minimum at pressure 4 = 20.167
@@ -694,6 +700,9 @@ class CPAPSettings : public PrefSettings
     inline bool resyncFromUserFlagging() const { return m_resyncFromUserFlagging; }
     bool autoImport() const { return getPref(STR_CS_AutoImport).toBool(); }
     bool brickWarning() const { return getPref(STR_CS_BrickWarning).toBool(); }
+    bool warnOnDifferentSDCard() const { return getPref(STR_CS_WarnOnDifferentSDCard).toBool(); }
+    QString lastSDCardSerial() const { return getPref(STR_CS_LastSDCardSerial).toString(); }
+    QString lastSDCardLoader() const { return getPref(STR_CS_LastSDCardLoader).toString(); }
 
     inline bool calculateUnintentionalLeaks() const { return m_calcUnintentionalLeaks; }
     inline double custom4cmH2OLeaks() const { return m_4cmH2OLeaks; }
@@ -729,6 +738,9 @@ class CPAPSettings : public PrefSettings
     void setResyncFromUserFlagging(bool b) { setPref(STR_CS_ResyncFromUserFlagging, m_resyncFromUserFlagging=b); }
     void setAutoImport(bool b) { setPref(STR_CS_AutoImport, b); }
     void setBrickWarning(bool b) { setPref(STR_CS_BrickWarning, b); }
+    void setWarnOnDifferentSDCard(bool b) { setPref(STR_CS_WarnOnDifferentSDCard, b); }
+    void setLastSDCardSerial(const QString &s) { setPref(STR_CS_LastSDCardSerial, s); }
+    void setLastSDCardLoader(const QString &s) { setPref(STR_CS_LastSDCardLoader, s); }
 
     void setCalculateUnintentionalLeaks(bool b) { setPref(STR_CS_CalculateUnintentionalLeaks, m_calcUnintentionalLeaks=b); }
     void setCustom4cmH2OLeaks(double val) { setPref(STR_CS_4cmH2OLeaks, m_4cmH2OLeaks=val); }

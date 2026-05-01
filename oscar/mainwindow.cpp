@@ -1323,6 +1323,58 @@ QList<ImportPath> MainWindow::selectCPAPDataCards(const QString & prompt, bool a
             infostr = tr("A %1 file structure was located at:").arg(datacards[0].loader->loaderName());
         }
 
+        // Warn if this card's serial differs from the last SD card imported into this profile,
+        // but only when the path is on a physical removable drive and the preference is enabled.
+        if (p_profile->cpap->warnOnDifferentSDCard() && !info.serial.isEmpty()) {
+            bool isSDCard = false;
+            const QStringList drives = getDriveList();
+            for (const QString &drive : drives) {
+                if (datacards[0].path.startsWith(drive)) {
+                    isSDCard = true;
+                    break;
+                }
+            }
+            if (isSDCard) {
+                const QString lastSerial = p_profile->cpap->lastSDCardSerial();
+                const QString lastLoader = p_profile->cpap->lastSDCardLoader();
+                if (!lastSerial.isEmpty() && lastSerial != info.serial) {
+                    auto machDesc = [](const MachineInfo &mi) -> QString {
+                        QString id = !mi.model.isEmpty()  ? mi.model
+                                   : !mi.series.isEmpty() ? mi.series
+                                   : mi.loadername;
+                        QString brand = mi.brand.isEmpty() ? mi.loadername : mi.brand;
+                        return brand + " " + id + " (" + mi.serial + ")";
+                    };
+
+                    // Describe the previously imported machine from profile data if available.
+                    QString prevDesc;
+                    Machine* prevMachine = p_profile->lookupMachine(lastSerial, lastLoader);
+                    if (prevMachine) {
+                        prevDesc = machDesc(prevMachine->info);
+                    } else {
+                        prevDesc = (lastLoader.isEmpty() ? lastLoader : lastLoader + " ") + "(" + lastSerial + ")";
+                    }
+                    QString newDesc = machDesc(info);
+
+                    QMessageBox warn(QMessageBox::Warning,
+                        tr("Different CPAP Machine Detected"),
+                        tr("This SD card is from a different machine than the last one imported into this profile.\n\n"
+                           "Last imported: %1\n"
+                           "This card: %2\n\n"
+                           "Are you sure you want to import from this card into this profile?").arg(prevDesc, newDesc),
+                        QMessageBox::NoButton, this);
+                    QPushButton* continueBtn = warn.addButton(tr("Continue"),  QMessageBox::YesRole);
+                    warn.addButton(tr("Cancel"), QMessageBox::RejectRole);
+                    warn.setDefaultButton(continueBtn);
+                    warn.exec();
+                    if (warn.clickedButton() != continueBtn) {
+                        datacards.clear();
+                        return datacards;
+                    }
+                }
+            }
+        }
+
         if (alwaysPrompt || !p_profile->cpap->autoImport()) {
             QMessageBox mbox(QMessageBox::NoIcon,
                 tr("CPAP Data Located"), infostr+"\n\n"+QDir::toNativeSeparators(datacards[0].path)+"\n\n"+
@@ -1429,13 +1481,19 @@ void MainWindow::importCPAPDataCards(const QList<ImportPath> & datacards)
                 QDir d(dir.section("/",0,-1));
                 (*p_profile)[STR_PREF_LastCPAPPath] = d.absolutePath();
 
-                if (!AppSetting->hasSDCardImport()) {
-                    const QStringList drives = getDriveList();
-                    for (const QString &drive : drives) {
-                        if (dir.startsWith(drive)) {
+                const QStringList drives = getDriveList();
+                for (const QString &drive : drives) {
+                    if (dir.startsWith(drive)) {
+                        if (!AppSetting->hasSDCardImport()) {
                             AppSetting->setHasSDCardImport(true);
-                            break;
                         }
+                        // Record which SD card was imported so the next import can warn if it differs.
+                        MachineInfo importedInfo = loader->PeekInfo(dir);
+                        if (!importedInfo.serial.isEmpty()) {
+                            p_profile->cpap->setLastSDCardSerial(importedInfo.serial);
+                            p_profile->cpap->setLastSDCardLoader(importedInfo.loadername);
+                        }
+                        break;
                     }
                 }
             }

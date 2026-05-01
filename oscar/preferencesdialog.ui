@@ -667,6 +667,16 @@ OSCAR can keep a copy of this data if you ever need to reinstall.
                    </property>
                   </widget>
                  </item>
+                 <item row="3" column="1">
+                  <widget class="QCheckBox" name="warnOnDifferentSDCard">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When importing from a physical SD card, warn if the card belongs to a different machine than the one previously imported into this profile. Disable this if you use two CPAP machines with the same profile.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Warn when SD card is from a different machine</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </widget>
               </item>

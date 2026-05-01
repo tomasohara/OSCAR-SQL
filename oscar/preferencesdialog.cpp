@@ -166,6 +166,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     ui->eventIndexCombo->setCurrentIndex(profile->general->calculateRDI() ? 1 : 0);
 
     ui->automaticImport->setChecked(profile->cpap->autoImport()); // Skip extra dialogs, this needs to rename.
+    ui->warnOnDifferentSDCard->setChecked(profile->cpap->warnOnDifferentSDCard());
 
     ui->autoLoadLastUsed->setChecked(AppSetting->autoOpenLastUsed());
 
@@ -1021,6 +1022,7 @@ bool PreferencesDialog::Save()
     profile->cpap->setAHIReset(ui->ahiGraphZeroReset->isChecked());
 
     profile->cpap->setAutoImport(ui->automaticImport->isChecked()); // delete me???
+    profile->cpap->setWarnOnDifferentSDCard(ui->warnOnDifferentSDCard->isChecked());
     AppSetting->setAutoOpenLastUsed(ui->autoLoadLastUsed->isChecked());
 
     profile->cpap->setUserEventFlagging(ui->customEventGroupbox->isChecked());
