@@ -46,8 +46,8 @@ quint32 BmcUsrSession::GetNextHistoricSessionOffset(QDataStream* strm)
     strm->skipRawData(1);          // skip 0xE1/0xE2
     quint32 next;  *strm >> next;
 
-    /*  se next è “strano” (0, 0xFFFFFFFF o prima del punto corrente)
-        usiamo la fine-file come sentinella                 */
+    // If next is invalid (0, 0xFFFFFFFF, or before the current position),
+    // use end-of-file as a sentinel so the caller reads to EOF.
     const quint64 end   = strm->device()->size();
     if (next == 0            ||
         next == 0xFFFFFFFF   ||
@@ -755,7 +755,7 @@ void BmcData::ReadAllSessions()
         quint32 next      = BmcUsrSession::GetNextHistoricSessionOffset(&strmUSR);
         quint64 sliceEnd  = qMin<quint64>(next, fileUSR.size());
 
-        if (sliceEnd <= here)         // sicurezza aggiuntiva
+        if (sliceEnd <= here)         // extra safety: nothing to read
             break;
 
         const quint32 len = static_cast<quint32>(sliceEnd - here);
@@ -768,7 +768,7 @@ void BmcData::ReadAllSessions()
             BmcUsrSession s(&strm, /*InProgress*/false);
             this->AllUsrSessions.append(s);
         } catch (...) {
-            qDebug() << "Sessione corrotta @ offset" << here;
+            qDebug() << "Corrupt session record at offset" << here;
         }
     }
 
@@ -933,12 +933,12 @@ void BmcData::FindValidSessions()
 
         for (auto &idxEntry : this->ValidIdxEntries)
         {
-            const bool stessoGiorno      = usrSession.StartTimestamp.date() == idxEntry.StartWaveformPacketTimestamp.date();
-            const bool giornoSuccessivo  = usrSession.StartTimestamp.date().addDays(1) == idxEntry.StartWaveformPacketTimestamp.date();
+            const bool sameDay           = usrSession.StartTimestamp.date() == idxEntry.StartWaveformPacketTimestamp.date();
+            const bool nextDay           = usrSession.StartTimestamp.date().addDays(1) == idxEntry.StartWaveformPacketTimestamp.date();
 
             if (  usrSession.StartTimestamp >= idxEntry.StartWaveformPacketTimestamp
-                || stessoGiorno
-                || giornoSuccessivo)
+                || sameDay
+                || nextDay)
             {
                 foundIdxEntry = &idxEntry;
             }
@@ -946,12 +946,16 @@ void BmcData::FindValidSessions()
                 break;
         }
 
+        // Pick the last crumb whose timestamp is strictly before the session start.
+        // ReadWaveforms reads forward from the crumb and filters to packets within
+        // the session window, so starting from just before the session is correct.
+        // (Picking the first crumb >= StartTimestamp would skip the opening minutes.)
         BmcWaveformCrumb chosenCrumb;
         for (const auto &crumb : this->WaveformCrumbs) {
-            if (crumb.Timestamp >= usrSession.StartTimestamp) {
-                    chosenCrumb = crumb;
-                    break;
-                }
+            if (crumb.Timestamp < usrSession.StartTimestamp)
+                chosenCrumb = crumb;
+            else
+                break;
         }
         if (!chosenCrumb.Timestamp.isValid())
             continue;

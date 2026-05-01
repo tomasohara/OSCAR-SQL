@@ -278,8 +278,8 @@ struct BmcWaveformPacketStruct{
     int16_t TidalVolume; //C6
     int16_t Offset0xC8;
     int16_t MinuteVentilation; //CA
-    int16_t SpO2Pct;      // 0xCC – saturazione ossigeno %
-    int16_t PulseRate;    // 0xCE – battiti al minuto
+    int16_t SpO2Pct;      // 0xCC – oxygen saturation %
+    int16_t PulseRate;    // 0xCE – pulse rate in beats per minute
     int16_t RespiratoryRate; //D0
     int16_t IERatio; //D2
     int16_t Offset0xD4;

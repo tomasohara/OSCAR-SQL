@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-01 - BMC legacy loader: missing first N minutes of session
+
+**File:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp` — `BmcData::FindValidSessions()`
+
+**Symptom:** OSCAR displayed BMC sessions missing a variable number of minutes from the
+beginning, compared to BMC's PAP-Link software.
+
+**Root cause:** The December 2025 commit (e3834b9c) inverted the waveform crumb selection
+logic. Crumbs are sparse index timestamps spaced 0x1000 (4096) packets apart in each
+waveform file. The old code selected the **last crumb strictly before** `StartTimestamp`,
+then `ReadWaveforms` read forward from that point and kept only packets within the session
+window. The new code instead selected the **first crumb at-or-after** `StartTimestamp`,
+causing `ReadWaveforms` to begin reading up to ~68 minutes into the session (the crumb
+interval), silently discarding all waveform packets before that crumb.
+
+**Fix:** Restored the original direction of the crumb search: iterate crumbs and keep
+updating `chosenCrumb` while `crumb.Timestamp < usrSession.StartTimestamp`, then break.
+The `!chosenCrumb.Timestamp.isValid()` guard from the new code was retained.
+
+---
+
 ## 2026-04-30 - Warn when importing from a different CPAP machine (#107)
 
 **Files:** `oscar/mainwindow.cpp` — `MainWindow::selectCPAPDataCards()`;
