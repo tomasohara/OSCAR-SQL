@@ -4,6 +4,28 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-01 - BMC loader: "Plots Disabled" for SpO2/Pulse when no Oxi accessory attached
+
+**File:** `oscar/SleepLib/loader_plugins/bmc_loader.cpp` — `BmcLoader::ExportSession()`
+
+**Symptom:** After importing BMC data without an Oxi accessory, the Daily graph page
+immediately showed "Plots Disabled" for SpO2 and Pulse Rate charts. Navigating away and
+back to the same day made the charts disappear (correct behaviour), but they should not
+have appeared at all on the first view.
+
+**Root cause:** The loader unconditionally called `AddEventList()` for `OXI_SPO2` and
+`OXI_Pulse` before the waveform loop, creating empty `EventList` objects. The graph code
+renders "Plots Disabled" for any channel present with zero data points. The empty lists
+are never persisted to the database (session save skips empty EventLists), so they
+vanish on reload — ResMed's loader never exhibits this because it only creates a channel
+after confirming it has at least one valid sample.
+
+**Fix:** Changed to lazy initialisation — `wSpO2` and `wPulse` start as `nullptr` and are
+only created (via `AddEventList`) on the first packet with a non-zero SpO2 or pulse value.
+If no Oxi data is present in the session, neither EventList is created.
+
+---
+
 ## 2026-05-01 - BMC legacy loader: missing first N minutes of session
 
 **File:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp` — `BmcData::FindValidSessions()`

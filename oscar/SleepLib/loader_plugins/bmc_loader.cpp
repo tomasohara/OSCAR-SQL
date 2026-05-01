@@ -441,8 +441,8 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
     auto wRespiratoryRate = oscarSession->AddEventList(CPAP_RespRate, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     EventList* wIEValue = ExportTimingChannels() ? oscarSession->AddEventList(CPAP_IE,       EVL_Event, 0.001, 0.0, 0.0, 0.0, 1000) : nullptr;
     EventList* wIERatio = ExportTimingChannels() ? oscarSession->AddEventList(BMC_IE_Ratio,  EVL_Event, 0.1,   0.0, 0.0, 0.0, 1000) : nullptr;
-    auto wSpO2 = oscarSession->AddEventList(OXI_SPO2, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
-    auto wPulse = oscarSession->AddEventList(OXI_Pulse, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
+    EventList* wSpO2 = nullptr;
+    EventList* wPulse = nullptr;
     // Always create Ti/Te event lists so calcs.cpp doesn't attempt to derive them
     // from the flow waveform (which fails for BMC due to the non-zero baseline).
     // Events are only populated when ExportTimingChannels() confirms the source
@@ -502,10 +502,16 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
             wTidalVolume->AddEvent(timestamp, bmcWaveform.Raw.TidalVolume);
         if (bmcWaveform.Raw.MinuteVentilation > 0)
             wMinuteVentilation->AddEvent(timestamp, bmcWaveform.Raw.MinuteVentilation);
-        if (bmcWaveform.Raw.SpO2Pct > 0)
+        if (bmcWaveform.Raw.SpO2Pct > 0) {
+            if (!wSpO2)
+                wSpO2 = oscarSession->AddEventList(OXI_SPO2, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
             wSpO2->AddEvent(timestamp, bmcWaveform.Raw.SpO2Pct);
-        if (bmcWaveform.Raw.PulseRate > 0)
+        }
+        if (bmcWaveform.Raw.PulseRate > 0) {
+            if (!wPulse)
+                wPulse = oscarSession->AddEventList(OXI_Pulse, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
             wPulse->AddEvent(timestamp, bmcWaveform.Raw.PulseRate);
+        }
         if (bmcWaveform.Raw.RespiratoryRate > 0)
             wRespiratoryRate->AddEvent(timestamp, bmcWaveform.Raw.RespiratoryRate);
         if (wIEValue || wIERatio) {
