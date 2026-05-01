@@ -404,18 +404,24 @@ void gGraph::paint(QPainter &painter, const QRegion &region)
     if (m_showTitle) {
         int title_x, yh;
 
-        painter.setFont(*mediumfont);
-        QFontMetrics fm(*mediumfont);
-
-        yh = fm.height();
-        //GetTextExtent("Wy@",x,yh,mediumfont); // This gets a better consistent height. should be cached.
-        y = yh;
-        //x = fm.width(title());
-        //GetTextExtent(title(),x,y,mediumfont);
-        title_x = float(yh) ;
-
+        // Start with mediumfont; shrink if the title (rotated 90°) is taller than the graph.
+        m_titleFont = *mediumfont;
         QString & txt = title();
-        graphView()->AddTextQue(txt, marginLeft() + title_x + 8*printScaleX(), originY + height / 2 - y / 2, 90, Qt::black, mediumfont);
+        {
+            QFontMetrics fm(m_titleFont);
+            const int minPtSize = 7;
+            while (m_titleFont.pointSize() > minPtSize && fm.horizontalAdvance(txt) > height) {
+                m_titleFont.setPointSize(m_titleFont.pointSize() - 1);
+                fm = QFontMetrics(m_titleFont);
+            }
+            yh = fm.height();
+        }
+
+        painter.setFont(m_titleFont);
+        y = yh;
+        title_x = float(yh);
+
+        graphView()->AddTextQue(txt, marginLeft() + title_x + 8*printScaleX(), originY + height / 2 - y / 2, 90, Qt::black, &m_titleFont);
 
         left += graphView()->titleWidth*printScaleX();
     } else { left = 0; }

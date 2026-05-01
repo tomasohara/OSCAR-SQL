@@ -399,6 +399,8 @@ class gGraph : public QObject
     bool m_showTitle;
     bool m_printing;
     bool m_pinned;
+    //! \brief Cached font for vertical title; shrunk when title is too long for the graph height
+    QFont m_titleFont;
     ZoomyScaling m_zoomY;
     bool m_block_select;
     QRect m_rect;

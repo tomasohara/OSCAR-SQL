@@ -4,6 +4,25 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-01 - Graph title overflows into adjacent graphs when title is too long
+
+**File:** `oscar/Graphs/gGraph.h`, `oscar/Graphs/gGraph.cpp` — `gGraph::paint()`
+
+**Symptom:** On the Daily page, the vertical graph title text could overflow into adjacent
+graphs when the graph panel was too short to fit the title at the default font size.
+
+**Root cause:** The title was always drawn with `mediumfont` (12pt bold) regardless of
+the available graph height. No clipping was applied, so long titles spilled into
+neighbouring panels.
+
+**Fix:** Before queuing the title text, compare `fm.horizontalAdvance(title)` (which
+becomes the visual height after 90° rotation) against the graph height. If it exceeds
+the height, reduce the font point size by 1pt steps down to a 7pt minimum. The adjusted
+font is stored in a new `QFont m_titleFont` member on `gGraph` so the `QFont *` stored
+in the text queue remains valid until it is consumed by `DrawTextQue`. (Closes #113)
+
+---
+
 ## 2026-05-01 - BMC loader: "Plots Disabled" for SpO2/Pulse when no Oxi accessory attached
 
 **File:** `oscar/SleepLib/loader_plugins/bmc_loader.cpp` — `BmcLoader::ExportSession()`
