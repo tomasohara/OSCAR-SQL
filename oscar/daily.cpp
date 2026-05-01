@@ -1003,6 +1003,10 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
 // Sets font appearence in calendar to reflect what data is present for that day.
 void Daily::UpdateCalendarDay(QDate date)
 {
+    QFont font = ui->calendar->font();
+    font.setPointSize(10);
+    ui->calendar->setFont(font);
+
     QTextCharFormat charAttr;
 
     bool hascpap = p_profile->FindDay(date, MT_CPAP)!=nullptr;
@@ -1017,7 +1021,7 @@ void Daily::UpdateCalendarDay(QDate date)
 
     if (hascpap) {
         if (hasoxi) {
-            charAttr.setForeground(QBrush(COLOR_Purple, Qt::SolidPattern)); // CPAP + Oxi
+            charAttr.setForeground(QBrush(COLOR_DarkGreen, Qt::SolidPattern)); // CPAP + Oxi
         } else {
             charAttr.setForeground(QBrush(COLOR_Blue, Qt::SolidPattern)); // CPAP, no Oxi
         }
@@ -1025,8 +1029,10 @@ void Daily::UpdateCalendarDay(QDate date)
         charAttr.setForeground(QBrush(COLOR_Red, Qt::SolidPattern)); // Oxi, no CPAP
     }
 
+    charAttr.setFontWeight(QFont::DemiBold);        // Make everything a little darker
+
     if (hasjournal) {
-        charAttr.setFontWeight(QFont::Bold);        // Journal data present
+        charAttr.setFontWeight(QFont::Black);        // Journal data present
     }
 
     if (hasbookmarks) {
