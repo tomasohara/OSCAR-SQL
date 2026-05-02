@@ -2993,9 +2993,10 @@ bool Session::StoreToDatabase()
             channel.firstTime = m_firstchan.value(id, 0);
             channel.lastTime = m_lastchan.value(id, 0);
             
-            // Physical min/max from cached values
-            channel.physMin = m_physmin.value(id, 0);
-            channel.physMax = m_physmax.value(id, 0);
+            // Physical min/max — use accessor to trigger lazy floor/ceil computation
+            // for loaders that don't call setPhysMin/setPhysMax explicitly.
+            channel.physMin = physMin(id);
+            channel.physMax = physMax(id);
 #ifdef DBDEBUG
             if (id == 4355) {
                 qDebug() << "Session::StoreToDatabase channel" << id << "P90" << channel.p90;

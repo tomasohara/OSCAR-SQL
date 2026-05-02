@@ -4,6 +4,38 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-01 - BMC loader: Default y-axis mode identical to Auto-Fit
+
+**File:** `oscar/SleepLib/session.cpp` — `Session::StoreDB()`
+
+**Symptom:** On the Daily page, toggling between Default and Auto-Fit y-axis scaling modes
+produced no visible change for graphs loaded from the BMC loader (e.g. Pressure, Flow Rate,
+Tidal Volume). The correct behavior was present in OSCAR 1.7.1 and for ResMed profiles
+in OSCAR 2.0.
+
+**Root cause:** Three-step failure chain:
+1. The BMC loader never calls `setPhysMin`/`setPhysMax` for its channels (only `CPAP_FLG`
+   gets explicit values).
+2. `Session::StoreDB()` read physMin/physMax using `m_physmin.value(id, 0)` — raw map
+   access with 0 as default — rather than calling `Session::physMin(id)`. For BMC channels
+   the maps were empty, so 0/0 was stored in the database for all non-FLG channels.
+3. On reload from DB, `m_physmin[id] = 0` and `m_physmax[id] = 0` were cached. When
+   `gGraph::physMinY()`/`physMaxY()` iterated layers, the gLineChart layer was skipped
+   (`tmp == 0 && physMaxy() == 0`), returning 0 for both. Default mode's early-return
+   guard (`if (maxy > miny)`) failed (0 is not > 0), causing it to fall through to the
+   same Auto-Fit rounding path. In OSCAR 1.7.1 this did not manifest because there was
+   no database layer — `physMin(id)` was always lazily evaluated from live event data.
+
+**Fix:** Changed `StoreDB` to call `physMin(id)` / `physMax(id)` (the accessor functions)
+instead of the raw map read. The accessors trigger the lazy `floor(Min)` / `ceil(Max+0.5)`
+computation for channels that never had `setPhysMin`/`setPhysMax` called, and return the
+correct explicit value for channels (like CPAP_FLG) that did.
+
+**Note:** Existing BMC sessions already in the database have physMin=0/physMax=0 stored and
+will continue to show the old behaviour until the profile is re-imported.
+
+---
+
 ## 2026-05-01 - Graph title overflows into adjacent graphs when title is too long
 
 **File:** `oscar/Graphs/gGraph.h`, `oscar/Graphs/gGraph.cpp` — `gGraph::paint()`
