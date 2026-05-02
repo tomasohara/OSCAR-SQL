@@ -1009,8 +1009,12 @@ void Daily::UpdateCalendarDay(QDate date)
 
     QTextCharFormat charAttr;
 
-    bool hascpap = p_profile->FindDay(date, MT_CPAP)!=nullptr;
-    bool hasoxi = p_profile->FindDay(date, MT_OXIMETER)!=nullptr;
+    Day * cpapDay = p_profile->FindDay(date, MT_CPAP);
+    bool hascpap = cpapDay != nullptr;
+    bool hasoxi = p_profile->FindDay(date, MT_OXIMETER) != nullptr
+                  || (cpapDay && (cpapDay->channelHasData(OXI_SPO2)
+                                  || cpapDay->channelHasData(OXI_Pulse)
+                                  || cpapDay->channelHasData(POS_Movement)));
     Day * journalDay = p_profile->FindDay(date, MT_JOURNAL);
     bool hasjournal = journalDay != nullptr;
     bool hasstage = p_profile->FindDay(date, MT_SLEEPSTAGE)!=nullptr;

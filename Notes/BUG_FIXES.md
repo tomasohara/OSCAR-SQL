@@ -4,6 +4,24 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-02 - Calendar: hasoxi not set for CPAP machines with built-in oximeter
+
+**File:** `oscar/daily.cpp` — `Daily::UpdateCalendarDay()`
+
+**Symptom:** Calendar day was not shown in green (CPAP + Oxi color) for CPAP machines
+that have a built-in oximeter (SpO2/Pulse data stored in the CPAP day rather than
+a separate MT_OXIMETER day).
+
+**Root cause:** `hasoxi` was only set when `FindDay(date, MT_OXIMETER)` returned
+a non-null pointer. CPAP machines with integrated oxi store their data in the CPAP
+day's channels (OXI_SPO2, OXI_Pulse, POS_Movement) rather than in a separate
+MT_OXIMETER day object.
+
+**Fix:** Reused the `FindDay(MT_CPAP)` pointer and added a `channelHasData()` check
+for OXI_SPO2, OXI_Pulse, and POS_Movement channels on the CPAP day.
+
+---
+
 ## 2026-05-01 - BMC loader: Default y-axis mode identical to Auto-Fit
 
 **File:** `oscar/SleepLib/session.cpp` — `Session::StoreDB()`
