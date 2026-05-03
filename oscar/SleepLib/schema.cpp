@@ -815,7 +815,10 @@ QString ChannelCalc::label()
         m_label = QObject::tr("Zero");
         break;
     case Calc_UpperThresh:
-        m_label = QString("%1 %2").arg(lab).arg(QObject::tr("Upper Threshold"));
+        if (code == CPAP_Leak)
+            m_label = QObject::tr("Leak Redline Threshold");
+        else
+            m_label = QString("%1 %2").arg(lab).arg(QObject::tr("Upper Threshold"));
         break;
     case Calc_LowerThresh:
         m_label = QString("%1 %2").arg(lab).arg(QObject::tr("Lower Threshold"));
