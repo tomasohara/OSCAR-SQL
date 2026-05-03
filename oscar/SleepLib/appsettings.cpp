@@ -64,6 +64,7 @@ AppWideSetting::AppWideSetting(Preferences *pref) : PrefSettings(pref)
     initPref(STR_US_HasSDCardImport, false);
     initPref(STR_US_NotifyMessagBoxOption, false);
     initPref(STR_US_DontAskWhenSavingScreenshots, false);
+    // ShowDatabaseMenu is stored in QSettings (not the DB) so it persists across database switches.
     m_profileName = initPref(STR_GEN_Profile, "").toString();
     initPref(STR_GEN_AutoOpenLastUsed, true);
 

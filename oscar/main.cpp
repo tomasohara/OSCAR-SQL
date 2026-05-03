@@ -64,6 +64,7 @@
 #include "SleepLib/loader_plugins/yuwell_loader.h"
 
 #include "database/database_manager.h"
+#include "database/recent_databases.h"
 #include "database/profile_repository.h"
 #include "database/machine_repository.h"
 #include "database/migration_manager.h"
@@ -838,6 +839,10 @@ int main(int argc, char *argv[]) {
 
     qDebug() << "Main: Database initialized successfully!";
     qDebug() << "Main: Database file:" << dbPath;
+
+    // Seed the Recent databases list on first run with the current data folder.
+    if (RecentDatabases::entries().isEmpty())
+        RecentDatabases::add(GetAppData());
 
     importLegacyNamedLayouts();
     importLegacyProfileLayouts();

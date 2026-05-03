@@ -316,6 +316,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     ui->removeCardNotificationCheckbox->setChecked(AppSetting->removeCardReminder());
     ui->notifyMessageBoxCheckbox->setChecked(AppSetting->notifyMessagBoxOption());
     ui->dontAskWhenSavingScreenshotsCheckbox->setChecked(AppSetting->dontAskWhenSavingScreenshots());
+    ui->showDatabaseMenuCheckbox->setChecked(AppSetting->showDatabaseMenu());
     ui->cacheSessionData->setChecked(AppSetting->cacheSessions());
     ui->preloadSummaries->setChecked(profile->session->preloadSummaries());
     ui->animationsAndTransitionsCheckbox->setChecked(AppSetting->animations());
@@ -963,6 +964,7 @@ bool PreferencesDialog::Save()
     AppSetting->setRemoveCardReminder(ui->removeCardNotificationCheckbox->isChecked());
     AppSetting->setNotifyMessagBoxOption(ui->notifyMessageBoxCheckbox->isChecked());
     AppSetting->setDontAskWhenSavingScreenshots(ui->dontAskWhenSavingScreenshotsCheckbox->isChecked());
+    AppSetting->setShowDatabaseMenu(ui->showDatabaseMenuCheckbox->isChecked());
 
     AppSetting->setCacheSessions(ui->cacheSessionData->isChecked());
     profile->session->setPreloadSummaries(ui->preloadSummaries->isChecked());

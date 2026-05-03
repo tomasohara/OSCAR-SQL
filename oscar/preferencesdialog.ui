@@ -2367,6 +2367,17 @@ Mainly affects the importer.</string>
                      </property>
                     </widget>
                    </item>
+                   <item row="5" column="1">
+                    <widget class="QCheckBox" name="showDatabaseMenuCheckbox">
+                     <property name="toolTip">
+                      <string>Adds New, Open, Recent, and Delete items to File &gt; Database.
+Intended for support staff and developers.</string>
+                     </property>
+                     <property name="text">
+                      <string>Add database menu items</string>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>

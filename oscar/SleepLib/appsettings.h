@@ -12,6 +12,7 @@
 #define APPSETTINGS_H
 
 #include <QDateTime>
+#include <QSettings>
 #include "preferences.h"
 #include "common.h"
 
@@ -197,6 +198,8 @@ public:
   bool notifyMessagBoxOption() const { return getPref(STR_US_NotifyMessagBoxOption).toBool(); }
   bool dontAskWhenSavingScreenshots() const { return getPref(STR_US_DontAskWhenSavingScreenshots).toBool(); }
   bool autoOpenLastUsed() const { return getPref(STR_GEN_AutoOpenLastUsed).toBool(); }
+  //! \brief Whether to show the Database submenu. Stored in QSettings so it survives DB switches.
+  bool showDatabaseMenu() const { QSettings s; return s.value("ShowDatabaseMenu", false).toBool(); }
   inline const QString & language() const { return m_language; }
   bool showPersonalData() const { return getPref(STR_US_ShowPersonalData).toBool(); }
 
@@ -271,6 +274,8 @@ public:
   void setNotifyMessagBoxOption(bool b) { setPref(STR_US_NotifyMessagBoxOption, b); }
   void setDontAskWhenSavingScreenshots(bool b) { setPref(STR_US_DontAskWhenSavingScreenshots, b); }
   void setShowPersonalData(bool b) { setPref(STR_US_ShowPersonalData, b); }
+  //! \brief Sets whether to show the Database submenu. Stored in QSettings so it survives DB switches.
+  void setShowDatabaseMenu(bool b) { QSettings s; s.setValue("ShowDatabaseMenu", b); }
 
   void setVersionString(QString version) { setPref(STR_PREF_VersionString, version); }
 #ifndef NO_CHECKUPDATES

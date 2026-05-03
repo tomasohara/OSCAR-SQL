@@ -4,6 +4,45 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-02 - File > Database menu: Preferences.xml re-creation and empty Recent list (#120)
+
+**Files:** `oscar/mainwindow.cpp`, `oscar/SleepLib/appsettings.h`, `oscar/SleepLib/appsettings.cpp`
+
+**Symptom 1:** `Preferences.xml` was re-created after a database switch.
+**Root cause:** `switchToDatabase()` called `RecentDatabases::setActive()` before `p_pref->Save()`.
+`setActive()` updates `Settings/AppData` immediately, so `GetAppData()` returns the new
+path. `Preferences::Save()` guards with `p_filename.startsWith(GetAppData())`; once the
+path changed, that check failed and Save() fell through to writing the XML file instead
+of saving to the database.
+**Fix:** `switchToDatabase()` now calls `CloseProfile()` and `p_pref->Save()` first
+(while `GetAppData()` still points at the old database), then writes `Settings/AppData`
+and adds to the Recent list.
+
+**Symptom 2:** Database menu disappeared (and Recent list appeared empty) after switching
+to a different database.
+**Root cause:** `showDatabaseMenu` was stored in the `app_preferences` database table.
+A new or different database defaults the preference to `false`, hiding the Database menu.
+**Fix:** `showDatabaseMenu` getter/setter now use `QSettings` directly, so the preference
+persists across all database switches.
+
+---
+
+## 2026-05-02 - File > Database menu (#120)
+
+**Files:** `oscar/mainwindow.cpp` / `.h` / `.ui`, `oscar/SleepLib/appsettings.h` / `.cpp`,
+`oscar/preferencesdialog.ui` / `.cpp`, `oscar/main.cpp`, `oscar/oscar.pro`,
+new: `oscar/database/recent_databases.{h,cpp}`, `oscar/database/database_delete_dialog.{h,cpp}`
+
+**Feature:** Added `File ▸ Database ▸ New / Open / Recent / Delete` submenu enabling
+support staff and developers to create, switch between, and delete OSCAR databases
+in arbitrary locations. Visibility controlled by a new "Add database menu items"
+checkbox in Preferences ▸ General (default: off).
+
+**Also removed** orphan `on_actionChange_Data_Folder_triggered` (and its UI action)
+which had been hidden and unreachable since the data-folder feature was reworked.
+
+---
+
 ## 2026-05-02 - Calendar: hasoxi not set for CPAP machines with built-in oximeter
 
 **File:** `oscar/daily.cpp` — `Daily::UpdateCalendarDay()`

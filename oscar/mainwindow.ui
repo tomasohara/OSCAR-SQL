@@ -2419,6 +2419,23 @@ p, li { white-space: pre-wrap; }
      <addaction name="actionExport_Journal"/>
      <addaction name="actionImport_Journal"/>
     </widget>
+    <widget class="QMenu" name="menuDatabase">
+     <property name="title">
+      <string>Database</string>
+     </property>
+     <widget class="QMenu" name="menuDatabaseRecent">
+      <property name="title">
+       <string>Recent</string>
+      </property>
+     </widget>
+     <addaction name="actionDatabaseNew"/>
+     <addaction name="actionDatabaseOpen"/>
+     <addaction name="menuDatabaseRecent"/>
+     <addaction name="separator"/>
+     <addaction name="actionDatabaseDelete"/>
+    </widget>
+    <addaction name="menuDatabase"/>
+    <addaction name="separator"/>
     <addaction name="action_Import_Data"/>
     <addaction name="action_Preferences"/>
     <addaction name="action_Edit_Profile"/>
@@ -2428,8 +2445,6 @@ p, li { white-space: pre-wrap; }
     <addaction name="menuExp_ort_CSV_Data"/>
     <addaction name="menuProfiles"/>
     <addaction name="menuJournals"/>
-    <addaction name="separator"/>
-    <addaction name="actionChange_Data_Folder"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -2776,9 +2791,28 @@ p, li { white-space: pre-wrap; }
     <string>Change Language</string>
    </property>
   </action>
-  <action name="actionChange_Data_Folder">
+  <action name="actionDatabaseNew">
    <property name="text">
-    <string>Change Data Folder</string>
+    <string>New...</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a new OSCAR database in a chosen folder</string>
+   </property>
+  </action>
+  <action name="actionDatabaseOpen">
+   <property name="text">
+    <string>Open...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open an existing OSCAR database folder</string>
+   </property>
+  </action>
+  <action name="actionDatabaseDelete">
+   <property name="text">
+    <string>Delete...</string>
+   </property>
+   <property name="toolTip">
+    <string>Permanently delete a non-active OSCAR database</string>
    </property>
   </action>
   <action name="actionImport_Somnopose_Data">

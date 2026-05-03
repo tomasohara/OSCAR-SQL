@@ -447,6 +447,8 @@ SOURCES += \
     database/backup/sql_exporter.cpp \
     database/backup/profile_backup.cpp \
     database/backup/profile_restore.cpp \
+    database/recent_databases.cpp \
+    database/database_delete_dialog.cpp \
     network/cloud_downloader.cpp \
     network/cloud_uploader.cpp \
     network/oauth2_handler.cpp \
@@ -619,6 +621,8 @@ HEADERS  += \
     database/backup/sql_exporter.h \
     database/backup/profile_backup.h \
     database/backup/profile_restore.h \
+    database/recent_databases.h \
+    database/database_delete_dialog.h \
     network/cloud_downloader.h \
     network/cloud_uploader.h \
     network/oauth2_handler.h \

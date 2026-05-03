@@ -320,7 +320,15 @@ class MainWindow : public QMainWindow
 
     void on_actionChange_Language_triggered();
 
-    void on_actionChange_Data_Folder_triggered();
+    void on_actionDatabaseNew_triggered();
+    void on_actionDatabaseOpen_triggered();
+    void on_actionDatabaseDelete_triggered();
+
+    //! \brief Rebuild the File > Database > Recent submenu from QSettings.
+    void populateRecentDatabasesMenu();
+
+    //! \brief Show or hide the Database submenu based on the current preference.
+    void updateDatabaseMenuVisibility();
 
     void on_actionImport_Somnopose_Data_triggered();
 
@@ -415,6 +423,9 @@ public slots:
 private:
     QString getMainWindowTitle();
     void importCPAPBackups();
+
+    //! \brief Save state, set the active DB path in QSettings, and restart OSCAR.
+    void switchToDatabase(const QString& path);
     QList<ImportPath> detectCPAPCards();
     QList<ImportPath> selectCPAPDataCards(const QString & prompt, bool alwaysPrompt = false);
     void importCPAPDataCards(const QList<ImportPath> & datacards);

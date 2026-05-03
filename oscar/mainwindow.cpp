@@ -87,6 +87,9 @@
 #include "SleepLib/progressdialog.h"
 #include "SleepLib/importcontext.h"
 #include "database/database_manager.h"
+#include "database/recent_databases.h"
+#include <QDir>
+#include "database/database_delete_dialog.h"
 #include "database/machine_repository.h"
 #include "database/profile_repository.h"
 #include "database/daily_summary_repository.h"
@@ -195,6 +198,16 @@ QString MainWindow::getMainWindowTitle()
     return title;
 }
 
+// Returns " [FolderName]" when the active database is not the default folder,
+// so callers can append it at the end of whatever title they are building.
+static QString dbFolderSuffix()
+{
+    QString folderName = QFileInfo(GetAppData()).fileName();
+    if (folderName == getModifiedAppData())
+        return QString();
+    return " [" + folderName + "]";
+}
+
 // Prevents long repaint of entire window when creating first new gGraphView
 void prepOpenGL (QWidget * widg) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0) && !defined(BROKEN_OPENGL_BUILD)
@@ -213,7 +226,7 @@ void MainWindow::SetupGUI()
 {
     setupRunning = true;
 
-    setWindowTitle(getMainWindowTitle());
+    setWindowTitle(getMainWindowTitle() + dbFolderSuffix());
 
     prepOpenGL(ui->tabWidget);
 
@@ -314,9 +327,9 @@ void MainWindow::SetupGUI()
 
     QTimer::singleShot(50, this, SLOT(Startup()));
 
-    ui->actionChange_Data_Folder->setVisible(false);
     ui->action_Frequently_Asked_Questions->setVisible(false);
     ui->actionReport_a_Bug->setVisible(false);  // remove this once we actually implement it
+    updateDatabaseMenuVisibility();
     ui->actionExport_Review->setVisible(false);  // remove this once we actually implement it
     ui->actionManage_Reports->setVisible(false); // Replaced by unified CSV Export Wizard dialog
     ui->actionExport_CSV->setText(tr("CSV Export Wizard..."));  // Rename per UI redesign
@@ -713,7 +726,7 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
     PopulatePurgeMenu();
 
     AppSetting->setProfileName(p_profile->user->userName());
-    setWindowTitle(tr("%1 (Profile: %2)").arg(getMainWindowTitle(),AppSetting->profileName()));
+    setWindowTitle(tr("%1 (Profile: %2)%3").arg(getMainWindowTitle(), AppSetting->profileName(), dbFolderSuffix()));
 
     QList<Machine *> oximachines = p_profile->GetMachines(MT_OXIMETER);                // Machines of any type except Journal
     QList<Machine *> posmachines = p_profile->GetMachines(MT_POSITION);
@@ -1726,7 +1739,7 @@ void MainWindow::on_action_Preferences_triggered()
             profileSelector->updateProfileList();
 
         GenerateStatistics();
-
+        updateDatabaseMenuVisibility();
     }
 
     prefdialog = nullptr;
@@ -2029,7 +2042,7 @@ void MainWindow::RestartApplication(bool force_login, QString cmdline)
 
     if (force_login) { args << "-l"; }
 
-    args << cmdline;
+    if (!cmdline.isEmpty()) { args << cmdline; }
 
     if (QProcess::startDetached("/usr/bin/open", args)) {
         QApplication::instance()->exit();
@@ -2052,7 +2065,7 @@ void MainWindow::RestartApplication(bool force_login, QString cmdline)
 
     if (force_login) { args << "-l"; }
 
-    args << cmdline;
+    if (!cmdline.isEmpty()) { args << cmdline; }
 
     //if (change_datafolder) { args << "-d"; }
 
@@ -2626,15 +2639,133 @@ void MainWindow::on_actionChange_Language_triggered()
     RestartApplication(true, "--language");
 }
 
-void MainWindow::on_actionChange_Data_Folder_triggered()
+void MainWindow::switchToDatabase(const QString& path)
 {
-    if (p_profile) {
-        p_profile->Save();
-        p_profile->removeLock();
-    }
+    // Save state while GetAppData() still points at the current database.
+    // Writing Settings/AppData first would break p_pref->Save() (its guard
+    // checks p_filename.startsWith(GetAppData()), which would fail).
+    qDebug() << "=== This log is ending: switching to database" << path << "===";
+    CloseProfile();
     p_pref->Save();
 
-    RestartApplication(false, "-d");
+    // All saves done — now it is safe to redirect to the new database.
+    {
+        QSettings settings;
+        settings.setValue("Settings/AppData", path);
+    }
+    RecentDatabases::add(path);
+
+    // Spawn a new OSCAR instance and exit.
+    QString apppath = QApplication::instance()->applicationFilePath();
+    QStringList args;
+    args << "-p";
+#ifdef Q_OS_MAC
+    apppath = QApplication::instance()->applicationDirPath().section("/", 0, -3);
+    QStringList macArgs;
+    macArgs << "-n" << apppath << "--args" << "-p";
+    if (!QProcess::startDetached("/usr/bin/open", macArgs))
+#else
+    if (!QProcess::startDetached(apppath, args))
+#endif
+    {
+        staticQMessageBox::warning(this, STR_MessageBox_Error,
+            tr("Failed to restart OSCAR. Please restart it manually."), QMessageBox::Ok);
+        return;
+    }
+    QApplication::instance()->exit();
+}
+
+void MainWindow::updateDatabaseMenuVisibility()
+{
+    bool show = AppSetting->showDatabaseMenu();
+    ui->menuDatabase->menuAction()->setVisible(show);
+    if (show)
+        populateRecentDatabasesMenu();
+}
+
+void MainWindow::populateRecentDatabasesMenu()
+{
+    ui->menuDatabaseRecent->clear();
+    QStringList recent = RecentDatabases::entries();
+    QString activePath = RecentDatabases::canonicalize(GetAppData());
+
+    for (const QString& path : recent) {
+        QString label = QFileInfo(path).fileName();
+        if (path == activePath)
+            label += tr(" (active)");
+        QAction* action = ui->menuDatabaseRecent->addAction(label);
+        action->setToolTip(path);
+        action->setEnabled(path != activePath);
+        connect(action, &QAction::triggered, this, [this, path]() {
+            switchToDatabase(path);
+        });
+    }
+
+    if (recent.isEmpty())
+        ui->menuDatabaseRecent->addAction(tr("(none)"))->setEnabled(false);
+
+    connect(ui->menuDatabase, &QMenu::aboutToShow, this,
+            &MainWindow::populateRecentDatabasesMenu, Qt::UniqueConnection);
+}
+
+void MainWindow::on_actionDatabaseNew_triggered()
+{
+    QString path = QFileDialog::getExistingDirectory(this,
+        tr("Select or Create an Empty Folder for New Database"),
+        QFileInfo(GetAppData()).absolutePath(),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (path.isEmpty())
+        return;
+
+    if (QFileInfo::exists(path + "/oscar.db")) {
+        QMessageBox::warning(this, tr("New Database"),
+            tr("The selected folder already contains an OSCAR database.\n"
+               "Use File ▸ Database ▸ Open to open an existing database."));
+        return;
+    }
+
+    switchToDatabase(path);
+}
+
+void MainWindow::on_actionDatabaseOpen_triggered()
+{
+    QString path = QFileDialog::getExistingDirectory(this,
+        tr("Select OSCAR Database Folder"),
+        QFileInfo(GetAppData()).absolutePath(),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (path.isEmpty())
+        return;
+
+    switchToDatabase(path);
+}
+
+void MainWindow::on_actionDatabaseDelete_triggered()
+{
+    QStringList recent = RecentDatabases::entries();
+    QString activePath = RecentDatabases::canonicalize(GetAppData());
+
+    // Exclude the active database itself, and any ancestor directory that
+    // contains it — deleting a parent would wipe the active DB too.
+    // Case-insensitive for Windows drive-letter / directory-case differences.
+    recent.removeIf([&activePath](const QString& p) {
+        QString normP = QDir::cleanPath(p);
+        return normP.compare(activePath, Qt::CaseInsensitive) == 0 ||
+               activePath.startsWith(normP + "/", Qt::CaseInsensitive);
+    });
+
+    if (recent.isEmpty()) {
+        QMessageBox::information(this, tr("Delete Database"),
+            tr("There are no inactive databases in the recent list to delete.\n\n"
+               "Open databases with File ▸ Database ▸ Open first "
+               "to add them to the recent list."));
+        return;
+    }
+
+    qDebug() << "DatabaseDelete: active=" << activePath << "candidates=" << recent;
+    DatabaseDeleteDialog dlg(recent, activePath, this);
+    dlg.exec();
+    qDebug() << "DatabaseDelete: dialog closed";
+    populateRecentDatabasesMenu();
 }
 
 QString MainWindow::profilePath(QString folderProfileName ) {
