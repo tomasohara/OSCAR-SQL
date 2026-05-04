@@ -73,7 +73,10 @@ echo Fetching latest from origin...
 git fetch origin master
 if %errorlevel% neq 0 (
     echo ERROR: git fetch failed.
-    git stash pop 2>nul
+    git stash pop
+    if !errorlevel! neq 0 (
+        echo WARNING: git stash pop failed - local changes may need manual recovery via "git stash pop".
+    )
     exit /b 1
 )
 
@@ -115,7 +118,10 @@ if defined NIGHTLY_HASH (
     echo %REMOTE_FULL_HASH% | findstr /B /I "!NIGHTLY_HASH!" >nul
     if !errorlevel! == 0 (
         echo Remote HEAD matches current nightly build. No action needed.
-        git stash pop 2>nul
+        git stash pop
+        if !errorlevel! neq 0 (
+            echo WARNING: git stash pop failed - local changes may need manual recovery via "git stash pop".
+        )
         exit /b 0
     )
 )
@@ -129,7 +135,10 @@ cd /d "%REPO_DIR%"
 git checkout %REMOTE_FULL_HASH%
 if %errorlevel% neq 0 (
     echo ERROR: git checkout %REMOTE_FULL_HASH% failed.
-    git stash pop 2>nul
+    git stash pop
+    if !errorlevel! neq 0 (
+        echo WARNING: git stash pop failed - local changes may need manual recovery via "git stash pop".
+    )
     exit /b 1
 )
 
@@ -152,7 +161,10 @@ if %errorlevel% neq 0 (
 )
 
 :: Restore any local changes that were stashed in Step 0.
-git stash pop 2>nul
+git stash pop
+if %errorlevel% neq 0 (
+    echo WARNING: git stash pop failed - local changes may need manual recovery via "git stash pop".
+)
 
 if %BUILD_RESULT% neq 0 (
     echo ERROR: Build failed with error %BUILD_RESULT%.
