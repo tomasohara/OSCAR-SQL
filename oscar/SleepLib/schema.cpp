@@ -332,7 +332,7 @@ void init()
 
 
     /////////////////////////////////////////////////////////////////
-    // Old Journal system crap
+    // Journal system channels
     /////////////////////////////////////////////////////////////////
 
     schema::channel.add(GRP_JOURNAL, new Channel(Journal_Weight = 0x0803, DATA,   MT_JOURNAL,  DAY, "Weight",      QObject::tr("Weight"), QObject::tr("Weight"), QObject::tr("Weight"),  STR_UNIT_KG, DOUBLE,  Qt::black));
@@ -344,6 +344,7 @@ void init()
     schema::channel.add(GRP_JOURNAL, new Channel(Bookmark_Start=0x0808, DATA,   MT_JOURNAL,  DAY, "BookmarkStart",      QObject::tr("Start"), QObject::tr("Bookmark Start"), QObject::tr("Start"),  QString(), INTEGER,  Qt::black));
     schema::channel.add(GRP_JOURNAL, new Channel(Bookmark_End=0x0809, DATA,   MT_JOURNAL,  DAY, "BookmarkEnd",      QObject::tr("End"), QObject::tr("Bookmark End"), QObject::tr("End"),  QString(), DOUBLE,  Qt::black));
     schema::channel.add(GRP_JOURNAL, new Channel(LastUpdated=0x080a, DATA,   MT_JOURNAL,  DAY, "LastUpdated", QObject::tr("Last Updated"), QObject::tr("Last Updated"), QObject::tr("Last Updated"),  QString(), DATETIME,  Qt::black));
+    // 0x0810 - 0x08ff reserved for custom notes (planned for OSCAR 2.1)
     schema::channel.add(GRP_JOURNAL, new Channel(Journal_Notes = 0xd000, DATA,   MT_JOURNAL,  DAY, "Journal",      QObject::tr("Journal Notes"), QObject::tr("Journal Notes"), QObject::tr("Journal"),  QString(), RICHTEXT,  Qt::black));
 
 
