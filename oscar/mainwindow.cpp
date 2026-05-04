@@ -137,8 +137,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // Initialise oscar app registry stuff
     QSettings settings;
 
-    // Load previous Window geometry
+    // Load previous Window geometry (stored per database folder)
+    settings.beginGroup(QFileInfo(GetAppData()).fileName());
     restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
+    settings.endGroup();
 
 
     // Nifty Notification popups in System Tray (uses Growl on Mac)
@@ -367,9 +369,11 @@ void MainWindow::closeEvent(QCloseEvent * event)
             CloseProfile();
         }
 
-        // Save current window position
+        // Save current window position (stored per database folder)
         QSettings settings;
+        settings.beginGroup(QFileInfo(GetAppData()).fileName());
         settings.setValue("MainWindow/geometry", saveGeometry());
+        settings.endGroup();
 
         settings.setValue("Fingerprint", getFingerprint());
 

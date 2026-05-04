@@ -1137,7 +1137,9 @@ QByteArray gUncompress(const QByteArray & data)
 
 QString getSavedUserPath(QString folderName ) {
     QSettings settings;
+    settings.beginGroup(QFileInfo(GetAppData()).fileName());
     QString savedPath = settings.value("SavedPath/"+folderName, "").toString();
+    settings.endGroup();
     if (savedPath.length() > 0) {
         QFileInfo fi(savedPath);
         if (fi.exists() && fi.isDir()) {
@@ -1154,6 +1156,8 @@ QString getSavedUserPath(QString folderName ) {
 
 void saveUserPath(QString folderName , QString pathName) {
     QSettings settings;
+    settings.beginGroup(QFileInfo(GetAppData()).fileName());
     settings.setValue("SavedPath/"+folderName, pathName);
+    settings.endGroup();
 }
 

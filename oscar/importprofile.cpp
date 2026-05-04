@@ -39,16 +39,18 @@ ImportProfile::~ImportProfile()
 void ImportProfile::loadSettings()
 {
     QSettings settings;
+    settings.beginGroup(QFileInfo(GetAppData()).fileName());
     m_lastImportPath = settings.value("ImportProfile/LastPath", "").toString();
+    settings.endGroup();
 }
 
 void ImportProfile::saveSettings()
 {
     if (!m_selectedPath.isEmpty()) {
         QSettings settings;
-        // Save the parent directory of the selected profile folder
-        QFileInfo fi(m_selectedPath);
-        settings.setValue("ImportProfile/LastPath", fi.absolutePath());
+        settings.beginGroup(QFileInfo(GetAppData()).fileName());
+        settings.setValue("ImportProfile/LastPath", QFileInfo(m_selectedPath).absolutePath());
+        settings.endGroup();
     }
 }
 
