@@ -28,6 +28,7 @@
 #include <QRegularExpression>
 #include <QStyleHints>
 #include <QStyleFactory>
+#include <QLockFile>
 
 #include "version.h"
 #include "logger.h"
@@ -646,7 +647,7 @@ int main(int argc, char *argv[]) {
                     datadir = homeDocs+datadir;
                     qDebug() << "--datadir was:" << datadirwas << "; --datadir is:" << datadir;
                 }
-                settings.setValue("Settings/AppData", datadir);
+                SetAppData(datadir);
 //            force_data_dir = true;
             } else {
                 optionExit(2,"Missing argument to --datadir\n");
@@ -710,9 +711,9 @@ int main(int argc, char *argv[]) {
 
     if (!settings.contains("Settings/AppData")) {       // This is first time execution
         if ( settings.contains("Settings/AppRoot") ) {  // allow for old AppRoot here - not really first time
-            settings.setValue("Settings/AppData", settings.value("Settings/AppRoot"));
+            SetAppData(settings.value("Settings/AppRoot").toString());
         } else {
-            settings.setValue("Settings/AppData", homeDocs + getModifiedAppData());    // set up new data directory path
+            SetAppData(homeDocs + getModifiedAppData());    // set up new data directory path
         }
         qDebug() << "First time: Setting " + GetAppData();
     }
@@ -746,7 +747,7 @@ int main(int argc, char *argv[]) {
                         QFile dbFile(datadir + "/oscar.db");
 
                         if (dbFile.exists() && dirProfiles.exists()) {     // It has a database file and a Profiles directory
-                            settings.setValue("Settings/AppData", datadir);
+                            SetAppData(datadir);
                             qDebug() << "Changing data folder to" << datadir;
                             break;       // It is an OSCAR 2.0 folder. Use it.
                         }
@@ -769,7 +770,7 @@ int main(int argc, char *argv[]) {
                                     continue;   // If no, don't use it, go around the loop again
                                 } // User responded "yes"
                             }
-                            settings.setValue("Settings/AppData", datadir);
+                            SetAppData(datadir);
                             qDebug() << "Changing data folder to" << datadir;
                             break;
                         }
@@ -813,6 +814,23 @@ int main(int argc, char *argv[]) {
     }
     else
         testFile.remove();
+
+    // Prevent two OSCAR instances from opening the same database folder at the same
+    // time — concurrent access would cause SQLite write conflicts and profile corruption.
+    QLockFile *lockFile = new QLockFile(GetAppData() + "/oscar.lock");
+    lockFile->setStaleLockTime(0);  // never treat a lock as stale
+    if (!lockFile->tryLock()) {
+        qint64 pid = 0;
+        QString hostname, appname;
+        lockFile->getLockInfo(&pid, &hostname, &appname);
+        QString msg = QObject::tr("This OSCAR database folder is already open in another instance of OSCAR.") + "\n\n" +
+                      QObject::tr("Folder:") + " " + QDir::toNativeSeparators(GetAppData()) + "\n\n" +
+                      QObject::tr("Close the other OSCAR instance before opening this database.");
+        if (pid > 0)
+            msg += "\n\n" + QObject::tr("(Other instance process ID: %1)").arg(pid);
+        QMessageBox::warning(nullptr, STR_MessageBox_Warning, msg);
+        return 0;
+    }
 
     // Begin logging to file now that there's a data folder.
     if (!logger->logToFile()) {

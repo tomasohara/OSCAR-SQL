@@ -4,6 +4,19 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-04 - Two instances on same folder cause data corruption (#124)
+
+**Files:** `oscar/main.cpp`
+
+**Symptom:** Two OSCAR instances opened on the same database folder simultaneously
+would cause SQLite write conflicts and profile state corruption.
+**Root cause:** No exclusion mechanism prevented concurrent access to the same folder.
+**Fix:** Added `QLockFile` at `<datadir>/oscar.lock`. On startup, after the data folder
+is confirmed writable, OSCAR acquires the lock. If the lock is already held, the user
+is warned and OSCAR exits. `setStaleLockTime(0)` prevents auto-recovery of stale locks.
+
+---
+
 ## 2026-05-04 - Database switch: process not started; Preferences.xml created (#123)
 
 **Files:** `oscar/mainwindow.cpp`, `oscar/SleepLib/preferences.cpp`
