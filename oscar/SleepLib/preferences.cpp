@@ -392,14 +392,22 @@ bool Preferences::Save(QString filename)
         p_filename = filename;
     }
 
-    // When the DB is open and this is the app's own Preferences singleton, save to DB.
+    // App preferences are stored exclusively in the database — never in XML.
     // Delete-then-reinsert inside a transaction so that keys removed via Erase() are
     // not resurrected on the next Open(), and so a partial write is never committed.
     // If an outer transaction is already active (e.g. during profile import), join it
     // instead of starting a nested one — direct db.transaction()/commit() bypasses
     // DatabaseManager::m_inTransaction tracking and would commit the outer transaction.
-    if (p_name == "Preferences" && DatabaseManager::instance().isOpen()
-            && p_filename.startsWith(GetAppData())) {
+    if (p_name == "Preferences") {
+        if (!DatabaseManager::instance().isOpen()) {
+            qWarning() << "Preferences::Save(): database not open, skipping save";
+            return false;
+        }
+        if (!p_filename.startsWith(GetAppData())) {
+            qWarning() << "Preferences::Save(): p_filename" << p_filename
+                       << "does not match AppData" << GetAppData() << "- skipping save";
+            return false;
+        }
         AppPreferencesRepository repo;
         DatabaseManager& dbMgr = DatabaseManager::instance();
         bool ownTransaction = !dbMgr.inTransaction();

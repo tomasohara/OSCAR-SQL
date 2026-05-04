@@ -4,6 +4,29 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-04 - Database switch: process not started; Preferences.xml created (#123)
+
+**Files:** `oscar/mainwindow.cpp`, `oscar/SleepLib/preferences.cpp`
+
+**Symptom 1:** Switching databases via File ▸ Database ▸ Recent sometimes failed to
+start the new OSCAR process.
+**Root cause:** The new process read `Settings/AppData` from QSettings immediately after
+the current process wrote it, with no guarantee the registry write was visible in time.
+**Fix:** Pass `--datadir <path>` on the command line so the new process receives the
+target database path directly, bypassing QSettings entirely for the initial open.
+
+**Symptom 2:** `Preferences.xml` was created in the data folder on each database switch.
+**Root cause:** `switchToDatabase()` wrote `Settings/AppData` (the new path) to QSettings
+before the current process exited. During shutdown, `GetAppData()` returned the new path
+while `p_pref->p_filename` still pointed at the old database. `Preferences::Save()` saw
+the mismatch and fell through to its XML fallback.
+**Fix:** The current process no longer updates `Settings/AppData` — the new process sets
+it via `--datadir`. Also hardened `Preferences::Save()` to never write XML for the
+`"Preferences"` object under any condition; logs a warning and returns if the DB path
+guard fails.
+
+---
+
 ## 2026-05-02 - File > Database menu: Preferences.xml re-creation and empty Recent list (#120)
 
 **Files:** `oscar/mainwindow.cpp`, `oscar/SleepLib/appsettings.h`, `oscar/SleepLib/appsettings.cpp`

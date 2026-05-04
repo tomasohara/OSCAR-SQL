@@ -2644,34 +2644,39 @@ void MainWindow::switchToDatabase(const QString& path)
     // Save state while GetAppData() still points at the current database.
     // Writing Settings/AppData first would break p_pref->Save() (its guard
     // checks p_filename.startsWith(GetAppData()), which would fail).
-    qDebug() << "=== This log is ending: switching to database" << path << "===";
+    qDebug() << "switchToDatabase: closing profile, current=" << GetAppData() << "target=" << path;
     CloseProfile();
     p_pref->Save();
 
-    // All saves done — now it is safe to redirect to the new database.
-    {
-        QSettings settings;
-        settings.setValue("Settings/AppData", path);
-    }
+    // Add to the recent list before spawning — the new process receives its
+    // database path via --datadir and writes Settings/AppData itself, so we
+    // must not change that key here (it would shift GetAppData() under p_pref
+    // and cause a spurious mismatch warning during this process's shutdown).
     RecentDatabases::add(path);
+    qDebug() << "=== This log is ending: switching to database" << path << "===";
 
     // Spawn a new OSCAR instance and exit.
+    // Pass --datadir explicitly so the new instance uses the correct path
+    // immediately, without relying on a QSettings read after the registry write.
     QString apppath = QApplication::instance()->applicationFilePath();
+    qDebug() << "switchToDatabase: spawning" << apppath;
     QStringList args;
-    args << "-p";
+    args << "-p" << "--datadir" << path;
 #ifdef Q_OS_MAC
     apppath = QApplication::instance()->applicationDirPath().section("/", 0, -3);
     QStringList macArgs;
-    macArgs << "-n" << apppath << "--args" << "-p";
+    macArgs << "-n" << apppath << "--args" << "-p" << "--datadir" << path;
     if (!QProcess::startDetached("/usr/bin/open", macArgs))
 #else
     if (!QProcess::startDetached(apppath, args))
 #endif
     {
+        qDebug() << "switchToDatabase: startDetached FAILED for" << apppath;
         staticQMessageBox::warning(this, STR_MessageBox_Error,
             tr("Failed to restart OSCAR. Please restart it manually."), QMessageBox::Ok);
         return;
     }
+    qDebug() << "switchToDatabase: startDetached succeeded, exiting";
     QApplication::instance()->exit();
 }
 
