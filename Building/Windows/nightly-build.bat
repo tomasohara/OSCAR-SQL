@@ -63,8 +63,11 @@ if /i "%~f0" == "%BUILD_DIR%\nightly-build.bat" (
 ::         so they are not visible as dirty during the build.
 ::         (Safe here because the guard above confirmed this file is clean.)
 :: -----------------------------------------------------------------------
-git stash
-:: errorlevel 1 just means "nothing to stash" — that is fine.
+set HAVE_STASH=0
+for /f "delims=" %%o in ('git stash') do (
+    echo %%o
+    if /i not "%%o" == "No local changes to save" set HAVE_STASH=1
+)
 
 :: -----------------------------------------------------------------------
 :: Step 1: Fetch latest from GitLab and record the remote master HEAD hash.
@@ -73,10 +76,7 @@ echo Fetching latest from origin...
 git fetch origin master
 if %errorlevel% neq 0 (
     echo ERROR: git fetch failed.
-    git stash pop
-    if !errorlevel! neq 0 (
-        echo WARNING: git stash pop failed - local changes may need manual recovery via "git stash pop".
-    )
+    if !HAVE_STASH! == 1 git stash pop
     exit /b 1
 )
 
@@ -118,10 +118,7 @@ if defined NIGHTLY_HASH (
     echo %REMOTE_FULL_HASH% | findstr /B /I "!NIGHTLY_HASH!" >nul
     if !errorlevel! == 0 (
         echo Remote HEAD matches current nightly build. No action needed.
-        git stash pop
-        if !errorlevel! neq 0 (
-            echo WARNING: git stash pop failed - local changes may need manual recovery via "git stash pop".
-        )
+        if !HAVE_STASH! == 1 git stash pop
         exit /b 0
     )
 )
@@ -135,10 +132,7 @@ cd /d "%REPO_DIR%"
 git checkout %REMOTE_FULL_HASH%
 if %errorlevel% neq 0 (
     echo ERROR: git checkout %REMOTE_FULL_HASH% failed.
-    git stash pop
-    if !errorlevel! neq 0 (
-        echo WARNING: git stash pop failed - local changes may need manual recovery via "git stash pop".
-    )
+    if !HAVE_STASH! == 1 git stash pop
     exit /b 1
 )
 
@@ -161,9 +155,11 @@ if %errorlevel% neq 0 (
 )
 
 :: Restore any local changes that were stashed in Step 0.
-git stash pop
-if %errorlevel% neq 0 (
-    echo WARNING: git stash pop failed - local changes may need manual recovery via "git stash pop".
+if %HAVE_STASH% == 1 (
+    git stash pop
+    if !errorlevel! neq 0 (
+        echo WARNING: git stash pop failed - local changes may need manual recovery via "git stash pop".
+    )
 )
 
 if %BUILD_RESULT% neq 0 (
