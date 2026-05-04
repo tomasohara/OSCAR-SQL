@@ -20,6 +20,7 @@
 const QString STR_ext_XML = ".xml";
 
 extern QString GetAppData(); //returns app data path plus trailing path separator.
+extern void SetAppData(const QString& path); //sets app data path in memory cache and QSettings.
 
 inline QString PrefMacro(QString s)
 {
