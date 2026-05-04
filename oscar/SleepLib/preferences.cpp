@@ -67,17 +67,24 @@ const QString &getUserName()
 }
 
 
+static QString g_appDataPath;
+
 QString GetAppData()
 {
+    if (!g_appDataPath.isEmpty())
+        return g_appDataPath;
     QSettings settings;
+    QString path = settings.value("Settings/AppData").toString();
+    if (path.isEmpty())
+        path = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/" + getModifiedAppData();
+    return path;
+}
 
-    QString HomeAppData = settings.value("Settings/AppData").toString();
-
-    if (HomeAppData.isEmpty()) {
-        HomeAppData = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)+"/"+getModifiedAppData();
-    }
-
-    return HomeAppData;
+void SetAppData(const QString& path)
+{
+    g_appDataPath = path;
+    QSettings settings;
+    settings.setValue("Settings/AppData", path);
 }
 
 
