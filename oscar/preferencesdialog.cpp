@@ -429,12 +429,11 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
             ui->baseSpO2Option->addItem(QString::number(i), i);
         }
     }
-    int _baseoption_data = profile->oxi->baseSpO2Option();
-    qWarning()<<"_baseoption_data"<<_baseoption_data;
-    if(_baseoption_data==-1 || _baseoption_data==0)
+    int baseoption_data = profile->oxi->baseSpO2Option();
+    if(baseoption_data==-1 || baseoption_data==0)
         ui->baseSpO2Option->setCurrentIndex(0);
     else
-        ui->baseSpO2Option->setCurrentIndex(100-_baseoption_data);
+        ui->baseSpO2Option->setCurrentIndex(100-baseoption_data);
 
 
 

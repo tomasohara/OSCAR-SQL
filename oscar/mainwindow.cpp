@@ -230,7 +230,7 @@ void MainWindow::SetupGUI()
 
     setWindowTitle(getMainWindowTitle() + dbFolderSuffix());
 
-    prepOpenGL(ui->tabWidget);
+    prepOpenGL(this);
 
 #ifdef Q_OS_MAC
     ui->action_About->setMenuRole(QAction::AboutRole);

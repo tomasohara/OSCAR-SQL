@@ -2892,10 +2892,12 @@ bool Session::StoreToDatabase()
                 setting.dataType = "json";
                 setting.jsonValue = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
             } else if (it.key() == Journal_Notes) {
-                // Journal notes are stored as HTML text
-                setting.value = 0;  // Not used for text types
+                // Journal notes are stored as HTML text; skip if empty (no note entered).
+                QString noteText = it.value().toString();
+                if (noteText.isEmpty()) continue;
+                setting.value = 0;
                 setting.dataType = "text";
-                setting.jsonValue = it.value().toString();  // Store as text in json_value field
+                setting.jsonValue = noteText;
             } else {
                 // Standard numeric value (including Journal_Weight, Journal_ZombieMeter)
                 setting.value = it.value().toDouble();
@@ -3148,8 +3150,11 @@ bool Session::LoadFromDatabase()
                           << setting.channelId << "is not an array";
                 settings[setting.channelId] = setting.value;
             }
-        } else if (setting.dataType == "text" && !setting.jsonValue.isEmpty()) {
-            // Handle text values (like Journal_Notes)
+        } else if (setting.dataType == "text") {
+            // Handle text values (like Journal_Notes). jsonValue may be empty (empty note = "").
+            if (setting.jsonValue.isEmpty())
+                qWarning() << "LoadFromDatabase: session" << s_session
+                           << "has text channel" << setting.channelId << "with empty json_value — stored as empty string";
             settings[setting.channelId] = setting.jsonValue;
         } else if (setting.dataType == "numeric" || setting.dataType.isEmpty()) {
             // Standard numeric value (including Journal_Weight, Journal_ZombieMeter)

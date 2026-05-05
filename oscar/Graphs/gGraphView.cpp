@@ -3787,6 +3787,7 @@ bool gGraphView::deserializeSettings(const QByteArray& buffer)
     short zoomy = 0;
     QList<gGraph*> neworder;
     QHash<QString, gGraph*>::iterator gi;
+    QStringList skippedGraphs;
 
     in >> numGraphs;
     for (int i = 0; i < numGraphs; i++) {
@@ -3814,7 +3815,7 @@ bool gGraphView::deserializeSettings(const QByteArray& buffer)
         gGraph* g = nullptr;
         gi = m_graphsbyname.find(name);
         if (gi == m_graphsbyname.end()) {
-            qDebug() << "Graph" << name << "has been renamed or removed";
+            skippedGraphs << name;
         } else {
             g = gi.value();
         }
@@ -3841,6 +3842,9 @@ bool gGraphView::deserializeSettings(const QByteArray& buffer)
             }
         }
     }
+
+    if (!skippedGraphs.isEmpty())
+        qDebug() << "deserializeSettings: skipping" << skippedGraphs.size() << "graphs not present in this view:" << skippedGraphs.join(", ");
 
     if (neworder.size() == m_graphs.size()) {
         m_graphs = neworder;

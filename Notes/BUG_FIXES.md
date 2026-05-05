@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-04 - Journal note imported from 1.7.1 displayed as "0" (#125)
+
+**Files:** `oscar/SleepLib/session.cpp`, `oscar/profileimporter.cpp`
+
+**Symptom:** After importing a profile from OSCAR 1.7.1, a journal note could appear
+as the text "0" instead of the original note content.
+**Root cause:** Two bugs: (1) `StoreToDatabase()` stored a `Journal_Notes` row even when
+the note text was empty (e.g. if the QVariant from the 1.7.1 binary file failed to
+deserialise as a QString), resulting in `data_type="text"` with an empty `json_value`.
+(2) `LoadFromDatabase()` required `!json_value.isEmpty()` for the "text" branch; an
+empty `json_value` fell through to the numeric fallback and loaded `setting.value` (= 0),
+which displayed as "0".
+**Fix:** `StoreToDatabase` now skips writing `Journal_Notes` when the text is empty.
+`LoadFromDatabase` no longer requires non-empty `json_value` for the "text" branch
+(empty note loads as "", not 0); logs a `qWarning` when `json_value` is empty.
+`migrateJournalFromSource()` added a post-load check: if `Journal_Notes` is present
+but not a non-empty QString, it is discarded and a warning logged with the session ID.
+
+---
+
 ## 2026-05-04 - Two instances on same folder cause data corruption (#124)
 
 **Files:** `oscar/main.cpp`
