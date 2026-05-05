@@ -607,7 +607,11 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
                 sess->settings.remove(Journal_Notes);
             }
         } else {
-            qDebug() << "migrateJournalFromSource: session" << sessionId << "has no Journal_Notes";
+            QStringList hexKeys;
+            for (ChannelID k : sess->settings.keys())
+                hexKeys << QString("0x%1").arg(k, 4, 16, QChar('0'));
+            qDebug() << "migrateJournalFromSource: session" << sessionId
+                     << "has no Journal_Notes; settings keys present:" << hexKeys;
         }
 
         // Backfill Journal_BMI: OSCAR 1.7.1 stored weight but never stored BMI.
