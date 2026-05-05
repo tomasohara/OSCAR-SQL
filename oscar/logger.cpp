@@ -107,6 +107,11 @@ bool LogThread::logToFile()
     Q_ASSERT(m_logFile);
     if (m_logFile->open(QFile::ReadWrite | QFile::Text)) {
         m_logStream = new QTextStream(m_logFile);
+        for (const QString& early : m_preFileBuffer) {
+            *m_logStream << early << Qt::endl;
+        }
+        m_logFile->flush();
+        m_preFileBuffer.clear();
     }
     logTrigger.wakeAll();
     strlock.unlock();
@@ -170,6 +175,8 @@ void LogThread::appendClean(QString msg)
     if (m_logStream) {
         *m_logStream << msg << Qt::endl;  // Qt::endl flushes the stream buffer
         m_logFile->flush();               // fflush() to the kernel buffer
+    } else {
+        m_preFileBuffer.append(msg);
     }
     buffer.append(msg);     // retained for UI display only
     logTrigger.wakeAll();

@@ -108,3 +108,4 @@ If GITLAB_TOKEN is not set, ask the user to provide the token or set the environ
  - After making fixes, log them to Notes/BUG_FIXES.md.
  - When committing: keep messages concise (one-line subject, 2-3 sentence summary; no change lists). Write summary in lines not exceeding 90 characters. Omit the "co-authored by" line. Include Htmldocs/release_notes.html if changed; if it hasn't been changed, ask whether I want to to update it before committing.
   - To push: git push origin master
+  - Ask user before committing or pushing or updating GitLab issues

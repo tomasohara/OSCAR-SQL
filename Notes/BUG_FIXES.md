@@ -4,6 +4,23 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-05 - Early startup log messages missing from debug.txt (#126)
+
+**Files:** `oscar/logger.h`, `oscar/logger.cpp`
+
+**Symptom:** Log messages from approximately the first 0.6 seconds of startup were
+absent from debug.txt, though they appeared on stderr and in the UI debug pane.
+
+**Root cause:** `initializeLogger()` installs the message handler but `logToFile()` is
+not called until after the data directory and lock file are confirmed (~220 lines later
+in main.cpp). During that window `m_logStream` was null, so `appendClean()` silently
+skipped the file write.
+
+**Fix:** Added `m_preFileBuffer` to `LogThread`. Messages are stashed there when the
+file is not yet open. `logToFile()` flushes the buffer to the file before proceeding.
+
+---
+
 ## 2026-05-04 - Journal note imported from 1.7.1 displayed as "0" (#125)
 
 **Files:** `oscar/SleepLib/session.cpp`, `oscar/profileimporter.cpp`

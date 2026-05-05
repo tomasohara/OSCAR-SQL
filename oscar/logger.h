@@ -54,6 +54,7 @@ protected:
     bool connected;
     class QFile* m_logFile;
     class QTextStream* m_logStream;
+    QStringList m_preFileBuffer;  // holds messages that arrived before logToFile() was called
     QWaitCondition logTrigger;
 };
 
