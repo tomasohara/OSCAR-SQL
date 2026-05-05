@@ -596,12 +596,18 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
         // Sanity-check: Journal_Notes must be a non-empty string if present.
         if (sess->settings.contains(Journal_Notes)) {
             QVariant noteVar = sess->settings[Journal_Notes];
+            qDebug() << "migrateJournalFromSource: session" << sessionId
+                     << "Journal_Notes typeId=" << noteVar.typeId()
+                     << "isNull=" << noteVar.isNull()
+                     << "value(first 100)=" << noteVar.toString().left(100);
             if (noteVar.typeId() != QMetaType::QString || noteVar.toString().isEmpty()) {
                 qWarning() << "migrateJournalFromSource: Journal_Notes for session" << sessionId
                            << "has unexpected type or empty value (typeId=" << noteVar.typeId()
                            << ") — discarding to avoid storing corrupt data";
                 sess->settings.remove(Journal_Notes);
             }
+        } else {
+            qDebug() << "migrateJournalFromSource: session" << sessionId << "has no Journal_Notes";
         }
 
         // Backfill Journal_BMI: OSCAR 1.7.1 stored weight but never stored BMI.
