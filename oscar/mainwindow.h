@@ -243,6 +243,11 @@ class MainWindow : public QMainWindow
     //! \brief Opens the Preferences Dialog, and saving changes if OK is pressed
     void on_action_Preferences_triggered();
 
+    //! \brief Opens the Time Corrections dialog for the current day
+    void on_actionTime_Corrections_triggered();
+    void on_actionDrift_Analysis_triggered();
+    void on_actionPurgeAllTimeCorrections_triggered();
+
     //! \brief Opens and/or shows the Oximetry page
     void on_oximetryButton_clicked();
 
@@ -454,6 +459,8 @@ private:
 #endif
     bool first_load;
     PreferencesDialog *prefdialog;
+    class DeviceTimeCorrectionDialog *m_correctionDialog = nullptr;
+    class DriftAnalysisDialog *m_driftDialog = nullptr;
     QTime logtime;
     QSystemTrayIcon *systray;
     QMenu *systraymenu;

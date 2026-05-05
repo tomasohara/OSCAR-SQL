@@ -208,6 +208,12 @@ class Machine
     inline qint64 getDatabaseId() const { return m_database_id; }
     //! \brief Sets the database primary key for this machine
     inline void setDatabaseId(qint64 id) { m_database_id = id; }
+
+    qint64 correctionMs(QDate night) const;
+    void rebuildCorrections(const QList<TimeCorrectionRow>& rows);
+    static bool isCorrectableType(MachineType type) {
+        return type != MT_JOURNAL && type != MT_UNKNOWN && type != MT_UNCATEGORIZED;
+    }
     
     //! \brief Returns the profile ID this machine belongs to (Schema v12)
     qint64 getProfileId() const;
@@ -292,6 +298,9 @@ class Machine
 
     //! \brief Database primary key (0 if not in database)
     qint64 m_database_id;
+
+    QList<TimeCorrectionRow>    m_correctionRows;
+    mutable QMap<QDate, qint64> m_correctionCache;
 
     MachineLoader * m_loader;
 

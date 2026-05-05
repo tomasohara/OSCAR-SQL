@@ -71,6 +71,15 @@ enum SummaryType { ST_CNT, ST_SUM, ST_AVG, ST_WAVG, ST_PERC, ST_90P, ST_MIN, ST_
 enum MachineType { MT_UNKNOWN = 0, MT_CPAP, MT_OXIMETER, MT_SLEEPSTAGE, MT_JOURNAL, MT_POSITION, MT_UNCATEGORIZED = 99};
 //void InitMapsWithoutAwesomeInitializerLists();
 
+//! \brief One active row from device_time_corrections, held in memory by Machine
+struct TimeCorrectionRow {
+    QDate   dateFrom;
+    QDate   dateTo;         // null = open-ended
+    qint64  offsetMs = 0;  // constant correction; used when c1 == 0
+    qint64  c0Ms     = 0;  // model drift intercept; used when c1 != 0
+    double  c1       = 0.0; // 0 = constant row; non-zero = fitted drift model
+};
+
 /***** NEVER USED --- 8/2019
 // PAP Device Capabilities
 const quint32 CAP_Fixed               = 0x0000001;  // Constant PAP

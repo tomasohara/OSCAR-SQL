@@ -625,6 +625,35 @@ void Machine::setLoaderName(QString value)
     m_loader = GetLoader(value);
 }
 
+void Machine::rebuildCorrections(const QList<TimeCorrectionRow>& rows)
+{
+    m_correctionRows = rows;
+    m_correctionCache.clear();
+}
+
+qint64 Machine::correctionMs(QDate night) const
+{
+    auto it = m_correctionCache.find(night);
+    if (it != m_correctionCache.end()) return it.value();
+
+    qint64 total = 0;
+    qint64 t_noon = QDateTime(night, QTime(12,0,0), Qt::UTC).toMSecsSinceEpoch();
+
+    for (const auto& row : m_correctionRows) {
+        QDate to = row.dateTo.isNull() ? QDate(9999,12,31) : row.dateTo;
+        if (night < row.dateFrom || night > to) continue;
+
+        if (row.c1 == 0.0) {
+            total += row.offsetMs;
+        } else {
+            total += row.c0Ms + qint64((row.c1 - 1.0) * double(t_noon));
+        }
+    }
+
+    m_correctionCache[night] = total;
+    return total;
+}
+
 void Machine::setInfo(MachineInfo inf)
 {
     MachineInfo merged = inf;

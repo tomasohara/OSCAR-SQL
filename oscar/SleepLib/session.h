@@ -151,6 +151,9 @@ class Session
     //! \brief Return the latest time in session (in milliseconds since epoch)
     inline qint64 realLast() const { return s_last; }
 
+    //! \brief Total correction for this session's night (ms); 0 if no corrections active
+    qint64 correctionMs() const;
+
     //! \brief Return the start of this sessions time range, adjusted for clock drift (in milliseconds since epoch)
     qint64 first();
 
@@ -529,6 +532,8 @@ protected:
     qint64 s_first;
     //! \brief Time session ends (in ms since epoch)
     qint64 s_last;
+
+    QDate m_night;
     
     //! \brief Database primary key (0 if not in database)
     qint64 m_sessionrow_id;

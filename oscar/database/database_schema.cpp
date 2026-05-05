@@ -145,6 +145,12 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
+    // Device time corrections table (schema version 16)
+    if (!createDeviceTimeCorrectionsTable(db)) {
+        qCritical() << "DatabaseSchema: Failed to create device_time_corrections table";
+        return false;
+    }
+
     // Create indexes
     if (!createIndexes(db)) {
         qCritical() << "DatabaseSchema: Failed to create indexes";
@@ -231,6 +237,14 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
             return false;
         }
         fromVersion = 16;
+    }
+
+    if (fromVersion == 16) {
+        if (!migrateV16ToV17(db)) {
+            qCritical() << "DatabaseSchema: v16->v17 migration failed";
+            return false;
+        }
+        fromVersion = 17;
     }
 
     if (fromVersion != CURRENT_SCHEMA_VERSION) {
@@ -1442,6 +1456,34 @@ bool DatabaseSchema::migrateV14ToV15(QSqlDatabase& db)
     return true;
 }
 
+bool DatabaseSchema::createDeviceTimeCorrectionsTable(QSqlDatabase& db)
+{
+    QSqlQuery q(db);
+    if (!q.exec(R"(
+        CREATE TABLE IF NOT EXISTS device_time_corrections (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            machine_id  INTEGER NOT NULL REFERENCES machines(id) ON DELETE CASCADE,
+            date_from   TEXT    NOT NULL,
+            date_to     TEXT,
+            type        TEXT    NOT NULL CHECK(type IN ('timezone','travel','dst','reset','offset','drift')),
+            offset_ms   INTEGER,
+            c0_ms       INTEGER,
+            c1          REAL DEFAULT 0.0,
+            reason      TEXT,
+            applied_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            undone_at   TEXT
+        )
+    )")) {
+        qCritical() << "DatabaseSchema: Failed to create device_time_corrections:" << q.lastError().text();
+        return false;
+    }
+    if (!q.exec("CREATE INDEX IF NOT EXISTS idx_dtc_machine_date ON device_time_corrections(machine_id, date_from, type, undone_at)")) {
+        qCritical() << "DatabaseSchema: Failed to create idx_dtc_machine_date:" << q.lastError().text();
+        return false;
+    }
+    return true;
+}
+
 /*
  * Migrate database from schema version 15 to 16
  *
@@ -1593,6 +1635,7 @@ bool DatabaseSchema::migrateV15ToV16(QSqlDatabase& db)
         }
     }
 
+
     if (!setSchemaVersion(db, 16)) {
         qCritical() << "DatabaseSchema: migrateV15ToV16: setSchemaVersion failed";
         db.rollback();
@@ -1609,3 +1652,39 @@ bool DatabaseSchema::migrateV15ToV16(QSqlDatabase& db)
     return true;
 }
 
+/*
+ * Migrate database from schema version 16 to 17
+ *
+ * Adds the device_time_corrections table for per-device per-night
+ * time correction records.
+ */
+bool DatabaseSchema::migrateV16ToV17(QSqlDatabase& db)
+{
+    qDebug() << "DatabaseSchema: Migrating v16 -> v17";
+
+    if (!db.transaction()) {
+        qCritical() << "DatabaseSchema: migrateV16ToV17: failed to start transaction";
+        return false;
+    }
+
+    if (!createDeviceTimeCorrectionsTable(db)) {
+        qCritical() << "DatabaseSchema: migrateV16ToV17: createDeviceTimeCorrectionsTable failed";
+        db.rollback();
+        return false;
+    }
+
+    if (!setSchemaVersion(db, 17)) {
+        qCritical() << "DatabaseSchema: migrateV16ToV17: setSchemaVersion failed";
+        db.rollback();
+        return false;
+    }
+
+    if (!db.commit()) {
+        qCritical() << "DatabaseSchema: migrateV16ToV17: commit failed";
+        db.rollback();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: Migration v16->v17 complete";
+    return true;
+}

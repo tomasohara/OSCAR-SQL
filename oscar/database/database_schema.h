@@ -39,6 +39,10 @@ public:
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
      *
+     * Version 17: Per-device per-night time corrections (all device types)
+     * - Added device_time_corrections table
+     * - type: timezone | travel | dst | reset | offset | drift
+     *
      * Version 16: One daily summary per profile-day
      * - daily_summaries no longer carries machine_id; the row is a profile-day
      *   rollup that already aggregates across CPAP and oximetry machines.
@@ -67,7 +71,7 @@ public:
      * - Added type field to channels
      * - Removed events_file and summary_file from sessions (no longer needed)
      */
-    static const int CURRENT_SCHEMA_VERSION = 16;
+    static const int CURRENT_SCHEMA_VERSION = 17;
 
     /*!
      * \brief Oldest schema version that can be restored into the current database.
@@ -169,11 +173,17 @@ private:
     // Migration from v13 to v14
     static bool migrateV13ToV14(QSqlDatabase& db);
 
+    // Device time corrections table (schema version 16)
+    static bool createDeviceTimeCorrectionsTable(QSqlDatabase& db);
+
     // Migration from v14 to v15
     static bool migrateV14ToV15(QSqlDatabase& db);
 
     // Migration from v15 to v16
     static bool migrateV15ToV16(QSqlDatabase& db);
+
+    // Migration from v16 to v17
+    static bool migrateV16ToV17(QSqlDatabase& db);
 
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);

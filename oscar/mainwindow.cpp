@@ -72,6 +72,9 @@
 #include "logger.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "devicetimecorrectiondialog.h"
+#include "driftanalysisdialog.h"
+#include "database/device_time_correction_repository.h"
 #include "aboutdialog.h"
 #include "newprofile.h"
 #include "backupdialog.h"
@@ -723,6 +726,9 @@ bool MainWindow::OpenProfile(QString profileName)
     PERF_TIMER_START("MW::OP::Daily");
     daily = new Daily(ui->tabWidget, nullptr);
     ui->tabWidget->insertTab(2, daily, STR_TR_Daily);
+    connect(daily, &Daily::dateLoaded, this, [this](QDate date) {
+        if (m_correctionDialog) m_correctionDialog->setDate(date);
+    });
     sc.check("created Daily page");
     PERF_TIMER_STOP("MW::OP::Daily");
 
@@ -1782,6 +1788,74 @@ void MainWindow::on_action_Preferences_triggered()
     prefdialog = nullptr;
 }
 
+void MainWindow::on_actionTime_Corrections_triggered()
+{
+    if (!p_profile) {
+        QMessageBox::warning(this, tr("Time Corrections"), tr("Please select or create a profile first."));
+        return;
+    }
+    if (!daily) return;
+
+    if (!m_correctionDialog) {
+        m_correctionDialog = new DeviceTimeCorrectionDialog(this);
+        m_correctionDialog->setAttribute(Qt::WA_DeleteOnClose);
+        connect(m_correctionDialog, &QObject::destroyed, this, [this]() {
+            m_correctionDialog = nullptr;
+        });
+        connect(m_correctionDialog, &DeviceTimeCorrectionDialog::correctionsChanged,
+                daily, &Daily::redrawWithZoom);
+    }
+    m_correctionDialog->setDate(daily->getDate());
+    m_correctionDialog->show();
+    m_correctionDialog->raise();
+    m_correctionDialog->activateWindow();
+}
+
+void MainWindow::on_actionDrift_Analysis_triggered()
+{
+    if (!p_profile) {
+        QMessageBox::warning(this, tr("Drift Analysis"), tr("Please select or create a profile first."));
+        return;
+    }
+    if (!daily) return;
+
+    if (!m_driftDialog) {
+        m_driftDialog = new DriftAnalysisDialog(this);
+        m_driftDialog->setAttribute(Qt::WA_DeleteOnClose);
+        connect(m_driftDialog, &QObject::destroyed, this, [this]() {
+            m_driftDialog = nullptr;
+        });
+        connect(m_driftDialog, &DriftAnalysisDialog::correctionsChanged,
+                daily, &Daily::redrawWithZoom);
+    }
+    m_driftDialog->setDate(daily->getDate());
+    m_driftDialog->show();
+    m_driftDialog->raise();
+    m_driftDialog->activateWindow();
+}
+
+void MainWindow::on_actionPurgeAllTimeCorrections_triggered()
+{
+    if (!p_profile) return;
+
+    int ret = QMessageBox::warning(this, tr("Purge All Time Corrections"),
+        tr("This will permanently delete all time corrections for every device in this profile.\n\nAre you sure?"),
+        QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+    if (ret != QMessageBox::Yes) return;
+
+    DeviceTimeCorrectionRepository repo;
+    for (Machine* mach : p_profile->GetMachines()) {
+        if (!Machine::isCorrectableType(mach->type())) continue;
+        if (mach->getDatabaseId() <= 0) continue;
+        for (const auto& r : repo.findActive(mach->getDatabaseId()))
+            repo.markUndone(r.id);
+        mach->rebuildCorrections({});
+    }
+
+    if (daily) daily->redrawWithZoom();
+    if (m_correctionDialog) m_correctionDialog->setDate(daily ? daily->getDate() : QDate());
+}
+
 #include "oximeterimport.h"
 QDateTime datetimeDialog(QDateTime datetime, QString message);
 
@@ -2707,6 +2781,9 @@ void MainWindow::doReprocessEvents()
 
     daily = new Daily(ui->tabWidget, nullptr);
     ui->tabWidget->insertTab(2, daily, STR_TR_Daily);
+    connect(daily, &Daily::dateLoaded, this, [this](QDate date) {
+        if (m_correctionDialog) m_correctionDialog->setDate(date);
+    });
     daily->ReloadGraphs();
 
     overview = new Overview(ui->tabWidget, daily->graphView());

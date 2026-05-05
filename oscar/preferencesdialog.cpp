@@ -304,14 +304,6 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     ui->automaticallyCheckUpdates_GroupBox->setVisible(false);
 #endif
 
-    int s = profile->cpap->clockDrift();
-    int m = (s / 60) % 60;
-    int h = (s / 3600);
-    s %= 60;
-    ui->clockDriftHours->setValue(h);
-    ui->clockDriftMinutes->setValue(m);
-    ui->clockDriftSeconds->setValue(s);
-
     ui->skipEmptyDays->setChecked(profile->general->skipEmptyDays());
     ui->showUnknownFlags->setChecked(profile->general->showUnknownFlags());
     //  ui->enableMultithreading->setChecked(AppSetting->multithreading());
@@ -1005,9 +997,6 @@ bool PreferencesDialog::Save()
     profile->session->setDaySplitTime(ui->timeEdit->time());
     profile->session->setIgnoreOlderSessions(ui->ignoreOlderSessionsCheck->isChecked());
     profile->session->setIgnoreOlderSessionsDate(ui->ignoreOlderSessionsDate->date());
-
-    int s = ui->clockDriftHours->value() * 3600 + ui->clockDriftMinutes->value() * 60 + ui->clockDriftSeconds->value();
-    profile->cpap->setClockDrift(s);
 
     AppSetting->setOverlayType((OverlayDisplayType)ui->overlayFlagsCombo->currentIndex());
 #ifndef REMOVE_FITNESS

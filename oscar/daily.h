@@ -97,6 +97,8 @@ public:
         */
     void RedrawGraphs();
 
+    void redrawWithZoom();
+
     /*! \fn LoadDate()
         \brief Selects a new day object, unloading the previous one, and loads the graph data for the supplied date.
         \param QDate date
@@ -159,6 +161,9 @@ public:
     QString STR_HIDE_ALL_GRAPHS =QString(tr("Hide All Graphs"));
     QString STR_SHOW_ALL_GRAPHS =QString(tr("Show All Graphs"));
     static QString convertHtmlToPlainText(QString html) ;
+signals:
+    void dateLoaded(QDate date);
+
 public slots:
     void on_LineCursorUpdate(double time);
     void on_RangeUpdate(double minx, double maxx);

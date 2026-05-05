@@ -546,9 +546,17 @@ void RecalcMAP::updateTimes(PressureInfo & info) {
 void RecalcMAP:: setSelectionRange(gGraph* graph) {
     graph->graphView()->GetXBounds(minTime, maxTime);
     // changes suggested by grnbrg
-    qint64 clockdrift = qint64(p_profile->cpap->clockDrift()) * 1000L;
-    minTime -= clockdrift;
-    maxTime -= clockdrift;
+    // Convert display-space bounds back to raw device time by subtracting the CPAP correction
+    if (map->m_day) {
+        for (const auto& sess : map->m_day->sessions) {
+            if (sess->type() == MT_CPAP) {
+                qint64 correction = sess->correctionMs();
+                minTime -= correction;
+                maxTime -= correction;
+                break;
+            }
+        }
+    }
 }
 
 void RecalcMAP::run()
