@@ -817,12 +817,12 @@ int main(int argc, char *argv[]) {
 
     // Prevent two OSCAR instances from opening the same database folder at the same
     // time — concurrent access would cause SQLite write conflicts and profile corruption.
-    QLockFile *lockFile = new QLockFile(GetAppData() + "/oscar.lock");
-    lockFile->setStaleLockTime(0);  // never treat a lock as stale
-    if (!lockFile->tryLock()) {
+    QLockFile lockFile(GetAppData() + "/oscar.lock");
+    lockFile.setStaleLockTime(0);  // never treat a lock as stale
+    if (!lockFile.tryLock()) {
         qint64 pid = 0;
         QString hostname, appname;
-        lockFile->getLockInfo(&pid, &hostname, &appname);
+        lockFile.getLockInfo(&pid, &hostname, &appname);
         QString msg = QObject::tr("This OSCAR database folder is already open in another instance of OSCAR.") + "\n\n" +
                       QObject::tr("Folder:") + " " + QDir::toNativeSeparators(GetAppData()) + "\n\n" +
                       QObject::tr("Close the other OSCAR instance before opening this database.");

@@ -21,6 +21,22 @@ file is not yet open. `logToFile()` flushes the buffer to the file before procee
 
 ---
 
+## 2026-05-06 - Lock file not released on early exit (#128)
+
+**Files:** `oscar/main.cpp`
+
+**Symptom:** If OSCAR exits early (e.g. database version too new), `oscar.lock` remains
+on disk. The next OSCAR startup sees the stale lock and refuses to open the database,
+reporting it is already open in another instance.
+
+**Root cause:** `QLockFile` was heap-allocated (`new`) and never `delete`d. The destructor
+(which calls `unlock()` and removes the lock file) was never invoked on early `return`.
+
+**Fix:** Changed to stack allocation so the destructor fires automatically on any exit
+path from `main()`.
+
+---
+
 ## 2026-05-06 - Journal note "0" during startup migration (#125, follow-up)
 
 **Files:** `oscar/profileimporter.cpp`
