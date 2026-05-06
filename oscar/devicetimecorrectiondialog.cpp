@@ -43,12 +43,18 @@ DeviceTimeCorrectionDialog::DeviceTimeCorrectionDialog(QWidget *parent)
     connect(ui->btnDiscardChanges, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onDiscardStaged);
     connect(ui->btnApplyLastNight, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onApplyLastNight);
     connect(ui->btnDeleteRow,      &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onDeleteRow);
+    connect(ui->historyTable, &QTableWidget::itemSelectionChanged,
+            this, &DeviceTimeCorrectionDialog::onHistoryRowSelected);
     connect(ui->correctionTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &DeviceTimeCorrectionDialog::refreshCurrentOffset);
+    connect(ui->correctionTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
+    connect(ui->advancedGroup,   &QGroupBox::toggled,       this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
+    connect(ui->advStartDate,    &QDateEdit::dateChanged,   this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
+    connect(ui->advEndDate,      &QDateEdit::dateChanged,   this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
+    connect(ui->advEndDateCheck, &QCheckBox::toggled,       this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
     connect(ui->advEndDateCheck, &QCheckBox::toggled, this, [this](bool noEnd) {
-        ui->advEndDate->setEnabled(!noEnd);
-        if (noEnd)
-            ui->advEndDate->setDate(QDate(2099, 12, 31));
+        if (noEnd) ui->advEndDate->setDate(QDate(2099, 12, 31));
     });
 
     ui->historyTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -226,16 +232,20 @@ void DeviceTimeCorrectionDialog::refreshCurrentOffset()
         ui->largeDriftWarning->setText("");
         return;
     }
-    qint64 total = mach->correctionMs(m_date);
+    // When a row is loaded (staged or pre-staged), show that row's individual offset.
+    // Otherwise show the device total for the date.
+    qint64 displayMs = (m_staged.machineId != 0)
+                       ? m_staged.offsetMs
+                       : mach->correctionMs(m_date);
     if (m_hasStagedChange) {
-        ui->currentOffsetValue->setText(formatOffset(total) + " *");
+        ui->currentOffsetValue->setText(formatOffset(displayMs) + " *");
         ui->currentOffsetValue->setStyleSheet("color: #cc6600; font-weight: bold;");
     } else {
-        ui->currentOffsetValue->setText(formatOffset(total));
+        ui->currentOffsetValue->setText(formatOffset(displayMs));
         ui->currentOffsetValue->setStyleSheet("font-weight: bold;");
     }
     bool isOffset = (ui->correctionTypeCombo->currentIndex() == 0);
-    bool showWarning = isOffset && qAbs(total) > kLargeOffsetThresholdMs;
+    bool showWarning = isOffset && qAbs(displayMs) > kLargeOffsetThresholdMs;
     ui->largeDriftWarning->setText(showWarning
         ? tr("Large offset — consider using a different correction type.") : "");
 }
@@ -297,6 +307,8 @@ void DeviceTimeCorrectionDialog::refreshHistory()
                 if (ui->historyTable->item(i, c))
                     ui->historyTable->item(i, c)->setBackground(bg);
     }
+
+    autoPopulateForCurrentDevice();
 }
 
 void DeviceTimeCorrectionDialog::effectiveDateRange(QString& dateFrom, QString& dateTo) const
@@ -325,10 +337,15 @@ void DeviceTimeCorrectionDialog::effectiveDateRange(QString& dateFrom, QString& 
 // Staged preview helpers
 // ---------------------------------------------------------------------------
 
-void DeviceTimeCorrectionDialog::setStagedButtonsEnabled(bool enabled)
+void DeviceTimeCorrectionDialog::updateControlStates()
 {
-    ui->btnSaveCorrection->setEnabled(enabled);
-    ui->btnDiscardChanges->setEnabled(enabled);
+    ui->btnSaveCorrection->setEnabled(m_hasStagedChange);
+    ui->btnDiscardChanges->setEnabled(m_hasStagedChange);
+
+    bool rangeExpanded = ui->advancedGroup->isChecked();
+    ui->advEndDate->setEnabled(rangeExpanded && !ui->advEndDateCheck->isChecked());
+
+    ui->btnDeleteRow->setEnabled(ui->historyTable->currentRow() >= 0);
 }
 
 void DeviceTimeCorrectionDialog::previewStaged(Machine* mach)
@@ -373,7 +390,7 @@ void DeviceTimeCorrectionDialog::clearStagedAndRevert()
     Machine* mach = currentMachine();
     m_hasStagedChange = false;
     m_staged = {};
-    setStagedButtonsEnabled(false);
+    updateControlStates();
     if (mach) {
         rebuildMachine(mach);
         emit correctionsChanged();
@@ -401,18 +418,29 @@ void DeviceTimeCorrectionDialog::onSaveStaged()
     Machine* mach = currentMachine();
     if (!mach || mach->getDatabaseId() <= 0) return;
 
+    // Always read date range and type from the current UI state at save time.
+    // The staged row may have been created before the user set the date range.
+    QString dateFrom, dateTo;
+    effectiveDateRange(dateFrom, dateTo);
+    QString type = currentTypeName();
+
     DeviceTimeCorrectionRepository repo;
 
-    if (m_staged.type == "timezone")
-        closeOpenTimezoneRows(repo, mach->getDatabaseId(), m_staged.dateFrom);
+    if (type == "timezone")
+        closeOpenTimezoneRows(repo, mach->getDatabaseId(), dateFrom);
 
-    repo.upsertTyped(mach->getDatabaseId(),
-                     m_staged.dateFrom, m_staged.dateTo,
-                     m_staged.type, m_staged.offsetMs);
+    // If the target shifted after staging began, void the original row so it
+    // is not left as an orphan alongside the newly saved range.
+    if (m_staged.dateFrom != dateFrom || m_staged.dateTo != dateTo || m_staged.type != type)
+        repo.upsertTyped(mach->getDatabaseId(),
+                         m_staged.dateFrom, m_staged.dateTo,
+                         m_staged.type, 0);
+
+    repo.upsertTyped(mach->getDatabaseId(), dateFrom, dateTo, type, m_staged.offsetMs);
 
     m_hasStagedChange = false;
     m_staged = {};
-    setStagedButtonsEnabled(false);
+    updateControlStates();
     commitAndRefresh(mach);
 }
 
@@ -446,7 +474,7 @@ void DeviceTimeCorrectionDialog::applyNudge(qint64 deltaMs)
             if (sameTo) { m_staged.offsetMs = r.offsetMs; break; }
         }
         m_hasStagedChange = true;
-        setStagedButtonsEnabled(true);
+        updateControlStates();
     }
 
     m_staged.offsetMs += deltaMs;
@@ -475,7 +503,7 @@ void DeviceTimeCorrectionDialog::onResetToZero()
     m_staged.type      = type;
     m_staged.offsetMs  = 0;
     m_hasStagedChange  = true;
-    setStagedButtonsEnabled(true);
+    updateControlStates();
     previewStaged(mach);
 }
 
@@ -484,23 +512,27 @@ void DeviceTimeCorrectionDialog::onApplyLastNight()
     Machine* mach = currentMachine();
     if (!mach || !m_date.isValid() || mach->getDatabaseId() <= 0) return;
 
-    QString prevStr  = m_date.addDays(-1).toString(Qt::ISODate);
     QString todayStr = m_date.toString(Qt::ISODate);
 
     DeviceTimeCorrectionRepository repo;
-    QList<DeviceTimeCorrectionData> prevRows;
-    for (const auto& r : repo.findActive(mach->getDatabaseId())) {
-        if (r.dateFrom == prevStr && r.dateTo == prevStr && r.c1 == 0.0)
-            prevRows.append(r);
+    QList<DeviceTimeCorrectionData> allActive = repo.findActive(mach->getDatabaseId());
+
+    QList<DeviceTimeCorrectionData> sourceRows;
+    for (int d = 1; d <= 7 && sourceRows.isEmpty(); ++d) {
+        QString dayStr = m_date.addDays(-d).toString(Qt::ISODate);
+        for (const auto& r : allActive) {
+            if (r.dateFrom == dayStr && r.dateTo == dayStr && r.c1 == 0.0)
+                sourceRows.append(r);
+        }
     }
 
-    if (prevRows.isEmpty()) {
+    if (sourceRows.isEmpty()) {
         QMessageBox::information(this, tr("Apply Last Offset"),
-            tr("No single-night corrections found for %1.").arg(prevStr));
+            tr("No single-night corrections found in the past 7 days."));
         return;
     }
 
-    for (const auto& r : prevRows)
+    for (const auto& r : sourceRows)
         repo.upsertTyped(mach->getDatabaseId(), todayStr, todayStr, r.type, r.offsetMs);
 
     commitAndRefresh(mach);
@@ -603,6 +635,166 @@ void DeviceTimeCorrectionDialog::onDeleteRow()
         return;
     }
     commitAndRefresh(mach);
+}
+
+// ---------------------------------------------------------------------------
+// Click-to-load helpers
+// ---------------------------------------------------------------------------
+
+void DeviceTimeCorrectionDialog::populateControlsFromRow(const DeviceTimeCorrectionData& row)
+{
+    // Seed m_staged so onAnyControlChanged and refreshCurrentOffset use this row's values.
+    Machine* mach = currentMachine();
+    if (mach && mach->getDatabaseId() > 0) {
+        m_staged.machineId = mach->getDatabaseId();
+        m_staged.dateFrom  = row.dateFrom;
+        m_staged.dateTo    = row.dateTo;
+        m_staged.type      = row.type;
+        m_staged.offsetMs  = row.offsetMs;
+    }
+
+    // Block all signals that would trigger onAnyControlChanged while we set control values.
+    ui->correctionTypeCombo->blockSignals(true);
+    ui->advancedGroup->blockSignals(true);
+    ui->advStartDate->blockSignals(true);
+    ui->advEndDate->blockSignals(true);
+    ui->advEndDateCheck->blockSignals(true);
+
+    int typeIdx = kTypeKeys.indexOf(row.type);
+    ui->correctionTypeCombo->setCurrentIndex(typeIdx < 0 ? 0 : typeIdx);
+
+    QDate from = QDate::fromString(row.dateFrom, Qt::ISODate);
+    QDate to   = row.dateTo.isEmpty() ? QDate() : QDate::fromString(row.dateTo, Qt::ISODate);
+    bool isSingleNight = (row.dateFrom == row.dateTo);
+
+    if (isSingleNight) {
+        ui->advancedGroup->setChecked(false);
+        ui->advStartDate->setDate(from);
+        ui->advEndDate->setDate(from);
+        ui->advEndDateCheck->setChecked(false);
+    } else {
+        ui->advancedGroup->setChecked(true);
+        ui->advStartDate->setDate(from);
+        if (row.dateTo.isEmpty()) {
+            ui->advEndDateCheck->setChecked(true);
+            ui->advEndDate->setDate(QDate(2099, 12, 31));
+        } else {
+            ui->advEndDateCheck->setChecked(false);
+            ui->advEndDate->setDate(to);
+        }
+    }
+
+    ui->correctionTypeCombo->blockSignals(false);
+    ui->advancedGroup->blockSignals(false);
+    ui->advStartDate->blockSignals(false);
+    ui->advEndDate->blockSignals(false);
+    ui->advEndDateCheck->blockSignals(false);
+
+    refreshCurrentOffset();
+    updateControlStates();
+}
+
+void DeviceTimeCorrectionDialog::autoPopulateForCurrentDevice()
+{
+    if (m_hasStagedChange) return;
+
+    Machine* mach = currentMachine();
+    int matchRow = -1;
+    for (int i = 0; i < m_historyMachines.size(); ++i) {
+        if (m_historyMachines[i] == mach) { matchRow = i; break; }
+    }
+
+    ui->historyTable->blockSignals(true);
+    if (matchRow >= 0) {
+        ui->historyTable->setCurrentCell(matchRow, 0);
+        populateControlsFromRow(m_historyRows[matchRow]);
+    } else {
+        ui->historyTable->clearSelection();
+        m_staged = {};  // No row loaded — clear so controls don't spuriously activate staging
+        ui->correctionTypeCombo->blockSignals(true);
+        ui->advancedGroup->blockSignals(true);
+        ui->advStartDate->blockSignals(true);
+        ui->advEndDate->blockSignals(true);
+        ui->advEndDateCheck->blockSignals(true);
+        ui->correctionTypeCombo->setCurrentIndex(0);
+        ui->advancedGroup->setChecked(false);
+        if (m_date.isValid()) {
+            ui->advStartDate->setDate(m_date);
+            ui->advEndDate->setDate(m_date);
+        }
+        ui->advEndDateCheck->setChecked(false);
+        ui->correctionTypeCombo->blockSignals(false);
+        ui->advancedGroup->blockSignals(false);
+        ui->advStartDate->blockSignals(false);
+        ui->advEndDate->blockSignals(false);
+        ui->advEndDateCheck->blockSignals(false);
+        refreshCurrentOffset();
+        updateControlStates();
+    }
+    ui->historyTable->blockSignals(false);
+}
+
+void DeviceTimeCorrectionDialog::onAnyControlChanged()
+{
+    if (!m_hasStagedChange && m_staged.machineId != 0) {
+        m_hasStagedChange = true;
+        refreshCurrentOffset();
+    }
+    updateControlStates();
+}
+
+void DeviceTimeCorrectionDialog::onHistoryRowSelected()
+{
+    int tableRow = ui->historyTable->currentRow();
+    if (tableRow < 0 || tableRow >= m_historyRows.size()) return;
+
+    Machine* rowMachine = m_historyMachines[tableRow];
+    Machine* curMachine = currentMachine();
+
+    if (rowMachine != curMachine) {
+        qint64 targetId = m_historyRows[tableRow].id;
+
+        QTreeWidget* tree = ui->deviceSidebar;
+        for (int i = 0; i < tree->topLevelItemCount(); ++i) {
+            QTreeWidgetItem* header = tree->topLevelItem(i);
+            for (int j = 0; j < header->childCount(); ++j) {
+                QTreeWidgetItem* child = header->child(j);
+                QVariant v = child->data(0, Qt::UserRole);
+                if (v.isValid() && reinterpret_cast<Machine*>(v.value<quintptr>()) == rowMachine) {
+                    // Switch device; onDeviceChanged → refreshHistory → autoPopulateForCurrentDevice
+                    // runs synchronously and selects the first row for the device.
+                    tree->setCurrentItem(child);
+
+                    // Now override that selection with the specific row that was clicked.
+                    // Block itemSelectionChanged to avoid re-entering this slot.
+                    for (int k = 0; k < m_historyRows.size(); ++k) {
+                        if (m_historyRows[k].id == targetId) {
+                            ui->historyTable->blockSignals(true);
+                            ui->historyTable->setCurrentCell(k, 0);
+                            ui->historyTable->blockSignals(false);
+                            populateControlsFromRow(m_historyRows[k]);
+                            break;
+                        }
+                    }
+                    return;
+                }
+            }
+        }
+        return;
+    }
+
+    // Same device: discard any staged change, then load from this row
+    if (m_hasStagedChange) {
+        Machine* mach = currentMachine();
+        m_hasStagedChange = false;
+        m_staged = {};
+        if (mach) {
+            rebuildMachine(mach);
+            refreshCurrentOffset();
+            emit correctionsChanged();
+        }
+    }
+    populateControlsFromRow(m_historyRows[tableRow]);
 }
 
 void DeviceTimeCorrectionDialog::closeEvent(QCloseEvent* event)

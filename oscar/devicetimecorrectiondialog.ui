@@ -153,6 +153,7 @@
           </widget>
          </item>
          <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+         <item><widget class="QPushButton" name="btnDeleteRow"><property name="text"><string>Delete Correction</string></property></widget></item>
         </layout>
        </item>
 
@@ -181,12 +182,6 @@
          <column><property name="text"><string>Offset</string></property></column>
          <column><property name="text"><string>Added</string></property></column>
         </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout">
-         <item><widget class="QPushButton" name="btnDeleteRow"><property name="text"><string>Delete Correction</string></property></widget></item>
-         <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
-        </layout>
        </item>
 
       </layout>

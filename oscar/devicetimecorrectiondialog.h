@@ -45,6 +45,8 @@ private slots:
     void onDiscardStaged();
     void onApplyLastNight();
     void onDeleteRow();
+    void onHistoryRowSelected();
+    void onAnyControlChanged();
 
 private:
     Ui::DeviceTimeCorrectionDialog *ui;
@@ -71,12 +73,15 @@ private:
     void effectiveDateRange(QString& dateFrom, QString& dateTo) const;
     void previewStaged(Machine* mach);
     void clearStagedAndRevert();
-    void setStagedButtonsEnabled(bool enabled);
+    void updateControlStates();
 
     QString currentTypeName() const;
     QString formatOffset(qint64 ms) const;
     void rebuildMachine(Machine* mach);
     void commitAndRefresh(Machine* mach);
+
+    void populateControlsFromRow(const DeviceTimeCorrectionData& row);
+    void autoPopulateForCurrentDevice();
 
     // Delete correction helpers
     enum DeleteChoice { CloseForward, SplitOut, RemoveEntirely, DeleteCancelled };
