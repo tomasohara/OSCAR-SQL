@@ -99,7 +99,12 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     profile->user->setUserName(newProfileName);
     
     reportProgress(25, 100, tr("Migrating profile metadata..."));
-    
+
+    // Initialize schema before migrateMetadata (uses channel IDs like Journal_Notes)
+    // and before loadSessionsFromFiles (uses schema::channel[] for event parsing).
+    // During startup migration, main.cpp's schema::init() has not yet been called.
+    schema::init();
+
     if (!migrateMetadata(profile, sourcePath)) {
         dbMgr.rollback();
         qWarning() << "ProfileImporter: Rolled back transaction due to migrateMetadata failure";
@@ -212,10 +217,6 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     }
 
     reportProgress(40, 100, tr("Loading session data from files..."));
-
-    // CRITICAL: Initialize schema before loading sessions
-    // This populates schema::channel[] with channel types so extractRespiratoryEvents() works
-    schema::init();
 
     // IMPORTANT: Set p_profile before loading sessions - Session objects need it.
     // NOTE: p_profile is a global that is temporarily replaced here. reportProgress()
@@ -593,25 +594,14 @@ bool ProfileImporter::migrateJournalFromSource(Profile* profile, const QString& 
             continue;
         }
 
-        // Sanity-check: Journal_Notes must be a non-empty string if present.
+        // Validate Journal_Notes: discard if present but wrong type or empty.
         if (sess->settings.contains(Journal_Notes)) {
             QVariant noteVar = sess->settings[Journal_Notes];
-            qDebug() << "migrateJournalFromSource: session" << sessionId
-                     << "Journal_Notes typeId=" << noteVar.typeId()
-                     << "isNull=" << noteVar.isNull()
-                     << "value(first 100)=" << noteVar.toString().left(100);
             if (noteVar.typeId() != QMetaType::QString || noteVar.toString().isEmpty()) {
                 qWarning() << "migrateJournalFromSource: Journal_Notes for session" << sessionId
-                           << "has unexpected type or empty value (typeId=" << noteVar.typeId()
-                           << ") — discarding to avoid storing corrupt data";
+                           << "has unexpected type or empty value — discarding";
                 sess->settings.remove(Journal_Notes);
             }
-        } else {
-            QStringList hexKeys;
-            for (ChannelID k : sess->settings.keys())
-                hexKeys << QString("0x%1").arg(k, 4, 16, QChar('0'));
-            qDebug() << "migrateJournalFromSource: session" << sessionId
-                     << "has no Journal_Notes; settings keys present:" << hexKeys;
         }
 
         // Backfill Journal_BMI: OSCAR 1.7.1 stored weight but never stored BMI.

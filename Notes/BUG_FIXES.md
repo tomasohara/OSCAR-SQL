@@ -21,6 +21,25 @@ file is not yet open. `logToFile()` flushes the buffer to the file before procee
 
 ---
 
+## 2026-05-06 - Journal note "0" during startup migration (#125, follow-up)
+
+**Files:** `oscar/profileimporter.cpp`
+
+**Symptom:** Even after the 2026-05-04 fix, testers who triggered the 1.7.1 import via
+the startup migration flow (fresh install with no 2.0 data) still saw journal notes as "0".
+Users who imported via the menu after a normal startup were unaffected.
+
+**Root cause:** `schema::init()` was called at line 218 of `importProfile()` — after
+`migrateMetadata()` at line 103. During startup migration `main.cpp`'s `schema::init()`
+(at line 971) had not yet run, so `Journal_Notes` was still 0 (C++ global default).
+`sess->settings.contains(0)` returned false even though the key `0xd000` was in the
+QHash, so the note was not stored correctly.
+
+**Fix:** Moved `schema::init()` to before the `migrateMetadata()` call in `importProfile()`.
+Removed diagnostic-only logging added in commits 65e1b870 and da0ef95d.
+
+---
+
 ## 2026-05-04 - Journal note imported from 1.7.1 displayed as "0" (#125)
 
 **Files:** `oscar/SleepLib/session.cpp`, `oscar/profileimporter.cpp`
