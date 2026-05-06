@@ -1,0 +1,191 @@
+{{OSCAR}}
+<br />
+
+='''ResMed Data Format (excluding S8 models)'''=
+This page was originally written by Mark Watkins, during the initial build of the SleepyHead program. It needs change in approach, or should be taken as "history".
+
+==Data format analysis==
+
+Grade: C (extra points awarded for being open)
+
+'''Negatives''' 
+* Only keeps basic summary data when the card is left out. NO graphs. 
+* Unnecessarily deletes high-res flow waveform data after 7 days, all other graphs after 30 days.
+* Summary does not contain settings info for each session, only once per day, according to ResMed split, which is not suitable for night-owls.
+* Evil SDcard "drift" problem, which causes Events to NOT sync well over flow waveform. Needs a regular card format to work around this.
+* Bloaty data format.
+
+'''Positives'''
+* Manufacturer chose to use an industry-standard data format.
+* Reasonable assortment of data available, and at a decent resolution.
+
+= Data Format =
+ResMed chose an intelligent and sensible approach when designing their machines, they used an industry standard. (Thankyou ResMed for showing common sense!)
+
+'''EDF+ Format'''<br />
+ResMed uses the European Data Format Plus format. This format is documented [http://www.edfplus.info here]. It is rather verbose, but sensibly designed.. The Event Annotations are a little tricky.
+
+= ResMed SDCard Folder Structure =
+ <nowiki>
+[DATALOG]            Folder containing all the session data
+[SETTINGS}           Folder with machine settings
+Identification.crc   Checksum info
+Identification.tgt   Machine identification data
+Journal.dat          tbd
+STR.crc              Checksum info
+STR.edf              All overall summary information</nowiki>
+
+= Analysis of folders and files =
+==Identification.tgt==
+This file holds an extensive number of data and parameters of the machine. These are shown here in the same fixed order as in the file.
+
+{| class="wikitable"
+|-
+! Code !! Remark !! Explanation !! Example
+|-
+| #IMF|| All later models || TBD || #IMF 0001
+|-
+| #VIR|| All later models|| TBD || #VIR 0064
+|-
+| #RIR|| All later models|| TBD || #RIR 0064
+|-
+| #PVR|| All later models|| TBD  || #PVR 0064
+|-
+| #PVD|| All later models|| TBD || #PVD 000F
+|-
+| #CID|| All later models|| TBD || #CID CX040-044-018-015-100-100-100
+|-
+| #RID|| All later models|| TBD  || #RID 0012
+|-
+| #VRN|| Only S9 Models || TBD || #VRN 20142455118
+|-
+| #VPC|| Only S9 Models|| TBD || #VPC 3688P
+|-
+| #NID|| Only S9 Models|| TBD || #NID 0001
+|-
+| #VID || All Models || TBD || #VID 002C
+|-
+| #SRN|| All Models|| Serial number || #SRN 22182060837
+|-
+| #SID|| All Models || Serial ID?|| #SID SX584-0201
+|-
+| #RID|| Only S9 Models || TBD || #RID 0064
+|-
+| #PNA || All Models || Part Name|| #PNA Lumis_VPAP_150_ST
+|-
+| #PCD|| All Models || TBD || #PCD 28328
+|-
+| #PCB|| All Models || Printed Circuit Board number? || #PCB (90)R280-776(91)T3(21)89180702
+|-
+| #MID|| All Models || TBD || #MID 0028
+|-
+| #FGT|| All Models || TBD || #FGT 28_M40_V44
+|-
+| #BID|| All Models || TBD || #BID SX585-0100
+|}
+
+== DATALOG Folder ==
+The main data is stored in 4 EDF files per session, with each file name consisting of a date, time, and type, followed by .edf
+
+There is also a .crc (checksum) file for each of the above, but they are not needed to parse the data.
+
+==== Example ====
+ <nowiki>20110601_021922_EVE.edf
+(date)_(time)_(type).edf</nowiki>
+
+==== The 4 File Types ====
+ <nowiki>Type  Details
+EVE    Event annotation data
+BRP    High resolution graph data 
+SAD    Pulse oximetry data
+PLD    Low resolution graph data</nowiki>
+
+=== File Type Notes ===
+
+'''Note:''' Some foreign language machines use a different set of signal codes in the EDF data.
+
+==== EVE Event Annotation Data ====
+The S9 series flags the following events:
+*Hypopnea
+*Apnea
+*Obstructive Apnea
+*Central Apnea
+
+==== BRP High resolution graph data ====
+ <nowiki>
+Code            Details                        Units                            Notes
+"Flow"          Flow Rate                      ?
+"Mask Pres"     High-res Mask Pressure         cmH2O
+"Resp Event"    Respiratory Event              ?                                VPAP</nowiki>
+
+==== SAD Pulse Oximetry data ====
+ <nowiki>
+Code            Details                        Units                            Notes
+"Pulse"         Pulse Rate                     Beats per minute
+"SpO2"          SpO2 (Oxygen Saturation)       % Saturation</nowiki>
+
+The oximetry device that records this information is hideously expensive, notoriously unreliable, and ResMed should be ashamed for releasing it.
+
+==== PLD Low resolution graph data ====
+
+'''Signal List'''
+ <nowiki>
+Code            Details                        Units                            Notes
+"Snore Index"   Snore Index                    ??
+"Therapy Pres"  Therapy Pressure               cmH2O
+"Insp Pres"     IPAP / Inspiratory Pressure    cmH2O
+"MV"            Minute Ventilation             ?
+"RR"            Respiratory Rate               Breaths per Minute
+"Vt"            Tidal Volume                   ?
+"Leak"          Leak Rate                      L/Second (I convert to L/Min)
+"FFL Index"     Flow Limitation Index          ?
+"Mask Pres"     Low-res Mask Pressure          cmH2O
+"Exp Pres"      EPAP / Expiratory Pressure     cmH2O
+"I:E"           Inspiratory : Expiratory Ratio ?                                VPAP
+"Ti"            Ti??                           ?                                VPAP
+"Te"            Te??                           ?                                VPAP
+"TgMV"          Target Minute Ventialation     ?                                ASV Machines
+""              Unknown Empty                  ?
+""              Unknown Empty                  ?</nowiki>
+
+most ? fields are known, I just have to look them up again..?? fields really are unknown (to me).
+
+The two empty signals always appear at the end. not entirely sure of their purpose.
+
+== SETTINGS Folder ==
+The Settings folder holds a number of log (.log) files and settings (.tgt) files, each with its own .crc (checksum) file.
+
+== STR.edf File ==
+
+This file contains a summary database in EDF format. It contains things like AHI indexes, 95% values, etc...
+
+There is only one copy, in the root directory of the SD-card, and it is updated at the end of a session.
+
+
+
+Most records contain one entry per day.
+
+SleepyHead doesn't need much of it, as it provides it's own indexing..
+
+It does contain some data not available elsewhere, most notably EPR data.
+
+== ResMed S9 Storage Gotchas ==
+
+The S9 continuously erases older data to keep the card from overflowing:
+
+* BRP data older than 7 days.
+* PLD data older than 30 days.
+* Everything older than 365 days.
+
+Regularly backup copies of your SD card to work around this!
+
+= SleepyHeads Implementation =
+SleepyHeads EDF parser and S9 importer has been written from scratch
+
+It consists of two parts
+* A generic EDF parser class named '''EDFParser'''
+* and the custom S9 importer class named '''ResMedLoader'''
+
+It is implemented in SleepLib/loader_plugins/resmed_loader.cpp / .h
+
+_________________________________________________________________

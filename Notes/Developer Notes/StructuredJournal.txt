@@ -1,0 +1,33 @@
+journal_notes
+    id          INT                 usual id
+    profile_id  INT                 profile connected to
+    key         TEXT                user-defined identifier
+    channel_id  INT                 Channel id is a number added to 0x0810. Allowed range 0 - 239 (max value 0x08ff).
+                                    Set automatically.
+    
+    sequence    INT                 user-defined sequence for these fields in Notes panel
+    status      INT                 0 - available on demand; 1 - always in Notes field; 2 - do not use
+    repeating   BOOL                true - auto-fill with previous dates's value, false - don't auto-fill
+
+    type        INT                 0 - text; 1 - numeric range; 2 - option list; 3 - number; 4 - boolean
+    values      TEXT                for type 1 (m - n), 2 (comma separated list of options)
+
+    
+
+    date_created     DATE
+    
+    
+In Daily/Notes panel, put list of all notes for the profile with status 1 at the bottom of the free text section of the Notes panel formatted as key followed by input field. Input field should be pre-loaded from previous day if carryforward=true
+
+    Type        Format
+    -------     ----------------------------------------------------
+    
+    Text        open length text field. Normal text, not RTF.
+    Range       selection bar with numeric input field option
+    Option      combobox
+    Number      numeric input field
+    Boolean     True/False field
+
+ 
+Where to store data?
+  As channel data in Journal machine.

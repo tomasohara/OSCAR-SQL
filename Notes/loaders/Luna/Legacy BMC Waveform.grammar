@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ufwb version="1.17">
+    <grammar name="000 grammar" start="id:34" author="Guy" fileextension="000">
+        <description>Grammar for 000 files</description>
+        <structure name="000 file" id="34" length="0" encoding="ISO_8859-1:1987" endian="big" signed="no">
+            <structref name="Waveform Packet" id="75" fillcolor="D7D3FF" repeatmin="100" repeatmax="100" structure="id:38"/>
+        </structure>
+        <structure name="Waveform Packet" id="38" length="256" encoding="ISO_8859-1:1987" endian="little" signed="no">
+            <number name="Magic" id="41" type="integer" length="2" endian="little" display="hex">
+                <description>Always AA AA</description>
+            </number>
+            <number name="Unknown_0x02" id="76" type="integer" length="2" endian="little"/>
+            <number name="IPAP" id="77" type="integer" length="2" endian="little"/>
+            <number name="EPAP" id="79" type="integer" length="2"/>
+            <structref name="PressureWave" id="84" structure="id:82"/>
+            <structref name="FlowAbnormality" id="85" structure="id:82"/>
+            <structref name="Flow" id="88" structure="id:82"/>
+            <number name="Unknown_0x9E" id="89" repeatmin="10" repeatmax="10" type="integer" length="2"/>
+            <number name="Unknown_0xB2" id="90" repeatmin="6" repeatmax="6" type="integer" length="2"/>
+            <number name="Pulse Rate" id="91" type="integer" length="2"/>
+            <number name="Unknown_0xC0" id="92" repeatmin="2" repeatmax="2" type="integer" length="2"/>
+            <number name="LeakRate" id="93" type="integer" length="2"/>
+            <number name="TidalVolume" id="94" type="integer" length="2"/>
+            <number name="Unknown_0xC8" id="95" type="integer" length="2"/>
+            <number name="MinuteVentilation" id="96" type="integer" length="2"/>
+            <number name="Unknown_0xCC" id="97" type="integer" length="2"/>
+            <number name="Unknown_0xCE" id="98" type="integer" length="2"/>
+            <number name="RespiratoryRate" id="99" type="integer" length="2"/>
+            <number name="IERatio" id="100" type="integer" length="2"/>
+            <number name="Unknown_0xD4" id="101" type="integer" length="2"/>
+            <number name="Unknown_0xD6" id="102" repeatmin="17" repeatmax="17" type="integer" length="2"/>
+            <number name="Year" id="103" type="integer" length="2"/>
+            <number name="Month" id="104" type="integer" length="1"/>
+            <number name="Day" id="105" type="integer" length="1"/>
+            <number name="Hour" id="106" type="integer" length="1"/>
+            <number name="Minute" id="107" type="integer" length="1"/>
+            <number name="Second" id="108" type="integer" length="1"/>
+            <number name="Terminator" id="109" type="integer" length="1">
+                <description>Always 3.</description>
+            </number>
+        </structure>
+        <structure name="DataBlock" id="82" length="50" encoding="ISO_8859-1:1987" endian="little" signed="no"/>
+    </grammar>
+</ufwb>

@@ -1,0 +1,104 @@
+{{OSCAR}}
+<br />
+
+='''S8 Data Format'''=
+This page was originally written by Mark Watkins, during the initial build of the SleepyHead program. It needs change in approach, or should be taken as "history".
+=='''Data format analysis'''==
+'''This is a work in progress. Nothing should be taken literally here.'''
+
+==Card Reader==
+An AR38U card reader is needed to extract information from the S8's smartcard.
+Cards seem to be under 32kb, the sizes I have seen are not constant.
+
+I need to see some direct card extracts to have a better clue.. This may be ResScan specific stuff?
+
+==Data Format==
+The records are packed into a series of repeating "file" structures.
+
+Very verbose considering there is such a tiny amount of storage space. (Not surprising for ResMed though)
+
+It seems data is stored little endian.
+
+Right now, the following is just a rough outline of the structure.
+
+Each appears to start with 04 00 02 then a 4 byte string containing the type of the "file".
+
+Followed by 04 00 01
+
+offset 0x17 contains the devices model number and model name, seperated by a colon and null terminated.
+
+It appears the offset 0x15 contains the length + null of that string.
+
+===String Values===
+Apart from the 4 byte file types, which are just stored as 4 bytes,
+
+strings begin with a 0x05, followed by a 16bit length (counting from 1, not 0) of the string data followed by a null byte.
+
+==META records==
+The card starts with "META" data, which seems to define the schema/storage structure.
+
+====&PRF====
+The first META record starts by a directory structure called &PRF, which contains of 3 items:  #MKP, #MPT and #LYK.
+
+Followed by a META file record for each of these 3 # values.  
+=====#MKP=====
+MKP & MPT both reference a pressure value (cmH2O)
+
+These sub records will define the units, maximum possible values, etc...
+
+=====#MPT=====
+
+=====#LYK=====
+#LYK likely defines leak in l/sec.
+
+====&EVT====
+The next file META structure defines a directory structure called &EVT, and defines:  #AET, #ETI and #DUR
+
+Followed by a META file record for each of them.
+
+=====#AET=====
+ #AET defines event the following event name strings:
+
+*NO_EVENT
+*HYPOPNEA
+*APNEA_OPEN
+*APNEA_CLOSED
+*APNEA_UNKNOWN
+*AROUSAL
+
+Each string starts with a 16bit length and is null terminated. Each record is followed by some more definition bytes.
+
+=====#ETI=====
+References "minutes", so is refering to a time value.
+
+Likely in this case to be the time offset or time delta to the start of the event.
+
+=====#DUR=====
+References "seconds", so is also referring to a time value, likely in this case to be the duration of the event.
+
+
+This META is followed by some short META records, which do not contain the AutoSet Model number string.
+
+====dFGT====
+====dSRN====
+====FGDS====
+contains a dFGT and dSRN object
+
+plus a pointer to FGDS object
+
+====End of META====
+After the schema definition the data is recorded, first with a FGDS record
+
+===Data Records===
+====FGDS====
+Contains a string record Autoset_II_Amer
+
+Then the devices Serial number.
+
+====&PRF====
+Contains a list of repeating 15 byte codes, most of which looks like graph data
+
+The schema above will define it, just need to identify which is verbose cruft, and which is data..
+
+====&EVT====
+Contains a list of repeating 15 byte codes, which will fit the event schema records

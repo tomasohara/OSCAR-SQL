@@ -1,0 +1,1053 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hexinator / Synalyze It! grammar for BMC G/E/P INDEX files (.idx)
+  Device: BMC G3 A20 CPAP (and related G/E/P series)
+  File size: 53248 bytes (0xD000) for 25-day example; actual day count varies.
+
+  Layout:
+    0x000–0x1FF  File Header      (512 bytes)
+    0x200–0x2FF  SF Record        (256 bytes) — Serial/Config
+    0x300–0x3FF  MF Record        (256 bytes) — Machine/Firmware
+    0x400–0x7FF  Unused           (1024 bytes, 0xFF fill)
+    0x800+       Day Blocks       (2048 bytes each, repeating)
+
+  Each Day Block (+0x000–+0x7FF):
+    +0x000–+0x07F  Block Header   (128 bytes)
+    +0x080–+0x17F  IT Record      (256 bytes) — Index/Therapy summary
+    +0x180–+0x27F  SS Record      (256 bytes) — Session Settings
+    +0x280–+0x37F  TS Record      (256 bytes) — Therapy Settings
+    +0x380–+0x47F  UH Record      (256 bytes) — Usage Hours
+    +0x480–+0x57F  UP Record      (256 bytes) — Usage Parameters
+    +0x580–+0x67F  Info Record    (256 bytes) — Device/Firmware Info
+    +0x680–+0x7FF  Padding        (384 bytes, 0x00 fill)
+
+  Endianness: little-endian throughout.
+  Pressure encoding: uint16 LE in hundredths of cmH2O (e.g. 2000 = 20.00 cmH2O).
+  Date encoding: year byte + 1900, month 1–12, day 1–31, hour 0–23, min 0–59, sec 0–59.
+  Checksum: 16-bit value at offset +0xFE of every 256-byte sub-record (algorithm TBD).
+
+  Copyright (c) 2026 The OSCAR Team
+-->
+<ufwb version="1.17">
+  <grammar name="BMC G/E/P INDEX" start="id:1" author="OSCAR Team" email="" complete="true">
+    <description>BMC G3/E/P CPAP device index file (.idx). All multi-byte integers are little-endian unless noted.</description>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  ROOT                                                           -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <structure name="BMC_IDX_File" id="1" encoding="UTF-8" endian="little" signed="no">
+      <structref name="FileHeader"   id="2"  structure="id:100"/>
+      <structref name="SF_Record"    id="3"  structure="id:200"/>
+      <structref name="MF_Record"    id="4"  structure="id:300"/>
+      <binary    name="Unused_0x400_to_0x7FF" id="5" length="1024">
+        <description>Unused region (0xFF fill)</description>
+      </binary>
+      <structref name="DayBlock" id="6" structure="id:400" repeatmin="1" repeatmax="-1"/>
+    </structure>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  FILE HEADER  0x000–0x1FF  (512 bytes)                         -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <structure name="FileHeader" id="100" encoding="UTF-8" endian="little" signed="no" length="512">
+
+      <string name="Magic" id="101" type="fixed-length" length="16" encoding="ASCII">
+        <description>File signature: "BMC G/E/P INDEX\0"</description>
+      </string>
+      <binary name="Reserved_0x10" id="102" length="16">
+        <description>Reserved / padding (all zeros)</description>
+      </binary>
+      <string name="ManufacturerID" id="103" type="fixed-length" length="4" encoding="ASCII">
+        <description>Manufacturer ID: "BMC\0"</description>
+      </string>
+      <number name="HeaderVersion" id="104" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Header version / block-size indicator (observed: 0x0800 = 2048)</description>
+      </number>
+      <number name="BlockSize" id="105" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Block size in bytes (0x0800 = 2048)</description>
+      </number>
+      <number name="ProtocolVersion" id="106" type="integer" length="1" signed="no" display="decimal">
+        <description>Protocol version (observed: 1)</description>
+      </number>
+      <binary name="Padding_0x029" id="107" length="3">
+        <description>Padding (zeros)</description>
+      </binary>
+      <number name="DeviceType" id="108" type="integer" length="1" signed="no" display="decimal">
+        <description>Device type / mode (observed: 5)</description>
+      </number>
+      <number name="SubType" id="109" type="integer" length="1" signed="no" display="decimal">
+        <description>Sub-type (observed: 0)</description>
+      </number>
+      <binary name="Flags_0x02E" id="110" length="2">
+        <description>Flags (observed: 01 00)</description>
+      </binary>
+
+      <!-- 0x030 -->
+      <string name="SerialNumber" id="111" type="fixed-length" length="20" encoding="ASCII">
+        <description>Device serial number (null-terminated within field, e.g. "A3125636308")</description>
+      </string>
+      <binary name="Padding_0x044" id="112" length="4">
+        <description>Padding after serial number</description>
+      </binary>
+      <string name="ModelCode" id="113" type="fixed-length" length="16" encoding="ASCII">
+        <description>Model code (e.g. "110A40113\0")</description>
+      </string>
+
+      <!-- 0x058 -->
+      <binary name="Padding_0x058" id="114" length="24">
+        <description>Padding (zeros)</description>
+      </binary>
+      <binary name="HashChecksum1" id="115" length="8">
+        <description>Hash / checksum 1 (algorithm unknown)</description>
+      </binary>
+      <binary name="Padding_0x078" id="116" length="8">
+        <description>Padding (zeros)</description>
+      </binary>
+      <binary name="HashChecksum2" id="117" length="8">
+        <description>Hash / checksum 2 (algorithm unknown)</description>
+      </binary>
+      <binary name="Padding_0x088" id="118" length="8">
+        <description>Padding (zeros)</description>
+      </binary>
+
+      <!-- 0x090 -->
+      <number name="Unknown_0x090" id="119" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 1)</description>
+      </number>
+      <binary name="UUID_GUID_1" id="120" length="16">
+        <description>UUID / GUID 1 (16 bytes)</description>
+      </binary>
+      <binary name="UUID1_Tail_Flags" id="121" length="4">
+        <description>UUID 1 tail / flags</description>
+      </binary>
+      <binary name="Padding_0x0A8" id="122" length="4">
+        <description>Padding (observed: df dc ac 72)</description>
+      </binary>
+      <binary name="Padding_0x0AC" id="123" length="4">
+        <description>Padding (zeros)</description>
+      </binary>
+      <binary name="Unknown_0x0B0" id="124" length="4">
+        <description>Unknown (observed: 00 00 00 00)</description>
+      </binary>
+      <binary name="UUID_GUID_2" id="125" length="16">
+        <description>UUID / GUID 2 (16 bytes)</description>
+      </binary>
+      <binary name="UUID2_Tail" id="126" length="4">
+        <description>UUID 2 tail</description>
+      </binary>
+      <binary name="Padding_0x0C8" id="127" length="8">
+        <description>Padding (observed: 62 0d 9e e7 00 00 00 00)</description>
+      </binary>
+
+      <!-- 0x0D0 -->
+      <binary name="Unknown_0x0D0" id="128" length="4">
+        <description>Unknown (zeros)</description>
+      </binary>
+      <!-- 0x0D4–0x0EB: 24 bytes of assorted unknown fields -->
+      <binary name="Unknown_0x0D4_to_0x0EB" id="129" length="24">
+        <description>Unknown fields: 0x0D4(4) + 0x0D8(8) + 0x0E0(4) + 0x0E4(4) + 0x0E8(4)</description>
+      </binary>
+      <binary name="Padding_0x0EC" id="130" length="20">
+        <description>Padding to 0x100 (zeros)</description>
+      </binary>
+
+      <!-- 0x100 -->
+      <string name="DeviceModelName" id="131" type="fixed-length" length="16" encoding="ASCII">
+        <description>Device model name (e.g. "G3 A20\0\0")</description>
+      </string>
+      <binary name="Padding_0x110" id="132" length="8">
+        <description>Padding (zeros)</description>
+      </binary>
+      <string name="RegionCode" id="133" type="fixed-length" length="8" encoding="ASCII">
+        <description>Region code (e.g. "110\0\0\0\0\0")</description>
+      </string>
+      <number name="Unknown_0x120" id="134" type="integer" length="1" signed="no" display="decimal">
+        <description>Unknown (observed: 1)</description>
+      </number>
+      <number name="TherapyMode" id="135" type="integer" length="1" signed="no" display="decimal">
+        <description>Therapy mode (observed: 2 = APAP?)</description>
+      </number>
+      <binary name="Unknown_0x122" id="136" length="4">
+        <description>Unknown (observed: 00 00 00 01)</description>
+      </binary>
+      <string name="ProductFamilyCode" id="137" type="fixed-length" length="6" encoding="ASCII">
+        <description>Product family code (e.g. "A31\0")</description>
+      </string>
+      <binary name="Unknown_0x12C" id="138" length="4">
+        <description>Unknown (observed: 03 00 00 00)</description>
+      </binary>
+
+      <!-- 0x130 -->
+      <number name="MaxPressureSetting" id="139" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Max pressure setting (hundredths of cmH2O; 2000 = 20.00 cmH2O)</description>
+      </number>
+      <number name="RampSetting" id="140" type="integer" length="1" signed="no" display="decimal">
+        <description>Ramp setting (observed: 0x90 = 144)</description>
+      </number>
+      <number name="DateField_Month" id="141" type="integer" length="1" signed="no" display="decimal">
+        <description>Date field — month (1–12)</description>
+      </number>
+      <number name="DateField_Day" id="142" type="integer" length="1" signed="no" display="decimal">
+        <description>Date field — day (1–31)</description>
+      </number>
+      <binary name="Unknown_0x135_to_0x13F" id="143" length="11">
+        <description>Unknown fields 0x135–0x13F (sentinel/flags/unknown)</description>
+      </binary>
+
+      <!-- 0x140 -->
+      <string name="DataServerURL" id="144" type="fixed-length" length="32" encoding="ASCII">
+        <description>Data server URL (e.g. "data2.icodeconnect.com")</description>
+      </string>
+      <binary name="Padding_0x160" id="145" length="4">
+        <description>Padding (zeros)</description>
+      </binary>
+      <string name="CellularModemModel" id="146" type="fixed-length" length="16" encoding="ASCII">
+        <description>Cellular modem model (e.g. "G4600\0")</description>
+      </string>
+      <binary name="Unknown_0x174" id="147" length="4">
+        <description>Unknown</description>
+      </binary>
+      <number name="Unknown_0x178" id="148" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 0)</description>
+      </number>
+      <binary name="Padding_0x17C" id="149" length="130">
+        <description>Padding to 0x1FE (zeros)</description>
+      </binary>
+      <number name="HeaderChecksum" id="150" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>File header checksum (16-bit; observed: 0x112B)</description>
+      </number>
+
+    </structure><!-- FileHeader -->
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  SF RECORD  0x200–0x2FF  (256 bytes)  — Serial / Config        -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <structure name="SF_Record" id="200" encoding="UTF-8" endian="little" signed="no" length="256">
+
+      <string name="RecordTag" id="201" type="fixed-length" length="2" encoding="ASCII">
+        <description>Record tag: "SF"</description>
+      </string>
+      <number name="RecordVersion" id="202" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Record version (observed: 0x0100)</description>
+      </number>
+      <binary name="Flags" id="203" length="2">
+        <description>Flags (observed: 01 00)</description>
+      </binary>
+      <number name="Sentinel_0x06" id="204" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Sentinel (0xFFFF)</description>
+      </number>
+      <binary name="Reserved_0x08" id="205" length="40">
+        <description>Reserved (zeros), 0x08–0x2F</description>
+      </binary>
+      <string name="SerialNumber" id="206" type="fixed-length" length="24" encoding="ASCII">
+        <description>Serial number copy (e.g. "A3125636308\0")</description>
+      </string>
+
+      <!-- 0x48 -->
+      <binary name="Unknown_0x48" id="207" length="4">
+        <description>Unknown (observed: 7d 07 01 ff)</description>
+      </binary>
+      <number name="Unknown_0x4C" id="208" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Unknown (observed: 0x575F)</description>
+      </number>
+      <binary name="Padding_0x4E" id="209" length="2">
+        <description>Padding / sentinel (observed: 00 00)</description>
+      </binary>
+      <number name="Unknown_0x50" id="210" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 384 = 0x0180)</description>
+      </number>
+      <number name="Unknown_0x54" id="211" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 99 = 0x63)</description>
+      </number>
+      <number name="Unknown_0x58" id="212" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 1)</description>
+      </number>
+      <binary name="Sentinel_0x5C" id="213" length="4">
+        <description>Sentinel (0xFFFFFFFF)</description>
+      </binary>
+
+      <!-- 0x60 -->
+      <binary name="Unknown_0x60" id="214" length="9">
+        <description>Unknown / flags (0xFF fill)</description>
+      </binary>
+      <number name="Delimiter_0x69" id="215" type="integer" length="1" signed="no" display="hex">
+        <description>Delimiter (observed: 0x01)</description>
+      </number>
+      <string name="DeviceUUID" id="216" type="fixed-length" length="26" encoding="ASCII">
+        <description>Device UUID string (e.g. "5B2A4236-43373408-544834")</description>
+      </string>
+      <binary name="Padding_0x84" id="217" length="12">
+        <description>Padding (zeros)</description>
+      </binary>
+      <binary name="Padding_0x90" id="218" length="4">
+        <description>Padding (zeros)</description>
+      </binary>
+      <binary name="Unused_0x94" id="219" length="106">
+        <description>Unused (0xFF fill), 0x94–0xFD</description>
+      </binary>
+      <number name="Checksum" id="220" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Block checksum (16-bit; observed: 0x8DD9)</description>
+      </number>
+
+    </structure><!-- SF_Record -->
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  MF RECORD  0x300–0x3FF  (256 bytes)  — Machine / Firmware     -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <structure name="MF_Record" id="300" encoding="UTF-8" endian="little" signed="no" length="256">
+
+      <string name="RecordTag" id="301" type="fixed-length" length="2" encoding="ASCII">
+        <description>Record tag: "MF"</description>
+      </string>
+      <number name="RecordVersion" id="302" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Record version (observed: 0x0100)</description>
+      </number>
+      <binary name="Flags" id="303" length="2">
+        <description>Flags (observed: 01 00)</description>
+      </binary>
+      <number name="Sentinel" id="304" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Sentinel (0xFFFF)</description>
+      </number>
+      <number name="DataLength" id="305" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Data length? (observed: 26 = 0x001A)</description>
+      </number>
+      <binary name="ConfigData_0x0A" id="306" length="6">
+        <description>Config data block 1 (0x0A–0x0F)</description>
+      </binary>
+      <binary name="ConfigCalData_0x10" id="307" length="16">
+        <description>Config / calibration data (0x10–0x1F)</description>
+      </binary>
+      <binary name="ConfigCalData_0x20" id="308" length="16">
+        <description>Config / calibration data (0x20–0x2F)</description>
+      </binary>
+      <binary name="ConfigCalData_0x30" id="309" length="16">
+        <description>Config / calibration data (0x30–0x3F)</description>
+      </binary>
+
+      <!-- 0x40: 5-byte prefix before the embedded firmware string -->
+      <binary name="ConfigPrefix_0x40" id="310" length="5">
+        <description>Config data prefix (0x40–0x44; observed: 00 00 01 00 ff)</description>
+      </binary>
+      <!-- 0x45: firmware string overlaps with the config block above -->
+      <string name="FirmwareVersion_Boot" id="311" type="fixed-length" length="16" encoding="ASCII">
+        <description>Boot firmware version string (e.g. "G3-2.SC.72.01\0\0")</description>
+      </string>
+      <binary name="Unused_0x55" id="312" length="169">
+        <description>Unused (0xFF fill), 0x55–0xFD</description>
+      </binary>
+      <number name="Checksum" id="313" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Block checksum (16-bit; observed: 0xB6DB)</description>
+      </number>
+
+    </structure><!-- MF_Record -->
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  DAY BLOCK  2048 bytes — repeated for each recorded day         -->
+    <!--  Starts at 0x800; each subsequent block at prev + 0x800         -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <structure name="DayBlock" id="400" encoding="UTF-8" endian="little" signed="no" length="2048">
+      <structref name="BlockHeader" id="401" structure="id:410"/>
+      <structref name="IT_Record"   id="402" structure="id:500"/>
+      <structref name="SS_Record"   id="403" structure="id:600"/>
+      <structref name="TS_Record"   id="404" structure="id:700"/>
+      <structref name="UH_Record"   id="405" structure="id:800"/>
+      <structref name="UP_Record"   id="406" structure="id:900"/>
+      <structref name="Info_Record" id="407" structure="id:1000"/>
+      <binary name="BlockPadding_0x680" id="408" length="384">
+        <description>Padding to end of 2048-byte block (0x680–0x7FF)</description>
+      </binary>
+    </structure><!-- DayBlock -->
+
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <!--  BLOCK HEADER  +0x000 to +0x07F  (128 bytes)                    -->
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <structure name="BlockHeader" id="410" encoding="UTF-8" endian="little" signed="no" length="128">
+
+      <number name="Magic" id="411" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Magic marker (0xAAAA)</description>
+      </number>
+      <number name="BlockSequenceIndex" id="412" type="integer" length="1" signed="no" display="decimal">
+        <description>Block sequence index (0-based)</description>
+      </number>
+      <number name="Unknown_0x03" id="413" type="integer" length="1" signed="no" display="decimal">
+        <description>Unknown (always 0)</description>
+      </number>
+      <number name="Unknown_0x04" id="414" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Unknown (observed: 0x0800)</description>
+      </number>
+      <number name="Unknown_0x06" id="415" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Unknown (observed: 0x0001)</description>
+      </number>
+      <number name="Date_Year" id="416" type="integer" length="1" signed="no" display="decimal">
+        <description>Date: year offset (add 1900; e.g. 0x7D = 125 → 2025)</description>
+      </number>
+      <number name="Date_Month" id="417" type="integer" length="1" signed="no" display="decimal">
+        <description>Date: month (1–12)</description>
+      </number>
+      <number name="Date_Day" id="418" type="integer" length="1" signed="no" display="decimal">
+        <description>Date: day (1–31)</description>
+      </number>
+      <number name="Date_HourMarker" id="419" type="integer" length="1" signed="no" display="hex">
+        <description>Date: hour marker (always 0x0C = noon)</description>
+      </number>
+      <binary name="Padding_0x0C" id="420" length="4">
+        <description>Padding (zeros)</description>
+      </binary>
+
+      <!-- Cumulative running counters (units unknown) -->
+      <number name="CumulValue1" id="421" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative running counter 1</description>
+      </number>
+      <number name="CumulValue2" id="422" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative value 2</description>
+      </number>
+      <number name="CumulValue3" id="423" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative value 3</description>
+      </number>
+      <number name="CumulValue4" id="424" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative value 4</description>
+      </number>
+      <number name="CumulValue5" id="425" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative value 5</description>
+      </number>
+      <number name="CumulValue6" id="426" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative value 6</description>
+      </number>
+      <number name="CumulValue7" id="427" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative value 7</description>
+      </number>
+      <number name="CumulValue8" id="428" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative value 8</description>
+      </number>
+      <number name="CounterStats1" id="429" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Counter / stats field 1</description>
+      </number>
+      <number name="FlagCount" id="430" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Flag / count (observed: 1)</description>
+      </number>
+      <binary name="Padding_0x38" id="431" length="72">
+        <description>Padding to end of block header (+0x38–+0x7F)</description>
+      </binary>
+
+    </structure><!-- BlockHeader -->
+
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <!--  IT RECORD  +0x080 to +0x17F  (256 bytes)                       -->
+    <!--  Index / Therapy summary — the most data-rich sub-record         -->
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <structure name="IT_Record" id="500" encoding="UTF-8" endian="little" signed="no" length="256">
+
+      <string name="RecordTag" id="501" type="fixed-length" length="2" encoding="ASCII">
+        <description>Record tag: "IT"</description>
+      </string>
+      <number name="RecordVersion" id="502" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Record version (observed: 0x0100)</description>
+      </number>
+      <binary name="Flags" id="503" length="2">
+        <description>Flags (observed: 01 00)</description>
+      </binary>
+      <number name="Sentinel_0x06" id="504" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Sentinel (0xFFFF)</description>
+      </number>
+
+      <!-- Date (4-byte form: year, month, day, noon-marker) -->
+      <number name="Date_Year" id="505" type="integer" length="1" signed="no" display="decimal">
+        <description>Date: year offset (add 1900)</description>
+      </number>
+      <number name="Date_Month" id="506" type="integer" length="1" signed="no" display="decimal">
+        <description>Date: month (1–12)</description>
+      </number>
+      <number name="Date_Day" id="507" type="integer" length="1" signed="no" display="decimal">
+        <description>Date: day (1–31)</description>
+      </number>
+      <number name="Date_HourMarker" id="508" type="integer" length="1" signed="no" display="hex">
+        <description>Date: hour marker (0x0C = noon)</description>
+      </number>
+      <binary name="Padding_0x0C" id="509" length="4">
+        <description>Padding (zeros)</description>
+      </binary>
+
+      <!-- 0x10: Timing -->
+      <number name="BlockSequenceRef" id="510" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Block sequence reference (matches BlockHeader.BlockSequenceIndex)</description>
+      </number>
+      <number name="TherapyDuration_secs" id="511" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Therapy duration in seconds (divide by 3600 for hours)</description>
+      </number>
+      <number name="MaskOnTime_secs" id="512" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Mask-on time in seconds (duplicate or slight variant of TherapyDuration)</description>
+      </number>
+      <binary name="Padding_0x1C" id="513" length="8">
+        <description>Padding (zeros)</description>
+      </binary>
+
+      <!-- 0x24: Session / mode info -->
+      <number name="SessionCount" id="514" type="integer" length="1" signed="no" display="decimal">
+        <description>Number of sessions (mask-on events) for this day</description>
+      </number>
+      <number name="Unknown_0x25" id="515" type="integer" length="1" signed="no" display="decimal">
+        <description>Unknown (observed: 0)</description>
+      </number>
+      <binary name="ModeFlags" id="516" length="2">
+        <description>Mode flags (observed: 01 01)</description>
+      </binary>
+
+      <!-- 0x28: Pressure statistics (uint16 LE, hundredths of cmH2O) -->
+      <number name="Pressure_DevMin" id="517" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Device minimum pressure setting (hundredths cmH2O; 400 = 4.00)</description>
+      </number>
+      <number name="Pressure_Max" id="518" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Maximum / peak pressure reached (hundredths cmH2O)</description>
+      </number>
+      <number name="Pressure_P95" id="519" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>95th-percentile pressure (hundredths cmH2O)</description>
+      </number>
+      <number name="Pressure_IPAPmax" id="520" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>IPAP maximum? (hundredths cmH2O)</description>
+      </number>
+      <number name="Pressure_EPAP" id="521" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>EPAP / baseline pressure (hundredths cmH2O)</description>
+      </number>
+
+      <!-- Second copy of pressure stats (purpose unclear) -->
+      <number name="Pressure_Max_Copy" id="522" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Maximum pressure (copy; hundredths cmH2O)</description>
+      </number>
+      <number name="Pressure_P95_Copy" id="523" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>95th-percentile pressure (copy; hundredths cmH2O)</description>
+      </number>
+      <number name="Pressure_IPAPmax_Copy" id="524" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>IPAP maximum (copy; hundredths cmH2O)</description>
+      </number>
+      <number name="Pressure_EPAP_Copy" id="525" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>EPAP (copy; hundredths cmH2O)</description>
+      </number>
+
+      <!-- 0x3A: Fill -->
+      <binary name="FFfill_0x3A" id="526" length="6">
+        <description>0xFF fill (0x3A–0x3F)</description>
+      </binary>
+      <binary name="FFfill_0x40" id="527" length="12">
+        <description>0xFF fill (0x40–0x4B)</description>
+      </binary>
+
+      <!-- 0x4C: Unknown flags block -->
+      <binary name="Unknown_0x4C" id="528" length="4">
+        <description>Unknown / flags (observed: 00 00 07 01)</description>
+      </binary>
+      <number name="Unknown_0x50" id="529" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 16)</description>
+      </number>
+      <number name="Unknown_0x52" id="530" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 10)</description>
+      </number>
+      <number name="Sentinel_0x54" id="531" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Sentinel (0xFFFF)</description>
+      </number>
+
+      <!-- 0x56: Event / apnea counts -->
+      <number name="Count_OA_0x56" id="532" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Obstructive Apnea count? (0x56)</description>
+      </number>
+      <number name="Count_CA_0x58" id="533" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Central Apnea count? (0x58)</description>
+      </number>
+      <number name="Count_Hypopnea_0x5A" id="534" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Hypopnea-related count? (0x5A)</description>
+      </number>
+      <number name="Count_RERA_0x5C" id="535" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>RERA-related count? (0x5C)</description>
+      </number>
+      <number name="EventCount_0x5E" id="536" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown event count (0x5E)</description>
+      </number>
+      <number name="EventCount_0x60" id="537" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown event count (0x60)</description>
+      </number>
+      <number name="EventCount_0x62" id="538" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown event count (0x62)</description>
+      </number>
+      <number name="EventCount_0x64" id="539" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown event count (0x64)</description>
+      </number>
+      <number name="EventCount_0x66" id="540" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown event count (0x66)</description>
+      </number>
+
+      <!-- 0x68: Unused sentinel fill -->
+      <binary name="FFfill_0x68" id="541" length="8">
+        <description>0xFFFF fill (0x68–0x6F, unused)</description>
+      </binary>
+
+      <!-- 0x70: Pressure stats group B (often 0xFFFF = not available) -->
+      <number name="PressureStatA" id="542" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Pressure stat A (0xFFFF = not available)</description>
+      </number>
+      <number name="PressureStatB" id="543" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Pressure stat B (0xFFFF = not available)</description>
+      </number>
+      <number name="PressureStatC" id="544" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Pressure stat C (0xFFFF = not available)</description>
+      </number>
+      <number name="PressureStatD" id="545" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Pressure stat D (0xFFFF = not available)</description>
+      </number>
+
+      <!-- 0x78: Volume / ventilation -->
+      <number name="TidalVolumeTotal" id="546" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Tidal volume total? (units unknown)</description>
+      </number>
+      <number name="TidalVolumeFiltered" id="547" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Tidal volume filtered? (units unknown)</description>
+      </number>
+      <number name="MinuteVentilation" id="548" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Minute ventilation? (units unknown)</description>
+      </number>
+      <number name="MinuteVentFiltered" id="549" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Minute ventilation filtered? (units unknown)</description>
+      </number>
+
+      <!-- 0x88: Leak statistics -->
+      <number name="Leak_P95" id="550" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Leak 95th percentile (L/min × 100?)</description>
+      </number>
+      <number name="Leak_Max" id="551" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Leak maximum</description>
+      </number>
+      <number name="Leak_Avg" id="552" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Leak average / median</description>
+      </number>
+      <number name="Leak_Field4" id="553" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Leak field 4 (purpose unknown)</description>
+      </number>
+
+      <!-- 0x90: Respiratory rate stats -->
+      <number name="RespRate_Field1" id="554" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Respiratory rate field 1</description>
+      </number>
+      <number name="RespRate_Field2" id="555" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Respiratory rate field 2</description>
+      </number>
+      <number name="RespRate_Field3" id="556" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Respiratory rate field 3</description>
+      </number>
+      <number name="RespRate_Field4" id="557" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Respiratory rate field 4</description>
+      </number>
+
+      <!-- 0x98: Padding -->
+      <binary name="Padding_0x98" id="558" length="32">
+        <description>Padding / unused (zeros, 0x98–0xB7)</description>
+      </binary>
+
+      <!-- 0xB8: Event index bytes -->
+      <number name="EventIndexByte1" id="559" type="integer" length="1" signed="no" display="decimal">
+        <description>Event index byte 1 (0xB8)</description>
+      </number>
+      <number name="EventIndexByte2" id="560" type="integer" length="1" signed="no" display="decimal">
+        <description>Event index byte 2 (0xB9)</description>
+      </number>
+      <number name="EventIndexByte3" id="561" type="integer" length="1" signed="no" display="decimal">
+        <description>Event index byte 3 (0xBA)</description>
+      </number>
+      <number name="EventIndexByte4" id="562" type="integer" length="1" signed="no" display="decimal">
+        <description>Event index byte 4 (0xBB)</description>
+      </number>
+
+      <!-- 0xBC: Indices (×100 = events/hr) -->
+      <number name="AHI_x100" id="563" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>AHI × 100 (divide by 100 for events/hr)</description>
+      </number>
+      <number name="AI_x100" id="564" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Apnea Index × 100</description>
+      </number>
+      <number name="HI_x100" id="565" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Hypopnea Index × 100</description>
+      </number>
+      <number name="OAI_x100" id="566" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Obstructive Apnea Index × 100</description>
+      </number>
+      <number name="CAI_x100" id="567" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Central Apnea Index × 100</description>
+      </number>
+      <number name="RERAIndex_x100" id="568" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>RERA Index × 100</description>
+      </number>
+
+      <!-- 0xC8: Event counts (raw integer counts, not per-hour) -->
+      <number name="EventCount_Total" id="569" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Event count: total (AI + HI?)</description>
+      </number>
+      <number name="EventCount_OA" id="570" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Event count: Obstructive Apneas</description>
+      </number>
+      <number name="EventCount_CA" id="571" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Event count: Central Apneas</description>
+      </number>
+      <number name="EventCount_Hypopnea" id="572" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Event count: Hypopneas</description>
+      </number>
+      <number name="EventCount_RERA" id="573" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Event count: RERAs</description>
+      </number>
+      <number name="EventCount_Other" id="574" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Event count: other / unknown</description>
+      </number>
+
+      <!-- 0xD4: Tail fields -->
+      <number name="SignedField_0xD4" id="575" type="integer" length="2" endian="little" signed="yes" display="decimal">
+        <description>Signed integer field (purpose unknown)</description>
+      </number>
+      <number name="Unknown_0xD6" id="576" type="integer" length="4" endian="little" signed="no" display="hex">
+        <description>Unknown hash / timestamp? (0xD6–0xD9)</description>
+      </number>
+      <binary name="Unknown_0xDA" id="577" length="4">
+        <description>Unknown (observed: 00 00 ff ff)</description>
+      </binary>
+      <binary name="Sentinel_0xDE" id="578" length="4">
+        <description>Sentinel (0xFFFFFFFF)</description>
+      </binary>
+      <binary name="Padding_0xE2" id="579" length="28">
+        <description>0xFF fill padding (0xE2–0xFD)</description>
+      </binary>
+      <number name="Checksum" id="580" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Block checksum (16-bit; observed: 0x5721)</description>
+      </number>
+
+    </structure><!-- IT_Record -->
+
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <!--  SS RECORD  +0x180 to +0x27F  (256 bytes)  — Session Settings   -->
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <structure name="SS_Record" id="600" encoding="UTF-8" endian="little" signed="no" length="256">
+
+      <string name="RecordTag" id="601" type="fixed-length" length="2" encoding="ASCII">
+        <description>Record tag: "SS"</description>
+      </string>
+      <number name="RecordVersion" id="602" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Record version (observed: 0x0100)</description>
+      </number>
+      <binary name="Flags" id="603" length="2">
+        <description>Flags (observed: 01 00)</description>
+      </binary>
+      <number name="Sentinel" id="604" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Sentinel (0xFFFF)</description>
+      </number>
+      <binary name="Zeros_0x08" id="605" length="16">
+        <description>Padding (zeros, 0x08–0x17)</description>
+      </binary>
+      <number name="Unknown_0x18" id="606" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 0)</description>
+      </number>
+      <binary name="UnknownFlags_0x1A" id="607" length="2">
+        <description>Unknown flags (observed: 65 00)</description>
+      </binary>
+      <!-- 0x1C–0x2B: 16 bytes of mixed single-byte and two-byte fields -->
+      <binary name="MixedFields_0x1C" id="608" length="16">
+        <description>Mixed unknown fields (0x1C–0x2B): 2+1+2+1+6+2+2 bytes</description>
+      </binary>
+      <!-- 0x2C–0xFD: Extended / mostly-zero settings region -->
+      <binary name="ExtendedSettings_0x2C" id="609" length="210">
+        <description>Extended settings (mostly zeros, 0x2C–0xFD)</description>
+      </binary>
+      <number name="Checksum" id="610" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Block checksum (16-bit; observed: 0xD451)</description>
+      </number>
+
+    </structure><!-- SS_Record -->
+
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <!--  TS RECORD  +0x280 to +0x37F  (256 bytes)  — Therapy Settings   -->
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <structure name="TS_Record" id="700" encoding="UTF-8" endian="little" signed="no" length="256">
+
+      <string name="RecordTag" id="701" type="fixed-length" length="2" encoding="ASCII">
+        <description>Record tag: "TS"</description>
+      </string>
+      <number name="RecordVersion" id="702" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Record version (observed: 0x0100)</description>
+      </number>
+      <binary name="Flags" id="703" length="2">
+        <description>Flags (observed: 01 00)</description>
+      </binary>
+      <number name="Sentinel" id="704" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Sentinel (0xFFFF)</description>
+      </number>
+
+      <!-- 0x08: Unknown -->
+      <number name="Unknown_0x08" id="705" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 1)</description>
+      </number>
+      <number name="Unknown_0x0C" id="706" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 0)</description>
+      </number>
+
+      <!-- 0x0E: Pressure settings (hundredths cmH2O) -->
+      <number name="MinPressure" id="707" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Minimum pressure setting (hundredths cmH2O; 400 = 4.00)</description>
+      </number>
+      <number name="MaxPressure" id="708" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Maximum pressure setting (hundredths cmH2O; 2000 = 20.00)</description>
+      </number>
+      <binary name="Unknown_0x12" id="709" length="4">
+        <description>Unknown (zeros)</description>
+      </binary>
+      <number name="EPAP_StartPressure" id="710" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>EPAP / starting pressure (hundredths cmH2O; 0 = not set)</description>
+      </number>
+      <binary name="Unknown_0x18" id="711" length="4">
+        <description>Unknown (observed: 90 01 00 00)</description>
+      </binary>
+      <binary name="Unknown_0x1C" id="712" length="4">
+        <description>Unknown (zeros)</description>
+      </binary>
+
+      <!-- 0x20–0x31: 18 bytes of zero-filled unknown fields -->
+      <binary name="Zeros_0x20" id="713" length="18">
+        <description>Unknown zero fields (0x20–0x31)</description>
+      </binary>
+      <number name="Unknown_0x32" id="714" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 1)</description>
+      </number>
+      <number name="Unknown_0x34" id="715" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 0)</description>
+      </number>
+      <number name="Unknown_0x36" id="716" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Unknown (observed: 0xFF00)</description>
+      </number>
+      <binary name="Padding_0x38" id="717" length="8">
+        <description>Padding (zeros, 0x38–0x3F)</description>
+      </binary>
+
+      <!-- 0x40–0x7F: Extended settings (0xFF fill) -->
+      <binary name="ExtendedFF_0x40" id="718" length="64">
+        <description>Extended settings (0xFF fill, 0x40–0x7F)</description>
+      </binary>
+
+      <!-- 0x80: Ramp / EPR settings (within the 0xFF region) -->
+      <number name="RampEPR_Settings" id="719" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Ramp / EPR settings (observed: 60 = 0x3C)</description>
+      </number>
+      <number name="RampTime_Level" id="720" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Ramp time / level (observed: 60 = 0x3C)</description>
+      </number>
+
+      <!-- 0x84–0xFD: Remaining extended settings -->
+      <binary name="ExtendedFF_0x84" id="721" length="122">
+        <description>Extended settings (0xFF fill, 0x84–0xFD)</description>
+      </binary>
+      <number name="Checksum" id="722" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Block checksum (16-bit; observed: 0x9B9E)</description>
+      </number>
+
+    </structure><!-- TS_Record -->
+
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <!--  UH RECORD  +0x380 to +0x47F  (256 bytes)  — Usage Hours        -->
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <structure name="UH_Record" id="800" encoding="UTF-8" endian="little" signed="no" length="256">
+
+      <string name="RecordTag" id="801" type="fixed-length" length="2" encoding="ASCII">
+        <description>Record tag: "UH"</description>
+      </string>
+      <number name="RecordVersion" id="802" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Record version (observed: 0x0100)</description>
+      </number>
+      <binary name="Flags1" id="803" length="2">
+        <description>Flags (observed: 01 00)</description>
+      </binary>
+      <binary name="Flags2" id="804" length="2">
+        <description>Flags (observed: 00 00)</description>
+      </binary>
+
+      <!-- Session end timestamp (6 bytes: Y M D H M S) -->
+      <number name="SessionEnd_Year" id="805" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end: year offset (add 1900)</description>
+      </number>
+      <number name="SessionEnd_Month" id="806" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end: month (1–12)</description>
+      </number>
+      <number name="SessionEnd_Day" id="807" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end: day (1–31)</description>
+      </number>
+      <number name="SessionEnd_Hour" id="808" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end: hour (0–23)</description>
+      </number>
+      <number name="SessionEnd_Minute" id="809" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end: minute (0–59)</description>
+      </number>
+      <number name="SessionEnd_Second" id="810" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end: second (0–59)</description>
+      </number>
+      <binary name="Padding_0x0E" id="811" length="2">
+        <description>Padding (zeros)</description>
+      </binary>
+
+      <!-- 0x10: Cumulative durations -->
+      <number name="CumulTotalDuration_secs" id="812" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative total session duration in seconds</description>
+      </number>
+      <number name="CumulMaskOnTime_secs" id="813" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative mask-on time in seconds</description>
+      </number>
+      <binary name="Padding_0x18" id="814" length="4">
+        <description>Padding (zeros)</description>
+      </binary>
+      <number name="CumulUsageMinutes" id="815" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative usage minutes (lifetime total)</description>
+      </number>
+      <number name="CumulUsage_Copy2" id="816" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative usage copy 2</description>
+      </number>
+      <number name="CumulUsage_Copy3" id="817" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Cumulative usage copy 3</description>
+      </number>
+      <binary name="Padding_0x28" id="818" length="12">
+        <description>Padding (zeros, 0x28–0x33)</description>
+      </binary>
+
+      <!-- 0x34: Session start timestamp -->
+      <number name="SessionStart_Year" id="819" type="integer" length="1" signed="no" display="decimal">
+        <description>Session start: year offset (add 1900)</description>
+      </number>
+      <number name="SessionStart_Month" id="820" type="integer" length="1" signed="no" display="decimal">
+        <description>Session start: month (1–12)</description>
+      </number>
+      <number name="SessionStart_Day" id="821" type="integer" length="1" signed="no" display="decimal">
+        <description>Session start: day (1–31)</description>
+      </number>
+      <number name="SessionStart_Hour" id="822" type="integer" length="1" signed="no" display="decimal">
+        <description>Session start: hour (0–23)</description>
+      </number>
+      <number name="SessionStart_Minute" id="823" type="integer" length="1" signed="no" display="decimal">
+        <description>Session start: minute (0–59)</description>
+      </number>
+      <number name="SessionStart_Second" id="824" type="integer" length="1" signed="no" display="decimal">
+        <description>Session start: second (0–59)</description>
+      </number>
+      <binary name="Padding_0x3A" id="825" length="2">
+        <description>Padding (zeros)</description>
+      </binary>
+
+      <!-- 0x3C: Session end timestamp (copy / alternate) -->
+      <number name="SessionEnd2_Year" id="826" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end (copy 2): year offset</description>
+      </number>
+      <number name="SessionEnd2_Month" id="827" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end (copy 2): month</description>
+      </number>
+      <number name="SessionEnd2_Day" id="828" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end (copy 2): day</description>
+      </number>
+      <number name="SessionEnd2_Hour" id="829" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end (copy 2): hour</description>
+      </number>
+      <number name="SessionEnd2_Minute" id="830" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end (copy 2): minute</description>
+      </number>
+      <number name="SessionEnd2_Second" id="831" type="integer" length="1" signed="no" display="decimal">
+        <description>Session end (copy 2): second</description>
+      </number>
+      <binary name="Padding_0x42" id="832" length="2">
+        <description>Padding (zeros)</description>
+      </binary>
+
+      <!-- 0x44: Misc fields -->
+      <number name="Unknown_0x44" id="833" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 217)</description>
+      </number>
+      <number name="Unknown_0x46" id="834" type="integer" length="2" endian="little" signed="no" display="decimal">
+        <description>Unknown (observed: 123)</description>
+      </number>
+      <number name="MachineID_Hash" id="835" type="integer" length="4" endian="little" signed="no" display="hex">
+        <description>Machine ID / hash (e.g. 0x2FF64C75)</description>
+      </number>
+      <number name="BlockRefCounter" id="836" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Block reference counter (matches BlockSequenceIndex)</description>
+      </number>
+      <binary name="Padding_0x50" id="837" length="174">
+        <description>Padding to end (zeros, 0x50–0xFD)</description>
+      </binary>
+      <number name="Checksum" id="838" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Block checksum (16-bit; observed: 0x0AB0)</description>
+      </number>
+
+    </structure><!-- UH_Record -->
+
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <!--  UP RECORD  +0x480 to +0x57F  (256 bytes)  — Usage Parameters   -->
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <structure name="UP_Record" id="900" encoding="UTF-8" endian="little" signed="no" length="256">
+
+      <string name="RecordTag" id="901" type="fixed-length" length="2" encoding="ASCII">
+        <description>Record tag: "UP"</description>
+      </string>
+      <number name="RecordVersion" id="902" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Record version (observed: 0x0100)</description>
+      </number>
+      <binary name="Flags1" id="903" length="2">
+        <description>Flags (observed: 01 00)</description>
+      </binary>
+      <binary name="Flags2" id="904" length="2">
+        <description>Flags (observed: 00 00)</description>
+      </binary>
+      <binary name="DateTime_0x08" id="905" length="6">
+        <description>Date/time: year+1900, month, day, hour, minute, second (same 6-byte encoding as UH)</description>
+      </binary>
+      <binary name="Padding_0x0E" id="906" length="2">
+        <description>Padding (zeros)</description>
+      </binary>
+      <number name="Duration_secs" id="907" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Duration / counter (seconds)</description>
+      </number>
+      <number name="BlockRef" id="908" type="integer" length="4" endian="little" signed="no" display="decimal">
+        <description>Block reference / sequence number</description>
+      </number>
+      <binary name="ExtendedParameters" id="909" length="230">
+        <description>Extended parameters (zeros, 0x18–0xFD)</description>
+      </binary>
+      <number name="Checksum" id="910" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Block checksum (16-bit; observed: 0x0285)</description>
+      </number>
+
+    </structure><!-- UP_Record -->
+
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <!--  INFO RECORD  +0x580 to +0x67F  (256 bytes)                     -->
+    <!--  Device / Firmware Info                                          -->
+    <!--  NOTE: block 0 (day 0) contains zeros / no cellular data.        -->
+    <!--  Blocks 1–N contain valid strings.                               -->
+    <!-- ─────────────────────────────────────────────────────────────── -->
+    <structure name="Info_Record" id="1000" encoding="UTF-8" endian="little" signed="no" length="256">
+
+      <string name="AppVersion" id="1001" type="fixed-length" length="16" encoding="ASCII">
+        <description>Application (cloud/app) version (e.g. "1.22.08\0")</description>
+      </string>
+      <string name="CellularModuleID" id="1002" type="fixed-length" length="16" encoding="ASCII">
+        <description>Cellular module ID (e.g. "G3625633781\0")</description>
+      </string>
+      <binary name="Unknown_0x20" id="1003" length="4">
+        <description>Unknown (0xFFFFFFFF in some blocks)</description>
+      </binary>
+      <binary name="Padding_0x24" id="1004" length="12">
+        <description>Padding (zeros)</description>
+      </binary>
+      <string name="ICCID" id="1005" type="fixed-length" length="24" encoding="ASCII">
+        <description>ICCID — SIM card identifier (e.g. "89011702324037319288")</description>
+      </string>
+      <binary name="Padding_0x48" id="1006" length="8">
+        <description>Padding (zeros)</description>
+      </binary>
+      <string name="FirmwareVersion_App" id="1007" type="fixed-length" length="20" encoding="ASCII">
+        <description>Application firmware version (e.g. "G3-2.11.02.33\0")</description>
+      </string>
+      <binary name="Padding_0x64" id="1008" length="154">
+        <description>Padding to end (zeros, 0x64–0xFD)</description>
+      </binary>
+      <number name="Checksum" id="1009" type="integer" length="2" endian="little" signed="no" display="hex">
+        <description>Block checksum (16-bit; 0x0000 in some blocks)</description>
+      </number>
+
+    </structure><!-- Info_Record -->
+
+  </grammar>
+</ufwb>

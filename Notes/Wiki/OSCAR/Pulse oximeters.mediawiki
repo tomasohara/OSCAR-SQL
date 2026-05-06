@@ -1,0 +1,55 @@
+<noinclude>
+{{OSCAR}}
+<br /></noinclude>
+<onlyinclude>
+==Pulse Oximeters==
+List of OSCAR compatible oximeters:
+=== ResMed ===
+* Proprietary module for the S9 and S10 models. 
+* AS11 utilizes the Nonin 3150BLE - Supported
+
+=== Contec brand ===
+* Contec CMS-50D+, CMS-50-E, CMS-50E, CMS-50EA
+* Contec CMS-50F, CMS-50H, CMS-50I (v3.7 firmware or later)
+* Pulox PO-200/300/400/500
+
+=== Wellue/Viatom brand ===
+* Viatom/Wellue SleepU
+* Viatom/Wellue O2Ring
+* Viatom/Wellue Check Me O2 Max
+* Viatom/Wellue Oxylink (see note below)
+* Facelake FL330
+* Lookee O2 Ring (by Wellue)
+
+
+'''NOTE:''' Oxylink using the ViHealth app on an iPhone and transferring the binary file to a Mac for import into OSCAR.  Other methods or operating systems have not been tested.
+
+Other models from Viatom/Wellue, Facelake, and Lookee have not been tested.
+<includeonly>
+See the '''[[Pulse oximeters]]''' wiki page for more detail.</includeonly></onlyinclude>
+== Data Import ==
+=== ResMed ===
+ResMed has a proprietary oximeter unit available that connects directly into an S9 or S10 machine.  The SpO2 data is stored on the SD card along with the rest of your xPAP data and is easily imported into OSCAR.  The device uses a Nonin 3012 LP sensor with cables.  Currently there is no version for the ResMed's S11 series machines.
+
+=== Contec ===
+Data from Contec pulse oximeters can be imported via OSCAR's Oximetry Wizard:
+<br>
+See '''[[Contec file import]]''' for instructions how to import their data files into OSCAR.
+
+Note: Contec CMS-50F --  the newer version 2.0.0 hardware uses a new USB protocol which the OSCAR team has not yet reverse engineered, so currently you need to use the new "Smart Device Assistant" (Windows-only) Contec software to read the data and create a data file, which apparently uses the same format as the older models. This has not been verified just yet.
+
+The Contec CMS50F Version 2.0.0 hardware requires the Smart Device Assistant V3.1.0.1 or later. The software can be downloaded at https://www.dlsoftw.com with index code: 01GS4016.
+
+The software's default SpO2 data storage folder in Windows 10 is C:\users\user name\AppData\Local\VirtualStore\Program Files (x86)\Smart Device Assistant v3.1.0\Data. I copy CMS50F SpO2 data files from the default Smart Device Data folder to a new root directory folder named C:\SpO2_Data. Oscar will import the SpO2 data files directly from the C:\SpO2_Data folder. You must first have Oscar import your machine's sleep data file from your SD Card prior to importing the corresponding SpO2 data file from the same time frame.
+
+=== Wellue/Viatom ===
+Beginning in OSCAR 1.1.0, the Wellue/Viatom pulse oximeters can be imported via OSCAR's '''Data > Import Viatom/Wellue Data...''' menu. 
+
+Wellue requires the use of O2_Insight_Pro software and is available for Windows and Mac.  There are also apps available for Android and iPhone (ViHealth).
+
+See '''[[Wellue Viatom File Import]]''' for instructions how to download and import their data files.
+<br>
+
+<noinclude>
+[[Category:Pulse oximetry]]
+</noinclude>

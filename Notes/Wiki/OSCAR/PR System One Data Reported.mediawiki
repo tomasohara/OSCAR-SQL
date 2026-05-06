@@ -1,0 +1,129 @@
+{{OSCAR}}
+<br />
+
+'''IN PROGRESS'''
+
+This page describes the underlying data available from PR System One data files, distinct from how they might be interpreted or imported into OSCAR.
+
+= Machine Families =
+PR System One machines are divided into families with specific versions and are denoted, e.g., F0V2 for family 0, version 2:
+{| class = "wikitable
+! Family !! Version !! Model Number !! Name
+|-
+|rowspan=3| F0 || V2 || 250P - 750P || REMstar Plus, Pro, & Auto; BiPAP Pro & Auto (System One)
+|-
+| V4 || 260P - 760P || REMstar Plus, Pro, & Auto; BiPAP Pro & Auto (System One 60 Series)
+|-
+| V6 || 200X110 - 700X110 || DreamStation CPAP, CPAP Pro, Auto CPAP, Go, Go Auto, BiPAP Pro, Auto BiPAP
+|-
+|rowspan=4| F5 (autoSV) || V0 || 950P || BiPAP AutoSV Advanced (System One)
+|-
+| V1 || 960P - 961P || BiPAP autoSV Advanced (System One 60 Series)
+|-
+| V2 || 960T || BiPAP autoSV Advanced 30
+|-
+| V3 || 900X110 - 900X120 || DreamStation BiPAP autoSV
+|-
+|rowspan=2| F3 (S/T & AVAPS) || V3 || 1061T - 1160P || BiPAP S/T 30, AVAPS 30  (System One 60 Series)
+|-
+| V6 || 1030X110 - 1131X150 || DreamStation BiPAP S/T 30, AVAPS 30, AVAPS 30 AE
+|}
+
+= Pressures =
+
+Pressures are recorded in varying ways, depending on the machine model:
+
+{| class="wikitable"
+! Channel !! Models !! Description
+|-
+| Pressure Set || F0 || For single-pressure therapy, this is the target pressure, reported as individual events, which are linearly interpolated. For CPAP, this results an event at t=0 and an event at t=end, both with the prescribed pressure. For Auto-CPAP, this results in an event at t=0 with the starting pressure, then another event with the same pressure at t=X, and the next target pressure at t=Y, resulting in a linearly increasing (or decreasing) pressure between times X and Y, with subsequent events following the same pattern.
+|-
+| IPAP Set || F0 || For bi-level therapy, this is the target IPAP, reported as individual events along with EPAP Set (see below), which are linearly interpolated. See Pressure Set above for more detail.
+|-
+| EPAP Set || F0, F5 || For bi-level and autoSV therapy, this is the target EPAP, reported as individual events, which are linearly interpolated. See Pressure Set above for more detail.
+|-
+| Pressure&nbsp;Average || F0V4 and higher || A periodic statistic indicating the average pressure for the preceding 2 minutes. For bi-level therapy, this appears to be a true average, sitting between EPAP and IPAP. For single-level therapy, it is unclear whether this is the average pressure or the average effective EPAP when a Flex mode is enabled.
+|-
+| EPAP Average || F5, F3 || A periodic statistic indicating the average EPAP for the preceding 2 minutes.
+|-
+| IPAP Average || F5, F3 || A periodic statistic indicating the average IPAP for the preceding 2 minutes.
+|-
+| IPAP High || F5 || A periodic statistic indicating the maximum IPAP in the preceding 2 minutes.
+|-
+| IPAP Low || F5 || A periodic statistic indicating the minimum IPAP in the preceding 2 minutes.
+|-
+| Opti-Start Pressure || F0V4 and higher || (Tentative) An occasional individual event that appears to indicate a change in the Opti-Start pressure for future sessions. (Not currently imported)
+|}
+
+
+= Events =
+
+{| class="wikitable"
+! Channel !! Models !! Description
+|-
+| Pressure Pulse || F0, F5V3 and higher, F3V6 and higher || An individual event indicating a pressure pulse used by the machine to distinguish between OA and CA events. The meaning of its data value is currently unknown.
+|-
+|rowspan=2| Obstructive Apnea (OA)
+| F0, F5, F3V6 || An individual event indicating an obstructive apnea event. No duration is reported.
+|-
+| F3V3 || A periodic statistic indicating the total number of obstructive apnea events in the preceding 2 minutes. These are currently imported as individual evenly spaced events across the 2-minute interval.
+|-
+|rowspan=2| Clear Airway Apnea (CA)
+| F0, F5, F3V6 || An individual event indicating an clear airway apnea event. No duration is reported.
+|-
+| F3V3 || A periodic statistic indicating the total number of clear airway apnea events in the preceding 2 minutes. These are currently imported as individual evenly spaced events across the 2-minute interval.
+|-
+|rowspan=2| Hypopnea (H)
+| F0, F5, F3V6 || An individual event indicating a hypopnea event. No duration is reported. Some machines (F0V2346) report multiple variations of HY whose distinctions are unknown. Some of them include additional unknown data.
+|-
+| F3V3 || A periodic statistic indicating the total number of hypopnea events in the preceding 2 minutes. These are currently imported as individual evenly spaced events across the 2-minute interval.
+|-
+| Flow Limitation (FL) || F0, F5 || An individual event indicating an flow limitation event. No duration is reported.
+|-
+| RERA (RE) || F0, F3V6 ||  An individual event indicating an respiratory-related arousal. No duration is reported.
+|-
+| Vibratory Snore (VS) || F0, F5 || An individual event indicating a vibratory snore event, drawn on official waveform reports. No duration is reported. This is currently imported as "VS2" to distinguish from the VS statistic (see below).
+|-
+| Timed Breath (TB) || F5, F3V6 || An individual event indicating the machine initiated a timed breath. The duration is reported in 100ms units.
+|-
+| Periodic Breathing (PB) || F0, F5, F3V6 || An individual event indicating a span of time during which periodic breathing was detected.
+|-
+| Large Leak (LL) || F0, F5, F3V6 || An individual event indicating a span of time during which a large leak was detected.
+|-
+| PRS1_0E (??)  || F0 only || An individual event indicating a span of time during which some unknown characteristic was detected.
+|-
+| Apnea Alarm || F3V6 only || An individual event indicating an apnea alarm at that time.
+|-
+| Pressure Set<br/> IPAP Set<br/>EPAP Set || F0<br/>F0<br/>F0, F5 || See Pressures table above.
+|}
+
+= Statistics =
+Most statistics are reported every 2 minutes, summarizing the preceding 2 minutes (or less, at the end of a session or slice).
+
+{| class="wikitable"
+! Channel !! Models !! Description
+|-
+| Total Leak || F0, F5, F3 || A periodic statistic indicating the average(?) total leak for the preceding 2 minutes.
+|-
+| Unintentional Leak || F5V1 and higher, F3 || A periodic statistic indicating the average unintentional leak for the preceding 2 minutes.
+|-
+| Snore Count (VS) || F0, F5, F3V6 || A periodic statistic indicating the total number of vibratory snores in the preceding 2 minutes. These are drawn as flags in the detailed overview, but not on official waveform reports.
+|-
+| Respiratory Rate (RR) || F5, F3 || A periodic statistic indicating the average breath rate (BPM) for the preceding 2 minutes, reported as an integer.
+|-
+| Patient-Triggered Breaths (PTB) || F5, F3 || A periodic statistic indicating the percentage of patient-triggered breaths in the preceding 2 minutes.
+|-
+| Minute Ventilation (MV) || F5, F3 || A periodic statistic indicating the average minute ventilation for the preceding 2 minutes.
+|-
+| Tidal Volume (TV) || F5, F3 || A periodic statistic indicating the average tidal volume for the preceding 2 minutes.
+|-
+| Peak Flow Rate || F3V3 only || A periodic statistic indicating the peak flow rate in the preceding 2 minutes. Only needed in F3V3 as it does not report a flow waveform.
+|-
+| Test 1 || F3V6 only || A periodic statistic of unknown significance.
+|-
+| Test 2 || F3V6 only || A periodic statistic of unknown significance.
+|-
+| Snores at Pressure || F0 || An end-of-session series of statistics dividing the total snore count based on the target pressure (single or IPAP and EPAP) when they occurred. (Not currently imported)
+|-
+| Pressure Average<br/>EPAP Average<br/>IPAP Average<br/>IPAP High<br/>IPAP Low || F0V4+<br/>F5, F3<br/>F5, F3<br/>F5<br/>F5  || See Pressures table above.
+|}

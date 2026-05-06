@@ -1,0 +1,235 @@
+{{OSCAR}}
+<br><br>
+==OSCAR Help==
+This guide is part of the suite of OSCAR help articles. See [[OSCAR Help]].
+
+== Leaks ==
+
+All masks leak--  they all have an intentional leak rate built into their design to prevent re-breathing of CO2. This intentional, expected leak rate varies with the pressure level:  As the pressure goes up, so does the intentional leak rate for the mask. The leak rate also varies from mask to mask. Typically full face masks have larger intentional leak rates than nasal masks or nasal pillows masks when used at the same pressure.
+
+Excessive leaking is when the total leak rate detected by the machine is larger than the intentional leak rate for the mask. Excessive leaks are an ongoing issue for some CPAP users. A full understanding of the leak information reported by OSCAR requires that you understand what kind of leaks your machine reports and how your machine's manufacturer ''defines'' Large Leak.
+
+'''''NOTE and CAUTION:''''' When looking at Leak/Total Leak lines in both your data and others, you must take into consideration all of the following:
+    
+* Does the CPAP report Total Leak Rate or Excessive Leak Rate?
+* What is the definition of Large Leak for the particular machine?
+* If we're looking at Total Leak, what is the expected leak for the mask at the given pressure(s)?
+* What is the vertical scale of the Leak/Total Leak graph?
+<br />
+* [[Leak_Rate_Graph]] - a closer look
+
+=== Difference between Total Leak Rate and Leak Rate===
+All machines ''other than ResMed'' record and report the '''''Total Leak Rate'''''.  Total Leak Rate includes both the ''intentional leak rate'' built into your mask to prevent re-breathing of CO2 AND any ''excessive (bad) leaks''.  In other words:
+
+:''(Total) Leak = Intentional Leak + Excessive Leak''
+
+
+ResMed machines record and report only the ''Excessive Leak''. The S9 takes the raw (total) leak data and the mask setting and uses that to record the ''Excessive Leak'' data. The raw Total Leak Rate data is not recorded to the SD card or the machine's internal memory.
+
+OSCAR uses '''''Total Leak Rate''''' to refer to the leak data recorded by Philips Respironics, Fisher & Paykel, and DeVilbiss machines; the OSCAR Total Leak Rate includes both the intentional leak rate and the excessive leak rate. OSCAR uses '''''Leak Rate''''' to refer to only the excessive leak rate. It's important to remember the following things about the OSCAR Total Leak/Leak Rate data:<br />
+    
+* ResMed users will only have ONE leak line and it is Leak Rate.
+* Philips Respironics, Fisher & Paykel, and DeVilbiss users will have TWO leak lines: One for Total Leak Rate and one for Leak Rate.
+* The Leak Rate for Philips Respironics, Fisher & Paykel, and DeVilbiss users is calculated by OSCAR from the data recorded by the machine. OSCAR uses a statistical analysis of the Total Leak Rate data to determine an estimate for excessive leak rate and reports that estimate as Leak Rate. If you are using a bi-level device or if you are using an APAP with a wide range of pressures, it is possible that the estimated excessive leak rate may not be accurate; in that case you are better off looking at the Total Leak Rate data and using it to determine how good or bad your leaks are.
+<br />
+
+Both Total Leak Rate and (excessive) Leak Rate are reported in terms of Liters per minute (L/min).
+
+A Total Leak Rate of 25 L/min means that on average, the semi-closed pressurized system comprising your upper airway, the mask, the hose, and the blower is losing approximately 25 Liters of air for each minute of run time. The blower has to add at least 25 Liters of air to the system each minute in order to maintain the desired pressure.
+
+An (excessive) Leak Rate of 25 L/min means that the semi-closed system is losing 25 L/min of air ABOVE and BEYOND the expected leak rate for the mask. If the mask has an expected leak rate of 30 L/min and the (excessive) Leak Rate is 25 L/min, then the Total Leak rate is 55 L/min. The blower has to add at least 55 Liters of air to the system each minute in order to maintain the desired pressure.
+
+===Definition of Large Leak===
+Modern CPAP machines are designed to gracefully cope with a certain amount of excessive leak by blowing additional air into the semi-closed system in order to preserve the desired pressure setting. But even the best of machines cannot accommodate really large amounts of excess leak.
+
+When the excess leaking reaches the point where the machine's manufacturers are concerned that the machine will not be able to properly maintain the therapeutic pressure setting, the leak is defined to be a Large Leak. Different manufacturers define and flag Large Leaks in different ways. Typically, however, Large Leaks are defined in terms of the Total Leak Rate for machines that report Total Leak Rate. ResMed, of course, must define Large Leak in terms of the (excessive) Leak Rate that is reported by their machines.
+<br />
+
+* '''ResMed S9:''' When the Leak Rate is AT or ABOVE 24 L/min, it is a Large Leak.
+(Source: [http://www.apneaboard.com/ResScan_Interpretation-Guide.pdf ResScan Interpretation Guide])
+In ResScan, Large Leaks are flagged by a Red Line drawn at 24 L/min in the (excessive) leak graphs. ResMed S9 users can use the Show Leak Redline option to draw a Red Line at 24 L/min in the Leak Rate graph in OSCAR<br />
+
+* '''DeVilbiss IntelliPAP:''' When the Total Leak Rate is AT or ABOVE 95 L/min, it is a Large Leak.
+(Source: [http://www.devilbisshealthcare.com/files/IntelliPAP%20AutoAdjust%20Clinical%20Overview_LT-2089.pdf CLINICAL OVERVIEW: DeVilbiss IntelliPAP® AutoAdjust])
+In DeVilbiss's software, Large Leaks are flagged by a line drawn at 95 L/min in the (total) leak graphs. DeVilbiss IntelliPAP users can use the Show Leak Redline option to draw a Red Line at 95 L/min in the Leak Rate/Total Leak Rate graph in OSCAR.<br />
+ 
+* '''Fisher & Paykel Icon:''' When the Total Leak Rate is AT or ABOVE 60 L/min, it is a Large Leak.
+(Source: [http://www.fphcare.com/CMSPages/GetFile.aspx?guid=4ce946e5-51d0-4739-8aab-d7d8727d157e F&P InfoSmart Spec Sheet])
+In Fisher & Paykel's InfoSmart software, Large Leaks are flagged by a line drawn at 60 L/min in the (total) leak graphs. DeVilbiss IntelliPAP users can use the Show Leak Redline option to draw a Red Line at 60 L/min in the Leak Rate/Total Leak Rate graph in OSCAR.<br />
+
+* '''Philips-Respironics System One:''' There is no official "line in the sand" for flagging a Large Leak.
+(Source: [http://www.healthcare.philips.com/pwc_hc/us_en/homehealth/sleep/encoreanywhere/pdf/1083140_EncoreReport_Guide.pdf Encore Report Guide])
+Lots of System One user data posted on the forum indicates the Large Leak line for Total Leak Rate depends on whether the machine is a Series 50 (older) System One or a Series 60 (newer) System One. Lots of user data posted on the forum also indicates that the Large Leak line depends on the pressure used: People using less than 10 cm of pressure see Large Leaks being flagged much earlier than people using pressures greater than 10 cm. Here are some general estimated guidelines for where the undefined Philips Respironics Large Leak line is located:
+
+:* ''Series 60 System One'' users may start to see Large Leaks being flagged when the Total Leak Rate reaches 60-70 L/min; if the prescribed pressure setting is below about 8cm, then Large Leaks may be flagged when the Total Leak Rate reaches 50-60 L/min in some circumstances.
+:* ''Series 50 System One'' users may start to see Large Leaks being flagged when the Total Leak Rate reaches 80-90 L/min; if the prescribed pressure setting is below about 8cm, then Large Leaks may be flagged when the Total Leak Rate reaches 60 L/min in some circumstances.
+<br />
+Official Large Leaks for Philips Respironics System One machines are very difficult to determine with great accuracy in versions of SleepyHead prior to 0.9.6. In version 0.9.6, the Encore-defined Large Leaks are flagged by gray bars in the Events table and as a gray background in the Flow Rate curve. The Official Large Leaks for a System One will NOT be flagged directly on the SleepyHead Leak/Total Leak graph.
+
+If you want to add a Redline to your Leak/Total Leak graphs in OSCAR, our advice is to look at your own Large Leak flags and figure out where they seem to start. If you don't seem to have very many Official Large Leak, then use the above guidelines as a decent enough starting guess for where your particular Redline should be drawn.<br />
+
+In order to adversely affect the efficacy of your CPAP therapy and the accuracy of the data recorded by your machine, leaks have to be both large enough and long enough. As we've just seen, "Large enough" is easily quantified by the manufacturers. But what is "long enough"?
+
+ResMed is apparently the only major manufacturer that has a user-friendly tool for determining whether the official Large Leaks last long enough to compromise the CPAP therapy: The dreaded Mr. Red Frowny Face shows up on the short version of the Sleep Quality Report when Official (ResMed) Large Leaks make up at least 30% of the night.
+
+Since the other manufacturers are "vague" when it comes to describing how long Large Leaks must last to adversely affect the CPAP therapy, we'll take that ResMed definition as a "working" definition:
+
+: '''''If you are in Official Large Leak territory for your machine for at least 30% of the night, then you KNOW you have a Large Leak problem that must be dealt with.'''''
+<br />
+A lot of long-time CPAP users will say that the "30% time in Large Leak territory" is too generous and that Large Leaks will affect your therapy much sooner than that. So this may be a good rule of thumb for you to consider:<br />
+* If you are OFTEN in Official Large Leak territory for 15%-30% of the night, then you PROBABLY have a Large Leak problem that must be dealt with.
+
+* If you are OFTEN in Official Large Leak territory for 10%-15% of the night, then you MAY have a Large Leak problem that must be dealt with.
+
+* If you OFTEN have Official Large Leaks that last an hour or more, then you PROBABLY have a Large Leak problem that must be dealt with.''<br /><br />
+All that said: It's not uncommon for people to simply have a bad night for leaks every now and then. If your leaks are usually decent enough, it can be counter-productive to worry about eliminating the last of the leaks.<br />
+
+===Perfect Leak/Total Lines===
+A ''perfect Leak/Total Line'' is a leak line with little or no unintentional leaks.
+
+For ResMed users, that's easy to recognize: The Leak graph is a flat line at 0.0 L/min for all or almost all of the night. And any leaks that are present are way, way below the ResMed Redline of 24 L/min.
+
+For all the rest of us, perfect leak lines are not quite so easy to recognize. We can use OSCAR's estimated Leak graph (rather than the Total Leak graph), but that may not always be accurate, particularly if we're using a bi-level or an auto machine with a wide range of pressures.
+
+To identify a perfect leak line from Total Leaks requires a bit of knowledge: We need to know the ''expected (intentional) leak rate'' for the mask. Once we know that, a ''perfect Total Leak line'' would be a flat or "fuzzy flat" line that is within a few L/min of the expected leak rate for the mask at the given pressure.
+
+The ''expected rate'' depends on both the mask and the pressure. The owner's manual for your mask should have a table and/or graph that tells you what your mask's expected (intentional) leak.  The chart below shows the design flow rate at different pressures for a variety of masks and mask types:
+<br />
+[[File:Resmed Pressure vs Flow.png]]
+<br />
+
+For the Swift FX mask, We interpret this chart as follows:
+
+* If your pressure is set at 6cm, your expected leak rate is about 25 L/min.
+* If your pressure is set at 9cm, your expected leak rate is about 30 L/min.
+* If your pressure is set at 10cm, your expected leak rate is about 32 L/min.
+* If your pressure is set at 14cm, your expected leak rate is about 40 L/min.
+* If your pressure is set at 15cm, your expected leak rate is about 41 L/min.
+* If your pressure is set at 18cm, your expected leak rate is about 48 L/min.
+
+These numbers are not precise - they typically include a +/- margin of error of about 5 L/min. But in an ideal world, you want your Total Leak graph to be pretty close to your expected leak rate.
+
+==Good and Decent Enough Leak/Total Leak lines==
+
+We'd all like a perfect leak line every night. But for most of us, that's not going to happen. Moreover, the battle to eliminate all excess leaks may cause more problems than it fixes. So when are leak lines "good enough" to not worry about it?
+
+In general a Total Leak line will be mostly "fuzzy" flat and stay mostly around the intentional leak rate for your mask and pressure, but tends to have some visible periods of noticeably higher leaks, most of which stay well below the cut off for "Large Leaks" for the given machine. A few very short lived Large Leaks on an otherwise decent night are usually not something that you need to worry about. A Decent Enough Total Leak line has more obvious leaks than a Good one does, but line stays below the Large Leak line for at least 70-90% of the night. (There's some debate between CPAP users of just how long the Large Leaks need to last before they become problematic.)
+
+For ResMed users or for folks who simply want to concentrate on the (excessive) Leak data, a Good Leak line will be "fuzzy" flat, stay mostly around 0.0 L/min, but tends to have some visible periods of noticeably higher leaks, most of which stay below 10-15 L/min. A Decent Enough Leak line has more obvious leaks than a "Good" one does, but line stays below 25-30'''*''' L/min for at least 80-90% of the night. (There's some debate between CPAP users of just how long the Large Leaks need to last before they become problematic).
+
+* ''In general patients can trust the Total Leak data and the machine manufacturer's Large Leak definition more than eye-balling the (excessive) Leak graph in OSCAR if one is indicating there's a Large Leak and the other is not. That means that users of IntelliPAP machines may have a bit higher "Leak" number than 24-30 L/min before it really counts as a Large Leak; on the other hand users of Icons with masks that have relatively high expected leaks may have Large Leaks where the (excessive) Leak graph is quite a bit lower than 24 L/min: If the expected leak rate of your graph is 45 L/min and you use an Icon, any excess Leak that is more than 15 L/min is likely be flagged as an Large Leak in the Fisher & Paykel software since the Total Leak will be AT or ABOVE 60 L/min, which is the Large Leak line for the Icon.''
+
+Here's an example of a "Decent Enough" leak line from our sample patient's own data:
+<br />
+[[File:good-enough_leak_line_zpsb4e3d014.jpg]]
+<br />
+
+That large bump between 8:15 and 8:30 is a (relatively speaking) a very large leak for this patient; the Total Leak Rate is up close to 50 L/min, which is beginning to approach the boundary where her rare Official Large Leaks have been scored (about 55-60 L/min). But this rather large leak makes up only about 15 minutes out of 7 hours of run time; that's not enough time to really worry about.
+
+The 90% or 95% Leak/Total Leak Rate from the Left Side bar may also useful for determining that your leaks are under control. Typically if the 90% or 95% Leak/Total Leak Rate is below the definition for Large Leak for your machine, the leaks are pretty much under control. On the night shown above, the patient's 90% Total Leak rate for this night was 22 L/min, which is right around her expected leak rate.
+
+But it's also important to understand that if the 90% or 95% Leak/Total Leak Rate is just barely above the definition for Large Leak for your machine, your leaks might still be "decent enough". In this case you really do need to consider just how much time you spent in Large Leak territory: It's one thing if you are spending 15-20% of the night barely above the Large Leak line; it's another thing if you're spending 40-45% of the night AT or ABOVE the large leak line. And yet, the 90% (and 95%) Leak/Total Leak numbers can look the same for both situations.<br />
+
+===Problematic, Bad, and Horrible Leak Lines===
+As with many other things concerning CPAP therapy, trending data in the Leak/Total Leak line is also important. If you're trying out a new mask and you're still working out how to fit the mask, you may have one or more nights of really bad Large Leaks. If your mask cushion is starting to wear out, the first sign might be a higher than normal leak line. If you wind up with a bad cold or the flu and you're seriously congested, you might be prone to doing more mouth breathing than normal and your leaks may be (much) higher than typical. So it's important to not over-react to one (or a few) bad nights with respect to leaks, particularly if there's an obvious explanation.
+
+But some new CPAP users (and not so new CPAP users) have real problems getting excessive leaking under control. We now turn our attention to using the Leak/Total Leak line to identify when Large Leaks are '''long enough''' as well as large enough to compromise the efficacy of the CPAP therapy and the accuracy of the data.
+
+There is some differences of opinion among long term CPAP users about how much time you have to spend in Large Leak territory before it becomes clear that you absolutely must do something about the leaks. Some people would say 10% of the night in Large Leak territory is too much; others would say 10% is ok, but 20% is not. Some of this comfort: If the Large Leaks are waking you up, they've got to be dealt with. If you're not feeling better in the daytime, the Large Leaks might be part (or all) of the problem. But if you're sleeping through the Large Leaks and you're feeling good in the daytime, it may not be all that important if you are in Large Leak territory 10-20% of the time on some nights.
+
+But by the time Large Leaks make up 30% or more of the night, you have a problem. ResMed is explicit about this line; the other manufacturers are more vague.
+
+And then there's also the issue of how long the longest of the Large Leak is: If you see 40+ minute long official Large Leaks on most of your nights, then that's likely a problem that you need to work on.
+
+Here is an example of a Bad (excessive) ResMed S9 Leak Line shown in SleepyHead 0.9.3. We've added a red dashed line at the ResMed Redline at 24 L/min since it was not drawn by SleepyHead 0.9.3:
+<br />
+[[File:Bad_Resmed_Leak_line_zps94e51779.jpg]]
+<br />
+We can estimate the time over the Redline. (In OSCAR, the percent of time over the Redline would be in the Statistical Data in the Left Side Bar).   Our estimate is that the time where the Leak is above the ResMed RedLine of 24 L/min is between 180 and 200 minutes, or between 3 and 3.33 hours. The run time for the night is about 8 hours. So it looks like this person was in Large Leak territory for 37% of the night.
+
+Most of the time when someone has serious Large Leak problems, the Leak/Total Leak line is problematic-to-horrible on a large percentage of nights. So the easiest way to tell that you've got a Large Leak problem is realize that you are often spending more than 30% of the night in Large Leak territory. Or you realize that you are often spending 10-30% of the night in Large Leak territory and you are not feeling as good as you should.
+<br />
+===Mouth Breathing and Other Causes of Leaks===
+
+A lot of things can cause leaks of all sizes: Fiddling with the mask, jostling the mask to scratch your nose, jostling the mask while turning over in bed, mouth breathing, and facial relaxation (facial sagging) in deep sleep are all capable of causing both small and large leaks. Worn out mask cushions, incorrectly sized masks, overtightened mask straps, and masks that are incorrectly reassembled can also cause leaks. Another potential cause of leaks are pressure increases when using a CPAP in auto mode. Fitting a mask at low pressure tends to be easier than fitting a mask at higher pressures. And if you fit your mask at relatively low pressure, as the pressure increases, the pressure increase itself may cause the mask to lose its seal, and the result is an excessive leak.
+
+Mouth leaks can be particularly problematic for nasal mask and nasal pillows users. Indeed new CPAP users using nasal masks and nasal pillows are often told by other CPAP users that they need to use a full face mask if there is any chance that they might be a mouth breather. And when a newbie posts pictures of problematic leak lines, the first thing that's often suggested is that the leaks are probably due to mouth breathing.
+
+But a leak is a leak no matter where it is coming from, and the machine doesn't know where it is coming from. So how do we determine if a leak is a mouth breathing leak or just a typical mask leak caused by something else?   Well, it's kind of difficult, but in general we look at the leak line on the graph. Short brief spiky leaks are very likely mask movement leaks... brief refitting or minor movement. Longer periods of spiky leaks may indicate that you were very restless and doing a lot of tossing and turning and repeatedly jostling the mask in the process. Mouth-breathing leaks tend to have a longer period of leak and often tend to sort of create a a mesa or plateau effect. But facial relaxation can also lead to longer periods of leak that look like mesas or plateaus.
+
+In this example pulled from some old on-line ResMed materials, there are actually 3 periods of probable mouth leak but only the middle one went above 24 L/min:
+<br />
+[[File:Leakexplanation_zpsd6761cfc.jpg]]
+<br />
+
+The pattern easy enough to identify. Do we know with absolute certainty that this kind of a pattern is most likely a mouth breathing leak? Of course not but we can often make an educated guess. Plateau type leaks combined with using a nasal mask interface and waking up with a dry mouth usually points to mouth leaks. Whether the mouth leaks are serious enough to warrant doing something about depends on their severity, both in terms of how large the leaks are and in how much they seem to disturb your sleep.
+
+It's also important to point out ''again'' that two of the three probable periods of mouth breathing in that last example stay below the ResMed Redline: In terms of the efficacy of the CPAP therapy, the two smaller mouth breathing leaks are not serious enough to worry about. This runs counter to the commonly accepted notion that you loose all your therapy pressure any time you open your mouth while using a nasal mask: The amount of air you lose through an open mouth depends on a lot of factors, most notably the placement of the tongue. If the front 1/3 to 1/2 of your tongue is firmly planted on the roof of your mouth behind your top front incisors, the tongue effectively blocks off the oral cavity from the upper airway. And if you happen to open your mouth with your tongue in that spot, any mouth leaking may be very minimal as long as you are continuing to breath through your nose. If you start breathing through your mouth, however, the tongue will slip from that position, and as the tongue moves down away from the roof of the mouth, more air will be able to leak out of the open mouth.
+
+Many people do switch to full face masks because of ''suspected'' or ''known'' mouth breathing issues. In a full face mask, you can open and breathe through your mouth without losing pressure. (Mouth breathing inside a FFM may still lead to serious dry mouth issues, however).   But many people using FFM still have leak lines that have long plateau patterns reminiscent of mouth breathing. And it is not uncommon for these long plateau leaks to be large enough to be scored as Official Large Leaks. Since mouth breathing is not the (direct) cause of such a leak when you are using a FFM, what is? The most likely cause is the relaxation of the facial and jaw muscles after the mouth has opened. As we sleep, these muscles relax and the facial tissue around the mouth and chin starts to sag. If the lower face sags or relaxes enough, the mask may pull away from the chin and create a potentially large leak. It's also important to remember than FFM have a much larger footprint on the face, and hence there is more surface contact between the mask and the face, and that also can make it harder to seal a FFM in the first place.
+<br />
+===Annoying Leaks===
+There are three types of leaks:
+
+* Leaks that are both long enough and large enough to adversely affect your CPAP therapy;
+* Leaks that are not long enough or large enough to adversely affect your CPAP therapy, but which are annoying enough to disturb the overall quality of your sleep; and
+* Leaks that are not long enough or large enough to adversely affect your CPAP therapy and which do not disturb your sleep.<br />
+
+
+You only need to work on fixing the first two types of leaks. Small leaks which do not wake you up or lead to obvious restlessness can be ignored. Indeed, the efforts to try to eliminate the last of these small leaks may actually create problems in terms of overall comfort and your ability to get to sleep and stay asleep.
+
+Long, large leaks need to be addressed because they affect your therapy, and ineffective CPAP therapy night after night will not allow you to feel at your best. If your leaks are frequently in Official Large Leak territory, you need to spend the time needed to figure out what's causing the leaks. Make sure your mask is the correct size and make sure you know how to correctly fit it at the beginning of the night: Overtightened headgear can cause serious leaks as can masks that are too large or too small for your face. If the large leaks seem to be caused by significant mouth breathing or facial relaxation and you are using a nasal mask or a nasal pillows mask, you may need to consider a chinstrap, or taping your mouth, or switching to a full face mask. If you're already using a FFM and the problem is facial relaxation, a mask liner or a chinstrap may help. Or you may need to add a special "anti-leak strap" for FFMs. ("Pad A Cheek" sells them.)
+
+But small leaks that irritate you or wake you up or keep you from getting (back) to sleep prevent you from getting a genuinely good night's sleep. So any leak that disturbs sleep is unwanted-- even if it is tiny.
+
+So an important question that a lot of CPAP users face is: ''How much should I do to try to eliminate all my leaks?''
+
+And the answer is, "It depends."
+
+If your leaks stay below the Official Large Leak line for your machine and you seem to be sleeping soundly through them and your mouth is not too dry in the morning, you may very well decide to not do anything at all.
+
+Some people aren't so lucky: It's clear that their leaks are either too large or too long or simply too annoying for them to get high quality sleep: If you are already super-sensitive to every little thing then you may need to take some extra measures to limit your leaks (both big and small). You have to be able to sleep first and fragmented sleep for any reason will totally mess up sleep architecture and the normal sleep cycles and the time spent in each sleep stage. If you wake up 20 times a night fiddling with leaks (whatever the cause) you are going to feel pretty bad the next day. Heck, if you wake up 20 times a night for any reason (even reasons you can't point a finger at) you are going to feel it the next day because if you remember a truckload of awakening, it's likely that you also had a fair number of awakenings that you don't remember also. And fragmented sleep in general just kills the body's ability to make use of the normal restorative powers of sleep.
+
+And some people find themselves in the middle: Leaks sometimes seem to cause problems. Or perhaps certain types of leaks cause problems, but they can sleep through other types of leaks. If you find yourself in this situation, use some common sense when evaluating your leaks. How big of a problem is it really? And is the cure more of a problem than the leak? Dry mouth may or may not mean that you are seriously impacting your therapy with mouth breathing. And if your mouth leaks seldom reach Official Large Leak territory, you have to weigh the potential discomfort of wearing a chinstrap, taping your mouth, or using a FFM against the potential problems caused by the non-Official Large Leak mouth leaks. This is a personal call and has to be made on an individual level. Some people will be more comfortable having less leaks and more stuff on their face; others will be more comfortable sleeping with a few more leaks and (a lot) less stuff on their face. As long as your leaks are not staying in Official Large Leak territory for excessive periods of time night after night, the best decision is the one that gives allows you to sleep most soundly with the fewest wakes. <br />
+
+===Why are Large Leaks an Issue?===
+We've looked at how each manufacturer defines an Official Large Leak, we examined leak lines in order to figure out how to tell if leaks are a significant issue, and we've looked at some causes for leaks. But we haven't actually looked at why Large Leaks cause problems for our CPAP machines and how those problems may affect our therapy.
+
+When we use a CPAP, our upper airway is part of a "semi-closed pressurized system" comprising the blower, the tube, the mask, and our upper airway. The system is "semi-closed" because there is an intentional leak: The system is designed to intentionally lose air through the exhaust vents. The desired pressure is maintained in the system by constantly supplying enough new air into the system to balance out the amount of air being lost through the leaks: Our CPAP must blow enough air into the "semi-closed pressurized system" to replace the air lost through the exhaust vents in the mask.
+
+It may help to draw an analogy: We can think about the CPAP machine, hose, mask, and our upper airway as a leaky inner-tube with a tire pump attached to it. We can keep the inner-tube fully pressurized and inflated as long as we keep adding air to the tube by pumping as much air into the tube as is being lost through the leak. But if we start losing more air through the leaks than we can pump in with the tire pump, the inner-tube loses pressure and starts to collapse.
+
+It's the same idea with our CPAP machines: As long as the excess leak rate is not too high, the CPAP machine has no real trouble blowing enough new air into the system to compensate for the ''total'' leak rate. In other words, the CPAP can compensate for additional, moderate unexpected excess leaks by simply blowing more air into the system in order to maintain the same amount of pressurization. But there are limits to how much air can be lost before the machine simply can't keep up with its job: Once the total leak rate crosses into official Large Leak territory, the CPAP will have trouble adding enough air to the system to balance out the air leaking out of the system. And hence the machine will have trouble maintaining the desired pressure level.
+
+And that's the fundamental problem with Large Leaks: If they last for a long enough time, the machine may become unable to maintain a therapeutic pressure inside the upper airway. And if the CPAP cannot maintain the necessary therapeutic pressure level, the upper airway becomes more vulnerable to collapsing. Which means that the CPAP machine is less effective in preventing apneas and hypopneas from occurring, and so the CPAP therapy itself is compromised.
+
+But there is another problem a full efficacy CPAP machine faces when the leak rate approaches or stays in official Large Leak territory for any length of time: The breathing itself becomes more difficult to track. CPAP machines track our breathing by measuring subtle changes in the back pressure, but when the leaks start to approach the boundary of Large Leak territory, the "signal noise" caused by the leaks makes it harder for the machine to distinguish the subtle changes in back pressure that are used to detect the breathing. This can cause the Flow Rate data to become distorted and garbled; often times the perceived amplitudes of the inhalations and exhalations are significantly reduced even though normal breathing may be occurring. The following figure is from the discussion in the [http://www.devilbisshealthcare.com/files/IntelliPAP%20AutoAdjust%20Clinical%20Overview_LT-2089.pdf Clinical Overview for the DeVilbiss IntelliPAP AutoAdjust] concerning what happens in the presence of excessively large leaks:
+<br />
+[[File:leak_effect_on_wave_flow_zps42c5342e.jpg]]
+<br />
+
+This inability to properly trace the breathing, of course, means that it becomes difficult or impossible to detect and properly score apneas and hypopneas should they occur during a prolonged period of Large Leaks.
+
+Here's a close up of the large leak in SleepyHead 0.9.3:
+<br />
+[[File:LargeLeak-7minuteview-markup_zps0fe52ab6.jpg]]
+<br />
+
+In OSCAR, we see a break in the wave form preceding the biggest bump on the Leak graph. In Encore, that break in the wave form was flagged as a "breathing not detected period". The official Large Leak was scored as soon as the patient's BiPAP found a trace of her breathing pattern.
+
+OSCAR reports that the maximum leak rate topped out at 57.96 L/min, which is 2.5 to 3 times her usual, expected leak rate of 20-25 L/min; the official Large Leak starts when Total Leak graph crosses the 55 L/min line.
+
+Notice how the wave form is severely compressed near the 0 line just before and just after the gap in the wave flow. This indicates that the patient's BiPAP could not reliably determine whether there was much air going into or out of the patient's lungs. And when the wave form picks up after the gap, it's still pathetic looking.   It has none of the characteristics of what her wave form is usually like when she's awake enough to turn her BiPAP off and back on. So she's fully asleep during this leak.
+
+And notice all those Pressure Pulses (the little boxes) right before the gap in the wave form and right after the wave form pics back up?   It's likely those PPs are being used by the BiPAP to try to figure out if there's a live, breathing person at the other end of the hose. Perhaps the BiPAP "realizes" that these periods of very low variation in the wave flow are way too long to be a typical apnea or hypopnea, and that's why they are not flagged as such. But it also gets so befuddled about what it's seeing in the wave form data, that the BiPAP concludes she must not be breathing through the mask and so it quits recording Flow Rate data form during the time it cannot determine any meaningful breathing pattern. When this patient showed her DME this wave form pattern (in a different context), the Respiratory Therapist referred to it as a "patient disconnect". (And yes, that tern is bothersome because "patient disconnect" seems to imply that ''the patient'' disconnected the machine from her nose, when she did not do that here or anywhere else).   But for now on, we'll call those wave patterns "patient disconnects" even though we don't like that language at all.
+
+A couple of minutes after the BiPAP detects the "patient disconnect", it finds rudimentary evidence of breathing again, so it starts recording the Flow Rate data. But by this point the leak rate has also grown to about 55 L/min and the BiPAP decides to flag this as an official Large Leak. As in--  there's breathing present and the leak is now large enough to meet that unknown Philips Respironics standard of Large Leak. And it's important to note that almost as soon as the Large Leak is detected, the patient's BiPAP starts to lower the pressures: First from 8/6 to 7/5 and then more sharply from 7/5 to 6/4.  Her BiPAP is attempting to help limit or even fix that Large Leak by lowering the pressures---exactly as the description of the Philips Respironics Auto algorithm says it is supposed to do in the presence of Large Leaks.
+
+As far as accuracy of recording events during this Large Leak: Because her BiPAP can barely detect a breathing pattern, it's clear that the usual definitions used to flag OAs, CAs, and Hs are going to be difficult to apply: They all rely on a reasonably accurate baseline of the current airflow into/out of the lungs and that baseline is calculated using several minutes worth of data. Because the breathing pattern is barely there, it's almost impossible for the machine to detect enough of a decrease in airflow to trigger flagging an OA or a CA or an H throughout the Large Leak (and even in the part of the longer, not-quite-so-large leaks immediately preceding and following the official Large Leak itself.) And hence there's no good reason to believe that this time frame is really as "event-free" as the event chart makes it appear to be: After all, you can't detect an apnea or hypopnea if you can't detect the breathing pattern in the first place.
+<br />
+
+Philips CPAPs tolerate up to twice the intentional leaks. They compensate for this leak by adjusting the speed of the blower. Beyond the tolerance threshold, the DreamStation indicates that its detection is not reliable in terms of the increased level of non-intentional leaks. It then qualifies these leaks as large.
+
+<br><br>
+Back to [http://www.apneaboard.com/wiki/index.php?title=OSCAR_Help#OSCAR_Basic_data_interpretation OSCAR_Basic_data_interpretation]
+<br><br>

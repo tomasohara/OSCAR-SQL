@@ -1,0 +1,42 @@
+{{OSCAR2}}
+
+ Back to: [[OSCAR 2.0|Introducing OSCAR 2.0]]
+
+==OSCAR Help==
+This installation guide is part of the suite of OSCAR help articles. See [[OSCAR Help]].
+
+==Installing OSCAR 2.0==
+Installing OSCAR 2.0 requires only a few steps:
+# Download the OSCAR installer for your computer from [https://www.sleepfiles.com/OSCAR/ the official download page].
+# Install OSCAR. This process differs for each type of computer, [[#Download and install|see below]] for details.
+# Run OSCAR and select where you want OSCAR to save your data when it asks you. You can simply accept its recommendation.
+## '''Note:''' Do not select the SD card itself as the destination. Select a location on your PC hard drive (or just accept the recommendation).
+# If you've been using OSCAR 1.x, [[#Migrating or importing OSCAR 1.x data|see below]] for how to migrate your previous OSCAR 1.x data. Otherwise, see "[[Running OSCAR for the first time]]" to set up a new profile and import the data from your CPAP machine.
+
+==Download and install==
+OSCAR is available at the official download page: '''https://www.sleepfiles.com/OSCAR/'''
+
+There are OSCAR versions available for Windows, Apple Mac and Linux. Detailed instructions may be found at the following links:
+* [[OSCAR Installation: Windows]]
+* [[OSCAR Installation: Apple Mac]]
+* [[OSCAR Installation: Linux]]
+* [[OSCAR Installation: Chrome OS]]
+
+You may also read the page in a number of different languages - the list of languages is along the top of the page.
+
+OSCAR is open source software, and there are links to the source code near the bottom of the page. Note that this is for software developers - the great majority of users don't need to worry about the source code.
+
+== OSCAR 2.0 data folder ==
+OSCAR needs to set up a folder to store your data in. Click '''OK''' to accept the recommended folder OSCAR20_Data or '''No''' to select an alternative folder. '''Note:''' Do not select the SD card itself as the destination. Select a location on your PC hard drive (or just accept the recommendation).<br /><br />Do not select the OSCAR_Data folder you used with OSCAR 1.x. OSCAR 2.0 requires a separate data folder.
+
+[[File:OSCAR 2.0 New Data.png]]
+
+== Migrating or importing OSCAR 1.x data ==
+If you have previously used OSCAR 1.x, OSCAR provides two options to bring your existing data across from older versions to OSCAR 2.0:
+* '''Migrate''' your profiles and data from OSCAR 1.x - this is only done once during installation and copies all your OSCAR data, profiles, and settings to the new OSCAR 2.0 data folder. Data is updated as required to reflect changes between OSCAR 1.x and OSCAR 2.0.  This is the recommended procedure for the majority of users. 
+** Details here: [[Migrating OSCAR 1.x Data]]
+
+* '''Import''' your data from an OSCAR 1.x profile - this can be done anytime after OSCAR 2.0 has been installed and run. Importing the data brings the entire profile and settings from your OSCAR 1.x database. This process is a little more convoluted and is only recommended for users who are comfortable importing data from files on their computer.
+** Details here: [[Importing OSCAR 1.x Data]]
+
+Note that both Migrate and Import leave the existing OSCAR 1.x data untouched so you can still use OSCAR 1.x if you wish to.

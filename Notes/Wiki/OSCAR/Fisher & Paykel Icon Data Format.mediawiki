@@ -1,0 +1,157 @@
+{{OSCAR}}
+
+'''This is a work in progress. Nothing should be taken literally here.'''
+
+
+==='''Data format/capabilities analysis'''===
+
+Grade: D
+
+'''Negatives''' 
+* Manufacturer failed to openly document this format.
+* Fails to keep flow data, even with a potentially huge datastick.
+* Very low resolution (2 minutes) event data, can't overlay over flow waveform.
+* Hideously stupid timestamp format.
+
+'''Positives'''
+* Summary data contains settings info, like humidifier.
+
+==Data Format==
+===SD-Card Structure===
+*FPHCARE
+**ICON
+***[Serial Number]
+****COMP.FPH       (1kb in size.. compliance summary?)
+****DET0001.FPH    (Multiple, contains basic graphs, 64Kb each)
+****DET0002.FPH
+****DET00??.FPH
+****SUM000?.FPH    (Only one, contains session summaries, set 64Kb size)
+****FLW0000.FPH    (Sometimes present, seems to contain first flow waveform recorded)
+****FLW0001.FPH    (Cycles between 7 files, contains Flow Waveform data, set 3.7MB size)
+****...
+****FLW0007.FPH
+****SETUP.FPH      (1kb in size, prescription info?)
+****LOG0001.FPH    (1kb in size, unsure of function.. pretty sparse data wise..)
+****LOG0002.FPH
+
+===Header Format===
+Each of the FPH files begins with a 0x200 byte header, containing text information about the machine. (seperated by 0x0d (newline)) 
+
+Example:
+ <nowiki>
+0201             (magic number)
+1.5.0            (Firmware Version? number)
+SUM0001.fph      (File name)
+110707000000     (Serial Number)
+ICON             (Machine Series)
+Auto             (Machine model (Auto, Premo, etc..))</nowiki>
+
+
+The rest is zero filled up to the last byte, which contains a checksum
+
+===Timestamp Format===
+Appears to be based on a common "Microsoft" format, but way more evil.
+
+32bit time value, comprised of two 16bit words, the first containing date, the second the time.
+
+Best described in code..
+ <nowiki>
+[11 22 33 44]
+ 
+dateword=0x[2211]
+
+day=dateword & 0x1f;
+month=(dateword >> 5) & 0x0f;
+year=2000+((dateword >> 9) & 0x7f);
+
+timeword=0x[4433]
+second=(timeword & 0x1f) * 2;
+minute=(timeword >> 5) & 0x3f;
+hour=(timeword >> 11) & 0x1f;</nowiki>
+
+The hour value I'm still not sure on..
+
+In FLWxxxx.FPH files, 0x00c0 is added to the timeword value. Why I'm not really sure.. UTC conversion?
+
+===Summary File Structure===
+This file is limited to 64Kb, and will start a new one when it's full.
+
+Begins with a normal 0x200 byte header, followed by a repeating 29 byte pattern, for each session in history.
+
+Sample:
+ <nowiki>
+0000000 e6 16 a7 65 3f 3e 00 46 1f 03 00 25 00 21 01 46 46 00 02 17 00 72 00 00 3c a0 64 40 03
+000001d e7 16 f4 5e 01 01 00 46 1d 00 00 00 00 1d 00 46 46 00 00 00 00 00 00 00 3c a0 64 40 04
+000003a e7 16 0b 63 03 03 00 46 1d 00 00 00 00 1d 00 46 46 00 00 00 00 00 00 00 3c a0 64 40 04
+0000057 e7 16 c8 65 29 29 00 46 20 04 00 7c 00 21 00 46 46 00 02 33 00 67 00 00 3c a0 64 40 04
+0000074 e7 16 49 88 0c 0c 00 46 1d 08 00 21 00 20 00 46 46 00 01 04 00 70 00 00 3c a0 64 40 04
+0000094 e8 16 c8 65 15 15 00 46 20 00 00 00 00 2d 00 46 46 00 00 00 00 00 00 00 3c a0 64 40 05</nowiki>
+
+ <nowiki>
+[DD DD TT TT] [RR] [UU] [xx] [xx] [xx] [xx] [xx] [L9] finish me..</nowiki>
+
+*00 32bit timestamp, DD = 16bit date, TT=16bit time
+*04 8bit RR=run time value (multiply by 360 to get total minutes)
+*05 8bit UU=usage time value (multiply by 360 to get total minutes)
+*06 8bit ??
+*07 8bit ??
+*08 8bit ??
+
+*09 16bit ??
+*0b 16it ??
+*0d 16bit L9=value 90% leak summary value
+
+*0f 8bit Low Pressure  (*10)
+*10 8bit High Pressure (*10)
+*11 8bit ??
+*12 8bit count of Apnea events
+*13 8bit count of Hypopnea events
+*14 8bit count of Flow Limitation events
+*15 8bit ??
+*16 8bit ??
+*17 8bit ??
+
+*18 8bit pressure
+*19 8bit pressure
+*1a 8bit pressure?
+
+*1b 8bit ??
+*1c 8bit humidifier
+
+===Details File Structure===
+This file is limited to 64Kb, and will start a new one when it's full.
+
+Begins with normal 0x200 byte header
+Followed by a 0x800 byte index structure, and then the data area.
+
+The index consists of a repeating 7 byte structure
+*32bit start times of each session, 
+*a 16bit index into the data area (multiply this value by 15 for a byte pointer into the data area)
+*and an 8bit count of items in the data area for the session, each representing a 6 minute timeslot, and 3 sets of data.
+
+The unused remainder of the index area is filled with 0xff bytes, signalling the end of the index.
+
+The data area consists of a repeating 5 byte structure, in groups of 3 for each index value, containing
+* 8bit Pressure value (*10)
+* 8bit total leak value
+* 8bit Apnea duration (>0 indicates an Apnea event)
+* 8bit Hypopnea duration (>0 indicates an Hypopnea event)
+* 8bit Flow limitation duration (>0 indicates an Flow Limitation event)
+
+So the resolution of the details files graphs/event flags is a pathetic 2 minutes.. (which is 6 minutes timeslot divided by the 3 groups)
+
+===Flow Waveform Structure===
+This FLW000?.FPH files are constant 3.7Mb in size, and will start a new one when it's full, cycling between 7 files.
+
+Begins with normal 0x200 byte header
+Followed by a 32bit timestamp, and multiple chunks of sample data for a single session.
+
+Each chunk consists of a repeating pattern of 
+*50 16bit samples, 
+*followed by the 16bit pressure value, 
+*8 bit leak/adjustment value
+*and a 16bit (0xffff) end-of-record marker
+
+Each chunk ends after the last 0xffff marker with the 16bit end-of-chunk code 0xff7f, and zero padding to the end of a 512byte page, followed by the next block if any (or zeroes till the end of file)
+
+Unsure of any timing issues in between chunks.. (possibly chunks restart aligned to a 2 or 6 minute boundary)

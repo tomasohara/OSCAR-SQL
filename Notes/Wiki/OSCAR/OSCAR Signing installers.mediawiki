@@ -1,0 +1,50 @@
+{{incomplete}}<br />
+{{OSCAR}}<br />
+__FORCETOC__
+
+Having digitally signed software is '''''one''''' way to ensure the software has not been tampered with. But it also adds an expense to the developers. Signing Certificates cost money and must be renewed on a regular basis. Many Open Source projects do not have the budget to maintain such certificates.
+
+Authorized Developers are also another method and is typically seen with MS and Apple. These are also digitally signed apps and are typically scanned for viruses by MS or Apple. This type of software is normally seen in “App Stores”, but can also be from a developers website. To become an “Authorized Developer” also costs money.
+
+Just because software is “signed” or from an “authorized developer” does not mean it cannot be malicious! Signing software only verifies that the packages you downloaded have not been altered. In the case of “authorized developers”, a cursory virus scan is usually done but there is no guarantee that it is quality software and may not work as advertised.
+
+The free alternative is to use checksums to verify the file. See the wiki page [[OSCAR Verify installers|Verify installers]] for more details.<br />
+<br>
+
+<span id="operating-systems"></span>
+== Operating systems ==
+
+If your operating system detects that a piece of software is not signed it will usually give you some scary warning: ''“Warning: this software is not signed or from an Authorized Developer and may contain malicious code”'' which is a '''“False Positive”''' for OSCAR and many other Open Source projects.
+
+<span id="browsers"></span>
+== Browsers ==
+
+Your browser may give you a warning, or refuse to download software that is not signed. You can usually have your browser allow the download it is warning you about.
+
+<span id="anti-virus-apps"></span>
+== Anti Virus apps ==
+
+AV software will flag unsigned apps and some signed apps as being dangerous. The AV software is typically over-reacting and there is likely no confirmed basis for the warning. Some AV software employ an all-or-nothing approach. If the software is not signed or from an identified developer the AV program considers it malicious or dangerous by default and will give you a warning. This is sometimes referred to as the “sledgehammer” approach. Everything is dangerous until it can be proven it is not.<br />
+The user of the AV software would then need to investigate further as to why the AV program thinks the software is not safe.
+
+<span id="open-source-software"></span>
+== Open Source Software ==
+
+Open Source developers take a great deal of pride in their work. In many cases they provide the software free of charge. They take security very seriously and would not jeopardize the project in any way. The Source Code is available online for anyone to review. Most Open Source projects will provide you with an alternative way of verifying the software you download.
+
+<span id="checksums"></span>
+==== Checksums ====
+
+Most Open Source projects will provide you with a checksum so that you can verify the integrity of the file you downloaded.
+
+<span id="gpg-keys"></span>
+==== GPG Keys ====
+
+Some projects will also provide GPG keys to verify the file. This is popular among Linux distributions.<br />
+Windows and macOS need a separate utility installed to verify GPG keys.
+
+<span id="independent-verification"></span>
+== Independent verification ==
+
+There are also independent sites that can be used to verify the software you are downloading is not malicious and virus free.<br />
+One such site is [https://www.virustotal.com Virus Total] which is free. They will check the file (or URL) against 70 different popular AntiVirus scanners and give you the results.

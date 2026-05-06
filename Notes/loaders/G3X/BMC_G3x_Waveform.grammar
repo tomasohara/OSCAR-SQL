@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ufwb version="1.17">
+    <grammar name="BMC G3x Waveform" start="id:1" author="OSCAR Team" complete="yes">
+        <description>BMC G3x CPAP waveform file (.000/.001/...). Stream of 2048-byte packets, no file header.</description>
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <structure name="BMC_G3x_Waveform_File" id="1" encoding="UTF-8" endian="little" signed="no">
+            <structref name="WaveformPacket" id="3" repeatmax="100" structure="id:2"/>
+        </structure>
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <structure name="WaveformPacket" id="2" length="2048" encoding="UTF-8" endian="little" signed="no">
+            <!-- +0x000  Magic: AD AA -->
+            <number name="Magic" id="5" type="integer" length="2" endian="little" display="hex">
+                <description>Packet magic: must be 0xAAAD (bytes AD AA). Packets not matching this value are skipped.</description>
+                <fixedvalues>
+                    <fixedvalue name="ValidPacket" value="0xAAAD"/>
+                </fixedvalues>
+            </number>
+            <!-- +0x002 -->
+            <binary name="Unknown_0x002" id="6" length="2">
+                <description>Unknown — purpose not determined</description>
+            </binary>
+            <!-- +0x004  Timestamp (6 bytes) -->
+            <structure name="Timestamp" id="7" length="6">
+                <description>Packet timestamp. year = byte + 1900. All fields are single unsigned bytes.</description>
+                <number name="Year_minus_1900" id="8" type="integer" length="1">
+                    <description>Year encoded as (year − 1900). E.g. 125 → 2025.</description>
+                </number>
+                <number name="Month" id="9" type="integer" length="1">
+                    <description>Month: 1–12</description>
+                </number>
+                <number name="Day" id="10" type="integer" length="1">
+                    <description>Day of month: 1–31</description>
+                </number>
+                <number name="Hour" id="11" type="integer" length="1">
+                    <description>Hour: 0–23</description>
+                </number>
+                <number name="Minute" id="12" type="integer" length="1">
+                    <description>Minute: 0–59</description>
+                </number>
+                <number name="Second" id="13" type="integer" length="1">
+                    <description>Second: 0–59</description>
+                </number>
+            </structure>
+            <!-- +0x00A  Pressure seed (hundredths cmH2O) -->
+            <number name="Pressure_hundredths" id="15" type="integer" length="2" endian="little">
+                <description>Pressure in hundredths of cmH₂O (e.g. 900 = 9.00 cmH₂O). Used as a pressure seed when no event-log pressure update is available for this packet.</description>
+            </number>
+            <!-- +0x00C  Unknown (104 bytes, up to 0x073) -->
+            <binary name="Unknown_0x00C" id="16" length="104">
+                <description>Unknown region (offsets +0x00C to +0x073, 104 bytes)</description>
+            </binary>
+            <!-- +0x074  Diagnostic unknowns -->
+            <number name="Unknown_0x074" id="17" type="integer" length="2" endian="little" display="hex">
+                <description>Unknown uint16 LE at +0x074. Recorded in diagnostic output; meaning not yet determined.</description>
+            </number>
+            <number name="Unknown_0x076" id="18" type="integer" length="2" endian="little" display="hex">
+                <description>Unknown uint16 LE at +0x076. Recorded in diagnostic output; meaning not yet determined.</description>
+            </number>
+            <!-- +0x078 -->
+            <binary name="Unknown_0x078" id="19" length="4">
+                <description>Unknown (4 bytes, +0x078 to +0x07B)</description>
+            </binary>
+            <number name="Unknown_0x07C" id="20" type="integer" length="2" endian="little" display="hex">
+                <description>Unknown uint16 LE at +0x07C. Recorded in diagnostic output; meaning not yet determined.</description>
+            </number>
+            <number name="Unknown_0x07E" id="21" type="integer" length="2" endian="little" display="hex">
+                <description>Unknown uint16 LE at +0x07E. Recorded in diagnostic output; meaning not yet determined.</description>
+            </number>
+            <!-- +0x080  Unknown (256 bytes, up to 0x17F) -->
+            <binary name="Unknown_0x080" id="22" length="258">
+                <description>Unknown region (+0x080 to +0x17F, 256 bytes)</description>
+            </binary>
+            <number name="Flow Rate - non-zero" id="23" repeatmin="100" repeatmax="100" type="integer" length="2" signed="yes"/>
+            <number name="Mask Pressure" id="24" repeatmin="100" repeatmax="100" type="integer" length="2"/>
+            <number name="Unknown 0x312" id="25" repeatmin="50" repeatmax="50" type="integer" length="2"/>
+            <number name="Unknown_0x376" id="26" repeatmin="5" repeatmax="5" type="integer" length="2"/>
+            <number name="Unknown_0x380" id="27" repeatmin="50" repeatmax="50" type="integer" length="2"/>
+            <number name="Unknown 0x3E4" id="28" repeatmin="50" repeatmax="50" type="integer" length="2"/>
+            <binary name="Unknown_0x4A0" id="29" length="200">
+                <description>All zeros</description>
+            </binary>
+            <number name="Unknown_0x510" id="30" repeatmin="47" repeatmax="47" type="integer" length="2" signed="yes">
+                <description>Mixed values</description>
+            </number>
+            <number name="Flow Rate 056E" id="31" repeatmin="100" repeatmax="100" type="integer" length="2" signed="yes" endian="big"/>
+            <binary name="Filler" id="32" length="remaining">
+                <description>Mixed values</description>
+            </binary>
+        </structure>
+    </grammar>
+</ufwb>

@@ -1,0 +1,27 @@
+{{OSCAR}}
+
+Bookmarks are a means of recording the date and time of events you may wish to refer back to later. 
+
+===Creating a bookmark===
+Bookmarks are created using the [[http://www.apneaboard.com/wiki/index.php?title=OSCAR_Organization_-_Daily_Page#Tabs:_Details.2C_events.2C_notes_and_bookmarks bookmark tab]] on the daily page: 
+# Click on the tab to open bookmarks
+# Place the cursor on the event you wish to record (eg an apnea)
+# Click the Add Bookmark button. A bookmark stating the time and date will be created.
+
+[[File:OSCAR create bookmark.png]]
+
+You can add text to a bookmark:
+# Select the bookmark 
+# Double-click the time in the Notes column
+# Type in your text
+# Press Enter.
+
+===Reviewing bookmarks===
+In the [[http://www.apneaboard.com/wiki/index.php?title=OSCAR_Organization_-_Basic_Parts_of_the_OSCAR_Window#The_Right_Side_Bar right sidebar]] click on the Bookmarks button at the bottom of the sidebar. The sidebar will show a list of all the bookmarks which have been created. 
+
+To go to a particular bookmark, click on the date. OSCAR will open the daily page at that particular date. You can then click on a bookmark and OSCAR will adjust the display to show the event which has been selected.
+
+You can search for particular text in your bookmarks using the search window at the top of the sidebar (under the word Bookmarks).
+
+===Deleting bookmarks===
+In the Daily page, select the bookmark you wish to delete, then click "Remove Bookmark" at the bottom of the panel.

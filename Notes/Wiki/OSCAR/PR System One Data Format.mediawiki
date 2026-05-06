@@ -1,0 +1,224 @@
+{{OSCAR}}
+
+Return to [[Technical Information]]
+==='''Data format analysis'''===
+
+Grade: B
+
+'''Negatives''' 
+* Manufacturer failed to openly document this relatively complex data format.
+* A little stingy with the flow waveform resolution, only 5hz.
+
+'''Positives'''
+* Space saving data format.
+* Summary data contains settings info for each session, like humidifier, flex settings, etc..
+* Keeps all flow waveform data, unless the card is left out, in which case it retains Event, general graphs & Summary data.
+* Events syncs well over flow waveform.
+
+This is probably the best of the bunch as far as CPAP storage systems go - I say this mainly because they bothered to design it around a decent per-session model, and the machine doesn't unnecessarily wipe out data while it has a mostly empty SD card.  Plus accidentally leaving out the SD card doesn't suck anywhere near as much as when it's done on others machines.
+
+== PRS1 Data File Format ==
+
+Each PR System One data file has a well defined structure containing a sequence of one or more data blocks. Each block begins with a 15 byte header, any additional header data, an 8 bit header checksum, the data stream itself (in a not-so-well-defined structure), followed by a 16bit data integrity checksum. 
+
+The cycle repeats for each subsequence block, although only waveform data has been observed to contain multiple blocks.
+
+The file's extension provides an extra indication of the type of data contained:
+
+ <nowiki>Extension	Type
+.001   		Session Summary
+.002		Event Data
+.004		Time details ???
+.005		Waveform Data</nowiki>
+
+The filename component minus the extension gives session sequence number. In most cases it would be better to use the internal values instead, but the are handy for quick lookup.
+
+==== Standard PRS1 Header Example ====
+
+ <nowiki>[02] [48 0d] [00] [05] [00] [02] [1f 00 00 00] [15 ae 12 4e]
+
+Idx	Data		Type		Details
+00 	[02] 		8bit integer	DataFormatVersion
+01	[48 0d] 	16bit integer	BlockLength (in bytes, including header & checksum values)
+03	[00] 		8bit integer	FileType (Defining additional header information)
+04	[05] 		8bit integer	Family
+05	[00] 		8bit integer	Family Version
+06	[02] 		8bit integer	File Extension
+07	[1f 00 00 00] 	32bit integer	Session Sequence Number
+0b	[15 ae 12 4e]	32bit integer 	TimeStamp (UNIX Epoch)</nowiki>
+
+===== '''Known FileType values''' =====
+
+00 indicates no additional header data is needed. The standard header is just followed by the 8bit checksum at position 0x0f, which is additive sum of all header values up to this byte.
+
+01 indicates waveform or fixed-interval data storage.  (The 1160P uses this for its event data in .002 files.)
+
+===== '''Waveform Data Header (.005 files)''' =====
+
+ <nowiki>Idx	Data		Type		Details
+0x0f  	[xx xx]		16bit integer	Number of interval records
+0x11	[xx]		8bit integer	Number of seconds per interval record
+0x12	[xx]		8bit integer	Number of signals (nsig)</nowiki>
+
+Followed by a list containing (nsig * 3 bytes) of data describing how each waveform data is stored:
+
+ <nowiki>0x13    [xx] 		8bit integer 	Unknown, maybe the kind of waveform
+0x14    [xx xx] 	16bit integer 	Sample interleave
+.. repeats (nsig times)</nowiki>
+
+Followed by an unknown byte that is always 0, stored at 0x15+(nsig*3)
+
+Followed by the 8bit sum of all header information, stored at 0x16+(nsig*3)
+
+===== '''Calculating just the size of a blocks data area''' =====
+DataSize  = BlockLength – HeaderLength – Extra Header stuff – 1 byte header checksum – 2 byte block checksum
+
+For summary & event data, this translates to DataSize = BlockLength-18
+For waveform data, this translates to DataSize = BlockLength-18-(nsig*3)
+
+==== Waveform Data Structure ====
+If only one waveform is present (indicated by number of signals == 1), this simply contains DataSize/SampleSize samples for this block in order.
+
+If more than one waveform is present, the data is multiplexed together in small groups of samples,  the size of which is determined by the interleave value and sample type stored in the header.
+
+Only 8 bit samples have been observed, but I feel it's safe to assume the interleave counts samples and not bytes. Different sample types can be interleaved together, and may therefore be different sizes.
+
+Example, Two multiplexed waveforms, one with an interleave of 5, sample type 0, and the other has an interleave of 5, sample type 1
+
+ <nowiki>Byte 	Value 	Waveform
+0x00 	44 	1 		(Starting from the first byte in the data block)
+0x01 	45 	1
+0x02 	46 	1
+0x03 	48 	1
+0x04 	50 	1
+0x05 	00 	2
+0x06 	01 	2
+0x07 	02 	2
+0x08 	03 	2
+0x09 	04 	2
+0x0a 	55 	1
+0x0b 	55 	1
+0x0c 	55 	1
+0x0d 	55 	1
+0x0e 	55 	1
+0x0f 	05 	2
+... and so on.. </nowiki>
+
+Interleaving repeats for the remainder of the DataSize
+
+==== Event Data Format (.002 files) ====
+
+Event data is stored after the standard header in time-delta format. (Except on the 1160P, see above.)
+
+Each event is represented by an 8bit code,  and generally followed by 16bits worth of delta offset values, and zero or more data fields of varying byte lengths, determined by the event code.. 
+(I say generally because occasionally events have a short form based on the content.)
+
+The schema describing this information is not stored with the event data, so understanding of the DataFormat, Family & Family Version fields is needed to interpret this file correctly.
+
+System One ASV Data (family 5) for instance, uses different codes than a System One Remstar Auto (family 0)
+ASV does not contain RERA (or at least according to Philips Respironics Encore software, you'd think their top of the line machine would have this if it wasn't a bullshite figure to begin with.)
+
+===== '''Family 0 Codes''' =====
+ <nowiki>
+Code	Name		Delta	Data Fields		        Notes
+0x01	Unknown	        [xx xx] No data records
+0x02	Pressure	[xx xx] Pressure=[xx] 		        Divide pressure value by 10
+0x03	BIPAP Press.	[xx xx] EPAP=[xx]  IPAP=[xx]   	        Divide pressure values by 10
+0x04	PressurePulse	[xx xx] Unknown=[xx] 
+0x05	RERA		[xx xx] Offset=[xx]
+0x06	Obstructive	[xx xx] Offset=[xx]
+0x07	ClearAirway	[xx xx] Offset=[xx]
+0x0a 	Hypopnea	[xx xx] Offset=[xx]
+0x0c	FlowLimitation  [xx xx] Offset=[xx]
+0x0d	Vsnore		[xx xx] No data records
+0x0e 	Unknown	        [xx xx] [xx] [xx] [xx]			Unknown purpose
+0x0f	CSR/PB	        [xx xx] Duration=[xx xx] Offset=[xx]	
+0x11	GraphData	[xx xx] Leak=[xx] Snore=[xx]
+0x12 	Summary?	?????	[xx] [xx] [xx] [xx]</nowiki>
+
+===== '''Family 5 Codes (ASV)''' =====
+ <nowiki>Code	Name		Delta	Data Fields		Notes
+0x00 	Unknown	        Variable length.. 		Freaking weird. Read all the zeros in sequence, and then one more value.
+0x02	Pressure	[xx xx] Pressure=[xx]		Divide pressure value by 10
+0x04	PressurePulse?	[xx xx] ?? = [xx]		This data looks like pressure pulse.
+0x05	Obstructive	[xx xx] Offset=[xx]
+0x06	ClearAirway	[xx xx] Offset=[xx]
+0x07 	Hypopnea	[xx xx] Offset=[xx]
+0x09	FlowLimitation  [xx xx] Offset=[xx]
+0x0b	CSR/PB	        [xx xx] Duration=[xx xx] Offset=[xx]	Multiply Duration by 2
+0x0d	GraphData	[xx xx] [xx xx xx xx xx xx xx xx xx xx]	These 10 bytes are broken down further into graph data
+0x0e  	Unknown	        [xx xx] [xx]			Unknown Purpose.. RERA?</nowiki>
+
+Delta values are applied before adding the event.
+Offset values are subtracted from the running delta (but they don't adjust the running delta, only the individual event)
+
+===== '''Example 0x0d GraphData breakdown''' =====
+
+ <nowiki>0d [78 00] [50] [50] [51] [1d] [13] [64] [0d] [44] [00] [2e]
+      0     1    2    3    4    5    6    7    8    9    10
+
+Idx	Details						Notes
+00 	The usual 16bit Time-Delta  
+01 	IPAP Value					Divide by 10
+02 	IPAP Low Range					Divide by 10
+03 	IPAP High Range					Divide by 10
+04 	Leak
+05 	Breaths Per Minute 
+06 	Patient Triggered breaths %
+07 	Minute Ventilation
+08 	Tidal Volume   / 10.0 				Multiply by 10
+09 	Snore Graph					(>0 = event flag on encore) 
+10 	EPAP Value					Divide by 10</nowiki>
+
+IPAP High – IPAP Low = PS (Pressure Support)?
+IPAP – EPAP = Pressure Support?
+
+=== Summary Data (.001 files) ===
+
+Summary data is stored after a standard data header, and contain totals, pressure settings, and general machine settings for a recorded session. 
+Usually they are around 77 bytes, although this varies. multiple sessions can be contained in the one file.
+
+The structure is messy and not well defined, nor is it well understood
+
+A non zero value in the 6th data position inserts 4 bytes directly afterwards. 
+
+See sleepyhead code for definitions.
+
+[ STILL TO DO ]
+
+=== Summary Data (.000 files) ===
+These are the only "data" files recorded by '''[[brick]]''' machines..  (250P and below.. this includes the infamous "Plus" model) 
+
+they only contain very basic compliance information.
+
+They are usually 44 bytes in size, unless they contain multiple sessions
+
+They contain a rough usage time for each session, a pressure setting, c-flex setting, and humidifier setting. (Plus probably a few other machine on/off typed settings)
+
+Nothing particularly USEFUL is recorded here.
+
+These machines should be BANNED!
+
+=== .004 files ===
+
+.004 files are short, and contain a standard header, followed by a data area containing not fully known information
+
+Example Contents
+ <nowiki>07 [d3 ef 0a 4b] 17 87 08 00 35 [26 8e 0a 4b] 29 7b 08 00</nowiki>
+
+The two 32bit values in brackets are obviously timestamps.
+
+== Information about this Document ==
+This document was compiled and written by Mark Watkins and The OSCAR Team.
+
+This knowledge contained in this document represents the combined work of several hackers of the CPAPTalker's community.
+
+Credit especially goes to Mike Hoolehan (see http://www.onkor.net) for the initial grokking into this weird and wonderful data format. 
+
+Mark Watkins expanded on this work by deciphering the ASV stuff and the remainder of the waveform headers.
+
+Any terminology about Philips Respironics Trademarks belongs to them, (things like Flex types, machine and model names, etc.)
+
+The authors along with this work are in no way affiliated with Philips Respironics. Mark Watkins described himself as "just a hacker with OSA and an earnest desire to understand how CPAP machines (and the related health conditions) work."
+
+This data format was lawfully reverse engineered by experienced hackers studying the raw SD card data very carefully. No guarantees are made regarding its accuracy.

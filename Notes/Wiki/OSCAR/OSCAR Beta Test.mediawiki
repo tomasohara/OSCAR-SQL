@@ -1,0 +1,27 @@
+<br />'''<hr>'''<br />
+
+{{OSCAR}}
+<br />
+
+OSCAR is a community effort, and one important roll is for members of the Apnea Board community to test new versions in Beta. Beta testers are given early access to new versions of OSCAR software and asked to test the functionality of the software using their own data and devices. This ensures the software has an easy installation, and functions as expected. New PAP devices are added to the software, so it's important to continue adding beta testers to ensure the graphs and data are quality checked before full release.  At this time, OSCAR is released in Version 1.5.3, and a new version is under development to include the Aircurve 11 devices. 
+
+Beta testing is conducted through a private forum on ApneaBoard.com. If you are interested in becoming a Beta tester, developer, or translator please PM [https://www.apneaboard.com/forums/private.php?action=send&uid=27709 Crimson Nape] on ApneaBoard.com and say what you are interested in testing and what skills you bring.
+
+== What makes a good Beta tester? ==
+The goal of a beta tester is to "break" OSCAR and find any problems. A good beta tester has a sharp eye for detail and notices when data is not consistent, spelling errors, any disagreement between OSCAR and the CPAP machine or manufacturer's software, etc. A good beta tester has a perverse way of looking at software to see how it can be made to misbehave. A beta tester does not just use a test version to look at their data--that is the role for a release version, not a beta version.
+
+Beta testing is ''not'' an "early release" program, but rather a way for users to find and report problems before the product is released.
+
+Experience in software development, testing, and QA (Quality Assurance) is a great benefit. Understanding your computer's file system and being able to edit text files is important. You may be asked to send various files on your system to us, to modify files, to change Registry settings (Windows), or to install a program manually rather than using an installer.
+
+Beta testers should be experienced with using OSCAR and interpreting their data. Beta testing is not the place to learn how to use OSCAR and read the data. (We make exceptions for users with newly supported machines that have been unable to use OSCAR until now.)
+
+== Hazards of Beta testing ==
+Beta versions of software have bugs. Some may be innocuous and the program may just not show data properly. Others can be more serious, including damaging or delete your data. Beta versions of OSCAR by default use a separate database from release versions. You should not use a beta version on your release version files as you don't want your "good" data damaged. Also, file formats may change between versions and the change may not be backward compatible.
+
+Reports from beta versions may contain errors.
+
+== Joining the Beta test team ==
+If you are interested in becoming a Beta tester, developer, or translator please [http://www.apneaboard.com/forums/member.php?action=register register for a free forum account], then send a Private Message to 'Crimson Nape' on the Apnea Board forum and say what you are interested in and what skills you bring.
+<br>
+<br>

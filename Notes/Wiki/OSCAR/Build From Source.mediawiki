@@ -1,0 +1,173 @@
+{{OSCAR}}
+<br />
+
+= <big>'''Building SleepyHead from Source'''</big> =
+
+SleepyHead is built in C++ using [http://qt-project.org Qt5], a cross platform application framework. 
+
+GPL Source code currently resides in a [http://en.wikipedia.org/wiki/Git_(software) GIT] repository, hosted on SourceForge.
+
+QtCreator is this project's IDE of choice, but it can be built in a terminal.
+
+= Getting Ready =
+== Mac OS X ==
+
+Xcode must be installed on your computer.  If Xcode is not yet installed, download it from the Apple App Store. (Last I checked it was a free download.)
+
+You will then need to download the Command Line tools components of Xcode.. Just type gcc in a Terminal window and it should initiate the download if they are not already there.
+
+== Linux ==
+First install C++ development tools and the GIT client
+
+Then look in your package manager for Qt5 development libraries.
+(If you can give better instructions for Linux, please let me know)
+
+Qt4 is no longer supported.
+
+== Windows ==
+Find a GIT client.. 
+
+[http://git-scm.com/ Git-scm]
+
+[http://code.google.com/p/tortoisegit/ TortiseGit]
+
+If you know of any others, please add them here.
+
+The MingW Qt5 SDK will come with everything else you need to build on Windows platform, including complier and toolchain, but you can also build with the freely available "MS Visual Studio Express 2012/2013 For Windows Desktop" if you want to. (Google that for microsofts current download page)
+
+= Setting up the QtSDK =
+
+Download the free [http://qt-project.org/downloads Qt5 SDK] suitable for your platform. (Advanced Linux users may use your package manager version instead, but please do not ask for support if you choose to do this.)
+
+It's a big download.. The online installer versions are smaller, provided you trim the fat (you don't need Symbian stuff for starters)
+
+Unzip, and then find and run the SDKMaintenanceTool, and set up accordingly.
+
+== Linux Users ==
+You will get less bugs, and more consistent results if you use the most recent Qt SDK binaries available from qt-project.org.
+
+SleepyHead requires Qt 5.0 or greater.
+
+Your systems standard (gnu) C++ compiler will work fine.
+
+On Fedora you need to install the QtSerialPort-devel package, because it is not included by default. 
+You might need to look for similar package under a debian/ubuntu variants.
+
+== Mac OS X Users ==
+
+You will need Qt 5.2 SDK (or newer) for Mac OS X 10.6.x and above.
+
+Qt Creator is installed in the root level of the Qt SDK directory and can be located with a Spotlight search on "Qt Creator."
+
+Note that in future, Qt 5.4 will no longer support MacOSX 10.6.
+
+== Windows Users ==
+The easiest way to build is to download and install the most recent MingW Qt5 build which comes with the MingW GCC compiler & toolchain.
+
+SleepyHead will also build fine with Microsofts freely available Visual Studio Express 2012/2013 for Windows Desktop, but you will need a matching Qt5 SDK. (Building this way is the only way to get a 64bit build of SleepyHead on Windows. I definitely recommend it if your computer supports it, but it won't run any faster/better than the 32bit mingW version)
+
+===OpenGL 2.0 Support===
+'''Important:''' If your video card does not support OpenGL 2.0 (many intel cards didn't until recently) AND you are using ''Windows Vista'' or greater, you could try an ANGLE Qt5 SDK version, but you will need Visual Studio Express 2012/2013 installed beforehand to do this. Do not use the ANGLE Qt SDK versions on Windows XP, as it "will" cause crashes.
+
+If you have a discreet video like AMD or NVidia, or Intel IRIS, that definitely supports OpenGL 2.0, the "OpenGL" Qt SDK downloads are slightly faster than the ANGLE (DirectX) builds. 
+
+Some notebooks with dual graphics (such as nVidia Optima) have a "Run on Performance Graphics" launch option or similar, which you can use to get around the OpenGL issues.. I still wouldn't recommend building with the OpenGL Qt SDK on these machines, because some configurations turn off access to the faster graphics processor when your not plugged into power. If your unsure, and your on Vista or greater, use ANGLE version to be safe, as the performance difference is marginal.
+
+If you ''are'' still using ''WIndows XP'' (why?!!), and have a graphics card incompatible with OpenGL 2.0, or are running Windows in a ""Virtual Machine"", you can still run SleepyHead provided the BROKEN_OPENGL_BUILD is set at compile time: to do this, you simply need to create a file in the SleepyHead source code root directory called ''BrokenGL'', and rerun qmake. When this file is present, SleepyHead will build using slower QtWidgets for graphs, rather than the QtGLWidgets that cause rendering errors on incompatible hardware.  Windows XP users must use an OpenGL Qt5 SDK, built for either MingW, or Visual Studio Express provided you have the free Microsoft toolchain installed.
+
+===Intel Users===
+This website may help identify whether or not your video card supports openGL 2.0 [http://www.intel.com/support/graphics/sb/cs-033757.htm Supported graphics APIs and features]
+
+If your graphics chip does support OpenGL2.0 and you still have graph rendering/font problems, make sure you have the absolute latest video drivers available from intel.
+
+= Obtaining SleepyHead Source Code =
+
+(First create a directory where you want the sources to live)
+
+In a terminal, or using the GIT clients graphical user interface:
+
+<tt>git clone git://git.code.sf.net/p/sleepyhead/code sleepyhead-code</tt>
+
+It will download the source into a new "sleepyhead-code" folder.
+
+== Updating ==
+Any time you want to update, from inside this folder, you can do this:
+
+<tt>git pull</tt>
+
+And it will download and apply the most recent changes.
+
+= Building the Source =
+
+== QtCreator ==
+Open the SleepyHeadQT.pro file in QtCreator to load the project.
+
+Click the green play button in the bottom left side panel to build and run the source code.
+
+Click the green play button with a bug in the bottom left side panel to build and run the source code, and break on any errors, which will give a valuable stack trace and help hunt down the source of a crash.
+
+Click the hammer button in the bottom left side panel to build, but not run, the source code.
+
+== In a terminal ==
+I don't really recommend this for beginners, you can do this more comfortably in QtCreator.
+
+Advanced users should know how to do this already, it's better to use a "shadow build" directory in the same directory that holds the sleepyhead source code folder. 
+
+You may need to specify a makespec as a qmake option on your platform, i'm not going into details here.. Please use QtCreator if you can't work it out.
+
+Starting at the sleepyhead-code root folder:
+
+<tt>cd ..</tt> 
+
+<tt>mkdir build</tt>
+
+<tt>cd build</tt>
+
+<tt>qmake ../sleepyhead-code/SleepyHeadQT.pro</tt>   (On Fedora/Redhat, use qmake-qt5 instead)
+
+<tt>make -j3</tt>    (the number defines how many cores available on your CPU, adjust appropriately)
+
+When completed, look for the SleepyHead[.exe] binary and run it.
+
+== Windows ==
+
+Running the built binary manually can be a total pig, as you need to do some DLL hunting in the Qt SDK.
+
+I'll post some more information here when I figure an easier way of finding them.
+
+= Installing .debs for Ubuntu Natty (11.04) =
+'''This section hasn't been updated.. Remember you *NEED* Qt5 to build now.'''
+
+At the moment, these .debs are working in Natty (11.04) 32bit and 64bit 
+
+On Lucid (10.04) there is a dependency error:
+
+Error: Dependency is not satisfiable:libqtcore4 (>= 4:4.7.0~beta1), 
+whereas the only available libqtcore4 version in synaptic is 4:4.6.2
+
+== For Ubuntu Natty: ==
+
+Download the .deb suitable for your architecture from [https://sourceforge.net/projects/sleepyhead/files/Releases/Linux/]  You can type  '''uname -m''' in a terminal to see if your machine is 64bit or 32bit, if you don't know.
+
+Double-click the .deb and it will open in Ubuntu Software Center.
+
+Choose Install
+
+When installed, it can be run from Terminal by typing '''SleepyHead''' for the 64bit version, and '''sleepyhead''' for the 32bit.
+
+== Desktop Launcher ==
+
+Instead of launching SH from Terminal, you can:
+
+1) Right click the desktop and choose "Create Launcher", keep Type as Application
+
+2) Fill in the Name box (SleepyHead)
+
+3) Fill in the Command box (SleepyHead for 64bit, sleepyhead for 32bit)
+
+4) Click the Icon if you want to change it, and navigate to one of your choice. Choose Open to select it. The SleepyHead Icon is bob-v3.0.png, if you use Git is is available in sleepyhead/icons/bob-v3.0.png.
+
+5) OK out of the Create Launcher dialog
+
+SH Icon appears on desktop. 
+Double click to launch it

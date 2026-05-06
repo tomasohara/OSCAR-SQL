@@ -1,0 +1,86 @@
+{{OSCAR}}
+
+==<big><big>'''OSCAR''' - the Open Source CPAP Analysis Reporter</big></big>==
+'''OSCAR''' is software compatible with Windows, Mac and Linux operating systems, developed for reviewing and exploring data produced by supported CPAP, bilevel, ventilators and related machines used in the treatment of sleep apnea. OSCAR requires that data is collected on a SD card which MUST be inserted into the PAP machine during use to record detailed data. 
+<br />
+
+== Introduction ==
+<!--The analysis of the respiratory waveform is the heart and strength of OSCAR, whether it is reporting the results from the manufacturer or manually interpreting the displayed respiratory waveform, it is the core.<br />
+  ^ What exactly does this mean? -->
+* This help system is a work in progress.  Links shown in red indicate that the specific content is yet to be added to the wiki.
+* '''Background information''' about the program: [[About OSCAR|About]] OSCAR, OSCAR [[OSCAR Credits|Credits]] and OSCAR [[OSCAR Release Notes|Release Notes]].
+* The OSCAR program can be obtained free of charge from: [https://www.SleepFiles.com/OSCAR Official OSCAR Download Page]
+<!--
+* For a detailed discussion on the interpretation of your data see <span class="new-win">[[CPAP Data Interpretation]]</span>
+-->
+* '''Acknowledgement:''' Much of the material in this help system has been taken and/or adapted from <span class="new-win">[http://www.apneaboard.com/wiki/index.php?title=Beginner%27s_Guide_to_SleepyHead RobySue's Beginner's Guide to SleepyHead]</span>, with consent.
+<!--
+[[OSCAR temporary glossary page]]
+-->
+
+== OSCAR - The Guide ==
+For an excellent resource (from the OSCAR Project Manager, Gideon), here is the wiki article on how to use & interpret OSCAR's software results.
+It's called "OSCAR - The Guide", and can be found here:
+* <span class="new-win">[[OSCAR_-_The_Guide|OSCAR - The Guide]]</span>
+
+==  OSCAR Supported Machines and Devices ==
+The list of machines supported by OSCAR is expanding. Here is the list of currently compatible CPAP machines, oximeters, and sleep monitors:
+* [[OSCAR supported machines]]
+==  OSCAR Installation and Data Migration Guide ==
+A discussion of downloading and installing OSCAR on your PC followed by a discussion of migrating data from a previous version or from SleepyHead.
+* [[OSCAR Installation]]
+== Run OSCAR for the first time ==
+How to create a profile and import data
+* [[Running OSCAR for the first time]]
+== Basic OSCAR organization ==
+A description of the various windows in OSCAR and the available options.
+* [[OSCAR Organization - Basic Parts of the OSCAR Window|Basic Parts of the OSCAR Window]]
+* [[OSCAR Organization - Welcome Page|Welcome Page]]
+* [[OSCAR Organization - Profile Page|Profile Page]]
+* [[OSCAR Organization - Daily Page|Daily Page]]
+* [[OSCAR Organization - Overview Page|Overview Page]]
+* [[OSCAR Organization - Statistics Page|Statistics Page]]
+==OSCAR Chart Organization and preparing for Screen Shot==
+For a brief tutorial on the best way to arrange your OSCAR charts for review, follow this link:
+* [[OSCAR Chart Organization]]
+
+For advice on attaching charts and images to Apnea Board forums, follow this link: 
+* [http://www.apneaboard.com/wiki/index.php?title=Attaching_Images_and_Files_on_Apnea_Board Attaching files to Apnea Board]
+<!--
+=== OSCAR Overview screen ===
+       5.1 Overview data
+       5.2 The AHI graph
+       5.3 The Usage Compliance Overview
+       5.4 Session Times Overview
+       5.5 Leaks and Total Leak Overview
+       5.6 Peak Hourly AHI Overview
+* [[OSCAR Overview screen]]
+=== OSCAR Statistics screen ===
+       6.1 Organization of the Statistics Page
+       6.2 A detailed look at the CPAP Statistics
+           6.2.1 CPAP Usage data
+           6.2.2 Therapy Efficacy data
+           6.2.3 Leak Statistics
+           6.2.4 Pressure Statistics
+           6.2.5 Bugs in the CPAP Statistics data
+*[[OSCAR Statistics screen]]
+-->
+==OSCAR Preferences==
+To learn about the various changes you can make to the setup of OSCAR, see 
+* [[OSCAR Preferences]]
+<!--  This duplicates a section above
+== OSCAR Supported PAP Devices ==
+* [[OSCAR supported machines]]
+A list of CPAP/BiPAP machines that are supported by OSCAR   -->
+<!-- it would be good to get the machines, oximeters and sleep monitors all on the same page. On the To Do list  -->
+== OSCAR Troubleshooting ==
+Having trouble with OSCAR? You may find the answer here: 
+* [[OSCAR Troubleshooting]]
+* [[OSCAR password]]
+
+== International OSCAR Help ==
+''Languages for OSCAR'' --> 
+* [[International OSCAR Help]]
+* [[Translators|List of Languages and Translators]]
+<br />
+----------------------------------

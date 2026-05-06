@@ -1,0 +1,171 @@
+{{OSCAR}}
+__NOTOC__
+
+=Soft Cervical Collars and Apnea=
+==Introduction==
+This article provides guidance for the selection and use of a soft cervical collar (SCC) to prevent a common cause of positional apnea. Many CPAP users(at least 1/3 of forum members including the writer) experience significant
+clustered flow restrictions, hypopnea, and obstructive apnea that do not respond to pressure due
+to misalignment and restriction of the airway caused by tucking the chin down toward the chest
+(neck flexion). With chin tucking the soft tissues under the jaw are pressed upward causing a
+restriction or collapse during inspiration. It takes very little pressure to make this happen and the
+negative pressure of the airway during inspiration increases the restriction. This has been
+confirmed in at least one medical study <ref> Effect of Jaw and Head Position on Airway Resistance in Obstructive Sleep Apnea Choi JK, et al., Sleep and Breathing, 2000;4(4):163-168. 
+https://www.ncbi.nlm.nih.gov/pubmed/11894202 </ref>. To demonstrate this, sit relaxed in a chair and take a couple of deep breaths.  Then let your chin
+drop to your chest, take more deep breaths, and note the increased resistance. This is a common,
+perhaps the most common, form of what we call '''[[Optimizing_therapy#Positional_Apnea|Positional Apnea]]''' and, as previously mentioned,
+usually cannot be resolved by increased pressure.<br>
+Flow restrictions caused by chin tucking can be eliminated by wearing a loose-fitting soft
+cervical collar (SCC), or an alternative to be discussed below, to restrict neck flexion. Here are
+images of a typical SCC.<br>
+[[File:Cvs collar.jpg|Soft Cervical Collar]]  
+[[File:Extended collar.png|Extended Soft Cervical Collar]] <br>
+It consists of foam rubber with a cloth cover and a Velcro closure at the rear. The Velcro closure
+allows several inches of adjustment to achieve the correct fit. They are available in a variety of
+lengths and heights to suit individual needs. (The length and height in the example above would
+not be appropriate for everyone.)<br>
+Anti-snore pillows (collars) that are similar to an SCC in the front but have just a strap around the
+back are an effective alternative for those who find a foam collar that completely surrounds the
+neck too warm or otherwise uncomfortable. They are much less available locally, however, and are usually more expensive.<br><br>
+A small pillow set under the chin will also prevent tucking but is less effective than a collar and
+will probably not stay in place.<br>  Please see [[Optimizing_therapy#Positional_Apnea|the Optimizing_therapy Wiki]] for additional information on what is often referred to as "positional apnea".
+
+Some users have been able to discontinue use after a 'training' period where your body learns the correct alignment though this may take considerable time, months/years. 
+  
+Note:  There is a formal study in progress on this regarding "cervical alignment" but very few doctors or clinics, including sleep centers and sleep doctors will be familiar with this.
+
+==Where and How to Find Them==
+In the United States, an SCC can be purchased at most pharmacies and big box stores for around $20 but the selection of
+sizes will be limited. The best selection of sizes and prices (as low as $10) will be found at
+internet vendors such as Amazon and eBay.<br>
+
+A large number of choices of SCC can be found by entering “soft cervical collar” or “soft foam collar” in a
+search engine. A similar search at the site of vendor such as Amazon or eBay will also bring up many choices with fewer extraneous hits.<br><br>
+Anti-snore collars may be available at some big box stores but the best source is internet vendors
+It is difficult to find a good selection by entering “anti snore collar” in a search engine or even at
+the site of an internet vendor. It is more successful to search for specific brands/models such as
+Dr. Dakota Anti Snore Pillow Cushion, or Eliminator Series Sleep Aid Cushion. The Caldera
+Releaf Neck Rest, which more closely resembles an SCC has also been recommended by some
+forum members.<br>
+[[File:Snore-collar.jpg|Anti-Snore Collar]]
+
+==Fit and Use==
+Proper fit is very important. The SCC needs to support the jaw and chin, without impinging on
+the throat or soft tissue between the chin and throat or immobilizing neck movement more than is
+required to prevent the chin from tucking to the chest. Both height and circumference (length)
+are important. With respect to circumference, too tight a fit will be uncomfortable and may have
+adverse consequences and too loose a fit will not prevent chin tucking.<br><br>
+The length of the collar should be a couple of inches more than your neck size as determined
+using a cloth measuring tape. The SCC package should give the length or the range in neck sizes
+for which the collar is designed. 
+'''Keep in mind that the size stated is for the intended use of the collar which is a tight fit to immobilize the neck of someone who has had an injury. For our purpose the collar must be a looser fit. Therefore, a collar longer than the measured neck circumference should be selected.''' 
+Many sold by internet vendors such as Amazon are
+described just as small, medium, and large. Often there will be a sizing chart stating the range of neck sizes for each category. Select the size for which your neck size falls near the middle of the
+range. Precision is not important because most have a Velcro strap at the back and can be
+adjusted an inch or two beyond the stated range.<br><br>
+With respect to height, a collar that is too short may permit enough chin tucking to compromise
+the airway whereas one that is too tall will extend the neck up and back which will be
+uncomfortable. Collars are available in heights ranging from 50 to 75mm (2” to 5”). Choose a collar with a
+height close to the distance from the bottom of the chin to where the point where the neck meets
+the chest.<br><br>
+Internet vendors offer the best selection of heights. 3M markets an SCC called the Futuro that has
+a height adjustment tab. We have no reports on how well it works but 3M products are usually of
+good quality. It is available at most chain pharmacies such as CVS and Walgreens.<br><br>
+Adjust the collar so it is just tight enough to prevent the chin from tucking behind it, 
+'''but no tighter'''
+, so that it feels loose and can easily be moved around on the neck. It should be possible
+to easily insert one or two fingers between the neck and collar. It is important that the fit not only
+be loose but that the collar only be worn while sleeping. 
+'''Constant prolonged use''' of a cervical collar, especially if tight, can result in damage to nerves and tendons and muscle atrophy.<br><br>
+We feel comfortable recommending the use of the SCC as described above because it is not worn
+tight as it would be for its intended use, to stabilize the neck following injury, and is only worn
+while sleeping and not constantly. Evidence that there are no adverse side effects from long term
+use of a loose fitting SCC worn only while sleeping is, however, anecdotal from the experience
+of forum members. We have no solid data with respect to safety.<br><br>
+Most of the data demonstrating the successful use of SCC for treating &quot;positional apnea&quot; is
+strictly anecdotal. Although most doctors, sleep centers, and therapists are not aware of this
+application, it has not escaped the attention of sleep medicine researchers. We are aware of one
+pending study <ref> Evaluation of Treatment Effect of Cervical Collar in Moderate Obstructive Sleep Apnea, Florim Delijaj, Uppsala University. https://clinicaltrials.gov/ct2/show/NCT03754270 </ref> and three that have been completed. In one completed study five subjects with
+severe obstructive sleep apnea (OSA) that was not resolved with CPAP alone (mean AHI 21.2
+with CAP) had a reduction in mean AHI to 0.8 with combined CPAP and cervical collar
+treatment <ref>Efficacy of the Addition of a Cervical Collar in the Treatment of Persistent Obstructive Apneas Despite Continuous Positive Airway Pressure, Arnaud Prigent, et al., 2017 Dec 15; 13(12): 1473–1476.
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5695995/</ref> . In another study a significant reduction in AHI was seen in patients with severe OSA with
+combined cervical collar and MAD therapy as compared to MAD therapy alone. <ref>Reduced Apnea-Hypopnea Index in Patients with Severe Sleep Apnea Syndrome as Determined by Cervical Collar and Mandibular Advancement Device Combination Therapy, Delijaj et al., Journal of Sleep Disorders &amp; Therapy, 2016, 5:5
+https://www.longdom.org/open-access/redu...000252.pdf</ref> In a third study
+only one of 20 subjects with severe OSA experienced a significant (67%) decrease in AHI
+associated with use of the collar. The authors concluded “a soft cervical collar had no effect on
+pharyngeal patency in patients with OSA”. <ref>Soft Cervical Collar in Obstructive Sleep Apnea, a Pilot Study, P Bordier, et al., Sleep, Volume 41, Issue suppl_1, April 2018
+https://academic.oup.com/sleep/article/4...08/4988596</ref> <br>
+
+==OSCAR Charts==
+
+The following charts are provided by Apnea Board members to illustrate their personal success in using a soft cervical collar. It should be noted that the use of a soft collar may be advantageous for any type of machine such as CPAP, Bilevel or even advanced machines like the Adaptive Servo Ventilator (ASV). No matter how the pressure delivery, it cannot benefit the patient if the airway is obstructed by positional apnea.  These charts are intended to show before and after examples of the benefits. 
+
+===Without Collar===
+<br>[[File:Severe Positional Apnea.png|500px]]  [[File:Severe Positional Apnea FL Closeup.png|500px]] 
+[[File:Moderate Clustering Charts.jpg|500px]]
+<br> <br>
+
+===With Collar===
+<br>[[File:Normal w C Collar.png|500px]]  [[File:Normal w C Collar closeup.png|500px]]<br><br>
+
+===ASV Without Collar===
+<br>
+[[File:ASV without Collar 1.png|500px]]  [[File:ASV without Collar 2.png|500px]]<br>
+
+===ASV With Collar===
+[[File:ASV with Collar 1.png|500px]]  [[File:ASV with Collar 2.png|500px]]<br>
+
+
+==Reviews==
+
+===Collars===
+
+[http://www.apneaboard.com/forums/Thread-Product-Review-Coreflex-Ultra-Cervical-Collar?pid=355222#pid355222 Coreflex Ultra Cervical Collar]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-Caldera-Releaf-Neck-Rest Caldera Releaf Neck Rest]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-Carex-Cervical-Collar Carex Soft Cervical Collar]<br>
+[http://www.apneaboard.com/forums/Thread-Review-Futura-Sleep-Collar?pid=395728#pid395728 Futura Sleep Collar]<br.
+
+===Chinstraps===
+[http://www.apneaboard.com/forums/Thread-Product-Review-PAPcap-by-Pur-Sleep PAP Cap by Pur-Sleep]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-Ultimate-chin-strap Ultimate Chin Strap]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-Respironics-Premium-Chin-Strap-III Respironics Premium Chin Strap III]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-Avalon-Aire-Super-Delux-Chin-Strap Avalon Aire Super Deluxe Chin Strap]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-Carefusion-ruby-chin-strap Carefusion Ruby Chin Strap]<br>
+
+===Pillows===
+
+[http://www.apneaboard.com/forums/Thread-Product-Review-Avana-Mattress-Elevator-Under-Bed-7-Inch-Incline-Foam-Support-5-star Avana Mattress Elevator Under-Bed Incline Foam Support]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-Buckwheat-Pillow-VS-My-Pillow Buckewheat Pillow vs My Pillow]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-Wedge-Pillow-Body-Pillow Wedge Pillow Body Pillow]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-my-pillow My Pillow]<br>
+[http://www.apneaboard.com/forums/Thread-Product-Review-Cpap-Bed-pillows CPAP Bed Pillows]<br>
+
+==DISCLAIMER &amp; LEGAL NOTICE==
+BY USING A SOFT CERVICAL COLLAR OR OTHER MEANS TO PREVENT CHIN
+TUCKING AS DESCRIBED IN THIS DOCUMENT, YOU UNDERSTAND THAT YOU ARE
+PERSONALLY ASSUMING ALL ASSOCIATED RISK AND WILL NOT HOLD APNEA
+BOARD, ITS MEMBERS, OWNERS, ADMINISTRATORS AND/OR MODERATORS
+LIABLE FOR ANY PROBLEMS, DAMAGES, PHYSICAL HARM, (INCLUDING DEATH),
+MENTAL HARM OR ANY OTHER HARM THAT MAY COME TO YOU, YOUR FAMILY
+MEMBERS, FRIENDS, CO-WORKERS OR ANY OTHER PERSONS WHO MAY RECEIVE
+THIS INFORMATION FROM YOU. YOU MAY NOT USE, COPY OR DOWNLOAD THIS
+DOCUMENT UNLESS YOU HAVE A LEGAL RIGHT TO DO SO UNDER ALL
+APPLICABLE U.S. LAWS. INFORMATION CONTAINED ON THIS WEB PAGE, APNEA
+BOARD FORUMS AND ON THE APNEABOARD.COM WEB SITE SHOULD NOT BE
+CONSIDERED AS MEDICAL ADVICE. ALWAYS SEEK THE ADVICE OF A QUALIFIED
+PHYSICIAN BEFORE SEEKING TREATMENT FOR ANY MEDICAL CONDITION,
+INCLUDING SLEEP APNEA.
+
+==References==
+
+
+<!-- PLEASE NOTE: MAKE YOUR EDITS ABOVE THIS TEXT -->
+
+
+
+[[Category:Help]]
+[[Category:Editing]]
+[[Category:Medical terms]]
+[[Category:Conditions]]
+[[Category:Diagnosis]]
+[[Category:Treatment]]

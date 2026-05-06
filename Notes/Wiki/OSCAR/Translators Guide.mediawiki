@@ -1,0 +1,96 @@
+{{OSCAR}}
+
+'''Please read these instructions carefully'''
+
+An OSCAR translator is a member of [http://www.apneaboard.com/wiki/index.php/Translators the Translations Team] which is part of ''the OSCAR Team'' and as such has wide access to everything that happens in the private Apnea Software Talk (AST) subforum of the ApneaBoard Forum. That means that (''after proving his abilities and dedication'') a translator:
+* gives '''commitment''' to spending time and effort in translating OSCAR text strings. Though all of us are volunteers, the work is not optional... We expect you to make efforts to fulfill the commitment.
+* will get full access to the '''Translations Discussion Forum''' (A Sub-forum of the ''Apnea Software Talk'' Forum) and has to correspond everything concerning "translations" or "languages" in only that forum. Arie Klerk, who is appointed ''Translations Team Coordinator'' is a moderator of this Forum and has to read and act on all threads and posts here. Instructions for new translation sessions (i.e. at the start of a new beta version) will be posted there. Although Arie will send an email to all translators in order to ring a bell, the responses must be posted here.
+* will get full access to the website where the '''test- and beta versions''' are published. It must be completely clear that misuse of this access (i.e. by giving away the link to that website, or giving a test version to someone who is not a member of the OSCAR Team) will lead to a complete ban from all of ApneaBoard's Forums. The reason is that these test versions could lead to hazardous situations in hands of people without understanding the implications.
+* will use '''Qt Linguist''' as aid to translate and maintain the language file. Thus a uniform workflow makes sure that all languages can be used in OSCAR. Explanation of Qt Linguist can be found later on in this wiki.
+* is encouraged to use the '''DeepL program''' for the translation of words and strings (Google translate may be used as a backup, together with other translation programs and sites). DeepL can be downloaded and used for free from https://www.deepl.com/home and works ultimately easily. Both private and business use of the DeepL Translator (free) service are free of charge. 
+* is expected to have '''knowledge''' of Sleep Apnea terms and machine settings or willing to gain this knowledge.
+* is aware of the '''impact and risks''' of the translated work for the users who use OSCAR in their language. 
+
+The main objective is that we all enjoy being members of a team working on the health of many, many patients worldwide. The second should be to expand the local group of users and help those in a way like the ApneaBoard does for English-speaking sufferers. Please consider the situation in your language area, is there any group (FB?) for Apnea patients? How will they hear about the native possibilities of OSCAR?
+
+I hope that your translation work gives you the same kind of satisfaction it has given me and that you will stay a member of this team for a long time!
+
+'''Arie Klerk'''
+
+''OSCAR Translations Team Coordinator''
+
+___________________________________________________________
+== Workflow ==
+Since OSCAR emerged in 2019, as the successor of SleepyHead after the developer abandoned the program, a new version was released about every year. As new or altered translation strings mostly happen before the first beta of a new version, there is plenty of time (several months) before the deadline of a new release. And you can be sure that Arie informs you all several times in advance!
+Somewhere in the future, the program will undergo a drastic overhaul: a new database structure and -even more important- a new User Interface will be programmed! Rest assured, that these will even take much more than a year and presumably go in parallel with minor updates to the standing version.
+
+The objective is to have at least two translators for each language of whom one takes main responsibility. That is the case for Finnish, French (even 3), Italian, Polish, Russian, and now also Bulgarian. The others just like to work on their own, or because there's nobody volunteering 😀
+
+* The most up-to-date language files are available on Arie Klerk's DropBox, here: https://www.dropbox.com/sh/9z42foptrwjz6jo/AACUnuJ4svmDC6Z47DtDUcI8a?dl=0
+* Download your language file and update it as necessary
+* When finished, send your work (only as a .ts file) by email to: arie.klerk@gmail.com and/or post it in a thread on our sub-forum, here: http://www.apneaboard.com/forums/Forum-Translations-Discussion-Forum
+* Arie Klerk will replace the file both on DropBox and in his copy of the repository
+* Irregularly, but in time for a new release, Arie will push the changes to Pholy's repo and submit a merge request
+* Arie updates his spreadsheet (https://www.dropbox.com/scl/fi/1gyi5f7m0gxu7pokxrola/Translations.xlsx?dl=0&rlkey=fw9pdkq4z4ucyzqa0tkmpdiye) and also the relevant Wiki-pages on the translation of OSCAR.
+___________________________________________________________
+
+== Qt Linguist ==
+OSCAR is programmed with the use of the tools from Qt (http://qt-project.org/wiki/category:Tools). When someone wants to help this project by adding a new language, use can be made of another Qt program: Qt Linguist. This wiki is a step-up for the beginner. A comprehensive guide can be found here: http://qt-project.org/doc/qt-5/qtlinguist-index.html.
+
+Qt provides excellent support for translating Qt C++ and Qt Quick applications into local languages. Release managers, translators, and developers can use Qt tools to accomplish their tasks. Translators can use the Qt Linguist tool to translate text in applications. No computer knowledge beyond the ability to start a program and use a text editor or word processor is required. 
+In the case of OSCAR, a template is built for each language and provided to the translator, who opens the translation files using Qt Linguist, enters the translations and saves the results back into the translation files, which is passed back to the release manager. The release manager then generates fast compact versions of these translation files ready for use by the application. Thus giving more people native access to the results of their therapy.
+
+The tool is designed to be used in repeated cycles as applications change and evolve, preserving existing translations and making it easy to identify which new translations are required. Qt Linguist also provides a phrase book facility to help ensure consistent translations across multiple applications and projects.
+Translators and developers must address a number of issues because of the subtleties and complexities of human language:
+* A single phrase may need to be translated into several different forms depending on context. For example, ''open'' in English might become ''öffnen'', (= open file), or ''aufbauen'', (= open internet connection), in German.
+* Keyboard accelerators may need to be changed but without introducing conflicts. For example, "&Quit" in English becomes "Avslutt" in Norwegian which does not contain a "Q". We cannot use a letter that is already in use - unless we change several accelerators.
+* Phrases that contain variables, for example, "The 25 files selected will take 63 seconds to process", where the two numbers are inserted programmatically at run-time may need to be reworded because in a different language the word order and therefore the placement of the variables may have to change.
+The Qt translation tools provide clear and simple solutions to these issues.
+
+=== Setting up Qt Linguist ===
+You can find the latest version here: https://github.com/lelegard/qtlinguist-installers/releases. 
+
+After installing and starting the program one can just open the provided language template (like: Svenska.se.ts). The window then shows:[[File:Screenshot_2014-07-14_21.30.27.png|link=http://sleepyhead.sourceforge.net/wiki/index.php/]]
+
+
+In the left panel (under ''Context'') you see the subjects of the program, next to that the items (''Strings'') that can be translated. Below this is the place to do the translation.
+What misses, is the window on the right (''Sources and Forms''), where an editor could see the context of the item in the program. This only works if the raw program has been downloaded. For translators without knowledge of programming and 'git', it is easier to open the program OSCAR and look for the context in the program itself.
+
+The buttons on the top explain themselves, just use the arrow with the red question mark (''Next unfinished item'') to go the the next .... Well, you understand... ;)
+Further there are interesting aids: 
+* ''Phrases and guesses'' will be filled in due course while translating similar items. It helps very much in making translations consistent, i.e. use the same word again for an expression.
+* Under ''Warnings'' one will see a remark when the program thinks that something goes wrong. That can be a help too.
+
+=== Tips and tricks ===
+During the use of Qt Linguist, one could find a number of things to remember. Here are some:
+* step through the items one by one (''Next unfinished item'') and when all is done, go through them again and accept them (green checkmark and arrow): Only after having seen the whole list, one can decide on consistency of the used words.
+* mind the keyboard accelerators (with the &). Only when all items have passed, one can know which letters can be used as unique accelerators.
+
+=== Translating OSCAR ===
+* you best can use DeepL Translator (https://www.deepl.com/home) or Google Translate to get an impression of what the translation could be, but you have to watch very closely if it really says what it must be… You need some understanding of the disease and the program. I can help you!
+* when you have translated the first few strings, please send the file back to me, for review and advice. And of course, for help you can always mail Arie!
+* our DropBox folder with instructions and up-to-date language files is here: https://www.dropbox.com/sh/830vko731sbwggv/AAA7EqP71zHYyhBos86JIT63a?dl=0
+* when you are ready, your *.ts file must be uploaded in a post on our Translations Discussion Forum, here: http://www.apneaboard.com/forums/Forum-Translations-Discussion-Forum.
+
+'''Arie Klerk is the ''Translations Team Coordinator'' and he will take care that the files are up-to-date and the new ones are incorporated in the program. He will give instructions when there are more questions.
+You can reach him directly on arie.klerk@gmail.com'''
+
+=== TEST YOUR TRANSLATION FILE ===
+
+After making the translation in Qt Linguist, save it.
+Then choose File/Release, a .qm file is saved.
+Copy that file into the Translations folder in OSCAR (same filename as original!!)
+
+Due to a bug in OSCAR, you will not see the changes yet. Fist change to a different language and back to see them.
+
+== Working with test/beta versions ==
+OSCAR-beta-xx is a test version, so it will install in a separate location (on Windows, that's c:\program files\Oscar-test).  This allows you to have both the older '''production''' and the newer '''test''' version installed at the same time. Each will also save their data in separate directories (aka folders). Release versions in OSCAR_Data and test/beta versions in OSCAR_Data-test, both by default in your Documents directory.
+
+You can install any new version on top of a previous without any problems. Uninstalling a previous version is not required on Windows, nor in macOS. I don't know whether that is true for all LINUX platforms. Uninstalling OSCAR does not affect any data files, registry entries, preferences, or anything you have created.  It only removes the executable components. 
+
+All versions of OSCAR remember where the data directory is.  In Windows, this information is stored in the Registry.
+
+At startup, the beta version will offer to create a new, separate data directory: OSCAR_Data-test.  If you accept that directory name, OSCAR will ask if you want to migrate SleepyHead data. Here, you can choose to migrate (copy!) data from any older OSCAR version instead.  This migration preserves journal notes and bookmarks.  This is not the case when you import data from the backup directory in another profile...
+
+____________________________________________________________________________________
+[[Category:Translate]]

@@ -1,0 +1,33 @@
+{{OSCAR2}}
+
+ Back to [[Installing OSCAR 2.0]]
+
+If you did not migrate your OSCAR 1.x data during installation, you can import an OSCAR 1.x profile later. You can also import profiles from another OSCAR 1.x data folder into your current OSCAR 2.0 data folder.
+
+== Importing an OSCAR 1.x profile ==
+
+From the OSCAR main menu, select ''File | Profiles | Import from OSCAR...''
+<br /><br />
+[[File:OSCAR_2.0_Import.png]]
+<br /><br />
+
+OSCAR opens a folder browser so you can select a single OSCAR 1.x profile folder. OSCAR remembers the last OSCAR 1.x folder imported. On first use, if needed, browse to the OSCAR_Data/Profiles directory and select the profile folder you want to import.
+
+Then select the profile you want to import:
+<br /><br />
+[[File:OSCAR_2.0_Import_Profile.png]]
+<br /><br />
+
+If the selected profile folder is larger than 2 GB, OSCAR asks you to confirm before importing. Larger profiles take longer to import.
+
+The default name for the new profile is the source profile name. If that name already exists in OSCAR 2.0, OSCAR automatically appends a copy suffix to make it unique. You can change the profile name.
+<br /><br />
+[[File:OSCAR_2.0_Import_Filename.png]]
+<br /><br />
+
+When you click ''Import'', OSCAR imports the profile. When complete, it shows a completion dialog.
+<br /><br />
+[[File:OSCAR_2.0_Import_Successful.png]]
+<br /><br />
+
+ Back to [[Installing OSCAR 2.0]]

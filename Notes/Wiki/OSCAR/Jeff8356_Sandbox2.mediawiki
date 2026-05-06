@@ -1,0 +1,82 @@
+{{personal}}
+
+{{incomplete}}<br />
+{{OSCAR}}
+__FORCETOC__
+
+Verifying the checksum of the OSCAR installer you downloaded ensures that you are getting an exact copy of the file from the server. There are various reasons why something may go wrong with your download. Third party downloaders, download accelerators, internet issues, computer issues, etc. If verification fails then try downloading again and re-check the file.
+
+The checksums for each release of OSCAR are available on the main download page. You can view the checksums in your browser, or download the text file to your computer by right clicking the link and choose “Save link as”.<br />
+You can use the utility provided from the link on the download page, or you can use one of the methods described below.
+
+<span id="what-is-a-checksum"></span>
+= What is a checksum =
+
+A checksum is an alpha-numeric hash of a file and is used to verify the integrity of the file you downloaded. It is generated using an algorithm. Currently one of the most commonly used algorithm’s is SHA256. Here is a sample checksum and the file it was generated from:<br />
+<code>09b1ff0499b6ec90e22069ce44d68b1e94f7d456cb93a5817b412fa20c891580  OSCAR-1.5.1.dmg</code><br />
+The checksum on the download page can then be compared to the checksum generated locally on your computer. If the file downloaded properly then the checksums should be an exact match.
+
+<span id="verify-checksum-page"></span>
+= Verify checksum page =
+
+''This is the preferred method''<br />
+The link on the main download page will take you to an [https://www.sleepfiles.com/OSCAR/verify.html OSCAR page] that will will let you verify the checksum of the OSCAR file you downloaded.<br />
+Click the “Browse” button and select the OSCAR file you downloaded. The utility will generate the checksum ans display whether it properly matches the listed checksum of the file.
+
+<span id="manually-checking"></span>
+= Manually checking =
+
+<span id="windows"></span>
+== Windows ==
+
+For Windows 10/11
+
+'''Compare to a known value'''<br />
+Download the checksum file and save it to C;&lt;yourusername&gt;.<br />
+Then copy the checksum and past it in the following line in the command below.<br />
+Open a PowerShell window and run:<br />
+<code>(Get-FileHash .\path\to\foo.zip).Hash -eq &quot;15dc0502666851226f1d9c0fe352ccaf0ffdeff2350b6d2d08a90fcd1f610a10&quot;</code>
+
+'''Compare to a list of checksums:'''<br />
+Open a PowerShell window and run:<br />
+<code>(Get-FileHash '.\path\to\foo.zip').Hash -eq (Get-Content .\expected-hash.sha256)</code>
+
+In a command prompt run:<br />
+<code>certutil -hashfile &lt;filename&gt; SHA256</code>
+
+Or using PowerShell:<br />
+<code>Get-FileHash -Path c:\Users\user\abc.exe -Algorithm SHA256</code>
+
+<span id="macos"></span>
+== macOS ==
+
+<span id="manually-comparing-checksums"></span>
+=== Manually comparing checksums ===
+
+'''NOTE:''' ''The default download location for macOS is ~/Downloads''<br />
+''If you saved the file(s) to a different location you will need to adjust the commands below.''
+
+From the download page, obtain the checksum for the installer you downloaded. Copy/paste that into a text editor.
+
+Open Terminal and run:<br />
+<code>shasum -a 256 ~/Downloads/OSCAR-1.5.1.dmg</code><br />
+The checksum output in Terminal can then be copied and pasted into the text editor. Then compare the two checksums.
+
+<span id="using-the-checksums-file"></span>
+=== Using the checksums file ===
+
+Download the checksums file and the installer into your Downloads folder.<br />
+Then open Terminal and change to your Downloads folder: <code>cd ~/Downloads</code><br />
+Run the following command to verify the checksum:<br />
+<code>shasum -c OSCAR-1.5.1-checksums.txt --ignore-missing</code>
+
+The output of the above command should be similar to this:<br />
+<code>OSCAR-1.5.1.dmg: OK</code>
+
+<span id="linux"></span>
+== Linux ==
+
+In a Linux Terminal run:<br />
+<code>sha256sum &lt;filename&gt;</code><br />
+or<br />
+<code>sha256sum -c &lt;hash-list&gt;.txt --ignore-missing</code>

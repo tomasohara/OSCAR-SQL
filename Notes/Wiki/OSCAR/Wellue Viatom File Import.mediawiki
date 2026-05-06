@@ -1,0 +1,136 @@
+{{OSCAR}}
+<br />
+
+== Supported Pulse Oximeters ==
+OSCAR 1.1.0 supports the Wellue (Viatom) pulse oximeters listed below. Viatom devices are distributed in the US by Wellue (Lookee and Facelake?), and may have different names than their international equivalents.
+<br>
+* Wellue SleepU
+* Wellue O2Ring
+* Wellue Check Me O2 Max
+* Wellue Oxylink (using the iOS app method)
+* Facelake FL330
+* Lookee O2 Ring (by Wellue)
+* Probably Lookee Wrist sleep monitor (untested)
+* Possibly others, such as the KidsO2 but they are currently untested.
+
+== Download Recorded Sessions from the Pulse Oximeter ==
+ '''<big>Note:You MUST use the binary data file. No other file type will work.</big>''' 
+
+=== Windows PC ===
+
+# Download and install Viatom's free O2 Insight Pro software. [[https://getwellue.com/pages/pc-software link]]
+# Connect your oximeter to your PC with the USB cable that came with your oximeter. The O2 Insight Pro window should say "Device connected" in the bottom right corner. ''Viatom's software cannot connect via Bluetooth. You must use the proprietary USB cable that came with your oximeter.''
+# Click '''Download'''.
+
+The downloaded session files will be stored in <code>C:\Users\'''YourUserNameHere'''\AppData\Local\O2 Insight Pro\DATA\'''SerialNumber'''</code>.
+
+=== Android App ===
+
+# Download and install Viatom's free ViHealth Android app. [[https://play.google.com/store/apps/details?id=com.viatom.vihealth link]]
+# Launch the app while your oximeter is turned on. The app will automatically detect it and download your data. If your oximeter is off, you can simply replug in the USB charging cable (or ring sensor, if applicable) to turn it on.
+
+Only the binary datafile can be imported into OSCAR.  PDF and CSV file's data will not be imported.
+
+In order to generate a binary file in ViHealth, the user must view its data while in the app.
+
+The downloaded session files will be stored in <code>/sdcard/PlusebitO2</code> or <code>/sdcard/Android/data/com.viatom.vihealth/files/ViHealth/</code>. 
+
+'''Note:''' On newer versions of ViHealth, the following path is being used: <code> /Android/DATA/com/viatom.vihealth/files/11/Host/</code>.  The "11" is the device's model number and may be different for yours.
+ 
+Ideally copy these files into a folder on your computer and use your oximeter's serial number as the folder name.
+
+=== iOS App ===
+==== iOS Method 1 ====
+For iPhone and Mac users.
+# Download and install Viatom's free ViHealth iOS app. [[https://apps.apple.com/us/app/vihealth/id1413644737 link]]
+# Launch the app while your oximeter is turned on. The app will automatically detect it and download your data. If your oximeter is off, you can simply replug in the USB charging cable (or ring sensor, if applicable) to turn it on.
+# After the app has downloaded the data from your oximeter, take your iPhone and connect it to your Mac using the appropriate USB to lightning cable.
+# Open "Finder" and find your iPhone in the left panel. Click on your iPhone and the main panel will display the "General" tab.  Select the "Files" tab and a list of some of your apps will be displayed.
+# Click on the small arrow next to the ViHealth app and a list of folders will be displayed.  (Note: you will not be able to view the contents of these folders).
+# Hold the Option key then click and drag the O2Data folder to your Desktop.
+# Once the O2Data folder has finished copying you can double click the folder on your Desktop to open it in Finder.  You will see all of your binary files.
+# These files can now be imported into OSCAR
+'''NOTE:''' For OSCAR 1.4.0 and earlier, the .dat file extension will need to be removed prior to importing into OSCAR.
+
+==== iOS Method 2 ====
+# Download and install Viatom's free ViHealth iOS app. [[https://apps.apple.com/us/app/vihealth/id1413644737 link]]
+# Launch the app while your oximeter is turned on. The app will automatically detect it and download your data. If your oximeter is off, you can simply replug in the USB charging cable (or ring sensor, if applicable) to turn it on.
+# Tap on the day you wish to export as a file.
+# Select the sharing icon in the top right corner of the day's view.
+# Choose "Share as Binary" when prompted.
+# Save the day's file via AirDrop, email, cloud storage, or local iOS files.
+
+Unfortunately, the iOS app requires you to export one day at a time, repeating steps 3-6 for each day you wish to export. To export all of your downloaded oximetry files at once try one of the other methods.
+
+==== iOS Method 3 ====
+'''NOTE:''' Method 3 may not work for all models or for newer versions of the ViHealth app.
+# Backup your iPhone or iPad to your computer.
+# Extract the sqlite database from your iOS backup:
+## Download the free version of iBackupViewer. [[https://www.imactools.com/iphonebackupviewer/ link]]
+## Launch iBackup Viewer and open your iOS backup.
+## Click on the "Applications" icon.
+## Select ViHealth.app from the list of apps on the left.
+## Select Documents/JKBD/jkdb.sqlite.
+## Click Export > Selected Files... .
+## Save the jkdb.sqlite in a folder on your computer. Ideally use your oximeter's serial number as the folder name.
+# Extract the recorded sessions from the sqlite database. For example, on macOS:
+## Launch Terminal.app
+## <code>cd /Users/YourUserNameHere/path/of/your/data/folder</code>
+## <code>sqlite3 jkdb.sqlite</code>
+## <code>select writefile(fileName, fileData) from DataModel;</code>
+## <code>.quit</code>
+
+The downloaded session files will be extracted and stored in the folder you specified above.
+
+=== macOS ===
+
+# Download and install Viatom's free O2 Insight Pro software. [[https://apps.apple.com/us/app/o2insight-pro/id1491464821?mt=12 link]]
+# Open the O2 Insight Pro.app
+# Turn your oximeter on by inserting your finger into the probe momentarily until the time shows on the display.
+# From the O2 Insight Pro software click the '''''"Connect"''''' button in the top left of the app window.
+# Another small window will open which should show your oximeter.  Click the '''''"Connect"''''' button next to your oximeter. The O2 Insight Pro window should say '''"Device connected"''' in the bottom right corner.
+# Once your oximeter is connected to the app, click '''''"Download"'''''.  Once the download is complete the file needed to import the oximetry data into will be available. 
+# When finished, click the '''''"Disconnect"''''' button at the top left of the O2 Insight Pro window.
+<!-- # Connect your oximeter to your Mac via Bluetooth.  The O2 Insight Pro window should say "Device connected" in the bottom right corner. -->
+<!-- # Click '''Download'''. -->
+
+The downloaded session files will be stored in one of two possible locations:<br />
+<code>/Users/'''YourUserNameHere'''/Library/Containers/com.viatom.O2PCViewer-BLE/Data/Library/Application Support/O2_Insight_Pro/DATA/'''SerialNumber/'''</code>.<br />
+or<br />
+<code>/Users/'''YourUserNameHere'''/Library/Containers/O2_Insight_Pro/Data/Library/Application Support/O2_Insight_Pro/DATA/'''SerialNumber/'''</code><br />
+
+The "Library" folder is hidden by default, but you can still reach it in Finder by pressing cmd-shift-G and entering <code>~/Library</code> in the file selection dialog.
+
+== Syncing your Oximeter times with OSCAR ==
+<br>
+
+'''Note:''' This step is optional.  Your CPAP time and your Oximeter time may get out of sync by several minutes or longer.  This can be a result of "clock drift", change from Daylight Saving Time, incorrectly set computer time, changing time zones while traveling, etc.
+
+If your CPAP times and Oximeter times are already synced to your liking then this section can be skipped.
+
+
+To synchronize your Oximeter start time with your CPAP data:
+
+
+Import your CPAP data into OSCAR.  In the left panel on the Daily screen, under your AHI, you will see the start time for your CPAP session.  Make a note of this time.
+
+* If you have already imported your data, you will need to purge it before proceeding (Data > Advanced > Purge Oximetry Data > Current Day).
+
+If you are using the O2 Insight Pro software make a copy of the Oximeter binary file and store it in a different folder. <br>
+If you are importing the Oximeter binary file from your phone to your computer then select the file from the folder you stored it in.
+
+The name of the file is in the format YYYYMMDDhhmmss (YearMonthDayHoursMinutesSeconds) with no extension.  The time in the filename is 24 hour time (221500 = 10:15:00 PM)
+
+Using your file manager (Finder for Mac, File Explorer for Windows) right click on the Oximeter binary file and select "Rename"
+then change the last 6 digits of the filename to match the start time of your CPAP session that you made note of earlier.  Then hit the Enter key to save your change.
+
+The Oximeter binary file can now be imported into OSCAR and will have the same start time as your CPAP data.
+
+== Import the Downloaded Sessions into OSCAR ==
+
+# Select '''Data > Import Viatom/Wellue Data''' in OSCAR's menu bar.
+# Navigate to the folder where your downloaded session files are stored. See above for the location, depending on how you downloaded the data from the device. ''The session files are named after the time at which each night's recording started, e.g. 20200408214533 for April 8, 2020 at 9:45:33 pm.''
+# Select the folder containing the session files and click '''Open'''. All sessions in that folder will be imported, and previously imported sessions will be skipped.<br>Alternatively, if you want to import only a single session, you can select just that session file.<br>''Note: On Windows, you cannot directly open a folder. Shift-click to select more than one session file in the folder, and all files in that folder will be imported.''
+
+
+[[Category:Pulse oximetry]]

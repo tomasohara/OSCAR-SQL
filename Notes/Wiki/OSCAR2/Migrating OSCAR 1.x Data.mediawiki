@@ -1,0 +1,26 @@
+{{OSCAR2}}
+
+ Back to [[Installing OSCAR 2.0]]
+
+If you have used previous versions of OSCAR, OSCAR 2.0 can ''migrate'' your OSCAR 1.x data (including your settings and preferences) into the new OSCAR 2.0 data folder. Select '''OK''' for OSCAR to copy your OSCAR 1.x data or else select '''No'''. 
+
+If you select No, Oscar 2.0 will start and take you to the profile creation page. You will then be able to create a profile and import your data from an SD card. See [[Running OSCAR for the first time]].
+
+Note that you can ''migrate'' '''all''' your OSCAR 1.x data '''only at this time'''. You can ''import'' individual profiles later, but you need to import each profile individually. See [[Importing OSCAR 1.x Data]].
+<br /><br />
+[[File:OSCAR_2.0_Migration_Choice.png]]
+<br /><br />
+If you select '''OK''' OSCAR 2.0 will then open a file selector window, where you can locate and select your OSCAR 1.x data folder. OSCAR 2.0 will then copy all the data across to the new OSCAR data folder, with a progress bar to mark its progress (this can take some little while). OSCAR 1.x data is usually contained in a folder named "OSCAR_Data" in your documents folder. Note that the OSCAR 1.x data is copied so the original data stays in place and you can still use it with OSCAR 1.x if you wish.
+<br /><br />
+[[File:OSCAR Data Selector.png]] <br />
+
+[[File:Migration 2.0.png]]
+<br /><br />
+
+== Where is my OSCAR 1.x data? ==
+If you can't find your OSCAR 1.x data folder, open OSCAR 1.x and from the menu select '''Help | TroubleShooting | System Information'''. This will open a dialog box which includes the location of the data directory. <br /><br />
+[[File:OSCAR 1.x SysInfo.png]]
+<br /><br />
+On completion of the data migration, you are ready for review the data migrated from OSCAR 1.x, or set set up a new profile. See [[Running OSCAR for the first time]] <br />
+<br /><br />
+ Back to [[Installing OSCAR 2.0]]

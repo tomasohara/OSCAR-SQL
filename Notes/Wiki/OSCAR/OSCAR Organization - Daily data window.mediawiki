@@ -1,0 +1,96 @@
+{{OSCAR}}
+<br />
+
+==OSCAR Help==
+This guide is part of the suite of OSCAR help articles. See [[OSCAR Help]]. <br /><br />
+
+Acknowledgement: Most of the material on this page has been sourced from [[http://www.apneaboard.com/wiki/index.php?title=Beginner%27s_Guide_to_SleepyHead RobySue's Beginner's Guide to SleepyHead]]
+
+== Introduction ==
+This page explains in detail the OSCAR Daily screen.
+<br /><br />
+[[File:OSCAR daily screen.png | 800 px]]
+
+== Left side-bar ==
+{|
+|[[File:OSCAR Side-bar.png]]
+|The left part of the Daily screen is referred to as the '''left side-bar''. It contains details of your machine and its settings, your AHI and other sleep indicators, and the amount of time you were asleep.
+<br />
+Starting from the top, the key parts of the left side-bar are
+# Program identification, menu and tabs, as found on all screens within OSCAR
+# The current date. Click the small green arrows to move back & forth by one day. Click the Green arrow & bar >| to move to the latest date with data. Click the small black triangle to make the calendar appear or disappear.
+# Tabs to select details, events, notes and bookmarks. These will be discussed in greater detail below.
+# AHI Summary. This is your '''apnea / hypopnea index''' for the sessions under review. It is the total number of apneas and hypopneas divided by the total hours of sleep. Generally this will be for the whole night, however if you have turned any sessions on or off (See No 11 below) then the AHI is given only for the sessions turned on.
+# Machine type and settings summary. This gives the make and model of CPAP machine. The PAP mode is the particular algorithm set on the machine (many machines can operate in more than one mode). It also shows the pressure settings.
+# Session starting, ending and total times. Shows when the machine was turn on and off, and the total elapsed time. Note that although this is used to calculate the time asleep, the CPAP machine has no way of knowing if you were actually asleep or not.
+# Event rates per hour. A simplified view of the different types of events you have experienced. Note that some machines display more or fewer event types, and these can be selected in the [[File settings]] menu. 
+# Statistics for pressure, leaks, snores and respiration. Detailed information about your respiration throughout the night. These are discussed in greater detail below.
+# Machine Settings Details. A more complete set of machine settings.
+# Session Information. Each time the machine is turned on then off is called a session. If you sleep right through the night, that is a single session. If you stop the machine for a toilet break then start it again, then two sessions will be recorded.
+# Buttons to turn sessions on and off. Clicking on these buttons will include or exclude sessions from display of the night's data. This can be useful if (for example) you had a very brief nap in the afternoon and want to exclude it from the night's results. '''Note''' that turning a session off will change the calculated AHI for the night. Note also that sessions can be turned on and off using the small green/black buttons in the section information panel. When a session is off the button changes to black / red.
+|}
+
+
+=== The Calendar ===
+{|
+|[[File:OSCAR Calendar.png]]
+|
+The calendar can be useful for navigation, but if you are posting an OSCAR Daily Detail graph on the forum, it should be minimized. To minimize the monthly calendar, just click on the triangle to the left of the current date. 
+
+If you click on a date in the calendar, the daily data for that date loads into the daily data window. It's also important to understand that the data for any particular date is the data for the NIGHT that started on on that date and ended the following morning. And that's true regardless of whether you get to bed before midnight.
+
+Now look at the little arrows in the calendar. 
+
+# The two arrows that surround the bubble with the highlighted date for the daily data move one day backward or forward. 
+# The third outside arrow on the far right ->| will immediately jump to the last date with data.
+# The two arrows on the blue bar with the month's name allow you to jump forward or backwards by a month.
+# Pressing the downward triangle between the month and the year allows you to quickly change to a different month. 
+# Clicking the year allows you to quickly change to a different year.
+# Pressing the upward facing arrow in the bubble with the the date in it will hide the calendar and change that triangle to a downward facing triangle. Clicking the downward facing triangle will unhide the calendar. Hiding the calendar is useful if you want more room for the Left Sidebar data.
+|}
+
+===Pie Chart===
+{|
+|[[File:OSCAR Pie chart.png]]
+<br>
+|You can see a pie chart depicting the breakdown of your events.
+
+To turn the pie chart on and off, go to the File menu and select '''File | Preferences | Appearance'''. For posting charts to the forum it's best to turn the pie chart '''off''' as it covers up more valuable information.
+|}
+[[File:OSCAR Preferences Appearance.PNG | 600 px]]
+
+
+<br>
+
+== Tabs: Details, events, notes and bookmarks ==
+{|
+|[[File:OSCAR Events tab.PNG]]
+|
+* The '''Details tab''' is the default view which shows the statistics, machine settings etc.
+* The '''Events tab''' Shows every apnea, hypopnea, large leak and other significant events during the night. The numbers in brackets are the duration of the event in seconds. Clicking on any event will zoom the chart to show that event in detail. 
+* The '''Notes tab''' allows you to keep a daily journal of your sleep experience. There are basic formatting buttons available as well as a slider to register how you feel (on a scale of Zombie to Awesome). You can also enter your weight each day.
+* The '''Bookmarks tab''' lets you record the time of significant events you may wish to refer back to, such as an exceptionally long apnea. Place the cursor on the event, zoom in as far as possible, then click '''Add Bookmark'''. Bookmarks can be searched using the Bookmarks tab in the right side-bar (press F10 to make the side-bar visible).
+|}
+
+== The daily detailed graphs  ==
+
+These are the graphs that the experienced forum members keep referring to when they ask for more specific information about what your graphs look like.<br />
+
+Here's a close up of the top of the graphical data:<br />
+
+[[File:graphs1_zpsffe4b21d.jpg]]
+
+<br />
+
+The top chart is the '''Events chart'''. The Events chart gives a snapshot of just how good or bad the night was. (This patient had a really good night on this night).  In SleepyHead 0.9.5 and 0.9.6, this chart is pinned to the top of the detailed data graphs and it will NOT scroll out of view when you scroll down to look at more graphs. It's best to leave the Events chart pinned since it serves as a navigation guide: The Events chart does not zoom in with the rest of the graphs.
+
+The '''Flow Rate''' graph is often called the wave flow data. When you zoom in on this graph you can see a trace of every breath you took all night long.
+
+The labels on the rest of the graphs are self-explanatory once you know the jargon. This is discussed later in this article.
+
+Scrolling down reveals additional daily data graphs:<br />
+
+[[File:graphs2_zps1a38e585.jpg]]
+<br />
+
+The particular graphs that you will see in OSCAR depends on the machine you are using and whether you have turned any of the available graphs "off".  This is discussed later in this article as well.

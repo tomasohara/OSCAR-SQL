@@ -1,0 +1,91 @@
+{{DISPLAYTITLE:<span style="display:none">{{FULLPAGENAME}}</span>}}
+[[File:Wiki-banner7.jpg | link=Wiki Home | center]]
+<center>The Free Sleep Apnea Encyclopedia</center><br><center><inputbox>
+type=search
+width=31
+buttonlabel=Go
+searchbuttonlabel=Search the Wiki
+break=no
+</inputbox></center>
+
+<!-- Start Apnea Board Menu System HTML -->
+
+<table style="width:100%; background:#fcfcfc; border:1px solid #95A1AF;border-collapse:collapse">
+	<tr>	
+		<td valign="top" style="width:77%;padding:5px 10px; color:#000">
+{{Template:Main Page:About the Apnea Board Wiki}}
+</td>
+		<td valign="top" style="width:15%; padding:5px 10px;">
+			<ul>
+			<li>[[:Category:Symptoms|Symptoms]]</li>
+                        <li>[[:Category:Conditions|Conditions]]</li>
+			<li>[[:Category:Diagnosis|Diagnosis]]</li>
+ 			<li>[[:Category:Treatment|Treatment]]</li>	
+			</ul>
+		
+		</td>
+		<td valign="top" style="width:15%; padding:5px 10px;">
+			<ul>
+			<li>[[:Category:Tips|CPAP Tips]]</li>
+			<li>[[:Category:CPAP technology | CPAP Technology]]</li>
+			<li>[[:Category:Patient Empowerment|Patient Empowerment]]</li>
+			</ul>
+		</td>
+
+
+	</tr>
+</table>
+[[Help:Contents|Help]]&nbsp;'''·''' [[Apnea Board Wiki Editor | How to Become a Wiki Editor]] &nbsp;'''·''' [[Commercial links policy | Commercial Links Policy]] &nbsp;'''·''' [http://www.apneaboard.com/forums/ Apnea Board Forum]&nbsp;'''·''' [http://www.apneaboard.com/ Apnea Board Website]
+
+
+
+<table style="text-align: left; width: 100%; margin-left: auto; margin-right: auto; border="1" #95A1AF; cellpadding="12" cellspacing="2">
+
+  
+    <tr>
+      <td style="vertical-align: middle; background-color: rgb(246, 246, 246); text-align: left; width: 65%;"><big style="font-weight: bold;">Adjusting Your Own CPAP Pressure</big><br>
+      <hr style="width: 100%; height: 2px;">[[File:Cpap1.gif|left]]{{Template:Adjusting Your Own CPAP Pressure}}</td>
+
+      <td style="background-color: rgb(246, 246, 246); text-align: left; vertical-align: middle; width: 35%;">[[File:Books.gif|center]]<big style="font-weight: bold;">Wiki Categories</big><br>
+      <hr style="width: 100%; height: 2px;">{{Template:Main Page/Categories}}</td>
+    </tr>
+    <tr>
+      <td style="background-color: rgb(246, 246, 246); text-align: left; vertical-align: middle; width: 65%;"><big style="font-weight: bold;">Open Tasks for Wiki Editors<br>
+</big>
+      <hr style="width: 100%; height: 2px;">[[File:Quill.gif|left]]{{Template:Opentask}}</td>
+
+      <td style="background-color: rgb(246, 246, 246); text-align: left; vertical-align: middle; width: 35%;">[[File:Boy_reading3.gif‎|center]]<br><br><big style="font-weight: bold;">Popular Wiki Articles</big><br>
+      <hr style="width: 100%; height: 2px;">{{Template:Popular Topics}}</td>
+    </tr>
+
+</table>
+<br />
+{{OSCAR-ad}}
+
+
+<center>
+'''Must-see video for new Sleep Apnea patients<br />
+
+<big>'''''Understanding Sleep Disordered Breathing''''':'''</big>
+
+<youtube width="600" height="400">EDorWmdxnZE</youtube>
+</center><br />
+
+[[Category:Help]][[Category:Search]][[Category:Editing]]
+[[Category:CPAP technology]]
+[[Category:CPAP accessories]]
+[[Category:Insurance and Medicare]]
+[[Category:APAP]]
+[[Category:BPAP]]
+[[Category:OSA]]
+[[Category:CSA]]
+[[Category:Prescriptions]]
+[[Category:CPAP data]]
+[[Category:Symptoms]]
+[[Category:Medical terms]]
+[[Category:Conditions]]
+[[Category:Diagnosis]]
+[[Category:Treatment]]
+[[Category:Patient Empowerment]]
+[[Category:Tips]]
+[[Category:Misc]]

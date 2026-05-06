@@ -1,0 +1,35 @@
+{{OSCAR}}
+
+<br /><br />
+
+ Back to [[OSCAR Installation]]
+
+If you have not migrated your SleepyHead data as part of the OSCAR installation, you may be able to import the raw data into your Oscar data file later. You may also import data from another Oscar data file into your current data file. Note that this will only work if SleepyHead has backed up the raw data as it's downloaded. If you don't have the data backed up, this process will not work.
+
+=== Location of backup files ===
+
+SleepyHead's default configuration will back up your raw data into a folder(s) in your profile directory. The typical path in Windows is 
+  C:\...\SleepyHead\Profiles\''Yourprofilename''\''Machinename''\Backup 
+(see image below).
+<br /><br /><br />
+[[File:Path to backup.PNG]]
+<br /><br />
+
+=== Importing raw data ===
+
+In OSCAR's Welcome page select the ''CPAP Importer'' icon. Alternatively select ''File | Import Data'' from the menu or press Shift|F2. OSCAR will search for an SD card: If the card is found it will bring up a dialog asking if that is where you want to import the data from. If there is no card, it will try to find a data directory on the hard drive(s).
+<br /><br />
+[[File:Folder located.PNG]]
+<br /><br />
+ 
+On the dialog, select '''Specify''', which will take you to a file selector dialog. Navigate to the location of your backup data and select the '''Backup''' folder. OSCAR will then import the raw data from the backup folder to your current profile in the OSCAR data folder. If you have more than one machine in your SleepyHead profile, you will need to import the data from each one individually.
+
+Once the data has been imported, check the Overview page to ensure there are no unexpected gaps. It is wise to validate the data transfer by viewing a few randomly selected days in both SleepyHead and Oscar to ensure the data is unchanged.
+<br /><br />
+=== Where is my SleepyHead data? ===
+If you can't find your SleepyHead data folder, open SleepyHead and from the menu select '''Help | About SleepyHead'''. This will open a dialog box which includes the location of the data directory in one of the formats shown below (depending on which version of SleepyHead you are running). <br /><br />
+[[File:About SleepyHead.png]] [[File:About SleepyHead 2.png]]
+<br /><br />
+On completion of the data migration, you are ready for review the data migrated from SleepyHead, or set set up a new profile. See [[Running OSCAR for the first time]] <br />
+<br /><br />
+ Back to [[OSCAR Installation]]

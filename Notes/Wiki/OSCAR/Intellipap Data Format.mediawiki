@@ -1,0 +1,89 @@
+{{OSCAR}}
+
+'''This is a work in progress. Nothing should be taken literally here.'''
+
+==='''Data format/capabilities analysis'''===
+
+Grade: F 
+
+'''Negatives''' 
+* Manufacturer failed to openly document this format. 
+* No Flow Waveform, unless hacked out through serial port. (awarded an instant F)
+* Very Low resolution event/graph data.. 
+* Events wound not be able to sync even with flow waveform data.
+* Only the last two settings changes are kept.. :(
+* Needs a separate data module for SD logging.
+
+'''Positives'''
+* Non-complicated data structures
+* Machine is firmware upgradable, so there is hope for this machine.
+
+== Intellipap Data Format ==
+
+Intellipap support is still very young, but functional.
+
+I've still got to finish updating this..
+
+Most of this is crud.. Check the SleepyHead source code for more accurate information. 
+
+=== "U" Files ===
+
+This is the session Index.
+
+It contains repeating 9 byte codes, containing two 32bit (big endian) timestamps, and a single checksum byte.
+
+Timestamps are in seconds since midnight 1 January 2002.
+
+Points to the start and stop time of each session.
+
+=== A few lines of hex data ===
+ <nowiki>12,07,CB,EF,12,08,2F,98,A3
+12,09,27,15,12,09,34,14,D8
+12,09,35,0C,12,09,35,C4,F1
+12,09,35,C6,12,09,90,CF,5F
+12,0A,08,4F,12,0A,08,50,86
+12,0A,08,51,12,0A,09,76,62
+12,0A,09,78,12,0A,09,95,55
+12,0A,09,98,12,0A,09,BA,ED</nowiki>
+
+=== "L" Files ===
+
+This contains the session data.
+
+Repeating 26 byte codes.
+
+Start with a 32bit time-stamp, a sequence of graph/etc data, and end with a 8bit checksum.
+
+ <nowiki>
+Code          Details               Notes
+0x00-0x03     32bit TimeStamp       Big Endian, seconds since 1st January, 2002
+0x04          ??? Snore
+0x05          ??? Snore             Seems the more likely of the two.
+0x06          Leak Average
+0x07          Leak Max
+0x08-0x09     16bit Tidal Volume    Big Endian
+0x0a          Respiratory Rate
+0x0b          ??? Unknown           Always 0x0a. Could be Standard Deviation?
+0x0c          ??? Unknown graph     (Mapped to Ti) in SleepyHead
+0x0d          Pressure
+0x0e          ??? Unknown           Always seems to be 0x90
+0x0f          ??? Unknown
+0x10          >0 Apnea
+0x11          >0 Hypopnea
+0x12          >0 NRI
+0x13          Low Pressure
+0x14          Hi Pressure
+0x15-0x18     ??? Unused
+0x19          Checksum
+</nowiki>
+==== A few lines of hex data ====
+ <nowiki>
+12,07,CB,EF,00,00,43,20,04,23,10,0A,0E,59,90,00,00,00,00,5A,78,00,00,00,00,80
+12,07,CD,57,00,00,39,21,02,BC,10,0A,14,5B,90,00,00,02,01,5A,78,00,00,00,00,EA
+12,07,CE,BF,00,00,37,22,02,5A,13,0A,13,63,90,00,00,02,00,5A,78,00,00,00,00,5C
+12,07,D0,27,00,00,34,22,02,55,13,0A,14,6A,90,00,00,01,00,5A,78,00,00,00,00,77
+12,07,D1,8F,00,01,3D,23,02,9B,13,0A,12,6B,90,00,00,02,00,5A,78,00,00,00,00,CA
+12,07,D2,F7,00,01,4D,25,03,53,10,0A,0D,6E,90,00,00,00,00,5A,78,00,00,00,00,4F
+12,07,D4,5F,00,00,3D,25,02,70,11,0A,0D,69,90,00,00,01,00,5A,78,00,00,00,00,BA
+12,07,D5,C7,00,00,36,25,02,1F,15,0A,0F,68,90,00,00,00,00,5A,78,00,00,00,00,39
+</nowiki>

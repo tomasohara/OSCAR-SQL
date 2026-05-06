@@ -1,0 +1,58 @@
+{{OSCAR2}}
+== OSCAR 2.0 Data Storage ==
+All of OSCAR's data is stored in a folder named OSCAR20_Data. (You may use a different name if you wish.) By default, this folder is in your Documents directory, depending on the operating system you are using. Again, you may save it where you wish.
+
+This page describe what you should see when you look in the OSCAR20_Data directory.
+<span id="oscar20_data-directory-contents"></span>
+=== OSCAR20_Data Directory Contents ===
+
+{| class="wikitable"
+|-
+! File or Folder
+! Use
+|-
+| Logs
+| debug and connection logs
+|-
+| Profiles
+| Contains one folder per profile
+|-
+| oscar.db
+| The OSCAR SQLite database. All data used by OSCAR is in this file. See [[OSCAR 2.0 Database Schema]] for the contents of the database.
+|-
+| oscar.db-wal
+| SQLite work area to support write-ahead operation
+|-
+| oscar.db-shm
+| SQLite work area
+|}
+
+<span id="profile-folder-contents---each-folder-has-the-name-of-the-profile"></span>
+
+=== Profile Folder Contents - each folder has the name of the profile ===
+
+{| class="wikitable"
+|-
+! File or Folder
+! Use
+|-
+| Journal_123....
+| One journal folder per profile. Contents are in database.
+|-
+| ResMed_123123…
+| One of these for each machine used. There can be any number of machine folders.
+|-
+| rxchanges.cache
+| Performance enhancement file for list of machine changes on Statistics page. File is recreated if missing, so need not be saved.
+|}
+
+<span id="machine-folder-contents"></span>
+
+=== Machine Folder Contents ===
+
+Each machine folder contains a folder named '''Backup'''. This folder contains the original SD card data; the exact content depends on the loader for the machine type.
+
+<span id="auxiliary-data"></span>
+
+=== [[OSCAR 2.0 Auxiliary Data|Auxiliary Data]] ===
+OSCAR stores additional state information in your computer's Registry (on Windows) and equivalent system storage on other operating systems. This includes items like the last directory written to that are intended to make use of OSCAR easier. If this data is lost, it will be recreated when next used.

@@ -1,0 +1,28 @@
+{{OSCAR}}
+
+<br /><br />
+
+ Back to [[OSCAR Installation]]
+
+If you have previously used SleepyHead, OSCAR can ''migrate'' your SleepyHead data (including your settings and preferences) into the new OSCAR data folder. Select '''OK''' for OSCAR to copy your SleepyHead data or else select '''No'''. 
+
+If you select No, Oscar will start and take you to the profile creation page. You will then be able to import your data from an SD card. See [[Running OSCAR for the first time]].
+
+Note that you can ''migrate'' your SleepyHead data '''only at this time'''. You can copy the raw data (no settings or preferences) later, but it's not so easy. See [[Copying SleepyHead data]].
+<br /><br />
+[[File:SleepyHead request.PNG]]
+<br /><br />
+If you select '''OK''' OSCAR will then open a file selector window, where you can locate and select your SleepyHead data folder. OSCAR will then copy all the data across to the new OSCAR data folder, with a bar chart to mark its progress (this can take some little while). SleepyHead data is usually contained in a folder named "SleepyHead_Data" in your documents folder. Note that the SleepyHead data is copied so the original data stays in place and you can still use it with SleepyHead if you wish.
+<br /><br />
+[[File:SleepyHead Select.png]] <br />
+
+[[File:Migration.PNG]]
+<br /><br />
+
+=== Where is my SleepyHead data? ===
+If you can't find your SleepyHead data folder, open SleepyHead and from the menu select '''Help | About SleepyHead'''. This will open a dialog box which includes the location of the data directory in one of the formats shown below (depending on which version of SleepyHead you are running). <br /><br />
+[[File:About SleepyHead.png]] [[File:About SleepyHead 2.png]]
+<br /><br />
+On completion of the data migration, you are ready for review the data migrated from SleepyHead, or set set up a new profile. See [[Running OSCAR for the first time]] <br />
+<br /><br />
+ Back to [[OSCAR Installation]]

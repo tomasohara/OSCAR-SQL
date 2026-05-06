@@ -1,0 +1,34 @@
+{{OSCAR2}}
+
+OSCAR 2.0 is the successor to the OSCAR 1.7 product line, switching from file-based storage to a SQLite database. It is designed to be the foundation on which future versions of OSCAR will be built. In normal use, the look, feel, and operation of OSCAR 2.0 remain familiar to OSCAR 1.7 users, eliminating the learning curve when upgrading. The main difference is how the data is stored, along with new ways to access detailed data for customized reports or analysis.
+
+OSCAR 2.0 uses a separate data folder (OSCAR20_Data) from OSCAR 1.7 (OSCAR_Data), so both versions can coexist on your computer, making it easier to compare the two and switch between them.
+
+== What's New ==
+
+OSCAR 2.0 adds several major features for users who want to examine their data more closely and share it with others. These new features also provide a foundation for future development:
+
+1. '''[[Exporting CSV Data in OSCAR 2.0|CSV Export]]''' (File | Export Data | CSV Export Wizard...) replaces the old CSV Export with a more flexible and powerful export tool. You can extract any numeric information visible in OSCAR, or the underlying data needed to recalculate those numbers yourself.
+
+2. '''[[Sharing a Profile in OSCAR 2.0|Share Profile]]''' (File | Profiles | Share Profile...) allows you to extract a portion of your profile -- a day, a week, a month, or a custom range -- and save it to a file, Dropbox, or Google Drive. If saved to the cloud, OSCAR provides a URL that you can give to another OSCAR 2.0 user, who can restore the shared data directly from the cloud and examine it in OSCAR. This makes it easy to share data with another user so they can examine your data with OSCAR's full capabilities.
+
+3. '''[[Backing Up and Restoring a Profile in OSCAR 2.0|Profile Backup & Restore]]''' (File | Profiles) lets you package an entire profile -- or a selected date range from a profile -- into a .oscar file that can be imported into any OSCAR 2.0 installation. You can also create a backup of a profile that includes the CPAP SD card data.
+
+4. '''[[Direct Database Access in OSCAR 2.0|Direct database access]]''' Because OSCAR 2.0 stores its data in SQLite, any SQL-capable application -- such as spreadsheets, Python, R, or database tools -- can read OSCAR's data directly, including waveform data used for graphs. We have a [[demonstrator program]] that shows how a Python script can access flow rate and pressure data from OSCAR and plot it.
+
+== Other Changes ==
+
+Besides these major new capabilities, many incremental improvements have been made. Some of these are:
+
+* Support for Yuwell YH-580, YH-690, and YH-830 CPAP machines
+* Support for ReactHealth/BMC G3 and G3X CPAP machines
+* Improved support for BMC/Luna CPAP machines
+* More complete translations
+* A long list of bug fixes
+* The ability to change your profile name
+
+== Getting Started ==
+
+For installation instructions, see:
+
+ [[Installing OSCAR 2.0]]

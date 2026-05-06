@@ -1,0 +1,31 @@
+{{OSCAR}}
+
+<br /><br />
+
+ Back to [[OSCAR Installation]]
+
+When creating a new profile, it is sometimes desirable to copy notes, bookmarks, weights, and zombie settings from one profile to another,  This capability is not built into OSCAR, but there is a way to merge notes, bookmarks, zombie settings, and weight reports from previous profiles into a new profile.  It requires working with your computer's file manager as the capability is not built directly into OSCAR.
+
+== OSCAR File Structure ==
+
+Your profile exists in a folder in OSCAR_Data/Profiles/profilename. You may have used a different name than OSCAR_Data for your data folder and may have placed it somewhere than the usual default location of Documents, so make whatever adjustments are needed in the following discussion.  But the directory named "Profiles" will never have a different name.
+
+Every profile for which a note or bookmark has ever been recorded contains a "machine" folder named "Journal_xxxxxxxx".  Every Journal folder contains a folder named Summaries.  The Journal_xxxxxxxx/Summaries folder contains files with names like "5d087c4e.000", where the hex string is a Unix epoch timestamp.  So every day for which a note, bookmark, etc. have been recorded will have such a file in the Journal_xxxxxxxx/Summaries folder.
+
+== Merging Notes, Bookmarks, Weight, and Zombie settings ==
+
+The first thing to do is to use your file manager to open the new profile you are going to want to merge all your old notes into and confirm that its Journal folder exists.  If you have never created a note or bookmark that profile, its Journal folder will not yet have been created.  Start OSCAR, open the new profile, and create a note (anything at all will do).  Close OSCAR and look again for the new profile's Journal folder.  It should now have been created.
+
+Now, with your file manager go the Journal_xxxxxxx/Summaries folder for each profile you want to copy notes and bookmarks etc. from.  Just copy all the files in that folder to the new profile's Journal_xxxxxxx/Summaries folder.  Do this for all profiles whose notes you want to merge into the new profile.
+
+Finally, in the new profile's Journal folder, you will see a file named "Summaries.xml.gz".  Delete that file.  (This is a compressed cache that OSCAR will automatically rebuild.)
+
+Start OSCAR.  All your notes and bookmarks should be in the new profile.
+
+== Cautions ==
+
+Some cautions: As you look around various profile folders, you will find Summaries folders for other "machines" such as your CPAP machine.  Don't touch those folders and don't move those files anywhere.  They have nothing to do with notes and bookmarks but contain CPAP, Oximetry, etc. data.
+
+You can copy files from a profiles Journal_xxxxxxx/Summaries folder from any version of OSCAR.  You may also be able to copy the files from profiles created by recent versions of Sleepyhead, but we have not tested how early a Sleepyhead version you can copy from.
+
+If a profile you want to copy notes and bookmarks from does not have a Journal_xxxxxxx folder in the profile, then there are no notes or bookmarks to copy.

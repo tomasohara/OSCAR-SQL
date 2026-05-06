@@ -1,0 +1,159 @@
+{{OSCAR}}
+
+'''This is a work in progress. Nothing should be taken literally here.'''
+
+
+==Card Reader==
+A DT-3500 smartcard reader is needed to extract the image needed.
+
+==Card Structure==
+32KB of data is packed onto the smartcard. The card reader extracts this as a single binary file.
+
+16/32bit values encoded are Big Endian, timestamps are standard 32bit seconds since unix epoch or 16bit deltas.
+
+===Header===
+ <nowiki>0x0000 52 49     Magic Number
+0x0002 00 00     ??
+0x0004 00 15     Byte position of User Data Block
+0x0006 00 8c     End of User Data Block (position contains 8 bit additive checksum)
+0x0008 00 8d     Start of unknown data block
+0x000a 00 a2     End of unknown data block (position contains 8 bit additive checksum)
+0x000c 00 a3     Start of "control" block
+0x000e 00 b1     End of "control block (position contains 8 bit additive checksum)
+0x0010 00 b2     Start of "data" block (main card area)
+0x0012 7f ff     End of "data" block (contains no checksum, it's the last byte of the smartcard)
+0x0014 ef        8 bit additive checksum of all previous header bytes from (0x0000-0x0012)</nowiki>
+
+===User Data Block===
+ <nowiki>0x0015 ??        8 bit patient ID number
+0x0016 [string]  Card Description (15 character null padded fixed length string)
+0x0026 [string]  Users first name
+0x003f [string]  Users last name
+0x0058 [string]  Serial Number (10 char, not null terminated, starts with "M")
+0x0062 [string]  Model Number, eg "500M"
+0x008c ??        8 bit additive checksum of all previous bytes in User Data Block</nowiki>
+
+===??Prescription?? Block===
+Unsure on this ones purpose
+ <nowiki>
+0x008d 00
+0x008e FF
+...
+0x00a2 FF        8 bit additive checksum of all previous bytes in "Prescription" block</nowiki>
+
+==="Control" Block===
+First, what seems a "count" block
+ <nowiki>
+0x00a3 00 08     16 bit count for data blocks?
+0x00a5 08        8 bit additive checksum of that last bit?</nowiki>
+
+Followed by a repeating pair of "'''Pointer'''" structures at 0x00a6, pointing to the entire card data area.
+
+This same 6 byte pointer structure is used elsewhere
+
+====Pointer Structure format====
+ <nowiki>0x0000 01        valid flag?
+0x0001 00 b2     start pointer
+0x0003 7f ff     end pointer  
+0x0005 ff        8 bit additive checksum of the structure.</nowiki>
+
+This same pattern starts at 0x00ac
+
+==="Data" Block===
+====More Control Structure====
+First up looks like control area containing pointer structures, but don't appear to be pointers.
+ <nowiki>
+0x00b2 00 00     16bit value, possible FOSQ result?
+0x00b4 [pointer] Pointer structure 1
+0x00ba [pointer] Clone of pointer structure 1
+0x00c0 [pointer] Pointer structure 2
+0x00c6 [pointer] Clone of pointer structure 2
+0x00cc [pointer] Pointer structure 3
+0x00d2 [pointer] Clone of pointer structure 3</nowiki>
+
+An example with contents, the values could be machine settings?
+ <nowiki>
+0x00b4 01 36 a3 36 a2 b2    the last bytes of all these are 8 bit additive checksums.
+0x00ba 01 36 a3 36 a2 b2
+0x00c0 01 00 26 00 07 2e
+0x00c6 01 00 26 00 07 2e
+0x00cc 01 52 5a 58 e6 eb
+0x00d2 01 52 5a 58 e6 eb</nowiki>
+
+====Summary data area?====
+Followed by a set of 8 0x26d byte structures, each beginning with a 32bit unix timestamp
+ <nowiki>
+0x00d8 4e 1a 4a fe     32bit unix timestamp, big endian.. eg 0x4e1a4afe seconds since 0:00, 1/1/1970.
+0x00dc [268 bytes]     unknown data area, mostly sparse and 00 filled.
+0x0345 a3              8 bit additive checksum of unknown data area</nowiki>
+
+data in unknown area only observed in the range of 153-159.. possibly values contain apnea counts, etc..?
+and the last byte before the checksum.
+
+====Details Data Area====
+ <nowiki>
+0x11da 4e 1c e7 16    32bit unix timestamp, big endian.. eg 0x4e1a4afe seconds since 0:00, 1/1/1970.
+0x11de c0 00          Unsure.. duration of data area? (& 0x3fff)
+0x11e0 f3 02 f0 97 f2 ff f2 81  Repeating start of record pattern..
+0x11e8 ...variable length data in byte pairs 
+0x11fa b0 0d          
+0x11fc c0 23
+0x11fe f3 02 f0 97 f2 ff f2 81  Repeating start of record pattern..
+0x1206 ...variable length data in byte pairs
+0x1938 b0 13
+0x193a c1 71
+0x193c f3 02 f0 97 f2 ff f2 81  Repeating start of record pattern..
+0x1944 ...variable length data in byte pairs
+0x1ac6 b0 19
+0x1ac8 ff ff       some kind of end of marker code??
+0x1aca 02 fe       possibly duration of entire block
+0x1acc 0a          ?? unsure
+
+0x1acd 4e 1e 31 ee   32bit unix timestamp
+0x11de c0 00          duration of data area, reset to beginning
+0x11e0 f3 02 f0 97 f2 ff f2 81  Repeating start of record pattern.. </nowiki>
+etc...
+
+now how the last chunk ends is rather confusing, as it goes straight into the next section without any padding
+ <nowiki>0x530a 7f 0a  it appears this is the last byte of the waveform area</nowiki>
+
+followed by what looks like repeating variable length "time delta" separated event codes or summary data?
+
+data areas may be binary flags indicating certain events..?
+
+====Summary Data Area?====
+The incrementing pattern starting at c0 00 seems to be a common theme.. Valid Unix Timestamps appear before c0 00 resets.
+Each summary? record starts with [fe 0b], a 32bit timestamp, c0 00
+
+ <nowiki>0x530c fe 0b
+0x530e 4d ee c1 fe   valid 32bit unix timestamp
+0x5313 c0 00 
+0x5315 b9 6b c1 5a b8 db ff 21 54 00 00 28 01 01 6a a2 30 00 f0 00 01 73 00 00 00 d1
+repeat..
+0x532f fe 0b .. next timestamp, etc.. </nowiki>
+
+The shortest seem to be 0x1d bytes, the longest seem to be 0x21 bytes.
+
+A few sample runs of short segments, they aren't all this same length, taken from a valid timestamp start
+ <nowiki>
+fe 0b 4e 0a 2f d6 c0 00 b8 27 ff 20 18 00 00 00 00 00 6a a9 c0 00 70 00 01 73 00 00 00 f3 
+fe 0b 4e 0a 78 54 c0 00 ba 0c ff 21 f8 00 00 14 01 00 78 c2 30 00 70 00 01 73 00 00 00 2e 
+fe 0b 4e 0b c3 6a c0 00 b9 de c1 a6 b8 76 ff 21 cc 00 00 2d 01 01 5c 8d f8 00 f0 00 01 73 00 00 00 db 
+fe 0b 4e 0d 1b 03 c0 00 b8 39 c0 cf b9 45 c1 90 b8 b8 ff 21 a8 00 00 2f 01 00 6a a3 10 00 70 00 01 73 00 00 00 7a </nowiki>
+
+
+the c0 00 bx xx bit seems to repeat until a ff code, then the remainder is a set number of bytes..
+
+Could each one of these extra segments represent a session? Nope.. they are close together, more than one occurs on each day.. 
+
+Likely each full line represents one session.
+
+====='''The last line'''=====
+ <nowiki>fe 0b 4d ae 25 ec c0 00 ba 01 c1 a8 b8 6d ff 61 b8 00 02 0a 01 01 5c 8a 30 01 70 35 c1 46 82 6e 57 4e ff ff ff ff </nowiki>
+
+The last line doesn't end if fe 0b, so I think it's a code to indicate a timestamp reset.
+.. and the remainder of the card is filled with 0xff values.
+
+
+I'll extract a full list of the structures to assist with decoding later.
+For now, this jumbled mess will have to do..

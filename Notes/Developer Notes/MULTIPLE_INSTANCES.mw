@@ -1,0 +1,113 @@
+<span id="running-multiple-oscar-2.0-instances-simultaneously"></span>
+= Running Multiple OSCAR 2.0 Instances Simultaneously =
+
+<span id="overview"></span>
+== Overview ==
+
+OSCAR 2.0 intentionally supports running multiple instances at the same time, each pointing at a different database folder. This is an uncommon scenario in normal use but is permitted (for example, a developer comparing two databases side-by-side).
+
+Running OSCAR 1.7.1 and OSCAR 2.0 simultaneously is fully safe — they use different QSettings registry paths (different application names) and completely different data formats, so they do not interfere with each other at all.
+
+<span id="what-is-safe"></span>
+== What Is Safe ==
+
+* '''SQLite databases''' — each instance opens its own <code>oscar.db</code> file. No shared file, no locking conflict.
+* '''Log files''' — each instance writes to <code>&lt;its-datadir&gt;/logs/</code>. Completely separate.
+* '''Per-database preferences''' — all user-visible settings (profiles, graph layouts, chart settings, etc.) are stored in each database’s <code>app_preferences</code> table and are fully isolated.
+
+<span id="shared-qsettings-potential-issues"></span>
+== Shared QSettings (Potential Issues) ==
+
+All OSCAR 2.0 instances share the same Windows registry hive (<code>HKCU\Software\&lt;OrgName&gt;\OSCAR 2.0</code>). Concurrent reads and writes to the keys below can produce unpredictable results.
+
+<span id="global-keys-shared-across-all-databases"></span>
+=== Global keys (shared across all databases) ===
+
+{| class="wikitable"
+|-
+! Key
+! Written when
+! Risk with simultaneous instances
+|-
+| <code>Settings/AppData</code>
+| Startup, first run, folder selection
+| '''Mitigated''' — see note below.
+|-
+| <code>RecentDatabases</code>
+| Any database open / switch / delete
+| '''Low''' — read-modify-write; a concurrent update may lose a recent entry.
+|-
+| <code>Fingerprint</code>
+| On close
+| Low — last writer wins; cosmetic only.
+|-
+| <code>GFXEngineSetting</code>
+| Crash recovery, <code>--legacy</code> flag, Preferences dialog
+| Low — only changes on crash or deliberate user action.
+|-
+| <code>LangSetting</code>
+| Language selection dialog
+| Low — only changes when user actively changes language.
+|-
+| <code>ShowDatabaseMenu</code>
+| Preferences dialog
+| Low — only changes on deliberate user action.
+|-
+| <code>csv_reports_version</code>
+| CSV report generation
+| Low — one-shot migration stamp; idempotent.
+|-
+| <code>OpenGLCompatibilityCheck</code>
+| Before OpenGL test on Windows
+| Low — transient crash-recovery flag.
+|}
+
+<span id="per-database-folder-keys-stored-under-foldername"></span>
+=== Per-database-folder keys (stored under <code>&lt;folderName&gt;\…</code>) ===
+
+The following keys are stored under a registry subgroup named after the database folder leaf name (e.g. <code>OSCAR20_data</code>), so each database instance has its own copy. Two simultaneous instances do not interfere with each other for these keys.
+
+{| class="wikitable"
+|-
+! Key
+! Written when
+|-
+| <code>&lt;folder&gt;\MainWindow\geometry</code>
+| On close
+|-
+| <code>&lt;folder&gt;\SavedPath\&lt;name&gt;</code>
+| File/folder picker dialogs
+|-
+| <code>&lt;folder&gt;\ImportProfile\LastPath</code>
+| Profile import dialog
+|}
+
+<span id="settingsappdata-mitigated"></span>
+=== <code>Settings/AppData</code> — Mitigated ===
+
+<code>GetAppData()</code> caches the database path in memory (via <code>g_appDataPath</code>) on first write during startup. All code that changes the active database path calls <code>SetAppData()</code>, which updates both the in-memory value and the registry atomically. Once an instance has completed startup, its <code>GetAppData()</code> returns the cached value and is immune to another instance writing a different path to the registry.
+
+The <code>RecentDatabases</code> list is the only remaining shared-state concern for simultaneous instances.
+
+<span id="same-folder-protection-qlockfile"></span>
+== Same-Folder Protection (QLockFile) ==
+
+Two instances opening the '''same''' database folder simultaneously would cause SQLite write conflicts and profile state corruption. OSCAR prevents this with a <code>QLockFile</code> at <code>&lt;datadir&gt;/oscar.lock</code>.
+
+At startup, after the data folder is confirmed and writable, OSCAR calls <code>QLockFile::tryLock()</code>. If the lock is already held by another process, OSCAR displays a warning (“This OSCAR database folder is already open in another instance of OSCAR”) and exits immediately. The lock is released automatically when the process exits.
+
+The lock file has <code>setStaleLockTime(0)</code> — OSCAR never treats a lock as stale. If a crash leaves a stale lock, the user must manually delete <code>oscar.lock</code> from the data folder.
+
+<span id="practical-guidance"></span>
+== Practical Guidance ==
+
+In the normal database-switch flow (<code>File ▸ Database ▸ Recent / Open / New</code>) the first OSCAR instance shuts itself down before the second one opens, so there is no true simultaneous operation and none of the above races can occur.
+
+The only scenario where QSettings races matter is when a user manually launches a second OSCAR executable while the first is still running '''with a different data folder'''. In that case the <code>RecentDatabases</code> list may lose an entry if both instances modify it at the same moment (e.g. one opens a database while the other is deleting one from the list). This does not cause data corruption in CPAP session data or profile records.
+
+Launching a second OSCAR instance pointed at the '''same''' folder is blocked by the <code>QLockFile</code> mechanism described above.
+
+<span id="migration-note"></span>
+== Migration Note ==
+
+On first run after upgrading to a build that includes the per-folder key changes, OSCAR will not find a remembered window position or last-used folder paths (they were previously stored at the global level). Window position resets to the OS default once, and folder pickers default to Documents. These are saved correctly on next close.

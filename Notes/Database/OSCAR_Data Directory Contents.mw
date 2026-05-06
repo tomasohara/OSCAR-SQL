@@ -1,0 +1,46 @@
+<span id="oscar20_data-directory-contents"></span>
+==== OSCAR20_Data Directory Contents ====
+
+{| class="wikitable"
+|-
+! File or Folder
+! Use
+|-
+| Logs
+| debug and connection logs
+|-
+| Profiles
+| Contains one folder per profile
+|-
+| oscar.db
+| The OSCAR database
+|-
+| oscar.db-wal
+| SQLite work area to support write-ahead operation
+|-
+| oscar.db-shm
+| SQLite work area
+|}
+
+<span id="profile-folder-contents---each-folder-has-the-name-of-the-profile"></span>
+==== Profile Folder Contents - each folder has the name of the profile ====
+
+{| class="wikitable"
+|-
+! File or Folder
+! Use
+|-
+| Journal_0000000
+| One journal folder per profile. Contents are in database.
+|-
+| ResMed_21323213…
+| One of these for each machine used. There can be any number of machine folders.
+|-
+| rxchanges.cache
+| Performance enhancement file. File is recreated if missing, so need not be saved.
+|}
+
+<span id="machine-folder-contents"></span>
+==== Machine Folder Contents ====
+
+Each machine folder contains a folder named '''Backup'''. This folder contains the original SD card data; the exact content depends on the loader for the machine type.

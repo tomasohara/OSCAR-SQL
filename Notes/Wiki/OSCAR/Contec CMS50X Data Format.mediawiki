@@ -1,0 +1,44 @@
+{{OSCAR}}
+{{cleanup}}
+
+
+===Serial Port Settings===
+19200 baud, 8 data bits, 1 stop bit, odd parity.
+
+===Live Mode===
+In default "live" mode it spews a stream of data out, in a repeating 5 byte pattern (split into 2 packets.)
+Use an event driven handler to process this properly.. Polling code is possible but is a PITA (my original python one was used polling and sucked and had to resync all the time, but I didn't know about odd parity at the time..)
+
+ <nowiki>Code: Select all
+    [xx xx xx] [xx xx]
+    00 01 02   03 04</nowiki>
+
+ <nowiki>
+00 contains "flow control" and error information bitfield (bit 8 is always set, can be used to sync if using polling mode)
+01 simple heartbeat plethysomogram (lower 7 bit)
+02 even simpler pulse beat "thingy" (bit 0x40 is apparently the upper bit of the Pulse rate)
+03 Pulse (lower 7 bits)
+04 SpO2 (lower 7 bits)</nowiki>
+
+Pay attention to the sequence as sometimes it can group packets together. (eg 5 byte packets, in either order, occasionally larger packet groups, but always in correct sequence)
+
+===To get at the stored recordings:===
+ <nowiki>write a 2 byte sequence containing the codes "0xf5, 0xf5"
+read in 0x20 byte chunks until no more data, putting it all aside for later.
+write a 3 byte sequence containing "0xf6, 0xf6, 0xf6" to switch back to live mode.</nowiki>
+
+===Processing the recording data===
+data begins with the remainder of any live data packet, followed by sequence "0xf2 0x80 0x00" three times, followed by 3 or 4 bytes, followed by "0xf0 80 00" 5 or so times, followed by the actual data in 3 byte triplets
+
+===Example:===
+ <nowiki>>F5 F5
+[cruft] [recording data selected] [can be short] [can be short this may just be normal empty data]
+<[90 28 35 00] [F2 80 00 F2 80 00 F2 80 00] [80 81 72 00] [F0 80 00 F0 80 00 F0 80 00 F0 80 00 F0 80 00 F0 80 00]
+< F0 C4 5F F0 C3 5F F0 C8 5F F0 D4 5F... All data Triplets start with 0xf0, second byte's high bit is set.
+< lots more of the actual data... till it runs out.
+>F6 F6 F6</nowiki>
+
+The 3 or 4 byte sequence after the "recording data selected" sequence is the length in bytes.. 7 bit values following the first 0x80.. flip the second bytes msb. high byte first.
+I'm still not sure why there sometimes is 4 bytes.. it could simply be more bits of the length (the last 7bit byte would be the high byte, as the data sequence begins with F0 anyway.)
+
+Recorded Data is stored 1 pulse+spo2 pair per second. ie 1Hz.

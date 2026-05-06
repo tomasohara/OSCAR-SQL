@@ -1,0 +1,89 @@
+{{OSCAR2}}
+
+==OSCAR Help==
+This installation guide is part of the suite of OSCAR help articles. See [[OSCAR 2.0 Help|OSCAR Help]].
+
+== Creating a Profile ==
+If you have migrated your data from a previous OSCAR 1.x installation, you may immediately open and use a profile as you did with OSCAR 1.x. (See [[Installing OSCAR 2.0]]). Otherwise when you first open up OSCAR, you will need to create a profile. 
+
+Your data is associated with a profile, you may have multiple profiles, and each may have multiple CPAP devices associated with it. However if you have more than one machine (especially if they are different brands), it is recommended that each machine be in its own profile.
+
+To read more about creating and maintaining profiles, see [[http://www.apneaboard.com/wiki/index.php/OSCAR_Organization_-_Profile_Page OSCAR Profile Page]]
+
+== Importing Data into OSCAR the FIRST time ==
+Once the profile is finished and saved, OSCAR will display a welcome page that looks like this:<br />
+
+[[File:OSCAR Welcome.PNG|thumb|none|850px|OSCAR Welcome page]]<br />
+<!--
+As the page says, it's reasonable to click on Preferences and double check some things first. If you need help, [[#Important preferences settings|jump to 7. Important preference settings]]
+^^ What the heck does this mean? A newbie won't know what preferences to set
+ Also where is "7. Important preference settings"?
+-->
+You will see that the options to select statistics, overview or daily view are greyed out until you have loaded (imported) some data into OSCAR.
+
+----
+
+Put the SD card into the SD slot if you have not already done that. If your computer does not have an SD slot, you will need to buy a generic SD card reader and put the SD card in that. (If your CPAP machine has a USB stick, any references below to a "SD card" or "SD slot" should be understood to mean "USB stick" or "USB port.")
+
+'''WARNING:''' It's wise to make sure the card is locked if you are using a Mac or a Windows 8.1 or Windows 10 machine since these operating systems will write hidden files to unlocked cards. ResMed S9 machines will reject SD cards with any extra files written on them and reformat the card, losing any data on the card. See [[Secure Digital (SD) memory card]] for instructions on locking a card.
+
+If you are about to import on a Chrome OS system, please read and follow these different instructions [[Mounting your SD Card under Chrome OS]] and then return here.
+
+Once the card has been mounted to the computer system, you still need to import the data into OSCAR. There are three different ways to Import the data:
+
+# The Import Icons on the main window and the sidebar. Click either of these and it starts the import process.
+# The Import Data under the File sub-menu. Select this from the standard File menu in the usual way for your system and it starts the import process.
+# The keyboard shortcut. On a Windows machine you can simply press the F2 key and that will start the import process.<br />
+
+
+The Import Data menu item and the Import Icons are arrowed in the screen shot below.
+<br />
+
+[[File:OSCAR Welcome Import.png||thumb|none|850px|OSCAR SD card data import]]<br />
+
+With your SD card is in the SD slot or card reader, once you click on Import Data, you will get a small pop up dialog box that looks this:<br />
+
+[[File:CPAP data located.PNG]]<br />
+
+Click "Yes", and the data should load. The "Specify" option allows you to navigate to a different directory, useful if you have copied your SD card to your hard drive. Do not use Specify to navigate to another directory in the SD card. OSCAR relies on finding the directory structure created by the CPAP machine to identify the machine and data.
+<br />
+
+
+After the initial data import, OSCAR should display your data in a screen that shows the Statistical Data. It looks like this:<br />
+
+[[File:Usage Statistics.PNG||thumb|none|1000px|OSCAR Statistics page]]<br /><br />
+
+Clicking on the Daily tab in the OSCAR window brings up the Detailed Daily Data for the last day of data:<br />
+
+[[File:OSCAR Daily.PNG ||thumb|none|1000px|OSCAR Daily page]]<br /><br />
+
+Clicking on the Overview tab in the OSCAR window brings up the bar graph data, which provides a summary of the last week, two weeks etc right out to "everything". Note that selecting Everything can take several minutes to generate the chart if you have several years of data.:<br />
+
+[[File:OSCAR Overview.PNG ||thumb|none|1000px|OSCAR Overview page]]<br />
+
+== Importing Data into OSCAR AFTER the first time ==
+Each time you want to import data into OSCAR you go through the same basic process, except you don't have to create the profile:
+
+=== Step 1. Open OSCAR ===
+OSCAR will bring up a list of profiles for you to chose from. For most people, there will only be one name on the profile. Highlight the desired profile and press the Select User button. The data for that profile will load into OSCAR and the Statistics page should load.
+
+=== Step 2.  Make sure the SD card is in the SD slot or card reader ===
+It's wise to make sure the card is locked if you are using a Mac or a Windows 8.1 (or later) machine since these operating systems will write hidden files to unlocked cards. And the ResMed S9 machines will reject SD cards with any extra files written on them. 
+
+You will need to have the card in the Write Enabled (unlocked) condition while it is in the S9 and Write Protected (locked) prior to inserting it into your computer.   Also, some of the newer low-cost card readers do not have the micro-switch installed in the unit.  This means that even if you have it write-protected, it may not stop it from having the system files written by the PC.
+
+To be safe you may wish to download and use the following script. It will turn off(or back on) this feature on your PC. [https://www.sleepfiles.com/temp2c/SysVolWrite.zip Prevent SysVol Info Write]
+
+=== Step 3. Import the Data ===
+Once OSCAR loads the data for the selected Profile and the SD card is mounted, you can import the (new) data by either pressing the Import icon, using the File menu to select Import Data, or the keyboard shortcut---pressing the F2 key. The Import dialog box will appear and if you are importing from the 
+After the first data importation, you can import the data regardless of which data view you are looking at. If you import data while in the Daily Data view, the Daily Data will jump to the last day of imported data after the data is successfully imported.
+
+== Additional Notes ==
+1) The process for importing the data is easy once you get used to it.
+
+2) Remember to properly unmount the SD card from your computer before removing it from the SD slot or card reader. You unmount the SD card the same way you unmount a flash drive or an SD card from a digital camera.
+
+3) '''Remember to put the card back into your CPAP machine.''' This is particularly true for ResMed users: All the detailed data is written directly to the SD card, and if there is no SD card, that data is lost. And OSCAR will report that there is no data for the night. (ResScan will be able to report on the summary data that is stored in the S9's memory and then written to the card when it is inserted into the machine).
+
+== References ==
+<references />
