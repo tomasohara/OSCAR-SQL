@@ -1021,6 +1021,10 @@ int main(int argc, char *argv[]) {
 
     int result = mainapp.exec();
 
+    // Release the lock immediately so a restarted instance (e.g. after a language change)
+    // can acquire it without racing against our potentially-slow widget/DB cleanup below.
+    lockFile.unlock();
+
     DeviceConnectionManager::getInstance().record(nullptr);
 
     // Delete the main window explicitly while Qt is still fully alive.

@@ -171,6 +171,11 @@ class Channel
     //! \brief Default color for plotting this channel
     inline QColor defaultColor() const { return m_defaultcolor; }
     inline void setDefaultColor(QColor color) { m_defaultcolor = color; }
+
+    //! \brief Schema-default names (current-language tr() values set at init time).
+    const QString &defaultFullname() const { return default_fullname; }
+    const QString &defaultLabel() const { return default_label; }
+    const QString &defaultDescription() const { return default_description; }
     QHash<int, QString> m_options;
     QHash<Function, QColor> m_colors;
     QList<Channel *> m_links;              // better versions of this data type

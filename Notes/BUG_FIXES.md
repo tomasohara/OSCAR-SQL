@@ -4,6 +4,36 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-07 - Channel names persist in wrong language after language change (#130)
+
+**Files:** `oscar/SleepLib/schema.h`, `oscar/SleepLib/profiles.cpp`
+
+**Symptom:** After switching OSCAR's language and back, graph legends, Statistics
+labels, and Preferences event/waveform lists remained in the previous language for
+the affected profile. Only profiles that had been open during a non-English session
+were affected.
+
+**Root cause (two parts):**
+1. `saveChannelsToDatabase()` never wrote a language tag to `profile_preferences`,
+   so stored channel names had no language stamp. The tag in `profile_preferences`
+   was stale (left over from the old `channels.dat` era).
+2. `loadChannelsFromDatabase()` compared the stale `profile_preferences.Language`
+   tag against QSettings — both happened to be `en_US` — so `changing_language`
+   stayed false and the German/Dutch names were loaded unchanged.
+
+**Fix:**
+- Added `defaultFullname()` / `defaultLabel()` / `defaultDescription()` accessors
+  to `Channel` in `schema.h` (expose schema-init defaults set by `tr()` at startup).
+- `saveChannelsToDatabase()`: writes `STR_PREF_Language = currentLanguage()` before
+  saving, stamping the language the names are actually in.
+- `loadChannelsFromDatabase()`: added a secondary check that counts how many stored
+  `fullname` values differ from the current-language schema defaults. If more than
+  half differ, the stored data is treated as being in the wrong language and schema
+  defaults are used instead. Threshold logic preserves legitimate user customizations
+  (which affect only a small subset of channels).
+
+---
+
 ## 2026-05-07 - Feelings: /10 suffix shown in UI and wrong value printed (#129)
 
 **Files:** `oscar/daily.cpp`, `oscar/reports.cpp`

@@ -2622,11 +2622,15 @@ bool Profile::saveChannelsToDatabase()
 {
     ProfileRepository profileRepo;
     ProfileData profileData = profileRepo.findByUsername(user->userName());
-    
+
     if (profileData.id == 0) {
         qWarning() << "Profile: Cannot save channels, profile not in database";
         return false;
     }
+
+    // Record the language the channel names are in, so loadChannelsFromDatabase()
+    // can detect a language change on the next run and fall back to schema defaults.
+    (*p_profile)[STR_PREF_Language] = currentLanguage();
     
     ChannelRepository channelRepo;
     ChannelOptionsRepository optionsRepo;
@@ -2694,7 +2698,30 @@ bool Profile::loadChannelsFromDatabase()
         qDebug() << "Language change detected, using default channel names";
         changing_language = true;
     }
-    
+
+    // Secondary check: even when the stored language tag matches the current language,
+    // the names themselves may have been saved in the wrong language (e.g. if the tag
+    // was never written, or was written after QSettings was already updated to the new
+    // language).  Count how many translatable channel names differ from the current
+    // schema defaults; if more than half differ, the stored data is in a different
+    // language and we fall back to defaults.
+    if (!changing_language) {
+        int checked = 0, mismatched = 0;
+        for (const ChannelData& data : channels) {
+            if (data.fullname.isEmpty()) continue;
+            schema::Channel* chan = &schema::channel[data.channelId];
+            if (chan->isNull()) chan = &schema::channel[data.channelCode];
+            if (chan->isNull() || chan->defaultFullname().isEmpty()) continue;
+            ++checked;
+            if (data.fullname != chan->defaultFullname()) ++mismatched;
+        }
+        if (checked > 0 && mismatched * 2 > checked) {
+            qDebug() << "Channel name mismatch" << mismatched << "/" << checked
+                     << "- stored names appear to be in a different language, resetting to defaults";
+            changing_language = true;
+        }
+    }
+
     // Apply channel data from database
     for (const ChannelData& data : channels) {
         schema::Channel* chan = &schema::channel[data.channelId];
