@@ -34,6 +34,24 @@ were affected.
 
 ---
 
+## 2026-05-07 - oscar.lock not released before teardown, blocking restart (#131)
+
+**Files:** `oscar/main.cpp`
+
+**Symptom:** When OSCAR restarted for a language change, the new process (which
+waits 1 second via `-p`) sometimes failed to acquire oscar.lock and exited, leaving
+no OSCAR running.
+
+**Root cause:** The `QLockFile lockFile` destructor runs after `mainapp.exec()`
+returns, but only after `delete mainwin`, `Profiles::Done()`, and
+`DatabaseManager::close()` complete. On a slow machine or large database this
+teardown can take more than 1 second, causing a race with the new process.
+
+**Fix:** Call `lockFile.unlock()` immediately after `mainapp.exec()` returns,
+before any teardown, so the new instance can always acquire the lock in time.
+
+---
+
 ## 2026-05-07 - Feelings: /10 suffix shown in UI and wrong value printed (#129)
 
 **Files:** `oscar/daily.cpp`, `oscar/reports.cpp`
