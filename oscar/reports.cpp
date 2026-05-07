@@ -320,9 +320,9 @@ void Report::PrintReport(gGraphView *gv, QString name, QDate date)
                     double storedValue = journal->settings[Journal_ZombieMeter].toDouble();
                     bool zombieMode = p_profile->appearance->zombieMode();
                     if (zombieMode) {
-                        stats += STR_TR_Zombie + QString(" %1 ").arg(storedValue, 0, 'f', 0);
+                        stats += STR_TR_Zombie + QString(" %1  (0 .. 100) ").arg(storedValue, 0, 'f', 0);
                     } else {
-                        stats += STR_TR_Zombie + QString(" %1 ").arg(storedValue / 10.0, 0, 'f', 1);
+                        stats += STR_TR_Zombie + QString(" %1  (0 .. 10) ").arg(storedValue / 10.0, 0, 'f', 1);
                     }
                 }
 

@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-07 - Feelings: range button invisible and wrong value/format in print report (#132)
+
+**Files:** `oscar/daily.cpp`, `oscar/daily.ui`, `oscar/reports.cpp`
+
+**Symptom:** The Feelings (ZombieMeter) range toggle in the Daily Notes panel was
+styled as plain text with no border, making it invisible as a button. The Print Daily
+report showed the internal storage value (user-entered × 10) with a "/10" suffix
+instead of the user-facing value.
+
+**Root cause:** The `Units10_100` QPushButton had `border: none` and zero padding,
+rendering it as flat text. The report code passed the raw stored value (0–100 scale)
+to `QString::arg()` without dividing by 10 and appended "/10" literally.
+
+**Fix:** Removed the flat styling so the button renders natively; changed label text
+to "0..10" / "0..100" (range format); added `margin-left` to separate it from the
+spinbox. Report now divides by 10 (normal mode) or shows as-is (zombie mode), with
+"(0 .. 10)" / "(0 .. 100)" appended for clarity. No "/10" suffix.
+
+---
+
 ## 2026-05-07 - Channel names persist in wrong language after language change (#130)
 
 **Files:** `oscar/SleepLib/schema.h`, `oscar/SleepLib/profiles.cpp`

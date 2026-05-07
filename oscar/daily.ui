@@ -1281,24 +1281,19 @@ QCalendarWidget QHeaderView::section {
                 <item alignment="Qt::AlignLeft">
                  <widget class="QPushButton" name="Units10_100">
                 <property name="toolTip">
-                 <string>Feelings have a range 1-10 or 1-100. clicking on the range change the range.</string>
+                 <string>Click to toggle Feelings range between 0..10 and 0..100</string>
                 </property>
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">QPushButton {
-    text-align: left;
-    padding: 0px;
-    margin: 0px;
-    border: none;
-}</string>
+                   <string notr="true">QPushButton { padding: 1px 3px; margin-left: 5px; }</string>
                   </property>
                   <property name="text">
-                   <string>/10</string>
+                   <string>0..10</string>
                   </property>
                  </widget>
                 </item>

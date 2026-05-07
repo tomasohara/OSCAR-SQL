@@ -2940,7 +2940,7 @@ void Daily::setup_ZombieUIWidgets(int zombieValue, bool zombieMode, bool setup) 
         ui->ZombieSpinBox->setMaximum(zombieMode ?  100 : 10);
         ui->ZombieSpinBox->setDecimals(zombieMode ?  0 : 1);
         ui->ZombieSpinBox->setSingleStep(zombieMode ?  10 : 1);
-        ui->Units10_100->setText(zombieMode ?  QStringLiteral("/100") : QStringLiteral(""));
+        ui->Units10_100->setText(zombieMode ? QStringLiteral("0..100") : QStringLiteral("0..10"));
     }
     ui->ZombieSpinBox->setValue(zombieMode ? spinValue  : (spinValue/10.0));
 
