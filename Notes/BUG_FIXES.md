@@ -4,6 +4,24 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-07 - Feelings: /10 suffix shown in UI and wrong value printed (#129)
+
+**Files:** `oscar/daily.cpp`, `oscar/reports.cpp`
+
+**Symptom:** The Feelings (ZombieMeter) spinbox in the Daily page Notes panel showed
+a "/10" label after the value. The Print Daily report printed the internal storage value
+(user-entered × 10, e.g. 70) with a "/10" suffix instead of the user-facing value (e.g. 7.0).
+
+**Root cause:** `setup_ZombieUIWidgets()` set the `Units10_100` button text to `"/10"` in
+normal mode. The report code passed the raw stored value (0–100 scale) to `QString::arg()`
+without dividing by 10, and appended `"/10"` literally in the format string.
+
+**Fix:** `daily.cpp`: changed `/10` label text to empty string in normal mode.
+`reports.cpp`: divide stored value by 10 and format with 1 decimal in normal mode;
+show as-is (0 decimals) in zombiemeter mode. Removed `/10` suffix from format string.
+
+---
+
 ## 2026-05-05 - Early startup log messages missing from debug.txt (#126)
 
 **Files:** `oscar/logger.h`, `oscar/logger.cpp`

@@ -317,8 +317,13 @@ void Report::PrintReport(gGraphView *gv, QString name, QDate date)
                 }
 
                 if (journal->settings.contains(Journal_ZombieMeter)) {
-                    stats += STR_TR_Zombie + QString(" %1/10 ").
-                            arg(journal->settings[Journal_ZombieMeter].toDouble(), 0, 'f', 0);
+                    double storedValue = journal->settings[Journal_ZombieMeter].toDouble();
+                    bool zombieMode = p_profile->appearance->zombieMode();
+                    if (zombieMode) {
+                        stats += STR_TR_Zombie + QString(" %1 ").arg(storedValue, 0, 'f', 0);
+                    } else {
+                        stats += STR_TR_Zombie + QString(" %1 ").arg(storedValue / 10.0, 0, 'f', 1);
+                    }
                 }
 
                 if (!stats.isEmpty()) {
