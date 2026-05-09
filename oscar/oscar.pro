@@ -314,6 +314,7 @@ SOURCES += \
     daily.cpp \
     dailySearchTab.cpp \
     devicetimecorrectiondialog.cpp \
+    timealignmentwelcomedialog.cpp \
     driftanalysisdialog.cpp \
     driftplotwidget.cpp \
     backupdialog.cpp \
@@ -490,6 +491,7 @@ HEADERS  += \
     common_gui.h \
     cprogressbar.h \
     devicetimecorrectiondialog.h \
+    timealignmentwelcomedialog.h \
     driftanalysisdialog.h \
     driftplotwidget.h \
     backupdialog.h \

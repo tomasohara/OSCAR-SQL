@@ -73,6 +73,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "devicetimecorrectiondialog.h"
+#include "timealignmentwelcomedialog.h"
 #include "driftanalysisdialog.h"
 #include "database/device_time_correction_repository.h"
 #include "aboutdialog.h"
@@ -1795,6 +1796,12 @@ void MainWindow::on_actionTime_Corrections_triggered()
         return;
     }
     if (!daily) return;
+
+    if (!p_profile->general->skipTimeAlignWelcome()) {
+        TimeAlignmentWelcomeDialog welcome(this);
+        if (welcome.exec() != QDialog::Accepted)
+            return;
+    }
 
     if (!m_correctionDialog) {
         m_correctionDialog = new DeviceTimeCorrectionDialog(this);
