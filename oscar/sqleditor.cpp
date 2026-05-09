@@ -15,6 +15,10 @@ SQLEditor::SQLEditor(QWidget *parent) :
 {
     ui->setupUi(this);
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    // Explicitly set light-mode colors so KDE dark palette doesn't bleed through.
+    // OSCAR is a light-mode-only app but Qt's ColorScheme::Light hint is not
+    // guaranteed on KDE Plasma, which can still supply a dark text color.
+    ui->queryEdit->setStyleSheet("QPlainTextEdit { background-color: white; color: black; }");
 }
 
 SQLEditor::~SQLEditor()
@@ -38,22 +42,12 @@ void SQLEditor::setReadOnly(bool readOnly)
     ui->queryEdit->setReadOnly(readOnly);
     
     if (readOnly) {
-        // Change background to indicate read-only
-        ui->queryEdit->setStyleSheet("QPlainTextEdit { background-color: #f0f0f0; }");
-        
-        // Change OK button to Close button
+        ui->queryEdit->setStyleSheet("QPlainTextEdit { background-color: #f0f0f0; color: black; }");
         ui->okButton->setText(tr("Close"));
-        
-        // Hide Cancel button in read-only mode
         ui->cancelButton->setVisible(false);
     } else {
-        // Reset to editable style
-        ui->queryEdit->setStyleSheet("");
-        
-        // Reset button text
+        ui->queryEdit->setStyleSheet("QPlainTextEdit { background-color: white; color: black; }");
         ui->okButton->setText(tr("OK"));
-        
-        // Show Cancel button
         ui->cancelButton->setVisible(true);
     }
 }

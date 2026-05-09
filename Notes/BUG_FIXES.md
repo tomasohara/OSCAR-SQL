@@ -4,6 +4,24 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-09 - Edit SQL window illegible on KDE dark mode (#134)
+
+**Files:** `oscar/sqleditor.cpp`
+
+**Symptom:** On Kubuntu 24.04 LTS with dark mode enabled, the SQL text in the Edit SQL
+window was white on white (unreadable).
+
+**Root cause:** Qt's `setColorScheme(Light)` hint is not guaranteed on KDE Plasma; the
+KDE platform theme can still supply a dark-palette text color (white) to individual
+widgets. `QPlainTextEdit` had no explicit text color, so white text appeared against the
+default light background. The read-only path also set `background-color: #f0f0f0` without
+a matching `color`, compounding the issue.
+
+**Fix:** Set explicit `background-color: white; color: black` on `queryEdit` in the
+constructor and in both branches of `setReadOnly()`.
+
+---
+
 ## 2026-05-07 - Feelings: range button invisible and wrong value/format in print report (#132)
 
 **Files:** `oscar/daily.cpp`, `oscar/daily.ui`, `oscar/reports.cpp`
