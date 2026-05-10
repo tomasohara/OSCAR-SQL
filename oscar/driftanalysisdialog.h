@@ -31,7 +31,8 @@ signals:
     void correctionsChanged();
 
 private slots:
-    void onDriftDeviceChanged(int index);
+    void onDutDeviceChanged(int);
+    void onRefDeviceChanged(int);
     void onLoadDriftData();
     void onFitDrift();
     void onUseDrift();
@@ -46,9 +47,19 @@ private:
     double  m_fitSlope = 0.0;
     bool    m_fitValid = false;
 
-    void populateDeviceCombo();
-    Machine* currentMachine() const;
-    void rebuildMachine(Machine* mach);
+    // Active drift model state for the current DUT, loaded on Load Data
+    bool    m_hasExistingModel   = false;
+    double  m_existingModelC0Ms  = 0.0;
+    double  m_existingModelSlope = 0.0;  // = stored_c1 - 1.0
+    qint64  m_existingModelRowId = -1;
+    QDate   m_existingModelFrom;
+
+    void     populateDutCombo();
+    void     populateRefCombo();
+    Machine* currentDutMachine() const;
+    Machine* currentRefMachine() const;  // nullptr when "None" is selected
+    void     resetPlotState();
+    void     rebuildMachine(Machine* mach);
 };
 
 #endif // DRIFTANALYSISDIALOG_H

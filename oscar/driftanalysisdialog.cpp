@@ -21,8 +21,10 @@ DriftAnalysisDialog::DriftAnalysisDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->driftDeviceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &DriftAnalysisDialog::onDriftDeviceChanged);
+    connect(ui->dutDeviceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &DriftAnalysisDialog::onDutDeviceChanged);
+    connect(ui->refDeviceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &DriftAnalysisDialog::onRefDeviceChanged);
     connect(ui->btnLoadDrift, &QPushButton::clicked, this, &DriftAnalysisDialog::onLoadDriftData);
     connect(ui->btnFitDrift,  &QPushButton::clicked, this, &DriftAnalysisDialog::onFitDrift);
     connect(ui->btnUseDrift,  &QPushButton::clicked, this, &DriftAnalysisDialog::onUseDrift);
@@ -42,36 +44,75 @@ void DriftAnalysisDialog::setDate(const QDate& date)
         ui->driftEndDate->setDate(date);
     }
 
-    populateDeviceCombo();
+    populateDutCombo();
+    populateRefCombo();
+    resetPlotState();
+}
 
+void DriftAnalysisDialog::resetPlotState()
+{
     m_driftPoints.clear();
-    m_fitValid = false;
+    m_fitValid           = false;
+    m_hasExistingModel   = false;
+    m_existingModelRowId = -1;
     ui->driftPlot->clear();
     ui->btnFitDrift->setEnabled(false);
     ui->btnUseDrift->setEnabled(false);
     ui->driftStatusLabel->setText(tr("Select a device and date range, then click Load Data."));
 }
 
-void DriftAnalysisDialog::populateDeviceCombo()
+void DriftAnalysisDialog::populateDutCombo()
 {
     if (!p_profile) return;
-    ui->driftDeviceCombo->blockSignals(true);
-    ui->driftDeviceCombo->clear();
+    ui->dutDeviceCombo->blockSignals(true);
+    ui->dutDeviceCombo->clear();
     for (Machine* mach : p_profile->GetMachines()) {
+        if (mach->type() != MT_CPAP) continue;
+        QString label = mach->brand() + " " + mach->model();
+        if (label.trimmed().isEmpty()) label = mach->loaderName();
+        label += " (" + mach->serial() + ")";
+        ui->dutDeviceCombo->addItem(label, QVariant::fromValue(reinterpret_cast<quintptr>(mach)));
+    }
+    if (ui->dutDeviceCombo->count() == 0) {
+        ui->dutDeviceCombo->addItem(tr("No CPAP devices found"));
+        ui->btnLoadDrift->setEnabled(false);
+    } else {
+        ui->btnLoadDrift->setEnabled(true);
+    }
+    ui->dutDeviceCombo->blockSignals(false);
+}
+
+void DriftAnalysisDialog::populateRefCombo()
+{
+    if (!p_profile) return;
+    ui->refDeviceCombo->blockSignals(true);
+    ui->refDeviceCombo->clear();
+    ui->refDeviceCombo->addItem(tr("— none —"), QVariant::fromValue(quintptr(0)));
+    for (Machine* mach : p_profile->GetMachines()) {
+        if (mach->type() == MT_CPAP) continue;
         if (!Machine::isCorrectableType(mach->type())) continue;
         QString label = mach->brand() + " " + mach->model();
         if (label.trimmed().isEmpty()) label = mach->loaderName();
         label += " (" + mach->serial() + ")";
-        ui->driftDeviceCombo->addItem(label, QVariant::fromValue(reinterpret_cast<quintptr>(mach)));
+        ui->refDeviceCombo->addItem(label, QVariant::fromValue(reinterpret_cast<quintptr>(mach)));
     }
-    ui->driftDeviceCombo->blockSignals(false);
+    ui->refDeviceCombo->blockSignals(false);
 }
 
-Machine* DriftAnalysisDialog::currentMachine() const
+Machine* DriftAnalysisDialog::currentDutMachine() const
 {
-    int idx = ui->driftDeviceCombo->currentIndex();
+    int idx = ui->dutDeviceCombo->currentIndex();
     if (idx < 0) return nullptr;
-    return reinterpret_cast<Machine*>(ui->driftDeviceCombo->itemData(idx).value<quintptr>());
+    quintptr ptr = ui->dutDeviceCombo->itemData(idx).value<quintptr>();
+    return ptr ? reinterpret_cast<Machine*>(ptr) : nullptr;
+}
+
+Machine* DriftAnalysisDialog::currentRefMachine() const
+{
+    int idx = ui->refDeviceCombo->currentIndex();
+    if (idx < 0) return nullptr;
+    quintptr ptr = ui->refDeviceCombo->itemData(idx).value<quintptr>();
+    return ptr ? reinterpret_cast<Machine*>(ptr) : nullptr;
 }
 
 void DriftAnalysisDialog::rebuildMachine(Machine* mach)
@@ -92,21 +133,26 @@ void DriftAnalysisDialog::rebuildMachine(Machine* mach)
     mach->rebuildCorrections(rows);
 }
 
-void DriftAnalysisDialog::onDriftDeviceChanged(int)
+void DriftAnalysisDialog::onDutDeviceChanged(int)
 {
-    m_driftPoints.clear();
-    m_fitValid = false;
-    ui->driftPlot->clear();
-    ui->btnFitDrift->setEnabled(false);
-    ui->btnUseDrift->setEnabled(false);
-    ui->driftStatusLabel->setText(tr("Select a device and date range, then click Load Data."));
+    resetPlotState();
+}
+
+void DriftAnalysisDialog::onRefDeviceChanged(int)
+{
+    resetPlotState();
 }
 
 void DriftAnalysisDialog::onLoadDriftData()
 {
-    Machine* mach = currentMachine();
+    Machine* mach = currentDutMachine();
     if (!mach || mach->getDatabaseId() <= 0) {
-        ui->driftStatusLabel->setText(tr("No device selected."));
+        ui->driftStatusLabel->setText(tr("No CPAP device selected."));
+        return;
+    }
+    Machine* ref = currentRefMachine();
+    if (!ref || ref->getDatabaseId() <= 0) {
+        ui->driftStatusLabel->setText(tr("Select a reference device to measure CPAP drift against."));
         return;
     }
     QDate start = ui->driftStartDate->date();
@@ -117,24 +163,81 @@ void DriftAnalysisDialog::onLoadDriftData()
     }
 
     DeviceTimeCorrectionRepository repo;
-    m_driftPoints.clear();
-    QList<DriftPlotWidget::Point> plotPts;
-    for (const auto& r : repo.findManualOffsetRows(mach->getDatabaseId())) {
-        QDate d = QDate::fromString(r.dateFrom, Qt::ISODate);
-        if (d < start || d > end) continue;
-        double t = QDateTime(d, QTime(12,0,0), Qt::UTC).toMSecsSinceEpoch();
-        m_driftPoints.append({d, double(r.offsetMs), t});
-        plotPts.append({d, double(r.offsetMs)});
+
+    // Find the most recent active drift row on the CPAP device covering [start, end].
+    m_hasExistingModel   = false;
+    m_existingModelRowId = -1;
+    for (const auto& row : repo.findActive(mach->getDatabaseId())) {
+        if (row.type != "drift") continue;
+        QDate rowFrom = QDate::fromString(row.dateFrom, Qt::ISODate);
+        QDate rowTo   = row.dateTo.isEmpty() ? QDate(9999, 12, 31)
+                                             : QDate::fromString(row.dateTo, Qt::ISODate);
+        if (rowFrom > end || rowTo < start) continue;
+        if (!m_hasExistingModel || rowFrom > m_existingModelFrom) {
+            m_hasExistingModel   = true;
+            m_existingModelC0Ms  = double(row.c0Ms);
+            m_existingModelSlope = row.c1 - 1.0;
+            m_existingModelRowId = row.id;
+            m_existingModelFrom  = rowFrom;
+        }
     }
 
-    m_fitValid = false;
+    // The fitting data is the reference device's nightly offset entries — each entry
+    // is the measured CPAP-to-reference offset for that night. When a CPAP drift model
+    // is already active, add its value so the new fit targets total corrections.
+    m_driftPoints.clear();
+    QList<DriftPlotWidget::Point> plotPts;
+    for (const auto& r : repo.findManualOffsetRows(ref->getDatabaseId())) {
+        QDate d = QDate::fromString(r.dateFrom, Qt::ISODate);
+        if (d < start || d > end) continue;
+        double tNoonMs = QDateTime(d, QTime(12, 0, 0), Qt::UTC).toMSecsSinceEpoch();
+        double plotVal = double(r.offsetMs);
+        if (m_hasExistingModel)
+            plotVal += m_existingModelC0Ms + m_existingModelSlope * tNoonMs;
+        m_driftPoints.append({d, plotVal, tNoonMs});
+        plotPts.append({d, plotVal});
+    }
+
+    if (m_hasExistingModel)
+        ui->driftPlot->setReferenceModel(m_existingModelC0Ms, m_existingModelSlope);
+    else
+        ui->driftPlot->clearReferenceModel();
+
+    ui->driftPlot->setDateRange(start, end);
     ui->driftPlot->setData(plotPts);
+    ui->driftPlot->clearRefPoints();
+
+    m_fitValid = false;
     ui->btnFitDrift->setEnabled(m_driftPoints.size() >= 3);
     ui->btnUseDrift->setEnabled(false);
 
-    ui->driftStatusLabel->setText(m_driftPoints.isEmpty()
-        ? tr("No drift entries found in the selected range.")
-        : tr("%1 drift entries loaded. Click Fit Model to compute the drift rate.").arg(m_driftPoints.size()));
+    QString refName = ref->brand() + " " + ref->model();
+    if (refName.trimmed().isEmpty()) refName = ref->loaderName();
+
+    if (m_driftPoints.isEmpty() && m_hasExistingModel) {
+        ui->driftStatusLabel->setText(
+            tr("Drift model active since %1 — no new %2 offset entries in range. "
+               "Add offset entries for the reference device, then reload.")
+            .arg(m_existingModelFrom.toString(Qt::ISODate))
+            .arg(refName));
+    } else if (m_driftPoints.isEmpty()) {
+        ui->driftStatusLabel->setText(
+            tr("No offset entries found for %1 in the selected range.").arg(refName));
+    } else if (m_hasExistingModel) {
+        ui->driftStatusLabel->setText(
+            tr("Drift model active since %1. Showing total %2 corrections "
+               "(existing model + residuals). %3 points loaded. New fit replaces "
+               "the existing model from %4 onward.")
+            .arg(m_existingModelFrom.toString(Qt::ISODate))
+            .arg(refName)
+            .arg(m_driftPoints.size())
+            .arg(start.toString(Qt::ISODate)));
+    } else {
+        ui->driftStatusLabel->setText(
+            tr("%1 %2 offset entries loaded. Click Fit Model to compute drift rate.")
+            .arg(m_driftPoints.size())
+            .arg(refName));
+    }
 }
 
 void DriftAnalysisDialog::onFitDrift()
@@ -173,30 +276,48 @@ void DriftAnalysisDialog::onFitDrift()
     QString status = tr("R²=%1, drift rate=%2 ms/day")
         .arg(r2, 0, 'f', 3)
         .arg(slope * 86400000.0, 0, 'f', 1);
-    if (r2 < 0.5)       status += tr(" — poor fit, Use Model disabled");
-    else if (r2 < 0.8)  status += tr(" — moderate fit");
+    if (r2 < 0.5)
+        status += tr(" — poor fit, Use Model disabled");
+    else if (r2 < 0.8)
+        status += tr(" — moderate fit");
+    if (m_hasExistingModel)
+        status += tr(" — will replace model active since %1").arg(m_existingModelFrom.toString(Qt::ISODate));
     ui->driftStatusLabel->setText(status);
 }
 
 void DriftAnalysisDialog::onUseDrift()
 {
     if (!m_fitValid) return;
-    Machine* mach = currentMachine();
+    Machine* mach = currentDutMachine();
     if (!mach || mach->getDatabaseId() <= 0) return;
+    Machine* ref = currentRefMachine();
+    if (!ref || ref->getDatabaseId() <= 0) return;
 
     QDate fitStart = ui->driftStartDate->date();
     QDate fitEnd   = ui->driftEndDate->date();
 
     DeviceTimeCorrectionRepository repo;
-    for (const auto& r : repo.findManualOffsetRows(mach->getDatabaseId())) {
+
+    // Close the existing CPAP drift row the day before the new fit starts
+    if (m_hasExistingModel && m_existingModelRowId >= 0) {
+        QString closedTo = fitStart.addDays(-1).toString(Qt::ISODate);
+        repo.updateDateTo(m_existingModelRowId, closedTo);
+    }
+
+    // Mark the reference device's constant entries in the fit range as undone — they
+    // are absorbed into the CPAP drift model and are no longer needed for correction.
+    for (const auto& r : repo.findManualOffsetRows(ref->getDatabaseId())) {
         QDate d = QDate::fromString(r.dateFrom, Qt::ISODate);
         if (d >= fitStart && d <= fitEnd) repo.markUndone(r.id);
     }
 
+    // Write new open-ended drift row on the CPAP (scenario b: extends forward indefinitely).
+    // Values are stored un-negated (positive = CPAP is ahead by that many ms).
+    // correctionMs() subtracts drift rows, so the CPAP is shifted backward to align.
     DeviceTimeCorrectionData modelRow;
     modelRow.machineId = mach->getDatabaseId();
     modelRow.dateFrom  = fitStart.toString(Qt::ISODate);
-    modelRow.dateTo    = fitEnd.toString(Qt::ISODate);
+    modelRow.dateTo    = "";   // open-ended
     modelRow.type      = "drift";
     modelRow.c0Ms      = qint64(m_fitC0Ms);
     modelRow.c1        = m_fitSlope + 1.0;
@@ -209,12 +330,17 @@ void DriftAnalysisDialog::onUseDrift()
 
     rebuildMachine(mach);
 
-    m_driftPoints.clear();
-    m_fitValid = false;
-    ui->driftPlot->clear();
-    ui->btnFitDrift->setEnabled(false);
-    ui->btnUseDrift->setEnabled(false);
-    ui->driftStatusLabel->setText(tr("Model committed. Manual drift entries replaced."));
+    QString status;
+    if (m_hasExistingModel) {
+        status = tr("CPAP drift model refined. Prior model closed %1; new model active from %2 onward.")
+                 .arg(fitStart.addDays(-1).toString(Qt::ISODate))
+                 .arg(fitStart.toString(Qt::ISODate));
+    } else {
+        status = tr("CPAP drift model committed. Reference device entries in fit range replaced.");
+    }
+
+    resetPlotState();
+    ui->driftStatusLabel->setText(status);
 
     emit correctionsChanged();
 }

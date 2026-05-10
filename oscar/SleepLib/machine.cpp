@@ -646,7 +646,9 @@ qint64 Machine::correctionMs(QDate night) const
         if (row.c1 == 0.0) {
             total += row.offsetMs;
         } else {
-            total += row.c0Ms + qint64((row.c1 - 1.0) * double(t_noon));
+            // Drift row values represent accumulated CPAP clock error (positive = CPAP ahead).
+            // Subtract to shift CPAP data backward and align with reference.
+            total -= row.c0Ms + qint64((row.c1 - 1.0) * double(t_noon));
         }
     }
 

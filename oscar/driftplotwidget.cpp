@@ -44,10 +44,46 @@ void DriftPlotWidget::clearModel()
     update();
 }
 
+void DriftPlotWidget::setReferenceModel(double c0Ms, double slope)
+{
+    m_refC0Ms     = c0Ms;
+    m_refSlope    = slope;
+    m_hasRefModel = true;
+    update();
+}
+
+void DriftPlotWidget::clearReferenceModel()
+{
+    m_hasRefModel = false;
+    update();
+}
+
+void DriftPlotWidget::setRefPoints(const QList<Point>& pts)
+{
+    m_refPoints = pts;
+    update();
+}
+
+void DriftPlotWidget::clearRefPoints()
+{
+    m_refPoints.clear();
+    update();
+}
+
+void DriftPlotWidget::setDateRange(const QDate& start, const QDate& end)
+{
+    m_rangeStart = start;
+    m_rangeEnd   = end;
+}
+
 void DriftPlotWidget::clear()
 {
     m_points.clear();
-    m_hasModel = false;
+    m_refPoints.clear();
+    m_hasModel    = false;
+    m_hasRefModel = false;
+    m_rangeStart  = QDate();
+    m_rangeEnd    = QDate();
     update();
 }
 
@@ -61,24 +97,47 @@ void DriftPlotWidget::paintEvent(QPaintEvent*)
 
     p.fillRect(rect(), palette().window());
 
-    if (m_points.isEmpty()) {
+    const bool hasAnyPoints = !m_points.isEmpty() || !m_refPoints.isEmpty();
+    if (!hasAnyPoints && !m_hasRefModel) {
         p.setPen(palette().color(QPalette::Disabled, QPalette::Text));
         p.drawText(rect(), Qt::AlignCenter, tr("No data loaded"));
         return;
     }
 
-    // --- Compute bounds ---
-    double minY = m_points[0].offsetMs, maxY = m_points[0].offsetMs;
-    QDate  minD = m_points[0].date,     maxD = m_points[0].date;
-    for (const auto& pt : m_points) {
-        minY = qMin(minY, pt.offsetMs);
-        maxY = qMax(maxY, pt.offsetMs);
-        if (pt.date < minD) minD = pt.date;
-        if (pt.date > maxD) maxD = pt.date;
+    // --- Compute bounds across all data sources ---
+    auto allPoints = m_points + m_refPoints;
+    QDate  minD, maxD;
+    double minY = 0.0, maxY = 0.0;
+
+    if (!allPoints.isEmpty()) {
+        minY = allPoints[0].offsetMs; maxY = allPoints[0].offsetMs;
+        minD = allPoints[0].date;     maxD = allPoints[0].date;
+        for (const auto& pt : allPoints) {
+            minY = qMin(minY, pt.offsetMs);
+            maxY = qMax(maxY, pt.offsetMs);
+            if (pt.date < minD) minD = pt.date;
+            if (pt.date > maxD) maxD = pt.date;
+        }
+    } else if (m_rangeStart.isValid() && m_rangeEnd.isValid()) {
+        // No data points but a reference model is active — use the stored date range
+        minD = m_rangeStart;
+        maxD = m_rangeEnd;
+        minY = m_refC0Ms + m_refSlope * tNoon(minD);
+        maxY = m_refC0Ms + m_refSlope * tNoon(maxD);
+        if (minY > maxY) qSwap(minY, maxY);
+    } else {
+        // Unreachable given the early-return guard above, but be safe
+        return;
     }
     if (m_hasModel) {
         double y0 = m_c0Ms + m_slope * tNoon(minD);
         double y1 = m_c0Ms + m_slope * tNoon(maxD);
+        minY = qMin(minY, qMin(y0, y1));
+        maxY = qMax(maxY, qMax(y0, y1));
+    }
+    if (m_hasRefModel) {
+        double y0 = m_refC0Ms + m_refSlope * tNoon(minD);
+        double y1 = m_refC0Ms + m_refSlope * tNoon(maxD);
         minY = qMin(minY, qMin(y0, y1));
         maxY = qMax(maxY, qMax(y0, y1));
     }
@@ -107,7 +166,6 @@ void DriftPlotWidget::paintEvent(QPaintEvent*)
     p.setFont(tickFont);
 
     // --- Y grid + labels ---
-    // Pick a nice tick interval in ms
     double ySpan = maxY - minY;
     double rawStep = ySpan / 5.0;
     double mag = qPow(10.0, qFloor(qLn(rawStep) / qLn(10.0)));
@@ -146,7 +204,15 @@ void DriftPlotWidget::paintEvent(QPaintEvent*)
         p.drawText(lr, Qt::AlignCenter, d.toString("MM-dd"));
     }
 
-    // --- Model line ---
+    // --- Existing model line (gray dashed) ---
+    if (m_hasRefModel) {
+        double x0 = toX(minD), y0 = toY(m_refC0Ms + m_refSlope * tNoon(minD));
+        double x1 = toX(maxD), y1 = toY(m_refC0Ms + m_refSlope * tNoon(maxD));
+        p.setPen(QPen(QColor(160, 160, 160), 1, Qt::DashLine));
+        p.drawLine(QPointF(x0, y0), QPointF(x1, y1));
+    }
+
+    // --- Newly fitted model line (red solid) ---
     if (m_hasModel) {
         double x0 = toX(minD), y0 = toY(m_c0Ms + m_slope * tNoon(minD));
         double x1 = toX(maxD), y1 = toY(m_c0Ms + m_slope * tNoon(maxD));
@@ -154,13 +220,24 @@ void DriftPlotWidget::paintEvent(QPaintEvent*)
         p.drawLine(QPointF(x0, y0), QPointF(x1, y1));
     }
 
-    // --- Scatter points ---
+    // --- DUT scatter points (blue filled) ---
     p.setPen(Qt::NoPen);
     p.setBrush(QColor(50, 110, 200));
     for (const auto& pt : m_points) {
         int x = (int)toX(pt.date);
         int y = (int)toY(pt.offsetMs);
         p.drawEllipse(QPoint(x, y), 4, 4);
+    }
+
+    // --- Reference device points (gray hollow) ---
+    if (!m_refPoints.isEmpty()) {
+        p.setBrush(Qt::NoBrush);
+        p.setPen(QPen(QColor(130, 130, 130), 1));
+        for (const auto& pt : m_refPoints) {
+            int x = (int)toX(pt.date);
+            int y = (int)toY(pt.offsetMs);
+            p.drawEllipse(QPoint(x, y), 4, 4);
+        }
     }
 
     // --- Axis title (Y) ---
