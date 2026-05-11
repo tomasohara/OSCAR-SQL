@@ -4,6 +4,24 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-10 - Edit Profile dialog layout unified (#137)
+
+**Files:** `oscar/newprofile.ui`
+
+**Symptom:** Group boxes on the CPAP, Doctor Info, and Profile pages did not align with the
+bottom of the group boxes on the Personal Info page. Address/notes text areas had excessive
+vertical expansion. On the Profile page, the Profile Info and Locale Settings group boxes
+split the page evenly instead of the Profile Info box being sized to its content.
+
+**Fix:** Removed forced 40 px spacers from the Contact Info, Doctor/Clinic Info, and Locale
+Settings group boxes. Added minimum height (55 px) to address and notes text areas so they
+stay compact by default but can grow. Added internal expanding spacers to group boxes with
+only fixed-height fields (Personal Info, Locale Settings) so extra page height is absorbed
+cleanly within each box. Set Locale Settings group box to Expanding vertical size policy so
+it takes all remaining height on the Profile page. Reduced dialog height from 450 to 440 px.
+
+---
+
 ## 2026-05-10 - Remove password support (#136)
 
 **Files:** `oscar/newprofile.ui`, `oscar/newprofile.h`, `oscar/newprofile.cpp`,
