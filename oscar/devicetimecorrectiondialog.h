@@ -41,6 +41,7 @@ private slots:
     void onNudgePlus1m();
     void onNudgePlus1h();
     void onResetToZero();
+    void onNewCorrection();
     void onSaveStaged();
     void onDiscardStaged();
     void onApplyLastNight();
@@ -54,6 +55,7 @@ private:
 
     // Staged (preview) correction — not yet written to DB
     struct StagedRow {
+        qint64  id        = 0;   // DB id of the row being replaced; 0 in new-entry mode
         qint64  machineId = 0;
         QString dateFrom, dateTo;
         QString type;
@@ -73,6 +75,8 @@ private:
     void effectiveDateRange(QString& dateFrom, QString& dateTo) const;
     void previewStaged(Machine* mach);
     void clearStagedAndRevert();
+    void resetToNewMode();
+    void refreshModeLabel();
     void updateControlStates();
 
     QString currentTypeName() const;
@@ -81,7 +85,6 @@ private:
     void commitAndRefresh(Machine* mach);
 
     void populateControlsFromRow(const DeviceTimeCorrectionData& row);
-    void autoPopulateForCurrentDevice();
 
     // Delete correction helpers
     enum DeleteChoice { CloseForward, SplitOut, RemoveEntirely, DeleteCancelled };

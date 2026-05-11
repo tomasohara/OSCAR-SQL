@@ -51,6 +51,14 @@
         </layout>
        </item>
 
+       <!-- Mode indicator -->
+       <item>
+        <widget class="QLabel" name="modeLabel">
+         <property name="text"><string>New correction</string></property>
+         <property name="minimumSize"><size><width>0</width><height>20</height></size></property>
+        </widget>
+       </item>
+
        <!-- Correction type -->
        <item>
         <layout class="QFormLayout">
@@ -135,6 +143,11 @@
        <!-- Save / Discard / Apply Last Offset -->
        <item>
         <layout class="QHBoxLayout">
+         <item>
+          <widget class="QPushButton" name="btnNewCorrection">
+           <property name="text"><string>New Correction</string></property>
+          </widget>
+         </item>
          <item>
           <widget class="QPushButton" name="btnSaveCorrection">
            <property name="text"><string>Save Correction</string></property>

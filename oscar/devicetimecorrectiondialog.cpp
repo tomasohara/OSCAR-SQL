@@ -39,6 +39,7 @@ DeviceTimeCorrectionDialog::DeviceTimeCorrectionDialog(QWidget *parent)
     connect(ui->btnPlus1m,        &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1m);
     connect(ui->btnPlus1h,        &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1h);
     connect(ui->btnResetToZero,    &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onResetToZero);
+    connect(ui->btnNewCorrection,  &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNewCorrection);
     connect(ui->btnSaveCorrection, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onSaveStaged);
     connect(ui->btnDiscardChanges, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onDiscardStaged);
     connect(ui->btnApplyLastNight, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onApplyLastNight);
@@ -218,10 +219,11 @@ void DeviceTimeCorrectionDialog::onDeviceChanged(QTreeWidgetItem* current, QTree
 {
     if (!current || !current->data(0, Qt::UserRole).isValid()) return;
     if (m_hasStagedChange) clearStagedAndRevert();
+    m_staged = {};
+    m_hasStagedChange = false;
     Machine* mach = currentMachine();
     refreshTitleArea(mach);
-    refreshCurrentOffset();
-    refreshHistory();
+    refreshHistory();   // resetToNewMode inside calls refreshCurrentOffset
 }
 
 void DeviceTimeCorrectionDialog::refreshCurrentOffset()
@@ -232,11 +234,10 @@ void DeviceTimeCorrectionDialog::refreshCurrentOffset()
         ui->largeDriftWarning->setText("");
         return;
     }
-    // When a row is loaded (staged or pre-staged), show that row's individual offset.
-    // Otherwise show the device total for the date.
-    qint64 displayMs = (m_staged.machineId != 0)
-                       ? m_staged.offsetMs
-                       : mach->correctionMs(m_date);
+    // Show the row's offset when one is loaded (viewing or staging).
+    // In new-correction mode (no row loaded) show 0 — the historyTable already lists
+    // existing corrections; the label reflects what will be saved.
+    qint64 displayMs = (m_staged.machineId != 0) ? m_staged.offsetMs : 0;
     if (m_hasStagedChange) {
         ui->currentOffsetValue->setText(formatOffset(displayMs) + " *");
         ui->currentOffsetValue->setStyleSheet("color: #cc6600; font-weight: bold;");
@@ -252,13 +253,20 @@ void DeviceTimeCorrectionDialog::refreshCurrentOffset()
 
 void DeviceTimeCorrectionDialog::refreshHistory()
 {
+    // Block signals for the entire population so Qt's auto-selection of row 0
+    // (fired by setRowCount when the current index was invalid) cannot trigger
+    // onHistoryRowSelected before autoPopulateForCurrentDevice runs.
+    ui->historyTable->blockSignals(true);
     ui->historyTable->setRowCount(0);
     m_historyRows.clear();
     m_historyMachines.clear();
     ui->historyLabel->setText(m_date.isValid()
         ? tr("Corrections on %1:").arg(m_date.toString("yyyy-MM-dd"))
         : tr("Active corrections for this date:"));
-    if (!p_profile || !m_date.isValid()) return;
+    if (!p_profile || !m_date.isValid()) {
+        ui->historyTable->blockSignals(false);
+        return;
+    }
 
     DeviceTimeCorrectionRepository repo;
     for (Machine* mach : p_profile->GetMachines()) {
@@ -308,7 +316,9 @@ void DeviceTimeCorrectionDialog::refreshHistory()
                     ui->historyTable->item(i, c)->setBackground(bg);
     }
 
-    autoPopulateForCurrentDevice();
+    ui->historyTable->blockSignals(false);
+    if (!m_hasStagedChange)
+        resetToNewMode();
 }
 
 void DeviceTimeCorrectionDialog::effectiveDateRange(QString& dateFrom, QString& dateTo) const
@@ -317,8 +327,17 @@ void DeviceTimeCorrectionDialog::effectiveDateRange(QString& dateFrom, QString& 
     bool advanced = ui->advancedGroup->isChecked();
 
     if (type == "timezone") {
-        dateFrom = m_date.toString(Qt::ISODate);
-        dateTo   = "";
+        if (advanced) {
+            dateFrom = ui->advStartDate->date().toString(Qt::ISODate);
+            // Keep dateTo="" (NULL in DB) when open-ended so closeOpenTimezoneRows
+            // can still find this row via its dateTo.isEmpty() guard.
+            dateTo   = ui->advEndDateCheck->isChecked()
+                       ? ""
+                       : ui->advEndDate->date().toString(Qt::ISODate);
+        } else {
+            dateFrom = m_date.toString(Qt::ISODate);
+            dateTo   = "";
+        }
         return;
     }
 
@@ -353,13 +372,19 @@ void DeviceTimeCorrectionDialog::previewStaged(Machine* mach)
     DeviceTimeCorrectionRepository repo;
     QList<DeviceTimeCorrectionData> dbRows = repo.findActive(mach->getDatabaseId());
 
+    QString previewFrom, previewTo;
+    effectiveDateRange(previewFrom, previewTo);
+    QString previewType = currentTypeName();
+
     QList<TimeCorrectionRow> rows;
     rows.reserve(dbRows.size() + 1);
     for (const auto& d : dbRows) {
-        if (d.type == m_staged.type && d.c1 == 0.0 &&
-            d.dateFrom == m_staged.dateFrom &&
-            (m_staged.dateTo.isEmpty() ? d.dateTo.isEmpty() : d.dateTo == m_staged.dateTo))
-            continue;
+        bool exclude = (m_staged.id != 0)
+            ? (d.id == m_staged.id)
+            : (d.type == previewType && d.c1 == 0.0 &&
+               d.dateFrom == previewFrom &&
+               (previewTo.isEmpty() ? d.dateTo.isEmpty() : d.dateTo == previewTo));
+        if (exclude) continue;
         TimeCorrectionRow r;
         r.dateFrom = QDate::fromString(d.dateFrom, Qt::ISODate);
         r.dateTo   = d.dateTo.isEmpty() ? QDate() : QDate::fromString(d.dateTo, Qt::ISODate);
@@ -371,10 +396,8 @@ void DeviceTimeCorrectionDialog::previewStaged(Machine* mach)
 
     if (m_staged.offsetMs != 0) {
         TimeCorrectionRow staged;
-        staged.dateFrom = QDate::fromString(m_staged.dateFrom, Qt::ISODate);
-        staged.dateTo   = m_staged.dateTo.isEmpty()
-                          ? QDate()
-                          : QDate::fromString(m_staged.dateTo, Qt::ISODate);
+        staged.dateFrom = QDate::fromString(previewFrom, Qt::ISODate);
+        staged.dateTo   = previewTo.isEmpty() ? QDate() : QDate::fromString(previewTo, Qt::ISODate);
         staged.offsetMs = m_staged.offsetMs;
         rows.append(staged);
     }
@@ -387,13 +410,56 @@ void DeviceTimeCorrectionDialog::previewStaged(Machine* mach)
 
 void DeviceTimeCorrectionDialog::clearStagedAndRevert()
 {
+    resetToNewMode();
     Machine* mach = currentMachine();
-    m_hasStagedChange = false;
-    m_staged = {};
-    updateControlStates();
     if (mach) {
         rebuildMachine(mach);
         emit correctionsChanged();
+    }
+}
+
+void DeviceTimeCorrectionDialog::resetToNewMode()
+{
+    m_hasStagedChange = false;
+    m_staged = {};
+
+    {
+        QSignalBlocker b(ui->historyTable);
+        ui->historyTable->clearSelection();
+        ui->historyTable->setCurrentItem(nullptr);
+    }
+
+    {
+        QSignalBlocker b1(ui->correctionTypeCombo);
+        QSignalBlocker b2(ui->advancedGroup);
+        QSignalBlocker b3(ui->advStartDate);
+        QSignalBlocker b4(ui->advEndDate);
+        QSignalBlocker b5(ui->advEndDateCheck);
+
+        ui->correctionTypeCombo->setCurrentIndex(0);
+        ui->advancedGroup->setChecked(false);
+        if (m_date.isValid()) {
+            ui->advStartDate->setDate(m_date);
+            ui->advEndDate->setDate(m_date);
+        }
+        ui->advEndDateCheck->setChecked(false);
+    }
+
+    refreshCurrentOffset();
+    refreshModeLabel();
+    updateControlStates();
+}
+
+void DeviceTimeCorrectionDialog::refreshModeLabel()
+{
+    if (m_staged.id == 0) {
+        ui->modeLabel->setText(tr("New correction"));
+        ui->modeLabel->setStyleSheet("color: #2a7a2a; font-style: italic;");
+    } else {
+        QString toStr = m_staged.dateTo.isEmpty() ? tr("open") : m_staged.dateTo;
+        QString desc = QString("%1  %2 – %3").arg(m_staged.type, m_staged.dateFrom, toStr);
+        ui->modeLabel->setText(tr("Editing: %1").arg(desc));
+        ui->modeLabel->setStyleSheet("color: #b85c00; font-style: italic;");
     }
 }
 
@@ -429,12 +495,8 @@ void DeviceTimeCorrectionDialog::onSaveStaged()
     if (type == "timezone")
         closeOpenTimezoneRows(repo, mach->getDatabaseId(), dateFrom);
 
-    // If the target shifted after staging began, void the original row so it
-    // is not left as an orphan alongside the newly saved range.
-    if (m_staged.dateFrom != dateFrom || m_staged.dateTo != dateTo || m_staged.type != type)
-        repo.upsertTyped(mach->getDatabaseId(),
-                         m_staged.dateFrom, m_staged.dateTo,
-                         m_staged.type, 0);
+    if (m_staged.id != 0)
+        repo.markUndone(m_staged.id);
 
     repo.upsertTyped(mach->getDatabaseId(), dateFrom, dateTo, type, m_staged.offsetMs);
 
@@ -447,8 +509,13 @@ void DeviceTimeCorrectionDialog::onSaveStaged()
 void DeviceTimeCorrectionDialog::onDiscardStaged()
 {
     clearStagedAndRevert();
-    refreshCurrentOffset();
     refreshHistory();
+}
+
+void DeviceTimeCorrectionDialog::onNewCorrection()
+{
+    clearStagedAndRevert();
+    resetToNewMode();
 }
 
 void DeviceTimeCorrectionDialog::applyNudge(qint64 deltaMs)
@@ -462,17 +529,22 @@ void DeviceTimeCorrectionDialog::applyNudge(qint64 deltaMs)
 
     if (!m_hasStagedChange) {
         m_staged.machineId = mach->getDatabaseId();
-        m_staged.dateFrom  = dateFrom;
-        m_staged.dateTo    = dateTo;
-        m_staged.type      = type;
-        m_staged.offsetMs  = 0;
-
-        DeviceTimeCorrectionRepository repo;
-        for (const auto& r : repo.findActive(mach->getDatabaseId())) {
-            if (r.type != type || r.c1 != 0.0 || r.dateFrom != dateFrom) continue;
-            bool sameTo = dateTo.isEmpty() ? r.dateTo.isEmpty() : (r.dateTo == dateTo);
-            if (sameTo) { m_staged.offsetMs = r.offsetMs; break; }
+        if (m_staged.id == 0) {
+            // New-entry mode: initialize staged position and seed offset from any
+            // existing row at the same position.
+            m_staged.dateFrom = dateFrom;
+            m_staged.dateTo   = dateTo;
+            m_staged.type     = type;
+            m_staged.offsetMs = 0;
+            DeviceTimeCorrectionRepository repo;
+            for (const auto& r : repo.findActive(mach->getDatabaseId())) {
+                if (r.type != type || r.c1 != 0.0 || r.dateFrom != dateFrom) continue;
+                bool sameTo = dateTo.isEmpty() ? r.dateTo.isEmpty() : (r.dateTo == dateTo);
+                if (sameTo) { m_staged.offsetMs = r.offsetMs; break; }
+            }
         }
+        // Edit mode (id != 0): dateFrom/dateTo/type/offsetMs already seeded by
+        // populateControlsFromRow — preserve them.
         m_hasStagedChange = true;
         updateControlStates();
     }
@@ -493,16 +565,16 @@ void DeviceTimeCorrectionDialog::onResetToZero()
     Machine* mach = currentMachine();
     if (!mach || !m_date.isValid() || mach->getDatabaseId() <= 0) return;
 
-    QString type = currentTypeName();
-    QString dateFrom, dateTo;
-    effectiveDateRange(dateFrom, dateTo);
-
     m_staged.machineId = mach->getDatabaseId();
-    m_staged.dateFrom  = dateFrom;
-    m_staged.dateTo    = dateTo;
-    m_staged.type      = type;
-    m_staged.offsetMs  = 0;
-    m_hasStagedChange  = true;
+    if (m_staged.id == 0) {
+        QString dateFrom, dateTo;
+        effectiveDateRange(dateFrom, dateTo);
+        m_staged.dateFrom = dateFrom;
+        m_staged.dateTo   = dateTo;
+        m_staged.type     = currentTypeName();
+    }
+    m_staged.offsetMs = 0;
+    m_hasStagedChange = true;
     updateControlStates();
     previewStaged(mach);
 }
@@ -646,6 +718,7 @@ void DeviceTimeCorrectionDialog::populateControlsFromRow(const DeviceTimeCorrect
     // Seed m_staged so onAnyControlChanged and refreshCurrentOffset use this row's values.
     Machine* mach = currentMachine();
     if (mach && mach->getDatabaseId() > 0) {
+        m_staged.id        = row.id;
         m_staged.machineId = mach->getDatabaseId();
         m_staged.dateFrom  = row.dateFrom;
         m_staged.dateTo    = row.dateTo;
@@ -653,85 +726,41 @@ void DeviceTimeCorrectionDialog::populateControlsFromRow(const DeviceTimeCorrect
         m_staged.offsetMs  = row.offsetMs;
     }
 
-    // Block all signals that would trigger onAnyControlChanged while we set control values.
-    ui->correctionTypeCombo->blockSignals(true);
-    ui->advancedGroup->blockSignals(true);
-    ui->advStartDate->blockSignals(true);
-    ui->advEndDate->blockSignals(true);
-    ui->advEndDateCheck->blockSignals(true);
+    {
+        QSignalBlocker b1(ui->correctionTypeCombo);
+        QSignalBlocker b2(ui->advancedGroup);
+        QSignalBlocker b3(ui->advStartDate);
+        QSignalBlocker b4(ui->advEndDate);
+        QSignalBlocker b5(ui->advEndDateCheck);
 
-    int typeIdx = kTypeKeys.indexOf(row.type);
-    ui->correctionTypeCombo->setCurrentIndex(typeIdx < 0 ? 0 : typeIdx);
+        int typeIdx = kTypeKeys.indexOf(row.type);
+        ui->correctionTypeCombo->setCurrentIndex(typeIdx < 0 ? 0 : typeIdx);
 
-    QDate from = QDate::fromString(row.dateFrom, Qt::ISODate);
-    QDate to   = row.dateTo.isEmpty() ? QDate() : QDate::fromString(row.dateTo, Qt::ISODate);
-    bool isSingleNight = (row.dateFrom == row.dateTo);
+        QDate from = QDate::fromString(row.dateFrom, Qt::ISODate);
+        QDate to   = row.dateTo.isEmpty() ? QDate() : QDate::fromString(row.dateTo, Qt::ISODate);
+        bool isSingleNight = (row.dateFrom == row.dateTo);
 
-    if (isSingleNight) {
-        ui->advancedGroup->setChecked(false);
-        ui->advStartDate->setDate(from);
-        ui->advEndDate->setDate(from);
-        ui->advEndDateCheck->setChecked(false);
-    } else {
-        ui->advancedGroup->setChecked(true);
-        ui->advStartDate->setDate(from);
-        if (row.dateTo.isEmpty()) {
-            ui->advEndDateCheck->setChecked(true);
-            ui->advEndDate->setDate(QDate(2099, 12, 31));
-        } else {
+        if (isSingleNight) {
+            ui->advancedGroup->setChecked(false);
+            ui->advStartDate->setDate(from);
+            ui->advEndDate->setDate(from);
             ui->advEndDateCheck->setChecked(false);
-            ui->advEndDate->setDate(to);
+        } else {
+            ui->advancedGroup->setChecked(true);
+            ui->advStartDate->setDate(from);
+            if (row.dateTo.isEmpty()) {
+                ui->advEndDateCheck->setChecked(true);
+                ui->advEndDate->setDate(QDate(2099, 12, 31));
+            } else {
+                ui->advEndDateCheck->setChecked(false);
+                ui->advEndDate->setDate(to);
+            }
         }
     }
-
-    ui->correctionTypeCombo->blockSignals(false);
-    ui->advancedGroup->blockSignals(false);
-    ui->advStartDate->blockSignals(false);
-    ui->advEndDate->blockSignals(false);
-    ui->advEndDateCheck->blockSignals(false);
 
     refreshCurrentOffset();
+    refreshModeLabel();
     updateControlStates();
-}
-
-void DeviceTimeCorrectionDialog::autoPopulateForCurrentDevice()
-{
-    if (m_hasStagedChange) return;
-
-    Machine* mach = currentMachine();
-    int matchRow = -1;
-    for (int i = 0; i < m_historyMachines.size(); ++i) {
-        if (m_historyMachines[i] == mach) { matchRow = i; break; }
-    }
-
-    ui->historyTable->blockSignals(true);
-    if (matchRow >= 0) {
-        ui->historyTable->setCurrentCell(matchRow, 0);
-        populateControlsFromRow(m_historyRows[matchRow]);
-    } else {
-        ui->historyTable->clearSelection();
-        m_staged = {};  // No row loaded — clear so controls don't spuriously activate staging
-        ui->correctionTypeCombo->blockSignals(true);
-        ui->advancedGroup->blockSignals(true);
-        ui->advStartDate->blockSignals(true);
-        ui->advEndDate->blockSignals(true);
-        ui->advEndDateCheck->blockSignals(true);
-        ui->correctionTypeCombo->setCurrentIndex(0);
-        ui->advancedGroup->setChecked(false);
-        if (m_date.isValid()) {
-            ui->advStartDate->setDate(m_date);
-            ui->advEndDate->setDate(m_date);
-        }
-        ui->advEndDateCheck->setChecked(false);
-        ui->correctionTypeCombo->blockSignals(false);
-        ui->advancedGroup->blockSignals(false);
-        ui->advStartDate->blockSignals(false);
-        ui->advEndDate->blockSignals(false);
-        ui->advEndDateCheck->blockSignals(false);
-        refreshCurrentOffset();
-        updateControlStates();
-    }
-    ui->historyTable->blockSignals(false);
 }
 
 void DeviceTimeCorrectionDialog::onAnyControlChanged()
@@ -773,6 +802,7 @@ void DeviceTimeCorrectionDialog::onHistoryRowSelected()
                             ui->historyTable->setCurrentCell(k, 0);
                             ui->historyTable->blockSignals(false);
                             populateControlsFromRow(m_historyRows[k]);
+                            refreshModeLabel();
                             break;
                         }
                     }
@@ -786,11 +816,9 @@ void DeviceTimeCorrectionDialog::onHistoryRowSelected()
     // Same device: discard any staged change, then load from this row
     if (m_hasStagedChange) {
         Machine* mach = currentMachine();
-        m_hasStagedChange = false;
-        m_staged = {};
+        resetToNewMode();
         if (mach) {
             rebuildMachine(mach);
-            refreshCurrentOffset();
             emit correctionsChanged();
         }
     }
