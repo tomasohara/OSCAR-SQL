@@ -303,12 +303,14 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     }
 
     // Initialize channels for this profile immediately after import.
-    // Without this, channels are only populated when the profile is first opened
-    // via LoadMachineData(), which means bulk-imported profiles show empty
-    // channels/channel_options tables until the user manually opens each one.
-    if (!profile->initializeChannelsFromSchema()) {
-        qWarning() << "ProfileImporter: Failed to initialize channels for" << newProfileName
-                   << "- they will be initialized when the profile is first opened";
+    // Read channels.dat directly from the source profile so user customizations
+    // (colors, labels, thresholds, enabled state) are preserved without copying the file.
+    // Falls back to schema defaults when the source has no channels.dat.
+    if (!profile->migrateChannelsToDatabase(sourcePath)) {
+        if (!profile->initializeChannelsFromSchema()) {
+            qWarning() << "ProfileImporter: Failed to initialize channels for" << newProfileName
+                       << "- they will be initialized when the profile is first opened";
+        }
     }
 
     reportProgress(100, 100, tr("Import complete!"));
@@ -358,7 +360,7 @@ bool ProfileImporter::copyProfileStructure(const QString& oldPath,
             // Not fatal - graph layout will revert to defaults
         }
     }
-    
+
     // 3. Copy machine folders with their Backup subfolder structure
     QStringList entries = oldDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
     

@@ -4,6 +4,25 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-11 - Profile import does not migrate channel customizations from 1.7.1
+
+**Files:** `oscar/profileimporter.cpp`, `oscar/SleepLib/profiles.cpp`, `oscar/SleepLib/profiles.h`
+
+**Symptom:** When importing a 1.7.1 profile, user-modified channel settings (colors, labels,
+enabled state, thresholds) set via the Preferences dialog were not preserved — the imported
+profile always had schema defaults.
+
+**Root cause:** The importer called `initializeChannelsFromSchema()` unconditionally after
+import, ignoring `channels.dat` in the source profile folder, which is where 1.7.1 stores
+per-profile channel customizations.
+
+**Fix:** Added an optional `channelsDatDir` parameter to `loadChannelsFromDat()` and
+`migrateChannelsToDatabase()`. The importer now calls `migrateChannelsToDatabase(sourcePath)`
+to read `channels.dat` directly from the source profile without copying the file.
+Falls back to schema defaults when no `channels.dat` is present.
+
+---
+
 ## 2026-05-11 - File > Edit Profile opens wrong profile when none is open
 
 **File:** `oscar/mainwindow.cpp` — `on_action_Edit_Profile_triggered()`

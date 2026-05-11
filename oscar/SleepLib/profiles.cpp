@@ -2737,37 +2737,38 @@ bool Profile::loadChannelsFromDatabase()
 }
 
 // One-time migration from channels.dat to database
-bool Profile::migrateChannelsToDatabase()
+bool Profile::migrateChannelsToDatabase(const QString& channelsDatDir)
 {
     ProfileRepository profileRepo;
     ProfileData profileData = profileRepo.findByUsername(user->userName());
-    
+
     if (profileData.id == 0) {
         qDebug() << "Profile: Cannot migrate channels, profile not in database yet";
         return false;
     }
-    
+
     // Check if channels table already has data for this profile
     ChannelRepository channelRepo;
     QList<ChannelData> existing = channelRepo.findByProfile(profileData.id);
-    
+
     if (!existing.isEmpty()) {
         qDebug() << "Profile: Channels already migrated to database (" << existing.size() << "channels found), skipping migration";
         return false;  // Already migrated
     }
-    
+
     // Check if channels.dat file exists
-    QString filename = Get("{DataFolder}/") + "channels.dat";
+    QString dir = channelsDatDir.isEmpty() ? Get("{DataFolder}/") : (channelsDatDir + "/");
+    QString filename = dir + "channels.dat";
     QFile f(filename);
     if (!f.exists()) {
         qDebug() << "Profile: No channels.dat file to migrate";
         return false;
     }
-    
+
     qDebug() << "Profile: Migrating channels from channels.dat to database...";
-    
+
     // Load from file
-    loadChannelsFromDat();
+    loadChannelsFromDat(channelsDatDir);
     
     // Save to database
     if (saveChannelsToDatabase()) {
@@ -2868,11 +2869,12 @@ bool Profile::initializeChannelsFromSchema()
 }
 
 // Original file-based implementation
-void Profile::loadChannelsFromDat()
+void Profile::loadChannelsFromDat(const QString& channelsDatDir)
 {
     bool changing_language = false;
 
-    QString filename = Get("{DataFolder}/") + "channels.dat";
+    QString dir = channelsDatDir.isEmpty() ? Get("{DataFolder}/") : (channelsDatDir + "/");
+    QString filename = dir + "channels.dat";
     QFile f(filename);
     if (!f.open(QFile::ReadOnly)) {
         return;

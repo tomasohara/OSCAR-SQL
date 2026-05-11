@@ -259,8 +259,8 @@ class Profile : public Preferences
     bool loadChannelsFromDatabase();
     bool saveChannelsToDatabase();
     void saveChannelsToDat();    // Original file-based implementation
-    void loadChannelsFromDat();  // Original file-based implementation
-    bool migrateChannelsToDatabase();  // One-time migration from channels.dat to database
+    void loadChannelsFromDat(const QString& channelsDatDir = QString());  // Original file-based implementation
+    bool migrateChannelsToDatabase(const QString& channelsDatDir = QString());  // One-time migration from channels.dat to database
     bool initializeChannelsFromSchema();  // Initialize channels from schema::channel registry
 
 
