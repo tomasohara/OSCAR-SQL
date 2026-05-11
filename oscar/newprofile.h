@@ -46,12 +46,6 @@ class NewProfile : public QDialog
 
     void on_agreeCheckbox_clicked(bool checked);
 
-    void on_passwordGroupBox_toggled(bool checked);
-
-    void on_passwordEdit1_editingFinished();
-
-    void on_passwordEdit2_editingFinished();
-
     void on_heightCombo_currentIndexChanged(int index);
 
     void on_textBrowser_anchorClicked(const QUrl &arg1);
@@ -66,7 +60,6 @@ class NewProfile : public QDialog
     bool m_height_modified;
     double m_tmp_height_cm;
     int m_firstPage;
-    bool m_passwordHashed;
     QString originalProfileName;
     QString newProfileName;
 };

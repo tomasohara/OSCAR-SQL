@@ -197,7 +197,7 @@ static bool exportPrivacyPreferences(QSqlDatabase& db,
         QStringLiteral("DOB"),         QStringLiteral("Address"),
         QStringLiteral("Phone"),       QStringLiteral("EmailAddress"),
         QStringLiteral("Country"),     QStringLiteral("Height"),
-        QStringLiteral("Gender"),      QStringLiteral("Password"),
+        QStringLiteral("Gender"),
         // DoctorInfo keys (STR_DI_*) — also stored in profile_preferences via PrefSettings
         QStringLiteral("DoctorName"),  QStringLiteral("DoctorPhone"),
         QStringLiteral("DoctorEmail"), QStringLiteral("DoctorPractice"),
@@ -210,7 +210,7 @@ static bool exportPrivacyPreferences(QSqlDatabase& db,
           << QStringLiteral("DOB")         << QStringLiteral("Address")
           << QStringLiteral("Phone")       << QStringLiteral("EmailAddress")
           << QStringLiteral("Country")     << QStringLiteral("Height")
-          << QStringLiteral("Gender")      << QStringLiteral("Password")
+          << QStringLiteral("Gender")
           << QStringLiteral("DoctorName")  << QStringLiteral("DoctorPhone")
           << QStringLiteral("DoctorEmail") << QStringLiteral("DoctorPractice")
           << QStringLiteral("DoctorAddress") << QStringLiteral("DoctorPatientID");
@@ -640,7 +640,7 @@ bool ProfileBackup::exportProfileMetadata(const QString& tempDir)
         QSqlDatabase db = DatabaseManager::instance().database();
         const QStringList nullCols = {
             "dob", "first_name", "last_name", "address", "phone",
-            "email", "country", "height", "gender", "password_hash"
+            "email", "country", "height", "gender"
         };
         if (!exportPrivacyTable(db, "user_info", pidWhere, nullCols,
                                 dbDir + "/user_info.sql")) {

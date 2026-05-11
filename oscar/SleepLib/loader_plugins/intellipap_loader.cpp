@@ -9,6 +9,7 @@
  * License. See the file COPYING in the main directory of the source code
  * for more details. */
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QCoreApplication>
 #include <QTimeZone>

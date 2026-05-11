@@ -331,7 +331,7 @@ void ProfileSelector::updateProfileHighlight(QString name)
     }
 }
 
-Profile *ProfileSelector::SelectProfile(QString profname, bool skippassword=false)
+Profile *ProfileSelector::SelectProfile(QString profname)
 {
     auto pit = Profiles::profiles.find(profname);
     if (pit == Profiles::profiles.end()) return nullptr;
@@ -339,38 +339,6 @@ Profile *ProfileSelector::SelectProfile(QString profname, bool skippassword=fals
     Profile * prof = pit.value();
 
     if (prof != p_profile) {
-        if (prof->user->hasPassword() && !skippassword) {
-            QDialog dialog(this, Qt::Dialog);
-            QLineEdit *e = new QLineEdit(&dialog);
-            e->setEchoMode(QLineEdit::Password);
-            dialog.connect(e, SIGNAL(returnPressed()), &dialog, SLOT(accept()));
-            dialog.setWindowTitle(tr("Enter Password for %1").arg(profname));
-            dialog.setMinimumWidth(300);
-            QVBoxLayout *lay = new QVBoxLayout();
-            dialog.setLayout(lay);
-            lay->addWidget(e);
-            int tries = 0;
-            bool succeeded = false;
-            do {
-                e->setText("");
-                if (dialog.exec() != QDialog::Accepted) { break; }
-                tries++;
-                if (prof->user->checkPassword(e->text())) {
-                    succeeded = true;
-                    break;
-                } else {
-                    if (tries < 3) {
-                        QMessageBox::warning(this, STR_MessageBox_Error, tr("You entered an incorrect password"), QMessageBox::Ok);
-                    } else {
-                        QMessageBox::warning(this, STR_MessageBox_Error,
-                           tr("Forgot your password?")+"\n"+tr("Ask on the forums how to reset it, it's actually pretty easy."),
-                           QMessageBox::Ok);
-                    }
-                }
-            } while (tries < 3);
-            if (!succeeded) return nullptr;
-        }
-        // Unselect everything in ProfileView
         updateProfileHighlight(profname);
     }
 
@@ -464,7 +432,7 @@ void ProfileSelector::on_buttonNewProfile_clicked()
         if (p_profile != nullptr) {
             QString name = p_profile->user->userName();
             p_profile = nullptr;
-            mainwin->OpenProfile(name, true); // open profile, skipping the already entered password
+            mainwin->OpenProfile(name);
             // Mark this profile as locally created.
             if (p_profile) {
                 p_profile->user->setSource(QStringLiteral("Local"));
@@ -502,42 +470,6 @@ void ProfileSelector::on_buttonDestroyProfile_clicked()
         if (path == (GetAppData() + "/Profiles/")) {
             QMessageBox::warning(this, STR_MessageBox_Error, tr("The selected profile does not appear to contain any data and cannot be removed by OSCAR"), QMessageBox::Ok);
             return;
-        }
-
-        bool verified = true;
-        if (profile && profile->user->hasPassword()) {
-            QDialog dialog(this, Qt::Dialog);
-            QLineEdit *e = new QLineEdit(&dialog);
-            e->setEchoMode(QLineEdit::Password);
-            dialog.connect(e, SIGNAL(returnPressed()), &dialog, SLOT(accept()));
-            dialog.setWindowTitle(tr("Enter Password for %1").arg(name));
-            dialog.setMinimumWidth(300);
-            QVBoxLayout *lay = new QVBoxLayout();
-            dialog.setLayout(lay);
-            lay->addWidget(e);
-            int tries = 0;
-
-            do {
-                e->setText("");
-
-                if (dialog.exec() != QDialog::Accepted) { break; }
-
-                tries++;
-
-                if (profile->user->checkPassword(e->text())) {
-                    verified = true;
-                    break;
-                } else {
-                    if (tries < 3) {
-                        QMessageBox::warning(this, STR_MessageBox_Error, tr("You entered an incorrect password"), QMessageBox::Ok);
-                    } else {
-                        QMessageBox::warning(this, STR_MessageBox_Error,
-                           tr("If you're trying to delete because you forgot the password, you need to either reset it or delete the profile folder manually."),
-                           QMessageBox::Ok);
-                    }
-                }
-            } while (tries < 3);
-            if (!verified) return;
         }
 
         QDialog confirmdlg;

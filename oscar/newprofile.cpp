@@ -60,7 +60,6 @@ NewProfile::NewProfile(QWidget *parent, const QString *user) :
 
     ui->stackedWidget->setCurrentIndex(0);
     on_cpapModeCombo_activated(0);
-    m_passwordHashed = false;
     ui->heightEdit2->setVisible(false);
     ui->heightEdit->setDecimals(0);
     ui->heightEdit->setSuffix(QString(" %1").arg(STR_UNIT_CM));
@@ -122,8 +121,6 @@ NewProfile::NewProfile(QWidget *parent, const QString *user) :
         }
     }
     ui->versionLabel->setText("");
-
-    on_passwordGroupBox_toggled(ui->passwordGroupBox->isChecked());
 
     ui->textBrowser->setHtml(getIntroHTML());
 }
@@ -205,17 +202,6 @@ void NewProfile::on_nextButton_clicked()
             //QMessageBox::information(this,tr("Notice"),tr("You did not specify Gender."),QMessageBox::Ok);
         }
 
-        if (ui->passwordGroupBox->isChecked()) {
-            if (ui->passwordEdit1->text() != ui->passwordEdit2->text()) {
-                staticQMessageBox::information(this, STR_MessageBox_Error, tr("Passwords don't match"), QMessageBox::Ok);
-                return;
-            }
-
-            if (ui->passwordEdit1->text().isEmpty()) {
-                ui->passwordGroupBox->setChecked(false);
-            }
-        }
-
         break;
 
     case 2:
@@ -261,15 +247,6 @@ void NewProfile::on_nextButton_clicked()
             profile->user->setEmail(ui->emailEdit->text());
             profile->user->setPhone(ui->phoneEdit->text());
             profile->user->setAddress(ui->addressEdit->toPlainText());
-
-            if (ui->passwordGroupBox->isChecked()) {
-                if (!m_passwordHashed) {
-                    profile->user->setPassword(ui->passwordEdit1->text().toUtf8());
-                }
-            } else {
-
-                prof.Erase(STR_UI_Password);
-            }
 
             profile->user->setGender((Gender)ui->genderCombo->currentIndex());
 
@@ -411,16 +388,6 @@ void NewProfile::edit(const QString name)
     ui->firstNameEdit->setText(profile->user->firstName());
     ui->lastNameEdit->setText(profile->user->lastName());
 
-    if (profile->contains(STR_UI_Password)
-            && !profile->p_preferences[STR_UI_Password].toString().isEmpty()) {
-        // leave the password box blank..
-        QString a = "******";
-        ui->passwordEdit1->setText(a);
-        ui->passwordEdit2->setText(a);
-        ui->passwordGroupBox->setChecked(true);
-        m_passwordHashed = true;
-    }
-
     ui->dobEdit->setDate(profile->user->DOB());
 
     if (profile->user->gender() == Male) {
@@ -480,24 +447,6 @@ void NewProfile::edit(const QString name)
     m_tmp_height_cm = profile->user->height();
     m_height_modified = false;
     on_heightCombo_currentIndexChanged(i);
-}
-
-void NewProfile::on_passwordGroupBox_toggled(bool checked)
-{
-    ui->label_13->setVisible(checked);
-    ui->label_14->setVisible(checked);
-    ui->passwordEdit1->setVisible(checked);
-    ui->passwordEdit2->setVisible(checked);
-}
-
-void NewProfile::on_passwordEdit1_editingFinished()
-{
-    m_passwordHashed = false;
-}
-
-void NewProfile::on_passwordEdit2_editingFinished()
-{
-    m_passwordHashed = false;
 }
 
 void NewProfile::on_heightCombo_currentIndexChanged(int index)

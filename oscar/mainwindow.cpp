@@ -521,7 +521,7 @@ void MainWindow::firstRunMessage()
 
 // QString GenerateWelcomeHTML();
 
-bool MainWindow::OpenProfile(QString profileName, bool skippassword)
+bool MainWindow::OpenProfile(QString profileName)
 {
     qDebug() << "Opening profile" << profileName;
     PERF_TIMER_SCOPE("MainWindow::OpenProfile");
@@ -554,11 +554,10 @@ bool MainWindow::OpenProfile(QString profileName, bool skippassword)
         return false;
     }
 
-    prof = profileSelector->SelectProfile(profileName, skippassword);  // asks for the password and updates stuff in profileSelector tab
+    prof = profileSelector->SelectProfile(profileName);
     if (!prof) {
         return false;
     }
-    // TODO: Check profile password
 
     // Check Lockfile
     QString lockhost = prof->checkLock();

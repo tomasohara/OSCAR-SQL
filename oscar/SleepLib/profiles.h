@@ -12,7 +12,6 @@
 #define PROFILES_H
 
 #include <QString>
-#include <QCryptographicHash>
 #include <QThread>
 
 #include "progressdialog.h"
@@ -329,7 +328,6 @@ const QString STR_UI_DOB = "DOB";
 const QString STR_UI_FirstName = "FirstName";
 const QString STR_UI_LastName = "LastName";
 const QString STR_UI_UserName = "UserName";
-const QString STR_UI_Password = "Password";
 const QString STR_UI_Address = "Address";
 const QString STR_UI_Phone = "Phone";
 const QString STR_UI_EmailAddress = "EmailAddress";
@@ -486,7 +484,6 @@ class UserInfo : public PrefSettings
         initPref(STR_UI_FirstName, QString());
         initPref(STR_UI_LastName, QString());
         initPref(STR_UI_UserName, QString());
-        initPref(STR_UI_Password, QString());
         initPref(STR_UI_Address, QString());
         initPref(STR_UI_Phone, QString());
         initPref(STR_UI_EmailAddress, QString());
@@ -525,19 +522,6 @@ class UserInfo : public PrefSettings
     /// \brief Set how this profile was originally created.
     void setSource(const QString& src) { setPref(STR_PI_Source, src); }
 
-    bool hasPassword() { return !getPref(STR_UI_Password).toString().isEmpty(); }
-
-    bool checkPassword(QString password) {
-        QByteArray ba = password.toUtf8();
-        QString hashedPass = QString(QCryptographicHash::hash(ba, QCryptographicHash::Sha1).toHex());
-        return getPref(STR_UI_Password).toString() == hashedPass;
-    }
-
-    void setPassword(QString password) {
-        QByteArray ba = password.toUtf8();
-        QString hashedPass = QString(QCryptographicHash::hash(ba, QCryptographicHash::Sha1).toHex());
-        setPref(STR_UI_Password, hashedPass);
-    }
 };
 
 /*! \class OxiSettings

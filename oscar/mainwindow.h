@@ -116,7 +116,7 @@ class MainWindow : public QMainWindow
     void EnableTabs(bool b);
 
     void CloseProfile();
-    bool OpenProfile(QString name, bool skippassword = false);
+    bool OpenProfile(QString name);
 
     /*! \fn Notify(QString s, QString title="OSCAR (version)", int ms=5000);
         \brief Pops up a message box near the system tray

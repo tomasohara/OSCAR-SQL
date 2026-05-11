@@ -86,7 +86,7 @@ public:
     ~ProfileSelector();
 
     void updateProfileList();
-    Profile *SelectProfile(QString profname, bool skippassword);
+    Profile *SelectProfile(QString profname);
     void updateProfileHighlight(QString name);
 
     /// Returns the username of the currently highlighted (single-clicked) profile,

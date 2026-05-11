@@ -4,6 +4,23 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-10 - Remove password support (#136)
+
+**Files:** `oscar/newprofile.ui`, `oscar/newprofile.h`, `oscar/newprofile.cpp`,
+`oscar/profileselector.h`, `oscar/profileselector.cpp`, `oscar/mainwindow.h`,
+`oscar/mainwindow.cpp`, `oscar/SleepLib/profiles.h`,
+`oscar/database/user_info_repository.h`, `oscar/database/user_info_repository.cpp`,
+`oscar/database/backup/profile_backup.h`, `oscar/database/backup/profile_backup.cpp`
+
+**Symptom:** OSCAR supported weak SHA1-based profile passwords with no recovery mechanism;
+forgotten passwords required manual database editing beyond most users' abilities.
+
+**Fix:** Removed all password support. The `password_hash` column is left as a dead column
+in the `user_info` table (no schema migration). Old backups restoring into the current
+schema will simply ignore the column value since the application never reads it.
+
+---
+
 ## 2026-05-09 - Edit SQL window illegible on KDE dark mode (#134)
 
 **Files:** `oscar/sqleditor.cpp`

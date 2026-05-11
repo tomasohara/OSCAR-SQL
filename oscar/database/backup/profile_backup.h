@@ -148,7 +148,7 @@ public:
      * so the restore phase can insert the rows correctly.
      *
      * Fields blanked in \c user_info: first_name, last_name, dob, email,
-     *   phone, address, country, height, gender, password_hash.
+     *   phone, address, country, height, gender.
      * Fields blanked in \c doctor_info: name, phone, email, practice_name,
      *   address, patient_id.
      *

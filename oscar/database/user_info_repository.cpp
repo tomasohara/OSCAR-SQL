@@ -37,8 +37,8 @@ qint64 UserInfoRepository::create(const UserInfoData& data)
     query.prepare(
         "INSERT INTO user_info "
         "(profile_id, dob, first_name, last_name, address, phone, email, "
-        " country, height, gender, timezone, password_hash) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        " country, height, gender, timezone) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
 
     query.addBindValue(data.profileId);
@@ -52,7 +52,6 @@ qint64 UserInfoRepository::create(const UserInfoData& data)
     query.addBindValue(data.height);
     query.addBindValue(data.gender);
     query.addBindValue(data.timezone);
-    query.addBindValue(data.passwordHash);
 
     if (!query.exec()) {
         qWarning() << "UserInfoRepository::create() failed:" << query.lastError().text();
@@ -77,7 +76,7 @@ bool UserInfoRepository::update(const UserInfoData& data)
         "UPDATE user_info SET "
         "dob = ?, first_name = ?, last_name = ?, address = ?, phone = ?, "
         "email = ?, country = ?, height = ?, gender = ?, timezone = ?, "
-        "password_hash = ?, updated_at = CURRENT_TIMESTAMP "
+        "updated_at = CURRENT_TIMESTAMP "
         "WHERE id = ?"
     );
 
@@ -91,7 +90,6 @@ bool UserInfoRepository::update(const UserInfoData& data)
     query.addBindValue(data.height);
     query.addBindValue(data.gender);
     query.addBindValue(data.timezone);
-    query.addBindValue(data.passwordHash);
     query.addBindValue(data.id);
 
     if (!query.exec()) {
@@ -116,7 +114,7 @@ UserInfoData UserInfoRepository::findByProfile(qint64 profileId)
     QSqlQuery query(db);
     query.prepare(
         "SELECT id, profile_id, dob, first_name, last_name, address, phone, "
-        "email, country, height, gender, timezone, password_hash "
+        "email, country, height, gender, timezone "
         "FROM user_info WHERE profile_id = ?"
     );
     query.addBindValue(profileId);
@@ -139,7 +137,6 @@ UserInfoData UserInfoRepository::findByProfile(qint64 profileId)
         data.height = query.value(9).toDouble();
         data.gender = query.value(10).toInt();
         data.timezone = query.value(11).toString();
-        data.passwordHash = query.value(12).toString();
     }
 
     return data;
@@ -165,7 +162,6 @@ bool UserInfoRepository::saveFromUserInfo(qint64 profileId, UserInfo* userInfo)
     data.height = userInfo->height();
     data.gender = (int)userInfo->gender();
     data.timezone = userInfo->timeZone();
-    data.passwordHash = userInfo->getPref("Password").toString(); // Get hashed password
 
     // Check if record exists
     UserInfoData existing = findByProfile(profileId);
@@ -208,11 +204,6 @@ bool UserInfoRepository::loadIntoUserInfo(qint64 profileId, UserInfo* userInfo)
     userInfo->setHeight(data.height);
     userInfo->setGender((Gender)data.gender);
     userInfo->setTimeZone(data.timezone);
-
-    // Set password hash directly (don't use setPassword which would hash it again)
-    if (!data.passwordHash.isEmpty()) {
-        userInfo->setPref("Password", data.passwordHash);
-    }
 
 //    qDebug() << "UserInfoRepository: Loaded user_info for profile" << profileId;
     return true;
