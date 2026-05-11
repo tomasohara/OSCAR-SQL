@@ -22,6 +22,10 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QDebug>
+#include <QEventLoop>
+#include <QFutureWatcher>
+#include <QTimer>
+#include <QtConcurrent/QtConcurrentRun>
 
 DatabaseDeleteDialog::DatabaseDeleteDialog(const QStringList& candidates,
                                            const QString& activePath,
@@ -138,8 +142,44 @@ void DatabaseDeleteDialog::onDeleteClicked()
         return;
     }
 
-    qDebug() << "DatabaseDeleteDialog: calling removeRecursively on" << path;
-    bool removed = QDir(path).removeRecursively();
+    // Run the deletion on a background thread so the UI stays responsive.
+    // Show a "please wait" dialog only if the operation takes more than 2 seconds
+    // (fast on local SSD, potentially slow on NAS).
+    QFuture<bool> future = QtConcurrent::run([path]() {
+        return QDir(path).removeRecursively();
+    });
+
+    auto* busyDialog = new QDialog(this,
+        Qt::Dialog | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+    busyDialog->setWindowTitle(tr("Deleting Database"));
+    busyDialog->setWindowModality(Qt::WindowModal);
+    auto* busyLayout = new QVBoxLayout(busyDialog);
+    auto* busyLabel = new QLabel(
+        tr("Deleting \"%1\", please wait…").arg(folderName), busyDialog);
+    busyLabel->setAlignment(Qt::AlignCenter);
+    busyLabel->setContentsMargins(20, 10, 20, 10);
+    busyLayout->addWidget(busyLabel);
+
+    QTimer showTimer;
+    showTimer.setSingleShot(true);
+    connect(&showTimer, &QTimer::timeout, busyDialog, [busyDialog]() {
+        busyDialog->adjustSize();
+        busyDialog->show();
+        busyDialog->raise();
+    });
+    showTimer.start(2000);
+
+    QFutureWatcher<bool> watcher;
+    QEventLoop loop;
+    connect(&watcher, &QFutureWatcher<bool>::finished, &loop, &QEventLoop::quit);
+    watcher.setFuture(future);
+    loop.exec();
+
+    showTimer.stop();
+    busyDialog->hide();
+    delete busyDialog;
+
+    bool removed = future.result();
     qDebug() << "DatabaseDeleteDialog: removeRecursively returned" << removed;
 
     if (!removed) {
