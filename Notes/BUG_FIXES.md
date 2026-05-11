@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-11 - Show disk usage fails when no profile is open (#138)
+
+**File:** `oscar/profileselector.cpp` — `on_diskSpaceInfo_linkActivated()`
+
+**Symptom:** Clicking "Show disk usage information" on the Profiles page showed nothing
+if no profile was currently open. Also showed data for the open profile rather than the
+selected profile.
+
+**Root cause:** Handler passed `p_profile` (the open profile, which is null when no
+profile is open) instead of the selected profile.
+
+**Fix:** Use `selectedProfileName()` to look up the selected profile in
+`Profiles::profiles` and pass that pointer to `getProfileDiskInfo()`.
+
+---
+
 ## 2026-05-10 - Edit Profile dialog layout unified (#137)
 
 **Files:** `oscar/newprofile.ui`

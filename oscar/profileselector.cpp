@@ -670,7 +670,10 @@ void ProfileSelector::on_diskSpaceInfo_linkActivated(const QString &link)
     QString html;
 
     if (link == "show") {
-        html += "<a href='hide'>"+tr("Hide disk usage information")+"</a>"+getProfileDiskInfo(p_profile);
+        QString name = selectedProfileName();
+        auto it = Profiles::profiles.find(name);
+        Profile *selected = (it != Profiles::profiles.end()) ? it.value() : nullptr;
+        html += "<a href='hide'>"+tr("Hide disk usage information")+"</a>"+getProfileDiskInfo(selected);
         showDiskUsage = true;
     } else {
         html += "<a href='show'>"+tr("Show disk usage information")+"</a>";
