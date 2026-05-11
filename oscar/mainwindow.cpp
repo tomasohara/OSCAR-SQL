@@ -2745,6 +2745,13 @@ void MainWindow::on_actionDatabaseOpen_triggered()
     if (path.isEmpty())
         return;
 
+    if (!QFileInfo::exists(path + "/oscar.db")) {
+        QMessageBox::warning(this, tr("Open Database"),
+            tr("The selected folder does not contain an OSCAR database.\n"
+               "Please select a folder that contains an oscar.db file."));
+        return;
+    }
+
     switchToDatabase(path);
 }
 

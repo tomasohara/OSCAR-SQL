@@ -4,6 +4,21 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-11 - File > Database > Open accepts any folder, not just ones with a database
+
+**File:** `oscar/mainwindow.cpp` — `MainWindow::on_actionDatabaseOpen_triggered()`
+
+**Symptom:** User could select any arbitrary folder via File > Database > Open and OSCAR
+would attempt to open it as a database, even if it contained no oscar.db file.
+
+**Root cause:** No validation that the selected folder actually contains `oscar.db` before
+calling `switchToDatabase()`.
+
+**Fix:** Added a check for `oscar.db` in the selected folder; shows a warning and returns
+early if the file is absent.
+
+---
+
 ## 2026-05-11 - Profile import does not migrate channel customizations from 1.7.1
 
 **Files:** `oscar/profileimporter.cpp`, `oscar/SleepLib/profiles.cpp`, `oscar/SleepLib/profiles.h`
