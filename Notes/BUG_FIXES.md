@@ -4,6 +4,39 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-11 - Import from 1.7.1: graph height (and other app settings) not applied until restart (#142)
+
+**File:** `oscar/profileimporter.cpp` — `ProfileImporter::migrateAppSettings()`
+
+**Symptom:** After importing a profile from OSCAR 1.7.1, settings such as Graph Height on
+the Preferences > Appearance page show a stale value from the previous OSCAR 2.0 session
+instead of the value from the imported 1.7.1 profile.
+
+**Root cause:** `migrateAppSettings()` correctly copies keys from 1.7.1's `Preferences.xml`
+into `p_pref`, but `AppSetting`'s in-memory member variables (e.g. `m_graphHeight`) are
+only populated at construction and are not updated when `p_pref`'s values change at runtime.
+
+**Fix:** After saving the migrated settings, delete `AppSetting` and reconstruct it from
+the updated `p_pref` so the in-memory cache immediately reflects the imported values.
+
+---
+
+## 2026-05-11 - File > Database > Delete hangs UI when database is on slow storage (NAS)
+
+**File:** `oscar/database/database_delete_dialog.cpp` — `DatabaseDeleteDialog::onDeleteClicked()`
+
+**Symptom:** OSCAR becomes unresponsive during deletion when the database folder is on a
+NAS or other slow storage, because `QDir::removeRecursively()` was called on the main thread.
+
+**Root cause:** Synchronous recursive directory removal on the main (UI) thread.
+
+**Fix:** Moved `removeRecursively()` to a background thread via `QtConcurrent::run()`.
+A `QFutureWatcher` + `QEventLoop` keeps the UI pumping while waiting. A 2-second
+`QTimer` defers showing a frameless "Deleting, please wait…" dialog, so fast
+local-SSD deletions complete silently with no extra UI.
+
+---
+
 ## 2026-05-11 - File > Database > Open accepts any folder, not just ones with a database
 
 **File:** `oscar/mainwindow.cpp` — `MainWindow::on_actionDatabaseOpen_triggered()`

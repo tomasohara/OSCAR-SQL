@@ -18,6 +18,7 @@
 #include "database/database_manager.h"
 #include "database/preferences_repository.h"
 #include "database/profile_repository.h"
+#include "SleepLib/appsettings.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -1127,6 +1128,10 @@ bool ProfileImporter::migrateAppSettings(const QString& sourceDataPath)
         }
         qDebug() << "ProfileImporter::migrateAppSettings: Migrated" << copied
                  << "app settings from" << sourcePrefFile;
+        // Refresh AppSetting's in-memory cache so migrated values (e.g. GraphHeight)
+        // are visible immediately without requiring a restart.
+        delete AppSetting;
+        AppSetting = new AppWideSetting(p_pref);
     }
     return true;
 }
