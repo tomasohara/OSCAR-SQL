@@ -1876,8 +1876,9 @@ void MainWindow::on_actionPrint_Report_triggered()
 
 void MainWindow::on_action_Edit_Profile_triggered()
 {
+    QString name = p_profile ? AppSetting->profileName() : selectedProfileName();
+    if (name.isEmpty()) return;
     NewProfile *newprof = new NewProfile(this);
-    QString name = AppSetting->profileName();
     newprof->edit(name);
     newprof->setWindowModality(Qt::ApplicationModal);
     newprof->setModal(true);

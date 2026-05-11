@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-11 - File > Edit Profile opens wrong profile when none is open
+
+**File:** `oscar/mainwindow.cpp` — `on_action_Edit_Profile_triggered()`
+
+**Symptom:** When no profile was open and a profile was selected in the profile list,
+File > Edit Profile opened the editor for the last-used profile instead of the selected one.
+
+**Root cause:** The menu handler always used `AppSetting->profileName()` (last opened
+profile) rather than the currently selected profile in the list.
+
+**Fix:** When no profile is open (`p_profile == nullptr`), use `selectedProfileName()`
+(delegates to `profileSelector->selectedProfileName()`) to get the selected row's profile
+name. Also added early return if the name is empty (nothing selected).
+
+---
+
 ## 2026-05-11 - Show disk usage fails when no profile is open (#138)
 
 **File:** `oscar/profileselector.cpp` — `on_diskSpaceInfo_linkActivated()`
