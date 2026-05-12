@@ -1023,6 +1023,8 @@ void Daily::UpdateCalendarDay(QDate date)
     bool hasbookmarks = hasjournal && journalDay->settingExists(Bookmark_Start)
                         && !journalDay->firstSession(MT_JOURNAL)->settings[Bookmark_Start].toList().isEmpty();
 
+    charAttr.setFontWeight(QFont::DemiBold);        // Make everything a little darker
+
     if (hascpap) {
         if (hasoxi) {
             charAttr.setForeground(QBrush(COLOR_Red, Qt::SolidPattern)); // CPAP + Oxi
@@ -1034,8 +1036,6 @@ void Daily::UpdateCalendarDay(QDate date)
         charAttr.setForeground(QBrush(COLOR_DarkGreen, Qt::SolidPattern)); // Oxi, no CPAP
         charAttr.setFontWeight(QFont::Black);        // Make everything a little darker
     }
-
-//    charAttr.setFontWeight(QFont::DemiBold);        // Make everything a little darker
 
     if (hasjournal) {
         charAttr.setFontUnderline(true);            // has sleep position info
