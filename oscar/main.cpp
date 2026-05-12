@@ -65,6 +65,7 @@
 #include "SleepLib/loader_plugins/yuwell_loader.h"
 
 #include "database/database_manager.h"
+#include "database/database_schema.h"
 #include "database/recent_databases.h"
 #include "database/profile_repository.h"
 #include "database/machine_repository.h"
@@ -786,6 +787,7 @@ int main(int argc, char *argv[]) {
 
     QString path = GetAppData();
     addBuildInfo(QObject::tr("Data directory:") + " <a href=\"file:///" + path + "\">" + path + "</a>");
+    addBuildInfo(QObject::tr("Database schema:") + " v" + QString::number(DatabaseSchema::CURRENT_SCHEMA_VERSION));
 
     QDir newDir(GetAppData());
     

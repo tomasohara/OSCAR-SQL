@@ -4,6 +4,21 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-11 - System Information dialog missing database schema version (#144)
+
+**File:** `oscar/main.cpp`
+
+**Symptom:** Help > System Information showed OSCAR version, Qt version, OS, graphics engine,
+and data directory, but did not include the database schema version.
+
+**Root cause:** No entry for schema version was added to the build info list.
+
+**Fix:** Added `#include "database/database_schema.h"` to `main.cpp` and called
+`addBuildInfo()` with `DatabaseSchema::CURRENT_SCHEMA_VERSION` immediately after
+the data directory line.
+
+---
+
 ## 2026-05-11 - Import from 1.7.1: graph height (and other app settings) not applied until restart (#142)
 
 **File:** `oscar/profileimporter.cpp` — `ProfileImporter::migrateAppSettings()`
