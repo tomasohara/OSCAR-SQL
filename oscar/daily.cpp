@@ -44,6 +44,7 @@
 #include "SleepLib/profiles.h"
 #include "SleepLib/session.h"
 #include "SleepLib/performance_timer.h"
+#include "database/session_repository.h"
 
 #include "Graphs/gLineOverlay.h"
 #include "Graphs/gFlagsLine.h"
@@ -2351,6 +2352,43 @@ void Daily::clearJournalNotesEditor()
     ui->JournalNotes->clear();
 }
 
+/*! \brief Returns true if the journal session has no user-visible content.
+ *  LastUpdated is intentionally excluded — it is not user-authored data.
+ *  Bookmarks with an empty list count as absent. */
+static bool isJournalSessionEmpty(Session *journal)
+{
+    static const QList<ChannelID> s_meaningfulKeys = {
+        Journal_Notes, Journal_Weight, Journal_BMI, Journal_ZombieMeter
+    };
+    for (ChannelID key : s_meaningfulKeys) {
+        if (journal->settings.contains(key)) return false;
+    }
+    if (journal->settings.contains(Bookmark_Start) &&
+        !journal->settings[Bookmark_Start].toList().isEmpty()) {
+        return false;
+    }
+    return true;
+}
+
+void Daily::deleteJournalSession(Session *journal, QDate date)
+{
+    qint64 rowId = journal->sessionRowId();
+
+    Day *day = p_profile->GetDay(date, MT_JOURNAL);
+    if (day) {
+        day->removeSession(journal);
+    }
+
+    if (rowId > 0) {
+        SessionRepository repo;
+        if (!repo.remove(rowId)) {
+            qWarning() << "Daily::deleteJournalSession(): Failed to remove session from database";
+        }
+    }
+
+    delete journal;
+}
+
 void Daily::Unload(QDate date)
 {
     if (!date.isValid()) {
@@ -2362,13 +2400,17 @@ void Daily::Unload(QDate date)
     }
 
     // Update the journal notes
-    set_JournalNotesHtml(date,ui->JournalNotes->toHtml() ) ;
+    set_JournalNotesHtml(date, ui->JournalNotes->toHtml());
     Session *journal = GetJournalSession(date);
     if (journal) {
         if (journal->IsChanged()) {
-            journal->settings[LastUpdated] = QDateTime::currentDateTime();
-            journal->StoreToDatabase();
-            journal->SetChanged(false);
+            if (isJournalSessionEmpty(journal)) {
+                deleteJournalSession(journal, date);
+            } else {
+                journal->settings[LastUpdated] = QDateTime::currentDateTime();
+                journal->StoreToDatabase();
+                journal->SetChanged(false);
+            }
         }
     }
     UpdateCalendarDay(date);
@@ -2479,7 +2521,7 @@ Session * Daily::CreateJournalSession(QDate date)
     qint64 st,et;
 
     Day *cday=p_profile->GetDay(date);
-    if (cday) {
+    if (cday && cday->first() > 0) {
         st=cday->first();
         et=cday->last();
     } else {

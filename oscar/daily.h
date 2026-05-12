@@ -314,6 +314,13 @@ private:
         */
     Session * CreateJournalSession(QDate date);
 
+    /*! \fn deleteJournalSession(Session *journal, QDate date)
+        \brief Removes an empty journal session from both memory and database.
+        \param journal Pointer to the session to delete (caller must not use it after this call)
+        \param date Date of the journal session being removed
+        */
+    void deleteJournalSession(Session *journal, QDate date);
+
     /*! \fn update_Bookmarks()
         \brief Saves the current bookmark list to the Journal object
         */

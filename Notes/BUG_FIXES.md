@@ -4,6 +4,36 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-12 - Journal data (notes, feelings, weight) not saved after a session is deleted (#135)
+
+**Files:** `oscar/daily.cpp`, `oscar/daily.h`
+
+**Symptom:** After clearing all content from a Daily Notes page and navigating away
+(which correctly deletes the empty journal session), returning to that date and entering
+new data (notes, feelings, weight) would not be saved. Intermittent for notes; consistent
+for feelings and weight on dates with no CPAP data.
+
+**Root cause (new — this fix):** `deleteJournalSession` removes the session from the
+machine's sessionlist and the Day's sessions list but leaves the Day object in
+`profile->daylist`. On the next visit, `CreateJournalSession` calls `p_profile->GetDay(date)`
+which finds the empty Day, then calls `cday->first()` which returns 0 (since `Day::first()`
+skips journal sessions and there are no other sessions). `Machine::AddSession` rejects any
+session with `first == 0`, so the new session is never added to the Day, and `GetJournalSession`
+cannot find it in `Unload` — nothing is saved.
+
+**Root cause (original — this fix also):** When all journal content was cleared, the empty
+journal session was persisted to the database with only a `LastUpdated` timestamp, causing
+the calendar to show a bold date with no actual data.
+
+**Fix:**
+- Added `isJournalSessionEmpty()` static helper and `Daily::deleteJournalSession()` to
+  remove the session from both memory and DB when all meaningful fields are cleared.
+- In `CreateJournalSession`, added `cday->first() > 0` guard so that an empty Day
+  (no non-journal sessions) falls back to the default 20:00 timestamp rather than
+  passing 0 to `Machine::AddSession`.
+
+---
+
 ## 2026-05-11 - System Information dialog missing database schema version (#144)
 
 **File:** `oscar/main.cpp`
