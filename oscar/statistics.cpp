@@ -814,6 +814,26 @@ Statistics::Statistics(QObject *parent) :
     rows.push_back(StatisticsRow("IPAPSet",       SC_MIN,     MT_CPAP));
     rows.push_back(StatisticsRow("IPAPSet",       SC_MAX,     MT_CPAP));
 
+    // Other Statistics — suppressed entirely in Clinical mode or when no row has data.
+    // As more rows are added to this section, extend the hasOtherStats check below.
+    if (!p_profile->cpap->clinicalMode()) {
+        bool hasOtherStats = false;
+#if defined(STEADY_BREATHING)
+        if (AppSetting->steadyBreathing() != SB_OFF) {
+            ChannelID sbid = schema::channel["SteadyBreathing"].id();
+            if (sbid != NoChannel && p_profile->channelAvailable(sbid))
+                hasOtherStats = true;
+        }
+#endif
+        if (hasOtherStats) {
+            rows.push_back(StatisticsRow(tr("Other Statistics"), SC_SUBHEADING, MT_CPAP));
+#if defined(STEADY_BREATHING)
+            if (AppSetting->steadyBreathing() != SB_OFF)
+                rows.push_back(StatisticsRow("SteadyBreathing", SC_WAVG, MT_CPAP));
+#endif
+        }
+    }
+
     rows.push_back(StatisticsRow("", SC_SPACE, MT_OXIMETER));         // Just adds some space
     rows.push_back(StatisticsRow(tr("Oximeter Statistics"), SC_HEADING, MT_OXIMETER));
     rows.push_back(StatisticsRow("",           SC_DAYS_HEADER,    MT_OXIMETER));
