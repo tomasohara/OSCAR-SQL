@@ -1025,18 +1025,20 @@ void Daily::UpdateCalendarDay(QDate date)
 
     if (hascpap) {
         if (hasoxi) {
-            charAttr.setForeground(QBrush(COLOR_DarkGreen, Qt::SolidPattern)); // CPAP + Oxi
+            charAttr.setForeground(QBrush(COLOR_Red, Qt::SolidPattern)); // CPAP + Oxi
         } else {
             charAttr.setForeground(QBrush(COLOR_Blue, Qt::SolidPattern)); // CPAP, no Oxi
         }
+        charAttr.setFontWeight(QFont::Black);        // Make everything a little darker
     } else if (hasoxi) {
-        charAttr.setForeground(QBrush(COLOR_Red, Qt::SolidPattern)); // Oxi, no CPAP
+        charAttr.setForeground(QBrush(COLOR_DarkGreen, Qt::SolidPattern)); // Oxi, no CPAP
+        charAttr.setFontWeight(QFont::Black);        // Make everything a little darker
     }
 
-    charAttr.setFontWeight(QFont::DemiBold);        // Make everything a little darker
+//    charAttr.setFontWeight(QFont::DemiBold);        // Make everything a little darker
 
     if (hasjournal) {
-        charAttr.setFontWeight(QFont::Black);        // Journal data present
+        charAttr.setFontUnderline(true);            // has sleep position info
     }
 
     if (hasbookmarks) {
@@ -1048,7 +1050,7 @@ void Daily::UpdateCalendarDay(QDate date)
     }
 
     if (haspos) {
-        charAttr.setFontUnderline(true);            // has sleep position info
+        charAttr.setFontOverline(true);            // has sleep position info
     }
 
     ui->calendar->setDateTextFormat(date, charAttr);
