@@ -776,14 +776,41 @@ Statistics::Statistics(QObject *parent) :
     rows.push_back(StatisticsRow("Apnea",   SC_CPH,     MT_CPAP));
     rows.push_back(StatisticsRow("ClearAirway",   SC_CPH,     MT_CPAP));
     rows.push_back(StatisticsRow("RERA",       SC_CPH,     MT_CPAP));
-    if (p_profile->cpap->userEventFlagging() && !p_profile->cpap->clinicalMode()) {
-        rows.push_back(StatisticsRow("UserFlag1",   SC_CPH,     MT_CPAP));
-        rows.push_back(StatisticsRow("UserFlag2",   SC_CPH,     MT_CPAP));
-    }
     rows.push_back(StatisticsRow("FlowLimit",  SC_CPH,     MT_CPAP));
     rows.push_back(StatisticsRow("FLG",  SC_90P,     MT_CPAP));
     rows.push_back(StatisticsRow("SensAwake",       SC_CPH,     MT_CPAP));
     rows.push_back(StatisticsRow("CSR", SC_SPH, MT_CPAP));
+
+    // Other Statistics — suppressed entirely in Clinical mode or when no row has data.
+    // As more rows are added to this section, extend the hasOtherStats check below.
+    if (!p_profile->cpap->clinicalMode()) {
+        bool hasOtherStats = false;
+        if (p_profile->cpap->userEventFlagging()) {
+            ChannelID uf1id = schema::channel["UserFlag1"].id();
+            ChannelID uf2id = schema::channel["UserFlag2"].id();
+            if ((uf1id != NoChannel && p_profile->channelAvailable(uf1id)) ||
+                (uf2id != NoChannel && p_profile->channelAvailable(uf2id)))
+                hasOtherStats = true;
+        }
+#if defined(STEADY_BREATHING)
+        if (AppSetting->steadyBreathing() != SB_OFF) {
+            ChannelID sbid = schema::channel["SteadyBreathing"].id();
+            if (sbid != NoChannel && p_profile->channelAvailable(sbid))
+                hasOtherStats = true;
+        }
+#endif
+        if (hasOtherStats) {
+            rows.push_back(StatisticsRow(tr("Other Statistics"), SC_SUBHEADING, MT_CPAP));
+            if (p_profile->cpap->userEventFlagging()) {
+                rows.push_back(StatisticsRow("UserFlag1",   SC_CPH,     MT_CPAP));
+                rows.push_back(StatisticsRow("UserFlag2",   SC_CPH,     MT_CPAP));
+            }
+#if defined(STEADY_BREATHING)
+            if (AppSetting->steadyBreathing() != SB_OFF)
+                rows.push_back(StatisticsRow("SteadyBreathing", SC_WAVG, MT_CPAP));
+#endif
+        }
+    }
 
     rows.push_back(StatisticsRow(tr("Leak Statistics"),  SC_SUBHEADING, MT_CPAP));
     rows.push_back(StatisticsRow("Leak",       SC_WAVG,    MT_CPAP));
@@ -813,26 +840,6 @@ Statistics::Statistics(QObject *parent) :
     rows.push_back(StatisticsRow("IPAPSet",       SC_90P,     MT_CPAP));
     rows.push_back(StatisticsRow("IPAPSet",       SC_MIN,     MT_CPAP));
     rows.push_back(StatisticsRow("IPAPSet",       SC_MAX,     MT_CPAP));
-
-    // Other Statistics — suppressed entirely in Clinical mode or when no row has data.
-    // As more rows are added to this section, extend the hasOtherStats check below.
-    if (!p_profile->cpap->clinicalMode()) {
-        bool hasOtherStats = false;
-#if defined(STEADY_BREATHING)
-        if (AppSetting->steadyBreathing() != SB_OFF) {
-            ChannelID sbid = schema::channel["SteadyBreathing"].id();
-            if (sbid != NoChannel && p_profile->channelAvailable(sbid))
-                hasOtherStats = true;
-        }
-#endif
-        if (hasOtherStats) {
-            rows.push_back(StatisticsRow(tr("Other Statistics"), SC_SUBHEADING, MT_CPAP));
-#if defined(STEADY_BREATHING)
-            if (AppSetting->steadyBreathing() != SB_OFF)
-                rows.push_back(StatisticsRow("SteadyBreathing", SC_WAVG, MT_CPAP));
-#endif
-        }
-    }
 
     rows.push_back(StatisticsRow("", SC_SPACE, MT_OXIMETER));         // Just adds some space
     rows.push_back(StatisticsRow(tr("Oximeter Statistics"), SC_HEADING, MT_OXIMETER));
