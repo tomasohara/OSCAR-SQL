@@ -2802,7 +2802,9 @@ QString MainWindow::profilePath(QString folderProfileName ) {
 }
 
 void MainWindow::saveProfilePath(QString folderProfileName , QString pathName) {
+    if (p_profile) {
         (*p_profile)[folderProfileName] = pathName;
+    }
 }
 
 QString MainWindow::selectedProfileName() const

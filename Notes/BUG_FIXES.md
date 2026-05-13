@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-13 - Crash on F12 screenshot when no profile is open (#147)
+
+**Files:** `oscar/mainwindow.cpp`
+
+**Symptom:** Pressing F12 to take a screenshot with no profile open causes OSCAR to crash
+immediately after the screenshot file is saved successfully.
+
+**Root cause:** `MainWindow::saveProfilePath()` dereferences `p_profile` unconditionally
+via `(*p_profile)[folderProfileName] = pathName`. When no profile is open, `p_profile` is
+null, causing a null pointer dereference.
+
+**Fix:** Added `if (p_profile)` guard in `saveProfilePath()`, consistent with the adjacent
+`profilePath()` function which already handles the null case correctly.
+
+---
+
 ## 2026-05-12 - Journal data (notes, feelings, weight) not saved after a session is deleted (#135)
 
 **Files:** `oscar/daily.cpp`, `oscar/daily.h`
