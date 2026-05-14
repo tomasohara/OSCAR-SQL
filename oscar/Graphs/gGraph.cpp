@@ -410,7 +410,8 @@ void gGraph::paint(QPainter &painter, const QRegion &region)
         {
             QFontMetrics fm(m_titleFont);
             const int minPtSize = 7;
-            while (m_titleFont.pointSize() > minPtSize && fm.horizontalAdvance(txt) > height) {
+            const int titleMargin = 8; // 4px clearance at each end of the rotated title
+            while (m_titleFont.pointSize() > minPtSize && fm.horizontalAdvance(txt) > height - titleMargin) {
                 m_titleFont.setPointSize(m_titleFont.pointSize() - 1);
                 fm = QFontMetrics(m_titleFont);
             }
