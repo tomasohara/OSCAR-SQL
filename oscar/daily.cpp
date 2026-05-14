@@ -1854,7 +1854,7 @@ QString Daily::getPieChart (float values, Day * day) {
     if (!leftSideBarEnable[LSB_PIE_CHART] ) {
         return html;
     }
-    html += "<table cellspacing=0 cellpadding=0 border=0 width='100%'>";
+    html += "<table style='margin-top:-8px' cellspacing=0 cellpadding=0 border=0 width='100%'>";
     if (values > 0) {
         html += QString("<tr><td align=center><b>%1</b></td></tr>").arg("");
         eventBreakdownPie()->setShowTitle(false);
@@ -1896,7 +1896,7 @@ QString Daily::getPieChart (float values, Day * day) {
         }
     }
     html+="</table>\n";
-    html+="<hr/>\n";
+    html+="<hr style='margin-top:8px'/>\n";
 
     return html;
 }
