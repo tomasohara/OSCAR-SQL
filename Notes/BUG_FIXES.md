@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-13 - Records panel shows AHI instead of RDI when RDI preference is set (#150)
+
+**Files:** `oscar/statistics.cpp`
+
+**Symptom:** In the Records panel right sidebar, the Best/Worst AHI records and Best/Worst
+Device Settings sections always displayed AHI values and labels, even when the user had
+selected RDI in Preferences > CPAP. Mantis #298.
+
+**Root cause:** `UpdateRecordsBox()` hardcoded `day->calcAHI()`, `tr("AHI: %1")`, and
+`rx.ahi` throughout, with no check of `p_profile->general->calculateRDI()`. The
+`rxAHILessThan` sort comparator also always used `rx.ahi`, so the best/worst device
+settings were selected on the wrong metric when RDI mode was active.
+
+**Fix:** Added `bool rdi` / `QString ahitxt` variables derived from the preference at
+the top of `UpdateRecordsBox()`. AHI Records now use `day->calcRDI()` vs `day->calcAHI()`
+for the stored value, and all labels use `ahitxt`. Best/Worst Device Settings use
+`rx.rdi / rx.hours` vs `rx.ahi / rx.hours`, and `rxAHILessThan` sorts by `rdi` when
+the preference is set.
+
+---
+
 ## 2026-05-13 - Right sidebar does not restore last-used panel on startup (#149)
 
 **Files:** `oscar/SleepLib/appsettings.h`, `oscar/SleepLib/appsettings.cpp`, `oscar/mainwindow.h`,

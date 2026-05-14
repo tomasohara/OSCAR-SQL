@@ -212,7 +212,9 @@ void Statistics::saveRXChanges()
 
 bool rxAHILessThan(const RXItem * rx1, const RXItem * rx2)
 {
-
+    if (p_profile->general->calculateRDI()) {
+        return (double(rx1->rdi) / rx1->hours) < (double(rx2->rdi) / rx2->hours);
+    }
     return (double(rx1->ahi) / rx1->hours) < (double(rx2->ahi) / rx2->hours);
 }
 
@@ -1768,6 +1770,8 @@ QString Statistics::UpdateRecordsBox()
     if (cpap) {
         QDate first = p_profile->FirstDay(MT_CPAP);
         QDate last = p_profile->LastDay(MT_CPAP);
+        bool rdi = p_profile->general->calculateRDI();
+        QString ahitxt = rdi ? STR_TR_RDI : STR_TR_AHI;
 
         /////////////////////////////////////////////////////////////////////////////////////
         /// Compliance and usage information
@@ -1806,37 +1810,37 @@ QString Statistics::UpdateRecordsBox()
                 Day * day = p_profile->GetDay(date, MT_CPAP);
                 if (!day) continue;
 
-                float ahi = day->calcAHI();
+                float ahi = rdi ? day->calcRDI() : day->calcAHI();
                 if (ahi >= 5) {
                     baddays++;
                 }
                 ahilist.insert(ahi, date);
             }
-            html += tr("Days AHI of 5 or greater: %1").arg(baddays) + "<br><br>";
+            html += tr("Days %1 of 5 or greater: %2").arg(ahitxt).arg(baddays) + "<br><br>";
 
 
             if (ahilist.size() > (show_records * 2)) {
                 it = ahilist.begin();
                 it_end = ahilist.end();
 
-                html += "<b>"+tr("Best AHI")+"</b><br>";
+                html += "<b>"+tr("Best %1").arg(ahitxt)+"</b><br>";
 
                 for (int i=0; (i<show_records) && (it != it_end); ++i, ++it) {
                     html += QString("<a href='daily=%1'>").arg(it.value().toString(Qt::ISODate))
-                            +tr("Date: %1 AHI: %2").arg(it.value().toString(QLocale::system().dateFormat(QLocale::ShortFormat))).arg(it.key(), 0, 'f', 2) + "</a><br>";
+                            + tr("Date: %1 %2: %3").arg(it.value().toString(QLocale::system().dateFormat(QLocale::ShortFormat))).arg(ahitxt).arg(it.key(), 0, 'f', 2) + "</a><br>";
 
                 }
 
                 html += "<br>";
 
-                html += "<b>"+tr("Worst AHI")+"</b><br>";
+                html += "<b>"+tr("Worst %1").arg(ahitxt)+"</b><br>";
 
-                // it = ahilist.end() - 1; error: 'operator-' is deprecated: 
+                // it = ahilist.end() - 1; error: 'operator-' is deprecated:
                 it = ahilist.end(); --it;
                 it_end = ahilist.begin();
                 for (int i=0; (i<show_records) && (it != it_end); ++i, --it) {
                     html += QString("<a href='daily=%1'>").arg(it.value().toString(Qt::ISODate))
-                        +tr("Date: %1 AHI: %2").arg(it.value().toString(QLocale::system().dateFormat(QLocale::ShortFormat))).arg(it.key(), 0, 'f', 2) + "</a><br>";
+                        + tr("Date: %1 %2: %3").arg(it.value().toString(QLocale::system().dateFormat(QLocale::ShortFormat))).arg(ahitxt).arg(it.key(), 0, 'f', 2) + "</a><br>";
 
                 }
 
@@ -2025,7 +2029,7 @@ QString Statistics::UpdateRecordsBox()
                 tr("Date: %1 - %2").arg(rxbest.start.toString(QLocale::system().dateFormat(QLocale::ShortFormat))).arg(rxbest.end.toString(QLocale::system().dateFormat(QLocale::ShortFormat))) + "</a><br>";
             html += QString("%1").arg(rxbest.machine->model()) + "<br>";
             html += QString("Serial: %1").arg(rxbest.machine->serial()) + "<br>";
-            html += tr("AHI: %1").arg(double(rxbest.ahi) / rxbest.hours, 0, 'f', 2) + "<br>";
+            html += QString("%1: %2").arg(ahitxt).arg(rdi ? double(rxbest.rdi) / rxbest.hours : double(rxbest.ahi) / rxbest.hours, 0, 'f', 2) + "<br>";
             html += tr("Total Hours: %1").arg(rxbest.hours, 0, 'f', 2) + "<br>";
             html += QString("%1").arg(rxbest.pressure) + "<br>";
             html += QString("%1").arg(formatRelief(rxbest.relief)) + "<br>";
@@ -2037,7 +2041,7 @@ QString Statistics::UpdateRecordsBox()
                     tr("Date: %1 - %2").arg(rxworst.start.toString(QLocale::system().dateFormat(QLocale::ShortFormat))).arg(rxworst.end.toString(QLocale::system().dateFormat(QLocale::ShortFormat))) + "</a><br>";
             html += QString("%1").arg(rxworst.machine->model()) + "<br>";
             html += QString("Serial: %1").arg(rxworst.machine->serial()) + "<br>";
-            html += tr("AHI: %1").arg(double(rxworst.ahi) / rxworst.hours, 0, 'f', 2) + "<br>";
+            html += QString("%1: %2").arg(ahitxt).arg(rdi ? double(rxworst.rdi) / rxworst.hours : double(rxworst.ahi) / rxworst.hours, 0, 'f', 2) + "<br>";
             html += tr("Total Hours: %1").arg(rxworst.hours, 0, 'f', 2) + "<br>";
 
             html += QString("%1").arg(rxworst.pressure) + "<br>";
