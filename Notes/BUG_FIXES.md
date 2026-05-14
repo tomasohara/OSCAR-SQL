@@ -4,6 +4,32 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-14 - Popout graph window does not repaint until mouse is moved over it (#151, Mantis #316)
+
+**Files:** `oscar/Graphs/gGraphView.cpp` (`gGraphView::popoutGraph()`)
+
+**Symptom 1:** When a graph is popped out (right-click → Pop out Graph), the new dock
+window opens but the graph is not painted correctly until the user moves the mouse over
+the window.
+
+**Symptom 2:** When a graph in the popout window is closed (X button on dock widget),
+the remaining graphs in the window are not repainted until the user moves the mouse over
+the window.
+
+**Root cause:** For Qt6 `QOpenGLWidget`, calling `update()` immediately after showing a
+new dock window posts a deferred paint event, but the FBO content may not be composited
+back to the screen until the window finishes settling (show/activation events, focus
+changes). The result sits in the FBO unseen until user interaction (mouse move) triggers
+another paint cycle. On close, no repaint was triggered at all for remaining graphs.
+
+**Fix:** Two changes in `popoutGraph()`:
+1. Added a `QTimer::singleShot(50ms)` callback that calls `gv->update()` and
+   `dock->update()` after the window has fully settled (show/activation/focus events done).
+2. Connected `newDockWidget::visibilityChanged` to a lambda that calls `update()` on all
+   remaining `gGraphView`s and the dock window whenever a dock widget is shown or hidden.
+
+---
+
 ## 2026-05-13 - Records panel shows AHI instead of RDI when RDI preference is set (#150)
 
 **Files:** `oscar/statistics.cpp`

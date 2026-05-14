@@ -731,7 +731,24 @@ void gGraphView::popoutGraph()
 
         qDebug() << "newgraph height" << newgraph->height() << "gv height" << gv->height();
 
+        // When this dock widget is closed, force the dock and remaining graphs to repaint.
+        // visibilityChanged(false) fires when the user clicks the dock widget's X button.
+        connect(newDockWidget, &QDockWidget::visibilityChanged, dock, [](bool /*visible*/) {
+            if (gGraphView::dock) {
+                for (auto* gv : gGraphView::dock->findChildren<gGraphView*>()) {
+                    gv->update();
+                }
+                gGraphView::dock->update();
+            }
+        });
+
         gv->timedRedraw(0);
+        // The dock window's OpenGL FBO isn't composited back to screen until the window
+        // settles. Trigger a repaint 50 ms later, after show/activation events are done.
+        QTimer::singleShot(50, gv, [gv]() {
+            gv->update();
+            if (gGraphView::dock) gGraphView::dock->update();
+        });
         // Force dock to redraw (and return focus to OSCAR)
         dock->activateWindow();
         dock->raise();
