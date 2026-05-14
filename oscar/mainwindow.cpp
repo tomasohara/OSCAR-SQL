@@ -289,7 +289,7 @@ void MainWindow::SetupGUI()
     // Navigation has offset 0
     // Bookmarks  has offset 1
     // Records    has offset 2
-    ui->toolBox->setCurrentIndex(2);
+    ui->toolBox->setCurrentIndex(AppSetting->rightSidebarPanel());
     bool b = AppSetting->rightSidebarVisible();
     ui->action_Sidebar_Toggle->setChecked(b);
     ui->toolBox->setVisible(b);
@@ -2402,6 +2402,11 @@ void MainWindow::on_action_Sidebar_Toggle_toggled(bool visible)
 {
     ui->toolBox->setVisible(visible);
     AppSetting->setRightSidebarVisible(visible);
+}
+
+void MainWindow::on_toolBox_currentChanged(int index)
+{
+    AppSetting->setRightSidebarPanel(index);
 }
 
 void MainWindow::on_helpButton_clicked()

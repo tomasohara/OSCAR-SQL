@@ -53,6 +53,7 @@ AppWideSetting::AppWideSetting(Preferences *pref) : PrefSettings(pref)
     m_gridLineOpacity=initPref(STR_AS_GridLineOpacity, 64).toInt();
     m_lineCursorMode = initPref(STR_AS_LineCursorMode, true).toBool();
     initPref(STR_AS_RightSidebarVisible, false);
+    initPref(STR_AS_RightSidebarPanel, 2);   // default to Records panel
     initPref(STR_CS_UserEventPieChart, false);
     initPref(STR_US_ShowSerialNumbers, false);
     initPref(STR_US_ShowPersonalData, true);

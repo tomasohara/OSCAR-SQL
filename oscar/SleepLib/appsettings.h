@@ -67,6 +67,7 @@ const QString STR_AS_GridLineOpacity = "GridLineOpacity";
 const QString STR_AS_LineCursorMode = "LineCursorMode";
 const QString STR_AS_CalendarVisible = "CalendarVisible";
 const QString STR_AS_RightSidebarVisible = "RightSidebarVisible";
+const QString STR_AS_RightSidebarPanel = "RightSidebarPanel";
 const QString STR_US_TooltipTimeout = "TooltipTimeout";
 const QString STR_US_ScrollDampening = "ScrollDampening";
 const QString STR_US_ShowDebug = "ShowDebug";
@@ -182,6 +183,8 @@ public:
   inline bool lineCursorMode() const { return m_lineCursorMode; }
   //! \brief Whether to show the right sidebar
   bool rightSidebarVisible() const { return getPref(STR_AS_RightSidebarVisible).toBool(); }
+  //! \brief Index of the last-selected right sidebar panel (0=Navigation, 1=Bookmarks, 2=Records)
+  int rightSidebarPanel() const { return getPref(STR_AS_RightSidebarPanel).toInt(); }
   //! \brief Returns the type of overlay flags (which are displayed over the Flow Waveform)
   inline OverlayDisplayType overlayType() const { return m_odt; }
 #ifndef REMOVE_FITNESS
@@ -264,6 +267,8 @@ public:
   void setLineCursorMode(bool b) { setPref(STR_AS_LineCursorMode, m_lineCursorMode=b); }
   //! \brief Sets whether to display the right sidebar
   void setRightSidebarVisible(bool b) { setPref(STR_AS_RightSidebarVisible, b); }
+  //! \brief Saves the index of the active right sidebar panel
+  void setRightSidebarPanel(int idx) { setPref(STR_AS_RightSidebarPanel, idx); }
   void setUserEventPieChart(bool b) { setPref(STR_CS_UserEventPieChart, b); }
   void setShowSerialNumbers(bool enabled) { setPref(STR_US_ShowSerialNumbers, enabled); }
   void setOpenTabAtStart(int idx) { setPref(STR_US_OpenTabAtStart, idx); }

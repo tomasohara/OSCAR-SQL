@@ -4,6 +4,23 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-13 - Right sidebar does not restore last-used panel on startup (#149)
+
+**Files:** `oscar/SleepLib/appsettings.h`, `oscar/SleepLib/appsettings.cpp`, `oscar/mainwindow.h`,
+`oscar/mainwindow.cpp`
+
+**Symptom:** On startup, the right sidebar always showed the Records panel, regardless of
+which panel (Navigation, Bookmarks, or Records) was last selected by the user. Mantis #16.
+
+**Root cause:** `mainwindow.cpp` hardcoded `ui->toolBox->setCurrentIndex(2)` and no preference
+was saved when the user switched panels.
+
+**Fix:** Added `RightSidebarPanel` preference (default 2) to `AppSettings`. Startup now restores
+the saved index. New `on_toolBox_currentChanged(int)` slot persists the index whenever the user
+switches panels.
+
+---
+
 ## 2026-05-13 - Print report omits last graph when it is the only graph on the last page (#148)
 
 **Files:** `oscar/reports.cpp`

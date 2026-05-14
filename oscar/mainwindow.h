@@ -291,6 +291,7 @@ class MainWindow : public QMainWindow
     void on_actionPurgeCurrentDayAll_triggered();
 
     void on_action_Sidebar_Toggle_toggled(bool arg1);
+    void on_toolBox_currentChanged(int index);
 
         void on_helpButton_clicked();
 
