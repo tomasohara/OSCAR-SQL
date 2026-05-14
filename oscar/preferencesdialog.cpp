@@ -1131,6 +1131,7 @@ bool PreferencesDialog::Save()
             QTimer::singleShot(0, mainwin, SLOT(reloadProfile()));
         } else if (needs_restart) {
             mainwin->RestartApplication(true,"-l");
+            return false; // Prevent accept() so post-dialog UI code doesn't run with null p_profile
         } else {
             mainwin->getDaily()->LoadDate(mainwin->getDaily()->getDate());
             // Save early.. just in case..

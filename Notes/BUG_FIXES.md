@@ -4,6 +4,29 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-14 - Regression: Fusion theme restart fails with lock error (#152)
+
+**Files:** `oscar/preferencesdialog.cpp` (`PreferencesDialog::Save()`)
+
+**Symptom:** Changing the Fusion theme in Preferences/Appearance triggers a restart.
+The new OSCAR instance shows "This OSCAR database folder is already open in another
+instance of OSCAR." The old OSCAR window briefly remains visible then disappears.
+
+**Root cause:** `Save()` calls `RestartApplication()` which calls `CloseProfile()`
+(setting `p_profile = nullptr`) then spawns the new process and calls
+`QApplication::exit()`. `Save()` still returned `true`, so `on_okButton_clicked()`
+called `accept()`, `pd.exec()` returned `Accepted`, and
+`on_actionPreferences_triggered()` executed post-dialog code that dereferenced the
+now-null `p_profile`. The crash killed the old process before `lockFile.unlock()`
+ran, leaving `oscar.lock` on disk. The new process found the stale lock and aborted.
+
+**Fix:** Return `false` from `Save()` immediately after calling `RestartApplication()`.
+This prevents `accept()` from being called, skips the post-dialog UI rebuilds, and
+allows the process to exit cleanly via `QApplication::exit()` with `lockFile.unlock()`
+properly called.
+
+---
+
 ## 2026-05-14 - Popout graph window does not repaint until mouse is moved over it (#151, Mantis #316)
 
 **Files:** `oscar/Graphs/gGraphView.cpp` (`gGraphView::popoutGraph()`)
