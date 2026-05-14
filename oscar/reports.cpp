@@ -390,7 +390,8 @@ void Report::PrintReport(gGraphView *gv, QString name, QDate date)
 
     top += maxy;
 
-    graph_slots = graphs_per_page - ((virt_height - top) / (full_graph_height + normal_height));
+    // Ceiling ensures pages is never under-estimated when header height is between graph-slot boundaries.
+    graph_slots = (int)ceilf((float)graphs_per_page * (float)top / virt_height);
 
     bool first = true;
     QStringList labels;

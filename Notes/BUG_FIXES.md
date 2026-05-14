@@ -4,6 +4,30 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-13 - Print report omits last graph when it is the only graph on the last page (#148)
+
+**Files:** `oscar/reports.cpp`
+
+**Symptom:** When printing a Daily (or Overview) report, the last graph is silently omitted
+if it would be the only graph on the final page.
+
+**Root cause:** `graph_slots` (line 393) was computed as
+`int(6 - (virt_height - top) / (full_graph_height + normal_height))`, which is
+`floor(6 * top / virt_height)`. For a typical header height of ~400 px on a ~2896 px
+virtual page, this evaluates to `floor(0.83) = 0`. However the drawing loop increments
+`top` by `full_graph_height + normal_height/2` per graph — slightly less than `virt_height/6`
+— so only 5 graphs actually fit on page 1, not 6. With `graph_slots = 0`, the formula
+`pages = ceil(N / 6)` gives 1 page for N=6, but 2 are actually needed. When graph 6 triggers
+a page break, `page(2) > pages(1)` fires and the loop breaks before drawing the last graph.
+
+**Fix:** Replaced `floor` with `ceil`:
+`graph_slots = (int)ceilf((float)graphs_per_page * (float)top / virt_height)`.
+Mathematically proven that `ceil(6*top/H) >= 6 - k_max` always, so `pages` is never
+under-estimated. At worst, `pages` over-estimates by 1 (footer says "Page 1 of 2" when
+there is only 1 page), which only occurs for very small headers.
+
+---
+
 ## 2026-05-13 - Crash on F12 screenshot when no profile is open (#147)
 
 **Files:** `oscar/mainwindow.cpp`
