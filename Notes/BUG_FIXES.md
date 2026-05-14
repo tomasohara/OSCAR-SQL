@@ -4,6 +4,25 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-14 - Window drifts down by title-bar height on restart when sized to fill work area (#153)
+
+**Files:** `oscar/mainwindow.cpp` (constructor)
+
+**Symptom:** On Windows 11, if the user manually resizes the main window to fill the
+available desktop area (top of screen to top of taskbar), then exits and restarts OSCAR,
+the window is restored approximately one title-bar height lower, hiding the bottom
+behind the taskbar.
+
+**Root cause:** Qt's `restoreGeometry()` on Windows misplaces a manually-maximised
+(but not Qt-maximised) window by one title-bar height on restore.
+
+**Fix:** After the window is shown, clamp `frameGeometry()` to `screen()->availableGeometry()`
+using a `QTimer::singleShot(0, ...)`. Guarded with `#ifdef Q_OS_WIN` because Linux/X11
+WM decorations arrive asynchronously after `show()`, making `frameGeometry()` unreliable
+at that point.
+
+---
+
 ## 2026-05-14 - Regression: Fusion theme restart fails with lock error (#152)
 
 **Files:** `oscar/preferencesdialog.cpp` (`PreferencesDialog::Save()`)

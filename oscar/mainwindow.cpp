@@ -17,6 +17,7 @@
 #include <QProgressBar>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QScreen>
 #include <QSettings>
 #include <QPixmap>
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -141,6 +142,27 @@ MainWindow::MainWindow(QWidget *parent) :
     settings.beginGroup(QFileInfo(GetAppData()).fileName());
     restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
     settings.endGroup();
+
+#ifdef Q_OS_WIN
+    // restoreGeometry() on Windows can place a manually-maximised window one
+    // title-bar-height too low, hiding the bottom behind the taskbar.  Clamp to
+    // the available screen area after the window is actually shown.
+    // Not applied on Linux because WM decorations arrive asynchronously after
+    // show(), making frameGeometry() unreliable at this point.
+    QTimer::singleShot(0, this, [this]() {
+        QScreen *scr = screen() ? screen() : QApplication::primaryScreen();
+        if (!scr) return;
+        QRect avail = scr->availableGeometry();
+        QRect frame = frameGeometry();
+        int newY = frame.top();
+        if (frame.bottom() > avail.bottom())
+            newY = avail.bottom() - frame.height() + 1;
+        if (newY < avail.top())
+            newY = avail.top();
+        if (newY != frame.top())
+            move(x(), newY);
+    });
+#endif
 
 
     // Nifty Notification popups in System Tray (uses Growl on Mac)
@@ -1222,7 +1244,7 @@ void MainWindow::on_action_Import_Data_triggered()
 {
     static bool in_import = false;
     if ( p_profile == nullptr ) {
-        QMessageBox::warning(this, tr("Import"), tr("Please select or create a profile before importing data."));
+        QMessageBox::warning(this, tr("Import"), tr("Please open or create a profile before importing data."));
         return;
     }
     if (m_inRecalculation) {
@@ -1703,7 +1725,7 @@ void MainWindow::on_action_Advanced_Graph_Order_triggered()
 void MainWindow::on_action_Preferences_triggered()
 {
     if (!p_profile) {
-        QMessageBox::warning(this, tr("Preferences"), tr("Please select or create a profile first."));
+        QMessageBox::warning(this, tr("Preferences"), tr("1Please open or create a profile first."));
         return;
     }
 
