@@ -150,8 +150,6 @@ class gFlagsGroup: public LayerGroup
     QList<ChannelID> m_alwaysvisible;
     QList<ChannelID> availableChans;
     QList<Session*> m_sessions;
-    qint64 m_start  ;
-    qint64 m_duration ;
     QVector<gFlagsLine*> lvisible;
     float m_barh;
     bool m_empty;

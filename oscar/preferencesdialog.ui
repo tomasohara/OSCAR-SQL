@@ -3184,10 +3184,10 @@ Try it and see if you like it.</string>
                    <item>
                     <widget class="QCheckBox" name="eventFlagSessionBar">
                      <property name="toolTip">
-                      <string>For multiple sessions, displays a thin gray line for each session at the top of the Event Flag graph.</string>
+                      <string>For multiple sessions, displays a thin gray bar for each session at the top of the Event Flags, SpO2, Pulse, and Movement graphs.</string>
                      </property>
                      <property name="text">
-                      <string>Enables SessionBar in Event Flags Graph</string>
+                      <string>Enables SessionBar in Event Flags, SpO2, Pulse, and Movement Graphs</string>
                      </property>
                     </widget>
                    </item>

@@ -48,6 +48,7 @@
 
 #include "Graphs/gLineOverlay.h"
 #include "Graphs/gFlagsLine.h"
+#include "Graphs/gSessionBarLayer.h"
 #include "Graphs/gFooBar.h"
 #include "Graphs/gXAxis.h"
 #include "Graphs/gYAxis.h"
@@ -488,7 +489,10 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
 
     if (auto *g = graphlist.value(schema::channel[POS_Inclination].code())) g->AddLayer(new gLineChart(POS_Inclination));
     if (auto *g = graphlist.value(schema::channel[POS_Orientation].code())) g->AddLayer(new gLineChart(POS_Orientation));
-    if (auto *g = graphlist.value(schema::channel[POS_Movement].code())) g->AddLayer(new gLineChart(POS_Movement));
+    if (auto *g = graphlist.value(schema::channel[POS_Movement].code())) {
+        g->AddLayer(new gLineChart(POS_Movement));
+        g->AddLayer(new gSessionBarLayer());
+    }
 
     if (auto *g = graphlist.value(schema::channel[CPAP_MinuteVent].code())) {
         g->AddLayer(lc=new gLineChart(CPAP_MinuteVent, square));
@@ -517,8 +521,14 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
 //    graphlist[schema::channel[OXI_SPO2].code()]->AddLayer(AddOXI(los2->add(new gLineOverlayBar(OXI_SPO2Drop, COLOR_SPO2Drop, STR_TR_O2,FT_Span))));
 //    graphlist[schema::channel[OXI_SPO2].code()]->AddLayer(AddOXI(los2));
 
-    if (auto *g = graphlist.value(schema::channel[OXI_Pulse].code())) g->AddLayer(new gLineChart(OXI_Pulse, square));
-    if (auto *g = graphlist.value(schema::channel[OXI_SPO2].code())) g->AddLayer(new gLineChart(OXI_SPO2, true));
+    if (auto *g = graphlist.value(schema::channel[OXI_Pulse].code())) {
+        g->AddLayer(new gLineChart(OXI_Pulse, square));
+        g->AddLayer(new gSessionBarLayer());
+    }
+    if (auto *g = graphlist.value(schema::channel[OXI_SPO2].code())) {
+        g->AddLayer(new gLineChart(OXI_SPO2, true));
+        g->AddLayer(new gSessionBarLayer());
+    }
     if (auto *g = graphlist.value(schema::channel[OXI_Perf].code())) g->AddLayer(new gLineChart(OXI_Perf, false));
     if (auto *g = graphlist.value(schema::channel[OXI_Plethy].code())) g->AddLayer(new gLineChart(OXI_Plethy, false));
 

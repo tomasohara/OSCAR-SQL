@@ -345,6 +345,7 @@ SOURCES += \
     Graphs/gAHIChart.cpp \
     Graphs/gdailysummary.cpp \
     Graphs/gFlagsLine.cpp \
+    Graphs/gSessionBarLayer.cpp \
     Graphs/gFooBar.cpp \
     Graphs/gGraph.cpp \
     Graphs/gGraphView.cpp \
@@ -503,6 +504,7 @@ HEADERS  += \
     version.h \
     VERSION \
     Graphs/gFlagsLine.h \
+    Graphs/gSessionBarLayer.h \
     Graphs/gFooBar.h \
     Graphs/gGraph.h \
     Graphs/gGraphView.h \

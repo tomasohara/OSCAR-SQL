@@ -76,9 +76,6 @@ void gFlagsGroup::SetDay(Day *d)
     }
 
     m_sessions = d->getSessions(MT_CPAP);
-    m_start  =   d->first(MT_CPAP);
-    m_duration = d->last(MT_CPAP) - m_start;
-    if (m_duration<=0) m_duration = 1; // avoid divide by zero
 
     quint32 z = schema::FLAG | schema::SPAN | schema::MINOR_FLAG;
     if (p_profile->general->showUnknownFlags()) z |= schema::UNKNOWN;
@@ -232,13 +229,17 @@ void gFlagsGroup::paint(QPainter &painter, gGraph &g, const QRegion &region)
     }
 
     // graph each session at top
-    if ( p_profile->appearance->eventFlagSessionBar() && m_sessions.size()>1 ) {
-        QRect sessBox(0,g.top,0,sessionBarHeight());
-        double adjustment = width/(double)m_duration;
-        for (const auto & sess : m_sessions) {
-            sessBox.setX(left + (sess->first()-m_start)*adjustment);
-            sessBox.setWidth(   sess->length() * adjustment);
-            painter.fillRect(sessBox, QBrush(Qt::gray));
+    // Use the graph's actual view bounds (minx/maxx) — not CPAP-only m_start/m_duration —
+    // so the bar stays aligned with flag lines when non-CPAP data widens the day range.
+    if (p_profile->appearance->eventFlagSessionBar() && m_sessions.size() > 1 && dur > 0) {
+        double xmult = width / double(dur);
+        for (const auto &sess : m_sessions) {
+            double x1 = (sess->first() - minx) * xmult + left;
+            double x2 = (sess->last()  - minx) * xmult + left;
+            if (x2 < left || x1 > left + width) continue;
+            x1 = qMax(x1, double(left));
+            x2 = qMin(x2, double(left + width));
+            painter.fillRect(QRectF(x1, top, x2 - x1, sessionBarHeight()), Qt::gray);
         }
     }
 

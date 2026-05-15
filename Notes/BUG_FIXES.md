@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-14 - Session bar misaligned on Event Flags graph when oximeter data widens day range (#155)
+
+**Files:** `oscar/Graphs/gFlagsLine.cpp`, `oscar/Graphs/gFlagsLine.h`
+
+**Symptom:** When a day includes both CPAP and oximeter data, the gray session-boundary
+bars at the top of the Event Flags graph appeared at wrong positions — shifted and
+incorrectly scaled — producing an on/off pattern that missed session transitions.
+On CPAP-only days the bar was correct (coincidentally).
+
+**Root cause:** `gFlagsGroup::paint` computed session bar positions using
+`m_start`/`m_duration` (CPAP-only time bounds set at `SetDay` time), but the graph's
+X axis spans the full day range including non-CPAP data. When oximeter sessions
+extended beyond the CPAP window, the mapping was wrong.
+
+**Fix:** Replaced `m_start`/`m_duration` with the already-computed `minx`/`maxx`/`dur`
+variables (from `g.graphView()->GetXBounds()`) used by all other content in the same
+paint function. Removed the now-unused `m_start` and `m_duration` members.
+
+---
+
 ## 2026-05-14 - Window drifts down by title-bar height on restart when sized to fill work area (#153)
 
 **Files:** `oscar/mainwindow.cpp` (constructor)
