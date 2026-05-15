@@ -1476,6 +1476,14 @@ Profile *Create(QString name, const QString* in_path)
         dir.mkpath(path);
     }
 
+    // schema::channel is global, mutated in place when a profile opens. Persist the
+    // current profile's channel customisations before resetting so it can reload them
+    // later; then reset to hardcoded defaults so the new profile doesn't inherit them.
+    if (p_profile) {
+        p_profile->saveChannels();
+    }
+    schema::resetChannels();
+
     //path+="/"+name;
     p_profile = new Profile(path);
     profiles[name] = p_profile;

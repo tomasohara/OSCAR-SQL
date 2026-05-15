@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-14 - New profile inherits channel settings from currently-open profile
+
+**File:** `oscar/SleepLib/profiles.cpp` — `Profiles::Create()`
+
+**Symptom:** Channel settings (enabled state, colours, thresholds) for a newly-created
+profile were copied from the profile that was open at the time, instead of using the
+schema-defined defaults.
+
+**Root cause:** `schema::channel` is a global `ChannelList` that is mutated in place by
+`Profile::loadChannels()` when a profile opens. `Profiles::Create()` never reset this
+global before building the new profile, so `initializeChannelsFromSchema()` (called on
+the new profile's first open, when no DB row exists) wrote the previously-open profile's
+values instead of true defaults.
+
+**Fix:** At the start of `Profiles::Create()`, just before constructing the new `Profile`
+object, save the current profile's channel state (so it can be reloaded later) and then
+call `schema::resetChannels()` to restore hardcoded defaults. The new profile is then
+initialized from a clean schema.
+
+---
+
 ## 2026-05-14 - Session bar misaligned on Event Flags graph when oximeter data widens day range (#155)
 
 **Files:** `oscar/Graphs/gFlagsLine.cpp`, `oscar/Graphs/gFlagsLine.h`
