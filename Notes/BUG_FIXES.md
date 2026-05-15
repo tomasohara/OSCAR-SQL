@@ -4,6 +4,18 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-15 - Statistics: right-align Days/AHI/FL columns in Changes to Device Settings (GitLab #158)
+
+**File:** `oscar/statistics.cpp` — `GenerateRXChanges()`
+
+**Symptom:** Days, AHI, and FL columns in the Changes to Device Settings table were
+left-aligned; numbers looked untidy and FL values crowded the adjacent Machine column.
+
+**Fix:** Right-aligned all three numeric columns with `padding-right` (16px for Days and
+AHI, 32px for FL) in both the `<th>` header and `<td>` data cells.
+
+---
+
 ## 2026-05-15 - Bookmarks search field: visibility, clear button, no-profile crash (Mantis #201, GitLab #157)
 
 **Files:** `oscar/mainwindow.ui`, `oscar/mainwindow.cpp`

@@ -1304,7 +1304,10 @@ QString Statistics::GenerateRXChanges()
 
     html+="<tr>";
     for (int i=0; i < hdrlist.size(); ++i) {
-        html+=QString(" <th align=left><b>%1</b></th>").arg(hdrlist.at(i));
+        bool numeric = (i >= 2 && i <= 4);
+        QString align = numeric ? "right" : "left";
+        QString style = (i == 4) ? " style='padding-right: 32px'" : numeric ? " style='padding-right: 16px'" : "";
+        html+=QString(" <th align=%1%2><b>%3</b></th>").arg(align).arg(style).arg(hdrlist.at(i));
     }
     html+="</tr>";
     html += "</thead>";
@@ -1348,9 +1351,9 @@ QString Statistics::GenerateRXChanges()
 
         html += QString("<td>%1</td>").arg(QLocale().toString(rx.start, MedDateFormat))+
                 QString("<td>%1</td>").arg(QLocale().toString(rxend, MedDateFormat))+
-                QString("<td>%1</td>").arg(rx.days)+
-                QString("<td>%1</td>").arg(ahi, 0, 'f', 2)+
-                QString("<td>%1</td>").arg(fli, 0, 'f', 2)+
+                QString("<td align='right' style='padding-right: 16px'>%1</td>").arg(rx.days)+
+                QString("<td align='right' style='padding-right: 16px'>%1</td>").arg(ahi, 0, 'f', 2)+
+                QString("<td align='right' style='padding-right: 32px'>%1</td>").arg(fli, 0, 'f', 2)+
                 machid +
                 QString("<td>%1</td>").arg(formatRelief(rx.relief))+
                 QString("<td>%1</td>").arg(rx.mode)+
@@ -1567,7 +1570,7 @@ QString Statistics::GenerateCPAPUsage()
         } else if (row.calc == SC_COLUMNHEADERS) {
             html += QString("<tr><td><b>%1</b></td>").arg(tr("Details"));
             for (int j=0; j < periods.size(); j++) {
-                html += QString("<td onmouseover='ChangeColor(this, \"#eeeeee\");' onmouseout='ChangeColor(this, \"#ffffff\");' onclick='alert(\"overview=%1,%2\");'><b>%3</b></td>").arg(periods.at(j).start.toString(Qt::ISODate)).arg(periods.at(j).end.toString(Qt::ISODate)).arg(periods.at(j).header);
+                html += QString("<td align='right' onmouseover='ChangeColor(this, \"#eeeeee\");' onmouseout='ChangeColor(this, \"#ffffff\");' onclick='alert(\"overview=%1,%2\");'><b>%3</b></td>").arg(periods.at(j).start.toString(Qt::ISODate)).arg(periods.at(j).end.toString(Qt::ISODate)).arg(periods.at(j).header);
             }
             html += "</tr>";
             continue;
@@ -1646,7 +1649,7 @@ QString Statistics::GenerateCPAPUsage()
 
         for (int j=0; j < np; j++) {
             width = j < np-1 ? dataWidth : 100 - (headerWidth + dataWidth*(np-1));
-            line += QString("<td width='%1%'>").arg(width);
+            line += QString("<td width='%1%' align='right'>").arg(width);
             if (!periods.at(j).header.isEmpty()) {
                 MachineType rowLookupType = (row.type == MT_OXIMETER) ? oxiSourceType : MT_UNKNOWN;
                 line += row.value(periods.at(j).start, periods.at(j).end, rowLookupType);
