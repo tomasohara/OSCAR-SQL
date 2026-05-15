@@ -60,6 +60,28 @@ initialized from a clean schema.
 
 ---
 
+## 2026-05-15 - Session bar on Event Flags graph shifts when other graphs are zoomed
+
+**File:** `oscar/Graphs/gFlagsLine.cpp` — `gFlagsGroup::paint()`
+
+**Symptom:** When the user zooms in on any other graph (Flow Rate, Pressure, etc.), the
+session-boundary bar at the top of the Event Flags graph shifts position while the flag
+lines themselves stay fixed — causing the bar to be misaligned with the events it brackets.
+
+**Root cause:** `gFlagsGroup::paint()` derived its `minx`/`maxx` from
+`g.graphView()->GetXBounds()`, which returns the graphview's current *zoomed* bounds
+(`m_minx`/`m_maxx`). But the Event Flags graph has `blockZoom() = true`, so its flag
+lines (`gFlagsLine::paint()`) correctly ignore the zoom and use `g.rmin_x`/`g.rmax_x`
+(full-day bounds). On every zoom-triggered repaint the session bar used zoomed coords
+while the flags used full-day coords, producing a visible mismatch.
+
+**Fix:** Applied the same `blockZoom()` guard used in `gFlagsLine::paint()`: when
+`g.blockZoom()` is true, use `g.rmin_x`/`g.rmax_x`; otherwise use `g.min_x`/`g.max_x`.
+This makes the session bar, the time-range text, and the line cursor all consistent
+with the flags.
+
+---
+
 ## 2026-05-14 - Session bar misaligned on Event Flags graph when oximeter data widens day range (#155)
 
 **Files:** `oscar/Graphs/gFlagsLine.cpp`, `oscar/Graphs/gFlagsLine.h`

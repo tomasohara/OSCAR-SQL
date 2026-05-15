@@ -183,7 +183,13 @@ void gFlagsGroup::paint(QPainter &painter, gGraph &g, const QRegion &region)
     float linetop = top+sheight-2;
 
     qint64 minx,maxx,dur;
-    g.graphView()->GetXBounds(minx,maxx);
+    if (g.blockZoom()) {
+        minx = g.rmin_x;
+        maxx = g.rmax_x;
+    } else {
+        minx = g.min_x;
+        maxx = g.max_x;
+    }
     dur = maxx - minx;
 
     #if BAR_TITLE_BAR_DEBUG
