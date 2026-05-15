@@ -114,6 +114,15 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    {
+        QAction *searchIcon = ui->filterBookmarks->addAction(
+            QIcon(":/icons/edit-find.png"), QLineEdit::LeadingPosition);
+        connect(ui->filterBookmarks, &QLineEdit::textChanged, this,
+            [searchIcon](const QString &text) {
+                searchIcon->setVisible(text.isEmpty());
+            });
+    }
+
     // Qt 6 on Windows 11 renders menu bar items and combo box drop-down items
     // with excessive vertical padding. Constrain to match earlier Qt versions.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0) && defined(Q_OS_WIN)
@@ -1581,6 +1590,7 @@ void MainWindow::setStatsHTML(QString html)
 
 void MainWindow::updateFavourites()
 {
+    if (!p_profile) return;
     QDate date = p_profile->LastDay(MT_JOURNAL);
 
     if (!date.isValid()) {

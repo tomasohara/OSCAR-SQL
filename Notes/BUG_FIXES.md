@@ -4,6 +4,29 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-15 - Bookmarks search field: visibility, clear button, no-profile crash (Mantis #201, GitLab #157)
+
+**Files:** `oscar/mainwindow.ui`, `oscar/mainwindow.cpp`
+
+**Symptoms:**
+1. Bookmarks panel search field had white text on light blue background — poor visibility.
+2. Clear button showed a refresh/reload icon — wrong semantic.
+3. Clicking the clear button (or pressing Enter in the filter field) with no profile open
+   crashed OSCAR with a null pointer dereference.
+
+**Root causes:**
+1. & 2. Cosmetic choices in the original UI design.
+3. `updateFavourites()` dereferenced `p_profile` on its first line with no null guard.
+
+**Fixes:**
+- Search field: black text on `rgb(220,232,255)` background; magnifying glass icon
+  (`edit-find.png`) shown via `QLineEdit::addAction(LeadingPosition)`, hidden as soon as
+  the user starts typing.
+- Clear button: replaced `refresh.png` icon with bold `✕` text; turns red on hover.
+- Added `if (!p_profile) return;` guard at the top of `updateFavourites()`.
+
+---
+
 ## 2026-05-14 - New profile inherits channel settings from currently-open profile
 
 **File:** `oscar/SleepLib/profiles.cpp` — `Profiles::Create()`
