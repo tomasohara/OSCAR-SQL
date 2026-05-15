@@ -1725,7 +1725,7 @@ void MainWindow::on_action_Advanced_Graph_Order_triggered()
 void MainWindow::on_action_Preferences_triggered()
 {
     if (!p_profile) {
-        QMessageBox::warning(this, tr("Preferences"), tr("1Please open or create a profile first."));
+        QMessageBox::warning(this, tr("Preferences"), tr("Please open or create a profile first."));
         return;
     }
 
