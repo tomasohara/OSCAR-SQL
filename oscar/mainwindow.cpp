@@ -77,6 +77,8 @@
 #include "backupdialog.h"
 #include "restoredialog.h"
 #include "sharedialog.h"
+#include <QProgressDialog>
+#include "purgerangedaysdialog.h"
 #include "exports/report_exporter.h"
 #include "exports/journalnotesdialog.h"
 #include "importprofile.h"
@@ -2147,6 +2149,62 @@ void MainWindow::on_actionPurgeCurrentDayAll_triggered()
     this->purgeDay(MT_JOURNAL);
 }
 
+// Destroy sessions for a single day matching type. Returns true if any sessions were purged.
+// Special handling: MT_JOURNAL == All data. MT_UNKNOWN == All except journal.
+// Does not touch the UI; callers handle unload/reload.
+bool MainWindow::purgeDayData(QDate date, MachineType type)
+{
+    Day *day = p_profile->GetDay(date, MT_UNKNOWN);
+    if (!day)
+        return false;
+
+    Machine *cpap = nullptr;
+    QList<Session *> list;
+    for (auto s = day->begin(); s != day->end(); ++s) {
+        Session *sess = *s;
+        if (type == MT_JOURNAL || (type == MT_UNKNOWN && sess->type() != MT_JOURNAL) ||
+                sess->type() == type) {
+            list.append(sess);
+            qDebug() << "Purging session from" << sess->machine()->loaderName()
+                     << "ID:" << sess->session()
+                     << "[" + QDateTime::fromSecsSinceEpoch(sess->session()).toString() + "]";
+            if (sess->type() == MT_CPAP)
+                cpap = day->machine(MT_CPAP);
+        } else {
+            qDebug() << "Skipping session from" << sess->machine()->loaderName()
+                     << "ID:" << sess->session()
+                     << "[" + QDateTime::fromSecsSinceEpoch(sess->session()).toString() + "]";
+        }
+    }
+
+    if (list.isEmpty())
+        return false;
+
+    if (cpap) {
+        QFile rxcache(p_profile->Get("{" + STR_GEN_DataFolder + "}/RXChanges.cache"));
+        rxcache.remove();
+        QFile sumfile(cpap->getDataPath() + "Summaries.xml.gz");
+        sumfile.remove();
+    }
+
+    QSet<Machine *> machines;
+    for (Session *sess : list) {
+        machines += sess->machine();
+        sess->Destroy();
+        delete sess;
+    }
+    for (auto &mach : machines)
+        mach->SaveSummaryCache();
+
+    if (cpap) {
+        QDate pd = cpap->purgeDate();
+        if (pd.isNull() || date < pd)
+            cpap->setPurgeDate(date);
+    }
+
+    return true;
+}
+
 // Purge data for a given device type.
 // Special handling: MT_JOURNAL == All data. MT_UNKNOWN == All except journal
 void MainWindow::purgeDay(MachineType type)
@@ -2156,82 +2214,127 @@ void MainWindow::purgeDay(MachineType type)
     QDate date = daily->getDate();
     qDebug() << "Purging data from" << date;
     daily->Unload(date);
+
+    if (!purgeDayData(date, type))
+        return;
+
     Day *day = p_profile->GetDay(date, MT_UNKNOWN);
-    Machine *cpap = nullptr;
-    if (!day)
-        return;
-
-    QList<Session *>::iterator s;
-
-    QList<Session *> list;
-    for (s = day->begin(); s != day->end(); ++s) {
-        Session *sess = *s;
-        if (type == MT_JOURNAL || (type == MT_UNKNOWN && sess->type() != MT_JOURNAL) ||
-                sess->type() == type) {
-            list.append(*s);
-            qDebug() << "Purging session from " << (*s)->machine()->loaderName() << " ID:" << (*s)->session() << "["+QDateTime::fromSecsSinceEpoch((*s)->session()).toString()+"]";
-            qDebug() << "First Time:" << QDateTime::fromMSecsSinceEpoch((*s)->realFirst()).toString();
-            qDebug() << "Last Time:" << QDateTime::fromMSecsSinceEpoch((*s)->realLast()).toString();
-            if (sess->type() == MT_CPAP) {
-                cpap = day->machine(MT_CPAP);
-            }
-        } else {
-            qDebug() << "Skipping session from " << (*s)->machine()->loaderName() << " ID:" << (*s)->session() << "["+QDateTime::fromSecsSinceEpoch((*s)->session()).toString()+"]";
-        }
-    }
-
-    if (list.size() > 0) {
-        if (cpap) {
-            QFile rxcache(p_profile->Get("{" + STR_GEN_DataFolder + "}/RXChanges.cache" ));
-            rxcache.remove();
-
-            QFile sumfile(cpap->getDataPath()+"Summaries.xml.gz");
-            sumfile.remove();
-        }
-
-//        m->day.erase(m->day.find(date));
-        QSet<Machine *> machines;
-        for (int i = 0; i < list.size(); i++) {
-            Session *sess = list.at(i);
-            machines += sess->machine();
-            sess->Destroy();    // remove the summary and event files
-            delete sess;
-        }
-
-        for (auto & mach : machines) {
-            mach->SaveSummaryCache();
-        }
-
-        if (cpap) {
-            // save purge date where later import should start
-            QDate pd = cpap->purgeDate();
-            if (pd.isNull() || day->date() < pd)
-                cpap->setPurgeDate(day->date());
-        }
-    } else {
-        // No data purged... could notify user?
-        return;
-    }
-    day = p_profile->GetDay(date, MT_UNKNOWN);
     {
         ProfileRepository profileRepo;
         ProfileData profileData = profileRepo.findByUsername(p_profile->user->userName());
         if (profileData.id > 0) {
             DailySummaryRepository summaryRepo;
             bool recalculated = day && summaryRepo.calculateAndStoreFromDay(day, profileData.id);
-            if (!recalculated) {
+            if (!recalculated)
                 summaryRepo.invalidateDate(profileData.id, date);
+        }
+    }
+
+    if (type == MT_JOURNAL)
+        daily->clearJournalNotesEditor();
+
+    daily->clearLastDay();
+    daily->LoadDate(date);
+    if (overview)
+        overview->ReloadGraphs();
+    if (welcome)
+        welcome->refreshPage();
+    GenerateStatistics();
+}
+
+void MainWindow::on_actionPurgeRangeOfDays_triggered()
+{
+    if (!daily)
+        return;
+
+    PurgeRangeDaysDialog dlg(daily->getDate(), this);
+    if (dlg.exec() != QDialog::Accepted)
+        return;
+
+    const QDate startDate  = dlg.startDate();
+    const QDate endDate    = dlg.endDate();
+    const MachineType type = dlg.machineType();
+    const int numDays      = startDate.daysTo(endDate) + 1;
+
+    QString typeName;
+    switch (type) {
+    case MT_CPAP:       typeName = tr("CPAP");                break;
+    case MT_OXIMETER:   typeName = tr("Oximetry");            break;
+    case MT_SLEEPSTAGE: typeName = tr("Sleep Stage");         break;
+    case MT_POSITION:   typeName = tr("Position");            break;
+    case MT_UNKNOWN:    typeName = tr("All except Notes");    break;
+    case MT_JOURNAL:    typeName = tr("All including Notes"); break;
+    default:            typeName = tr("Unknown");             break;
+    }
+
+    QLocale loc;
+    if (staticQMessageBox::question(this,
+            tr("Confirm Purge"),
+            tr("<p>Purge <b>%1</b> data from <b>%2</b> to <b>%3</b> (%4 day(s)).</p>"
+               "<p>Are you <b>absolutely sure</b> you want to proceed?</p>")
+               .arg(typeName,
+                    loc.toString(startDate, QLocale::ShortFormat),
+                    loc.toString(endDate,   QLocale::ShortFormat),
+                    QString::number(numDays)),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No) != QMessageBox::Yes) {
+        return;
+    }
+
+    const QDate viewDate = daily->getDate();
+    daily->Unload(viewDate);
+
+    QProgressDialog progress(tr("Purging data..."), tr("Cancel"), 0, numDays, this);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(0);
+    progress.setValue(0);
+
+    QList<QDate> purgedDates;
+    QDate cur = startDate;
+    int step  = 0;
+    while (cur <= endDate) {
+        if (progress.wasCanceled())
+            break;
+        progress.setValue(step);
+        progress.setLabelText(tr("Purging %1...").arg(loc.toString(cur, QLocale::ShortFormat)));
+        QApplication::processEvents();
+
+        if (purgeDayData(cur, type))
+            purgedDates.append(cur);
+
+        cur = cur.addDays(1);
+        ++step;
+    }
+    progress.setValue(numDays);
+
+    if (purgedDates.isEmpty()) {
+        staticQMessageBox::information(this,
+            tr("Purge Range of Days"),
+            tr("No data was found in the selected date range."),
+            QMessageBox::Ok);
+        return;
+    }
+
+    // Recalculate daily summaries for all affected dates
+    {
+        ProfileRepository profileRepo;
+        ProfileData profileData = profileRepo.findByUsername(p_profile->user->userName());
+        if (profileData.id > 0) {
+            DailySummaryRepository summaryRepo;
+            for (const QDate &d : purgedDates) {
+                Day *day = p_profile->GetDay(d, MT_UNKNOWN);
+                bool recalculated = day && summaryRepo.calculateAndStoreFromDay(day, profileData.id);
+                if (!recalculated)
+                    summaryRepo.invalidateDate(profileData.id, d);
             }
         }
     }
 
-    // Prevent immediate reload from re-creating a deleted journal entry via Unload(previous_date).
-    if (type == MT_JOURNAL) {
+    if (type == MT_JOURNAL)
         daily->clearJournalNotesEditor();
-    }
 
     daily->clearLastDay();
-    daily->LoadDate(date);
+    daily->LoadDate(viewDate);
     if (overview)
         overview->ReloadGraphs();
     if (welcome)

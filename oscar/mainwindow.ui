@@ -2219,6 +2219,7 @@ p, li { white-space: pre-wrap; }
       <addaction name="actionPurgeCurrentDayAll"/>
      </widget>
      <addaction name="menuPurge_Current_Selected_Day"/>
+     <addaction name="actionPurgeRangeOfDays"/>
      <addaction name="menuPurge_CPAP_Data"/>
      <addaction name="separator"/>
      <addaction name="menuPurge_Oximetry_Data"/>
@@ -2717,6 +2718,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionPurge_Current_Selected_Day">
    <property name="text">
     <string>Purge Current Selected Day</string>
+   </property>
+  </action>
+  <action name="actionPurgeRangeOfDays">
+   <property name="text">
+    <string>Purge Range of Days...</string>
    </property>
   </action>
   <action name="actionPurge_Current_Day">

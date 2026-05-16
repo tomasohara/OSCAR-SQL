@@ -290,6 +290,9 @@ class MainWindow : public QMainWindow
     void on_actionPurgeCurrentDayAllExceptNotes_triggered();
     void on_actionPurgeCurrentDayAll_triggered();
 
+    //! \brief Open the Purge Range of Days dialog and purge data for a date range.
+    void on_actionPurgeRangeOfDays_triggered();
+
     void on_action_Sidebar_Toggle_toggled(bool arg1);
     void on_toolBox_currentChanged(int index);
 
@@ -433,6 +436,11 @@ private:
     void addMachineToMenu(Machine* mach, QMenu* menu);
     void purgeDay(MachineType type);
     void importNonCPAP(MachineLoader &loader);
+
+    /*! \brief Destroy sessions for \a date matching \a type. Returns true if any data
+     *         was purged. Does not update the UI; caller handles reload.
+     *         Special handling: MT_JOURNAL == all data; MT_UNKNOWN == all except journal. */
+    bool purgeDayData(QDate date, MachineType type);
 
     //! \brief Ensure database has no uncommitted transactions (profile switching safety)
     void ensureCleanDatabaseState();
