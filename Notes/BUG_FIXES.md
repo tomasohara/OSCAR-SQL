@@ -4,6 +4,22 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-16 - Profile selector sort order not remembered across restarts (#165)
+
+**File:** `oscar/profileselector.cpp`, `oscar/profileselector.h`
+
+**Symptom:** Clicking a column header in the profile selector to sort the list worked
+during the session, but the sort reset to "Profile name, ascending" on every restart.
+
+**Root cause:** `updateProfileList()` always called `sortByColumn(0, Qt::AscendingOrder)`
+unconditionally, discarding any user-chosen sort.
+
+**Fix:** Connected `QHeaderView::sortIndicatorChanged` in the constructor to save the
+chosen column and order to `QSettings` (group `"ProfileSelector"`). `updateProfileList()`
+now restores those values instead of hard-coding column 0.
+
+---
+
 ## 2026-05-16 - VREM loader: data not saved to database (Plots Disabled + no machine save)
 
 **File:** `oscar/SleepLib/loader_plugins/vrem_loader.cpp`

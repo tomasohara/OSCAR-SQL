@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QFileInfo>
+#include <QSettings>
 
 #include "profileselector.h"
 #include "ui_profileselector.h"
@@ -109,6 +110,15 @@ ProfileSelector::ProfileSelector(QWidget *parent) :
         connect(sm, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(on_selectionChanged(QModelIndex,QModelIndex)));
     ui->buttonEditProfile->setEnabled(false);
     ui->buttonOpenProfile->setEnabled(false);
+
+    connect(ui->profileView->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
+            this, [](int column, Qt::SortOrder order) {
+                QSettings settings;
+                settings.beginGroup("ProfileSelector");
+                settings.setValue("sortColumn", column);
+                settings.setValue("sortOrder", static_cast<int>(order));
+                settings.endGroup();
+            });
 }
 
 ProfileSelector::~ProfileSelector()
@@ -287,7 +297,15 @@ void ProfileSelector::updateProfileList()
     ui->profileView->setModel(proxy);
     ui->profileView->setSortingEnabled(true);
 
-    ui->profileView->sortByColumn(0, Qt::AscendingOrder);
+    {
+        QSettings settings;
+        settings.beginGroup("ProfileSelector");
+        int col = settings.value("sortColumn", 0).toInt();
+        Qt::SortOrder order = static_cast<Qt::SortOrder>(
+            settings.value("sortOrder", static_cast<int>(Qt::AscendingOrder)).toInt());
+        settings.endGroup();
+        ui->profileView->sortByColumn(col, order);
+    }
 
     QHeaderView *headerView = ui->profileView->horizontalHeader();
     headerView->setStretchLastSection(true);
