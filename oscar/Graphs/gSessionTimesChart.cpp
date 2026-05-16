@@ -332,7 +332,7 @@ void gSessionTimesChart::paint(QPainter &painter, gGraph &graph, const QRegion &
 
                 if (rec.contains(mouse)) {
                     col = Qt::yellow;
-                    graph.ToolTip(slice.name, mouse.x() - 15,mouse.y() + 15, TT_AlignRight);
+                    graph.ToolTip(slice.name, mouse.x() + 20, mouse.y(), TT_AlignBottomLeft);
 
                 }
 

@@ -219,18 +219,20 @@ QRect gToolTip::calculateRect(QPainter &painter)
     painter.setFont(*m_font);
     rect = painter.boundingRect(rect, Qt::AlignCenter, m_text);
 
-    //  Set preffered locations
-    rect.moveTo(m_pos);
-
-    // Add borders arround text area
-
-    // add space around rectangle horizontilally left & right sides.
+    // Compute size with padding
     int w = rect.width() + m_spacer * 2;
     rect.setWidth(w);
-
-    // add space around rectangle vertically
     int h = rect.height() + m_spacer * 2;
     rect.setHeight(h);
+
+    // Position based on alignment
+    if (m_alignment == TT_AlignBottomRight) {
+        rect.moveBottomRight(m_pos);
+    } else if (m_alignment == TT_AlignBottomLeft) {
+        rect.moveBottomLeft(m_pos);
+    } else {
+        rect.moveTo(m_pos);
+    }
 
     /*
     now must verify that the tooltip must fit inti the display area.

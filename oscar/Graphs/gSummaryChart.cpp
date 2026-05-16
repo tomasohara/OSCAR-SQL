@@ -671,7 +671,7 @@ void gSummaryChart::paint(QPainter &painter, gGraph &graph, const QRegion &regio
             }
         }
 
-        graph.ToolTip(txt, mouse.x()-15, mouse.y()+5, TT_AlignRight);
+        graph.ToolTip(txt, mouse.x() + 20, mouse.y(), TT_AlignBottomLeft);
     }
     try {
         afterDraw(painter, graph, rect);

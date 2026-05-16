@@ -25,7 +25,7 @@ class LayerGroup;
 
 enum LayerPosition { LayerLeft, LayerRight, LayerTop, LayerBottom, LayerCenter, LayerOverlay };
 
-enum ToolTipAlignment { TT_AlignCenter, TT_AlignLeft, TT_AlignRight };
+enum ToolTipAlignment { TT_AlignCenter, TT_AlignLeft, TT_AlignRight, TT_AlignBottomRight, TT_AlignBottomLeft };
 
 enum LayerType { LT_Other = 0, LT_LineChart, LT_SummaryChart, LT_EventFlags, LT_Spacer, LT_Overview };
 

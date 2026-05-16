@@ -1238,11 +1238,13 @@ bool gOverviewGraph::mouseMoveEvent(QMouseEvent *event, gGraph *graph)
                 strTooltip += "\r\n"+QObject::tr("(Summary Only)");
             }
 
-            graph->ToolTip(strTooltip, xposLeft, y - 15);
+            QPoint mouse = graph->graphView()->currentMousePos();
+            graph->ToolTip(strTooltip, mouse.x() + 20, mouse.y(), TT_AlignBottomLeft);
             return false;
         } else {
             QString z = dt.toString(QLocale::system().dateFormat(QLocale::ShortFormat)) + "\r\n"+QObject::tr("No Data");
-            graph->ToolTip(z, xposLeft, y - 15);
+            QPoint mouse = graph->graphView()->currentMousePos();
+            graph->ToolTip(z, mouse.x() + 20, mouse.y(), TT_AlignBottomLeft);
             return false;
         }
     }

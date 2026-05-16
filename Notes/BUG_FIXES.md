@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-16 - Overview page tooltips obscured by large mouse pointer (GitLab #160)
+
+**Files:** `oscar/Graphs/layer.h`, `oscar/Graphs/gGraphView.cpp`,
+`oscar/Graphs/gSummaryChart.cpp`, `oscar/Graphs/gSessionTimesChart.cpp`,
+`oscar/Graphs/gOverviewGraph.cpp`
+
+**Symptom:** Graph tooltips were positioned with their upper-left corner at the mouse
+hotspot, causing a large cursor to overlap and obscure part of the tooltip content.
+
+**Root cause:** `gToolTip::calculateRect` always placed the tooltip at `moveTo(m_pos)`,
+ignoring the stored `m_alignment` value. All Overview chart tooltips originate in
+`gSummaryChart::draw` (shared by `gAHIChart`, `gUsageChart`, `gTTIAChart`, etc.), not
+`gOverviewGraph`.
+
+**Fix:** Added `TT_AlignBottomLeft` (and `TT_AlignBottomRight`) to the `ToolTipAlignment`
+enum and handled them in `calculateRect` via `moveBottomLeft`/`moveBottomRight`. Updated
+all Overview tooltip call sites to use `TT_AlignBottomLeft` with the anchor offset 20px
+right of the mouse hotspot, placing the tooltip above and to the right of the cursor.
+
+---
+
 ## 2026-05-15 - Statistics: right-align Days/AHI/FL columns in Changes to Device Settings (GitLab #158)
 
 **File:** `oscar/statistics.cpp` — `GenerateRXChanges()`
