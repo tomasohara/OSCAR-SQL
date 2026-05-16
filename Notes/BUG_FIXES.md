@@ -4,6 +4,45 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-16 - ResVent loader: all graphs show "Plots Disabled" after navigating between days
+
+**File:** `oscar/SleepLib/loader_plugins/resvent_loader.cpp`
+
+**Symptoms:**
+1. Import data via ResVent loader; last day displayed on daily page looks correct.
+2. Navigate to any earlier day → all graphs show "Plots Disabled".
+3. Navigate back to last day → also shows "Plots Disabled".
+
+**Root cause:**
+`LoadSession()` called `session->Store()` directly before `Machine::Save()` was called.
+`Session::Store()` checks `s_machine->getDatabaseId() > 0` before saving to DB; on a
+first import the machine has no DB ID yet, so the `else` branch fires and database
+storage is **skipped entirely**. However, `s_changed` is still cleared (`s_changed = false`).
+
+When `Machine::Save()` subsequently runs it:
+1. Saves the machine to the database (giving it a DB ID).
+2. Skips `SaveTask` for these sessions because `IsChanged() == false`.
+3. Calls only `StoreToDatabase()` (session metadata) for sessions with `sessionRowId == 0`.
+   `StoreEvents()` is **never called** — waveform/event data is never written to the DB.
+
+The daily page initially shows the last day correctly because sessions are still in memory
+with `s_events_loaded = true`. When the user navigates to another day, `daily.cpp`
+calls `d->CloseEvents()` on all loaded days, purging in-memory events. Subsequent
+display of any day tries to reload events from the DB, finds none, and shows
+"Plots Disabled".
+
+**Fix:**
+Removed the direct `session->Store(machine->getDataPath())` call from `LoadSession()`.
+`Machine::Save()` → `SaveTask::run()` already calls `Store()` correctly: it executes
+*after* `Machine::SaveToDatabase()` has given the machine a DB ID, so both
+`StoreToDatabase()` and `StoreEvents()` succeed and events reach the database.
+
+**Note:** Existing profiles that were imported with the broken loader will have session
+metadata in the database but no event data. Those sessions need to be deleted and
+re-imported (delete the machine's data folder and re-import from SD card).
+
+---
+
 ## 2026-05-16 - Weight graph: wrong units in legend, "lb oz" format on Y-axis
 
 **Files:** `oscar/SleepLib/common.h`, `oscar/SleepLib/common.cpp`,

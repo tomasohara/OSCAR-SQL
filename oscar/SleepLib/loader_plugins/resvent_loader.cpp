@@ -831,7 +831,6 @@ int ResventLoader::LoadSession(const QString& dirpath, const QDate& session_date
         LoadEvents(session_folder_path, session, usage);
 
         session->UpdateSummaries();
-        session->Store(machine->getDataPath());
         machine->AddSession(session);
         ++base;
     };
