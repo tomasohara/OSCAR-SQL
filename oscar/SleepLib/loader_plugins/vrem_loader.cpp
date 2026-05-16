@@ -241,6 +241,7 @@ int VREMLoader::Open(const QString & selectedPath)
         m_ctx->CreateMachineFromInfo(PeekInfo(path));
         Machine *machine = p_profile->CreateMachine(PeekInfo(path));
         task += OscarDataParser(Odatas ,machine , VREMDATA);
+        machine->Save();
     }
     QString backupPath = context()->GetBackupPath() + path.section("/", -1)+"/";
     QDir backupDir(QFileInfo(backupPath).path());
@@ -590,7 +591,6 @@ int VREMLoader::OscarDataParser(QStringList OdataList,Machine* machine,QVector<v
                 isValidData = false;
                 valueQueue.clear();
                 session->UpdateSummaries();
-                session->Store(machine->getDataPath());
                 machine->AddSession(session);
             }
         }

@@ -4,6 +4,29 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-16 - VREM loader: data not saved to database (Plots Disabled + no machine save)
+
+**File:** `oscar/SleepLib/loader_plugins/vrem_loader.cpp`
+
+**Symptoms:** Same "Plots Disabled" symptom as ResVent (#162) and Yuwell (#163), but
+with an additional failure mode: no data was ever committed at all because
+`machine->Save()` was entirely absent from `VREMLoader::Open()`.
+
+**Root causes (two):**
+1. `OscarDataParser()` called `session->Store()` before `Machine::Save()`, same race
+   as ResVent/Yuwell — on first import the machine has no DB ID so Store() skips all
+   database writes but clears the changed flag.
+2. `Machine::Save()` was never called anywhere in `VREMLoader::Open()`, so even for
+   re-imports the machine record and its sessions were never finalized in the database.
+
+**Fix:**
+- Removed the premature `session->Store(machine->getDataPath())` call from
+  `OscarDataParser()`.
+- Added `machine->Save()` in `Open()` after `OscarDataParser()` returns, inside the
+  per-OD-folder loop so each machine is saved when its sessions are complete.
+
+---
+
 ## 2026-05-16 - Yuwell loader: all graphs show "Plots Disabled" after navigating between days
 
 **File:** `oscar/SleepLib/loader_plugins/yuwell_loader.cpp`
