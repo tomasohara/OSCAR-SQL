@@ -348,7 +348,6 @@ bool YuwellFormatA::OpenSession(Machine *mach, const QString & filename)
         sess->SetChanged(true);
         Sessions[ts] = sess;
         sess->UpdateSummaries();
-        sess->Store(mach->getDataPath());
         mach->AddSession(sess);
     }
 
@@ -694,7 +693,6 @@ int YuwellFormatB::OpenMachine(Machine *mach, const QString & serial) {
             sess->SetChanged(true);
             Sessions[ts] = sess;
             sess->UpdateSummaries();
-            sess->Store(mach->getDataPath());
             mach->AddSession(sess);
         }
     }
@@ -1008,7 +1006,6 @@ bool YuwellFormatC::OpenSession(Machine *mach, const QString & filename)
         sess->SetChanged(true);
         Sessions[ts] = sess;
         sess->UpdateSummaries();
-        sess->Store(mach->getDataPath());
         mach->AddSession(sess);
     }
 
@@ -1473,7 +1470,6 @@ bool YuwellFormatD::OpenSession(Machine *mach, const QString & filename)
     sess->SetChanged(true);
     Sessions[ts] = sess;
     sess->UpdateSummaries();
-    sess->Store(mach->getDataPath());
     mach->AddSession(sess);
 
     return true;

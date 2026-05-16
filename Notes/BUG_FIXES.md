@@ -4,6 +4,25 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-16 - Yuwell loader: all graphs show "Plots Disabled" after navigating between days
+
+**File:** `oscar/SleepLib/loader_plugins/yuwell_loader.cpp`
+
+**Symptoms:** Same as ResVent (#162). Import data via Yuwell loader; daily page looks
+correct for the last day, but navigating to any earlier day shows "Plots Disabled" on
+all graphs. Navigating back to last day also then shows "Plots Disabled".
+
+**Root cause:** Identical to ResVent bug. All four Yuwell format variants (FormatA,
+FormatB, FormatC, FormatD) called `sess->Store()` before `Machine::Save()`, so on
+first import the machine had no database ID. Store() skipped all database writes but
+cleared the changed flag, leaving events permanently absent from the database.
+
+**Fix:** Removed the four premature `sess->Store(mach->getDataPath())` calls (one per
+format variant). Machine::Save() → SaveTask::run() handles the full save after the
+machine is in the database.
+
+---
+
 ## 2026-05-16 - ResVent loader: all graphs show "Plots Disabled" after navigating between days
 
 **File:** `oscar/SleepLib/loader_plugins/resvent_loader.cpp`
