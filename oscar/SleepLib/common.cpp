@@ -335,15 +335,21 @@ qint64 timezoneOffset()
     return _TZ_offset;
 }
 
-QString weightString(float kg, UnitSystem us)
+QString weightString(float kg, UnitSystem us, bool rounded)
 {
     if (us == US_Undefined) {
         us = p_profile->general->unitSystem();
     }
 
     if (us == US_Metric) {
+        if (rounded) {
+            return QString("%1kg").arg(qRound(kg));
+        }
         return QString("%1kg").arg(kg, 0, 'f', 2);
     } else if (us == US_English) {
+        if (rounded) {
+            return QString("%1lb").arg(qRound(kg * pounds_per_kg));
+        }
         int oz = (kg * 1000.0) * (float)gram_ounce_convert;
         int lb = oz / 16.0;
         oz = oz % 16;

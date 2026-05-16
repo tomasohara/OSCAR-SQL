@@ -948,6 +948,8 @@ jumpnext:
             int m = int(f * 60) % 60;
             val = QString::asprintf("%02i:%02i", h, m);
             // ishours = true;
+        } else if (code == Journal_Weight) {
+            val = weightString(f, p_profile->general->unitSystem());
         } else {
             val = QString::number(f, 'f', 2);
         }

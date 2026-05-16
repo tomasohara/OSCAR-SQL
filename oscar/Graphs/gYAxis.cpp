@@ -361,5 +361,6 @@ const QString gYAxisTime::Format(EventDataType v, int dp)
 const QString gYAxisWeight::Format(EventDataType v, int dp)
 {
     Q_UNUSED(dp)
-    return weightString(v, m_unitsystem);
+    UnitSystem us = (p_profile && p_profile->general) ? p_profile->general->unitSystem() : m_unitsystem;
+    return weightString(v, us, true);
 }

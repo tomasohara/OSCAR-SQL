@@ -4,6 +4,42 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-16 - Weight graph: wrong units in legend, "lb oz" format on Y-axis
+
+**Files:** `oscar/SleepLib/common.h`, `oscar/SleepLib/common.cpp`,
+`oscar/Graphs/gYAxis.cpp`, `oscar/Graphs/gOverviewGraph.cpp`
+
+**Symptoms:**
+1. The upper-right legend of the Weight graph showed the raw stored value (kg) as a plain
+   decimal (e.g. "80.37") regardless of the user's selected unit system.
+2. Y-axis tick labels displayed "176lb 6oz" — the ounces component adds length without
+   useful precision for axis scale marks.
+3. After editing the profile to change the unit system, Y-axis labels kept the old unit
+   system until OSCAR was closed and re-opened; the legend updated immediately because it
+   already read directly from `p_profile`.
+
+**Root causes:**
+1. The legend value was computed with `QString::number(f, 'f', 2)` for all non-time
+   channels, with no special case for `Journal_Weight`.
+2. `weightString()` (used by `gYAxisWeight::Format`) always returned full precision
+   including ounces in English mode, but Y-axis values are in raw kg so they never round
+   to whole pounds after conversion.
+3. `gYAxisWeight` stored `m_unitsystem` at construction time. Editing the profile via
+   "Edit Profile" does not call `RebuildGraphs`, so the axis object kept the old unit
+   system while the legend (which reads `p_profile->general->unitSystem()` at paint time)
+   updated correctly.
+
+**Fix:**
+- Added `bool rounded = false` parameter to `weightString()`. When `true` in English mode,
+  rounds to the nearest pound and omits ounces (`"176lb"`); in metric, rounds to whole kg.
+- `gYAxisWeight::Format` now reads unit system live from `p_profile->general->unitSystem()`
+  at paint time (falling back to `m_unitsystem` only when no profile is open), and passes
+  `rounded = true`.
+- The legend section in `gOverviewGraph::paint` checks for `code == Journal_Weight` and
+  calls `weightString(f, p_profile->general->unitSystem())` instead of raw `%2f`.
+
+---
+
 ## 2026-05-16 - Overview page tooltips obscured by large mouse pointer (GitLab #160)
 
 **Files:** `oscar/Graphs/layer.h`, `oscar/Graphs/gGraphView.cpp`,

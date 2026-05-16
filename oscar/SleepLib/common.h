@@ -95,7 +95,10 @@ const float cms_per_foot  = (12.0*cms_per_inch) ; // feet to cm
 const float inches_per_cm = (1.0/cms_per_inch) ; // cm to inch
 
 
-QString weightString(float kg, UnitSystem us = US_Undefined);
+/*! \brief Format a weight value for display.
+ *  \param rounded When true, English rounds to nearest pound (no oz); metric rounds to whole kg.
+ *                 Use true for axis tick labels; false for detailed tooltips. */
+QString weightString(float kg, UnitSystem us = US_Undefined, bool rounded = false);
 
 //! \brief Format pressure relief by placing a space before cmH2O if not already there
 QString formatRelief (QString relief);
