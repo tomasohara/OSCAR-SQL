@@ -4,9 +4,21 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-16 - Add Purge Range of Days feature (#166)
+
+**Files:** `oscar/mainwindow.ui`, `oscar/mainwindow.h`, `oscar/mainwindow.cpp`,
+`oscar/purgerangedaysdialog.h`, `oscar/purgerangedaysdialog.cpp`, `oscar/oscar.pro`
+
+**Summary:** Added "Purge Range of Days..." under Data → Advanced. New `PurgeRangeDaysDialog`
+collects start/end date (pre-filled with current day) and data-type selection (6 radio buttons
+matching single-day purge). A `QProgressDialog` loop calls new helper `purgeDayData()` per day
+with cancel support; `purgeDay()` refactored to reuse the same helper.
+
+---
+
 ## 2026-05-16 - Profile selector sort order not remembered across restarts (#165)
 
-**File:** `oscar/profileselector.cpp`, `oscar/profileselector.h`
+**File:** `oscar/profileselector.cpp`
 
 **Symptom:** Clicking a column header in the profile selector to sort the list worked
 during the session, but the sort reset to "Profile name, ascending" on every restart.
@@ -15,8 +27,11 @@ during the session, but the sort reset to "Profile name, ascending" on every res
 unconditionally, discarding any user-chosen sort.
 
 **Fix:** Connected `QHeaderView::sortIndicatorChanged` in the constructor to save the
-chosen column and order to `QSettings` (group `"ProfileSelector"`). `updateProfileList()`
-now restores those values instead of hard-coding column 0.
+chosen column and order via `AppPreferencesRepository` under category `"ProfileSelector"`
+(keys `sortColumn`, `sortOrder`). `updateProfileList()` now restores those values
+instead of hard-coding column 0. Stored in the database's `app_preferences` table, so
+the preference is per-database — users with multiple databases get a different
+remembered sort for each.
 
 ---
 

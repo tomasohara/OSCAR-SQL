@@ -13,7 +13,6 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QFileInfo>
-#include <QSettings>
 
 #include "profileselector.h"
 #include "ui_profileselector.h"
@@ -32,6 +31,12 @@
 #include "database/profile_repository.h"
 #include "database/machine_repository.h"
 #include "database/user_info_repository.h"
+#include "database/app_preferences_repository.h"
+#include "database/database_manager.h"
+
+static const QString kSortPrefCategory = QStringLiteral("ProfileSelector");
+static const QString kSortPrefColumnKey = QStringLiteral("sortColumn");
+static const QString kSortPrefOrderKey  = QStringLiteral("sortOrder");
 
 extern MainWindow * mainwin;
 
@@ -113,11 +118,10 @@ ProfileSelector::ProfileSelector(QWidget *parent) :
 
     connect(ui->profileView->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
             this, [](int column, Qt::SortOrder order) {
-                QSettings settings;
-                settings.beginGroup("ProfileSelector");
-                settings.setValue("sortColumn", column);
-                settings.setValue("sortOrder", static_cast<int>(order));
-                settings.endGroup();
+                if (!DatabaseManager::instance().isOpen()) return;
+                AppPreferencesRepository repo;
+                repo.save(kSortPrefCategory, kSortPrefColumnKey, column);
+                repo.save(kSortPrefCategory, kSortPrefOrderKey,  static_cast<int>(order));
             });
 }
 
@@ -298,12 +302,16 @@ void ProfileSelector::updateProfileList()
     ui->profileView->setSortingEnabled(true);
 
     {
-        QSettings settings;
-        settings.beginGroup("ProfileSelector");
-        int col = settings.value("sortColumn", 0).toInt();
-        Qt::SortOrder order = static_cast<Qt::SortOrder>(
-            settings.value("sortOrder", static_cast<int>(Qt::AscendingOrder)).toInt());
-        settings.endGroup();
+        int col = 0;
+        Qt::SortOrder order = Qt::AscendingOrder;
+        if (DatabaseManager::instance().isOpen()) {
+            AppPreferencesRepository repo;
+            const QList<AppPrefData> rows = repo.loadByCategory(kSortPrefCategory);
+            for (const AppPrefData& row : rows) {
+                if (row.key == kSortPrefColumnKey)     col   = row.value.toInt();
+                else if (row.key == kSortPrefOrderKey) order = static_cast<Qt::SortOrder>(row.value.toInt());
+            }
+        }
         ui->profileView->sortByColumn(col, order);
     }
 
