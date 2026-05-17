@@ -490,6 +490,7 @@ HEADERS  += \
     overview.h \
     common_gui.h \
     cprogressbar.h \
+    borrowingtimeedit.h \
     devicetimecorrectiondialog.h \
     timealignmentwelcomedialog.h \
     driftanalysisdialog.h \

@@ -11,6 +11,7 @@
 
 #include <QDialog>
 #include <QDate>
+#include <QTime>
 #include <QTreeWidget>
 #include <QCloseEvent>
 #include "SleepLib/machine.h"
@@ -48,6 +49,9 @@ private slots:
     void onDeleteRow();
     void onHistoryRowSelected();
     void onAnyControlChanged();
+    void onOffsetTimeChanged(const QTime &time);
+    void onOffsetSignToggled(bool checked);
+    void onToggleHistory();
 
 private:
     Ui::DeviceTimeCorrectionDialog *ui;

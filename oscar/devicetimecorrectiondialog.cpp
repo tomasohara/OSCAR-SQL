@@ -8,6 +8,7 @@
 
 #include "devicetimecorrectiondialog.h"
 #include "ui_devicetimecorrectiondialog.h"
+#include "borrowingtimeedit.h"
 #include "SleepLib/profiles.h"
 #include <QMessageBox>
 #include <QHeaderView>
@@ -32,31 +33,44 @@ DeviceTimeCorrectionDialog::DeviceTimeCorrectionDialog(QWidget *parent)
 
     connect(ui->deviceSidebar, &QTreeWidget::currentItemChanged,
             this, &DeviceTimeCorrectionDialog::onDeviceChanged);
-    connect(ui->btnMinusHour,     &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgeMinus1h);
-    connect(ui->btnMinusMin,      &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgeMinus1m);
-    connect(ui->btnMinusSec,      &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgeMinus1s);
-    connect(ui->btnPlusSec,       &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1s);
-    connect(ui->btnPlusMin,       &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1m);
-    connect(ui->btnPlusHour,      &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1h);
     connect(ui->btnResetToZero,    &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onResetToZero);
     connect(ui->btnNewCorrection,  &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNewCorrection);
     connect(ui->btnSaveCorrection, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onSaveStaged);
     connect(ui->btnDiscardChanges, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onDiscardStaged);
     connect(ui->btnApplyLastNight, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onApplyLastNight);
     connect(ui->btnDeleteRow,      &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onDeleteRow);
+    connect(ui->btnToggleHistory,  &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onToggleHistory);
     connect(ui->historyTable, &QTableWidget::itemSelectionChanged,
             this, &DeviceTimeCorrectionDialog::onHistoryRowSelected);
     connect(ui->correctionTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &DeviceTimeCorrectionDialog::refreshCurrentOffset);
     connect(ui->correctionTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
-    connect(ui->advancedGroup,   &QGroupBox::toggled,       this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
+    connect(ui->offsetTimeEdit, &QTimeEdit::timeChanged,
+            this, &DeviceTimeCorrectionDialog::onOffsetTimeChanged);
+    connect(ui->btnOffsetSign,  &QPushButton::toggled,
+            this, &DeviceTimeCorrectionDialog::onOffsetSignToggled);
+    connect(ui->offsetTimeEdit, &BorrowingTimeEdit::steppedPastZero, this, [this](int overshootSecs) {
+        bool flippedTo = !ui->btnOffsetSign->isChecked();
+        {
+            QSignalBlocker b(ui->btnOffsetSign);
+            ui->btnOffsetSign->setChecked(flippedTo);
+            ui->btnOffsetSign->setText(flippedTo ? "−" : "+");
+        }
+        ui->offsetTimeEdit->setReversed(flippedTo);
+        // timeChanged fires here and onOffsetTimeChanged reads the already-flipped sign
+        ui->offsetTimeEdit->setTime(QTime(overshootSecs / 3600, (overshootSecs % 3600) / 60, overshootSecs % 60));
+    });
+    connect(ui->chkDateRange,   &QCheckBox::toggled, ui->dateRangeWidget, &QWidget::setVisible);
+    connect(ui->chkDateRange,   &QCheckBox::toggled, this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
     connect(ui->advStartDate,    &QDateEdit::dateChanged,   this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
     connect(ui->advEndDate,      &QDateEdit::dateChanged,   this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
     connect(ui->advEndDateCheck, &QCheckBox::toggled,       this, &DeviceTimeCorrectionDialog::onAnyControlChanged);
     connect(ui->advEndDateCheck, &QCheckBox::toggled, this, [this](bool noEnd) {
         if (noEnd) ui->advEndDate->setDate(QDate(2099, 12, 31));
     });
+
+    ui->offsetTimeEdit->setSelectedSection(QDateTimeEdit::SecondSection);
 
     ui->historyTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->historyTable->horizontalHeader()->setStretchLastSection(true);
@@ -230,21 +244,28 @@ void DeviceTimeCorrectionDialog::refreshCurrentOffset()
 {
     Machine* mach = currentMachine();
     if (!mach || !m_date.isValid()) {
-        ui->currentOffsetValue->setText("N/A");
         ui->largeDriftWarning->setText("");
         return;
     }
     // Show the row's offset when one is loaded (viewing or staging).
-    // In new-correction mode (no row loaded) show 0 — the historyTable already lists
-    // existing corrections; the label reflects what will be saved.
+    // In new-correction mode show 0 — the historyTable lists existing corrections.
     qint64 displayMs = (m_staged.machineId != 0) ? m_staged.offsetMs : 0;
-    if (m_hasStagedChange) {
-        ui->currentOffsetValue->setText(formatOffset(displayMs) + " *");
-        ui->currentOffsetValue->setStyleSheet("color: #cc6600; font-weight: bold;");
-    } else {
-        ui->currentOffsetValue->setText(formatOffset(displayMs));
-        ui->currentOffsetValue->setStyleSheet("font-weight: bold;");
+    bool negative = (displayMs < 0);
+
+    // QSignalBlockers on both to prevent re-entrant loops:
+    // setChecked() → onOffsetSignToggled() → onOffsetTimeChanged() → previewStaged() → here
+    // setTime()    → onOffsetTimeChanged() → previewStaged() → here
+    {
+        QSignalBlocker bs(ui->btnOffsetSign);
+        ui->btnOffsetSign->setChecked(negative);
+        ui->btnOffsetSign->setText(negative ? "−" : "+");
     }
+    {
+        QSignalBlocker bt(ui->offsetTimeEdit);
+        ui->offsetTimeEdit->setTime(QTime(0, 0, 0).addMSecs(qAbs(displayMs)));
+    }
+    ui->offsetTimeEdit->setReversed(negative);
+
     bool isOffset = (ui->correctionTypeCombo->currentIndex() == 0);
     bool showWarning = isOffset && qAbs(displayMs) > kLargeOffsetThresholdMs;
     ui->largeDriftWarning->setText(showWarning
@@ -260,9 +281,6 @@ void DeviceTimeCorrectionDialog::refreshHistory()
     ui->historyTable->setRowCount(0);
     m_historyRows.clear();
     m_historyMachines.clear();
-    ui->historyLabel->setText(m_date.isValid()
-        ? tr("Corrections on %1:").arg(m_date.toString("yyyy-MM-dd"))
-        : tr("Active corrections for this date:"));
     if (!p_profile || !m_date.isValid()) {
         ui->historyTable->blockSignals(false);
         return;
@@ -324,7 +342,7 @@ void DeviceTimeCorrectionDialog::refreshHistory()
 void DeviceTimeCorrectionDialog::effectiveDateRange(QString& dateFrom, QString& dateTo) const
 {
     QString type = currentTypeName();
-    bool advanced = ui->advancedGroup->isChecked();
+    bool advanced = ui->chkDateRange->isChecked();
 
     if (type == "timezone") {
         if (advanced) {
@@ -361,7 +379,7 @@ void DeviceTimeCorrectionDialog::updateControlStates()
     ui->btnSaveCorrection->setEnabled(m_hasStagedChange);
     ui->btnDiscardChanges->setEnabled(m_hasStagedChange);
 
-    bool rangeExpanded = ui->advancedGroup->isChecked();
+    bool rangeExpanded = ui->chkDateRange->isChecked();
     ui->advEndDate->setEnabled(rangeExpanded && !ui->advEndDateCheck->isChecked());
 
     ui->btnDeleteRow->setEnabled(ui->historyTable->currentRow() >= 0);
@@ -431,19 +449,21 @@ void DeviceTimeCorrectionDialog::resetToNewMode()
 
     {
         QSignalBlocker b1(ui->correctionTypeCombo);
-        QSignalBlocker b2(ui->advancedGroup);
+        QSignalBlocker b2(ui->chkDateRange);
         QSignalBlocker b3(ui->advStartDate);
         QSignalBlocker b4(ui->advEndDate);
         QSignalBlocker b5(ui->advEndDateCheck);
 
         ui->correctionTypeCombo->setCurrentIndex(0);
-        ui->advancedGroup->setChecked(false);
+        ui->chkDateRange->setChecked(false);
         if (m_date.isValid()) {
             ui->advStartDate->setDate(m_date);
             ui->advEndDate->setDate(m_date);
         }
         ui->advEndDateCheck->setChecked(false);
     }
+    // toggled was suppressed by the blocker — drive visibility explicitly
+    ui->dateRangeWidget->setVisible(false);
 
     refreshCurrentOffset();
     refreshModeLabel();
@@ -560,6 +580,47 @@ void DeviceTimeCorrectionDialog::onNudgePlus1s()  { applyNudge(1000LL);     }
 void DeviceTimeCorrectionDialog::onNudgePlus1m()  { applyNudge(60000LL);    }
 void DeviceTimeCorrectionDialog::onNudgePlus1h()  { applyNudge(3600000LL);  }
 
+void DeviceTimeCorrectionDialog::onOffsetTimeChanged(const QTime &time)
+{
+    Machine* mach = currentMachine();
+    if (!mach || !m_date.isValid() || mach->getDatabaseId() <= 0) return;
+
+    qint64 absMs = static_cast<qint64>(QTime(0, 0, 0).msecsTo(time));
+    bool negative = ui->btnOffsetSign->isChecked();
+
+    if (!m_hasStagedChange) {
+        m_staged.machineId = mach->getDatabaseId();
+        if (m_staged.id == 0) {
+            QString df, dt;
+            effectiveDateRange(df, dt);
+            m_staged.dateFrom = df;
+            m_staged.dateTo   = dt;
+            m_staged.type     = currentTypeName();
+        }
+        m_hasStagedChange = true;
+        updateControlStates();
+    }
+
+    m_staged.offsetMs = negative ? -absMs : absMs;
+    previewStaged(mach);
+}
+
+void DeviceTimeCorrectionDialog::onOffsetSignToggled(bool checked)
+{
+    ui->btnOffsetSign->setText(checked ? "−" : "+");
+    ui->offsetTimeEdit->setReversed(checked);
+    qint64 absMs = static_cast<qint64>(QTime(0, 0, 0).msecsTo(ui->offsetTimeEdit->time()));
+    if (absMs == 0) return;
+    onOffsetTimeChanged(ui->offsetTimeEdit->time());
+}
+
+void DeviceTimeCorrectionDialog::onToggleHistory()
+{
+    bool nowVisible = !ui->historyTable->isVisible();
+    ui->historyTable->setVisible(nowVisible);
+    ui->btnToggleHistory->setText(nowVisible ? "Corrections ▼" : "Corrections ▶");
+}
+
 void DeviceTimeCorrectionDialog::onResetToZero()
 {
     Machine* mach = currentMachine();
@@ -576,6 +637,16 @@ void DeviceTimeCorrectionDialog::onResetToZero()
     m_staged.offsetMs = 0;
     m_hasStagedChange = true;
     updateControlStates();
+    {
+        QSignalBlocker b(ui->offsetTimeEdit);
+        ui->offsetTimeEdit->setTime(QTime(0, 0, 0));
+    }
+    {
+        QSignalBlocker b(ui->btnOffsetSign);
+        ui->btnOffsetSign->setChecked(false);
+        ui->btnOffsetSign->setText("+");
+    }
+    ui->offsetTimeEdit->setReversed(false);
     previewStaged(mach);
 }
 
@@ -728,7 +799,7 @@ void DeviceTimeCorrectionDialog::populateControlsFromRow(const DeviceTimeCorrect
 
     {
         QSignalBlocker b1(ui->correctionTypeCombo);
-        QSignalBlocker b2(ui->advancedGroup);
+        QSignalBlocker b2(ui->chkDateRange);
         QSignalBlocker b3(ui->advStartDate);
         QSignalBlocker b4(ui->advEndDate);
         QSignalBlocker b5(ui->advEndDateCheck);
@@ -741,12 +812,12 @@ void DeviceTimeCorrectionDialog::populateControlsFromRow(const DeviceTimeCorrect
         bool isSingleNight = (row.dateFrom == row.dateTo);
 
         if (isSingleNight) {
-            ui->advancedGroup->setChecked(false);
+            ui->chkDateRange->setChecked(false);
             ui->advStartDate->setDate(from);
             ui->advEndDate->setDate(from);
             ui->advEndDateCheck->setChecked(false);
         } else {
-            ui->advancedGroup->setChecked(true);
+            ui->chkDateRange->setChecked(true);
             ui->advStartDate->setDate(from);
             if (row.dateTo.isEmpty()) {
                 ui->advEndDateCheck->setChecked(true);
@@ -757,6 +828,8 @@ void DeviceTimeCorrectionDialog::populateControlsFromRow(const DeviceTimeCorrect
             }
         }
     }
+    // toggled was suppressed by the blocker — drive visibility explicitly
+    ui->dateRangeWidget->setVisible(ui->chkDateRange->isChecked());
 
     refreshCurrentOffset();
     refreshModeLabel();
