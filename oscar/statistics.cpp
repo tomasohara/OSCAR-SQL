@@ -346,6 +346,14 @@ void Statistics::updateRXChanges()
     // Set conditional progress bar.
     CProgressBar * progress = new CProgressBar (QObject::tr("Updating Statistics cache"), mainwin, p_profile->daylist.count());
 
+    // Whether to merge adjacent days from different machine objects when they share a brand.
+    // When false, behaviour matches the historical rule: same Machine* required.
+    const bool combineByBrand = AppSetting->combineSimilarMachines();
+    auto sameDevice = [combineByBrand](Machine *a, Machine *b) {
+        if (a == nullptr || b == nullptr) return false;
+        return combineByBrand ? (a->brand() == b->brand()) : (a == b);
+    };
+
     // Clear loaded rx cache
     rxitems.clear();
 
@@ -410,7 +418,7 @@ void Statistics::updateRXChanges()
                 QString pressure = day->getPressureSettings();
 
                 // Do this days settings match this rx cache entry?
-                if ((rx.relief == relief) && (rx.mode == mode) && (rx.pressure == pressure) && (rx.machine == mach)) {
+                if ((rx.relief == relief) && (rx.mode == mode) && (rx.pressure == pressure) && sameDevice(rx.machine, mach)) {
 
                     // Update rx cache summaries for each event flag
                     for (int i=0; i < flags.size(); i++) {
@@ -610,7 +618,7 @@ void Statistics::updateRXChanges()
             RXItem & rx = lastri.value();
 
             // Does it match here?
-            if ((rx.relief == relief) && (rx.mode == mode) && (rx.pressure == pressure) && (rx.machine == mach) ) {
+            if ((rx.relief == relief) && (rx.mode == mode) && (rx.pressure == pressure) && sameDevice(rx.machine, mach) ) {
 
                 // Update AHI/RDI
                 tmp = day->count(AllAhiChannels);
@@ -1342,12 +1350,18 @@ QString Statistics::GenerateRXChanges()
         double ahi = rdi ? (double(rx.rdi) / rx.hours) : (double(rx.ahi) /rx.hours);
         double fli = double(rx.count(CPAP_FlowLimit)) / rx. hours;
 
-        QString machid = QString("<td>%1 (%2)</td>").arg(rx.machine->model())
-                                                       .arg(rx.machine->modelnumber());
-        if (AppSetting->includeSerial())
+        QString machid;
+        if (AppSetting->combineSimilarMachines()) {
+            // Merged rows may represent multiple physical machines; show brand only.
+            machid = QString("<td>%1</td>").arg(rx.machine->brand());
+        } else if (AppSetting->includeSerial()) {
             machid = QString("<td>%1 (%2) [%3]</td>").arg(rx.machine->model())
                                                            .arg(rx.machine->modelnumber())
                                                            .arg(rx.machine->serial());
+        } else {
+            machid = QString("<td>%1 (%2)</td>").arg(rx.machine->model())
+                                                           .arg(rx.machine->modelnumber());
+        }
 
         html += QString("<td>%1</td>").arg(QLocale().toString(rx.start, MedDateFormat))+
                 QString("<td>%1</td>").arg(QLocale().toString(rxend, MedDateFormat))+

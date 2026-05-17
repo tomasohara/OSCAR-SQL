@@ -3162,6 +3162,16 @@ Try it and see if you like it.</string>
                     </widget>
                    </item>
                    <item>
+                    <widget class="QCheckBox" name="combineSimilarMachines">
+                     <property name="toolTip">
+                      <string>Combine machines with same capabilities in Changes to Device Settings report</string>
+                     </property>
+                     <property name="text">
+                      <string>Combine similar machines</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QCheckBox" name="includeSerial">
                      <property name="toolTip">
                       <string>Whether to include device serial number on device settings changes report</string>

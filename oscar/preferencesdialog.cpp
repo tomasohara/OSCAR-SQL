@@ -31,6 +31,7 @@
 #include <mainwindow.h>
 #include "ui_preferencesdialog.h"
 #include "SleepLib/machine_common.h"
+#include "SleepLib/common.h"
 
 #include "daily.h"
 
@@ -242,7 +243,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, Profile *_profile) :
     //    ui->enableGraphSnapshots->setChecked(AppSetting->graphSnapshots());
     ui->graphTooltips->setChecked(AppSetting->graphTooltips());
     ui->allowYAxisScaling->setChecked(AppSetting->allowYAxisScaling());
+    ui->combineSimilarMachines->setChecked(AppSetting->combineSimilarMachines());
     ui->includeSerial->setChecked(AppSetting->includeSerial());
+    ui->includeSerial->setEnabled(!AppSetting->combineSimilarMachines());
     ui->monochromePrinting->setChecked(AppSetting->monochromePrinting());
     ui->eventFlagSessionBar->setChecked(profile->appearance->eventFlagSessionBar());
     ui->disableDailyGraphTitles->setChecked(AppSetting->disableDailyGraphTitles());
@@ -911,7 +914,15 @@ bool PreferencesDialog::Save()
     AppSetting->setOpenTabAfterImport(ui->importTabCombo->currentIndex());
 
     AppSetting->setAllowYAxisScaling(ui->allowYAxisScaling->isChecked());
+    bool combineSimilarMachinesChanged =
+            AppSetting->combineSimilarMachines() != ui->combineSimilarMachines->isChecked();
+    AppSetting->setCombineSimilarMachines(ui->combineSimilarMachines->isChecked());
     AppSetting->setIncludeSerial(ui->includeSerial->isChecked());
+    if (combineSimilarMachinesChanged) {
+        QFile rxcache(p_profile->Get("{" + STR_GEN_DataFolder + "}/RXChanges.cache"));
+        rxcache.remove();
+        mainwin->GenerateStatistics();
+    }
     AppSetting->setMonochromePrinting(ui->monochromePrinting->isChecked());
     p_profile->appearance->setEventFlagSessionBar(ui->eventFlagSessionBar->isChecked());
     AppSetting->setDisableDailyGraphTitles(ui->disableDailyGraphTitles->isChecked());
@@ -1492,5 +1503,10 @@ void PreferencesDialog::on_maskLeaks20Slider_valueChanged(int value)
 void PreferencesDialog::on_calculateUnintentionalLeaks_toggled(bool)
 {
 
+}
+
+void PreferencesDialog::on_combineSimilarMachines_toggled(bool checked)
+{
+    ui->includeSerial->setEnabled(!checked);
 }
 

@@ -50,6 +50,7 @@ const QString STR_AS_OverviewLinechartMode = "OverviewLinechartMode";
 const QString STR_AS_UsePixmapCaching = "UsePixmapCaching";
 const QString STR_AS_AllowYAxisScaling = "AllowYAxisScaling";
 const QString STR_AS_IncludeSerial = "IncludeSerial";
+const QString STR_AS_CombineSimilarMachines = "CombineSimilarMachines";
 const QString STR_AS_MonochromePrinting = "PrintBW";
 //const QString STR_AS_EventFlagSessionBar = "EventFlagSessionBar";
 const QString STR_AS_DisableDailyGraphTitles = "DisableDailyGraphTitles";
@@ -156,6 +157,8 @@ public:
   bool allowYAxisScaling() const { return getPref(STR_AS_AllowYAxisScaling).toBool(); }
   //! \brief Whether to include serial number in device settings changes report
   bool includeSerial() const { return getPref(STR_AS_IncludeSerial).toBool(); }
+  //! \brief Whether to merge machines of the same brand in the device settings changes report
+  bool combineSimilarMachines() const { return getPref(STR_AS_CombineSimilarMachines).toBool(); }
   //! \brief Whether to print reports in black and white, which can be more legible on non-color printers
   bool monochromePrinting() const { return getPref(STR_AS_MonochromePrinting).toBool(); }
   //bool eventFlagSessionBar() const { return getPref(STR_AS_EventFlagSessionBar).toBool(); }
@@ -239,6 +242,8 @@ public:
   void setAllowYAxisScaling(bool b) { setPref(STR_AS_AllowYAxisScaling, b); }
   //! \brief Sets whether to include device serial number on device settings report
   void setIncludeSerial(bool b) { setPref(STR_AS_IncludeSerial, b); }
+  //! \brief Sets whether to merge machines of the same brand in the device settings changes report
+  void setCombineSimilarMachines(bool b) { setPref(STR_AS_CombineSimilarMachines, b); }
   //! \brief Sets whether to print reports in black and white, which can be more legible on non-color printers
   void setMonochromePrinting(bool b) { setPref(STR_AS_MonochromePrinting, b); }
   // void setEventFlagSessionBar(bool b) { setPref(STR_AS_EventFlagSessionBar, b); }

@@ -68,6 +68,7 @@ class PreferencesDialog : public QDialog
     //void on_genOpWidget_itemActivated(QListWidgetItem *item);
 
     void on_createSDBackups_toggled(bool checked);
+    void on_combineSimilarMachines_toggled(bool checked);
 
     void on_okButton_clicked();
 
