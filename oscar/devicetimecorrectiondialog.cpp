@@ -32,12 +32,12 @@ DeviceTimeCorrectionDialog::DeviceTimeCorrectionDialog(QWidget *parent)
 
     connect(ui->deviceSidebar, &QTreeWidget::currentItemChanged,
             this, &DeviceTimeCorrectionDialog::onDeviceChanged);
-    connect(ui->btnMinus1h,       &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgeMinus1h);
-    connect(ui->btnMinus1m,       &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgeMinus1m);
-    connect(ui->btnMinus1s,       &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgeMinus1s);
-    connect(ui->btnPlus1s,        &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1s);
-    connect(ui->btnPlus1m,        &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1m);
-    connect(ui->btnPlus1h,        &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1h);
+    connect(ui->btnMinusHour,     &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgeMinus1h);
+    connect(ui->btnMinusMin,      &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgeMinus1m);
+    connect(ui->btnMinusSec,      &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgeMinus1s);
+    connect(ui->btnPlusSec,       &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1s);
+    connect(ui->btnPlusMin,       &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1m);
+    connect(ui->btnPlusHour,      &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNudgePlus1h);
     connect(ui->btnResetToZero,    &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onResetToZero);
     connect(ui->btnNewCorrection,  &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNewCorrection);
     connect(ui->btnSaveCorrection, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onSaveStaged);
