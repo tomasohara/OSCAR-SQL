@@ -14,12 +14,13 @@
 
 #include <QDir>
 #include <QFileDialog>
-#include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QStandardPaths>
 
+#include "database/database_manager.h"
+#include "database/app_preferences_repository.h"
 #include "database/backup/backup_manifest.h"
 #include "database/backup/profile_restore.h"
 #include "database/database_schema.h"
@@ -293,18 +294,17 @@ void RestoreDialog::updateStatusLabel()
 
 void RestoreDialog::restoreSettings()
 {
-    QSettings s;
-    s.beginGroup("RestoreDialog");
-    m_lastPackageDir = s.value("lastPackageDir").toString();
-    s.endGroup();
+    AppPreferencesRepository repo;
+    const auto rows = repo.loadByCategory("RestoreDialog");
+    for (const AppPrefData& row : rows) {
+        if (row.key == "lastPackageDir") m_lastPackageDir = row.value;
+    }
 }
 
 void RestoreDialog::saveSettings()
 {
-    QSettings s;
-    s.beginGroup("RestoreDialog");
-    s.setValue("lastPackageDir", m_lastPackageDir);
-    s.endGroup();
+    AppPreferencesRepository repo;
+    repo.save("RestoreDialog", "lastPackageDir", m_lastPackageDir);
 }
 
 // ---------------------------------------------------------------------------

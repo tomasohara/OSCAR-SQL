@@ -38,7 +38,7 @@
 #include <QProgressBar>
 #include <QCheckBox>
 #include <QGroupBox>
-#include <QSettings>
+#include "../database/app_preferences_repository.h"
 #include <QDesktopServices>
 #include <QProcess>
 #include <QUrl>
@@ -862,8 +862,11 @@ void ReportExporter::loadProfiles()
     // Prefer the currently open profile; fall back to the last-used profile for this dialog.
     QString selectName = m_currentProfileName;
     if (selectName.isEmpty()) {
-        QSettings s;
-        selectName = s.value("ReportExporter/lastProfile").toString();
+        AppPreferencesRepository repo;
+        const auto rows = repo.loadByCategory("ReportExporter");
+        for (const AppPrefData& row : rows) {
+            if (row.key == "lastProfile") { selectName = row.value; break; }
+        }
     }
     if (!selectName.isEmpty()) {
         int idx = m_profileCombo->findText(selectName);
@@ -873,36 +876,37 @@ void ReportExporter::loadProfiles()
 
 void ReportExporter::restoreSettings()
 {
-    QSettings s;
-    s.beginGroup("ReportExporter");
-    if (m_openAfterExportCheck) m_openAfterExportCheck->setChecked(s.value("openAfterExport", false).toBool());
-    if (m_programCombo)         m_programCombo->setCurrentIndex(s.value("openProgram", 0).toInt());
-    if (m_quickRangeCombo)      m_quickRangeCombo->setCurrentIndex(s.value("quickRange", 0).toInt());
-    m_lastExportFolder = s.value("lastExportFolder").toString();
-    s.endGroup();
+    AppPreferencesRepository repo;
+    const auto rows = repo.loadByCategory("ReportExporter");
+    for (const AppPrefData& row : rows) {
+        if      (row.key == "openAfterExport" && m_openAfterExportCheck)
+            m_openAfterExportCheck->setChecked(row.value == "true" || row.value == "1");
+        else if (row.key == "openProgram" && m_programCombo)
+            m_programCombo->setCurrentIndex(row.value.toInt());
+        else if (row.key == "quickRange" && m_quickRangeCombo)
+            m_quickRangeCombo->setCurrentIndex(row.value.toInt());
+        else if (row.key == "lastExportFolder")
+            m_lastExportFolder = row.value;
+    }
     setQuickDateRange(m_quickRangeCombo ? m_quickRangeCombo->currentIndex() : 0);
-    // Filename is auto-generated; will be populated when a report is selected.
 }
 
 void ReportExporter::saveSettings()
 {
-    QSettings s;
-    s.beginGroup("ReportExporter");
-    if (m_openAfterExportCheck) s.setValue("openAfterExport", m_openAfterExportCheck->isChecked());
-    if (m_programCombo)         s.setValue("openProgram",     m_programCombo->currentIndex());
-    if (m_quickRangeCombo)      s.setValue("quickRange",      m_quickRangeCombo->currentIndex());
-    s.setValue("lastExportFolder", m_lastExportFolder);
+    AppPreferencesRepository repo;
+    if (m_openAfterExportCheck) repo.save("ReportExporter", "openAfterExport", m_openAfterExportCheck->isChecked());
+    if (m_programCombo)         repo.save("ReportExporter", "openProgram",     m_programCombo->currentIndex());
+    if (m_quickRangeCombo)      repo.save("ReportExporter", "quickRange",      m_quickRangeCombo->currentIndex());
+    repo.save("ReportExporter", "lastExportFolder", m_lastExportFolder);
     if (m_profileCombo && m_profileCombo->count() > 0
             && !m_profileCombo->currentText().startsWith("(")) {
-        s.setValue("lastProfile", m_profileCombo->currentText());
+        repo.save("ReportExporter", "lastProfile", m_profileCombo->currentText());
     }
-    s.endGroup();
     saveTreeState();
 }
 
 /*
- * Save the tree's expanded-node set and selected node to QSettings.
- * Keys are stored inside the "ReportExporter" group.
+ * Save the tree's expanded-node set and selected node to app_preferences.
  */
 void ReportExporter::saveTreeState()
 {
@@ -926,26 +930,27 @@ void ReportExporter::saveTreeState()
     QStandardItem* sel = getSelectedItem();
     if (sel) selectedId = sel->data(ReportTreeModel::NodeIdRole).toLongLong();
 
-    QSettings s;
-    s.beginGroup("ReportExporter");
-    s.setValue("expandedNodes", expanded.join(","));
-    s.setValue("selectedNode",  selectedId);
-    s.endGroup();
+    AppPreferencesRepository repo;
+    repo.save("ReportExporter", "expandedNodes", expanded.join(","));
+    repo.save("ReportExporter", "selectedNode",  static_cast<qint64>(selectedId));
 }
 
 /*
- * Restore expanded-node set and selection from QSettings.
+ * Restore expanded-node set and selection from app_preferences.
  * Returns true if saved state was found and applied; false on first use.
  */
 bool ReportExporter::restoreTreeState()
 {
     if (!m_treeView || !m_model) return false;
 
-    QSettings s;
-    s.beginGroup("ReportExporter");
-    QString expandedStr = s.value("expandedNodes").toString();
-    qint64  selectedId  = s.value("selectedNode", 0LL).toLongLong();
-    s.endGroup();
+    AppPreferencesRepository repo;
+    const auto rows = repo.loadByCategory("ReportExporter");
+    QString expandedStr;
+    qint64  selectedId = 0;
+    for (const AppPrefData& row : rows) {
+        if      (row.key == "expandedNodes") expandedStr = row.value;
+        else if (row.key == "selectedNode")  selectedId  = row.value.toLongLong();
+    }
 
     if (expandedStr.isEmpty()) return false;  // No saved tree state
 

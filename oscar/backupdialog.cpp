@@ -11,7 +11,6 @@
 #include "translation.h"
 
 #include <QCalendarWidget>
-#include <QSettings>
 #include <QCheckBox>
 #include <QDateEdit>
 #include <QLineEdit>
@@ -32,6 +31,7 @@
 
 #include "SleepLib/profiles.h"
 #include "database/database_manager.h"
+#include "database/app_preferences_repository.h"
 #include "database/profile_repository.h"
 #include "database/backup/profile_backup.h"
 #include "mainwindow.h"
@@ -427,23 +427,20 @@ void BackupDialog::onBackupCompleted(const QString& path)
 
 void BackupDialog::restoreSettings()
 {
-    QSettings s;
-    s.beginGroup("BackupDialog");
-    const QString lastDir = s.value("lastOutputDir").toString();
-    s.endGroup();
-
-    if (!lastDir.isEmpty() && QDir(lastDir).exists()) {
-        ui->outputDirEdit->setText(lastDir);
-        updateFilenamePreview();
+    AppPreferencesRepository repo;
+    const auto rows = repo.loadByCategory("BackupDialog");
+    for (const AppPrefData& row : rows) {
+        if (row.key == "lastOutputDir" && !row.value.isEmpty() && QDir(row.value).exists()) {
+            ui->outputDirEdit->setText(row.value);
+            updateFilenamePreview();
+        }
     }
 }
 
 void BackupDialog::saveSettings()
 {
-    QSettings s;
-    s.beginGroup("BackupDialog");
-    s.setValue("lastOutputDir", ui->outputDirEdit->text());
-    s.endGroup();
+    AppPreferencesRepository repo;
+    repo.save("BackupDialog", "lastOutputDir", ui->outputDirEdit->text());
 }
 
 QDate BackupDialog::getFirstDataDate() const

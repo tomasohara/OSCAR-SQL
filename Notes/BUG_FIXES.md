@@ -4,6 +4,28 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-16 - Per-database dialog preferences migrated from QSettings to app_preferences
+
+**Files:** `database/reports_initializer.cpp`, `exports/report_exporter.cpp`,
+`importprofile.cpp`, `backupdialog.cpp`, `restoredialog.cpp`, `sharedialog.cpp`,
+`exports/journalnotesdialog.cpp`
+
+**Symptom/issue:** Several dialog preferences (last export folder, last backup dir,
+CSV report version, report tree state, etc.) were stored in the system-wide QSettings
+registry. Users with multiple databases saw settings bleed across databases.
+
+**Root cause:** QSettings stores to a single system-wide registry key regardless of
+which database is open. The correct store for per-database UI preferences is the
+`app_preferences` table in the current database.
+
+**Fix:** Replaced `QSettings` save/load with `AppPreferencesRepository` in all
+affected dialogs. Categories used: `Reports`, `ReportExporter`, `ImportProfile`,
+`BackupDialog`, `RestoreDialog`, `ShareDialog`, `JournalNotesDialog`. The `csv_reports_version`
+key was a functional bug — it caused reports to not be re-seeded correctly when
+switching databases.
+
+---
+
 ## 2026-05-16 - Add Purge Range of Days feature (#166)
 
 **Files:** `oscar/mainwindow.ui`, `oscar/mainwindow.h`, `oscar/mainwindow.cpp`,

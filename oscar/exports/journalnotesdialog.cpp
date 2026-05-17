@@ -19,7 +19,6 @@
 #include <QLocale>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QSettings>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QStandardPaths>
@@ -32,6 +31,7 @@
 #include "SleepLib/machine_common.h"
 #include "SleepLib/profiles.h"
 #include "database/database_manager.h"
+#include "database/app_preferences_repository.h"
 #include "database/profile_repository.h"
 #include "mainwindow.h"
 
@@ -247,22 +247,21 @@ void JournalNotesDialog::setupCalendarFormatting()
 void JournalNotesDialog::saveSettings(const QString& dir)
 {
     m_lastDir = dir;
-    QSettings s;
-    s.beginGroup(QStringLiteral("JournalNotesDialog"));
-    s.setValue(QStringLiteral("lastDir"),         dir);
-    s.setValue(QStringLiteral("openAfterExport"), ui->openAfterExportCheck->isChecked());
-    s.setValue(QStringLiteral("extraData"),       ui->extraDataCheck->isChecked());
-    s.endGroup();
+    AppPreferencesRepository repo;
+    repo.save("JournalNotesDialog", "lastDir",         dir);
+    repo.save("JournalNotesDialog", "openAfterExport", ui->openAfterExportCheck->isChecked());
+    repo.save("JournalNotesDialog", "extraData",       ui->extraDataCheck->isChecked());
 }
 
 void JournalNotesDialog::loadSettings()
 {
-    QSettings s;
-    s.beginGroup(QStringLiteral("JournalNotesDialog"));
-    m_lastDir = s.value(QStringLiteral("lastDir")).toString();
-    ui->openAfterExportCheck->setChecked(s.value(QStringLiteral("openAfterExport"), false).toBool());
-    ui->extraDataCheck->setChecked(      s.value(QStringLiteral("extraData"),       false).toBool());
-    s.endGroup();
+    AppPreferencesRepository repo;
+    const auto rows = repo.loadByCategory("JournalNotesDialog");
+    for (const AppPrefData& row : rows) {
+        if      (row.key == "lastDir")         m_lastDir = row.value;
+        else if (row.key == "openAfterExport") ui->openAfterExportCheck->setChecked(row.value == "true" || row.value == "1");
+        else if (row.key == "extraData")       ui->extraDataCheck->setChecked(row.value == "true" || row.value == "1");
+    }
 }
 
 QDate JournalNotesDialog::getFirstJournalDate() const

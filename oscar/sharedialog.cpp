@@ -31,7 +31,6 @@
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QPushButton>
-#include <QSettings>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QStandardPaths>
@@ -41,6 +40,7 @@
 
 #include "SleepLib/profiles.h"
 #include "database/database_manager.h"
+#include "database/app_preferences_repository.h"
 #include "database/profile_repository.h"
 #include "database/backup/profile_backup.h"
 #include "mainwindow.h"
@@ -384,21 +384,21 @@ void ShareDialog::setupCalendarFormatting()
 
 void ShareDialog::saveSettings()
 {
-    QSettings s;
-    s.beginGroup("ShareDialog");
-    s.setValue("lastOutputDir", ui->outputDirEdit->text());
-    s.setValue("lastDestination", ui->destinationCombo->currentData().toInt());
-    s.endGroup();
+    AppPreferencesRepository repo;
+    repo.save("ShareDialog", "lastOutputDir",   ui->outputDirEdit->text());
+    repo.save("ShareDialog", "lastDestination", ui->destinationCombo->currentData().toInt());
 }
 
 void ShareDialog::restoreSettings()
 {
-    QSettings s;
-    s.beginGroup("ShareDialog");
-    const QString lastDir  = s.value("lastOutputDir").toString();
-    const int     lastDest = s.value("lastDestination",
-        static_cast<int>(ShareDestination::File)).toInt();
-    s.endGroup();
+    AppPreferencesRepository repo;
+    const auto rows = repo.loadByCategory("ShareDialog");
+    QString lastDir;
+    int lastDest = static_cast<int>(ShareDestination::File);
+    for (const AppPrefData& row : rows) {
+        if      (row.key == "lastOutputDir")   lastDir  = row.value;
+        else if (row.key == "lastDestination") lastDest = row.value.toInt();
+    }
 
     if (!lastDir.isEmpty() && QDir(lastDir).exists()) {
         ui->outputDirEdit->setText(lastDir);

@@ -15,8 +15,9 @@
 #include "common_gui.h"
 #include "SleepLib/preferences.h"
 #include "database/profile_repository.h"
+#include "database/app_preferences_repository.h"
+#include "database/database_manager.h"
 #include <QFileDialog>
-#include <QSettings>
 #include <QDir>
 #include <QMessageBox>
 #include <QFileInfo>
@@ -38,19 +39,18 @@ ImportProfile::~ImportProfile()
 
 void ImportProfile::loadSettings()
 {
-    QSettings settings;
-    settings.beginGroup(QFileInfo(GetAppData()).fileName());
-    m_lastImportPath = settings.value("ImportProfile/LastPath", "").toString();
-    settings.endGroup();
+    AppPreferencesRepository repo;
+    const auto rows = repo.loadByCategory("ImportProfile");
+    for (const AppPrefData& row : rows) {
+        if (row.key == "LastPath") m_lastImportPath = row.value;
+    }
 }
 
 void ImportProfile::saveSettings()
 {
     if (!m_selectedPath.isEmpty()) {
-        QSettings settings;
-        settings.beginGroup(QFileInfo(GetAppData()).fileName());
-        settings.setValue("ImportProfile/LastPath", QFileInfo(m_selectedPath).absolutePath());
-        settings.endGroup();
+        AppPreferencesRepository repo;
+        repo.save("ImportProfile", "LastPath", QFileInfo(m_selectedPath).absolutePath());
     }
 }
 

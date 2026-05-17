@@ -15,7 +15,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
-#include <QSettings>
+#include "app_preferences_repository.h"
 #include <QFile>
 #include <QDir>
 #include <QCoreApplication>
@@ -345,14 +345,15 @@ QString ReportsInitializer::getSystemReportsFilePath()
  */
 QString ReportsInitializer::getSavedReportVersion()
 {
-    QSettings settings;
-    QString version = settings.value("csv_reports_version", "").toString();
-    
-    if (!version.isEmpty()) {
-        qDebug() << "ReportsInitializer: Saved CSV reports version:" << version;
+    AppPreferencesRepository repo;
+    const auto rows = repo.loadByCategory("Reports");
+    for (const AppPrefData& row : rows) {
+        if (row.key == "csv_reports_version") {
+            qDebug() << "ReportsInitializer: Saved CSV reports version:" << row.value;
+            return row.value;
+        }
     }
-    
-    return version;
+    return QString();
 }
 
 /*
@@ -366,10 +367,10 @@ QString ReportsInitializer::getSavedReportVersion()
 void ReportsInitializer::saveReportVersion(QSqlDatabase& db)
 {
     Q_UNUSED(db);
-    
+
     QString currentVersion = getVersion().displayString();
-    QSettings settings;
-    settings.setValue("csv_reports_version", currentVersion);
-    
+    AppPreferencesRepository repo;
+    repo.save("Reports", "csv_reports_version", currentVersion);
+
     qDebug() << "ReportsInitializer: Saved CSV reports version:" << currentVersion;
 }
