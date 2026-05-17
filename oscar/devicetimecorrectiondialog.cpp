@@ -135,6 +135,7 @@ void DeviceTimeCorrectionDialog::populateSidebar()
 
     for (Machine* mach : p_profile->GetMachines()) {
         if (!Machine::isCorrectableType(mach->type())) continue;
+        if (m_date.isValid() && !mach->day.contains(m_date)) continue;
         QString label = mach->brand() + " " + mach->model();
         if (label.trimmed().isEmpty()) label = mach->loaderName();
         label += " (" + mach->serial() + ")";
