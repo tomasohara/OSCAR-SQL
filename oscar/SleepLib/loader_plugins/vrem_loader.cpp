@@ -242,6 +242,7 @@ int VREMLoader::Open(const QString & selectedPath)
         Machine *machine = p_profile->CreateMachine(PeekInfo(path));
         task += OscarDataParser(Odatas ,machine , VREMDATA);
         machine->Save();
+        finishAddingSessions();
     }
     QString backupPath = context()->GetBackupPath() + path.section("/", -1)+"/";
     QDir backupDir(QFileInfo(backupPath).path());
