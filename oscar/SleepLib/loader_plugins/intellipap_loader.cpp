@@ -2650,6 +2650,12 @@ bool init6Environment (const QString & path) {
         return false;
     }
 
+    // Persist the machine row immediately so the database id is available before
+    // any Session::Store() call, which skips DB writes when the machine id is 0.
+    if (mach->getDatabaseId() == 0) {
+        mach->SaveToDatabase();
+    }
+
     backup_path = mach->getBackupPath();
     history_path = backup_path + "/HISTORY";
     rebuild_path = backup_path + "/DV6";
@@ -2752,7 +2758,10 @@ int IntellipapLoader::OpenDV6(const QString & path)
     QCoreApplication::processEvents();
 
     // Finalize input
-    return addSessions();
+    int count = addSessions();
+    mach->Save();
+    finishAddingSessions();
+    return count;
 }
 
 int IntellipapLoader::Open(const QString & dirpath)
