@@ -486,6 +486,7 @@ int WeinmannLoader::Open(const QString & dirpath)
     delete [] ev;
 
     mach->Save();
+    finishAddingSessions();
 
     return 1;
 
