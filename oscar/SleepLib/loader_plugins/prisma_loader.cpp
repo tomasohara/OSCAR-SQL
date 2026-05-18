@@ -696,6 +696,9 @@ int PrismaLoader::Open(const QString & selectedPath)
 
     m_ctx->FlushUnexpectedMessages();
 
+    // Trigger daily summary recalculation for the imported days.
+    finishAddingSessions();
+
     return tasks;
 }
 
