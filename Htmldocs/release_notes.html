@@ -30,45 +30,41 @@
       <li>[new] Support for Yuwell YH-580, YH-690, YH-830 CPAP</li>
       <li>[update] Added identification of Lowenstein prisma25S and prisma25ST</li>
       <li>[update] BMC G3X loader distinguishes mask-on from total-hours</li>
+      <li>[update] Check whether SD card being imported is same as last time (disable check in Preferences)</li>
       <li>[fix] Rebuild from backup was destroying backup data in BMC loaders</li>
       <li>[fix] DST change caused data loss in BMC loader</li>
       <li>[fix] Y-Axis Default vs Auto-fit options not working with BMC and G3X loaders</li>
-      <li>[fix] Correct a session start time if EDF file corrupted to avoid missing sessions</li>
-    </ul>
-
-    <b>Backup, Restore, and Share Profile</b>
-    <ul style="margin-top:0">
-      <li>[new] Ability to backup and restore part or all of a profile</li>
-      <li>[new] Share a profile by file or direct to Dropbox or Google Drive</li>
-      <li>[new] Restore a shared profile from file or from a Dropbox or Google Drive URL</li>
-    </ul>
-
-    <b>Data Import</b>
-    <ul style="margin-top:0">
-      <li>[update] Check whether SD card being imported is same as last time (disable check in Preferences)</li>
+      <li>[fix] Correct a session start time if ResMed EDF start date is corrupted</li>
       <li>[fix] Viatom now accepts 100% SpO2 without warning</li>
     </ul>
 
     <b>Data Export</b>
     <ul style="margin-top:0">
-      <li>[new] CSV export format by predefined or user configured templates</li>
-      <li>[new] Generate report of journal notes</li>
+      <li>[new] CSV export format has predefined or user configured templates</li>
+      <li>[new] Report of journal notes available</li>
       <li>[new] Add demo program and specs showing how to read data from OSCAR using Python</li>
+    </ul>
+
+    <b>Backup, Restore, and Share Profile</b>
+    <ul style="margin-top:0">
+      <li>[new] Ability to backup and restore part or all of a profile</li>
+      <li>[new] Share part of a profile by file or direct to Dropbox or Google Drive</li>
+      <li>[new] Restore a shared profile from file or from a Dropbox or Google Drive URL</li>
     </ul>
 
     <b>Profiles</b>
     <ul style="margin-top:0">
       <li>[update] Profile selector sort order is remembered across restarts</li>
       <li>[update] Show disk information no longer requires a profile be open</li>
-      <li>[fix] New profile gets default channel settings, not copied from another profile</li>
+      <li>[fix] New profiles get default channel settings, not copied from another profile</li>
     </ul>
 
     <b>Edit Profile</b>
     <ul style="margin-top:0">
       <li>[new] Allow user to change profile name</li>
       <li>[new] Password support has been removed</li>
-      <li>[update] Add instructions and improve Edit Profile dialog</li>
       <li>[update] Remove DST zone in edit profile dialog</li>
+      <li>[update] Add instructions and improve Edit Profile dialog</li>
     </ul>
 
     <b>Database Support</b>
@@ -80,7 +76,7 @@
 
     <b>Welcome Page</b>
     <ul style="margin-top:0">
-      <li>[fix] Welcome page now legible when system is in dark mode</li>
+      <li>[fix] Welcome page is now legible when system is in dark mode</li>
       <li>[fix] Date on Welcome page is translated properly</li>
       <li>[fix] Show AirSense 11 icon on Welcome page for AirSense 11 CPAP</li>
     </ul>

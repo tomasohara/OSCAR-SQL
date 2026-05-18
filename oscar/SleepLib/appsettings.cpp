@@ -26,7 +26,7 @@ AppWideSetting::AppWideSetting(Preferences *pref) : PrefSettings(pref)
     m_antiAliasing=initPref(STR_AS_AntiAliasing, true).toBool();
 //    initPref(STR_AS_GraphSnapshots, true);
     initPref(STR_AS_IncludeSerial, false);
-    initPref(STR_AS_CombineSimilarMachines, false);
+    initPref(STR_AS_CombineSimilarMachines, true);
     initPref(STR_AS_MonochromePrinting, false);
     //initPref(STR_AS_EventFlagSessionBar, false);
     initPref(STR_AS_DisableDailyGraphTitles, false);
