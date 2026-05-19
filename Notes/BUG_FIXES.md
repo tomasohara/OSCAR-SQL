@@ -4,6 +4,25 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-18 - Create ZIP of OSCAR database — memory, UI, and progress bugs (#172)
+
+**Files:** `oscar/zip.cpp`, `oscar/zip.h`, `oscar/mainwindow.cpp`, `oscar/mainwindow.ui`,
+`oscar/SleepLib/progressdialog.cpp`
+
+**Symptom:** Zipping a large database (28 GB) exhausted all system RAM and froze OSCAR.
+Progress bar stayed at 0%, abort button showed as "Ab" and did nothing.
+
+**Root causes:**
+1. `ZipFile::AddFile` called `f.readAll()` — loaded the entire file into a `QByteArray`
+   before passing to miniz. Fix: replaced with `mz_zip_writer_add_read_buf_callback`
+   streaming (64 KB chunks via callback).
+2. Read callback had no `processEvents()` — event loop never spun during compression,
+   freezing the UI and preventing abort. Fix: `notifyReadProgress()` called every 4 MB.
+3. Abort button added to `hlayout` after dialog was already shown — squeezed to "Ab".
+   Fix: moved to its own row in `vlayout`.
+
+---
+
 ## 2026-05-16 - Per-database dialog preferences migrated from QSettings to app_preferences
 
 **Files:** `database/reports_initializer.cpp`, `exports/report_exporter.cpp`,

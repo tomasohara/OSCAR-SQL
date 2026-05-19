@@ -30,6 +30,7 @@ public:
     void Close();
     
     bool aborted() const { return m_abort; }
+    void notifyReadProgress(quint64 p, quint64 interval = 0);  // called by streaming read callback
 
 public slots:
     void abort() { m_abort = true; }
@@ -43,6 +44,7 @@ protected:
     QFile m_file;
     bool m_abort;
     quint64 m_progress;
+    quint64 m_lastNotified;
 };
 
 
@@ -129,6 +131,7 @@ public:
     
     //!brief Recursively add a directory and its contents to the queue along with the prefix to be used in an archive.
     bool AddDirectory(const QString & path, const QString & prefix="");
+
     
     //!brief Add a file to the queue along with the name to be used in an archive.
     bool AddFile(const QString & path, const QString & archive_name="");

@@ -19,6 +19,7 @@ static const quint64 PROGRESS_SCALE = 1024;  // QProgressBar only holds an int, 
 static void* zip_init();
 static bool zip_open(void* ctx, QFile & file);
 static bool zip_add(void* ctx, const QString & archive_name, const QByteArray & data, const QDateTime & modified);
+static bool zip_add_file(void* ctx, const QString & archive_name, QFile & file, const QDateTime & modified, ZipFile* zip, quint64 fileStart);
 static void zip_close(void* ctx);
 static void zip_done(void* ctx);
 
@@ -79,6 +80,7 @@ bool ZipFile::AddFiles(FileQueue & queue, ProgressDialog* progress)
     qDebug().noquote() << "Adding" << queue.toString();
     m_abort = false;
     m_progress = 0;
+    m_lastNotified = 0;
 
     if (progress) {
         progress->addAbortButton();
@@ -132,36 +134,35 @@ bool ZipFile::AddFile(const QString & path, const QString & name)
     }
 
     QFileInfo fi(path);
-    QByteArray data;
     QString archive_name = name;
     if (archive_name.isEmpty()) archive_name = fi.fileName();
 
+    bool ok;
     if (fi.isDir()) {
         archive_name += "/";
         m_progress += 1;
+        ok = zip_add(m_ctx, archive_name, QByteArray(), fi.lastModified());
     } else {
-        // Open and read file into memory.
+        // Stream file through miniz without loading it into RAM.
+        // The read callback updates m_progress incrementally as bytes are compressed.
         QFile f(path);
         if (!f.open(QIODevice::ReadOnly)) {
             qWarning() << path << "can't open";
             return false;
         }
-        data = f.readAll();
-        m_progress += data.size();
+        quint64 fileStart = m_progress;
+        ok = zip_add_file(m_ctx, archive_name, f, fi.lastModified(), this, fileStart);
     }
-
-    //qDebug() << "attempting to add" << archive_name << ":" << data.size() << "bytes";
-
-    bool ok = zip_add(m_ctx, archive_name, data, fi.lastModified());
 
     emit setProgressValue(m_progress/PROGRESS_SCALE);
     QCoreApplication::processEvents();
-    
+
     return ok;
 }
 
 
 // ==================================================================================================
+
 
 bool FileQueue::AddDirectory(const QString & path, const QString & prefix)
 {
@@ -324,7 +325,7 @@ static bool zip_add(void* ctx, const QString & archive_name, const QByteArray & 
 {
     Q_ASSERT(ctx);
     mz_zip_archive* pZip = (mz_zip_archive*) ctx;
-    
+
     // Add to .zip
     time_t last_modified = modified.toSecsSinceEpoch();  // technically deprecated, but miniz expects a time_t
     bool ok = mz_zip_writer_add_mem_ex_v2(pZip, archive_name.toLocal8Bit(), data.constData(), data.size(),
@@ -340,6 +341,61 @@ static bool zip_add(void* ctx, const QString & archive_name, const QByteArray & 
         qWarning() << "unable to add" << archive_name << ":" << data.size() << "bytes" << mz_zip_get_error_string(mz_err);
     }
     return ok;
+}
+
+struct ZipReadCtx {
+    QFile*   file;
+    ZipFile* zip;
+    quint64  fileStart;  // m_progress value at the start of this file
+};
+
+// Read callback for mz_zip_writer_add_read_buf_callback.
+// miniz reads sequentially so no seek is needed. Updates progress and processes
+// events every 4 MB to keep the UI responsive without excessive syscall overhead.
+static const quint64 ZIP_PROGRESS_INTERVAL = 4 * 1024 * 1024;  // 4 MB
+
+static size_t zip_file_read(void* pOpaque, mz_uint64 file_ofs, void* pBuf, size_t n)
+{
+    ZipReadCtx* ctx = static_cast<ZipReadCtx*>(pOpaque);
+    if (ctx->zip->aborted()) return 0;
+    qint64 nread = ctx->file->read(static_cast<char*>(pBuf), static_cast<qint64>(n));
+    if (nread > 0) {
+        quint64 newProgress = ctx->fileStart + file_ofs + static_cast<quint64>(nread);
+        ctx->zip->notifyReadProgress(newProgress, ZIP_PROGRESS_INTERVAL);
+    }
+    return nread < 0 ? 0 : static_cast<size_t>(nread);
+}
+
+// Stream a file into the zip via read callback — no whole-file heap allocation.
+static bool zip_add_file(void* ctx, const QString & archive_name, QFile & file, const QDateTime & modified, ZipFile* zip, quint64 fileStart)
+{
+    Q_ASSERT(ctx);
+    mz_zip_archive* pZip = (mz_zip_archive*) ctx;
+    time_t last_modified = modified.toSecsSinceEpoch();
+    mz_uint64 file_size = static_cast<mz_uint64>(file.size());
+    ZipReadCtx readCtx = { &file, zip, fileStart };
+    bool ok = mz_zip_writer_add_read_buf_callback(pZip, archive_name.toLocal8Bit(),
+                                                  zip_file_read, &readCtx, file_size,
+                                                  &last_modified,
+                                                  nullptr, 0,   // no comment
+                                                  MZ_BEST_SPEED,
+                                                  nullptr, 0,   // no user extra data local
+                                                  nullptr, 0);  // no user extra data central
+    if (!ok) {
+        mz_zip_error mz_err = mz_zip_get_last_error(pZip);
+        qWarning() << "unable to add" << archive_name << ":" << file_size << "bytes" << mz_zip_get_error_string(mz_err);
+    }
+    return ok;
+}
+
+void ZipFile::notifyReadProgress(quint64 p, quint64 interval)
+{
+    if (interval > 0 && p - m_lastNotified < interval)
+        return;
+    m_lastNotified = p;
+    m_progress = p;
+    emit setProgressValue(static_cast<int>(m_progress / PROGRESS_SCALE));
+    QCoreApplication::processEvents();
 }
 
 static void zip_close(void* ctx)

@@ -3708,12 +3708,12 @@ void MainWindow::on_actionCompress_Database_triggered()
 
 void MainWindow::on_actionCreate_OSCAR_Data_zip_triggered()
 {
-    QString folder;
+    QString dbPath = DatabaseManager::instance().databasePath();
+    QString dbFolderName = QFileInfo(dbPath).dir().dirName();
 
     // Note: macOS ignores this and points to OSCAR's most recently used directory for saving.
-    folder = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-
-    folder += "/" + STR_AppData + ".zip";
+    QString folder = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    folder += "/" + dbFolderName + ".zip";
 
     QString filename = QFileDialog::getSaveFileName(this, tr("Choose where to save zip"), folder, tr("ZIP files (*.zip)"), nullptr, nativeDialogOption());
 
@@ -3725,42 +3725,38 @@ void MainWindow::on_actionCreate_OSCAR_Data_zip_triggered()
         filename += ".zip";
     }
 
-    qDebug() << "Create zip of OSCAR data folder:" << filename;
+    qDebug() << "Create zip of OSCAR data:" << filename;
 
-    QDir oscarData(GetAppData());
+    // Flush all committed data into the main database file before zipping.
+    // Abort if the database is locked by another process.
+    if (!DatabaseManager::instance().checkpointWAL()) {
+        staticQMessageBox::warning(this, STR_MessageBox_Error,
+            tr("Unable to create zip: the database is locked by another process."),
+            QMessageBox::Ok);
+        return;
+    }
 
     ZipFile z;
     bool ok = z.Open(filename);
     if (ok) {
         ProgressDialog * prog = new ProgressDialog(this);
-        prog->setMessage(tr("Calculating size..."));
+        prog->setMessage(tr("Creating %1.zip...").arg(dbFolderName));
         prog->setWindowModality(Qt::ApplicationModal);
         prog->open();
 
-        // Flush all committed data into oscar.db so the zip contains a consistent,
-        // self-contained database snapshot. After a TRUNCATE checkpoint, oscar.db-wal
-        // is empty and oscar.db-shm is a regenerable index — exclude both.
-        DatabaseManager::instance().checkpointWAL();
-
-        // Build the list of files.
         FileQueue files;
-        files.AddDirectory(oscarData.canonicalPath(), oscarData.dirName());
-
-        // Exclude WAL and SHM — after the checkpoint above they are empty/redundant.
-        files.Remove(oscarData.canonicalPath() + "/oscar.db-wal");
-        files.Remove(oscarData.canonicalPath() + "/oscar.db-shm");
-
-        // Defer the current debug log to the end.
-        QString debugLog = logger->logFileName();
-        QString debugLogZipName;
-        int exists = files.Remove(debugLog, &debugLogZipName);
-        if (exists) {
-            files.AddFile(debugLog, debugLogZipName);
+        files.AddFile(dbPath, QFileInfo(dbPath).fileName());
+        files.AddDirectory(GetLogDir(), "logs");
+        // Add Profiles/ and its immediate subdirectories (one per profile) — no data files.
+        QDir profilesDir(QFileInfo(dbPath).dir().filePath("Profiles"));
+        if (profilesDir.exists()) {
+            files.AddFile(profilesDir.canonicalPath(), "Profiles");
+            profilesDir.setFilter(QDir::NoDotAndDotDot | QDir::Dirs | QDir::Hidden);
+            for (const QFileInfo & fi : profilesDir.entryInfoList()) {
+                files.AddFile(fi.canonicalFilePath(), "Profiles/" + fi.fileName());
+            }
         }
 
-        prog->setMessage(tr("Creating zip..."));
-
-        // Create the zip.
         ok = z.AddFiles(files, prog);
         z.Close();
         prog->close();

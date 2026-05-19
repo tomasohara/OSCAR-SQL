@@ -20,6 +20,9 @@ ProgressDialog::ProgressDialog(QWidget * parent):
     imglabel = new QLabel(this);
 
     vlayout = new QVBoxLayout;
+    vlayout->setContentsMargins(16, 12, 16, 12);
+    vlayout->setSpacing(10);
+    hlayout->setSpacing(10);
     progress = new QProgressBar(this);
     this->setLayout(vlayout);
     vlayout->addLayout(hlayout);
@@ -27,6 +30,7 @@ ProgressDialog::ProgressDialog(QWidget * parent):
     hlayout->addWidget(statusMsg,1,Qt::AlignCenter);
     vlayout->addWidget(progress,1);
     progress->setMaximum(100);
+    setMinimumWidth(360);
     abortButton = nullptr;
     setWindowModality(Qt::ApplicationModal);
 }
@@ -61,7 +65,8 @@ void ProgressDialog::addAbortButton()
 {
     abortButton = new QPushButton(tr("Abort"),this);
     connect(abortButton, SIGNAL(released()), this, SLOT(onAbortClicked()));
-    hlayout->addWidget(abortButton);
+    vlayout->addWidget(abortButton, 0, Qt::AlignRight);
+    adjustSize();
 }
 
 void ProgressDialog::onAbortClicked()

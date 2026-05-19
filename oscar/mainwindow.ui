@@ -2618,7 +2618,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionCreate_OSCAR_Data_zip">
    <property name="text">
-    <string>Create zip of all OSCAR data</string>
+    <string>Create zip of OSCAR database</string>
    </property>
   </action>
   <action name="actionExport_CSV">
