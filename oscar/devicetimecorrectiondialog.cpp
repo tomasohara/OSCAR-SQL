@@ -34,12 +34,11 @@ DeviceTimeCorrectionDialog::DeviceTimeCorrectionDialog(QWidget *parent)
     connect(ui->deviceSidebar, &QTreeWidget::currentItemChanged,
             this, &DeviceTimeCorrectionDialog::onDeviceChanged);
     connect(ui->btnResetToZero,    &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onResetToZero);
-    connect(ui->btnNewCorrection,  &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onNewCorrection);
+    connect(ui->btnClearCorrection, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onClearCorrection);
     connect(ui->btnSaveCorrection, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onSaveStaged);
     connect(ui->btnDiscardChanges, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onDiscardStaged);
     connect(ui->btnApplyLastNight, &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onApplyLastNight);
     connect(ui->btnDeleteRow,      &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onDeleteRow);
-    connect(ui->btnToggleHistory,  &QPushButton::clicked, this, &DeviceTimeCorrectionDialog::onToggleHistory);
     connect(ui->historyTable, &QTableWidget::itemSelectionChanged,
             this, &DeviceTimeCorrectionDialog::onHistoryRowSelected);
     connect(ui->correctionTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -91,7 +90,7 @@ void DeviceTimeCorrectionDialog::setDate(const QDate& date)
         clearStagedAndRevert();
 
     m_date = date;
-    ui->activeDateLabel->setText(date.isValid() ? date.toString("yyyy-MM-dd") : tr("—"));
+    setWindowTitle(date.isValid() ? tr("Time Corrections - %1").arg(date.toString("yyyy-MM-dd")) : tr("Time Corrections"));
 
     if (date.isValid()) {
         ui->advStartDate->setDate(date);
@@ -383,7 +382,10 @@ void DeviceTimeCorrectionDialog::updateControlStates()
     bool rangeExpanded = ui->chkDateRange->isChecked();
     ui->advEndDate->setEnabled(rangeExpanded && !ui->advEndDateCheck->isChecked());
 
-    ui->btnDeleteRow->setEnabled(ui->historyTable->currentRow() >= 0);
+    int selRow = ui->historyTable->currentRow();
+    bool isDrift = selRow >= 0 && selRow < m_historyRows.size()
+                   && m_historyRows[selRow].type == "drift";
+    ui->btnDeleteRow->setEnabled(selRow >= 0 && !isDrift);
 }
 
 void DeviceTimeCorrectionDialog::previewStaged(Machine* mach)
@@ -533,7 +535,7 @@ void DeviceTimeCorrectionDialog::onDiscardStaged()
     refreshHistory();
 }
 
-void DeviceTimeCorrectionDialog::onNewCorrection()
+void DeviceTimeCorrectionDialog::onClearCorrection()
 {
     clearStagedAndRevert();
     resetToNewMode();
@@ -613,13 +615,6 @@ void DeviceTimeCorrectionDialog::onOffsetSignToggled(bool checked)
     qint64 absMs = static_cast<qint64>(QTime(0, 0, 0).msecsTo(ui->offsetTimeEdit->time()));
     if (absMs == 0) return;
     onOffsetTimeChanged(ui->offsetTimeEdit->time());
-}
-
-void DeviceTimeCorrectionDialog::onToggleHistory()
-{
-    bool nowVisible = !ui->historyTable->isVisible();
-    ui->historyTable->setVisible(nowVisible);
-    ui->btnToggleHistory->setText(nowVisible ? "Corrections ▼" : "Corrections ▶");
 }
 
 void DeviceTimeCorrectionDialog::onResetToZero()

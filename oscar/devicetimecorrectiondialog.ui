@@ -47,13 +47,6 @@
            </widget>
           </item>
           <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
-          <item><widget class="QLabel"><property name="text"><string>Active date:</string></property></widget></item>
-          <item>
-           <widget class="QLabel" name="activeDateLabel">
-            <property name="text"><string>—</string></property>
-            <property name="font"><font><bold>true</bold></font></property>
-           </widget>
-          </item>
          </layout>
         </item>
 
@@ -136,42 +129,43 @@
         <item>
          <widget class="QWidget" name="dateRangeWidget">
           <property name="visible"><bool>false</bool></property>
-          <layout class="QVBoxLayout">
+          <layout class="QGridLayout">
            <property name="margin"><number>0</number></property>
-           <item>
-            <layout class="QHBoxLayout">
-             <item><widget class="QLabel"><property name="text"><string>Start:</string></property></widget></item>
-             <item>
-              <widget class="QDateEdit" name="advStartDate">
-               <property name="calendarPopup"><bool>false</bool></property>
-               <property name="displayFormat"><string>yyyy-MM-dd</string></property>
-              </widget>
-             </item>
-             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
-            </layout>
+           <item row="0" column="0">
+            <widget class="QLabel"><property name="text"><string>Start:</string></property></widget>
            </item>
-           <item>
-            <layout class="QHBoxLayout">
-             <item><widget class="QLabel"><property name="text"><string>End:</string></property></widget></item>
-             <item>
-              <widget class="QDateEdit" name="advEndDate">
-               <property name="calendarPopup"><bool>false</bool></property>
-               <property name="displayFormat"><string>yyyy-MM-dd</string></property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="advEndDateCheck">
-               <property name="text"><string>No end</string></property>
-              </widget>
-             </item>
-             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
-            </layout>
+           <item row="0" column="1">
+            <widget class="QLabel"><property name="text"><string>End:</string></property></widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QDateEdit" name="advStartDate">
+             <property name="calendarPopup"><bool>false</bool></property>
+             <property name="displayFormat"><string>yyyy-MM-dd</string></property>
+             <property name="currentSection"><enum>QDateTimeEdit::DaySection</enum></property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QDateEdit" name="advEndDate">
+             <property name="calendarPopup"><bool>false</bool></property>
+             <property name="displayFormat"><string>yyyy-MM-dd</string></property>
+             <property name="currentSection"><enum>QDateTimeEdit::DaySection</enum></property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QCheckBox" name="advEndDateCheck">
+             <property name="text"><string>No end</string></property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer>
            </item>
           </layout>
          </widget>
         </item>
 
-        <!-- Save / Cancel -->
+        <item><spacer><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
+
+        <!-- Save / Cancel / Clear | Delete -->
         <item>
          <layout class="QHBoxLayout">
           <item>
@@ -186,11 +180,25 @@
             <property name="enabled"><bool>false</bool></property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="btnClearCorrection">
+            <property name="text"><string>Clear</string></property>
+           </widget>
+          </item>
           <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+          <item>
+           <widget class="QFrame" name="buttonSeparator">
+            <property name="frameShape"><enum>QFrame::VLine</enum></property>
+            <property name="frameShadow"><enum>QFrame::Sunken</enum></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnDeleteRow">
+            <property name="text"><string>Delete Correction</string></property>
+           </widget>
+          </item>
          </layout>
         </item>
-
-        <item><spacer><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
 
        </layout>
       </widget>
@@ -200,29 +208,6 @@
      <widget class="QWidget" name="historyPanel">
       <layout class="QVBoxLayout" name="historyLayout">
        <property name="margin"><number>4</number></property>
-
-       <!-- Toolbar: New / Delete on left; toggle on right -->
-       <item>
-        <layout class="QHBoxLayout" name="correctionToolbar">
-         <item>
-          <widget class="QPushButton" name="btnNewCorrection">
-           <property name="text"><string>New Correction</string></property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnDeleteRow">
-           <property name="text"><string>Delete Correction</string></property>
-          </widget>
-         </item>
-         <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
-         <item>
-          <widget class="QPushButton" name="btnToggleHistory">
-           <property name="text"><string>Corrections ▼</string></property>
-           <property name="flat"><bool>true</bool></property>
-          </widget>
-         </item>
-        </layout>
-       </item>
 
        <item>
         <widget class="QTableWidget" name="historyTable">
@@ -242,22 +227,29 @@
     </widget><!-- end verticalSplitter -->
    </item>
 
-   <!-- Status bar: warnings and hints, full width -->
+   <!-- Bottom row: warning label + close button -->
    <item>
-    <widget class="QLabel" name="largeDriftWarning">
-     <property name="text"><string></string></property>
-     <property name="wordWrap"><bool>true</bool></property>
-     <property name="styleSheet"><string>color: #cc6600;</string></property>
-     <property name="minimumSize"><size><width>0</width><height>20</height></size></property>
-    </widget>
-   </item>
-
-   <!-- Close button -->
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation"><enum>Qt::Horizontal</enum></property>
-     <property name="standardButtons"><set>QDialogButtonBox::Close</set></property>
-    </widget>
+    <layout class="QHBoxLayout">
+     <item>
+      <widget class="QLabel" name="largeDriftWarning">
+       <property name="text"><string></string></property>
+       <property name="wordWrap"><bool>true</bool></property>
+       <property name="styleSheet"><string>color: #cc6600;</string></property>
+       <property name="minimumSize"><size><width>0</width><height>20</height></size></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       <property name="standardButtons"><set>QDialogButtonBox::Close</set></property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch><verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
 
   </layout>

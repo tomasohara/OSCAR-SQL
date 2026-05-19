@@ -42,7 +42,7 @@ private slots:
     void onNudgePlus1m();
     void onNudgePlus1h();
     void onResetToZero();
-    void onNewCorrection();
+    void onClearCorrection();
     void onSaveStaged();
     void onDiscardStaged();
     void onApplyLastNight();
@@ -51,7 +51,6 @@ private slots:
     void onAnyControlChanged();
     void onOffsetTimeChanged(const QTime &time);
     void onOffsetSignToggled(bool checked);
-    void onToggleHistory();
 
 private:
     Ui::DeviceTimeCorrectionDialog *ui;
