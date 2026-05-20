@@ -300,7 +300,7 @@ void NewProfile::on_nextButton_clicked()
                         } else {
                             qWarning() << "NewProfile: could not find profile in DB for rename:" << originalProfileName;
                         }
-                        mainwin->RestartApplication(true,"-l");
+                        mainwin->RestartApplication();
                         QCoreApplication::processEvents();
                         exit(0);
                     } else {

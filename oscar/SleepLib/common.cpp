@@ -118,7 +118,6 @@ bool gfxEgnineIsSupported(GFXEngine e)
     case GFX_OpenGL:
     case GFX_Software:
        return true;
-    case GFX_ANGLE:
     default:
        return false;
     }
@@ -199,8 +198,6 @@ QString getGraphicsEngine()
 #else
     if (QCoreApplication::testAttribute(Qt::AA_UseSoftwareOpenGL))
         gfxEngine = CSTR_GFX_BrokenGL;
-    else if (QCoreApplication::testAttribute(Qt::AA_UseOpenGLES))
-        gfxEngine = CSTR_GFX_ANGLE;
     else
         gfxEngine = CSTR_GFX_OpenGL;
 #endif
@@ -809,7 +806,6 @@ QString STR_TR_WAvg;   // Short form of Weighted Average
 void initializeStrings()
 {
     GFXEngineNames[GFX_Software] = QObject::tr("Software Engine");
-    GFXEngineNames[GFX_ANGLE] = QObject::tr("ANGLE / OpenGLES");
     GFXEngineNames[GFX_OpenGL] = QObject::tr("Desktop OpenGL");
 
     STR_UNIT_M = QObject::tr(" m");

@@ -4,6 +4,23 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-19 - Remove ANGLE/Qt5 dead code from graphics engine selection (#173)
+
+**Files:** `oscar/main.cpp`, `oscar/mainwindow.h`, `oscar/mainwindow.cpp`,
+`oscar/newprofile.cpp`, `oscar/preferencesdialog.cpp`,
+`oscar/SleepLib/common.h`, `oscar/SleepLib/common.cpp`
+
+**Changes:**
+1. Shift-key at launch now toggles between OpenGL and Software engines (previously always forced Software).
+2. Added `--OpenGL` command-line option (case-insensitive) to force OpenGL engine.
+3. Made `--legacy` command-line option case-insensitive.
+4. Removed `GFX_ANGLE` from the engine enum and all supporting code — ANGLE is not supported in Qt6.
+5. Removed `--hires`/`--hiresoff` command-line stubs — Qt5 leftovers with no effect.
+6. Removed `-l` (force-login) command-line option and `force_login` parameter from
+   `RestartApplication()` — obsolete since password protection was removed.
+
+---
+
 ## 2026-05-18 - Create ZIP of OSCAR database — memory, UI, and progress bugs (#172)
 
 **Files:** `oscar/zip.cpp`, `oscar/zip.h`, `oscar/mainwindow.cpp`, `oscar/mainwindow.ui`,

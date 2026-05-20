@@ -23,11 +23,10 @@
 #include <QLocale>
 #include "Graphs/glcommon.h"
 
-enum GFXEngine { GFX_OpenGL=0, GFX_ANGLE, GFX_Software, MaxGFXEngine=GFX_Software};
+enum GFXEngine { GFX_OpenGL=0, GFX_Software=2, MaxGFXEngine=GFX_Software};
 const QString GFXEngineSetting = "GFXEngine";
 extern QString GFXEngineNames[MaxGFXEngine+1]; // Set by initializeStrings()
 
-const QString CSTR_GFX_ANGLE = "ANGLE";
 const QString CSTR_GFX_OpenGL = "OpenGL";
 const QString CSTR_GFX_BrokenGL = "LegacyGFX";
 

@@ -2056,7 +2056,7 @@ void MainWindow::reloadProfile()
     ui->tabWidget->setCurrentIndex(tabidx);
 }
 
-void MainWindow::RestartApplication(bool force_login, QString cmdline)
+void MainWindow::RestartApplication(QString cmdline)
 {
     qDebug() << "Restarting OSCAR";
     CloseProfile();
@@ -2078,7 +2078,6 @@ void MainWindow::RestartApplication(bool force_login, QString cmdline)
     args << "-p"; // -p starts with 1 second delay, to give this process time to save..
 
 
-    if (force_login) { args << "-l"; }
 
     if (!cmdline.isEmpty()) { args << cmdline; }
 
@@ -2101,7 +2100,6 @@ void MainWindow::RestartApplication(bool force_login, QString cmdline)
     QStringList args;
     args << "-p";
 
-    if (force_login) { args << "-l"; }
 
     if (!cmdline.isEmpty()) { args << cmdline; }
 
@@ -2780,7 +2778,7 @@ void MainWindow::on_actionChange_Language_triggered()
 //        return;
 //    }
 
-    RestartApplication(true, "--language");
+    RestartApplication("--language");
 }
 
 void MainWindow::switchToDatabase(const QString& path)

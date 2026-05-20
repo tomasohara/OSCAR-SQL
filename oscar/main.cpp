@@ -520,8 +520,8 @@ void optionExit(int exitCode, QString error) {
     --datadir  <folderName>  Use folderName as Oscar Data folder. For relatve paths: <Documents folder>/<relative path>.
                              If folder does not exist then prompts user.
     --legacy                 Use software graphics engine
+    --OpenGL                 Use OpenGL graphics engine (case-insensitive)
     --help                   Displays this menu and exits.
-    -l                       Force login option. Internal OSCAR call from RestartApplication.
     )" );
     exit (exitCode);
 }
@@ -546,21 +546,30 @@ int main(int argc, char *argv[]) {
     ////////////////////////////////////////////////////////////////////////////////////////////
     // Handle graphics mode change, including change after crash
     ////////////////////////////////////////////////////////////////////////////////////////////
-    // If shift key was held down when OSCAR was launched, force Software graphics Engine (aka LegacyGFX)
+    // If shift key was held down when OSCAR was launched, toggle the graphics engine.
     QString forcedEngine = "";
 #ifndef Q_OS_LINUX
     // Shift key check is skipped on Linux due to a Qt bug, see comment at shiftKeyPressedAtLaunch().
     if (shiftKeyPressedAtLaunch(argc, argv)){
-        settings.setValue(GFXEngineSetting, (unsigned int)GFX_Software);
-        forcedEngine = "Software Engine forced by shift key at launch";
+        GFXEngine currentEngine = (GFXEngine)settings.value(GFXEngineSetting, (unsigned int)GFX_OpenGL).toUInt();
+        if (currentEngine == GFX_Software) {
+            settings.setValue(GFXEngineSetting, (unsigned int)GFX_OpenGL);
+            forcedEngine = "OpenGL Engine forced by shift key at launch (toggled from Software)";
+        } else {
+            settings.setValue(GFXEngineSetting, (unsigned int)GFX_Software);
+            forcedEngine = "Software Engine forced by shift key at launch (toggled from OpenGL)";
+        }
     }
 #endif
     // This argument needs to be processed before creating the QApplication,
     // based on sample code at https://doc.qt.io/qt-5/qapplication.html#details
     for (int i = 1; i < argc; ++i) {
-        if (!qstrcmp(argv[i], "--legacy")) {
+        if (!qstricmp(argv[i], "--legacy")) {
             settings.setValue(GFXEngineSetting, (unsigned int)GFX_Software);
             forcedEngine = "Software Engine forced by --legacy command line switch";
+        } else if (!qstricmp(argv[i], "--OpenGL")) {
+            settings.setValue(GFXEngineSetting, (unsigned int)GFX_OpenGL);
+            forcedEngine = "OpenGL Engine forced by --OpenGL command line switch";
         }
     }
 #ifdef Q_OS_WIN
@@ -577,13 +586,10 @@ int main(int argc, char *argv[]) {
 
     GFXEngine gfxEngine = (GFXEngine)qMin((unsigned int)settings.value(GFXEngineSetting, (unsigned int)GFX_OpenGL).toUInt(), (unsigned int)MaxGFXEngine);
     switch (gfxEngine) {
-    case 0:  // GFX_OpenGL
+    case GFX_OpenGL:
         QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
         break;
-    case 1:  // GFX_ANGLE
-        QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
-        break;
-    case 2:  // GFX_Software
+    case GFX_Software:
     default:
         QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
     }
@@ -623,7 +629,7 @@ int main(int argc, char *argv[]) {
     for (int i = 1; i < args.size(); i++) {
         if ((args[i] == "--language") || (args[i] == "--l") ) {
             settings.setValue(LangSetting,"");
-        } else if ( (args[i] == "-l") || (args[i] == "-nop") || (args[i] == "") || (args[i] == "--legacy") ){
+        } else if ( (args[i] == "-nop") || (args[i] == "") || (args[i].compare("--legacy", Qt::CaseInsensitive) == 0) || (args[i].compare("--OpenGL", Qt::CaseInsensitive) == 0) ){
             // do nothing. internal calls that current don't have any further functions in main.
         } else if (args[i] == "-p") {
             QThread::msleep(1000);
@@ -653,8 +659,6 @@ int main(int argc, char *argv[]) {
             } else {
                 optionExit(2,"Missing argument to --datadir\n");
             }
-        } else if (0 == strcmp(argv[i] ,"--hires"))  {      // already handle in 1st scan
-        } else if (0 == strcmp(argv[i] ,"--hiresoff"))  {       // already handle in 1st scan
         } else if (QString(args[i]).contains("help",Qt::CaseInsensitive)) {
             optionExit(0,QString(""));
         } else {
@@ -711,11 +715,7 @@ int main(int argc, char *argv[]) {
     bool haveNewFolder = false;
 
     if (!settings.contains("Settings/AppData")) {       // This is first time execution
-        if ( settings.contains("Settings/AppRoot") ) {  // allow for old AppRoot here - not really first time
-            SetAppData(settings.value("Settings/AppRoot").toString());
-        } else {
-            SetAppData(homeDocs + getModifiedAppData());    // set up new data directory path
-        }
+        SetAppData(homeDocs + getModifiedAppData());    // set up new data directory path
         qDebug() << "First time: Setting " + GetAppData();
     }
 
