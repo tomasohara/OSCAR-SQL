@@ -7,11 +7,11 @@
 
 ## Overview
 
-The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 15.
+The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 16.
 
 **Key Design Principles:**
 - **Profile-centric**: All data organized around user profiles
-- **Machine tracking**: Each profile can have multiple CPAP/oximetry devices
+- **Machine tracking**: Each profile can have multiple CPAP and oximetry devices
 - **Session storage**: Detailed session metadata with waveform/event data in database ⚡ NEW IN v8
 - **Daily summaries**: Pre-calculated daily statistics for fast reporting
 - **Profile ID denormalization**: session_settings, session_channels, session_summaries, event_lists, and respiratory_events carry profile_id for query performance 🔧 NEW IN v12
