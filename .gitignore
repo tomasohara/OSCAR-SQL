@@ -15,6 +15,10 @@ build/*
 oscar/build/*
 git_info.h
 .github
+.claude
+.code-review-graph
+.superpowers
+claude.md
 Building/Linux/changelog
 
 notes/temp/*

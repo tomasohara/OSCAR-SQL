@@ -1,0 +1,2671 @@
+<span id="oscar-database-schema-reference"></span>
+= OSCAR Database Schema Reference =
+
+'''Version:''' Schema Version 16 '''Last Updated:''' 2026 Q2 '''Database Type:''' SQLite
+
+-----
+
+<span id="overview"></span>
+== Overview ==
+
+The OSCAR database uses SQLite to store user profiles, machine configurations, session data, and preferences. This document provides a complete reference for all tables, fields, and relationships in schema version 16.
+
+'''Key Design Principles:''' - '''Profile-centric''': All data organized around user profiles - '''Machine tracking''': Each profile can have multiple CPAP and oximetry devices - '''Session storage''': Detailed session metadata with waveform/event data in database ⚡ NEW IN v8 - '''Daily summaries''': Pre-calculated daily statistics for fast reporting - '''Profile ID denormalization''': session_settings, session_channels, session_summaries, event_lists, and respiratory_events carry profile_id for query performance 🔧 NEW IN v12 - '''Report tree''': Hierarchical report tree with system and user nodes, loaded from .orf file 🌲 NEW IN v13 - '''Flexible preferences''': Key-value storage for settings - '''Cascade deletes''': Removing a profile removes all associated data - '''Database-only mode''': Waveform and event data stored in database BLOBs (replaces .001 files) ⚡ NEW IN v8 - '''Migration policy''': Schema version mismatch requires migration after v13.
+
+-----
+
+<span id="schema-version-history"></span>
+== Schema Version History ==
+
+{| class="wikitable"
+|-
+! Version
+! Date
+! Changes
+|-
+| 1
+| 2025 Q4
+| Initial schema with profiles, machines, user_info, doctor_info
+|-
+| 2
+| 2025 Q4
+| Added profile_preferences table
+|-
+| 3
+| 2025 Q4
+| Added session tables (sessions, session_settings, session_channels, respiratory_events, session_summaries, session_slices)
+|-
+| 4
+| 2025 Q4
+| Added profile status tracking (status, status_changed_at)
+|-
+| 5
+| 2025 Q4
+| Added channels tables (channels, channel_options)
+|-
+| 6
+| 2025 Q4
+| Added daily_summaries table for fast reporting
+|-
+| 7
+| 2026 Q1
+| 🐛 '''BUG FIX''': Added session_channel_values table to persist value/time summaries (fixes incorrect weighted averages)
+|-
+| 8
+| 2026 Q1
+| ⚡ '''MAJOR CHANGE''': Added event_lists and event_data tables - waveform/event data now stored in database instead of .001 files
+|-
+| 9
+| 2026 Q1
+| 📝 '''ENHANCEMENT''': Added json_value column to session_settings for journal migration and complex data types
+|-
+| 10
+| 2026 Q1
+| 🔧 '''SEMANTIC FIX''': Renamed central_count to unclassified_count (semantically correct) and added clear_airway_count to session_summaries
+|-
+| 11
+| 2026 Q1
+| 📊 '''NEW FEATURE''': Added reports and report_contents tables for CSV export report management with macro-based query templates
+|-
+| 12
+| 2026 Q1
+| 🔧 '''DENORMALIZATION''': Added profile_id to session_settings, session_channels, session_summaries, event_lists; added profile_id and channel_id to respiratory_events; added type to channels; removed events_file and summary_file from sessions.
+|-
+| 13
+| 2026 Q1
+| 🌲 '''REPORT TREE REDESIGN''': Replaced reports/report_contents with single report_tree table; hierarchical structure with System/User roots; system reports loaded from external .orf file
+|-
+| 14
+| 2026 Q2
+| 🗄️ '''FILE-TO-DB MIGRATION''': Added <code>app_preferences</code> table (replaces Preferences.xml); added <code>graph_layouts</code> table (replaces layoutSettings/*.shg and per-profile daily.shg/overview.shg); added <code>blob_value BLOB</code> column to <code>profile_preferences</code>. Legacy files imported once on first launch then deleted.
+|-
+| 15
+| 2026 Q2
+| 🧹 '''CLEANUP''': Dropped <code>dst_enabled</code> column from <code>user_info</code> (stored but never read); deleted orphaned <code>DST</code> rows from <code>profile_preferences</code>.
+|-
+| 16
+| 2026 Q2
+| 🔧 '''DESIGN FIX''': Dropped <code>machine_id</code> column, its FK to <code>machines</code>, and <code>idx_daily_summaries_profile_machine</code> from <code>daily_summaries</code>. Natural key is now <code>(profile_id, date)</code>. Each row is a profile-day rollup that already aggregates across all machines for that date — the per-machine dimension was a design mistake never used by callers.
+|}
+
+-----
+
+<span id="table-definitions"></span>
+== Table Definitions ==
+
+<span id="schema_version"></span>
+=== 1. schema_version ===
+
+Tracks database schema version for migrations.
+
+<syntaxhighlight lang="sql">CREATE TABLE schema_version (
+    version INTEGER PRIMARY KEY,
+    applied_at TEXT DEFAULT CURRENT_TIMESTAMP
+)</syntaxhighlight>
+<span id="profiles"></span>
+=== 2. profiles ===
+
+Core profile table storing user account information.
+
+<syntaxhighlight lang="sql">CREATE TABLE profiles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    data_folder TEXT NOT NULL,
+    status TEXT DEFAULT 'active' CHECK(status IN ('active', 'missing', 'archived')),
+    status_changed_at TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+)</syntaxhighlight>
+<span id="machines"></span>
+=== 3. machines ===
+
+CPAP machines and devices associated with profiles.
+
+<syntaxhighlight lang="sql">CREATE TABLE machines (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id INTEGER NOT NULL,
+    machine_id INTEGER NOT NULL,
+    loader_name TEXT NOT NULL,
+    machine_type INTEGER NOT NULL,
+    brand TEXT,
+    model TEXT,
+    series TEXT,
+    serial_number TEXT,
+    model_number TEXT,
+    last_imported TEXT,
+    purge_date TEXT,
+    data_version INTEGER DEFAULT 0,
+    properties TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+    UNIQUE(profile_id, machine_id)
+)</syntaxhighlight>
+<span id="user_info"></span>
+=== 4. user_info ===
+
+Personal information for each profile.
+
+<syntaxhighlight lang="sql">CREATE TABLE user_info (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id INTEGER NOT NULL UNIQUE,
+    dob TEXT,
+    first_name TEXT,
+    last_name TEXT,
+    address TEXT,
+    phone TEXT,
+    email TEXT,
+    country TEXT,
+    height REAL,
+    gender INTEGER,
+    timezone TEXT,
+    password_hash TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+)</syntaxhighlight>
+<span id="doctor_info"></span>
+=== 5. doctor_info ===
+
+Doctor/medical provider information.
+
+<syntaxhighlight lang="sql">CREATE TABLE doctor_info (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id INTEGER NOT NULL UNIQUE,
+    name TEXT,
+    phone TEXT,
+    email TEXT,
+    practice_name TEXT,
+    address TEXT,
+    patient_id TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+)</syntaxhighlight>
+<span id="profile_preferences"></span>
+=== 6. profile_preferences ===
+
+Profile settings as key-value pairs.
+
+<syntaxhighlight lang="sql">CREATE TABLE profile_preferences (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT,
+    data_type TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+    UNIQUE(profile_id, category, key)
+)</syntaxhighlight>
+'''Categories:''' cpap, oximetry, session, appearance, general
+
+<span id="sessions"></span>
+=== 7. sessions ===
+
+Core session metadata and timing.
+
+<syntaxhighlight lang="sql">CREATE TABLE sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    machine_id INTEGER NOT NULL,
+    start_time INTEGER NOT NULL,
+    end_time INTEGER NOT NULL,
+    duration INTEGER NOT NULL,
+    enabled INTEGER DEFAULT 1,
+    summary_only INTEGER DEFAULT 0,
+    no_settings INTEGER DEFAULT 0,
+    events_loaded INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE CASCADE,
+    UNIQUE(machine_id, session_id)
+)</syntaxhighlight>
+'''Note:''' <code>events_file</code> and <code>summary_file</code> columns were removed in v12 (legacy .001 file references no longer needed).
+
+<span id="session_settings"></span>
+=== 8. session_settings ===
+
+Machine configuration for each session.
+
+<syntaxhighlight lang="sql">CREATE TABLE session_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    profile_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    value REAL NOT NULL,
+    data_type TEXT,
+    json_value TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+    UNIQUE(session_id, channel_id)
+)</syntaxhighlight>
+'''Note:''' The <code>json_value</code> column (added in v9) stores complex data types as JSON for journal migration support. The <code>profile_id</code> column (added in v12) denormalizes the profile association for query performance.
+
+<span id="session_channels"></span>
+=== 9. session_channels ===
+
+Summary statistics for each channel in a session.
+
+<syntaxhighlight lang="sql">CREATE TABLE session_channels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    profile_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    count INTEGER DEFAULT 0,
+    sum REAL DEFAULT 0,
+    avg REAL DEFAULT 0,
+    wavg REAL DEFAULT 0,
+    min REAL DEFAULT 0,
+    max REAL DEFAULT 0,
+    median REAL DEFAULT 0,
+    p90 REAL DEFAULT 0,
+    p95 REAL DEFAULT 0,
+    phys_min REAL DEFAULT 0,
+    phys_max REAL DEFAULT 0,
+    cph REAL DEFAULT 0,
+    sph REAL DEFAULT 0,
+    first_time INTEGER,
+    last_time INTEGER,
+    gain REAL DEFAULT 1.0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+    UNIQUE(session_id, channel_id)
+)</syntaxhighlight>
+'''Note:''' <code>profile_id</code> added in v12 for query performance denormalization.
+
+<span id="session_channel_values-new-in-v7---bug-fix"></span>
+=== 10. session_channel_values 🐛 '''NEW IN v7 - BUG FIX''' ===
+
+Detailed value/time summary data for each channel.
+
+<syntaxhighlight lang="sql">CREATE TABLE session_channel_values (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_channel_id INTEGER NOT NULL,
+    value INTEGER NOT NULL,
+    count INTEGER DEFAULT 0,
+    time_ms INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_channel_id) REFERENCES session_channels(id) ON DELETE CASCADE,
+    UNIQUE(session_channel_id, value)
+)</syntaxhighlight>
+'''Purpose:''' Stores the <code>m_valuesummary</code> and <code>m_timesummary</code> hash data from the Session class. This data tracks how many times each distinct value occurred (<code>count</code>) and for how long (<code>time_ms</code>) for each channel. This information is critical for calculating weighted averages and other time-based statistics. '''This table fixes a critical bug where this data was not being persisted to the database, causing incorrect statistics when sessions were loaded.'''
+
+<span id="respiratory_events"></span>
+=== 11. respiratory_events ===
+
+Individual respiratory events (apneas, hypopneas, RERAs).
+
+<syntaxhighlight lang="sql">CREATE TABLE respiratory_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    profile_id INTEGER NOT NULL,
+    channel_id INTEGER,
+    event_type INTEGER NOT NULL,
+    start_time INTEGER NOT NULL,
+    end_time INTEGER NOT NULL,
+    duration INTEGER NOT NULL,
+    desaturation REAL,
+    severity INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+)</syntaxhighlight>
+'''Event Types:''' 0=Obstructive, 1=Unclassified, 2=Hypopnea, 3=RERA, 4=Clear Airway, 5=User-flagged
+
+'''Note:''' <code>profile_id</code> and <code>channel_id</code> added in v12. <code>channel_id</code> references the OSCAR channel ID constant (not a FK to the channels table).
+
+<span id="session_summaries"></span>
+=== 11. session_summaries ===
+
+Cached high-level session summaries.
+
+<syntaxhighlight lang="sql">CREATE TABLE session_summaries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL UNIQUE,
+    profile_id INTEGER NOT NULL,
+    ahi REAL DEFAULT 0,
+    rdi REAL DEFAULT 0,
+    obstructive_count INTEGER DEFAULT 0,
+    unclassified_count INTEGER DEFAULT 0,
+    hypopnea_count INTEGER DEFAULT 0,
+    rera_count INTEGER DEFAULT 0,
+    clear_airway_count INTEGER DEFAULT 0,
+    pressure_avg REAL,
+    pressure_min REAL,
+    pressure_max REAL,
+    pressure_95th REAL,
+    leak_total_avg REAL,
+    leak_total_95th REAL,
+    leak_total_max REAL,
+    spo2_avg REAL,
+    spo2_min REAL,
+    pulse_avg REAL,
+    hours_used REAL DEFAULT 0,
+    mask_on_hours REAL DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+)</syntaxhighlight>
+'''Note:''' In schema v10, <code>central_count</code> was renamed to <code>unclassified_count</code> (semantically correct), and <code>clear_airway_count</code> was added. The old <code>central_count</code> column is retained for backward compatibility but ignored by new code.
+
+<span id="session_slices"></span>
+=== 12. session_slices ===
+
+Mask-on/mask-off periods within sessions.
+
+<syntaxhighlight lang="sql">CREATE TABLE session_slices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    start_time INTEGER NOT NULL,
+    end_time INTEGER NOT NULL,
+    status INTEGER NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+)</syntaxhighlight>
+'''Status:''' 0=mask off, 1=mask on
+
+<span id="channels"></span>
+=== 13. channels ===
+
+Per-profile channel customizations.
+
+<syntaxhighlight lang="sql">CREATE TABLE channels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    channel_code TEXT NOT NULL,
+    type INTEGER,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    default_color TEXT,
+    fullname TEXT,
+    label TEXT,
+    description TEXT,
+    lower_threshold REAL,
+    lower_threshold_color TEXT,
+    upper_threshold REAL,
+    upper_threshold_color TEXT,
+    show_in_overview INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+    UNIQUE(profile_id, channel_id)
+)</syntaxhighlight>
+<span id="channel_options"></span>
+=== 14. channel_options ===
+
+Lookup values for LOOKUP-type channels.
+
+<syntaxhighlight lang="sql">CREATE TABLE channel_options (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    channel_id INTEGER NOT NULL,
+    option_key INTEGER NOT NULL,
+    option_value TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(channel_id, option_key)
+)</syntaxhighlight>
+<span id="daily_summaries-new-in-v6-per-machine-dimension-dropped-in-v16"></span>
+=== 15. daily_summaries ⭐ NEW IN v6 (per-machine dimension dropped in v16) ===
+
+Pre-calculated daily aggregate statistics for fast reporting. One row per (profile, date) — the row already aggregates across all machines that contributed sessions to that OSCAR day.
+
+<syntaxhighlight lang="sql">CREATE TABLE daily_summaries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id INTEGER NOT NULL,
+    date TEXT NOT NULL,
+
+    session_count INTEGER DEFAULT 0,
+    enabled_session_count INTEGER DEFAULT 0,
+
+    total_hours REAL DEFAULT 0,
+    mask_on_hours REAL DEFAULT 0,
+
+    ahi REAL DEFAULT 0,
+    rdi REAL DEFAULT 0,
+    obstructive_count INTEGER DEFAULT 0,
+    unclassified_count INTEGER DEFAULT 0,
+    hypopnea_count INTEGER DEFAULT 0,
+    rera_count INTEGER DEFAULT 0,
+    clear_airway_count INTEGER DEFAULT 0,
+
+    pressure_avg REAL,
+    pressure_min REAL,
+    pressure_max REAL,
+    pressure_95th REAL,
+
+    leak_total_avg REAL,
+    leak_total_95th REAL,
+    leak_total_max REAL,
+    leak_unintentional_avg REAL,
+
+    spo2_avg REAL,
+    spo2_min REAL,
+    pulse_avg REAL,
+    pulse_min REAL,
+    pulse_max REAL,
+
+    is_compliant INTEGER DEFAULT 0,
+    has_oximetry INTEGER DEFAULT 0,
+
+    calculated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    sessions_hash TEXT,
+
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+    UNIQUE(profile_id, date)
+)</syntaxhighlight>
+'''Purpose:''' Dramatically speeds up Overview and Statistics screens by pre-calculating daily aggregates.
+
+'''v16 change:''' The <code>machine_id</code> column, its FK to <code>machines</code>, and the <code>idx_daily_summaries_profile_machine</code> index were removed; the natural key changed from <code>(profile_id, date, machine_id)</code> to <code>(profile_id, date)</code>.
+
+<span id="event_lists-new-in-v8---database-only-mode"></span>
+=== 16. event_lists ⚡ '''NEW IN v8 - DATABASE-ONLY MODE''' ===
+
+EventList metadata for waveform and event data.
+
+<syntaxhighlight lang="sql">CREATE TABLE event_lists (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    profile_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    eventlist_index INTEGER NOT NULL DEFAULT 0,
+    event_type INTEGER NOT NULL,
+    first_time INTEGER NOT NULL,
+    last_time INTEGER NOT NULL,
+    count INTEGER NOT NULL,
+    rate REAL NOT NULL DEFAULT 0,
+    gain REAL NOT NULL DEFAULT 1.0,
+    offset REAL NOT NULL DEFAULT 0.0,
+    min_value REAL NOT NULL DEFAULT 0.0,
+    max_value REAL NOT NULL DEFAULT 0.0,
+    dimension TEXT,
+    has_second_field INTEGER NOT NULL DEFAULT 0,
+    min2_value REAL,
+    max2_value REAL,
+    data_size INTEGER NOT NULL DEFAULT 0,
+    compressed_size INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+    UNIQUE(session_id, channel_id, eventlist_index)
+)</syntaxhighlight>
+'''Note:''' <code>profile_id</code> added in v12 for query performance denormalization.
+
+'''Purpose:''' Stores metadata for each EventList (one row per EventList). Replaces .001 file headers. Includes timing, scaling, dimensional information, and compression statistics.
+
+'''Event Types:''' 0=Waveform (<code>EVL_Waveform</code>), 1=Event (<code>EVL_Event</code>). Values match the C++ <code>EventListType</code> enum in <code>oscar/SleepLib/event.h</code>.
+
+<span id="event_data-new-in-v8---database-only-mode"></span>
+=== 17. event_data ⚡ '''NEW IN v8 - DATABASE-ONLY MODE''' ===
+
+Binary waveform and event data storage.
+
+<syntaxhighlight lang="sql">CREATE TABLE event_data (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    eventlist_id INTEGER NOT NULL,
+    data_blob BLOB,
+    data_compressed BLOB,
+    data2_blob BLOB,
+    data2_compressed BLOB,
+    time_blob BLOB,
+    time_compressed BLOB,
+    compression_method INTEGER NOT NULL DEFAULT 0,
+    checksum INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (eventlist_id) REFERENCES event_lists(id) ON DELETE CASCADE,
+    UNIQUE(eventlist_id)
+)</syntaxhighlight>
+'''Purpose:''' Stores actual binary data arrays for each EventList (one row per EventList). Data is stored in compressed BLOB format using qCompress. Replaces .001 file data sections.
+
+'''Compression:''' Data is compressed only if it saves &gt;10% space. Either <code>data_blob</code> OR <code>data_compressed</code> is populated (not both).
+
+'''Checksum:''' CRC16 checksum of primary data for integrity verification.
+
+<span id="report_tree-new-in-v13---report-tree-replaces-reportsreport_contents"></span>
+=== 18. report_tree 🌲 '''NEW IN v13 - REPORT TREE (replaces reports/report_contents)''' ===
+
+Hierarchical report tree with System and User roots.
+
+<syntaxhighlight lang="sql">CREATE TABLE report_tree (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent_id INTEGER,
+    name TEXT NOT NULL,
+    node_type TEXT NOT NULL CHECK(node_type IN ('root', 'folder', 'report')),
+    source TEXT NOT NULL CHECK(source IN ('system', 'user')),
+    description TEXT,
+    query TEXT,
+    display_order INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_id) REFERENCES report_tree(id) ON DELETE CASCADE,
+    UNIQUE(parent_id, name)
+)</syntaxhighlight>
+'''Purpose:''' Stores the report tree used in the Reports UI. Replaces the flat <code>reports</code>/<code>report_contents</code> tables (v11) with a hierarchical structure supporting root nodes, folders, and report leaf nodes.
+
+'''Node Types:''' - <code>root</code> — top-level System or User root (parent_id = NULL) - <code>folder</code> — grouping node (e.g., “Daily Summaries”) - <code>report</code> — leaf node with a SQL query template
+
+'''Source:''' - <code>system</code> — managed by OSCAR; populated/updated from the external <code>system_reports.orf</code> file on each startup - <code>user</code> — created by the user; preserved across OSCAR upgrades
+
+'''Tree Structure Example:'''
+
+<pre>System (root, source=system)
+├── Daily Summaries (folder)
+│   ├── Days (report)
+│   ├── Weeks (report)
+│   └── Months (report)
+└── Session Statistics (folder)
+    ├── Sessions (report)
+    └── Days (report)
+User (root, source=user)
+└── My Custom Report (report)</pre>
+'''Query Templates:''' Report leaf nodes store SQL with macros (<code>#PROFILE_ID</code>, <code>#START_DATE</code>, <code>#END_DATE</code>) replaced at runtime.
+
+'''Not Profile-Specific:''' <code>report_tree</code> is global to the database and is '''not''' included in profile backups. System nodes are auto-populated from the <code>.orf</code> file; user nodes are preserved across upgrades.
+
+-----
+
+<span id="app_preferences-new-in-v14-replaces-preferences.xml"></span>
+=== 19. app_preferences 🗄️ '''NEW IN v14 — replaces Preferences.xml''' ===
+
+Global application preferences (not profile-specific).
+
+<syntaxhighlight lang="sql">CREATE TABLE app_preferences (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    category    TEXT NOT NULL DEFAULT 'general',
+    key         TEXT NOT NULL,
+    value       TEXT,
+    blob_value  BLOB,
+    data_type   TEXT,
+    created_at  TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(category, key)
+)</syntaxhighlight>
+'''data_type values:''' <code>'string'</code>, <code>'int'</code>, <code>'float'</code>, <code>'bool'</code>, <code>'datetime'</code>, <code>'date'</code>, <code>'time'</code>, <code>'blob'</code>
+
+'''Seeding:''' On first launch after upgrade, legacy <code>Preferences.xml</code> is read and its contents inserted, then the XML file is deleted.
+
+-----
+
+<span id="graph_layouts-new-in-v14-replaces-layoutsettings.shg-and-per-profile-.shg"></span>
+=== 20. graph_layouts 🗄️ '''NEW IN v14 — replaces layoutSettings/''.shg and per-profile ''.shg''' ===
+
+Unified storage for both named graph layout slots (shared, cross-profile) and per-profile current layouts.
+
+<syntaxhighlight lang="sql">CREATE TABLE graph_layouts (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id     INTEGER,
+    view_name      TEXT NOT NULL,
+    slot_index     INTEGER NOT NULL,
+    is_current     INTEGER NOT NULL DEFAULT 0,
+    description    TEXT,
+    format_version INTEGER NOT NULL,
+    data           BLOB NOT NULL,
+    created_at     TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+)
+
+CREATE UNIQUE INDEX idx_graph_layouts_named
+    ON graph_layouts(view_name, slot_index) WHERE profile_id IS NULL;
+CREATE UNIQUE INDEX idx_graph_layouts_current
+    ON graph_layouts(profile_id, view_name) WHERE is_current = 1;</syntaxhighlight>
+'''Row types (discriminated by profile_id and is_current):''' - <code>profile_id IS NULL, is_current=0</code> — shared named layout slot (user-saved, cross-profile) - <code>profile_id NOT NULL, is_current=1</code> — per-profile current layout (restored on open)
+
+'''data:''' Raw <code>QDataStream</code> binary payload identical to old <code>.shg</code> file format (magic <code>0x41756728</code>, version 5+).
+
+'''Seeding:''' On first launch after upgrade, legacy <code>layoutSettings/*.shg</code> files and per-profile <code>daily.shg</code>/<code>overview.shg</code> files are imported, then deleted.
+
+-----
+
+<span id="complete-data-dictionary"></span>
+== Complete Data Dictionary ==
+
+<span id="profiles-1"></span>
+=== profiles ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment profile ID
+|-
+| username
+| TEXT
+| UNIQUE
+| NO
+| Unique username/profile name
+|-
+| data_folder
+| TEXT
+|
+| NO
+| Path to profile data folder (portable format)
+|-
+| status
+| TEXT
+|
+| NO
+| ‘active’, ‘missing’, or ‘archived’
+|-
+| status_changed_at
+| TEXT
+|
+| YES
+| Last status change timestamp
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|-
+| updated_at
+| TEXT
+|
+| NO
+| Last update timestamp
+|}
+
+<span id="machines-1"></span>
+=== machines ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Database ID
+|-
+| profile_id
+| INTEGER
+| FK
+| NO
+| → profiles(id)
+|-
+| machine_id
+| INTEGER
+|
+| NO
+| OSCAR internal ID (unique per profile)
+|-
+| loader_name
+| TEXT
+|
+| NO
+| Loader plugin (e.g., “ResMed”)
+|-
+| machine_type
+| INTEGER
+|
+| NO
+| 0=CPAP, 1=BiLevel, etc.
+|-
+| brand
+| TEXT
+|
+| YES
+| Manufacturer name
+|-
+| model
+| TEXT
+|
+| YES
+| Device model
+|-
+| series
+| TEXT
+|
+| YES
+| Device series
+|-
+| serial_number
+| TEXT
+|
+| YES
+| Serial number
+|-
+| model_number
+| TEXT
+|
+| YES
+| Model number
+|-
+| last_imported
+| TEXT
+|
+| YES
+| Last import timestamp (ISO 8601)
+|-
+| purge_date
+| TEXT
+|
+| YES
+| Purge cutoff date (ISO 8601)
+|-
+| data_version
+| INTEGER
+|
+| NO
+| Loader data format version
+|-
+| properties
+| TEXT
+|
+| YES
+| JSON additional properties
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|}
+
+<span id="user_info-1"></span>
+=== user_info ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| profile_id
+| INTEGER
+| FK,UNIQUE
+| NO
+| → profiles(id)
+|-
+| dob
+| TEXT
+|
+| YES
+| Date of birth (ISO 8601)
+|-
+| first_name
+| TEXT
+|
+| YES
+| First name
+|-
+| last_name
+| TEXT
+|
+| YES
+| Last name
+|-
+| address
+| TEXT
+|
+| YES
+| Physical address
+|-
+| phone
+| TEXT
+|
+| YES
+| Phone number
+|-
+| email
+| TEXT
+|
+| YES
+| Email address
+|-
+| country
+| TEXT
+|
+| YES
+| Country
+|-
+| height
+| REAL
+|
+| YES
+| Height (units per preferences)
+|-
+| gender
+| INTEGER
+|
+| YES
+| 0=Not specified, 1=Male, 2=Female
+|-
+| timezone
+| TEXT
+|
+| YES
+| IANA timezone
+|-
+| password_hash
+| TEXT
+|
+| YES
+| SHA1 password hash
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|-
+| updated_at
+| TEXT
+|
+| NO
+| Update timestamp
+|}
+
+<span id="doctor_info-1"></span>
+=== doctor_info ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| profile_id
+| INTEGER
+| FK,UNIQUE
+| NO
+| → profiles(id)
+|-
+| name
+| TEXT
+|
+| YES
+| Doctor’s name
+|-
+| phone
+| TEXT
+|
+| YES
+| Phone number
+|-
+| email
+| TEXT
+|
+| YES
+| Email address
+|-
+| practice_name
+| TEXT
+|
+| YES
+| Practice name
+|-
+| address
+| TEXT
+|
+| YES
+| Practice address
+|-
+| patient_id
+| TEXT
+|
+| YES
+| Patient ID
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|-
+| updated_at
+| TEXT
+|
+| NO
+| Update timestamp
+|}
+
+<span id="profile_preferences-1"></span>
+=== profile_preferences ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| profile_id
+| INTEGER
+| FK
+| NO
+| → profiles(id)
+|-
+| category
+| TEXT
+|
+| NO
+| Category (cpap, oximetry, session, etc.)
+|-
+| key
+| TEXT
+|
+| NO
+| Preference key
+|-
+| value
+| TEXT
+|
+| YES
+| Value (as text)
+|-
+| data_type
+| TEXT
+|
+| YES
+| Type hint (int, float, bool, string, date)
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|-
+| updated_at
+| TEXT
+|
+| NO
+| Update timestamp
+|}
+
+<span id="sessions-1"></span>
+=== sessions ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Database ID
+|-
+| session_id
+| INTEGER
+|
+| NO
+| OSCAR ID (unique per machine)
+|-
+| machine_id
+| INTEGER
+| FK
+| NO
+| → machines(id)
+|-
+| start_time
+| INTEGER
+|
+| NO
+| Start (Unix timestamp)
+|-
+| end_time
+| INTEGER
+|
+| NO
+| End (Unix timestamp)
+|-
+| duration
+| INTEGER
+|
+| NO
+| Duration (milliseconds)
+|-
+| enabled
+| INTEGER
+|
+| NO
+| Enabled flag (0/1)
+|-
+| summary_only
+| INTEGER
+|
+| NO
+| Summary-only flag (0/1)
+|-
+| no_settings
+| INTEGER
+|
+| NO
+| No settings flag (0/1)
+|-
+| events_loaded
+| INTEGER
+|
+| NO
+| Events loaded flag (0/1)
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|-
+| updated_at
+| TEXT
+|
+| NO
+| Update timestamp
+|}
+
+'''Note:''' <code>events_file</code> and <code>summary_file</code> removed in v12.
+
+<span id="session_settings-1"></span>
+=== session_settings ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| session_id
+| INTEGER
+| FK
+| NO
+| → sessions(id)
+|-
+| profile_id
+| INTEGER
+| FK
+| NO
+| → profiles(id) (denormalized, NEW IN v12)
+|-
+| channel_id
+| INTEGER
+|
+| NO
+| Channel ID
+|-
+| value
+| REAL
+|
+| NO
+| Setting value
+|-
+| data_type
+| TEXT
+|
+| YES
+| Data type hint
+|-
+| json_value
+| TEXT
+|
+| YES
+| JSON value for complex data types (NEW IN v9)
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|}
+
+<span id="session_channels-1"></span>
+=== session_channels ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| session_id
+| INTEGER
+| FK
+| NO
+| → sessions(id)
+|-
+| profile_id
+| INTEGER
+| FK
+| NO
+| → profiles(id) (denormalized, NEW IN v12)
+|-
+| channel_id
+| INTEGER
+|
+| NO
+| Channel ID
+|-
+| count
+| INTEGER
+|
+| NO
+| Data point count
+|-
+| sum
+| REAL
+|
+| NO
+| Sum of values
+|-
+| avg
+| REAL
+|
+| NO
+| Average
+|-
+| wavg
+| REAL
+|
+| NO
+| Weighted average
+|-
+| min
+| REAL
+|
+| NO
+| Minimum
+|-
+| max
+| REAL
+|
+| NO
+| Maximum
+|-
+| median
+| REAL
+|
+| NO
+| Median (50th percentile) ¹
+|-
+| p90
+| REAL
+|
+| NO
+| 90th percentile ¹
+|-
+| p95
+| REAL
+|
+| NO
+| 95th percentile ¹
+|-
+| phys_min
+| REAL
+|
+| NO
+| Physical minimum
+|-
+| phys_max
+| REAL
+|
+| NO
+| Physical maximum
+|-
+| cph
+| REAL
+|
+| NO
+| Count per hour
+|-
+| sph
+| REAL
+|
+| NO
+| Sum per hour
+|-
+| first_time
+| INTEGER
+|
+| YES
+| First occurrence timestamp
+|-
+| last_time
+| INTEGER
+|
+| YES
+| Last occurrence timestamp
+|-
+| gain
+| REAL
+|
+| NO
+| Scale factor
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|}
+
+¹ <code>median</code>, <code>p90</code>, and <code>p95</code> are 0 for oximetry sessions imported before the 2026-04-25 bug fix (issue #88). A bug in <code>Machine::Save()</code> caused these values to be overwritten with 0 whenever <code>Profile::Save()</code> was called on a session whose events were not loaded in memory. Data imported after the fix is correct. Re-import is required to repair pre-fix rows; the discontinuity is accepted.
+
+<span id="session_channel_values-new-in-v7"></span>
+=== session_channel_values 🐛 '''NEW IN v7''' ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| session_channel_id
+| INTEGER
+| FK
+| NO
+| → session_channels(id)
+|-
+| value
+| INTEGER
+|
+| NO
+| The distinct value that occurred
+|-
+| count
+| INTEGER
+|
+| NO
+| Number of occurrences of this value
+|-
+| time_ms
+| INTEGER
+|
+| NO
+| Total time in milliseconds this value was held
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|}
+
+'''Critical for:''' Weighted averages, time-based statistics. Without this data, weighted averages default to simple averages, causing significant inaccuracies in pressure and other metrics.
+
+<span id="respiratory_events-1"></span>
+=== respiratory_events ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| session_id
+| INTEGER
+| FK
+| NO
+| → sessions(id)
+|-
+| profile_id
+| INTEGER
+| FK
+| NO
+| → profiles(id) (denormalized, NEW IN v12)
+|-
+| channel_id
+| INTEGER
+|
+| YES
+| OSCAR channel ID constant (NEW IN v12)
+|-
+| event_type
+| INTEGER
+|
+| NO
+| 0=OA, 1=UA, 2=H, 3=RERA, 4=CAA, 5=User
+|-
+| start_time
+| INTEGER
+|
+| NO
+| Start (Unix timestamp)
+|-
+| end_time
+| INTEGER
+|
+| NO
+| End (Unix timestamp)
+|-
+| duration
+| INTEGER
+|
+| NO
+| Duration (seconds)
+|-
+| desaturation
+| REAL
+|
+| YES
+| O₂ desaturation (%)
+|-
+| severity
+| INTEGER
+|
+| YES
+| Severity rating
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|}
+
+<span id="session_summaries-1"></span>
+=== session_summaries ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| session_id
+| INTEGER
+| FK,UNIQUE
+| NO
+| → sessions(id)
+|-
+| profile_id
+| INTEGER
+| FK
+| NO
+| → profiles(id) (denormalized, NEW IN v12)
+|-
+| ahi
+| REAL
+|
+| NO
+| Apnea-Hypopnea Index
+|-
+| rdi
+| REAL
+|
+| NO
+| Respiratory Disturbance Index
+|-
+| obstructive_count
+| INTEGER
+|
+| NO
+| OA count
+|-
+| unclassified_count
+| INTEGER
+|
+| NO
+| UA count (renamed from central_count in v10)
+|-
+| hypopnea_count
+| INTEGER
+|
+| NO
+| H Hypopnea count
+|-
+| rera_count
+| INTEGER
+|
+| NO
+| RERA count
+|-
+| clear_airway_count
+| INTEGER
+|
+| NO
+| CA count (added in v10)
+|-
+| pressure_avg
+| REAL
+|
+| YES
+| Average pressure (cmH₂O)
+|-
+| pressure_min
+| REAL
+|
+| YES
+| Min pressure
+|-
+| pressure_max
+| REAL
+|
+| YES
+| Max pressure
+|-
+| pressure_95th
+| REAL
+|
+| YES
+| 95th percentile pressure
+|-
+| leak_total_avg
+| REAL
+|
+| YES
+| Average leak (L/min)
+|-
+| leak_total_95th
+| REAL
+|
+| YES
+| 95th percentile leak
+|-
+| leak_total_max
+| REAL
+|
+| YES
+| Max leak
+|-
+| spo2_avg
+| REAL
+|
+| YES
+| Average SpO₂ (%)
+|-
+| spo2_min
+| REAL
+|
+| YES
+| Min SpO₂
+|-
+| pulse_avg
+| REAL
+|
+| YES
+| Average pulse (BPM)
+|-
+| hours_used
+| REAL
+|
+| NO
+| Hours used
+|-
+| mask_on_hours
+| REAL
+|
+| NO
+| Mask-on hours
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|-
+| updated_at
+| TEXT
+|
+| NO
+| Update timestamp
+|}
+
+'''Note:''' The old <code>central_count</code> column is retained in the database for backward compatibility but new code uses <code>unclassified_count</code>.
+
+<span id="session_slices-1"></span>
+=== session_slices ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| session_id
+| INTEGER
+| FK
+| NO
+| → sessions(id)
+|-
+| start_time
+| INTEGER
+|
+| NO
+| Slice start (Unix timestamp)
+|-
+| end_time
+| INTEGER
+|
+| NO
+| Slice end (Unix timestamp)
+|-
+| status
+| INTEGER
+|
+| NO
+| 0=mask off, 1=mask on
+|}
+
+<span id="channels-1"></span>
+=== channels ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| profile_id
+| INTEGER
+| FK
+| NO
+| → profiles(id)
+|-
+| channel_id
+| INTEGER
+|
+| NO
+| OSCAR channel ID constant
+|-
+| channel_code
+| TEXT
+|
+| NO
+| Code (e.g., “CPAP_Pressure”)
+|-
+| type
+| INTEGER
+|
+| YES
+| Channel type (NEW IN v12)
+|-
+| enabled
+| INTEGER
+|
+| NO
+| Enabled flag (0/1)
+|-
+| default_color
+| TEXT
+|
+| YES
+| Color (#RRGGBB)
+|-
+| fullname
+| TEXT
+|
+| YES
+| Full name
+|-
+| label
+| TEXT
+|
+| YES
+| Short label
+|-
+| description
+| TEXT
+|
+| YES
+| Description
+|-
+| lower_threshold
+| REAL
+|
+| YES
+| Lower threshold value
+|-
+| lower_threshold_color
+| TEXT
+|
+| YES
+| Lower threshold color
+|-
+| upper_threshold
+| REAL
+|
+| YES
+| Upper threshold value
+|-
+| upper_threshold_color
+| TEXT
+|
+| YES
+| Upper threshold color
+|-
+| show_in_overview
+| INTEGER
+|
+| NO
+| Show in overview (0/1)
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|-
+| updated_at
+| TEXT
+|
+| NO
+| Update timestamp
+|}
+
+<span id="channel_options-1"></span>
+=== channel_options ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| channel_id
+| INTEGER
+|
+| NO
+| OSCAR channel ID constant
+|-
+| option_key
+| INTEGER
+|
+| NO
+| Numeric key
+|-
+| option_value
+| TEXT
+|
+| NO
+| Text value
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|}
+
+<span id="daily_summaries-new-per-machine-dimension-dropped-in-v16"></span>
+=== daily_summaries ⭐ NEW (per-machine dimension dropped in v16) ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| profile_id
+| INTEGER
+| FK
+| NO
+| → profiles(id)
+|-
+| date
+| TEXT
+|
+| NO
+| Date (YYYY-MM-DD); UNIQUE with profile_id
+|-
+| session_count
+| INTEGER
+|
+| NO
+| Total sessions
+|-
+| enabled_session_count
+| INTEGER
+|
+| NO
+| Enabled sessions
+|-
+| total_hours
+| REAL
+|
+| NO
+| Total CPAP hours
+|-
+| mask_on_hours
+| REAL
+|
+| NO
+| Mask-on hours
+|-
+| ahi
+| REAL
+|
+| NO
+| Apnea-Hypopnea Index
+|-
+| rdi
+| REAL
+|
+| NO
+| Respiratory Disturbance Index
+|-
+| obstructive_count
+| INTEGER
+|
+| NO
+| OA count
+|-
+| central_count
+| INTEGER
+|
+| NO
+| UA count
+|-
+| hypopnea_count
+| INTEGER
+|
+| NO
+| Hypopnea count
+|-
+| rera_count
+| INTEGER
+|
+| NO
+| RERA count
+|-
+| clear_airway_count
+| INTEGER
+|
+| NO
+| CA Clear airway count
+|-
+| pressure_avg
+| REAL
+|
+| YES
+| Average pressure (cmH₂O)
+|-
+| pressure_min
+| REAL
+|
+| YES
+| Min pressure
+|-
+| pressure_max
+| REAL
+|
+| YES
+| Max pressure
+|-
+| pressure_95th
+| REAL
+|
+| YES
+| 90th percentile pressure
+|-
+| leak_total_avg
+| REAL
+|
+| YES
+| Average leak (L/min)
+|-
+| leak_total_95th
+| REAL
+|
+| YES
+| 90th percentile leak
+|-
+| leak_total_max
+| REAL
+|
+| YES
+| Max leak
+|-
+| leak_unintentional_avg
+| REAL
+|
+| YES
+| Average unintentional leak
+|-
+| spo2_avg
+| REAL
+|
+| YES
+| Average SpO₂ (%)
+|-
+| spo2_min
+| REAL
+|
+| YES
+| Min SpO₂
+|-
+| pulse_avg
+| REAL
+|
+| YES
+| Average pulse (BPM)
+|-
+| pulse_min
+| REAL
+|
+| YES
+| Min pulse
+|-
+| pulse_max
+| REAL
+|
+| YES
+| Max pulse
+|-
+| is_compliant
+| INTEGER
+|
+| NO
+| Compliance flag (≥4 hours)
+|-
+| has_oximetry
+| INTEGER
+|
+| NO
+| Has oximetry data
+|-
+| calculated_at
+| TEXT
+|
+| NO
+| Calculation timestamp
+|-
+| sessions_hash
+| TEXT
+|
+| YES
+| Cache invalidation hash
+|}
+
+'''Performance Impact:''' Queries that previously took 2-3 seconds now complete in &lt;100ms.
+
+<span id="event_lists-new-in-v8"></span>
+=== event_lists ⚡ '''NEW IN v8''' ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| session_id
+| INTEGER
+| FK
+| NO
+| → sessions(id)
+|-
+| profile_id
+| INTEGER
+| FK
+| NO
+| → profiles(id) (denormalized, NEW IN v12)
+|-
+| channel_id
+| INTEGER
+|
+| NO
+| OSCAR channel ID
+|-
+| eventlist_index
+| INTEGER
+|
+| NO
+| Index when multiple EventLists per channel
+|-
+| event_type
+| INTEGER
+|
+| NO
+| 0=Waveform, 1=Event (matches <code>EventListType</code> enum)
+|-
+| first_time
+| INTEGER
+|
+| NO
+| First timestamp (Unix ms)
+|-
+| last_time
+| INTEGER
+|
+| NO
+| Last timestamp (Unix ms)
+|-
+| count
+| INTEGER
+|
+| NO
+| Number of data points
+|-
+| rate
+| REAL
+|
+| NO
+| Sample rate (ms) for waveforms
+|-
+| gain
+| REAL
+|
+| NO
+| Scale factor (default 1.0)
+|-
+| offset
+| REAL
+|
+| NO
+| Offset value (default 0.0)
+|-
+| min_value
+| REAL
+|
+| NO
+| Minimum value
+|-
+| max_value
+| REAL
+|
+| NO
+| Maximum value
+|-
+| dimension
+| TEXT
+|
+| YES
+| Units (e.g., “cmH₂O”, “L/min”)
+|-
+| has_second_field
+| INTEGER
+|
+| NO
+| Has secondary data array (0/1)
+|-
+| min2_value
+| REAL
+|
+| YES
+| Min of secondary field
+|-
+| max2_value
+| REAL
+|
+| YES
+| Max of secondary field
+|-
+| data_size
+| INTEGER
+|
+| NO
+| Uncompressed size (bytes)
+|-
+| compressed_size
+| INTEGER
+|
+| YES
+| Compressed size (bytes)
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|}
+
+'''Replaces:''' .001 file headers. Each row represents one EventList from the Session class.
+
+<span id="event_data-new-in-v8"></span>
+=== event_data ⚡ '''NEW IN v8''' ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| eventlist_id
+| INTEGER
+| FK,UNIQUE
+| NO
+| → event_lists(id)
+|-
+| data_blob
+| BLOB
+|
+| YES
+| Uncompressed primary data (qint16 array)
+|-
+| data_compressed
+| BLOB
+|
+| YES
+| Compressed primary data (qCompress level 6)
+|-
+| data2_blob
+| BLOB
+|
+| YES
+| Uncompressed secondary data
+|-
+| data2_compressed
+| BLOB
+|
+| YES
+| Compressed secondary data
+|-
+| time_blob
+| BLOB
+|
+| YES
+| Uncompressed time deltas (quint32 array)
+|-
+| time_compressed
+| BLOB
+|
+| YES
+| Compressed time deltas
+|-
+| compression_method
+| INTEGER
+|
+| NO
+| 0=none, 1=qCompress
+|-
+| checksum
+| INTEGER
+|
+| YES
+| CRC16 checksum of primary data
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|}
+
+'''Replaces:''' .001 file data sections. '''Compression:''' Only one of each pair (blob/compressed) is populated. Compression used only if &gt;10% space savings. '''Typical compression:''' 40-60% for CPAP waveform data.
+
+<span id="report_tree-new-in-v13-replaces-reportsreport_contents-from-v11"></span>
+=== report_tree 🌲 '''NEW IN v13 (replaces reports/report_contents from v11)''' ===
+
+{| class="wikitable"
+|-
+! Field
+! Type
+! Key
+! Null
+! Description
+|-
+| id
+| INTEGER
+| PK
+| NO
+| Auto-increment ID
+|-
+| parent_id
+| INTEGER
+| FK
+| YES
+| → report_tree(id); NULL for root nodes
+|-
+| name
+| TEXT
+|
+| NO
+| Node name (unique within parent)
+|-
+| node_type
+| TEXT
+|
+| NO
+| ‘root’, ‘folder’, or ‘report’
+|-
+| source
+| TEXT
+|
+| NO
+| ‘system’ or ‘user’
+|-
+| description
+| TEXT
+|
+| YES
+| Node description
+|-
+| query
+| TEXT
+|
+| YES
+| SQL query template (report nodes only)
+|-
+| display_order
+| INTEGER
+|
+| NO
+| Sort order for UI display
+|-
+| created_at
+| TEXT
+|
+| NO
+| Creation timestamp
+|-
+| updated_at
+| TEXT
+|
+| NO
+| Last update timestamp
+|}
+
+'''System nodes:''' Managed by OSCAR; populated/updated from the external <code>system_reports.orf</code> file on each startup. '''User nodes:''' Created by the user; preserved across OSCAR upgrades. '''Query macros:''' <code>#PROFILE_ID</code>, <code>#START_DATE</code>, <code>#END_DATE</code> replaced at runtime.
+
+-----
+
+<span id="database-indexes"></span>
+== Database Indexes ==
+
+<span id="profile-machine-indexes"></span>
+=== Profile &amp; Machine Indexes ===
+
+<syntaxhighlight lang="sql">idx_profiles_username ON profiles(username)
+idx_machines_profile ON machines(profile_id)
+idx_machines_serial ON machines(serial_number)
+idx_machines_loader ON machines(loader_name)</syntaxhighlight>
+<span id="user-doctor-indexes"></span>
+=== User &amp; Doctor Indexes ===
+
+<syntaxhighlight lang="sql">idx_user_info_profile ON user_info(profile_id)
+idx_doctor_info_profile ON doctor_info(profile_id)</syntaxhighlight>
+<span id="preferences-indexes"></span>
+=== Preferences Indexes ===
+
+<syntaxhighlight lang="sql">idx_preferences_profile ON profile_preferences(profile_id)
+idx_preferences_category ON profile_preferences(profile_id, category)
+idx_preferences_key ON profile_preferences(profile_id, category, key)</syntaxhighlight>
+<span id="session-indexes"></span>
+=== Session Indexes ===
+
+<syntaxhighlight lang="sql">idx_sessions_machine ON sessions(machine_id)
+idx_sessions_time ON sessions(start_time, end_time)
+idx_sessions_enabled ON sessions(machine_id, enabled)</syntaxhighlight>
+<span id="session-data-indexes"></span>
+=== Session Data Indexes ===
+
+<syntaxhighlight lang="sql">idx_session_settings_session ON session_settings(session_id)
+idx_session_settings_channel ON session_settings(session_id, channel_id)
+idx_session_channels_session ON session_channels(session_id)
+idx_session_channels_channel ON session_channels(channel_id)
+idx_session_channels_lookup ON session_channels(session_id, channel_id)</syntaxhighlight>
+<span id="event-indexes"></span>
+=== Event Indexes ===
+
+<syntaxhighlight lang="sql">idx_respiratory_events_session ON respiratory_events(session_id)
+idx_respiratory_events_type ON respiratory_events(session_id, event_type)
+idx_respiratory_events_time ON respiratory_events(start_time, end_time)</syntaxhighlight>
+<span id="summary-slice-indexes"></span>
+=== Summary &amp; Slice Indexes ===
+
+<syntaxhighlight lang="sql">idx_session_summaries_session ON session_summaries(session_id)
+idx_session_summaries_ahi ON session_summaries(ahi)
+idx_session_slices_session ON session_slices(session_id)
+idx_session_slices_time ON session_slices(start_time, end_time)</syntaxhighlight>
+<span id="channel-indexes"></span>
+=== Channel Indexes ===
+
+<syntaxhighlight lang="sql">idx_channels_profile ON channels(profile_id)
+idx_channels_code ON channels(channel_code)
+idx_channels_lookup ON channels(profile_id, channel_id)
+idx_channel_options_channel ON channel_options(channel_id)
+idx_channel_options_lookup ON channel_options(channel_id, option_key)</syntaxhighlight>
+<span id="daily-summaries-indexes-new-in-v6-profile_machine-index-dropped-in-v16"></span>
+=== Daily Summaries Indexes ⭐ NEW IN v6 (profile_machine index dropped in v16) ===
+
+<syntaxhighlight lang="sql">idx_daily_summaries_profile_date ON daily_summaries(profile_id, date)
+idx_daily_summaries_ahi ON daily_summaries(ahi)
+idx_daily_summaries_compliance ON daily_summaries(profile_id, is_compliant)
+idx_daily_summaries_date_range ON daily_summaries(profile_id, date DESC)</syntaxhighlight>
+<span id="event-data-indexes-new-in-v8"></span>
+=== Event Data Indexes ⚡ NEW IN v8 ===
+
+<syntaxhighlight lang="sql">idx_event_lists_session ON event_lists(session_id)
+idx_event_lists_channel ON event_lists(session_id, channel_id)
+idx_event_lists_type ON event_lists(event_type)
+idx_event_lists_time ON event_lists(session_id, first_time, last_time)
+idx_event_data_eventlist ON event_data(eventlist_id)</syntaxhighlight>
+<span id="profile-id-denormalization-indexes-new-in-v12"></span>
+=== Profile ID Denormalization Indexes 🔧 NEW IN v12 ===
+
+<syntaxhighlight lang="sql">idx_session_summaries_profile ON session_summaries(profile_id)
+idx_session_summaries_profile_date ON session_summaries(profile_id, session_id)
+idx_session_settings_profile ON session_settings(profile_id)
+idx_session_settings_profile_channel ON session_settings(profile_id, channel_id)
+idx_session_channels_profile ON session_channels(profile_id)
+idx_session_channels_profile_channel ON session_channels(profile_id, channel_id)
+idx_event_lists_profile ON event_lists(profile_id)
+idx_event_lists_profile_channel ON event_lists(profile_id, channel_id)
+idx_respiratory_events_profile ON respiratory_events(profile_id)
+idx_respiratory_events_profile_type ON respiratory_events(profile_id, event_type)</syntaxhighlight>
+<span id="report-tree-indexes-new-in-v13"></span>
+=== Report Tree Indexes 🌲 NEW IN v13 ===
+
+<syntaxhighlight lang="sql">idx_report_tree_parent ON report_tree(parent_id)
+idx_report_tree_source ON report_tree(source)
+idx_report_tree_type ON report_tree(node_type)</syntaxhighlight>
+
+-----
+
+<span id="foreign-key-relationships"></span>
+== Foreign Key Relationships ==
+
+<span id="entity-relationship-diagram"></span>
+=== Entity Relationship Diagram ===
+
+<pre>profiles (1) ──┬─&lt; machines (N)
+               ├─&lt; user_info (1)
+               ├─&lt; doctor_info (1)
+               ├─&lt; profile_preferences (N)
+               ├─&lt; channels (N)
+               ├─&lt; daily_summaries (N)
+               ├─&lt; session_settings (N)    [denormalized profile_id, v12]
+               ├─&lt; session_channels (N)    [denormalized profile_id, v12]
+               ├─&lt; session_summaries (N)   [denormalized profile_id, v12]
+               ├─&lt; event_lists (N)         [denormalized profile_id, v12]
+               └─&lt; respiratory_events (N)  [denormalized profile_id, v12]
+
+machines (1) ──── sessions (N)
+
+sessions (1) ──┬─&lt; session_settings (N)
+               ├─&lt; session_channels (N)
+               ├─&lt; respiratory_events (N)
+               ├─&lt; session_summaries (1)
+               ├─&lt; session_slices (N)
+               └─&lt; event_lists (N)
+
+event_lists (1) ─&lt; event_data (1)
+
+session_channels (1) ─&lt; session_channel_values (N)
+
+report_tree (1) ─&lt; report_tree (N)   [self-referencing parent_id, v13]
+
+channel_options (N) - standalone (references channel_id constant)
+report_tree (N) - global (not profile-specific) 🌲 NEW IN v13</pre>
+<span id="foreign-key-details"></span>
+=== Foreign Key Details ===
+
+{| class="wikitable"
+|-
+! Child Table
+! FK Column
+! Parent Table
+! Parent Column
+! On Delete
+|-
+| machines
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| user_info
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| doctor_info
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| profile_preferences
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| channels
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| daily_summaries
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| sessions
+| machine_id
+| machines
+| id
+| CASCADE
+|-
+| session_settings
+| session_id
+| sessions
+| id
+| CASCADE
+|-
+| session_settings
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| session_channels
+| session_id
+| sessions
+| id
+| CASCADE
+|-
+| session_channels
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| session_channel_values
+| session_channel_id
+| session_channels
+| id
+| CASCADE
+|-
+| respiratory_events
+| session_id
+| sessions
+| id
+| CASCADE
+|-
+| respiratory_events
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| session_summaries
+| session_id
+| sessions
+| id
+| CASCADE
+|-
+| session_summaries
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| session_slices
+| session_id
+| sessions
+| id
+| CASCADE
+|-
+| event_lists
+| session_id
+| sessions
+| id
+| CASCADE
+|-
+| event_lists
+| profile_id
+| profiles
+| id
+| CASCADE
+|-
+| event_data
+| eventlist_id
+| event_lists
+| id
+| CASCADE
+|-
+| report_tree
+| parent_id
+| report_tree
+| id
+| CASCADE
+|}
+
+'''Cascade Delete Behavior:''' - Deleting '''profile''' removes: machines, user_info, doctor_info, preferences, channels, daily_summaries, session_settings, session_channels, session_summaries, event_lists, respiratory_events (all denormalized profile_id FKs) - Deleting '''machine''' removes: sessions (and their data). <code>daily_summaries</code> rows survive, since v16 they no longer reference a machine. - Deleting '''session''' removes: settings, channels, events, summaries, slices, event_lists (which cascades to event_data) - Deleting '''event_list''' removes: event_data (waveform/event binary data) - Deleting '''report_tree node''' removes: all child nodes (self-referencing cascade)
+
+-----
+
+<span id="data-storage-philosophy"></span>
+== Data Storage Philosophy ==
+
+'''⚡ Database-Only Approach (v8+):''' - '''Database''': ALL data including waveforms, events, metadata, settings, summaries, daily aggregates - '''Files''': DEPRECATED - .001 files no longer used for event/waveform data
+
+'''Rationale:''' - SQLite excellent for structured metadata, queries, AND binary data (BLOBs) - Database storage provides ACID transactions, referential integrity, and atomic operations - Compressed BLOBs achieve 40-60% compression, comparable to .001 file format - Single-file database simplifies backup, restore, and data management - Eliminates file synchronization issues between database and .001 files - Daily summaries enable lightning-fast reports without loading sessions
+
+'''Migration:''' Existing .001 files are read once during upgrade, then data is migrated to event_data table and .001 files can be deleted.
+
+-----
+
+<span id="performance-considerations"></span>
+== Performance Considerations ==
+
+* '''Indexes''' optimize common query patterns
+* '''Foreign keys''' ensure referential integrity
+* '''Cascade deletes''' simplify data management
+* '''Session summaries''' provide fast statistics per session
+* '''Daily summaries''' provide ultra-fast statistics per day (20-100x faster)
+* '''BLOB compression''' reduces database size by 40-60% for waveform data ⚡ NEW IN v8
+* '''Transactional safety''' ensures data integrity across all operations ⚡ NEW IN v8
+
+-----
+
+<span id="schema-v6-highlights"></span>
+== Schema v6 Highlights ==
+
+The daily_summaries table (new in v6) provides: - '''Pre-calculated daily statistics''' for all CPAP metrics - '''Automatic population''' during data load - '''35 statistics per day''' including AHI, RDI, pressure, leak, oximetry - '''Fast queries''' for Overview and Statistics screens (&lt;100ms vs 2-3 seconds) - '''One row per profile-day''' (machine_id removed in v16; see v16 highlights below) - '''Cache invalidation''' via sessions_hash field
+
+<span id="schema-v7-highlights-bug-fix"></span>
+== Schema v7 Highlights 🐛 '''BUG FIX''' ==
+
+The session_channel_values table (new in v7) provides: - '''Fixes critical bug''' where value/time summaries were not persisted to database - '''Stores m_valuesummary and m_timesummary''' hash data for each channel - '''Enables accurate weighted averages''' and time-based statistics - '''Impact''': Without this table, weighted averages defaulted to simple averages, causing significant inaccuracies in pressure statistics and other metrics - '''Automatic migration''' from schema version 6 to 7 - '''Note''': Existing sessions will need to be re-saved to populate this data (happens automatically on next import)
+
+<span id="schema-v8-highlights-major-change---database-only-mode"></span>
+== Schema v8 Highlights ⚡ '''MAJOR CHANGE - DATABASE-ONLY MODE''' ==
+
+The event_lists and event_data tables (new in v8) provide revolutionary database-only storage:
+
+'''What Changed:''' - '''Eliminates .001 files''' - All waveform/event data now stored in database BLOBs - '''Two new tables''': event_lists (metadata) and event_data (binary data) - '''Compressed storage''' - qCompress level 9 achieves 40-60% compression - '''Transactional integrity''' - All data protected by ACID transactions - '''Simpler data model''' - Single database file instead of database + thousands of .001 files
+
+'''Benefits:''' - '''Data integrity''' - Foreign key constraints ensure waveform data consistency with sessions - '''Atomic operations''' - Import/delete operations are fully transactional - '''Simplified backup''' - Single database file contains ALL user data - '''Better performance''' - Eliminates file system overhead for thousands of small files - '''Cross-platform''' - No file path issues, permissions problems, or filename limitations - '''Checksum verification''' - CRC16 checksums ensure data integrity
+
+'''Migration Strategy:''' - '''Automatic''' - Existing .001 files read once on first load after upgrade - '''Data preserved''' - All waveform/event data migrated to event_data table - '''Backward compatible''' - Can still read old .001 files if database migration fails - '''File cleanup''' - After successful migration, .001 files can be safely deleted
+
+'''Storage Efficiency:''' - Compression ratio: 40-60% (comparable to .001 format) - Typical session: 50-200 KB compressed in database - Overhead per EventList: ~200 bytes metadata in event_lists table - Net result: Similar or smaller database size compared to .001 files
+
+'''Performance Impact:''' - Load times: Comparable to .001 file loading - Memory usage: Unchanged (data still decompressed to memory) - Query flexibility: Can now query waveform metadata without loading full data - Transaction safety: Significantly improved vs file-based storage
+
+'''Note''': Re-import CPAP data after upgrade to migrate from .001 files to database storage.
+
+<span id="schema-v9-highlights-enhancement"></span>
+== Schema v9 Highlights 📝 '''ENHANCEMENT''' ==
+
+The <code>json_value</code> column in <code>session_settings</code> (added in v9) provides:
+
+'''What Changed:''' - '''New column''': Added <code>json_value TEXT</code> column to <code>session_settings</code> table - '''Complex data support''': Enables storing structured/complex data as JSON - '''Journal migration''': Supports migrating journal-type data to the database
+
+'''Use Cases:''' - '''Bookmark data''': User-created bookmarks with timestamps and descriptions - '''Session notes''': Rich text or structured notes attached to sessions - '''Custom fields''': Any complex settings that don’t fit the simple value model - '''Inter-session data''': Data spanning multiple sessions (e.g., sleep diary entries)
+
+'''Benefits:''' - '''Flexibility''': JSON format accommodates diverse data structures - '''Future-proofing''': Supports new data types without schema changes - '''Consolidation''': Moves more data from files into the database - '''Query capability''': JSON fields can be queried using SQLite’s JSON functions
+
+'''Migration Impact:''' - '''Automatic upgrade''': Existing databases get the new column added - '''Backward compatible''': Old data without json_value continues to work - '''No data loss''': Existing session_settings records remain unchanged
+
+<span id="schema-v10-highlights-semantic-fix"></span>
+== Schema v10 Highlights 🔧 '''SEMANTIC FIX''' ==
+
+The schema v10 changes provide semantic correctness for apnea event classification:
+
+'''What Changed:''' - '''Renamed field''': <code>central_count</code> → <code>unclassified_count</code> in both <code>session_summaries</code> and <code>daily_summaries</code> tables - '''New field''': Added <code>clear_airway_count</code> to <code>session_summaries</code> table - '''Data preservation''': Existing <code>central_count</code> data copied to <code>unclassified_count</code> during migration - '''Backward compatibility''': Old <code>central_count</code> column retained but ignored by new code
+
+'''Why This Change:''' - '''Semantic accuracy''': Most CPAP machines cannot distinguish between true Central Apneas and other unclassified events - '''Correct terminology''': “Unclassified Apnea” (UA) is more accurate than assuming all are “Central Apnea” (CA) - '''Clear Airway support''': Enables proper tracking of Clear Airway Apneas (CAA) which some advanced machines can detect
+
+'''Impact:''' - '''AHI calculation unchanged''': Both CA and UA events count toward AHI - '''Better reporting''': Users see more accurate event classifications - '''Future-proofing''': Supports advanced machines that can differentiate event types
+
+'''Migration:''' - '''Automatic''': Schema upgrade copies central_count → unclassified_count - '''No data loss''': All existing event counts preserved - '''UI updates''': Reports and statistics screens updated to use new terminology
+
+<span id="schema-v11-highlights-new-feature---csv-export-reports"></span>
+== Schema v11 Highlights 📊 '''NEW FEATURE - CSV EXPORT REPORTS''' ==
+
+The schema v11 changes introduced database-driven CSV export reports (later redesigned in v13):
+
+'''What Changed:''' - '''New tables''': Added <code>reports</code> and <code>report_contents</code> tables - '''Macro-based queries''': SQL templates with runtime substitution (#PROFILE_ID, #START_DATE, #END_DATE) - '''Report varieties''': Each report supports multiple aggregation levels (Days, Weeks, Months)
+
+'''Note:''' These tables were replaced by <code>report_tree</code> in v13. See Schema v13 Highlights.
+
+-----
+
+<span id="schema-v12-highlights-denormalization-and-cleanup"></span>
+== Schema v12 Highlights 🔧 '''DENORMALIZATION AND CLEANUP''' ==
+
+'''What Changed:''' - '''Profile ID denormalization''': Added <code>profile_id</code> column to <code>session_settings</code>, <code>session_channels</code>, <code>session_summaries</code>, and <code>event_lists</code> for direct profile-level queries without joining through machines/sessions - '''Respiratory events enriched''': Added <code>profile_id</code> and <code>channel_id</code> to <code>respiratory_events</code> - '''Channels type''': Added <code>type INTEGER</code> column to <code>channels</code> - '''Sessions simplified''': Removed <code>events_file</code> and <code>summary_file</code> columns (legacy .001 file references no longer needed) - '''No-migration policy introduced''': Schema version mismatch now requires a fresh database and data reimport. Incremental migrations are no longer supported.
+
+'''Why Denormalization:''' - Enables efficient queries like “all sessions for profile X” without joining through machines - Allows direct profile-level filtering on event_lists, session_summaries, and respiratory_events - Significant query performance improvement for reporting screens
+
+'''Impact of No-Migration Policy:''' - Users upgrading from v11 or earlier must reimport their CPAP data - Eliminates complex migration code and reduces maintenance burden - Ensures data integrity — no partial or broken upgrade states
+
+-----
+
+<span id="schema-v13-highlights-report-tree-redesign"></span>
+== Schema v13 Highlights 🌲 '''REPORT TREE REDESIGN''' ==
+
+'''What Changed:''' - '''Replaced <code>reports</code>/<code>report_contents</code>''' (v11) with a single self-referencing <code>report_tree</code> table - '''Hierarchical structure''': Root nodes → Folders → Report leaf nodes - '''System/User split''': <code>source</code> column distinguishes OSCAR-managed vs user-created nodes - '''External orf file''': System reports loaded from <code>system_reports.orf</code> on each startup (allows report updates without schema changes)
+
+'''Benefits:''' - '''Flexibility''': Supports unlimited nesting depth (folders within folders) - '''Separation''': System and user reports clearly delineated - '''Maintainability''': System reports updated via <code>.orf</code> file, not schema migrations - '''Simpler schema''': One table instead of two for the same functionality
+
+'''Tree Initialization:''' - At first install: root nodes and system reports populated from <code>.orf</code> file - At startup: system reports refreshed if OSCAR version changed; user reports untouched - User-created reports: preserved across all OSCAR upgrades
+
+-----
+
+<span id="schema-v16-highlights-daily-summaries-remove-per-machine-dimension"></span>
+== Schema v16 Highlights 🔧 '''DAILY SUMMARIES — REMOVE PER-MACHINE DIMENSION''' ==
+
+'''What Changed:''' - Dropped <code>machine_id</code> column, its FK to <code>machines</code>, and the <code>idx_daily_summaries_profile_machine</code> index from <code>daily_summaries</code>. - Natural key changed from <code>UNIQUE(profile_id, date, machine_id)</code> to <code>UNIQUE(profile_id, date)</code>. - <code>DailySummaryRepository</code> API methods that previously took an optional <code>machineId</code> parameter (<code>findByProfileAndDate</code>, <code>findRange</code>, <code>calculateAndStore</code>, <code>calculateAndStoreFromDay</code>, <code>exists</code>) now take only the profile/date arguments. - Restore code’s special-case for remapping <code>daily_summaries.machine_id</code> was removed; v15 backups still restore cleanly because the existing <code>validColumns</code> filter (built from <code>PRAGMA table_info</code>) silently drops the column.
+
+'''Why:''' A <code>daily_summaries</code> row is a profile-day rollup. The <code>Day</code> object it mirrors already aggregates across all machines that contributed sessions to that OSCAR day (one CPAP plus zero or more oximetry/auxiliary devices). The <code>machine_id</code> column was a design mistake: every caller passed <code>0</code> intending “combined”, but the calculation code silently rewrote that to the first enabled CPAP session’s machine id, contradicting the original “NULL = combined” documentation. The corresponding read-side helpers (<code>findByProfileAndDate</code> with default args, <code>findRange</code>, <code>exists</code>) queried <code>machine_id IS NULL</code> and so could never find the rows the writer stored. None of those finders had any in-tree callers, which is why the mismatch was invisible.
+
+'''Migration:''' <code>migrateV15ToV16</code> rebuilds the table (SQLite cannot drop a column inside a UNIQUE constraint without a rebuild). Data is copied via <code>INSERT OR REPLACE</code> ordered to prefer machine-bound rows over NULL rows on the (profile_id, date) key. In current deployments every existing row already maps cleanly to a unique (profile_id, date) tuple, so the dedup is defensive only.
+
+-----
+
+'''Document Version:''' 8.1 '''Schema Version:''' 16 '''Generated:''' 2026 Q2
