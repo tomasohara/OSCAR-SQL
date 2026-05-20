@@ -117,6 +117,7 @@ void Day::addSession(Session *s)
         qDebug() << "addSession called with null session pointer";
         return;
     }
+    s->m_night = d_date;
     invalidate();
     auto mi = machines.find(s->type());
     if (mi != machines.end()) {
@@ -131,7 +132,7 @@ void Day::addSession(Session *s)
         machines[s->type()] = s->machine();
     }
 
-    if (s->first() == 0) {
+    if (s->realFirst() == 0) {
         qWarning() << "Day::addSession discarding session" << s->session()
                  << "from machine" << s->machine()->serial() << "with first=0";
         return;

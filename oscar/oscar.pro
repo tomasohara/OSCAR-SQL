@@ -313,6 +313,10 @@ SOURCES += \
     csv.cpp \
     daily.cpp \
     dailySearchTab.cpp \
+    devicetimecorrectiondialog.cpp \
+    timealignmentwelcomedialog.cpp \
+    driftanalysisdialog.cpp \
+    driftplotwidget.cpp \
     backupdialog.cpp \
     restoredialog.cpp \
     sharedialog.cpp \
@@ -436,6 +440,7 @@ SOURCES += \
     database/event_list_repository.cpp \
     database/event_data_repository.cpp \
     database/respiratory_events_repository.cpp \
+    database/device_time_correction_repository.cpp \
     database/report_repository.cpp \
     database/reports_initializer.cpp \
     database/report_contents_repository.cpp \
@@ -485,6 +490,11 @@ HEADERS  += \
     overview.h \
     common_gui.h \
     cprogressbar.h \
+    borrowingtimeedit.h \
+    devicetimecorrectiondialog.h \
+    timealignmentwelcomedialog.h \
+    driftanalysisdialog.h \
+    driftplotwidget.h \
     backupdialog.h \
     restoredialog.h \
     sharedialog.h \
@@ -614,6 +624,7 @@ HEADERS  += \
     database/event_list_repository.h \
     database/event_data_repository.h \
     database/respiratory_events_repository.h \
+    database/device_time_correction_repository.h \
     database/report_repository.h \
     database/report_contents_repository.h \
     database/report_tree_repository.h \
@@ -644,6 +655,8 @@ FORMS += \
     oximetry.ui \
     preferencesdialog.ui \
     newprofile.ui \
+    devicetimecorrectiondialog.ui \
+    driftanalysisdialog.ui \
     backupdialog.ui \
     restoredialog.ui \
     sharedialog.ui \

@@ -81,7 +81,6 @@ void gLineOverlayBar::paint(QPainter &painter, gGraph &w, const QRegion &region)
     QHash<ChannelID, QVector<EventList *> >::iterator cei;
     int count;
 
-    qint64 clockdrift = qint64(p_profile->cpap->clockDrift()) * 1000L;
     qint64 drift = 0;
     //bool hover = false;
 
@@ -97,7 +96,7 @@ void gLineOverlayBar::paint(QPainter &painter, gGraph &w, const QRegion &region)
 
         if (cei.value().size() == 0) { continue; }
 
-        drift = (sess->type() == MT_CPAP) ? clockdrift : 0;
+        drift = sess->correctionMs();
 
         // Could loop through here, but nowhere uses more than one yet..
         for (const auto & el : cei.value()) {

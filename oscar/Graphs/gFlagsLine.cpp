@@ -365,7 +365,6 @@ void gFlagsLine::paint(QPainter &painter, gGraph &w, const QRegion &region)
     int idx;
     QHash<ChannelID, QVector<EventList *> >::iterator cei;
 
-    qint64 clockdrift = qint64(p_profile->cpap->clockDrift()) * 1000L;
     qint64 drift = 0;
 
     QVector<QLine> vlines;
@@ -384,7 +383,7 @@ void gFlagsLine::paint(QPainter &painter, gGraph &w, const QRegion &region)
             continue;
         }
 
-        drift = (sess->type() == MT_CPAP) ? clockdrift : 0;
+        drift = sess->correctionMs();
 
         cei = sess->eventlist.find(m_code);
 

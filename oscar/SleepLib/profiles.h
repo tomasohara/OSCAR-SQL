@@ -432,6 +432,7 @@ const QString STR_US_StatReportRangeEnd = "StatReportRangeEnd";
 const QString STR_US_LastOverviewRange = "LastOverviewRange";
 const QString STR_US_CustomOverviewRangeStart = "CustomOverviewRangeStart";
 const QString STR_US_CustomOverviewRangeEnd = "CustomOverviewRangeEnd";
+const QString STR_US_SkipTimeAlignWelcome = "SkipTimeAlignWelcome";
 
 // Values for StatReportMode
 const int STAT_MODE_STANDARD = 0;
@@ -897,6 +898,7 @@ class UserSettings : public PrefSettings
         initPref(STR_US_StatReportRangeEnd, QDate(1,1,2000));
         m_showUnownFlags = initPref(STR_US_ShowUnknownFlags, false).toBool();
         initPref(STR_US_LastOverviewRange, 4);
+        initPref(STR_US_SkipTimeAlignWelcome, false);
     }
 
     UnitSystem unitSystem() const { return (UnitSystem)getPref(STR_US_UnitSystem).toInt(); }
@@ -915,6 +917,7 @@ class UserSettings : public PrefSettings
     int lastOverviewRange() const { return getPref(STR_US_LastOverviewRange).toInt(); }
     QDate customOverviewRangeStart () const { return getPref(STR_US_CustomOverviewRangeStart).toDate(); }
     QDate customOverviewRangeEnd () const { return getPref(STR_US_CustomOverviewRangeEnd).toDate(); }
+    bool skipTimeAlignWelcome() const { return getPref(STR_US_SkipTimeAlignWelcome).toBool(); }
 
     void setUnitSystem(UnitSystem us) { setPref(STR_US_UnitSystem, (int)us); }
     void setEventWindowSize(double size) { setPref(STR_US_EventWindowSize, size); }
@@ -932,6 +935,7 @@ class UserSettings : public PrefSettings
     void setLastOverviewRange(int i) { setPref(STR_US_LastOverviewRange, i); }
     void setCustomOverviewRangeStart(QDate i) { setPref(STR_US_CustomOverviewRangeStart, i); }
     void setCustomOverviewRangeEnd(QDate i) { setPref(STR_US_CustomOverviewRangeEnd, i); }
+    void setSkipTimeAlignWelcome(bool skip) { setPref(STR_US_SkipTimeAlignWelcome, skip); }
 
     //! \brief Refresh cached member variables from the underlying preference map (call after loading from DB).
     void refreshCachedValues() {

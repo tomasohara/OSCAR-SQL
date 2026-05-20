@@ -534,7 +534,6 @@ void gLineChart::paint(QPainter &painter, gGraph &w, const QRegion &region)
     int total_points = 0;
     //int total_visible = 0;
     bool square_plot, accel;
-    qint64 clockdrift = qint64(p_profile->cpap->clockDrift()) * 1000L;
     qint64 drift = 0;
 
     QHash<ChannelID, QVector<EventList *> >::iterator ci;
@@ -598,7 +597,7 @@ void gLineChart::paint(QPainter &painter, gGraph &w, const QRegion &region)
                 continue;
             }
 
-            drift = (sess->type() == MT_CPAP) ? clockdrift : 0;
+            drift = sess->correctionMs();
 
             if (!sess->enabled()) { continue; }
 

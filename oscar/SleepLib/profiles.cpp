@@ -49,6 +49,7 @@
 #include "../database/channel_repository.h"
 #include "../database/channel_options_repository.h"
 #include "../database/daily_summary_repository.h"
+#include "../database/device_time_correction_repository.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSqlQuery>
@@ -1070,6 +1071,63 @@ void Profile::LoadMachineData(ProgressDialog *progress)
         }
     } else {
         qWarning() << "Profile::LoadMachineData() - Cannot check daily summaries, profile not in database";
+    }
+
+    // Load per-device time corrections into each machine's in-memory cache
+    {
+        DeviceTimeCorrectionRepository corrRepo;
+        for (Machine* mach : m_machlist) {
+            if (!Machine::isCorrectableType(mach->type())) continue;
+            if (mach->getDatabaseId() <= 0) continue;
+            QList<DeviceTimeCorrectionData> dbRows = corrRepo.findActive(mach->getDatabaseId());
+            QList<TimeCorrectionRow> rows;
+            rows.reserve(dbRows.size());
+            for (const DeviceTimeCorrectionData& d : dbRows) {
+                TimeCorrectionRow r;
+                r.dateFrom = QDate::fromString(d.dateFrom, Qt::ISODate);
+                r.dateTo   = d.dateTo.isEmpty() ? QDate() : QDate::fromString(d.dateTo, Qt::ISODate);
+                r.offsetMs = d.offsetMs;
+                r.c0Ms     = d.c0Ms;
+                r.c1       = d.c1;
+                rows.append(r);
+            }
+            mach->rebuildCorrections(rows);
+        }
+    }
+
+    // Migrate legacy clockDrift preference to per-night drift rows (one-time, Bug 8 fix)
+    if (cpap->clockDrift() != 0) {
+        Machine* cpapMach = nullptr;
+        for (Machine* mach : m_machlist) {
+            if (mach->type() == MT_CPAP) { cpapMach = mach; break; }
+        }
+        if (cpapMach && cpapMach->getDatabaseId() > 0 && !cpapMach->day.isEmpty()) {
+            qint64 driftMs = qint64(cpap->clockDrift()) * 1000LL;
+            DeviceTimeCorrectionRepository corrRepo;
+            int written = 0;
+            for (const QDate& d : cpapMach->day.keys()) {
+                corrRepo.upsertOffset(cpapMach->getDatabaseId(), d.toString(Qt::ISODate), driftMs);
+                ++written;
+            }
+            if (written > 0) {
+                cpap->setClockDrift(0);
+                QList<DeviceTimeCorrectionData> dbRows = corrRepo.findActive(cpapMach->getDatabaseId());
+                QList<TimeCorrectionRow> rows;
+                rows.reserve(dbRows.size());
+                for (const DeviceTimeCorrectionData& d : dbRows) {
+                    TimeCorrectionRow r;
+                    r.dateFrom = QDate::fromString(d.dateFrom, Qt::ISODate);
+                    r.dateTo   = d.dateTo.isEmpty() ? QDate() : QDate::fromString(d.dateTo, Qt::ISODate);
+                    r.offsetMs = d.offsetMs;
+                    r.c0Ms     = d.c0Ms;
+                    r.c1       = d.c1;
+                    rows.append(r);
+                }
+                cpapMach->rebuildCorrections(rows);
+                qDebug() << "Profile::LoadMachineData() - Migrated clockDrift" << driftMs
+                         << "ms to" << written << "per-night drift rows";
+            }
+        }
     }
 }
 

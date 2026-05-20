@@ -1404,11 +1404,7 @@ void Session::UpdateSummaries()
 
 EventDataType Session::SearchValue(ChannelID code, qint64 time, bool square)
 {
-    qint64 drift = qint64(p_profile->cpap->clockDrift()) * 1000L;
-    // Address clock drift for CPAP so correct value is displayed
-    if (s_machine->type() == MT_CPAP) {
-        time -= drift;
-    }
+    time -= correctionMs();
     qint64 t1, t2, start;
     QHash<ChannelID, QVector<EventList *> >::iterator it;
     it = eventlist.find(code);
@@ -1625,18 +1621,10 @@ EventDataType Session::physMax(ChannelID id)
 
 qint64 Session::first(ChannelID id)
 {
-    qint64 drift = qint64(p_profile->cpap->clockDrift()) * 1000L;
-    qint64 tmp;
     QHash<ChannelID, quint64>::iterator i = m_firstchan.find(id);
 
     if (i != m_firstchan.end()) {
-        tmp = i.value();
-
-        if (s_machine->type() == MT_CPAP) {
-            tmp += drift;
-        }
-
-        return tmp;
+        return i.value() + correctionMs();
     }
 
     QHash<ChannelID, QVector<EventList *> >::iterator j = eventlist.find(id);
@@ -1663,27 +1651,14 @@ qint64 Session::first(ChannelID id)
     }
 
     m_firstchan[id] = min;
-
-    if (s_machine->type() == MT_CPAP) {
-        min += drift;
-    }
-
-    return min;
+    return min + correctionMs();
 }
 qint64 Session::last(ChannelID id)
 {
-    qint64 drift = qint64(p_profile->cpap->clockDrift()) * 1000L;
-    qint64 tmp;
     QHash<ChannelID, quint64>::iterator i = m_lastchan.find(id);
 
     if (i != m_lastchan.end()) {
-        tmp = i.value();
-
-        if (s_machine->type() == MT_CPAP) {
-            tmp += drift;
-        }
-
-        return tmp;
+        return i.value() + correctionMs();
     }
 
     QHash<ChannelID, QVector<EventList *> >::iterator j = eventlist.find(id);
@@ -1711,12 +1686,7 @@ qint64 Session::last(ChannelID id)
     }
 
     m_lastchan[id] = max;
-
-    if (s_machine->type() == MT_CPAP) {
-        max += drift;
-    }
-
-    return max;
+    return max + correctionMs();
 }
 bool Session::channelDataExists(ChannelID id)
 {
@@ -3468,26 +3438,19 @@ bool Session::StoreSummaryToDatabase()
     return success;
 }
 
+qint64 Session::correctionMs() const
+{
+    return s_machine->correctionMs(m_night);
+}
+
 qint64 Session::first()
 {
-    qint64 start = s_first;
-
-    if (s_machine->type() == MT_CPAP) {
-        start += qint64(p_profile->cpap->clockDrift()) * 1000L;
-    }
-
-    return start;
+    return s_first + correctionMs();
 }
 
 qint64 Session::last()
 {
-    qint64 last = s_last;
-
-    if (s_machine->type() == MT_CPAP) {
-        last += qint64(p_profile->cpap->clockDrift()) * 1000L;
-    }
-
-    return last;
+    return s_last + correctionMs();
 }
 
 // ===== NEW DATABASE STORAGE FOR EVENTS/WAVEFORMS =====

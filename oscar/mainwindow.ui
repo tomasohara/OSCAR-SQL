@@ -2223,6 +2223,8 @@ p, li { white-space: pre-wrap; }
      <addaction name="menuPurge_CPAP_Data"/>
      <addaction name="separator"/>
      <addaction name="menuPurge_Oximetry_Data"/>
+     <addaction name="separator"/>
+     <addaction name="actionPurgeAllTimeCorrections"/>
     </widget>
     <widget class="QMenu" name="menu_Rebuild_CPAP_Data">
      <property name="title">
@@ -2237,6 +2239,9 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionImport_Viatom_Data"/>
     <addaction name="actionImport_RemStar_MSeries_Data"/>
     <addaction name="separator"/>
+    <addaction name="actionTime_Corrections"/>
+    <addaction name="actionDrift_Analysis"/>
+    <addaction name="separator"/>
     <addaction name="action_Rebuild_Oximetry_Index"/>
     <addaction name="menu_Rebuild_CPAP_Data"/>
     <addaction name="separator"/>
@@ -2247,6 +2252,22 @@ p, li { white-space: pre-wrap; }
    <addaction name="menu_Data"/>
    <addaction name="menu_Help"/>
   </widget>
+  <action name="actionTime_Corrections">
+   <property name="text">
+    <string>Time Corrections...</string>
+   </property>
+   <property name="toolTip">
+    <string>Adjust device clock errors (timezone, travel, DST, reset)</string>
+   </property>
+  </action>
+  <action name="actionDrift_Analysis">
+   <property name="text">
+    <string>Drift Analysis...</string>
+   </property>
+   <property name="toolTip">
+    <string>Analyse and model clock drift over time</string>
+   </property>
+  </action>
   <action name="action_Import_Data">
    <property name="text">
     <string>Import CPAP Card Data</string>
@@ -2507,6 +2528,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionPurgeCurrentDaysOximetry">
    <property name="text">
     <string>Current Days</string>
+   </property>
+  </action>
+  <action name="actionPurgeAllTimeCorrections">
+   <property name="text">
+    <string>Purge All Time Corrections</string>
    </property>
   </action>
   <action name="actionLine_Cursor">

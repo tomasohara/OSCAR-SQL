@@ -842,7 +842,7 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
     QHash<ChannelID,int> mccnt;
     QList<EventTreeWidgetItem> all_events;
 
-    qint64 drift=0, clockdrift=p_profile->cpap->clockDrift()*1000L;
+    qint64 drift=0;
     // Get post-context preference for event display
     double event_post_context_secs=p_profile->cpap->eventPostcontext();
     DEBUGXD Q(event_post_context_secs);
@@ -869,7 +869,7 @@ void Daily::UpdateEventsTree(QTreeWidget *tree,Day *day)
             m = sess->eventlist.find(code);
             if (m == sess->eventlist.end()) continue;
 
-            drift=(sess->type() == MT_CPAP) ? clockdrift : 0;
+            drift=sess->correctionMs();
 
             // Prepare title for this code, if there are any events
             QTreeWidgetItem *mcr;
@@ -2229,13 +2229,15 @@ void Daily::Load(QDate date)
             if (start.size() > 0) {
                 // Careful with drift here - apply to the label but not the
                 // stored data (which will be saved if journal changes occur).
-                qint64 clockdrift=p_profile->cpap->clockDrift()*1000L,drift;
+                qint64 drift = 0;
                 Day * dday=p_profile->GetDay(previous_date,MT_CPAP);
-                drift=(dday!=nullptr) ? clockdrift : 0;
+                if (dday && !dday->sessions.isEmpty()) drift = dday->sessions.first()->correctionMs();
                 set_BookmarksUI(start ,end , notes, drift);
             }
         } // if (journal->settings.contains(Bookmark_Start))
     } // if (journal)
+
+    emit dateLoaded(date);
 }
 
 void Daily::UnitsChanged()
@@ -2560,6 +2562,55 @@ Session * Daily::GetJournalSession(QDate date , bool create) // Get the first jo
 }
 
 
+void Daily::redrawWithZoom()
+{
+    if (!GraphView || GraphView->isEmpty()) return;
+
+    // Save current viewport from the first visible graph with a valid range
+    qint64 savedMin = 0, savedMax = 0;
+    for (int i = 0; i < GraphView->size(); ++i) {
+        gGraph* g = (*GraphView)[i];
+        if (g->visible() && g->min_x < g->max_x) {
+            savedMin = g->min_x;
+            savedMax = g->max_x;
+            break;
+        }
+    }
+
+    // Force each graph to recalculate its physical extent from the corrected session times,
+    // then clamp the saved viewport to the new physical bounds
+    qint64 newMin = 0, newMax = 0;
+    for (int i = 0; i < GraphView->size(); ++i) {
+        gGraph* g = (*GraphView)[i];
+        qint64 gMin = g->MinX();
+        qint64 gMax = g->MaxX();
+        if (gMin < gMax) {
+            if (newMin == 0 || gMin < newMin) newMin = gMin;
+            if (gMax > newMax) newMax = gMax;
+        }
+    }
+
+    if (newMin == 0 || newMax <= newMin) {
+        GraphView->redraw();
+        return;
+    }
+
+    if (savedMin == 0 || savedMax <= savedMin) {
+        // No prior zoom — show full extent
+        GraphView->SetXBounds(newMin, newMax);
+        return;
+    }
+
+    // Clamp saved viewport to new physical extent
+    qint64 clampedMin = qMax(savedMin, newMin);
+    qint64 clampedMax = qMin(savedMax, newMax);
+    if (clampedMax <= clampedMin) {
+        clampedMin = newMin;
+        clampedMax = newMax;
+    }
+    GraphView->SetXBounds(clampedMin, clampedMax);
+}
+
 void Daily::RedrawGraphs()
 {
     // setting this here, because it needs to be done when preferences change
@@ -2787,9 +2838,9 @@ void Daily::on_bookmarkTable_currentItemChanged(QTableWidgetItem *item, QTableWi
     int row=item->row();
     qint64 st,et;
 
-    qint64 clockdrift=p_profile->cpap->clockDrift()*1000L,drift;
+    qint64 drift = 0;
     Day * dday=p_profile->GetDay(previous_date,MT_CPAP);
-    drift=(dday!=nullptr) ? clockdrift : 0;
+    if (dday && !dday->sessions.isEmpty()) drift = dday->sessions.first()->correctionMs();
 
     QTableWidgetItem *it=ui->bookmarkTable->item(row,1);
     bool ok;
@@ -2837,11 +2888,11 @@ void Daily::addBookmark(qint64 st, qint64 et, QString text)
     dw->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
     ui->bookmarkTable->setItem(row,0,dw);
     ui->bookmarkTable->setItem(row,1,tw);
-    qint64 clockdrift=p_profile->cpap->clockDrift()*1000L,drift;
+    qint64 drift = 0;
     Day * day=p_profile->GetDay(previous_date,MT_CPAP);
-    drift=(day!=nullptr) ? clockdrift : 0;
+    if (day && !day->sessions.isEmpty()) drift = day->sessions.first()->correctionMs();
 
-    // Counter CPAP clock drift for storage, in case user changes it later on
+    // Counter correction for storage, in case user changes it later on
     // This won't fix the text string names..
 
     tw->setData(Qt::UserRole,st-drift);
