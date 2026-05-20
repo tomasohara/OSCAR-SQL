@@ -2729,7 +2729,7 @@ void MainWindow::on_actionImport_ZEO_Data_triggered()
 void MainWindow::on_actionImport_Dreem_Data_triggered()
 {
     DreemLoader dreem;
-    importNonCPAP(dreem);
+    importNonCPAP(dreem, STR_PREF_LastDreemPath);
 }
 
 void MainWindow::on_actionImport_RemStar_MSeries_Data_triggered()
@@ -2953,10 +2953,10 @@ QString MainWindow::selectedProfileName() const
     return QString();
 }
 
-void MainWindow::importNonCPAP(MachineLoader &loader)
+void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefKey)
 {
     // get save location from profile.
-    QDir folder = QDir(profilePath(STR_PREF_LastOximetryPath));
+    QDir folder = QDir(profilePath(folderPrefKey));
 
     QFileDialog w;
 
@@ -2974,7 +2974,7 @@ void MainWindow::importNonCPAP(MachineLoader &loader)
     ProgressDialog progress(this);
 
     if (w.exec() == QFileDialog::Accepted) {
-        saveProfilePath(STR_PREF_LastOximetryPath,w.directory().absolutePath());
+        saveProfilePath(folderPrefKey, w.directory().absolutePath());
         QStringList files = w.selectedFiles();
         int size = files.size();
         if (size > 1) {

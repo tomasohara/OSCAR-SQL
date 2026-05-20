@@ -180,6 +180,7 @@ const QString STR_PREF_ReimportBackup = "ReimportBackup";
 const QString STR_PREF_LastCPAPPath = "LastCPAPPath";
 const QString STR_PREF_LastJournalPath = "LastJouralPath";
 const QString STR_PREF_LastOximetryPath = "LastOximetryPath";
+const QString STR_PREF_LastDreemPath = "LastDreemPath";
 const QString STR_PREF_LastExportCsvPath = "LastExportCsvPath";
 const QString STR_PREF_LastScreenShotPath = "LastScreenShotPath";  // Added to store the last screenshot path =- Crimson Nape 26/02/05
 

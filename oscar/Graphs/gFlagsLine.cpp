@@ -81,7 +81,7 @@ void gFlagsGroup::SetDay(Day *d)
     if (p_profile->general->showUnknownFlags()) z |= schema::UNKNOWN;
     availableChans = d->getSortedMachineChannels(z);
 
-    m_rebuild_cpap = (availableChans.size() == 0);
+    m_rebuild_cpap = !m_sessions.isEmpty() && (availableChans.size() == 0);
 
     if (m_rebuild_cpap) {
         QHash<ChannelID, schema::Channel *> chans;
@@ -120,7 +120,7 @@ void gFlagsGroup::SetDay(Day *d)
     cnt = lvisible.size();
     m_empty = (cnt == 0);
 
-    if (m_empty) {
+    if (m_empty && !m_sessions.isEmpty()) {
         if (d) {
             m_empty = !d->hasEvents();
         }
@@ -131,7 +131,7 @@ void gFlagsGroup::SetDay(Day *d)
 
 bool gFlagsGroup::isEmpty()
 {
-    if (m_day) {
+    if (m_day && !m_sessions.isEmpty()) {
         if (m_day->hasEnabledSessions() && m_day->hasEvents())
             return false;
     }

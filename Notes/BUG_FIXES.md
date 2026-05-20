@@ -4,6 +4,36 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-20 - Event Flags graph shown with misleading rebuild message on sleep-stage-only days (#174)
+
+**Files:** `oscar/Graphs/gFlagsLine.cpp`
+
+**Symptom:** On a day with only Dreem sleep stage data and no CPAP data, the Event Flags
+graph appeared and displayed "Database Outdated. Please Rebuild CPAP Data", which is
+irrelevant — no CPAP data exists for that day.
+
+**Root cause:** `m_rebuild_cpap` was set to true whenever no FLAG/SPAN channels were
+found, regardless of whether any CPAP sessions existed. The `m_empty` fallback and
+`isEmpty()` also treated any day events (including sleep stage events) as sufficient to
+show the graph.
+
+**Fix:** Guard all three checks on `!m_sessions.isEmpty()` so the graph is hidden and
+the rebuild message suppressed when no CPAP sessions are present for the day.
+
+---
+
+## 2026-05-20 - Dreem import does not remember last used directory (#175)
+
+**Files:** `oscar/SleepLib/common.h`, `oscar/mainwindow.h`, `oscar/mainwindow.cpp`
+
+**Symptom:** The Dreem CSV import dialog opened in the last oximetry directory instead
+of the last Dreem import directory.
+
+**Fix:** Added `STR_PREF_LastDreemPath` preference key; added optional `folderPrefKey`
+parameter to `importNonCPAP()`; Dreem import action passes the new key.
+
+---
+
 ## 2026-05-19 - Remove ANGLE/Qt5 dead code from graphics engine selection (#173)
 
 **Files:** `oscar/main.cpp`, `oscar/mainwindow.h`, `oscar/mainwindow.cpp`,

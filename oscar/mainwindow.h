@@ -431,7 +431,7 @@ private:
     void importCPAPDataCards(const QList<ImportPath> & datacards);
     void addMachineToMenu(Machine* mach, QMenu* menu);
     void purgeDay(MachineType type);
-    void importNonCPAP(MachineLoader &loader);
+    void importNonCPAP(MachineLoader &loader, const QString &folderPrefKey = STR_PREF_LastOximetryPath);
 
     /*! \brief Destroy sessions for \a date matching \a type. Returns true if any data
      *         was purged. Does not update the UI; caller handles reload.
