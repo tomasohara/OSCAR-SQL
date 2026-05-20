@@ -4,6 +4,19 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-20 - Dreem import gives no warning when user selects Excel file instead of CSV (#176)
+
+**Files:** `oscar/SleepLib/loader_plugins/dreem_loader.cpp`
+
+**Symptom:** The Dreem web portal exports data as .xlsx (sometimes with a .csv extension).
+Importing such a file produced 0 sessions and only a generic "There was a problem
+opening" notification with no explanation.
+
+**Fix:** Detect ZIP/XLSX magic bytes (`PK`) at the start of the file in `openCSV()`.
+If found, show a QMessageBox directing the user to use Apple2Dreem instead.
+
+---
+
 ## 2026-05-20 - Event Flags graph shown with misleading rebuild message on sleep-stage-only days (#174)
 
 **Files:** `oscar/Graphs/gFlagsLine.cpp`

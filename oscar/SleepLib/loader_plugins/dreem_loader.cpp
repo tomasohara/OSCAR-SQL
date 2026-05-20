@@ -75,6 +75,19 @@ bool DreemLoader::openCSV(const QString & filename)
             qDebug() << "Couldn't open Dreem file" << filename;
             return false;
         }
+        // Detect XLSX (ZIP) magic bytes — Dreem's web export produces XLSX despite the
+        // .csv extension.  Apple2Dreem exports are genuine semicolon-delimited CSVs.
+        char magic[2] = {0, 0};
+        file.peek(magic, 2);
+        if (magic[0] == 'P' && magic[1] == 'K') {
+            file.close();
+            QMessageBox::warning(QApplication::activeWindow(),
+                QObject::tr("Wrong File Format"),
+                QObject::tr("The selected file does not appear to be a valid Dreem CSV file.\n\n"
+                            "Dreem data must be formatted as a semicolon-delimited CSV file. "
+                            "Please ensure your data is in CSV format and try again."));
+            return false;
+        }
     } else {
         return false;
     }
