@@ -145,7 +145,7 @@ bool DatabaseSchema::createSchema(QSqlDatabase& db)
         return false;
     }
 
-    // Device time corrections table (schema version 16)
+    // Device time corrections table (schema version 17)
     if (!createDeviceTimeCorrectionsTable(db)) {
         qCritical() << "DatabaseSchema: Failed to create device_time_corrections table";
         return false;

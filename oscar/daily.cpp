@@ -2231,7 +2231,10 @@ void Daily::Load(QDate date)
                 // stored data (which will be saved if journal changes occur).
                 qint64 drift = 0;
                 Day * dday=p_profile->GetDay(previous_date,MT_CPAP);
-                if (dday && !dday->sessions.isEmpty()) drift = dday->sessions.first()->correctionMs();
+                if (dday) {
+                    for (Session* s : dday->sessions)
+                        if (s->type() == MT_CPAP) { drift = s->correctionMs(); break; }
+                }
                 set_BookmarksUI(start ,end , notes, drift);
             }
         } // if (journal->settings.contains(Bookmark_Start))
@@ -2840,7 +2843,10 @@ void Daily::on_bookmarkTable_currentItemChanged(QTableWidgetItem *item, QTableWi
 
     qint64 drift = 0;
     Day * dday=p_profile->GetDay(previous_date,MT_CPAP);
-    if (dday && !dday->sessions.isEmpty()) drift = dday->sessions.first()->correctionMs();
+    if (dday) {
+        for (Session* s : dday->sessions)
+            if (s->type() == MT_CPAP) { drift = s->correctionMs(); break; }
+    }
 
     QTableWidgetItem *it=ui->bookmarkTable->item(row,1);
     bool ok;
@@ -2890,7 +2896,10 @@ void Daily::addBookmark(qint64 st, qint64 et, QString text)
     ui->bookmarkTable->setItem(row,1,tw);
     qint64 drift = 0;
     Day * day=p_profile->GetDay(previous_date,MT_CPAP);
-    if (day && !day->sessions.isEmpty()) drift = day->sessions.first()->correctionMs();
+    if (day) {
+        for (Session* s : day->sessions)
+            if (s->type() == MT_CPAP) { drift = s->correctionMs(); break; }
+    }
 
     // Counter correction for storage, in case user changes it later on
     // This won't fix the text string names..

@@ -4,6 +4,84 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-20 - Time Alignment code review: 14 issues fixed (oscar2-align-clocks)
+
+**Files:** `oscar/devicetimecorrectiondialog.cpp`, `oscar/driftanalysisdialog.cpp`,
+`oscar/SleepLib/machine.cpp`, `oscar/SleepLib/machine.h`,
+`oscar/SleepLib/machine_common.h`, `oscar/SleepLib/profiles.cpp`,
+`oscar/daily.cpp`, `oscar/database/device_time_correction_repository.cpp`,
+`oscar/database/database_schema.cpp`
+
+**Issue 1 (Critical):** Clicking a drift row in Corrections dialog, then nudging + Save,
+would silently destroy the drift model. Fix: `populateControlsFromRow` now returns early
+for drift rows, leaving `m_staged.id = 0` and showing a read-only mode label.
+
+**Issue 2 (Critical):** Bookmark drift used `sessions.first()->correctionMs()` on a
+`Day` returned by `GetDay(date, MT_CPAP)`. Since `Day::sessions` holds all session types,
+`first()` could be an oximeter. Fix: loop to find the first MT_CPAP session at all three
+call sites in `daily.cpp`.
+
+**Issue 3 (Critical):** Legacy `clockDrift` migration wrote one offset row per existing
+CPAP day, so future imports got no correction. Fix: write a single open-ended offset row
+from the earliest CPAP date.
+
+**Issue 5 (Important):** Open-ended rows stored as `""` for timezone type but
+`"2099-12-31"` for all others. Fix: `effectiveDateRange` now uses `""` for all
+open-ended rows; timezone special case retained only for the non-advanced (single-night)
+path where timezone is inherently open-ended.
+
+**Issue 7 (Important):** Navigating Daily while a staged correction was in progress
+silently discarded it. Fix: `setDate` prompts Save/Discard/Cancel when the date changes.
+
+**Issue 8 (Minor):** Comment said "schema version 16" for the device_time_corrections
+table; corrected to version 17.
+
+**Issue 9 (Minor):** Drift model stored slope as `c1 = slope + 1.0` to distinguish from
+constant rows. Fix: store raw slope; discriminate on `row.type == "drift"` in
+`correctionMs()`; backward-compat in `reloadCorrectionsFromDb` strips the old sentinel.
+
+**Issue 10 (Minor):** SQL used integer literal `c1 = 0` to exclude drift rows in upsert
+predicates. Fix: removed the redundant `c1 = 0` predicate — `type = :type` already
+excludes drift rows when called with non-drift types.
+
+**Issue 11 (Minor):** Linear regression in `onFitDrift` used the uncentered formula,
+losing precision for short windows. Fix: mean-centered formula.
+
+**Issue 13 (Minor):** `rebuildMachine` was duplicated identically in both dialogs. Fix:
+added `Machine::reloadCorrectionsFromDb(Machine*)` static helper; both dialogs delegate
+to it. Handles old drift row sentinel encoding (`c1 - 1.0` backward compat).
+
+**Issue 15 (New, not in original review):** "Date Added" column in Corrections history
+showed UTC date from `applied_at`; adding a correction at 11 pm local time appeared as
+the next calendar day. Fix: convert to local time before truncating to date.
+
+---
+
+## 2026-05-20 - Time Alignment Codex review: 3 remaining bugs fixed (oscar2-align-clocks)
+
+**Files:** `oscar/devicetimecorrectiondialog.cpp`, `oscar/SleepLib/profiles.cpp`,
+`oscar/SleepLib/machine.cpp`
+
+**Bug A (P1 — Stale preview after device switch):** `onDeviceChanged` discarded the
+`previous` parameter, so `clearStagedAndRevert()` rebuilt the *new* machine rather than
+the one that held stale preview rows. Fix: named the `previous` parameter and, when a
+staged preview exists, call `resetToNewMode()` + `rebuildMachine(prevMach)` using the
+machine extracted from `previous`.
+
+**Bug B (P2 — Corrections loaded after day bucketing):** `LoadMachineData` loaded
+correction rows after `mach->Load()` and `calculateDailySummaries()`, so `AddSession`
+bucketed sessions by raw (uncorrected) timestamps. Fix: moved `reloadCorrectionsFromDb`
+into the existing machine loop before `mach->Load()`; removed the now-redundant
+post-load loop. `Machine::AddSession` now computes a corrected first-time
+(`rawFirst + correctionMs(rawDate)`) for split-time and day-bucketing comparisons.
+
+**Bug C (P3 — Offset display wraps above 24 h):** `QTime(0,0,0).addMSecs()` silently
+wraps at 24 h, so a stored offset > 86 400 000 ms displayed as a smaller value. Fix:
+clamp the displayed milliseconds to 86 399 999 and show "Offset exceeds 24 hours and
+cannot be displayed precisely." in the warning label.
+
+---
+
 ## 2026-05-20 - Dreem import gives no warning when user selects Excel file instead of CSV (#176)
 
 **Files:** `oscar/SleepLib/loader_plugins/dreem_loader.cpp`
