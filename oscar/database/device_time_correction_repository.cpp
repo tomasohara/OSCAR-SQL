@@ -94,7 +94,7 @@ qint64 DeviceTimeCorrectionRepository::upsertTyped(qint64 machineId, const QStri
             SET undone_at = datetime('now')
             WHERE machine_id = :machine_id
               AND date_from = :date_from AND date_to IS NULL
-              AND type = :type AND c1 = 0 AND undone_at IS NULL
+              AND type = :type AND undone_at IS NULL
         )");
     } else {
         q.prepare(R"(
@@ -102,7 +102,7 @@ qint64 DeviceTimeCorrectionRepository::upsertTyped(qint64 machineId, const QStri
             SET undone_at = datetime('now')
             WHERE machine_id = :machine_id
               AND date_from = :date_from AND date_to = :date_to
-              AND type = :type AND c1 = 0 AND undone_at IS NULL
+              AND type = :type AND undone_at IS NULL
         )");
         q.bindValue(":date_to", dateTo);
     }
@@ -170,7 +170,6 @@ QList<DeviceTimeCorrectionData> DeviceTimeCorrectionRepository::findManualOffset
         WHERE machine_id = :machine_id
           AND type = 'offset'
           AND date_from = date_to
-          AND c1 = 0
           AND undone_at IS NULL
         ORDER BY date_from
     )");

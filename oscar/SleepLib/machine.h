@@ -211,6 +211,8 @@ class Machine
 
     qint64 correctionMs(QDate night) const;
     void rebuildCorrections(const QList<TimeCorrectionRow>& rows);
+    //! \brief Reload corrections from DB and rebuild the in-memory cache.
+    static void reloadCorrectionsFromDb(Machine* mach);
     static bool isCorrectableType(MachineType type) {
         return type != MT_JOURNAL && type != MT_UNKNOWN && type != MT_UNCATEGORIZED;
     }

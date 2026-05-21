@@ -95,6 +95,21 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="currentModelLabel">
+     <property name="text"><string>Active drift model: none</string></property>
+     <property name="wordWrap"><bool>true</bool></property>
+     <property name="styleSheet"><string>font-style: italic; color: #555555;</string></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="driftWarningLabel">
+     <property name="text"><string></string></property>
+     <property name="wordWrap"><bool>true</bool></property>
+     <property name="styleSheet"><string>color: #cc6600; font-weight: bold;</string></property>
+     <property name="visible"><bool>false</bool></property>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation"><enum>Qt::Horizontal</enum></property>
      <property name="standardButtons"><set>QDialogButtonBox::Close</set></property>

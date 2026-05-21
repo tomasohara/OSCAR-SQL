@@ -50,7 +50,7 @@ private:
     // Active drift model state for the current DUT, loaded on Load Data
     bool    m_hasExistingModel   = false;
     double  m_existingModelC0Ms  = 0.0;
-    double  m_existingModelSlope = 0.0;  // = stored_c1 - 1.0
+    double  m_existingModelSlope = 0.0;  // raw slope in ms/ms
     qint64  m_existingModelRowId = -1;
     QDate   m_existingModelFrom;
 
@@ -60,6 +60,7 @@ private:
     Machine* currentRefMachine() const;  // nullptr when "None" is selected
     void     resetPlotState();
     void     rebuildMachine(Machine* mach);
+    void     refreshCurrentModelLabel();
 };
 
 #endif // DRIFTANALYSISDIALOG_H

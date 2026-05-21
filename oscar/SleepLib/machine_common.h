@@ -74,10 +74,11 @@ enum MachineType { MT_UNKNOWN = 0, MT_CPAP, MT_OXIMETER, MT_SLEEPSTAGE, MT_JOURN
 //! \brief One active row from device_time_corrections, held in memory by Machine
 struct TimeCorrectionRow {
     QDate   dateFrom;
-    QDate   dateTo;         // null = open-ended
-    qint64  offsetMs = 0;  // constant correction; used when c1 == 0
-    qint64  c0Ms     = 0;  // model drift intercept; used when c1 != 0
-    double  c1       = 0.0; // 0 = constant row; non-zero = fitted drift model
+    QDate   dateTo;          // null = open-ended
+    QString type;            // "offset", "travel", "dst", "timezone", "reset", "drift"
+    qint64  offsetMs = 0;   // constant correction (non-drift rows)
+    qint64  c0Ms     = 0;   // drift model intercept (ms)
+    double  c1       = 0.0; // drift model slope (ms/ms); 0.0 for non-drift rows
 };
 
 /***** NEVER USED --- 8/2019

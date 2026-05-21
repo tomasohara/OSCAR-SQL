@@ -43,6 +43,7 @@
 #include "../database/profile_repository.h"
 #include "../database/session_repository.h"
 #include "../database/database_manager.h"
+#include "../database/device_time_correction_repository.h"
 
 extern MainWindow * mainwin;
 
@@ -631,6 +632,27 @@ void Machine::rebuildCorrections(const QList<TimeCorrectionRow>& rows)
     m_correctionCache.clear();
 }
 
+void Machine::reloadCorrectionsFromDb(Machine* mach)
+{
+    DeviceTimeCorrectionRepository repo;
+    QList<DeviceTimeCorrectionData> dbRows = repo.findActive(mach->getDatabaseId());
+    QList<TimeCorrectionRow> rows;
+    rows.reserve(dbRows.size());
+    for (const auto& d : dbRows) {
+        TimeCorrectionRow r;
+        r.dateFrom = QDate::fromString(d.dateFrom, Qt::ISODate);
+        r.dateTo   = d.dateTo.isEmpty() ? QDate() : QDate::fromString(d.dateTo, Qt::ISODate);
+        r.type     = d.type;
+        r.offsetMs = d.offsetMs;
+        r.c0Ms     = d.c0Ms;
+        // Backward compat: drift rows were previously stored with c1 = slope + 1.0.
+        // Detect old format (c1 >= 1.0 on a drift row) and strip the sentinel.
+        r.c1 = (d.type == "drift" && d.c1 >= 1.0) ? d.c1 - 1.0 : d.c1;
+        rows.append(r);
+    }
+    mach->rebuildCorrections(rows);
+}
+
 qint64 Machine::correctionMs(QDate night) const
 {
     auto it = m_correctionCache.find(night);
@@ -643,12 +665,11 @@ qint64 Machine::correctionMs(QDate night) const
         QDate to = row.dateTo.isNull() ? QDate(9999,12,31) : row.dateTo;
         if (night < row.dateFrom || night > to) continue;
 
-        if (row.c1 == 0.0) {
+        if (row.type != "drift") {
             total += row.offsetMs;
         } else {
-            // Drift row values represent accumulated CPAP clock error (positive = CPAP ahead).
-            // Subtract to shift CPAP data backward and align with reference.
-            total -= row.c0Ms + qint64((row.c1 - 1.0) * double(t_noon));
+            // Drift row: positive = CPAP ahead of reference; subtract to align.
+            total -= row.c0Ms + qint64(row.c1 * double(t_noon));
         }
     }
 

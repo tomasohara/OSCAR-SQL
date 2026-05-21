@@ -47,6 +47,7 @@ void DriftAnalysisDialog::setDate(const QDate& date)
     populateDutCombo();
     populateRefCombo();
     resetPlotState();
+    refreshCurrentModelLabel();
 }
 
 void DriftAnalysisDialog::resetPlotState()
@@ -117,25 +118,61 @@ Machine* DriftAnalysisDialog::currentRefMachine() const
 
 void DriftAnalysisDialog::rebuildMachine(Machine* mach)
 {
-    DeviceTimeCorrectionRepository repo;
-    QList<DeviceTimeCorrectionData> dbRows = repo.findActive(mach->getDatabaseId());
-    QList<TimeCorrectionRow> rows;
-    rows.reserve(dbRows.size());
-    for (const auto& d : dbRows) {
-        TimeCorrectionRow r;
-        r.dateFrom = QDate::fromString(d.dateFrom, Qt::ISODate);
-        r.dateTo   = d.dateTo.isEmpty() ? QDate() : QDate::fromString(d.dateTo, Qt::ISODate);
-        r.offsetMs = d.offsetMs;
-        r.c0Ms     = d.c0Ms;
-        r.c1       = d.c1;
-        rows.append(r);
+    Machine::reloadCorrectionsFromDb(mach);
+}
+
+void DriftAnalysisDialog::refreshCurrentModelLabel()
+{
+    Machine* mach = currentDutMachine();
+    if (!mach || mach->getDatabaseId() <= 0) {
+        ui->currentModelLabel->setText(tr("Active drift model: none"));
+        ui->driftWarningLabel->setVisible(false);
+        return;
     }
-    mach->rebuildCorrections(rows);
+
+    DeviceTimeCorrectionRepository repo;
+    bool hasModel = false;
+    double slope = 0.0;
+    double c0Ms = 0.0;
+    QDate from;
+
+    for (const auto& row : repo.findActive(mach->getDatabaseId())) {
+        if (row.type != "drift") continue;
+        QDate rowFrom = QDate::fromString(row.dateFrom, Qt::ISODate);
+        if (!hasModel || rowFrom > from) {
+            hasModel = true;
+            from     = rowFrom;
+            c0Ms     = double(row.c0Ms);
+            slope    = (row.c1 >= 1.0) ? row.c1 - 1.0 : row.c1;
+        }
+    }
+
+    if (!hasModel) {
+        ui->currentModelLabel->setText(tr("Active drift model: none"));
+        ui->driftWarningLabel->setVisible(false);
+        return;
+    }
+
+    double slopePerDay = slope * 86400000.0;
+    ui->currentModelLabel->setText(
+        tr("Active drift model: %1 ms/day, active from %2")
+            .arg(slopePerDay, 0, 'f', 1)
+            .arg(from.toString("yyyy-MM-dd")));
+
+    if (qAbs(slopePerDay) > 5000.0) {
+        ui->driftWarningLabel->setText(
+            tr("Warning: drift rate of %1 ms/day exceeds 5 s/day — verify reference device data.")
+                .arg(slopePerDay, 0, 'f', 1));
+        ui->driftWarningLabel->setVisible(true);
+    } else {
+        ui->driftWarningLabel->setVisible(false);
+    }
 }
 
 void DriftAnalysisDialog::onDutDeviceChanged(int)
 {
     resetPlotState();
+    refreshCurrentModelLabel();
 }
 
 void DriftAnalysisDialog::onRefDeviceChanged(int)
@@ -176,7 +213,8 @@ void DriftAnalysisDialog::onLoadDriftData()
         if (!m_hasExistingModel || rowFrom > m_existingModelFrom) {
             m_hasExistingModel   = true;
             m_existingModelC0Ms  = double(row.c0Ms);
-            m_existingModelSlope = row.c1 - 1.0;
+            // Backward compat: old rows stored slope as c1 + 1.0; new rows store raw slope.
+            m_existingModelSlope = (row.c1 >= 1.0) ? row.c1 - 1.0 : row.c1;
             m_existingModelRowId = row.id;
             m_existingModelFrom  = rowFrom;
         }
@@ -244,21 +282,25 @@ void DriftAnalysisDialog::onFitDrift()
 {
     if (m_driftPoints.size() < 3) return;
 
-    double n = m_driftPoints.size(), sx = 0, sy = 0, sxx = 0, sxy = 0;
+    double n = m_driftPoints.size(), sx = 0, sy = 0;
+    for (const auto& pt : m_driftPoints) { sx += pt.tNoonMs; sy += pt.offsetMs; }
+    double tMean = sx / n, yMean = sy / n;
+
+    double sxx = 0, sxy = 0;
     for (const auto& pt : m_driftPoints) {
-        sx += pt.tNoonMs; sy += pt.offsetMs;
-        sxx += pt.tNoonMs * pt.tNoonMs; sxy += pt.tNoonMs * pt.offsetMs;
+        double dt = pt.tNoonMs - tMean;
+        sxx += dt * dt;
+        sxy += dt * pt.offsetMs;
     }
-    double denom = n * sxx - sx * sx;
-    if (qAbs(denom) < 1e-10) {
+    if (qAbs(sxx) < 1e-10) {
         ui->driftStatusLabel->setText(tr("Cannot fit: all observations fall on the same date."));
         return;
     }
 
-    double slope = (n * sxy - sx * sy) / denom;
-    double c0    = (sy - slope * sx) / n;
+    double slope = sxy / sxx;
+    double c0    = yMean - slope * tMean;
 
-    double yMean = sy / n, ssTot = 0, ssRes = 0;
+    double ssTot = 0, ssRes = 0;
     for (const auto& pt : m_driftPoints) {
         double pred = c0 + slope * pt.tNoonMs;
         ssRes += (pt.offsetMs - pred) * (pt.offsetMs - pred);
@@ -320,7 +362,7 @@ void DriftAnalysisDialog::onUseDrift()
     modelRow.dateTo    = "";   // open-ended
     modelRow.type      = "drift";
     modelRow.c0Ms      = qint64(m_fitC0Ms);
-    modelRow.c1        = m_fitSlope + 1.0;
+    modelRow.c1        = m_fitSlope;
     modelRow.reason    = tr("Fitted drift model");
 
     if (repo.create(modelRow) < 0) {
@@ -341,6 +383,7 @@ void DriftAnalysisDialog::onUseDrift()
 
     resetPlotState();
     ui->driftStatusLabel->setText(status);
+    refreshCurrentModelLabel();
 
     emit correctionsChanged();
 }

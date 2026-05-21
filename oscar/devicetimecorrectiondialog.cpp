@@ -86,15 +86,30 @@ DeviceTimeCorrectionDialog::~DeviceTimeCorrectionDialog()
 
 void DeviceTimeCorrectionDialog::setDate(const QDate& date)
 {
-    if (m_hasStagedChange)
+    if (m_hasStagedChange && date != m_date) {
+        auto btn = QMessageBox::question(this, tr("Unsaved Correction"),
+            tr("You have an unsaved correction. Save before moving to %1?")
+                .arg(date.toString("yyyy-MM-dd")),
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+            QMessageBox::Save);
+        if (btn == QMessageBox::Cancel) return;
+        if (btn == QMessageBox::Save)   onSaveStaged();
+        else                            clearStagedAndRevert();
+    } else if (m_hasStagedChange) {
         clearStagedAndRevert();
+    }
 
     m_date = date;
-    setWindowTitle(date.isValid() ? tr("Time Corrections - %1").arg(date.toString("yyyy-MM-dd")) : tr("Time Corrections"));
+    setWindowTitle(tr("Time Corrections"));
+    ui->activeDateLabel->setText(date.isValid()
+        ? tr("Showing corrections active on %1").arg(date.toString("yyyy-MM-dd"))
+        : tr("Showing corrections active on —"));
 
     if (date.isValid()) {
         ui->advStartDate->setDate(date);
         ui->advEndDate->setDate(date);
+        ui->advStartDate->setCurrentSection(QDateTimeEdit::DaySection);
+        ui->advEndDate->setCurrentSection(QDateTimeEdit::DaySection);
     }
 
     populateSidebar();
@@ -201,20 +216,7 @@ QString DeviceTimeCorrectionDialog::formatOffset(qint64 ms) const
 
 void DeviceTimeCorrectionDialog::rebuildMachine(Machine* mach)
 {
-    DeviceTimeCorrectionRepository repo;
-    QList<DeviceTimeCorrectionData> dbRows = repo.findActive(mach->getDatabaseId());
-    QList<TimeCorrectionRow> rows;
-    rows.reserve(dbRows.size());
-    for (const auto& d : dbRows) {
-        TimeCorrectionRow r;
-        r.dateFrom = QDate::fromString(d.dateFrom, Qt::ISODate);
-        r.dateTo   = d.dateTo.isEmpty() ? QDate() : QDate::fromString(d.dateTo, Qt::ISODate);
-        r.offsetMs = d.offsetMs;
-        r.c0Ms     = d.c0Ms;
-        r.c1       = d.c1;
-        rows.append(r);
-    }
-    mach->rebuildCorrections(rows);
+    Machine::reloadCorrectionsFromDb(mach);
 }
 
 void DeviceTimeCorrectionDialog::commitAndRefresh(Machine* mach)
@@ -311,15 +313,21 @@ void DeviceTimeCorrectionDialog::refreshHistory()
         if (!r.dateTo.isEmpty() && r.dateTo != r.dateFrom) range += " – " + r.dateTo;
         else if (r.dateTo.isEmpty())                        range += " – open";
 
-        QString offsetStr = (r.c1 != 0.0)
-            ? QString("model (c1=%1)").arg(r.c1, 0, 'g', 4)
+        QString offsetStr = (r.type == "drift")
+            ? QString("drift model")
             : formatOffset(r.offsetMs);
 
         ui->historyTable->setItem(i, 0, new QTableWidgetItem(deviceName));
         ui->historyTable->setItem(i, 1, new QTableWidgetItem(range));
         ui->historyTable->setItem(i, 2, new QTableWidgetItem(r.type));
         ui->historyTable->setItem(i, 3, new QTableWidgetItem(offsetStr));
-        ui->historyTable->setItem(i, 4, new QTableWidgetItem(r.appliedAt.left(10)));
+        QString appliedDateLocal;
+        {
+            QDateTime utc = QDateTime::fromString(r.appliedAt, Qt::ISODate);
+            utc.setTimeSpec(Qt::UTC);
+            appliedDateLocal = utc.toLocalTime().toString("yyyy-MM-dd");
+        }
+        ui->historyTable->setItem(i, 4, new QTableWidgetItem(appliedDateLocal));
         ui->historyTable->item(i, 0)->setData(Qt::UserRole, i);
 
         QColor bg;
@@ -344,29 +352,16 @@ void DeviceTimeCorrectionDialog::effectiveDateRange(QString& dateFrom, QString& 
     QString type = currentTypeName();
     bool advanced = ui->chkDateRange->isChecked();
 
-    if (type == "timezone") {
-        if (advanced) {
-            dateFrom = ui->advStartDate->date().toString(Qt::ISODate);
-            // Keep dateTo="" (NULL in DB) when open-ended so closeOpenTimezoneRows
-            // can still find this row via its dateTo.isEmpty() guard.
-            dateTo   = ui->advEndDateCheck->isChecked()
-                       ? ""
-                       : ui->advEndDate->date().toString(Qt::ISODate);
-        } else {
-            dateFrom = m_date.toString(Qt::ISODate);
-            dateTo   = "";
-        }
-        return;
-    }
-
     if (advanced) {
         dateFrom = ui->advStartDate->date().toString(Qt::ISODate);
+        // Open-ended rows always stored as NULL (empty string) in the DB.
         dateTo   = ui->advEndDateCheck->isChecked()
-                   ? "2099-12-31"
+                   ? ""
                    : ui->advEndDate->date().toString(Qt::ISODate);
     } else {
         dateFrom = m_date.toString(Qt::ISODate);
-        dateTo   = m_date.toString(Qt::ISODate);
+        // Timezone corrections are open-ended by default in simple mode.
+        dateTo   = (type == "timezone") ? "" : m_date.toString(Qt::ISODate);
     }
 }
 
@@ -419,6 +414,7 @@ void DeviceTimeCorrectionDialog::previewStaged(Machine* mach)
         TimeCorrectionRow staged;
         staged.dateFrom = QDate::fromString(previewFrom, Qt::ISODate);
         staged.dateTo   = previewTo.isEmpty() ? QDate() : QDate::fromString(previewTo, Qt::ISODate);
+        staged.type     = previewType;
         staged.offsetMs = m_staged.offsetMs;
         rows.append(staged);
     }
@@ -462,6 +458,8 @@ void DeviceTimeCorrectionDialog::resetToNewMode()
         if (m_date.isValid()) {
             ui->advStartDate->setDate(m_date);
             ui->advEndDate->setDate(m_date);
+            ui->advStartDate->setCurrentSection(QDateTimeEdit::DaySection);
+            ui->advEndDate->setCurrentSection(QDateTimeEdit::DaySection);
         }
         ui->advEndDateCheck->setChecked(false);
     }
@@ -475,6 +473,12 @@ void DeviceTimeCorrectionDialog::resetToNewMode()
 
 void DeviceTimeCorrectionDialog::refreshModeLabel()
 {
+    int selRow = ui->historyTable->currentRow();
+    if (selRow >= 0 && selRow < m_historyRows.size() && m_historyRows[selRow].type == "drift") {
+        ui->modeLabel->setText(tr("Drift model — use Drift Analysis dialog to edit"));
+        ui->modeLabel->setStyleSheet("color: #666666; font-style: italic;");
+        return;
+    }
     if (m_staged.id == 0) {
         ui->modeLabel->setText(tr("New correction"));
         ui->modeLabel->setStyleSheet("color: #2a7a2a; font-style: italic;");
@@ -782,6 +786,16 @@ void DeviceTimeCorrectionDialog::onDeleteRow()
 
 void DeviceTimeCorrectionDialog::populateControlsFromRow(const DeviceTimeCorrectionData& row)
 {
+    if (row.type == "drift") {
+        // Drift rows are managed exclusively by the Drift Analysis dialog.
+        // Display them as read-only; do not allow editing or saving from here.
+        m_staged = {};
+        m_hasStagedChange = false;
+        refreshModeLabel();
+        updateControlStates();
+        return;
+    }
+
     // Seed m_staged so onAnyControlChanged and refreshCurrentOffset use this row's values.
     Machine* mach = currentMachine();
     if (mach && mach->getDatabaseId() > 0) {
@@ -823,6 +837,8 @@ void DeviceTimeCorrectionDialog::populateControlsFromRow(const DeviceTimeCorrect
                 ui->advEndDate->setDate(to);
             }
         }
+        ui->advStartDate->setCurrentSection(QDateTimeEdit::DaySection);
+        ui->advEndDate->setCurrentSection(QDateTimeEdit::DaySection);
     }
     // toggled was suppressed by the blocker — drive visibility explicitly
     ui->dateRangeWidget->setVisible(ui->chkDateRange->isChecked());
