@@ -1019,6 +1019,10 @@ void Profile::LoadMachineData(ProgressDialog *progress)
             }
         }
         
+        // Load corrections before sessions so AddSession buckets by corrected time.
+        if (Machine::isCorrectableType(mach->type()) && mach->getDatabaseId() > 0)
+            Machine::reloadCorrectionsFromDb(mach);
+
         MachineLoader *loader = lookupLoader(mach);
 
         if (loader) {
@@ -1071,13 +1075,6 @@ void Profile::LoadMachineData(ProgressDialog *progress)
         }
     } else {
         qWarning() << "Profile::LoadMachineData() - Cannot check daily summaries, profile not in database";
-    }
-
-    // Load per-device time corrections into each machine's in-memory cache
-    for (Machine* mach : m_machlist) {
-        if (!Machine::isCorrectableType(mach->type())) continue;
-        if (mach->getDatabaseId() <= 0) continue;
-        Machine::reloadCorrectionsFromDb(mach);
     }
 
     // Migrate legacy clockDrift preference to a single open-ended offset row (one-time, Bug 8 fix)

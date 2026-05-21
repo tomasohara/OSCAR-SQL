@@ -231,10 +231,18 @@ void DeviceTimeCorrectionDialog::commitAndRefresh(Machine* mach)
 // Corrections panel
 // ---------------------------------------------------------------------------
 
-void DeviceTimeCorrectionDialog::onDeviceChanged(QTreeWidgetItem* current, QTreeWidgetItem*)
+void DeviceTimeCorrectionDialog::onDeviceChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
 {
     if (!current || !current->data(0, Qt::UserRole).isValid()) return;
-    if (m_hasStagedChange) clearStagedAndRevert();
+    if (m_hasStagedChange && previous && previous->data(0, Qt::UserRole).isValid()) {
+        Machine* prevMach = reinterpret_cast<Machine*>(
+            previous->data(0, Qt::UserRole).value<quintptr>());
+        resetToNewMode();
+        if (prevMach) {
+            rebuildMachine(prevMach);
+            emit correctionsChanged();
+        }
+    }
     m_staged = {};
     m_hasStagedChange = false;
     Machine* mach = currentMachine();
@@ -262,12 +270,20 @@ void DeviceTimeCorrectionDialog::refreshCurrentOffset()
         ui->btnOffsetSign->setChecked(negative);
         ui->btnOffsetSign->setText(negative ? "−" : "+");
     }
+    static constexpr qint64 kMaxDisplayMs = 86399999LL; // QTime max: 23:59:59.999
+    bool overflows = qAbs(displayMs) > kMaxDisplayMs;
+    qint64 clampedMs = overflows ? kMaxDisplayMs : qAbs(displayMs);
     {
         QSignalBlocker bt(ui->offsetTimeEdit);
-        ui->offsetTimeEdit->setTime(QTime(0, 0, 0).addMSecs(qAbs(displayMs)));
+        ui->offsetTimeEdit->setTime(QTime(0, 0, 0).addMSecs(clampedMs));
     }
     ui->offsetTimeEdit->setReversed(negative);
 
+    if (overflows) {
+        ui->largeDriftWarning->setText(
+            tr("Offset exceeds 24 hours and cannot be displayed precisely."));
+        return;
+    }
     bool isOffset = (ui->correctionTypeCombo->currentIndex() == 0);
     bool showWarning = isOffset && qAbs(displayMs) > kLargeOffsetThresholdMs;
     ui->largeDriftWarning->setText(showWarning

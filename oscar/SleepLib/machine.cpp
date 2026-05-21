@@ -358,7 +358,9 @@ bool Machine::AddSession(Session *s, bool allowOldSessions)
 
     //int drift=profile->cpap->clockDrift();
 
-    QDateTime d2 = QDateTime::fromSecsSinceEpoch(s->first() / 1000);
+    qint64 rawFirst = s->first();
+    qint64 corrMs   = correctionMs(QDateTime::fromMSecsSinceEpoch(rawFirst).date());
+    QDateTime d2    = QDateTime::fromMSecsSinceEpoch(rawFirst + corrMs);
 
     QDate date = d2.date();
 
@@ -371,7 +373,7 @@ bool Machine::AddSession(Session *s, bool allowOldSessions)
     // Multithreaded import screws this up. :(
 
     qint64 splitEpoch = QDateTime(d2.date(), split_time, Qt::LocalTime).toMSecsSinceEpoch();
-    if (s->first() < splitEpoch) {
+    if (rawFirst + corrMs < splitEpoch) {
         date = date.addDays(-1);
     } else if (combine_sessions > 0) {
         dit = day.find(date.addDays(-1)); // Check Day Before

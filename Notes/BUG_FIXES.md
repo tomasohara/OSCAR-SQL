@@ -57,6 +57,31 @@ the next calendar day. Fix: convert to local time before truncating to date.
 
 ---
 
+## 2026-05-20 - Time Alignment Codex review: 3 remaining bugs fixed (oscar2-align-clocks)
+
+**Files:** `oscar/devicetimecorrectiondialog.cpp`, `oscar/SleepLib/profiles.cpp`,
+`oscar/SleepLib/machine.cpp`
+
+**Bug A (P1 — Stale preview after device switch):** `onDeviceChanged` discarded the
+`previous` parameter, so `clearStagedAndRevert()` rebuilt the *new* machine rather than
+the one that held stale preview rows. Fix: named the `previous` parameter and, when a
+staged preview exists, call `resetToNewMode()` + `rebuildMachine(prevMach)` using the
+machine extracted from `previous`.
+
+**Bug B (P2 — Corrections loaded after day bucketing):** `LoadMachineData` loaded
+correction rows after `mach->Load()` and `calculateDailySummaries()`, so `AddSession`
+bucketed sessions by raw (uncorrected) timestamps. Fix: moved `reloadCorrectionsFromDb`
+into the existing machine loop before `mach->Load()`; removed the now-redundant
+post-load loop. `Machine::AddSession` now computes a corrected first-time
+(`rawFirst + correctionMs(rawDate)`) for split-time and day-bucketing comparisons.
+
+**Bug C (P3 — Offset display wraps above 24 h):** `QTime(0,0,0).addMSecs()` silently
+wraps at 24 h, so a stored offset > 86 400 000 ms displayed as a smaller value. Fix:
+clamp the displayed milliseconds to 86 399 999 and show "Offset exceeds 24 hours and
+cannot be displayed precisely." in the warning label.
+
+---
+
 ## 2026-05-20 - Dreem import gives no warning when user selects Excel file instead of CSV (#176)
 
 **Files:** `oscar/SleepLib/loader_plugins/dreem_loader.cpp`
