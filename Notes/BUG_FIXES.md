@@ -4,6 +4,42 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-21 - Yuwell YH-825 BiPAP pressure chart flat at zero (Format C decode targeted CPAP byte)
+
+**File:** `oscar/SleepLib/loader_plugins/yuwell_loader.cpp` (`YuwellFormatC::OpenSession`)
+
+**Symptom:** Yuwell YH-825 BiPAP (model `YH825A`, mode S/T) imports cleanly via the
+existing Format C path — hours, tidal volume, respiratory rate, leak, and AHI counts all
+populate — but the pressure chart shows a flat zero line for every session. Affects any
+Yuwell Format C device running BiPAP mode (S / T / ST / VGPS / AUTOS — modes `0x01-0x05`).
+GitLab issue #178.
+
+**Root cause:** `YuwellFormatC::OpenSession` was written against the YH-830 CPAP/APAP and
+only handled `mode == YUWELL_FORMATC_CPAP` (`0x00`) and `mode == YUWELL_FORMATC_APAP` (`0x06`).
+The other five mode constants in `yuwell_loader.h:12-18` (S / T / ST / VGPS / AUTOS) fell
+through to `MODE_UNKNOWN`. More importantly, the per-record decode read `pressure` from
+record offset `0x0C`, which is unused (always zero) in BiPAP records — the device stores
+IPAP and EPAP as little-endian `u16 * 10` at record offsets `0x02-0x03` and `0x04-0x05`,
+which the loader was skipping over via `skipRawData(10)`.
+
+**Fix:**
+1. Read IPAP / EPAP from record offsets `0x02-0x05` (replaces the 10-byte skip with two
+   `u16` reads and a 6-byte skip — net byte arithmetic unchanged, so CPAP/APAP reads at
+   `0x0C` / `0x0D` still hit the right offsets).
+2. Allocate `CPAP_IPAP` / `CPAP_EPAP` event lists alongside the existing `CPAP_Pressure`.
+3. Branch the per-record emission on `mode`: CPAP/APAP keep emitting `CPAP_Pressure`
+   unchanged; the five BiPAP-class modes emit to `CPAP_IPAP` and `CPAP_EPAP` instead.
+4. Map the five unhandled BiPAP modes to existing `CPAPMode` enum values: S/T/ST →
+   `MODE_BILEVEL_FIXED`, VGPS → `MODE_AVAPS`, AUTOS → `MODE_BILEVEL_AUTO_VARIABLE_PS`.
+
+**Verification:** Candidate decoding confirmed end-to-end against the Yuwell BreathCare
+vendor app for the YH-825 sample: ramp from IPAP 8.5 / EPAP 4.5 to IPAP 16 / EPAP 12 over
+15 minutes, exact match to the device's actual therapy settings. CPAP/APAP execution path
+is byte-identical to the original code when `mode == 0x00` or `mode == 0x06`, preserving
+YH-830 behaviour.
+
+---
+
 ## 2026-05-21 - DV6 pressure graph invisible on full-night sessions
 
 **File:** `oscar/SleepLib/loader_plugins/intellipap_loader.cpp` (`load6HighResData`)

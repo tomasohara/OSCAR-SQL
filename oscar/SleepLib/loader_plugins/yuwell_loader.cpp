@@ -921,6 +921,8 @@ bool YuwellFormatC::OpenSession(Machine *mach, const QString & filename)
 
         EventList *LK = sess->AddEventList(CPAP_LeakTotal, EVL_Event, 0.1F);
         EventList *PR = sess->AddEventList(CPAP_Pressure, EVL_Event, 0.1F);
+        EventList *IPAP = sess->AddEventList(CPAP_IPAP, EVL_Event, 0.1F);
+        EventList *EPAP = sess->AddEventList(CPAP_EPAP, EVL_Event, 0.1F);
         EventList *OA = sess->AddEventList(CPAP_Obstructive, EVL_Event);
         EventList *CA = sess->AddEventList(CPAP_ClearAirway, EVL_Event);
         EventList *H =  sess->AddEventList(CPAP_Hypopnea, EVL_Event);
@@ -948,10 +950,13 @@ bool YuwellFormatC::OpenSession(Machine *mach, const QString & filename)
 
             unsigned char mode, pressure, initial_pressure, ramp, leak_volume, minute_volume, inspiratory_ratio, respiratory_rate;
             short int tidal_volume;
+            unsigned short int ipap_raw, epap_raw;  // LE u16, scale /10 to cmH2O; populated on BiPAP records, zero on CPAP/APAP
             unsigned char oai, hi, cai;
             in.skipRawData(1); // Always 0xF9
             in >> mode; // Weird that this records the session mode on every log line. Maybe you can change mode half-way through a session on this model?
-            in.skipRawData(10);
+            in >> ipap_raw;  // record bytes 0x02-0x03: IPAP * 10 (BiPAP modes only)
+            in >> epap_raw;  // record bytes 0x04-0x05: EPAP * 10 (BiPAP modes only)
+            in.skipRawData(6);
             in >> pressure;
             in >> initial_pressure;
             in.skipRawData(4);
@@ -981,12 +986,31 @@ bool YuwellFormatC::OpenSession(Machine *mach, const QString & filename)
                     sess->settings[CPAP_Mode] = (int)MODE_APAP;
                     sess->settings[CPAP_PressureMin] = pressure / 10.0;
                     sess->settings[CPAP_PressureMax] = maximum_pressure / 10.0;
+                } else if (mode == YUWELL_FORMATC_S || mode == YUWELL_FORMATC_T || mode == YUWELL_FORMATC_ST) {
+                    sess->settings[CPAP_Mode] = (int)MODE_BILEVEL_FIXED;
+                    sess->settings[CPAP_IPAP] = ipap_raw / 10.0;
+                    sess->settings[CPAP_EPAP] = epap_raw / 10.0;
+                } else if (mode == YUWELL_FORMATC_VGPS) {
+                    sess->settings[CPAP_Mode] = (int)MODE_AVAPS;
+                    sess->settings[CPAP_IPAP] = ipap_raw / 10.0;
+                    sess->settings[CPAP_EPAP] = epap_raw / 10.0;
+                } else if (mode == YUWELL_FORMATC_AUTOS) {
+                    sess->settings[CPAP_Mode] = (int)MODE_BILEVEL_AUTO_VARIABLE_PS;
+                    sess->settings[CPAP_IPAP] = ipap_raw / 10.0;
+                    sess->settings[CPAP_EPAP] = epap_raw / 10.0;
                 } else {
                     sess->settings[CPAP_Mode] = (int)MODE_UNKNOWN;
                 }
             }
 
-            PR->AddEvent(ti + (i * 60000), pressure); // Samples are every 60 seconds
+            // Samples are every 60 seconds. CPAP/APAP records carry a single pressure at byte 0x0C;
+            // BiPAP modes (S/T/ST/VGPS/AUTOS) leave that byte zero and put IPAP/EPAP at 0x02-0x05 instead.
+            if (mode == YUWELL_FORMATC_CPAP || mode == YUWELL_FORMATC_APAP) {
+                PR->AddEvent(ti + (i * 60000), pressure);
+            } else if (mode >= YUWELL_FORMATC_S && mode <= YUWELL_FORMATC_AUTOS) {
+                IPAP->AddEvent(ti + (i * 60000), ipap_raw);
+                EPAP->AddEvent(ti + (i * 60000), epap_raw);
+            }
             TV->AddEvent(ti + (i * 60000), tidal_volume);
             RR->AddEvent(ti + (i * 60000), respiratory_rate);
 

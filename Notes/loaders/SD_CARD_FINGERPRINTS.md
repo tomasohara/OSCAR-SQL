@@ -1648,7 +1648,7 @@ per-session files for the host software to discover.
 
 ---
 
-## Yuwell YH-825A BiPAP (Format C — first sample; pressure decode incomplete)
+## Yuwell YH-825A BiPAP (Format C — first sample; IPAP/EPAP decode added 2026-05-21)
 
 **Sample:** `C:/Users/Guy/Downloads/Yuwell825ST Houzouris/SD Card`
 **Device:** Yuwell **YH825A** BiPAP (BreathCare II Bi-PAP family per
@@ -1657,10 +1657,15 @@ per-session files for the host software to discover.
 **Loader:** `yuwell_loader.cpp` — `YuwellFormatC` path (`Detect` line 708,
 `OpenSession` line 839).
 **Data span:** 23 per-session `.BYS` files, March 2026.
-**Loader detection:** succeeds. **Pressure data import:** **the loader
-reads pressure as 0 for every minute on every session** — a decode gap,
-not missing data on the card. Candidate IPAP/EPAP bytes are present at
-record offsets `0x02` and `0x04` (see decode below).
+**Status:** Loader detects and now imports IPAP/EPAP correctly. The
+original Format C decode handled only modes `0x00` (CPAP) and `0x06` (APAP);
+the five BiPAP-class modes (S / T / ST / VGPS / AUTOS = `0x01-0x05`) fell
+through to `MODE_UNKNOWN` and `pressure` was read from byte `0x0C`, which
+is zero on BiPAP records. Fix shipped 2026-05-21 — see `Notes/BUG_FIXES.md`
+and GitLab issue #178. **IPAP / EPAP are LE `u16 * 10` at record offsets
+`0x02-0x03` and `0x04-0x05`** (confirmed against the Yuwell BreathCare
+vendor app: 15-min ramp from IPAP 8.5 / EPAP 4.5 to IPAP 16 / EPAP 12,
+exact byte-for-byte match across 12 sampled records).
 
 This fills the **`YuwellFormatC` slot** in the catalogue. The loader was
 written for the YH-830 (also Format C, CPAP/APAP class) per the comment
@@ -4996,7 +5001,7 @@ the known gaps where future samples would round it out.
 | `prs1_loader.cpp` | Philips Respironics System One / DreamStation | DreamStation 2 (encrypted), DreamStation Go Auto + DreamStation Go (cleartext, two-device card), **DreamStation CPAP 200X110** (brick — 4-year card, 5 Px partitions, 3083 sessions), **BiPAP A40** (PRS1-detected but unsupported — `(F3,V4)` not in tested-model table; real data lives in parallel `BIPAP-A/` EDF+D tree no loader reads) |
 | `resmed_loader.cpp` | ResMed S9 / AirSense / AirCurve (S9/AS10/AS11) | S9 AutoSet (S9 — flat DATALOG), AirCurve 10 VAuto (AS10), AirSense 10 CPAP basic (AS10, summary-only), AirSense 11 AutoSet (AS11) |
 | `resvent_loader.cpp` | Resvent platform (Resvent / BMC iBreeze / Hoffrichter) | BMC iBreeze 20A, Hoffrichter Point 3 AutoCPAP |
-| `yuwell_loader.cpp` | Yuwell YH-series | YH-550A (Format A), YH-580C (Format B — single 64 KB ring-buffer file at root), **YH-825A** (Format C, BiPAP — pressure decode incomplete: IPAP/EPAP candidates at record offsets `0x02`/`0x04`, loader currently reads byte `0x0C` and gets zeros), YH-680B (Format D summary-only), YH690F (Format D full) |
+| `yuwell_loader.cpp` | Yuwell YH-series | YH-550A (Format A), YH-580C (Format B — single 64 KB ring-buffer file at root), **YH-825A** (Format C, BiPAP S/T — IPAP/EPAP decode added 2026-05-21; LE u16×10 at record offsets `0x02`/`0x04`), YH-680B (Format D summary-only), YH690F (Format D full) |
 
 ## CPAP loaders with no sample yet (would round out the catalogue)
 
