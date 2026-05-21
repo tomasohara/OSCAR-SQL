@@ -4,6 +4,31 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-21 - DV6 pressure graph invisible on full-night sessions
+
+**File:** `oscar/SleepLib/loader_plugins/intellipap_loader.cpp` (`load6HighResData`)
+
+**Symptom:** CPAP_Pressure graph blank on full-night DV6 sessions with R.BIN high-res data;
+same sessions rendered correctly when zoomed in far enough to trigger non-accelerated rendering.
+Sessions without R.BIN data (L.BIN only) showed correct pressure via EVL_Event.
+
+**Root cause:** `load6HighResData` created the CPAP_Pressure EventList as `EVL_Waveform`
+(1 Hz). The accelerated rendering path in `gLineChart::paint()` maps samples to pixel columns
+and draws a vertical line from `min_py` to `max_py` per column. At full-night scale (~43 s
+per pixel), slowly-changing pressure produces the same `py` for every sample in a column,
+so `min_py == max_py` → zero-length line → invisible. The non-accelerated path (active when
+zoomed in) draws actual line segments and works correctly. All other CPAP loaders use
+`EVL_Event` for pressure, which always uses the non-accelerated rendering path.
+
+**Fix:** Changed `CPAP_Pressure` in `load6HighResData` from `EVL_Waveform` to `EVL_Event`
+with one `AddEvent` per pressure byte (`pressure1` at `ti`, `pressure2` at `ti + 1000`),
+matching the BMC loader pattern.
+
+**Note:** Existing sessions imported with the old `EVL_Waveform` format must be reimported
+from backup or SD card to display correctly.
+
+---
+
 ## 2026-05-20 - Time Alignment code review: 14 issues fixed (oscar2-align-clocks)
 
 **Files:** `oscar/devicetimecorrectiondialog.cpp`, `oscar/driftanalysisdialog.cpp`,

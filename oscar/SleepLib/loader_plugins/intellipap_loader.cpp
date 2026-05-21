@@ -1774,7 +1774,7 @@ bool load6HighResData () {
             if (!inSession && sess) {
                 inSession = true;
                 flow = sess->AddEventList(CPAP_FlowRate, EVL_Waveform, 0.01f, 0.0f, 0.0f, 0.0f, double(2000) / double(50));
-                pressure = sess->AddEventList(CPAP_Pressure, EVL_Waveform, 0.1f, 0.0f, 0.0f, 0.0f, double(2000) / double(2));
+                pressure = sess->AddEventList(CPAP_Pressure, EVL_Event, 0.1f);
                 FLG = sess->AddEventList(CPAP_FLG, EVL_Waveform, 1.0f, 0.0f, 0.0f, 0.0f, double(2000) / double(2));
                 snore = sess->AddEventList(CPAP_Snore, EVL_Waveform, 1.0f, 0.0f, 0.0f, 0.0f, double(2000) / double(2));
                 //                    sinfo->hasMaskPressure = true;
@@ -1796,7 +1796,8 @@ bool load6HighResData () {
             // Record breath and pressure waveforms
             qint64 ti = qint64(rec_ts1) * 1000;
             flow->AddWaveform(ti,R->breath,50,2000);
-            pressure->AddWaveform(ti, &R->pressure1, 2, 2000);
+            pressure->AddEvent(ti, R->pressure1);
+            pressure->AddEvent(ti + 1000, R->pressure2);
             if (sinfo->firstHighRes == 0 || sinfo->firstHighRes > rec_ts1) sinfo->firstHighRes = rec_ts1;
             if (sinfo->lastHighRes == 0 || sinfo->lastHighRes < rec_ts1+2) sinfo->lastHighRes = rec_ts1+2;
 //            sinfo->haveHighResData = true;
