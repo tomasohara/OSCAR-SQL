@@ -8,7 +8,7 @@ point for building a loader.
 **Date analyzed:** 2026-05-19
 **Source:** single user dump, AS100 Auto, sessions from April 2022.
 
-Companion document: `Notes/LOADER_DETECTION_PATTERNS.md` (general detection patterns
+Companion document: `Notes/loaders/LOADER_DETECTION_PATTERNS.md` (general detection patterns
 in the existing loader set).
 
 ---
@@ -54,7 +54,7 @@ So a `.dat` file is structurally:
 
 ## Comparison to existing OSCAR loaders
 
-Walking the six detection strategies from `LOADER_DETECTION_PATTERNS.md`:
+Walking the six detection strategies from `Notes/loaders/LOADER_DETECTION_PATTERNS.md`:
 
 | Strategy | AeonMed match? |
 |---|---|

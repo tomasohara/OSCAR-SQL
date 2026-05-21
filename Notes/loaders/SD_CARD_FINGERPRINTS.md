@@ -6,8 +6,8 @@ against the **observed** layout of an existing format, not just the minimum
 sentinel each loader's `Detect()` requires.
 
 Companion docs:
-- `Notes/LOADER_DETECTION_PATTERNS.md` — general detection strategies and per-loader sentinels.
-- `Notes/AEONMED_AS100_CARD_ANALYSIS.md` — example of comparing a new card against this catalogue.
+- `Notes/loaders/LOADER_DETECTION_PATTERNS.md` — general detection strategies and per-loader sentinels.
+- `Notes/loaders/AEONMED_AS100_CARD_ANALYSIS.md` — example of comparing a new card against this catalogue.
 
 Convention for each entry:
 - Top-level tree (sizes in bytes for exactness).
@@ -359,11 +359,14 @@ config blobs, each with a CRC sibling.
 
 ### CRC sibling convention
 
-Two distinct CRC encodings on the card:
+CRC files are all **binary** (raw CRC bytes, not ASCII hex). Sizes vary by file class:
 
-- **Root `Identification.crc`** — 4 bytes binary (raw CRC32 of `Identification.tgt`).
-- **DATALOG and SETTINGS `*.crc`** — 8 bytes (ASCII hex of a 32-bit CRC, e.g. `a723f992` written as 8 hex characters). Each EDF and `.tgt` has a `.crc`
-  sibling with the same basename.
+- **Root `Identification.crc`** — 4 bytes binary.
+- **`SETTINGS/<X>GL.crc`** — 4 bytes binary per `.tgt` config group. No `.crc` sidecar
+  for `*.log` operation logs in this AS10 sample (the 10 `.log` files have no CRC).
+- **`DATALOG/<basename>.crc`** — 8 bytes binary per `.edf`. (Previously documented
+  here as ASCII hex; that was wrong — `od -c` confirms raw binary.)
+- **No root `STR.crc`** on AS10 — `STR.edf` is uncovered.
 
 ### AS10 vs AS11 — quick discriminator
 
@@ -473,6 +476,482 @@ successful import that lacks the expected views.
   `SETTINGS/` file set) hold across CPAP/Auto/Elite/VAuto/ST/ASV — useful when
   fingerprinting a future AS10 sibling, since these fields confirm
   "AS10-platform" without telling you the specific model.
+
+---
+
+## ResMed AirSense 11 AutoSet (first AS11 sample)
+
+**Sample:** `C:/Users/Guy/Downloads/Brucemac_Airsense11_39523 Bruce McKenzie/ResMed-39523-23233658718`
+**Device:** ResMed AirSense 11 AutoSet, serial `23233658718`, product code
+`39523` (USA region), firmware application `SW04600.11.8.0.0.a65babae1`,
+hardware revision `R390-7667`.
+**Loader:** `resmed_loader.cpp` — same loader as AS10, with AS11-specific
+branches gated on the presence of `Identification.json`.
+
+This is the **first AS11 sample** in the catalogue and the counterpart to the
+two existing AS10 entries (AirCurve VAuto and AirSense 10 CPAP basic). It
+documents the AS11-specific deltas: a JSON identity replacing the AS10
+`#KEY VALUE` text file, a JSON `CurrentSettings` replacing the 42-file
+`SETTINGS/*GL.tgt + *.log` cluster, two new per-session EDF suffixes
+(`_CSL` and `_SA2`), a pre-allocated `journal.jnl` at the root, and the
+removal of per-session `.crc` sidecars from `DATALOG/`.
+
+### Card-root structure
+
+```
+<root>/
+├── DATALOG/                                     2 per-day folders (small sample)
+│   ├── 20240707/                                5 sessions in this OSCAR day
+│   │   ├── <yyyymmdd>_<hhmmss>_CSL.edf  832     Cheyne-Stokes annotations
+│   │   ├── <yyyymmdd>_<hhmmss>_EVE.edf 832-1k   events
+│   │   ├── <yyyymmdd>_<hhmmss>_BRP.edf 7K-1.3M  waveform (largest)
+│   │   ├── <yyyymmdd>_<hhmmss>_PLD.edf 3K-122K  per-minute logged data
+│   │   └── <yyyymmdd>_<hhmmss>_SA2.edf 1K-54K   statistics / apnoea data
+│   └── 20240708/                                empty (no sessions yet)
+├── Identification.json    762 bytes  JSON device identity (AS11 format)
+├── Identification.crc       4 bytes  binary CRC32 of Identification.json
+├── SETTINGS/
+│   ├── CurrentSettings.json  2,315 bytes  JSON settings snapshot
+│   └── CurrentSettings.crc       4 bytes  binary CRC32
+├── STR.edf              20,920 bytes  cumulative summary EDF (small — fresh card)
+├── journal.jnl          16,384 bytes  pre-allocated, all-zero on this card
+└── System Volume Information/  Windows artefact — not part of the format
+```
+
+5 sessions on 2024-07-07 (start at 22:13, 22:14, 23:20, 00:57, 02:55 — one
+real night straddling midnight), no sessions on 20240708 — this is a fresh
+card with just 2 OSCAR days of data.
+
+### What `Detect()` checks vs. what's there
+
+`resmed_loader.cpp:309` requires:
+1. `DATALOG/` directory at root.
+2. `STR.edf` file at root.
+
+Identical to AS10 — `Detect()` makes no AS10/AS11 distinction. The
+branching happens in `PeekInfo()` (`resmed_loader.cpp:332`), which first
+probes for `Identification.json`: if present, AS11 JSON path; otherwise
+falls back to the legacy `Identification.tgt` parser. The comment at
+line 339 reads *"Check for AS11 file first, just in case"* — and line 345
+warns *"Old Ident.tgt file is ignored"* if both are present (someone
+reusing an AS10 card without reformatting).
+
+### `Identification.json` — JSON identity (AS11 format)
+
+Single-line JSON with the full identity tree under
+`FlowGenerator.IdentificationProfiles`:
+
+```json
+{"FlowGenerator":{"IdentificationProfiles":{
+  "Product":{
+    "UniversalIdentifier":"6e2fa67e-61a7-4d56-a81e-841be8d3cf29",
+    "SerialNumber":"23233658718",
+    "SerialNumberVerificationCode":"",
+    "ProductCode":"39523",
+    "ProductName":"AirSense 11 AutoSet",
+    "FdaUniqueDeviceIdentifier":"",
+    "ProductGeographicIdentifier":"USA"},
+  "Hardware":{
+    "HardwareIdentifier":"(90)R390-7667(91)1S001(21)2237F54933"},
+  "Software":{
+    "BootloaderIdentifier":"SW04601.00.1.1.0.736edbdfd",
+    "ApplicationIdentifier":"SW04600.11.8.0.0.a65babae1",
+    "ConfigurationIdentifier":"CF04600.11.03.00.a65babae1",
+    "PlatformIdentifier":46,
+    "VariantIdentifier":3,
+    "RegionIdentifier":0,
+    "ProfileVariationIdentifier":"00000000-0000-3000-8000-000011046003",
+    "DataVersionIdentifier":11,
+    "DataModelVersionIdentifier":"2.3.0.46f0081fc"}}}}
+```
+
+Cross-walk to the AS10 `#KEY VALUE` schema:
+
+| AS10 (`Identification.tgt`) | AS11 (`Identification.json`) | This sample |
+|---|---|---|
+| `#SRN` serial number | `Product.SerialNumber` | `23233658718` |
+| `#PNA` product name | `Product.ProductName` | `AirSense 11 AutoSet` |
+| `#PCD` product code | `Product.ProductCode` | `39523` |
+| `#PCB` PCB GS1 barcode | `Hardware.HardwareIdentifier` | `(90)R390-7667(91)1S001(21)2237F54933` |
+| `#FGT` firmware tag | `Software.ApplicationIdentifier` | `SW04600.11.8.0.0.a65babae1` |
+| `#BID` bootloader ID | `Software.BootloaderIdentifier` | `SW04601.00.1.1.0.736edbdfd` |
+| `#VID` numeric variant | `Software.VariantIdentifier` | `3` |
+| `#MID` (manufacturer / platform ID) | `Software.PlatformIdentifier` | `46` |
+| (none — new) | `Product.UniversalIdentifier` (UUID) | `6e2fa67e-61a7-…` |
+| (none — new) | `Product.ProductGeographicIdentifier` | `USA` |
+| (none — new) | `Software.DataModelVersionIdentifier` | `2.3.0.46f0081fc` |
+
+The loader's `scanProductObject()` (`resmed_loader.cpp:331` forward decl) walks
+the `Product` object and populates the same `MachineInfo` struct that
+`parseIdentLine()` fills on AS10.
+
+### `AS11TestedModels` whitelist — this sample is *not* in it
+
+`resmed_loader.cpp:69-80` (gated on `INCLUDE_AS_MODEL_VERIFICATION`) lists:
+
+```
+39420, 39421, 39423, 39463, 39483, 39485, 39491, 39494, 39517, 39520
+```
+
+PCD **`39523`** (this card) is **not** in the list. In normal builds the
+whitelist is compiled out, so import proceeds regardless; it only matters
+for tester builds, where this device would log "untested model" warnings.
+Worth noting as a candidate for the list if a future round confirms the
+loader handles it cleanly, but per project policy this is **a candidate
+pending verification, not a prescribed code change** — import has to be
+exercised end-to-end before any whitelist entry is added.
+
+### Per-session EDF filename suffixes — two changes from AS10
+
+```
+20240707_221311_CSL.edf      <-- NEW vs AS10
+20240707_221311_EVE.edf      same as AS10
+20240707_221318_BRP.edf      same as AS10
+20240707_221318_PLD.edf      same as AS10
+20240707_221318_SA2.edf      <-- renamed from SAD on AS10
+```
+
+| Suffix | AS10 | AS11 | Loader-side handling |
+|---|---|---|---|
+| `_BRP` | yes | yes | Waveform import (unchanged) |
+| `_PLD` | yes | yes | Per-minute import (unchanged) |
+| `_EVE` | yes | yes | Event import (unchanged) |
+| `_SAD` | yes | — | AS10 statistics file |
+| `_SA2` | — | yes | AS11 statistics file — `resmed_loader.cpp:2570` maps **both** `SAD` and `SA2` to internal type `EDF_SAD` |
+| `_CSL` | — | yes | Cheyne-Stokes annotations — `resmed_loader.cpp:2572` maps to `EDF_CSL`; `LoadCSL()` at line 3425 parses `CSR Start` / `CSR End` annotation pairs and emits a `CPAP_CSR` event list. Annotation-only EDF (no signal channels) |
+
+The `_CSL` file is small (832 bytes — header only, plus annotations) — a
+new way ResMed externalises Cheyne-Stokes data that on AS10 was buried in
+the statistics file.
+
+### `SETTINGS/` — radically simplified from AS10
+
+AS10 carries ~42 files: 21 `<X>GL.tgt + .crc` config-group pairs, two `Q*`
+sets, and 10 `*.log` operation-log files. AS11 collapses all of that to a
+**single** `CurrentSettings.json` + `CurrentSettings.crc` pair. The JSON
+holds the entire active configuration as a structured tree:
+
+```json
+"ActiveProfiles":{
+  "TherapyProfile":"AutoSetProfile",
+  "FeatureProfiles":["ComfortFeature","EprFeature","AutoRampFeature",
+    "SmartStartStopFeature","CircuitFeature","ClimateFeature",
+    "LanguageFeature","UserSolutionFeature","TemperatureFeature",
+    "PatientViewFeature","TimeZoneFeature","CareCheckFeature",
+    "DeviceHealthFeature","ReminderFeature","DisplayFeature",
+    "MaskSenseFeature"]},
+"TherapyProfiles":{
+  "AutoSetProfile":{"TherapyMode":"AutoSet","MaxPressure":15.0,
+                    "MinPressure":5.0,"StartPressure":4.0},
+  "AutoSetForHerProfile":{...},
+  "CpapProfile":{...}},
+"FeatureProfiles":{
+  "ComfortFeature":{"AutoSetComfort":"Off"},
+  "EprFeature":{"EprEnable":"On","EprType":"Ramp","EprPressure":2},
+  "AutoRampFeature":{"RampEnable":"Auto","RampTime":20},
+  ...}
+```
+
+Active mode on this device is `AutoSetProfile` with pressure range
+**5–15 cmH₂O**, start pressure 4, ramp Auto/20 min, EPR Ramp/+2,
+SmartStart+Stop on, climate manual (humidifier off, heated tube 27°C
+auto), patient view Full, USA TZ −07:00.
+
+**Loader use of `CurrentSettings.json`: none.** A grep of `resmed_loader.cpp`
+for `CurrentSettings` returns no matches. The AS11 settings file is **not
+read by the loader** — settings come from STR.edf signals like on AS10. The
+JSON is therefore "human-friendly extra," useful for fingerprinting but not
+currently consumed by OSCAR.
+
+### `journal.jnl` — pre-allocated, all-zero on this card
+
+A 16,384-byte root file consisting entirely of `\0` bytes on this sample
+(`tr -d '\0' | wc -c` returns 0). Not referenced anywhere in
+`resmed_loader.cpp` (no grep matches). Most likely a write-ahead /
+transaction journal the device pre-allocates at format time and lazily
+populates during use; on a lightly-used card it stays zero. **Useful as
+an AS11 marker** — AS10 cards don't have it.
+
+### CRC sidecar convention — simplified from AS10
+
+| File | AS10 | AS11 |
+|---|---|---|
+| Root identity CRC | `Identification.crc` — 4 bytes binary | `Identification.crc` — 4 bytes binary (same) |
+| SETTINGS CRC | `<X>GL.crc` per config group — 8 bytes ASCII-hex | `CurrentSettings.crc` — 4 bytes binary |
+| DATALOG per-session CRC | Yes — 8-byte ASCII-hex sibling per `.edf` | **None** — `find DATALOG -name "*.crc"` returns zero matches on this card |
+
+AS11 drops the per-session CRC sidecars entirely. Plausibly the
+filesystem-level / EDF-level integrity is now considered sufficient, or
+verification has moved into the device's internal journal.
+
+### AS10 vs AS11 — discriminator table (updated with first AS11 data)
+
+| Feature | AS10 | AS11 (this sample) |
+|---|---|---|
+| Identity file | `Identification.tgt` (`#KEY VALUE` ASCII) | `Identification.json` (single-line JSON) |
+| Settings folder | `SETTINGS/<X>GL.tgt + .crc` ×21 + `Q*` + 10 `*.log` files (~42 entries) | `SETTINGS/CurrentSettings.json + .crc` (2 entries) |
+| Pre-allocated journal | None | `journal.jnl` (16KB, all-zero on fresh card) |
+| Per-session EDF suffixes | `_BRP _PLD _SAD _EVE` | `_BRP _PLD _SA2 _CSL _EVE` |
+| Per-session CRC sidecar | Yes (8-byte binary per `.edf`) | None |
+| SETTINGS CRC encoding | 4-byte binary (per `.tgt`) | 4-byte binary (single `CurrentSettings.crc`) |
+| Identity CRC encoding | 4-byte binary | 4-byte binary (unchanged) |
+| `Detect()` requirements | `DATALOG/` + `STR.edf` | `DATALOG/` + `STR.edf` (unchanged) |
+| STR.edf record stride | `86400.0097` sec/day | `86400.0078` sec/day (marginal — same daily cadence) |
+| Loader entry path | `parseIdentLine()` | `scanProductObject()` (probed first) |
+
+### Observations / open questions
+
+- **JSON identity is a net win for fingerprinting.** No ambiguous key
+  abbreviations, structured nesting, UUIDs for cross-device tracking. A
+  future AS11 sibling sample should be trivial to extract identity from
+  without bespoke parsing.
+- **`PlatformIdentifier:46` and `DataModelVersionIdentifier:"2.3.0"`** look
+  like the cleanest AS11-generation discriminators if future AS11 hardware
+  ships with newer revisions — both are explicit numeric/string fields,
+  unlike the AS10 `#PCB` GS1 barcode which has to be substring-matched.
+- **Whitelist gap.** PCD `39523` not in `AS11TestedModels`. **Candidate
+  pending end-to-end verification** — same policy as the Prisma model
+  candidates: don't prescribe the code edit until the loader is confirmed
+  to import this device's data correctly.
+- **The `CurrentSettings.json` is currently OSCAR-invisible.** Worth
+  thinking about whether some AS11-specific settings (e.g. `MaskSenseToggle`,
+  `SoundcheckFeatureToggle`, `PatientView`) deserve display in OSCAR —
+  AS10 cards expose comparable settings via the `<X>GL.tgt` parsing path
+  that AS11 has obsoleted. Out of scope for fingerprinting but documented
+  for future loader work.
+- **STR.edf is small (20 KB) because the card is fresh** — only a couple
+  days of summary data. The full-history STR.edf on a long-running AS11
+  card should grow comparably to AS10 (~100 KB+) and is worth resampling
+  once such a card surfaces, to confirm whether the AS11 STR.edf schema
+  differs from AS10's `394`-channel layout.
+- **`journal.jnl` worth resampling on an actively-used card.** If on a
+  long-running card it's still all-zero, it's vestigial; if it carries
+  content, there's a parsing target the loader is currently ignoring.
+
+---
+
+## ResMed S9 AutoSet (first S9-platform sample — the oldest ResMed format)
+
+**Sample:** `C:/Users/Guy/Downloads/S9_SD_Card/S9_SD_Card`
+**Device:** ResMed S9 AutoSet, serial `23141699984`, product code `36005`,
+firmware `21_S9_ASET_EPR`, software ID `SX474-1203`, bootloader `SX525-0300`.
+**Loader:** `resmed_loader.cpp` — the S9 path predates AS10 and uses a
+**flat DATALOG layout** (no per-day subdirectories). The loader's
+`ScanFiles()` (`resmed_loader.cpp:1221`) explicitly comments *"First list
+any EDF files in DATALOG folder - Series 9 devices"* — it handles flat S9
+files and per-day AS10/AS11 subdirectories in the same scan.
+
+This is the **first S9 sample** in the catalogue and completes the ResMed
+platform progression: **S9 (2011-era) → AS10 (2014) → AS11 (2021)** all
+served by one loader. Its main interest is showing how the S9 format
+differs structurally from the modern (AS10/AS11) layout while sharing the
+same EDF data-file format and `Identification.tgt` `#KEY VALUE` identity
+scheme.
+
+### Card-root structure
+
+```
+<root>/
+├── DATALOG/                                    flat — no per-day folders
+│   ├── 20191208_231340_EVE.edf  +.crc          one set of 3 EDFs per session
+│   ├── 20191208_231340_PLD.edf  +.crc          (no BRP on every session — see below)
+│   ├── 20191208_231340_SAD.edf  +.crc
+│   ├── 20191209_044354_EVE.edf  +.crc
+│   …                                           1290 .edf+.crc files = 215 sessions
+│   └── 20200204_032934_SAD.edf  +.crc          newest
+├── Identification.tgt    211 bytes  text key-value identity (S9 format)
+├── Identification.crc      4 bytes  binary CRC32
+├── SETTINGS/                                   35 files: 11 GL.tgt + 4 *.log + CRCs
+│   ├── AGL.tgt/.crc, BGL.tgt/.crc, CGL.tgt/.crc, DGL.tgt/.crc, EGL.tgt/.crc,
+│   ├── IGL.tgt/.crc, MGL.tgt/.crc, NGL.tgt/.crc, PGL.tgt/.crc, RGL.tgt/.crc,
+│   ├── SGL.tgt/.crc, VGL.tgt/.crc, XGL.tgt/.crc                (13 config groups, 4-byte CRCs)
+│   └── ABR.log/.crc, ERR.log/.crc, TXE.log/.crc, ZYL.log/.crc  (4 op-logs, 8-byte CRCs)
+├── STR.edf            42,844 bytes  cumulative summary EDF
+├── STR.crc                 8 bytes  binary CRC of STR.edf (AS10/AS11 don't have this)
+└── Journal.dat        32,768 bytes  pre-allocated, mostly 0xFF (NAND erased-state)
+```
+
+Date span: 2019-12-08 → 2020-02-04 (~2 months, 215 sessions, ~1.3 sessions
+per OSCAR day). Filenames are `<yyyymmdd>_<hhmmss>_<suffix>.edf` exactly as
+on AS10/AS11 — only the **directory layout** changes.
+
+### What `Detect()` checks vs. what's there
+
+`resmed_loader.cpp:309`: `DATALOG/` directory at root, plus `STR.edf` file at root.
+Both present. Identical detection criteria across S9/AS10/AS11.
+
+### `Identification.tgt` — S9 key set is a **subset** of AS10's
+
+Same `#KEY VALUE` text format as AS10 but with two S9-specific keys (`#VRN`,
+`#VPC`, `#NID`) and missing several AS10 keys (`#IMF`, `#VIR`, `#PVR`,
+`#PVD`, `#CID`):
+
+```
+#VRN 20141441219     <-- S9-only: long numeric, possibly "version revision number"
+#VPC 3688P           <-- S9-only: product code (alt encoding of #PCD)
+#NID 0001            <-- S9-only: numeric ID
+#VID 0001            <-- variant ID
+#SRN 23141699984     <-- serial number
+#SID SX474-1203      <-- software ID (SX474 prefix — distinct from AS10's SX567)
+#RID 0064            <-- revision ID
+#PNA S9_AutoSet      <-- product name (underscore-joined, same as AS10 style)
+#PCD 36005           <-- product code
+#PCB 7239S1-45153526 <-- PCB code (S9 dash format, NOT the GS1 barcode format AS10 uses)
+#MID 001A            <-- manufacturer ID (hex; STR.edf shows decimal 26)
+#FGT 21_S9_ASET_EPR  <-- firmware tag (much more readable than AS10's `24_M36_V9`)
+#BID SX525-0300      <-- bootloader ID (SX525 prefix vs AS10's SX577)
+```
+
+Key discriminators vs AS10/AS11:
+
+| Key | S9 (this sample) | AS10 (VAuto) | AS10 (CPAP) | AS11 (AutoSet) |
+|---|---|---|---|---|
+| `#PNA` | `S9_AutoSet` | `AirCurve_10_VAuto` | `AirSense_10_CPAP` | (`ProductName: "AirSense 11 AutoSet"`) |
+| `#PCD` | `36005` | `37094` | `37015` | (`ProductCode: "39523"`) |
+| `#FGT` | `21_S9_ASET_EPR` | `24_M36_V9` | `24_M36_V3` | (`ApplicationIdentifier: "SW04600.11.8…"`) |
+| `#SID` prefix | `SX474-` | `SX567-` | `SX567-` | (`SW04600.11.…`) |
+| `#BID` prefix | `SX525-` | `SX577-` | `SX577-` | (`SW04601.…`) |
+| `#MID` | `001A` (=26) | `0024` (=36) | `0024` | (`PlatformIdentifier: 46`) |
+| `#VRN` / `#VPC` / `#NID` | present | absent | absent | absent |
+| `#IMF` / `#VIR` / `#PVR` / `#PVD` / `#CID` | absent | present | present | (different JSON keys) |
+| `#PCB` format | `7239S1-45153526` (dash) | `(90)R370-7518(91)T1(21)…` (GS1) | `(90)R370-7421…` (GS1) | (`HardwareIdentifier` in GS1) |
+
+Each platform generation has its own ID-key vocabulary. The `#PCB` format
+change is the clearest visual discriminator — S9 uses a simple dash-joined
+PCB part-number, AS10/AS11 use GS1 barcode notation.
+
+### DATALOG layout — flat, not per-day
+
+The most structural difference from AS10/AS11. S9 dumps every session's
+EDFs directly into `DATALOG/`:
+
+```
+DATALOG/20191208_231340_EVE.edf
+DATALOG/20191208_231340_PLD.edf
+DATALOG/20191208_231340_SAD.edf
+DATALOG/20191209_044354_EVE.edf
+…
+```
+
+AS10/AS11 use `DATALOG/<yyyymmdd>/<yyyymmdd>_<hhmmss>_*.edf`.
+
+The loader handles both by listing `DATALOG/*.edf` first (line 1225) for S9,
+then iterating subdirectories (line 1241+) for AS10/AS11. Year-only
+4-character directory names (line 1246) are recognised as backup-tree
+folders — used when OSCAR maintains its own copy of the data outside the
+card.
+
+### Per-session EDF suffixes — three on S9, four on AS10, five on AS11
+
+| Suffix | S9 | AS10 | AS11 | Purpose |
+|---|---|---|---|---|
+| `_EVE` | yes | yes | yes | Events (apnoea/hypopnoea) |
+| `_PLD` | yes | yes | yes | Per-minute logged data |
+| `_SAD` | yes | yes | renamed `_SA2` | Statistics / apnoea data |
+| `_BRP` | yes (only on full sessions) | yes (every session) | yes | Waveform (Breath Rate Profile) |
+| `_CSL` | — | — | yes | Cheyne-Stokes annotations |
+
+On this S9 card, `_BRP` files appear less frequently than the other three —
+many sessions have only `_EVE/_PLD/_SAD` triplets. Likely the device only
+writes waveform data when the session crosses some duration threshold.
+Worth confirming on a second S9 sample.
+
+### SETTINGS/ — S9 has fewer config groups than AS10 and **has** `.log` CRCs
+
+| Aspect | S9 (this sample) | AS10 |
+|---|---|---|
+| Config groups (`*GL.tgt`) | 13 (A,B,C,D,E,I,M,N,P,R,S,V,X) | 21 (adds F,G,H,J,K,O,Q,T,U,W and others) plus `Q*` files |
+| `*GL.crc` size | 4 bytes binary | 4 bytes binary |
+| Operation logs (`*.log`) | 4 (ABR, ERR, TXE, ZYL) | 10 (ABR, DLL, ELI, ERR, TRR, TXC, TXE, TXH, TXW, ZRL) |
+| `.log` CRC sidecars | **Yes** (8 bytes binary each) | **None** — `.log` files have no `.crc` on AS10 |
+
+Two notable shifts:
+- AS10 nearly doubled the SETTINGS surface (13 → 21 config groups, 4 → 10
+  operation logs) — newer feature set means more configuration state to
+  persist.
+- AS10 dropped CRC protection on operation logs (probably non-critical
+  diagnostic data; integrity not worth the write cost).
+
+### `STR.crc` — present on S9 only
+
+S9 writes `STR.crc` at the root: 8 bytes binary CRC of `STR.edf`. AS10 and
+AS11 omit this — they trust EDF-internal integrity for the cumulative
+summary. S9 was the most CRC-paranoid of the three generations.
+
+### `Journal.dat` — 32 KB, mostly 0xFF (NAND erased state)
+
+A 32,768-byte root file consisting almost entirely of `0xFF` bytes
+(`tr -d '\0' | wc -c` → 32,256 non-zero bytes, of which the first 64 are
+all `\377`). Looks like a pre-allocated write-ahead / transaction journal
+the device clears to erased-state (`0xFF`) at format and lazily populates
+during use. **Not referenced anywhere in `resmed_loader.cpp`** — same as
+AS11's `journal.jnl`. The S9 version is twice the size (32 KB vs 16 KB on
+AS11) and uses `0xFF` rather than `\0` as the empty marker — consistent
+with raw NAND being the underlying storage. AS10 has no equivalent file
+on the user's VAuto sample — it appears S9 and AS11 bracket the AS10 era.
+
+### STR.edf — much smaller pre-allocation than AS10/AS11
+
+S9 STR.edf header (offsets in EDF spec):
+```
+Startdate 16-JAN-2019  SRN=23141699984  MID=26  VID=1
+16.01.19 12.00.00  7424  EDF  385  86400.0028
+```
+
+- **Header length: 7424 bytes** (vs AS10's `20224` and AS11's `20224`) —
+  fewer cumulative-summary channels declared.
+- **Pre-allocated record count: 385 days** (≈1 year), vs AS10 VAuto's
+  `25088` (≈68 years). The S9 was designed for a much shorter retention
+  ceiling.
+- **Daily stride: `86400.0028` seconds/record** — same one-record-per-day
+  cadence as AS10/AS11, with a slightly different fractional offset.
+- **`MID=26` in STR.edf == `#MID 001A` in Identification.tgt** — confirms
+  `#MID` is **hexadecimal** in `Identification.tgt` and decoded to decimal
+  in the recording-ident line.
+
+### CRC encoding summary across all three ResMed generations
+
+| File class | S9 | AS10 | AS11 |
+|---|---|---|---|
+| Root `Identification.crc` | 4 B binary | 4 B binary | 4 B binary |
+| Root `STR.crc` | **8 B binary** (present) | absent | absent |
+| `SETTINGS/<X>GL.crc` (per `.tgt`) | 4 B binary | 4 B binary | — |
+| `SETTINGS/CurrentSettings.crc` | — | — | 4 B binary |
+| `SETTINGS/<X>.crc` (per `.log`) | **8 B binary** | **absent** | — |
+| `DATALOG/<basename>.crc` (per `.edf`) | 8 B binary | 8 B binary | **absent** |
+
+ResMed never used ASCII-hex CRCs — all sizes here are raw binary bytes.
+(Prior catalogue entries claimed "8-byte ASCII hex"; that was wrong and
+has been corrected in the AS10 / AS11 sections.)
+
+### Observations / open questions
+
+- **S9 is the lineage's namesake.** All loader code uses `RMS9_` prefixes
+  (`resmed_loader.cpp:46-48`) even for AS10/AS11-specific channels —
+  the loader was originally written for the S9 and extended forward.
+  The `STR_ResMed_S9 = "S9"` constant at line 57 is the canonical platform
+  string for this generation.
+- **Flat-DATALOG vs per-day folders is the single clearest S9-vs-AS10/11
+  discriminator** without parsing identity — a glance at `DATALOG/` is
+  enough.
+- **`#PCB` format change marks the S9→AS10 generational boundary.**
+  S9's dash-joined PCB code (`7239S1-45153526`) became AS10's GS1 barcode
+  format (`(90)R370-7421(91)B1(21)…`) — likely a regulatory / supply-chain
+  change at ResMed.
+- **Mode encoding back-translation** at `resmed_loader.cpp:1772` shows the
+  S9 mode-byte vocabulary is the **canonical internal representation** —
+  AS11 modes (0/1/2/3) are translated *back* to S9/AS10 codes during
+  import. Reinforces that S9 is the platform OSCAR's data model
+  fundamentally targets.
+- **Likely the OSCAR codebase's most exercised import path** historically —
+  S9 was the dominant ResMed CPAP for the better part of a decade and is
+  still in widespread use; the loader has had many years to mature against
+  it. This sample isn't expected to reveal new loader issues, but it
+  documents the format for future comparisons against unknown ResMed-like
+  cards.
+- **`Journal.dat` deserves a follow-up.** Worth confirming on another S9
+  card whether the 32 KB is always mostly-0xFF or whether long-running
+  cards accumulate content. Same question applies to AS11's `journal.jnl`.
 
 ---
 
@@ -993,6 +1472,395 @@ YH-550. Useful corner-case for understanding that **format = layout**,
 
 ---
 
+## Yuwell YH-580 (Format B — single 64 KB ring-buffer file)
+
+**Sample:** `C:/Users/Guy/Downloads/ksetmb-YUWELLYH580 sergey`
+**Device:** Yuwell **YH580C**, serial `23689005`, model-serial string
+`YH580C-23689005` (16-byte field at file offset `0x84`).
+**Loader:** `yuwell_loader.cpp` — `YuwellFormatB` path (`Detect` at
+line 386, `Open*` at line 446+).
+**Data span:** 141 session summaries, starting 2025-08-06. Total
+on-card payload: **64 KB exactly.** Card was reported by the user as
+"very little data" — that's the entire YH-580 format, not a partial
+copy.
+
+This fills the **`YuwellFormatB` slot** in the catalogue (Formats A/D
+already documented; B and C were Detect-table entries only). YH-580
+sits at the low-storage end of the Yuwell taxonomy — a single
+**fixed-size 64 KB ring-buffer file** holds the device's entire data
+state, in stark contrast to the YH690F's multi-megabyte per-session
+files. Strong-signal addition: there's no waveform data on a YH-580
+card at all, only session summaries plus a small detail-record region.
+
+### Card-root structure
+
+```
+<root>/
+├── YHSD-NEW.BYS     65,536 bytes (exactly 64 KB) — the entire data file
+└── YHSD-OLD.BYS          0 bytes — empty placeholder
+```
+
+That's it. Two files, no subdirectories, no `RunLog.bys`, no
+`MODEL-SERIAL/` folder, no per-session detail files. The empty
+`YHSD-OLD.BYS` plausibly serves as the "previous generation" buffer in
+some swap scheme — the loader explicitly comments *"We don't care about
+this"* at line 389. (Reading it on this sample confirms it really is
+zero bytes.)
+
+### What `Detect()` checks vs. what's there
+
+`yuwell_loader.cpp:386-414`:
+
+1. `YHSD-NEW.BYS` exists at root.
+2. Its size is **exactly** `0x10000` (64 KB). Off-by-one fails.
+3. `GetModelSerials()` reads 16 bytes from offset `0x84` and checks the
+   string starts with `"YH"`.
+
+Both conditions met on this card:
+- `YHSD-NEW.BYS` is exactly 65,536 bytes.
+- Offset `0x84` reads as ASCII `YH580C-23689005`.
+
+### `YHSD-NEW.BYS` — internal layout
+
+Decoded against `YuwellFormatB::OpenMachine` (`yuwell_loader.cpp:475-606`):
+
+| Offset | Length | Field | This sample |
+|---|---|---|---|
+| `0x00` | 4 | Magic — ASCII `"AAAA"` (loader doesn't enforce, but present) | `41 41 41 41` |
+| `0x04` | 1 | mode | `01` |
+| `0x05` | 1 | ramp (minutes) | `0x14` = 20 |
+| `0x06` | 1 | initial_pressure (cmH₂O × 10) | `0x28` = 40 → 4.0 |
+| `0x07` | 1 | pressure_setting (CPAP fixed mode) | `00` |
+| `0x08` | 1 | maximum_pressure (×10) | `0x78` = 120 → 12.0 |
+| `0x09` | 1 | minimum_pressure (×10) | `0x32` = 50 → 5.0 |
+| `0x0A` | 1 | humidity | `00` |
+| `0x0B` | 1 | fps_level | `02` |
+| `0x0C` – `0x1E` | 19 | (skipped) |  |
+| `0x1F` | 2 (LE) | record_count | `8d 00` = **141 sessions** |
+| `0x21` – `0x83` | 99 | (skipped) |  |
+| `0x84` | 16 | model-serial ASCII | `YH580C-23689005` |
+| `0x94` – `0x0BFF` | 2924 | reserved gap — mostly zero / 0xFF |  |
+| `0x0C00` | 30 × `record_count` | session summary table (~4.2 KB used) | 141 × 30 = 4230 B |
+| `0x0C00 + 30·N` – `0x75FF` | unused tail of summary region | (padding to detail-region start) |  |
+| `0x7600` – `0xFFFF` | 38,912 bytes | per-session detail records, pointed to by per-summary `(offset_high, offset_low) + 0x7600` |  |
+
+### Session summary record — 30 bytes each
+
+Fields (offsets within record):
+
+| Off | Bytes | Field | Notes |
+|---|---|---|---|
+| `0x00` | 6 | start: yy mm dd hh mm ss | yy = year − 2000 |
+| `0x06` | 6 | end: yy mm dd hh mm ss | |
+| `0x0C` | 8 | settings snapshot (mode, ramp, init, set, max, min, humidity, fps) | mirrors header layout |
+| `0x14` | 1 | oai_count | obstructive apnoea count |
+| `0x15` | 1 | hi_count | hypopnea count |
+| `0x16` | 2 | (skipped) | |
+| `0x18` | 1 | avg_leak_vol | |
+| `0x19` | 1 | avg_pressure | |
+| `0x1A` | 2 | offset_high : offset_low — 16-bit file offset of detail data (BE bytes, added to `0x7600`) | |
+| `0x1C` | 1 | (skipped) | |
+| `0x1D` | 1 | session_minutes | matches end − start to within ~1 min |
+
+First summary on this card (offset `0x0C00`):
+
+```
+19 08 06 01 2c 01      start = 2025-08-06 01:44:01
+19 08 06 03 3a 03      end   = 2025-08-06 03:58:03   (134 min elapsed)
+01 14 28 00 78 32 03 02  settings (mode=1, ramp=20, init=4.0, max=12.0, min=5.0, humid=3, fps=2)
+03 01                   oai=3, hi=2
+00 00                   (skipped)
+37 02                   avg_leak_vol=0x37, avg_pressure=0x02
+00 00                   offset → 0x0000 + 0x7600 = 0x7600 (start of detail region)
+00                      (skipped)
+85                      session_minutes = 0x85 = 133 ✓
+```
+
+Plausible decode end-to-end: a 133-minute session on 2025-08-06 at 01:44 with
+the device's standard 20-minute ramp from 4.0 to 12.0 cmH₂O.
+
+### Detail-record region (`0x7600` – `0xFFFF`)
+
+38,912 bytes split among 141 sessions = ~276 bytes per session on average — a
+tight per-session detail budget. Likely per-session event tables (apnoea
+timestamps, leak markers) rather than waveform samples. The loader's
+`offset = ((offset_high << 8) + offset_low) + 0x7600` formula chains each
+summary to its detail block, and detail blocks are presumably variable-size
+records within the 38 KB pool, packed forward and wrapping when full.
+
+### How YH-580 differs from every other Yuwell sample on file
+
+| Aspect | YH-580 (this — Format B) | YH-550 (Format A) | YH-680B (Format D summary) | YH690F (Format D full) |
+|---|---|---|---|---|
+| Top-level file shape | **Single 64 KB `YHSD-NEW.BYS` at root** | `RunLog.bys` + `MODEL-SERIAL/*.BYS` | Two-level `MODEL-SERIAL/<session>/[d/m/s].bys` | Same as YH-680B |
+| Total on-card payload | **64 KB fixed** (regardless of session count) | hundreds of KB | ~540 KB | multi-MB |
+| Waveform data | **None** | None | None | Yes |
+| Per-session detail | ~276 bytes/session in `0x7600`+ pool | Whole per-session BYS file | Per-session subdir with summer.bys | Per-session subdir with full d/m/s set |
+| Session-count ceiling | **~141** (limited by 38 KB detail pool + 30 B summaries) | Several hundred | Several hundred | Several hundred |
+| Storage model | **Ring buffer** (NEW + OLD swap) | Per-session files accumulate | Per-session subdirs accumulate | Per-session subdirs accumulate |
+| Identity source | `0x84` of YHSD-NEW.BYS | Directory name | `s.bys` offset `0x20` | `s.bys` offset `0x20` |
+
+The 64 KB ceiling means **YH-580 cannot ever accumulate more than a few months
+of nightly use** on a single card — once 141 (or so — actual ceiling depends
+on detail-pool packing) summaries are written, the oldest sessions are
+overwritten. The `NEW.BYS` / `OLD.BYS` pair likely swaps to maintain one
+generation of history during the rewrite.
+
+### Why "very little data" is the format's design
+
+This isn't a half-empty card or a half-broken copy — **64 KB exactly is the
+full YH-580 dataset.** OSCAR will import 141 daily summaries with pressure/
+leak/AHI components, but no flow waveform charts, no per-minute trends, no
+event-by-event timelines. The device is essentially a "summary stats logger"
+with the same display fidelity as the ResMed AirSense 10 CPAP basic or the
+DreamStation 200X110 brick — except it doesn't even pretend to write
+per-session files for the host software to discover.
+
+### Observations / open questions
+
+- **Magic `"AAAA"` at offset 0** — loader comment at line 534 says it's not
+  enforced because it *"may be different for some machines."* For the
+  YH-580 sample we have, it is `41 41 41 41`. If another Format B model
+  surfaces (the loader allows it — Format B's `GetModelSerials` just
+  requires `"YH"` prefix), the magic might differ.
+- **2924-byte reserved gap (`0x94` – `0x0BFF`)** is mostly zero/0xFF on this
+  sample. Some of it likely carries per-day aggregates or display state
+  that the loader currently skips. Worth a slow read on a second YH-580
+  card if one surfaces, to see what the device writes there beyond
+  identity.
+- **Detail-region (`0x7600`+) decoding is unknown territory.** The loader
+  reads summaries but I haven't traced what it does with `offset` to
+  decode per-session event data. If the device tracks individual
+  apnoea/hypopnea timestamps in the detail region, OSCAR could in
+  principle render them — but if the loader currently only consumes
+  the summary counts, the events are present-but-ignored. **Not a fix
+  prescription** — pending verification on what OSCAR actually shows
+  for this card.
+- **YH580C suffix in the model-serial.** `YH580` is the family; the `C`
+  is a hardware-revision letter (compare YH-550 "A/B Models" and YH-680
+  "A/B Models" from the loader's header comment). Future YH-580 samples
+  may show A/B/D revisions — same Format B is expected.
+- **Empty `YHSD-OLD.BYS` is consistent with the device having only
+  recently filled its first generation of the NEW buffer** (or having
+  rotated very rarely). On a long-used card, OLD would likely carry the
+  previous generation's 64 KB. Worth confirming on a longer-running
+  YH-580 sample.
+
+---
+
+## Yuwell YH-825A BiPAP (Format C — first sample; pressure decode incomplete)
+
+**Sample:** `C:/Users/Guy/Downloads/Yuwell825ST Houzouris/SD Card`
+**Device:** Yuwell **YH825A** BiPAP (BreathCare II Bi-PAP family per
+`yuwell_loader.cpp:31`), serial `V25738024`, model-serial string
+`YH825A-V25738024`.
+**Loader:** `yuwell_loader.cpp` — `YuwellFormatC` path (`Detect` line 708,
+`OpenSession` line 839).
+**Data span:** 23 per-session `.BYS` files, March 2026.
+**Loader detection:** succeeds. **Pressure data import:** **the loader
+reads pressure as 0 for every minute on every session** — a decode gap,
+not missing data on the card. Candidate IPAP/EPAP bytes are present at
+record offsets `0x02` and `0x04` (see decode below).
+
+This fills the **`YuwellFormatC` slot** in the catalogue. The loader was
+written for the YH-830 (also Format C, CPAP/APAP class) per the comment
+at line 715; YH-825 is the **BiPAP variant** in the same family and shares
+the file-layout but appears to put pressures in different record offsets.
+
+### Card-root structure
+
+```
+<root>/
+├── SN.BYS                                       16 bytes — ASCII model-serial only
+└── YH825A-V25738024/                            device folder (directory name = model-serial)
+    ├── 00100001.BYS                             session 1
+    ├── 00100002.BYS                             session 2
+    …
+    └── 00100023.BYS                             session 23 (23 sessions total)
+```
+
+`SN.BYS` content (16 bytes): `YH825A-V25738024` — exact ASCII, no padding
+or framing. Not consulted by `Detect()` or any parsing path I found in
+`yuwell_loader.cpp` — the loader gets the same identity from inside the
+session files. Useful as a fingerprint *signal* (presence of `SN.BYS`
+suggests this Yuwell variant) but not used.
+
+### Format C subdirectory layout (vs A/D)
+
+| Layout aspect | Format A (YH-550) | Format C (YH-825/830) | Format D (YH-680/690) |
+|---|---|---|---|
+| `RunLog.bys` | At root | None | Inside `MODEL-SERIAL/` |
+| `MODEL-SERIAL/` subdir | Yes | Yes | Yes |
+| Per-session location | `MODEL-SERIAL/0XXXXXXX.BYS` (flat) | `MODEL-SERIAL/00100XXX.BYS` (flat) | `MODEL-SERIAL/<sessionId>/<id>d/m/s.bys` (two-level) |
+| Per-session files per session | 1 | 1 | 3 (detail + minute + summary) |
+| Root marker file | `RunLog.bys` (size 0) | **`SN.BYS` (16 bytes ASCII serial)** — first time seen | — |
+| Identity offset within `.BYS` | `0x20` | **`0x27`** | `0x20` |
+
+The `SN.BYS` at root and the `0x27` identity offset are **the two
+distinctive Format C signatures**. The loader's `GetModelSerials()` at
+line 729 reads the first session file's bytes `0x27`–`0x36` and checks
+the `"YH"` prefix.
+
+### What `Detect()` checks
+
+`yuwell_loader.cpp:708-727` simply calls `GetModelSerials()` and accepts
+the card if at least one subdirectory starting with `"YH"` contains a
+`.BYS` file whose offset-`0x27` 16-byte field starts with `"YH"`. Both
+satisfied here:
+- `YH825A-V25738024/` matches the `"YH"` directory-name prefix.
+- `00100001.BYS` offset `0x27` reads as `YH825A-V25738024` ASCII.
+
+### Session file (`00100XXX.BYS`) — internal layout
+
+Decoded against `YuwellFormatC::OpenSession` (`yuwell_loader.cpp:839-1013`).
+Format: **60-byte header + N × 40-byte per-minute records.**
+
+**Header (60 bytes)**:
+
+| Offset | Length | Field | First-session value |
+|---|---|---|---|
+| `0x00` | 2 (LE) | start_year | `0x07EA` = 2026 |
+| `0x02` | 1 | start_month | `0x03` = March |
+| `0x03` | 1 | start_day | `0x18` = 24 |
+| `0x04` | 1 | start_hour | `0x13` = 19 |
+| `0x05` | 1 | start_minute | `0x39` = 57 |
+| `0x06` | 1 | start_second | `0x0F` = 15 |
+| `0x07` | 2 (LE) | finish_year | `0x07EA` = 2026 |
+| `0x09` | 5 | finish month/day/hour/min/sec | 2026-03-24 20:22:17 |
+| `0x0E` | 2 (LE) | record_count | `0x0019` = 25 records ✓ matches 25-min session |
+| `0x10` | 5 | skipped | |
+| `0x15` | 1 | humidity_settings | `00` |
+| `0x16` | 17 | skipped | |
+| `0x27` | 16 | model-serial ASCII | `YH825A-V25738024` |
+| `0x37` | 5 | skipped | |
+
+**Per-minute record (40 bytes each)**:
+
+Existing loader field map (`yuwell_loader.cpp:945-972`):
+
+| Offset | Field (loader) | First-record value | Apparent reality |
+|---|---|---|---|
+| `0x00` | constant `0xF9` skipped | `f9` ✓ | |
+| `0x01` | `mode` | `03` | BiPAP mode code (loader expects 0/1 for CPAP/APAP) |
+| `0x02` | skipped (loader treats as reserved) | **`57`** | **Candidate IPAP × 10 — varies per record** |
+| `0x03` | skipped | `00` | High byte of IPAP (LE short) |
+| `0x04` | skipped | **`2f`** | **Candidate EPAP × 10 — varies per record** |
+| `0x05` | skipped | `00` | High byte of EPAP (LE short) |
+| `0x06`–`0x0B` | skipped | `00 00 00 00 00 00` | Reserved / additional BiPAP fields |
+| `0x0C` | `pressure` | **`00`** | **Always zero on this card** |
+| `0x0D` | `initial_pressure` | **`00`** | **Always zero** |
+| `0x0E`–`0x11` | skipped | `13 02 02 02` | |
+| `0x12` | `ramp` | `0f` = 15 | Plausible |
+| `0x13`–`0x14` | skipped | `03 21` | |
+| `0x15` | `tidal_volume` (LE short) | `e6 00` = 230 | Plausible |
+| `0x17` | `leak_volume` | `0a` = 10 | Plausible |
+| `0x18` | skipped | `00` | |
+| `0x19` | `minute_volume` | `04` | Plausible |
+| `0x1A`–`0x1E` | skipped | `00 00 00 4e 00` | |
+| `0x1F` | `inspiratory_ratio` | `2f` | |
+| `0x20`–`0x21` | skipped | `7f ff` | |
+| `0x22` | `respiratory_rate` | `14` = 20 | Plausible |
+| `0x23` | `oai` | `00` | |
+| `0x24` | `hi` | `00` | |
+| `0x25` | skipped | `00` | |
+| `0x26` | `cai` | `00` | |
+| `0x27` | skipped (record-trailing `0xFA`) | `fa` | |
+
+### The pressure-zero finding — confirmed across multiple sessions
+
+Verified on the first record of session 1 and session 23, and a mid-session
+record from session 23:
+
+| Sample | Bytes 0x02-0x05 (IPAP/EPAP candidates) | Byte 0x0C (loader's `pressure`) |
+|---|---|---|
+| Session 1 record 1 | `57 00 2f 00` → IPAP 8.7, EPAP 4.7 | `00` |
+| Session 1 record 2 | `5e 00 36 00` → IPAP 9.4, EPAP 5.4 | `00` |
+| Session 23 record 1 | `55 00 2d 00` → IPAP 8.5, EPAP 4.5 | `00` |
+| Session 23 record 5 | `6a 00 42 00` → IPAP 10.6, EPAP 6.6 | `00` |
+
+Bytes 0x02 and 0x04 vary independently between records (sensible for a
+BiPAP — IPAP and EPAP change minute-to-minute as a function of the
+device's response to flow). Byte 0x0C is uniformly zero.
+
+### Diagnosis
+
+The loader's record-decode at `yuwell_loader.cpp:945-972` was written
+against the YH-830 (CPAP/APAP), which has one effective pressure setting
+per minute. YH-825 is a BiPAP, and the device writes **two** pressure
+values per minute (IPAP and EPAP). On this card, those appear to be
+stored as little-endian 16-bit values at record offsets `0x02` and `0x04`,
+which the loader currently treats as reserved/skipped. The byte at offset
+`0x0C` that the loader reads as `pressure` is unused by the BiPAP
+firmware, so it stays at zero.
+
+The result for OSCAR: a YH-825 imports cleanly with no errors, daily
+hours/usage and tidal-volume/respiratory-rate channels populate correctly,
+but the **pressure chart shows a flat zero line for every session**.
+
+The loader's own comment at line 902 hints at this:
+```cpp
+maximum_pressure = 150; // TODO: This doesn't seem to exist?
+// Missing stuff, especially the CPAP mode and ramp time
+// unsigned char mode, minimum_pressure, maximum_pressure;
+// unsigned char avg_leak_volume, avg_pressure;
+```
+The author knew the Format C record layout was incompletely decoded.
+
+### Pressure decode — candidate locations (pending verification)
+
+Per project policy this is **a candidate decoding, not a prescribed code
+change.** The IPAP/EPAP placement at record offsets `0x02-0x03` and
+`0x04-0x05` is what bytes are present on this single YH-825 sample; it
+has not been verified against the vendor's own software or a second YH-825
+sample. If the candidate decoding holds across more YH-825 cards (and any
+future YH-820 sample), the loader's record-decode at
+`yuwell_loader.cpp:945+` could read those two LE shorts as IPAP/EPAP and
+emit them as separate channels — but only after that verification.
+
+### Comparison across the four Yuwell samples now in catalogue
+
+| Aspect | YH-550 (Format A) | YH-580 (Format B) | YH-825 (Format C, this) | YH-680/690 (Format D) |
+|---|---|---|---|---|
+| Device class | CPAP/APAP | CPAP/APAP | **BiPAP** | CPAP/APAP |
+| Storage model | per-session files | single 64 KB root file | per-session files | per-session subdirs (3 files each) |
+| Root marker | `RunLog.bys` (size 0) | `YHSD-NEW.BYS` (64 KB) | **`SN.BYS` (16 B ASCII)** | (none required) |
+| Identity offset in `.BYS` | `0x20` | `0x84` of YHSD-NEW | `0x27` | `0x20` |
+| Per-minute record size | (varies) | 30 B summaries + variable detail | **40 B** | (varies by file class) |
+| Pressure decode complete? | yes | yes | **No — BiPAP IPAP/EPAP not extracted** | yes |
+| Waveform data | None | None | None | YH-690 yes; YH-680 no |
+
+### Observations / open questions
+
+- **`SN.BYS` (16 ASCII bytes at root, no framing) is a new artifact in
+  the catalogue** — Formats A/B/D don't have it. Useful as a Format C
+  signal alongside the `0x27` identity offset and the YH-prefixed
+  subdirectory.
+- **`mode = 0x03` in BiPAP records** vs the loader's `YUWELL_FORMATC_CPAP`
+  and `YUWELL_FORMATC_APAP` constants (presumably `0x00` and `0x01`) —
+  `0x03` is unrecognized, so the loader sets `CPAP_Mode = MODE_UNKNOWN`
+  (`yuwell_loader.cpp:985`). A future BiPAP mode constant (`0x03 =
+  YUWELL_FORMATC_BIPAP`?) would let the loader at least label the
+  session correctly. Candidate, pending verification.
+- **Per-record `mode` byte** — the loader comment at line 953 wonders if
+  the device allows mode changes mid-session. The byte is constant at
+  `0x03` across all 23 sessions on this card; no support for the
+  mode-switching hypothesis here.
+- **Trailing `0xFA` at byte `0x27` of each record** (the loader's last
+  skipped byte) — same role as the leading `0xF9` magic: record framing.
+  Worth a parser sanity check but the loader skips both so the framing
+  is implicitly validated by file-size arithmetic.
+- **23 sessions over an unknown calendar span** — `00100001` to
+  `00100023` numbering suggests an internal session counter starting at
+  decimal 100001. If the device wraps at 100999 the lifetime ceiling is
+  999 sessions; if it overflows into 0010100x and beyond, the ceiling is
+  higher. Not enough samples to characterise.
+- **`SN.BYS`'s 16-byte ASCII form is suspiciously regular** — it
+  matches the same 16-byte slot the per-session file uses at offset
+  `0x27`. The device may be writing the model-serial to two places for
+  convenience; redundant but defensible.
+
+---
+
 ## Philips Respironics DreamStation Go Auto (PRS1 model 500-series)
 
 **Sample:** `C:/Users/Guy/Downloads/DS-Go-Auto-500G150-P-SERIES Two Dogs`
@@ -1206,6 +2074,722 @@ encrypted regime uses `.B<n>` extensions throughout.
   Designation" or "Activation Counter". DS 2 doesn't have it. Could be useful
   as a generation-discriminator on its own (`ACD.SEQ` present → DS 1/Go;
   absent → DS 2).
+
+---
+
+## Philips Respironics DreamStation CPAP 200X110 (long-running brick, 5 partitions)
+
+**Sample:** `C:/Users/Guy/Downloads/Glyn Gowing - PRS1-200X110-J189837947F19/PRS1-200X110-J189837947F19`
+**Device:** Philips Respironics DreamStation CPAP (basic), model `200X110`,
+serial `J189837947F19`, software `V1.1.1.2860`, `Family=0 / FamilyVersion=6`.
+**Loader status:** `prs1_loader.cpp` — **supported as a brick.** Model
+`200X110` is in `s_PRS1ModelInfo::m_bricks` (`prs1_loader.cpp:180` —
+`{ "251P", "261CA", "261P", "200X110", "501V" }`). The loader detects and
+loads the device but `IsBrick(info.modelnumber)` returns true, triggering
+`emit deviceReportsUsageOnly(info)` (`prs1_loader.cpp:996-998`). OSCAR
+shows usage hours and the warning "this device reports usage only" rather
+than full charts.
+
+This is the **first PRS1 brick** in the catalogue, the **third DS1/Go
+cleartext** sample, and the longest-running PRS1 card seen so far —
+**~4 years 3 months** of use (2018-03-14 → 2022-06-18) accumulated across
+**5 Px partitions** with **3083 session files**. The brick equivalent on
+the ResMed side is the AirSense 10 CPAP basic, which writes daily
+summaries only into STR.edf and leaves DATALOG empty. The 200X110 is more
+verbose — it does write per-session and per-day files — but at ~120 bytes
+each, those payloads carry only start/stop timestamps and usage counters,
+not the per-minute or waveform channels OSCAR would chart.
+
+### Card-root structure
+
+```
+<root>/
+├── .fseventsd/                                 macOS Spotlight metadata (not part of Philips format)
+│   ├── 63657337d0b7195c                       (124 bytes)
+│   ├── 63657337d0b7195d                       (75 bytes)
+│   └── fseventsd-uuid                         (36 bytes)
+└── P-SERIES/
+    ├── LAST.TXT                                8 bytes ("18983794" — points to active device folder)
+    └── 18983794/                               device folder (last 8 digits of serial)
+        ├── ._PROP.TXT                          4,096 bytes — macOS AppleDouble resource fork (not part of format)
+        ├── PROP.TXT                            320 bytes — cleartext device properties (abbreviated-key form)
+        ├── LOG.SEQ                             74 bytes — recent-log sequence
+        ├── D/                                  2 daily summaries (000.003, 001.003 — 57 and 40 bytes)
+        ├── E/                                  empty
+        ├── P0/                                 1000 session files (00000003.000 … ~0x3EA.000)
+        ├── P1/                                 702 session files (000001F7.000 …)
+        ├── P2/                                 500 session files (000003EB.000 …)
+        ├── P3/                                 500 session files (000005DF.000 …)
+        └── P4/                                 381 session files (000007D3.000 … 0000094F.000)
+```
+
+The `.fseventsd/` directory and `._PROP.TXT` are macOS injections from the
+user putting the card into a Mac for capture — Spotlight indexing
+artifacts and AppleDouble resource forks respectively. **Neither is part
+of the Philips format.** A fingerprint check should ignore both: any
+PRS1 card moved through a Mac will pick them up.
+
+### PROP.TXT — abbreviated-key form
+
+This card uses the **short-key** form of PROP.TXT (single- and double-letter
+keys), in contrast to the BiPAP A40 sample's **long-key** form
+(`CardFormat=`, `SerialNumber=`, `ModelNumber=`). Both are read by the
+same loader — `prs1_loader.cpp:679-683` maps abbreviations to long
+forms (e.g. `MN → ModelNumber`, `F → Family`, `FV → FamilyVersion`, `PT
+→ ProductType`).
+
+```
+CF=2                          (CardFormat — bumped from 1 on the A40 sample)
+SN=J189837947F19              (SerialNumber — J-prefix DS1/Go family)
+MN=200X110                    (ModelNumber — DreamStation CPAP basic, brick)
+PT=0x58                       (ProductType — distinct from A40's 0x55)
+DF=0                          (DataFormat)
+DFV=3                         (DataFormatVersion — older than A40's 2; not strictly monotonic)
+F=0                           (Family — consumer DS1/Go/2 lineage)
+FV=6                          (FamilyVersion — DreamStation 1/Go/2 generation)
+SV=V1.1.1.2860                (SoftwareVersion — V-prefix build, older than DS Go's V1.1.4/V1.1.6)
+FD=1521050400                 (FirstDate — 2018-03-14 22:00:00 UTC)
+LD=1655551165                 (LastDate — 2022-06-18 11:19:25 UTC)
+FN=1                          (FolderNum — active partition pointer)
+PFN=202                       (PatientFolderNum — total patient-folder count?)
+EFN=0                         (EquipFolderNum)
+DFN=1                         (DataFolderNum)
+SID=0,1,2,3,4,5,6             (Session-ID list — 7 values matching the 5+pad partitions)
+BK=0x00004f2c00062a4fbaab     (BlockKey — 10-byte hex value)
+SK=0x0000000002026034884e     (SessionKey — 10-byte hex)
+EK=0x00000000000800000000     (EventKey — 10-byte hex, mostly zero)
+DK=0x0000000203088901be3a     (DataKey — 10-byte hex)
+TS=0,7,0,0,0,0,0              (TimeStamps array — 7 values matching SID)
+DC=0,0,0,0,0,0,0              (DayCounts array — all zero, brick doesn't track per-day data)
+VC=0xE57BB8BB                 (ValidCheck — file checksum)
+```
+
+Compared with the DS Go Auto sample (`500G150`, also F=0 V=6):
+
+| Field | DS CPAP (this, brick) | DS Go Auto |
+|---|---|---|
+| `MN` | `200X110` (brick) | `500G150` (full data) |
+| `SV` | `V1.1.1.2860` | `V1.1.6.1694` |
+| `PT` | `0x58` | `0xC6` |
+| `CF` (CardFormat) | `2` | (presumably 2 — same generation) |
+| `DFV` (DataFormatVersion) | `3` | (likely lower — older firmware) |
+| `D/` daily files | 2 | 14 |
+| `Px/` partitions | 5 (P0-P4) | 1 (P0) |
+| Total session files | 3083 | ~257 |
+| Data span | ~4 years 3 months | ~7 months |
+
+### Multi-partition overflow — first sample with 5 partitions
+
+The DS Go Auto entry noted that `Px/` is partitioned on overflow. This is
+the first card in the catalogue with the partition mechanism fully
+exercised — P0 through P4, with session IDs running 0x003 through ~0x94F
+(= ~2380 distinct session IDs across 3083 files; some session IDs may be
+written to more than one partition during rotation).
+
+Sample partition-start IDs:
+- P0: starts at 0x003, 1000 files
+- P1: starts at 0x1F7 (= 503)
+- P2: starts at 0x3EB (= 1003)
+- P3: starts at 0x5DF (= 1503)
+- P4: starts at 0x7D3 (= 2003), ends 0x94F (= 2383), 381 files
+
+P1 onward each step by `0x1F4` = 500 IDs — partitions hold ~500 sessions
+each, with P0 sized larger (1000). Once a partition fills, a new one is
+created. The active partition pointer is the `FN` (FolderNum) field in
+PROP.TXT.
+
+OSCAR's loader presumably scans every Px sub-folder via the directory
+iteration in `FindMachinesOnCard()` and the per-partition logic in the
+existing parsers — full coverage of this card would require walking all
+five.
+
+### Session-file format — brick-shape (120 bytes typical)
+
+`P0/00000003.000` hex dump (first 120 bytes — entire file):
+
+```
+03 78 00 00 00 06 00 03 00 00 00 f5 2a a8 5a 08
+00 01 01 35 02 09 03 04 04 02 05 02 06 04 07 08
+1c 00 01 01 00 01 00 01 02 00 00 0a 01 8c 2b 01
+00 2c 01 1e 2d 01 28 2e 01 80 2f 01 00 30 01 03
+35 02 40 60 36 01 00 38 01 00 39 01 00 40 01 02
+3c 01 00 3e 01 80 3f 01 00 03 00 00 40 60 04 32
+00 07 00 00 00 00 00 00 a0 9e 02 17 00 01 16 00
+29 00 00 00 df 3c 11 86
+```
+
+Structure (standard PRS1 chunked-file header, decoded from
+`prs1_parser.cpp` knowledge):
+- byte 0: `0x03` — chunk type marker
+- bytes 1-4 (LE): `0x00000078` = **120** — chunk length (matches file size)
+- byte 5: `0x06` — family-version (matches `FV=6`)
+- bytes 6-10: chunk metadata
+- bytes 11-15: `f5 2a a8 5a 08` — timestamp + counter (`0x5AA82AF5` = 2018-03-14 22:00:53 UTC, matches PROP.TXT `FD=1521050400`)
+- middle: tag-length-value records (TLV) — settings and usage counters
+- last 4 bytes: `df 3c 11 86` — chunk CRC32
+
+`D/000.003` (57 bytes) has the same `03 ?? 00 00 00 06 ...` envelope — the
+daily file uses the same chunked structure with smaller payload. The
+`.003` suffix marks file class 3 (daily summary), versus `.000` for
+session-record files. **No `.002` (waveform) and no `.001` (event log)
+files exist on this card** — those classes are the ones the brick simply
+doesn't emit.
+
+### LOG.SEQ — recent-log sequence
+
+`74 bytes` of binary content (visible mostly as control characters). Same
+filename and approximate size as the DS Go Auto's `LOG.SEQ` (`74 bytes`
+exactly) — appears to be a fixed-format short-log buffer. Not a brick
+discriminator; both brick and full-data DS1/Go devices write one.
+
+### Date span and pruning
+
+**~4 years 3 months** of usage on a single card with no archiving — the
+longest active-device history in this catalogue (S9 carried more
+*recorded* days but had been backed up off-card and reconstituted). This
+suggests:
+- DS1/Go-family bricks do **not** auto-prune the card. Sessions accumulate
+  across partitions until the user (or clinician) clears it.
+- The 5-partition × ~500-file structure may be the device's storage
+  ceiling — if a future sample shows more than 5 partitions, the storage
+  ceiling can be revised upward.
+- For OSCAR's import-performance budget, **this is the realistic
+  worst-case PRS1 card size** to optimise against, not the smaller DS Go
+  Auto sample.
+
+### Brick model class — what OSCAR shows
+
+When `IsBrick(modelnumber)` returns true (`prs1_loader.cpp:237-249`):
+- The device is registered and identified normally.
+- `deviceReportsUsageOnly(info)` is emitted — the UI shows a notice that
+  this device records usage only, not detailed therapy data.
+- Import still walks the D/ and Px/ files (the loader doesn't shortcut on
+  the brick flag) — usage hours, mask-on/off times, and pressure
+  settings still come through.
+- AHI, leak, flow, and pressure waveforms are not available — the device
+  doesn't write them.
+
+The `m_bricks` set has 5 members: `251P`, `261CA`, `261P`, `200X110`,
+`501V`. The first three are System One bricks; `200X110` is the
+DreamStation 1 brick; `501V` is the Dorma 500 (System One 60-Series).
+Additionally, `IsBrick` falls back to **"any model whose first character
+is `2`"** (`prs1_loader.cpp:243-245`) for unknown models — a reasonable
+heuristic given the `2xx`/`2xxx` model-number prefix pattern Philips uses
+for entry-level CPAPs.
+
+### What this sample adds to the catalogue
+
+- **First Philips brick** — establishes the brick-import behaviour next to
+  the existing AS10 CPAP basic brick-equivalent on the ResMed side.
+- **First multi-partition Philips card** — exercises the Px overflow
+  mechanism the DS Go Auto entry hinted at.
+- **Longest-running active PRS1 sample** — 4-year history pushes the
+  import-performance envelope.
+- **Abbreviated-key PROP.TXT form** — confirms both short-key
+  (`SN=`, `MN=`, …) and long-key (`SerialNumber=`, `ModelNumber=`, …)
+  syntaxes coexist within the same loader; the loader handles both via
+  the key-translation table at `prs1_loader.cpp:679-683`.
+- **macOS-injected metadata** (`.fseventsd/`, `._PROP.TXT`) — a recurring
+  fingerprinting nuisance for cards that have passed through a Mac.
+  Future fingerprint matches should treat both as "ignore — host OS
+  artifact," not as Philips-format features.
+
+### Observations / open questions
+
+- **`SID=0,1,2,3,4,5,6` has 7 entries but only 5 Px partitions exist** —
+  may include a buffered "next-partition" pointer and a sentinel.
+- **`TS=0,7,0,0,0,0,0`** — the `7` in position 1 likely indicates P1 has
+  the most-recent stored timestamp; other positions are zero. Worth
+  cross-referencing with the actual file mtimes on a future card.
+- **`DC=0,0,0,0,0,0,0` is all-zero** — consistent with the brick not
+  tracking per-day data. On a non-brick card this array would likely
+  carry daily-session counts.
+- **`DFV=3` is lower than the A40's `DataFormatVersion=2`** despite
+  being released later. The "DFV" version field doesn't behave
+  monotonically across families — F=0 V=6 brick uses `DFV=3`; F=3 V=4
+  vent uses `DFV=2`. Field appears to be **family-local**, not global.
+
+---
+
+## Philips Respironics BiPAP A40 (hospital NIV — PRS1-detected, **not supported**)
+
+**Sample:** `C:/Users/Guy/Downloads/AKLERK 20240205_Philips_BiPAP_A40 Arie Klerk/20240205`
+**Device:** Philips Respironics BiPAP A40 non-invasive ventilator, serial
+`V12281862919F`, model number `1109596`, software version `3.6.5`,
+ProductType `0x55`, **Family=3 / FamilyVersion=4**.
+**Loader status:** `prs1_loader.cpp` **detects this card** (`P-SERIES/` is
+present) but **rejects the device as unsupported** — the
+`(family=3, familyVersion=4)` combination is **not in `s_PRS1TestedModels`**
+(`prs1_loader.cpp:158-165` covers only F3 versions 0/3/6 — the C-Series,
+System One 60-Series, and DreamStation BiPAP S/T trees). `IsSupported()`
+at line 978 fails, the loader emits `deviceIsUnsupported` at line 989, and
+no session data is imported.
+
+The BiPAP A40 is a **hospital-grade non-invasive ventilator** (NIV — same
+class as the Trilogy / A30 / A40 Pro line), distinct from Philips's
+consumer CPAP/APAP lineup (DreamStation / DS Go / DS 2). This is the
+fourth Philips device in the catalogue and the first that is **outside
+the supported PRS1 family table** despite triggering the PRS1 detection
+path. Its main value is documenting the **dual-tree SD layout** the A40
+writes: a P-SERIES stub that satisfies PRS1 detection, plus a parallel
+`BIPAP-A/` tree where the **real** therapy data lives in standard EDF+D
+files that no current OSCAR loader reads.
+
+### Card-root structure — two parallel data trees
+
+```
+<root>/
+├── BIPAP-A/                                  <-- real therapy data (EDF+D, ignored by all loaders)
+│   ├── A2312000.EDF … A2402001.EDF           ~43 annotation files (events)
+│   ├── D2312000.EDF … D2402001.EDF           ~43 daily/summary files (per-minute aggregates)
+│   └── W2401150.EDF … W2402050.EDF           ~22 waveform files (3-4 MB each, ~83 MB total)
+└── P-SERIES/                                 <-- PRS1-compatible stub
+    ├── LAST.TXT                              8 bytes — points to active device folder ("12281862")
+    └── 12281862/                             device folder (last 8 digits of serial)
+        ├── PROP.TXT                          298 bytes — cleartext device properties
+        ├── E/                                empty
+        └── P0/                               64 session-pair files (00000C2.001/.002 … 00000101.001/.002)
+```
+
+No `D/`, no `Px/n>0`, no `ACD.SEQ`, no `LOG.SEQ` — the P-SERIES side is
+much sparser than the DreamStation Go Auto's P-SERIES layout (which has
+all of those). The A40 appears to write a minimal P-SERIES manifest for
+PRS1 SD-card recognition while keeping its actual data in `BIPAP-A/`.
+
+### What `Detect()` checks vs. what's there
+
+`prs1_loader.cpp:572` (`PRS1Loader::Detect`) → `GetPSeriesPath()` finds
+`P-SERIES/` (case-insensitive) → `FindMachinesOnCard()` walks each child
+folder looking for `PROP*.TXT` or `PROP.BIN`. The `12281862/PROP.TXT`
+satisfies this; `Detect()` returns true. The `BIPAP-A/` tree is **not
+consulted** by `Detect()` — only `P-SERIES/`.
+
+### `PROP.TXT` — fields and the `(F3, V4)` rejection
+
+```
+CardFormat=1
+SerialNumber=V12281862919F
+ModelNumber=1109596
+ProductType=0x55
+DataFormat=0
+DataFormatVersion=2
+Family=3
+FamilyVersion=4
+SoftwareVersion=3.6.5
+FirstDate=1706978789       (= 2024-02-03 14:46:29 UTC)
+LastDate=1706978789        (single date — fresh card / single session)
+PatientFolderNum=0
+PatientFileNum=4
+SessionID=00000101         (= 257 decimal; matches the highest P0/ file pair)
+EquipFileNum=0
+ValidCheck=ab2b
+```
+
+Compared with the DS Go Auto sample's PROP.TXT:
+
+| Field | A40 (this) | DS Go Auto (existing entry) | Notes |
+|---|---|---|---|
+| `ModelNumber` | `1109596` (7 digits) | `500G150` (3 digits + suffix) | Different model-number namespace |
+| `ProductType` | `0x55` | `0xc6` | Per-platform ID |
+| `Family` | **3** | 0 | F3 = bilevel S/T family |
+| `FamilyVersion` | **4** | 6 | F3V4 not in tested-model table |
+| `SerialNumber` prefix | **V** | J | A40 serials start `V`, DS Go/1/2 start `J` |
+| `SoftwareVersion` | `3.6.5` (semver) | `V1.1.6.1694` (V-prefix + build) | Different version format |
+| `DataFormat` / `DataFormatVersion` | `0` / `2` | `0` / `2` | Same data format declared — but `(F3,V4)` payload layout still unverified |
+
+The `Family=3` lineage in OSCAR's table:
+
+| Family | FV | Models | Class |
+|---|---|---|---|
+| 3 | 0 | 1061401 | BiPAP S/T (C Series) |
+| 3 | 3 | 1061T, 1160P | BiPAP S/T 30, AVAPS 30 (System One 60 Series) |
+| 3 | **4** | **none** | **← this A40 sample's slot, currently empty** |
+| 3 | 6 | 1030X110, 1030X150, 1130X110, 1131X150, 1130X200 | DreamStation BiPAP S/T 30 / AVAPS 30 |
+
+`(F3, V4)` plausibly belongs to the **A-Series ventilator generation**
+(A30/A40/A40 Pro/A-Series Trilogy adjacency) that sits between System One
+60 (V3) and DreamStation (V6) chronologically. **No code change is
+prescribed here** — per project policy, adding to the tested-model table
+requires verifying that the existing parser actually decodes `(F3,V4)`
+session payloads correctly, which has not been attempted.
+
+### `BIPAP-A/` — the data tree no loader reads
+
+A flat directory with **three file classes**, all standard EDF+D
+(`reserved` = `EDF+D` → EDF Plus Discontinuous, the spec for files with
+gaps and annotations). Filename pattern `<class><YYMM><nnn>.EDF`:
+
+| Class | Per-record duration | Signals | First two channel labels | Purpose | Typical size |
+|---|---|---|---|---|---|
+| `A` | 1 sec | 1 (annotations only) | (EDF+D annotations track) | Event log | 2.9–8 KB |
+| `D` | 120 sec | 15 | `IPAP Measrd`, `IPAP Min` | Per-2-minute aggregated channels (pressure, leak, etc.) | 4–198 KB |
+| `W` | 10 sec | 8 | `Press Patient`, `Flow CompTotal` | High-rate waveform — pressure & flow | 50 KB–4.5 MB |
+
+Recording-ident string in every header: `V12281862919F 1109596 0x8408 3.6.5`
+— **serial, model, productCode(hex), softwareVersion** — same identity as
+PROP.TXT but with an additional product-code field `0x8408` (no obvious
+counterpart in PROP.TXT; `ProductType=0x55` is unrelated). Patient field:
+`MLHT40 0` — likely a Philips internal device-type code.
+
+Filename suffix decoding (provisional, **not fully verified**):
+- `<YY><MM>` is straightforward — `2312` = Dec 2023, `2401` = Jan 2024, `2402` = Feb 2024.
+- `<nnn>` appears sequential within month for A/D files (000-023 in Dec,
+  000-016 + 041 in Jan), but W files step by 10 (150, 160, 170, …, 310 in
+  Jan; 010, 020, … in Feb). The W jump-by-10 may indicate that waveform
+  files only start above a session-duration threshold and the suffix
+  encodes some other index. Worth confirming on a second A40 sample.
+- A and D files share suffixes (e.g. `A2312000` matches `D2312000`),
+  suggesting they're paired per session. W files have their own numbering.
+
+Data range: 2023-12-18 → 2024-02-05 (~7 weeks), ~43 sessions visible
+across A/D pairs, ~22 W (waveform-bearing) sessions. Total `BIPAP-A/`
+payload ≈ 85 MB — dominated by W files.
+
+### Comparison across all four Philips entries
+
+| Aspect | DS 2 (410X150C) | DS Go Auto (500G150) | DS Go (500G110) | **BiPAP A40 (1109596)** |
+|---|---|---|---|---|
+| OSCAR loader status | Supported (encrypted DS2 path) | Supported (cleartext DS1/Go path) | Supported (cleartext DS1/Go path) | **Detected but rejected** (F3V4 unsupported) |
+| Top-level tree | Device-hash folder under root | `P-SERIES/<serial>/` | `P-SERIES/<serial>/` | **Both** `BIPAP-A/` **and** `P-SERIES/<serial>/` |
+| Identity file | `PROP.BIN` (encrypted) | `PROP.TXT` (cleartext) | `PROP.TXT` (cleartext) | `PROP.TXT` (cleartext) |
+| Family / FV | 0 / 6 | 0 / 6 | 0 / 6 | **3 / 4** |
+| ModelNumber namespace | 6-char alnum (`410X150C`) | 4-7 char alnum (`500G150`) | 4-7 char alnum (`500G110`) | **7-digit numeric (`1109596`)** |
+| Serial prefix | (encrypted, decoded `D03194…`) | `J` (e.g. `J34718904AA3C`) | `J` (e.g. `J22164904CC5C`) | **`V`** (e.g. `V12281862919F`) |
+| SoftwareVersion format | (encrypted) | `V1.1.6.1694` | `V1.1.4.1572` | **`3.6.5`** (semver) |
+| Real session data location | Encrypted device-hash folders | `P-SERIES/<serial>/D/` + `Px/` | `P-SERIES/<serial>/D/` + `Px/` | **`BIPAP-A/` (standard EDF+D)** |
+| Standard EDF on card? | No | No | No | **Yes — all BIPAP-A files** |
+
+The A40 is the first Philips device in this catalogue to use **standard
+EDF on the SD card**. ResMed has always used EDF; Philips's consumer
+CPAP/APAP line uses proprietary binary (cleartext or encrypted). For the
+hospital ventilator family Philips appears to have followed the medical-
+device convention of EDF rather than rolling its own.
+
+### Why the P-SERIES stub exists
+
+Plausibly two reasons:
+1. **SD-card recognition by the DreamMapper / Care Orchestrator software**
+   — `P-SERIES/<serial>/PROP.TXT` is how Philips's PC and mobile tools
+   identify a Philips SD card. Without it, the same tools that read
+   DreamStation cards wouldn't even attempt to open the A40 card.
+2. **Common formatting tool** — Philips may use one SD-formatter that
+   always lays down a P-SERIES skeleton. The A40 then populates the
+   session-counter files (`P0/0000xxxx.001/.002`) for log-keeping while
+   the actual therapy data goes into BIPAP-A.
+
+The `P0/` files are non-empty binary (header bytes look like the standard
+PRS1 chunked-file format), so the A40 *does* write something into the
+PRS1-shaped tree — but whether OSCAR's `prs1_parser_vent.cpp` could decode
+those files for `(F3, V4)` is unknown and would need direct verification.
+
+### Observations / open questions
+
+- **Two parallel data trees on one card is a new pattern** in the
+  catalogue. Closest precedent is the DS Go Auto card carrying two
+  *devices'* data in two `P-SERIES/<serial>/` siblings — but that's the
+  same loader path for both. The A40 has **one device** writing to **two
+  different formats** simultaneously. Suggests a transitional design,
+  or a deliberate split between "high-fidelity local archive" (BIPAP-A)
+  and "consumer-tooling compatibility" (P-SERIES).
+- **`(F3, V4)` is a candidate pending verification** — adding it to
+  `s_PRS1TestedModels` is a one-line edit, but per project policy we
+  don't extend the supported table until the parser is confirmed to
+  decode this device's `P0/` files correctly end-to-end. The cheaper path
+  to A40 support may be writing a small loader that reads `BIPAP-A/*.EDF`
+  directly, since those files are already in a documented international
+  format. Out of scope for fingerprinting; logged as future work.
+- **`MLHT40` in the EDF Patient field** appears to be a Philips internal
+  device-class code. Worth checking other Philips hospital-device EDFs
+  if any surface (Trilogy, A30, etc.) for a similar `MLHT*` prefix —
+  could be a reliable signature of the A-Series tree.
+- **`ProductType=0x55` and `0x8408` in EDF recording-ident**: two distinct
+  product-code-style values for the same device. `0x55` is the PRS1
+  PROP.TXT-style 1-byte type code; `0x8408` is a wider EDF-side code.
+  The relationship between the two is unknown; either could be a useful
+  discriminator if more A-Series samples surface.
+- **No data older than 2023-12-18** on a card with capacity for ~85 MB and
+  active through 2024-02-05 — only ~7 weeks of history. The A40 either
+  prunes aggressively or this card was recently re-formatted before
+  capture.
+- **`PatientFileNum=4` vs ~64 P0 file pairs**: PROP.TXT claims 4 patient
+  files, but `P0/` contains ~64 session-pair files (`.001`/`.002`). Either
+  `PatientFileNum` refers to something else (folder count? archived
+  patient profiles?) or the field isn't maintained the same way it is on
+  DS Go.
+
+---
+
+## DeVilbiss BlueLake DV64D ("IntelliPAP 2 Blue StandardPlus") — first DV6 sample
+
+**Sample:** `C:/Users/Guy/Downloads/Cuppa 500 - Cuppa (1)/Cuppa 500 - Cuppa`
+**Device:** DeVilbiss BlueLake **DV64D** ("Blue StandardPlus"), serial
+`ND16129035`, firmware `V023RN20160118` (built 2016-01-18), bootloader
+`V014BL20150630`.
+**Loader:** `intellipap_loader.cpp` — DV6 path (`OpenDV6` at
+`intellipap_loader.cpp:91+` for DV5, separate code for DV6 lower in the
+file). The model `DV64D` is in `testedModels` at line 622.
+**Loader detection caveat:** this sample required user-side reshaping
+before detection succeeded — see "On-disk layout" below.
+
+This fills the previously-empty `intellipap_loader.cpp` slot in the
+catalogue. DV6 is the DeVilbiss DV64-series (sold as "IntelliPAP 2"
+internationally, and "BlueLake" / "Blue StandardPlus" / "Blue AutoPlus"
+in some markets) — the successor to the earlier DV5x IntelliPAP. The DV5x
+path uses `SL/` + `SET1`; the DV6 path uses `DV6/` + `SET.BIN`. Both are
+handled by the same loader, dispatched by which subdirectory `Detect()`
+finds.
+
+### On-disk layout — `DV6/` wrapper required by `Detect()`
+
+`intellipap_loader.cpp:60-86`:
+
+```cpp
+if (dir.cd(DV6)) {            // DV64
+    return dir.exists(SET_BIN) ? true : false;
+}
+```
+
+The loader requires a `DV6/` subdirectory inside the selected folder, and
+`SET.BIN` inside that. **This sample as received had the `.BIN` files at
+the root of the user's directory, no `DV6/` wrapper** — so `Detect()`
+returned false and OSCAR rejected the card.
+
+Diagnosis: when the SD card was copied to disk, the **contents** of the
+on-card `DV6/` folder were extracted directly into the destination
+directory, losing the wrapper. **User-side fix verified:** putting all
+the `.BIN` files inside a `DV6/` subdirectory inside the parent folder
+made the loader detect and import the card normally. No code change
+required; no evidence that newer DV6 firmware writes flat.
+
+Lesson for future fingerprinting: when an SD card image appears to match
+a loader's file set but `Detect()` fails, **check whether a single
+wrapper directory is missing** before considering a format change.
+
+### Card-root structure (after adding `DV6/` wrapper)
+
+```
+<root>/
+└── DV6/
+    ├── VER.BIN          128 bytes  device identity (serial / model / firmware / bootloader)
+    ├── SET.BIN          128 bytes  current settings — Detect() sentinel
+    ├── SF.BIN           512 bytes  settings-history / extended-config block
+    ├── A.BIN             56 bytes  small fixed-shape header (alarms? "A" = ?)
+    ├── F.BIN            176 bytes  small fixed-shape (flags? family?)
+    ├── O.BIN             56 bytes  small fixed-shape (options?)
+    ├── H1.BIN            64 bytes  hour-meter (primary)
+    ├── H2.BIN            64 bytes  hour-meter (secondary — likely backup of H1)
+    ├── SC.BIN           256 bytes  SmartCode log — activation/access codes (4 entries visible)
+    ├── S.BIN        114,511 bytes  per-day summary table (DV6_S_REC records, ~50 bytes each)
+    ├── S_SES1.BIN       250 bytes  current-session summary (single record)
+    ├── U.BIN         31,097 bytes  usage log
+    ├── E.BIN      9,125,056 bytes  event log (high-rate events)
+    ├── L.BIN      9,855,056 bytes  leak waveform
+    └── R.BIN     21,060,056 bytes  flow/pressure waveform (largest — high-res data)
+```
+
+The three large files (`E.BIN`, `L.BIN`, `R.BIN`) — total ~38 MB — carry
+the high-resolution waveform/event streams. Per `intellipap_loader.cpp`
+comments at lines 604-607, **DV64 keeps high-res flow & pressure for only
+~100 hours of use** on the SD card; older days fall back to one-per-minute
+pressure (and lose flow entirely). So the size of these files reflects
+recent-use buffer state, not lifetime accumulation.
+
+### `VER.BIN` — device identity (128 bytes)
+
+```
+offset  bytes                                   meaning
+0x00    00                                      leading byte / record marker
+0x01    "ND16129035" + 00                       serial number (ND prefix = DeVilbiss)
+0x0C    "DV64D" + 00 + padding                  model number
+0x18    "V023RN20160118" + 00                   firmware version + build date YYYYMMDD
+0x28    "V014BL20150630" + 00                   bootloader version + build date
+0x38    01 08 02 a5 83 02 00 . 84 02            internal version codes / packed counters
+0x42+   00... padding to byte 127
+0x7F    a8                                      trailing byte (CRC8? checksum?)
+```
+
+Plain-text identity fields make this one of the easier formats to
+fingerprint by eye. `ND` is a stable DeVilbiss serial prefix; `DV64D`
+matches the loader's tested-models table exactly.
+
+### `SET.BIN` — current settings (128 bytes)
+
+```
+offset  bytes                                   meaning
+0x00    00                                      leading byte
+0x01    "ND16129035" + 00                       serial number (echoed for cross-file consistency)
+0x0C    04 01 00 50 00 5f 00 50 00              settings block — pressure / EPR / ramp values
+0x15    0a 32 0a 32 00 00                       further settings
+0x1B    f0 00 00 03 00 03 05 04 …               feature flags / scheduled values
+0x7F    fb                                      trailing byte (likely CRC)
+```
+
+Loader cross-reference: `SET_BIN_REC` struct at `intellipap_loader.cpp:728`
+defines the field layout this binary blob decodes into. The byte-1 echo
+of the serial number is a useful integrity check — DV6 puts the serial in
+nearly every file's header.
+
+### `S.BIN` — per-day summary records
+
+114,511 bytes / ~50 bytes per `DV6_S_REC` (`intellipap_loader.cpp:678+`) →
+~2,200 day records of capacity. The struct fields cover pressure
+percentiles (50/90/95th), leak percentiles, AHI components
+(OA/CA/Hypopnea), mask-fit %, tidal volume, breath rate, snore index,
+%-time in expiratory puff / flow limitation / periodic breathing — a rich
+daily-aggregate set without needing the waveform files.
+
+First record header begins: `00 53 4e 44 31 36 31 32 39 30 33 35 00 …` →
+the byte 0 is `0x00`, then `'S'` (= `0x53`) as a record-class marker, then
+the serial `ND16129035` — same pattern as the other files. The first
+day-record content starts immediately after.
+
+### `H1.BIN` / `H2.BIN` — hour-meter pair
+
+Both 64 bytes, **byte-for-byte identical** in this sample's first 48
+bytes. Header pattern:
+
+```
+00 03 01 73 6e 73 6e 73 6e 73 6e 73 6e 00 N D 1 6 1 2 9 0 3 5 00 0e be 0b 00 00 …
+```
+
+The `73 6e` ("sn" — ASCII "snsn…") repeat at offset 3 is a fixed-pattern
+identifier; serial `ND16129035` follows at offset 14. The differing byte
+at end (final byte = `d8`) is presumably a checksum / generation counter
+update on whichever copy was most recently written. H1/H2 are
+near-certainly a redundant pair (primary + backup) for the hour-meter,
+matching DeVilbiss's defensive design around the most regulator-relevant
+field on a CPAP (hours-of-use).
+
+### `SC.BIN` — SmartCode log (256 bytes)
+
+```
+00 ND16129035 00
+W9FA-YFJJ-1DF9-7Y5F 00 …
+WX9F-W4F2-CWX4-WFLE 00 …
+WK…
+```
+
+16-character dash-separated codes (looks like 4-letter quartets, base32-
+ish character set: WXYZF…). These are **DeVilbiss SmartCodes** — the
+encoded one-page compliance/adherence codes a clinician can read from the
+device LCD or a web tool. SC.BIN logs the most recent few. Not a
+fingerprinting target on its own, but a useful "yes this is DeVilbiss"
+secondary signal alongside the `ND` serial prefix.
+
+### `S_SES1.BIN` — current-session summary (250 bytes)
+
+```
+9b 57 84 27 1e e2 84 27 1e 48 02 00 00 00 00 00 …
+```
+
+Two `0x27843...` little-endian timestamps at offsets 1-4 and 5-8 (= start
+and end of the active session, in the device's epoch). DeVilbiss uses a
+**2002-01-01 UTC epoch** for timestamps (`intellipap_loader.cpp:288` —
+`QDateTime epoch(QDate(2002, 1, 1), QTime(0, 0, 0), QTimeZone("UTC"))`),
+so these decode to real wall times via that offset.
+
+### Loader's three-tier file roles
+
+| File class | Role | Loader function |
+|---|---|---|
+| VER.BIN / SET.BIN / SF.BIN | Identity & current settings | `PeekInfo` + setup at line 1377+ |
+| S.BIN / S_SES1.BIN | Daily summaries + active session | line 1405+ |
+| U.BIN | Cumulative usage log | line 1335+ |
+| R.BIN / L.BIN / E.BIN | High-resolution waveforms & events (last ~100 hrs) | lines 1651 / 2167 / 2355 |
+| H1.BIN / H2.BIN / A.BIN / F.BIN / O.BIN / SC.BIN | Auxiliary state (hours, SmartCode, alarms, options) | Various; some may not be consumed |
+
+### Quick DV6 vs DV5 discriminators
+
+For matching a future DeVilbiss SD card:
+
+| Feature | DV5x (IntelliPAP) | DV6x (BlueLake / IntelliPAP 2) — this sample |
+|---|---|---|
+| Subdirectory | `SL/` | `DV6/` |
+| Settings sentinel | `SET1` | `SET.BIN` |
+| File naming | mixed | single-letter `.BIN` |
+| Serial prefix | (different — not seen here) | `ND` |
+| Model prefix | `DV5*` (e.g. `DV54`) | `DV64*`, `DV63*` |
+| Loader path in source | `OpenDV5()` (line 91) | `OpenDV6()` (downfile) |
+
+### Comparison across all "summary-only-ish" / quirky CPAP samples
+
+| Aspect | AS10 CPAP basic | DS CPAP 200X110 (brick) | YH-680B | DV64D (this) |
+|---|---|---|---|---|
+| Loader status | Supported | Supported (brick flag) | Supported (Format D summary) | Supported (full DV6 path) |
+| Waveform on card? | None | None | None | **Yes — recent ~100 hrs in R.BIN/L.BIN/E.BIN** |
+| Daily summaries | STR.edf only | D/ files (tiny, 40-57 B each) | summer.bys | S.BIN (~50 B per day, ~2200 day capacity) |
+| OSCAR view | Daily AHI/leak/hours, no waveform | Usage hours only | Daily AHI/leak/hours, no waveform | Full charts on recent days, low-res pressure on older |
+
+DV6 is **not** a "summary-only" device — it just degrades to summary
+resolution after ~100 cumulative hours have rolled over the high-res
+buffer.
+
+### Observations / open questions
+
+- **The flat-files-without-wrapper layout is a copy artifact, not a
+  format change.** Verified by adding a `DV6/` wrapper directory: the
+  loader detected and imported normally. No detection-path change is
+  warranted.
+- **Recommend keeping this caveat in any future "first contact with a
+  DV6 card" diagnostic** — copies-from-Mac and copies-via-some-archivers
+  occasionally lose top-level directory wrappers; a quick check for
+  "files at root match the expected DV6 file set" can guide the user to
+  re-wrap before debugging.
+- **The DV6 loader was written ~2018-2019** (per project context) and the
+  high-res-data-100-hours behaviour is documented at
+  `intellipap_loader.cpp:604-607`. A "pressure graph looks wrong" symptom
+  on days older than that window is **expected stepped rendering**, not a
+  bug — but worth confirming whether the symptom is on recent or old
+  days before investigating further.
+- **`A.BIN`, `F.BIN`, `O.BIN` aren't obviously referenced** by the loader
+  (greps for those filenames find no matches in `intellipap_loader.cpp`).
+  Possibly written by the device for its own state-tracking and ignored
+  by OSCAR — low-stakes gap to investigate if a future DV6 sample shows
+  data drift the loader can't explain.
+- **`DV63E` ("IntelliPAP 2 AutoPlus") not in this catalogue** — would be
+  useful to see whether DV63E uses an identical file set or a variant.
+  The loader supports it via the same DV6 path.
+
+### Second DV64D sample — confirms fixed-buffer architecture (flipmike)
+
+**Sample:** `C:/Users/Guy/Downloads/DV6 flipmike/DV6`
+**Device:** Also `DV64D`, serial `ND18B29041`, firmware `V031RN20181128`
+(2018-11-28 build), bootloader `V018BL20180214`. Newer firmware/bootloader
+vintage than Cuppa (V023 → V031), same model, same file set.
+
+What the second sample confirms:
+
+- **Waveform/event ring buffers are fixed-size by model**, not
+  cumulative. `E.BIN` `9,125,056`, `L.BIN` `9,855,056`, `R.BIN`
+  `21,060,056` — **byte-identical** to Cuppa across a different device
+  and a ~2-year firmware-vintage gap. That's strong evidence these are
+  pre-allocated rolling buffers sized to the ~100-hour high-res window
+  the loader comments describe. Their disk footprint says nothing about
+  how much of that window is actually populated.
+- **Fixed-size auxiliary files also identical**: `SET.BIN` 128,
+  `SF.BIN` 512, `SC.BIN` 256, `H1/H2.BIN` 64, `A/O.BIN` 56, `VER.BIN`
+  128, `S_SES1.BIN` 250 — all identical bytes-of-storage across both
+  samples. Model-level format, not per-firmware.
+
+Variable-size files (genuine usage signal):
+
+| File | Cuppa (DV64D, 2016 fw) | flipmike (DV64D, 2018 fw) | Likely interpretation |
+|---|---|---|---|
+| `S.BIN` | 114,511 | 99,661 | Per-day records — flipmike fewer days |
+| `U.BIN` | 31,097 | 40,655 | Usage log — flipmike denser per-session events |
+| `F.BIN` | 176 | 92 | Variable record array prefixed by `'F'` + serial; flipmike has ~half as many records |
+
+**Serial-prefix decoding (provisional, two-sample inference):**
+`ND<YY><…>` pattern across both samples — Cuppa `ND16129035`, flipmike
+`ND18B29041`. `ND16…` = 2016 device, `ND18…` = 2018 device. Firmware
+versions track manufacture vintage: V023RN (2016 device) → V031RN (2018
+device). Bootloader similar (V014BL → V018BL). Not a strict
+loader-supported claim — a fingerprinting heuristic worth recording.
+
+**No behaviour differences observed** between firmware vintages at the
+file-format level — the +8 firmware revisions and 2-year manufacturing
+gap produced no detectable format change. DV64D output appears stable
+across the V023→V031 firmware range.
 
 ---
 
@@ -3407,11 +4991,12 @@ the known gaps where future samples would round it out.
 |---|---|---|
 | `bmc_loader.cpp` | BMC Luna G3 (legacy) | BMC Luna G3 |
 | `bmcg3x_loader.cpp` | BMC G3X (modern) | BMC G3 A20 |
+| `intellipap_loader.cpp` | DeVilbiss IntelliPAP / BlueLake (DV5x + DV6x) | **DV64D** "Blue StandardPlus" — two samples: Cuppa (2016 device, firmware V023, required wrapper restore); flipmike (2018 device, firmware V031). Same format across vintage |
 | `prisma_loader.cpp` | Löwenstein Prisma (multi-platform) | Prisma 20A, 25S, 25ST, 30ST (LINE / Eyra); Prisma SOFT (SOFT line / Firefly) |
-| `prs1_loader.cpp` | Philips Respironics System One / DreamStation | DreamStation 2 (encrypted), DreamStation Go Auto + DreamStation Go (cleartext, two-device card) |
-| `resmed_loader.cpp` | ResMed AirSense / AirCurve (AS10/AS11) | AirCurve 10 VAuto (AS10), AirSense 10 CPAP basic (AS10, summary-only) |
+| `prs1_loader.cpp` | Philips Respironics System One / DreamStation | DreamStation 2 (encrypted), DreamStation Go Auto + DreamStation Go (cleartext, two-device card), **DreamStation CPAP 200X110** (brick — 4-year card, 5 Px partitions, 3083 sessions), **BiPAP A40** (PRS1-detected but unsupported — `(F3,V4)` not in tested-model table; real data lives in parallel `BIPAP-A/` EDF+D tree no loader reads) |
+| `resmed_loader.cpp` | ResMed S9 / AirSense / AirCurve (S9/AS10/AS11) | S9 AutoSet (S9 — flat DATALOG), AirCurve 10 VAuto (AS10), AirSense 10 CPAP basic (AS10, summary-only), AirSense 11 AutoSet (AS11) |
 | `resvent_loader.cpp` | Resvent platform (Resvent / BMC iBreeze / Hoffrichter) | BMC iBreeze 20A, Hoffrichter Point 3 AutoCPAP |
-| `yuwell_loader.cpp` | Yuwell YH-series | YH-550A (Format A), YH-680B (Format D summary-only), YH690F (Format D full) |
+| `yuwell_loader.cpp` | Yuwell YH-series | YH-550A (Format A), YH-580C (Format B — single 64 KB ring-buffer file at root), **YH-825A** (Format C, BiPAP — pressure decode incomplete: IPAP/EPAP candidates at record offsets `0x02`/`0x04`, loader currently reads byte `0x0C` and gets zeros), YH-680B (Format D summary-only), YH690F (Format D full) |
 
 ## CPAP loaders with no sample yet (would round out the catalogue)
 
@@ -3419,7 +5004,6 @@ the known gaps where future samples would round it out.
 |---|---|---|
 | `icon_loader.cpp` | Fisher & Paykel Icon | F&P CPAP format coverage |
 | `sleepstyle_loader.cpp` | Fisher & Paykel SleepStyle | The newer F&P platform (replaced Icon) |
-| `intellipap_loader.cpp` | DeVilbiss IntelliPAP | DeVilbiss representation (third-tier US brand) |
 | `mseries_loader.cpp` | Philips Respironics RemStar M-Series | Pre-System One / pre-DreamStation Philips lineage — completes the PRS1 generational picture (M-Series → System One → DreamStation 1 → DreamStation 2) |
 | `weinmann_loader.cpp` | Weinmann SOMNOsoft / SOMNOBalance | Pre-Prisma Weinmann devices — predecessors to the Löwenstein Prisma family on the same vendor's older firmware |
 | `somnopose_loader.cpp` | SomnoPose | Phone-app positional-therapy data import (distinct from CPAP-card formats — not a true SD-card-fingerprinting target, but worth confirming with a sample) |
@@ -3452,6 +5036,7 @@ addition.
 | Löwenstein Prisma VENT V50-C | "AKLERK Lowenstein Prisma Vent V50C" | `P34A11` firmware platform; `prismaVENT.sdpvdat` sentinel; per-day ZIPs |
 | SEFAM S.Box AUTO | "SEFAM-2 Wagmar Barbosa de Souza" | Self-describing INI manifest; XOR-scrambled binary data |
 | VentMed DreamSleep DS6 | "Jonathan Cameron - VentMed-DreamSleep-DS6" | Per-day `.ds1` files; 4-byte fixed TLV records starting `80 16` |
+| Philips BiPAP A40 (`BIPAP-A/` tree) | "AKLERK 20240205_Philips_BiPAP_A40" | Standard EDF+D in `BIPAP-A/A*.EDF`/`D*.EDF`/`W*.EDF`; parallel `P-SERIES/` stub triggers PRS1 detect but `(F3,V4)` is unsupported. Hospital NIV family (A-Series — Trilogy/A30/A40 adjacency) |
 
 ## Stopping point
 
