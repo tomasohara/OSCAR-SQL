@@ -1792,7 +1792,7 @@ void MainWindow::on_action_Preferences_triggered()
 void MainWindow::on_actionTime_Corrections_triggered()
 {
     if (!p_profile) {
-        QMessageBox::warning(this, tr("Time Corrections"), tr("Please select or create a profile first."));
+        QMessageBox::warning(this, tr("Time Corrections"), tr("Please open or create a profile first."));
         return;
     }
     if (!daily) return;
@@ -1821,7 +1821,7 @@ void MainWindow::on_actionTime_Corrections_triggered()
 void MainWindow::on_actionDrift_Analysis_triggered()
 {
     if (!p_profile) {
-        QMessageBox::warning(this, tr("Drift Analysis"), tr("Please select or create a profile first."));
+        QMessageBox::warning(this, tr("Drift Analysis"), tr("Please open or create a profile first."));
         return;
     }
     if (!daily) return;
