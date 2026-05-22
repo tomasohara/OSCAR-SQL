@@ -136,6 +136,7 @@ bool SqlExporter::exportBlobTable(const QString&     tableName,
     }
 
     stream << "\n-- " << rowCount << " row(s) exported.\n";
+    stream.flush();
     file.close();
 
     emit progressChanged(rowCount, rowCount);

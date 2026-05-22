@@ -768,6 +768,21 @@ bool ProfileBackup::exportMachinesAndSessions(const QString& tempDir)
     }
     if (checkCancelled()) return false;
 
+    // ---- device_time_corrections (no profile_id — references machines.id) ----
+    {
+        SqlExporter dtcExp;   // no placeholders
+        const QString dtcWhere =
+            QString("machine_id IN (SELECT id FROM machines WHERE profile_id = %1)")
+            .arg(m_profileId);
+        if (!dtcExp.exportTable("device_time_corrections", dtcWhere,
+                                dbDir + "/device_time_corrections.sql")) {
+            m_errorMessage = QString("Failed to export device_time_corrections: %1")
+                                 .arg(dtcExp.errorMessage());
+            return false;
+        }
+    }
+    if (checkCancelled()) return false;
+
     // ---- sessions ---------------------------------------------------------
     // sessions has no profile_id column; machine_id references machines.id (PK).
     QString sessionWhere =

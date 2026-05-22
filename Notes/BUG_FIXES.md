@@ -2760,3 +2760,31 @@ Manual `m_reply->deleteLater(); m_reply = nullptr; delete m_file; m_file = nullp
 - Changed all three dialogs to keep the Close button enabled during operation, relabelled "Cancel". Clicking it calls `requestCancel()` on the active object (and `abort()` on the cloud uploader if an upload is in progress). The button becomes "Cancelling..." and is disabled once clicked.
 - Cancellation is treated as a non-error: no QMessageBox is shown; status label shows "Cancelled." and the UI resets normally.
 - For restore: if cancelled mid-transaction, `restoreInTransaction()` rolls back cleanly before returning.
+
+---
+
+## 2026-05-22 - Profile backup fails with "Failed to add manifest.json to package" (#179)
+
+**Files:** `oscar/zip.cpp`, `oscar/zip.h`
+
+**Symptom:** Profile backup always failed at the packaging step with the error
+"Failed to add manifest.json to package". The Qt Application Output showed:
+`unable to add "manifest.json" : 1827 bytes file read failed`.
+
+**Root cause:** `ZipFile::m_abort`, `m_progress`, and `m_lastNotified` were never
+initialized in the constructor — only in `AddFiles()`. `createPackage()` calls
+`AddFile()` directly, bypassing `AddFiles()`. With the original stack layout
+`m_abort` happened to land on a zero byte; adding a new `SqlExporter` object in
+`exportMachinesAndSessions()` (for the `device_time_corrections` backup) shifted
+the stack layout enough that `m_abort` now landed on a truthy byte.
+`zip_file_read()` immediately returned 0, miniz reported "file read failed", and
+the backup aborted.
+
+**Fix:** Initialize `m_abort(false)`, `m_progress(0)`, `m_lastNotified(0)` in the
+`ZipFile` constructor member-initializer list.
+
+**Also fixed (same session):** `SqlExporter::exportBlobTable()` called `file.close()`
+before the `QTextStream` destructor could flush its internal buffer. For small
+result sets (e.g. a 0-row `device_time_corrections` export) the entire file content
+remained in the stream buffer and was never written to disk. Fixed by calling
+`stream.flush()` before `file.close()`.

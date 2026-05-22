@@ -1060,7 +1060,8 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
                     qint64 newFk = -1;
 
                     if (col == QLatin1String("machine_id")
-                        && tableName == QLatin1String("sessions")) {
+                        && (tableName == QLatin1String("sessions")
+                            || tableName == QLatin1String("device_time_corrections"))) {
                         newFk = m_machineIdMap.value(oldFk, -1);
 
                     } else if (col == QLatin1String("session_id")
@@ -1085,7 +1086,8 @@ bool ProfileRestore::executeSqlFile(const QString& sqlFile)
                          || (col == QLatin1String("session_channel_id"))
                          || (col == QLatin1String("eventlist_id"))
                          || (col == QLatin1String("machine_id")
-                             && tableName == QLatin1String("sessions"))) {
+                             && (tableName == QLatin1String("sessions")
+                                 || tableName == QLatin1String("device_time_corrections")))) {
                             // Required FK — restore order error.
                             m_errorMessage = QString(
                                 "No ID mapping found for %1 = %2 in table %3. "
@@ -1193,6 +1195,7 @@ bool ProfileRestore::restoreInTransaction()
         QStringLiteral("channels"),
         QStringLiteral("channel_options"),
         QStringLiteral("machines"),
+        QStringLiteral("device_time_corrections"),
         QStringLiteral("sessions"),
         QStringLiteral("session_settings"),
         QStringLiteral("session_channels"),

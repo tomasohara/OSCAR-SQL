@@ -25,6 +25,9 @@ static void zip_done(void* ctx);
 
 
 ZipFile::ZipFile()
+    : m_abort(false)
+    , m_progress(0)
+    , m_lastNotified(0)
 {
     m_ctx = zip_init();
 }
