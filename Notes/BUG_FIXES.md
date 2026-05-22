@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-22 - Backup success message box appears behind main window (GitLab #180)
+
+**File:** `oscar/backupdialog.cpp` (`BackupDialog::onBackupCompleted`)
+
+**Symptom:** After a successful backup, the QMessageBox confirmation sometimes appeared
+behind the main window rather than on top of the backup dialog. The .oscar file was
+created correctly, but users saw no notification and were left with a dialog showing
+only an active Cancel button and no way to proceed.
+
+**Root cause:** Qt/Windows z-order issue. `createBackup()` runs synchronously in the
+main thread, using `QCoreApplication::processEvents()` for UI responsiveness. During
+that processing, window focus could shift to the main window. When `onBackupCompleted`
+subsequently created the QMessageBox, Qt parented it to the dialog but painted it
+behind the already-focused main window.
+
+**Fix:** Call `raise()` and `activateWindow()` on the dialog immediately before
+showing the QMessageBox, ensuring the dialog has focus before the box is created.
+
+---
+
 ## 2026-05-21 - Yuwell YH-825 BiPAP pressure chart flat at zero (Format C decode targeted CPAP byte)
 
 **File:** `oscar/SleepLib/loader_plugins/yuwell_loader.cpp` (`YuwellFormatC::OpenSession`)

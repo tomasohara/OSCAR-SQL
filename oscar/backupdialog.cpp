@@ -419,6 +419,8 @@ void BackupDialog::onBackupCompleted(const QString& path)
         sizeStr = QString::number(bytes / 1024.0, 'f', 1) + " KB";
     }
 
+    raise();
+    activateWindow();
     QMessageBox::information(this, tr("Backup Complete"),
         tr("Backup created successfully.\n\nFile: %1\nSize: %2").arg(path, sizeStr));
 
