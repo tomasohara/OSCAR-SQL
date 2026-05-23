@@ -33,7 +33,7 @@ You are a helpful coding assistant specializing in c++ 17 and Qt.
 - Place any progress, design notes, etc. in Notes folder. If searching for a file that was there before, it may have been moved to Notes/temp folder.
 - Add new files to oscar.pro as required for compilation.
 - Never touch any files in oscar/SleepLib/thirdparty.
-- Log all bug fixes in Notes/BUG_FIXES.md.
+- Log all bug fixes in Notes/Developer Notes/BUG_FIXES.md.
 - An "OSCAR day" starts at noon and runs until noon of the following calendar day.
 - When modifying a UI component, make sure the UX is as user would expect. E.g., when a button is clicked on, show that it has been clicked on.
 - If user clicks on Cancel button, cancellation should take effect within a few seconds if not immediately.
@@ -105,7 +105,7 @@ If GITLAB_TOKEN is not set, ask the user to provide the token or set the environ
 
 ## Workflow
 
- - After making fixes, log them to Notes/BUG_FIXES.md.
+ - After making fixes, log them to Notes/Developer Notes/BUG_FIXES.md.
  - When committing: keep messages concise (one-line subject, 2-3 sentence summary; no change lists). Write summary in lines not exceeding 90 characters. Omit the "co-authored by" line. Include Htmldocs/release_notes.html if changed; if it hasn't been changed, ask whether I want to to update it before committing.
   - To push: git push origin master
   - Ask user before committing or pushing or updating GitLab issues

@@ -3,7 +3,7 @@
 **Status:** Reverse-engineered; not vendor-documented.
 **Scope:** `<serial>.000`, `.001`, ... waveform files produced by BMC G3X devices.
 **Implementation:** `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp`
-**Last updated:** 2026-03-26
+**Last updated:** 2026-05-23
 
 ---
 
@@ -113,13 +113,13 @@ Bytes `0x00C–0x06F` and other unlisted ranges are tracked in the diagnostics C
 
 ## 3) Waveform Regions and Resampling
 
-The parser reads three waveform arrays from each packet and resamples them all to 50 output samples for OSCAR's waveform EventLists:
+The parser reads three waveform arrays from each packet and resamples them all to 50 output samples:
 
-| Region | Offset | Source samples | Output samples | Raw type | Clamp |
-|--------|--------|---------------:|---------------:|----------|-------|
-| Flow Rate | `0x56E` | 100 | 50 | `int16 LE` | ±2000 |
-| Pressure Wave | `0x380` | 50 | 50 | `uint16 LE` | ≤4000 |
-| Mask Pressure | `0x24A` | 100 | 50 | `int16 LE` | ±4000 |
+| Region | Offset | Source samples | Output samples | Raw type | Clamp | Exported |
+|--------|--------|---------------:|---------------:|----------|-------|---------|
+| Flow Rate | `0x56E` | 100 | 50 | `int16 LE` | ±2000 | Yes |
+| Pressure Wave | `0x380` | 50 | 50 | `uint16 LE` | ≤4000 | **No** (`ExportPressureWaveform() = false`) |
+| Mask Pressure | `0x24A` | 100 | 50 | `int16 LE` | [0, 4000] | Yes |
 
 Resampling is direct indexed decimation (nearest sample, no anti-alias filter).
 
@@ -142,8 +142,8 @@ The following single-value fields are read from every packet and stored as `EVL_
 | `CPAP_RespRate` | `0x530` | `uint16 LE`, gain 1.0 | Breaths/min |
 | `OXI_SPO2` | `0x08A` | `uint8`, gain 1.0 | %; stored 0 = no data (skipped) |
 | `OXI_Pulse` | `0x08C` | `uint8`, gain 1.0 | BPM; stored 0 = no data (skipped) |
-| `CPAP_Ti` | `0x074` | `uint16 LE` × 0.001 = seconds | **Identification contradicted** — see §9 open question 10. Likely a machine-internal algorithm timing parameter, not patient inspiratory time. |
-| `CPAP_Te` | `0x07E` | `uint16 LE` × 0.001 = seconds | **Identification contradicted** — `0x074 + 0x07E` sum is near-constant (~538–565 cs) regardless of RR; `0x076 + 0x07E` ≈ 602 cs. Not patient expiratory time. See §9 open question 10. |
+| `CPAP_Ti` | `0x074` | `uint16 LE` × 0.001 = seconds | **Not exported** (`ExportTimingChannels() = false`). Identification contradicted — see §9 open question 10. Sum 0x074+0x07E near-constant (~565 cs); not patient inspiratory time. |
+| `CPAP_Te` | `0x07E` | `uint16 LE` × 0.001 = seconds | **Not exported** (`ExportTimingChannels() = false`). Identification contradicted — not patient expiratory time. See §9 open question 10. |
 
 **Note:** The I:E ratio computation (cycle = `0x074 + 0x07E`, `insp_permille = 1000 × raw_0x074 / cycle`) in the parser code is based on an identification that has since been contradicted. The sum of these two fields is near-constant and does not track the breath cycle time derived from the RR field. The fields `0x076` and `0x07E` are a more tightly correlated pair (r=+0.94) and may be more relevant to whatever algorithm timing these encode.
 
@@ -162,7 +162,7 @@ Two firmware builds have been observed:
 
 In firmware SC.74+, `0x52A` is always zero and `0x568` carries a continuous total-mask-leak signal (baseline ~15–17 L/min = intentional vent, with spikes to 100–350 L/min on mask repositioning). In firmware SC.72, both `0x52A` and `0x568` are populated but are uncorrelated (r ≈ 0.05); `0x52A` is used as the confirmed unintentional leak source.
 
-**OSCAR selection rule** (Phase 3.5 in `ReadDateSession()`): samples the first 200 packets of each day. If fewer than 10% of those packets have non-zero `0x52A`, the alternate field `0x568` is used for the entire day.
+**OSCAR selection rule** (Phase 3.5 in `ReadDateSession()`): the firmware version string is checked first — `G3-2.11.x` / `SC.72` → `0x52A`; any other `G3-2.` prefix → `0x568`. If the firmware version is unavailable, the first 200 packets of the day are sampled: if fewer than 10% have non-zero `0x52A`, the alternate field `0x568` is used for the entire day.
 
 ### Scale
 
@@ -210,7 +210,7 @@ BMC firmware writes the same `uint16` value into two consecutive `uint16` slots 
 - Pressure seed (`0x00A`)
 - Flow Rate waveform (`0x56E`)
 - Mask Pressure waveform (`0x24A`)
-- Pressure Wave waveform (`0x380`)
+- Pressure Wave waveform (`0x380`) — stored in `BmcWaveformPacket.PressureWave` but not exported to OSCAR channels (`ExportPressureWaveform() = false`)
 - Leak (`0x52A` fw SC.72, or `0x568` fw SC.74+; selected per §5)
 - Tidal Volume (`0x52C`)
 - Minute Ventilation (`0x52E`)
@@ -219,7 +219,7 @@ BMC firmware writes the same `uint16` value into two consecutive `uint16` slots 
 - Pulse Rate (`0x08C`)
 - EPAP pressure trend (`0x76C`) — **drives `CPAP_EPAP`** at 0.01 cmH2O resolution
 - IPAP pressure trend (`0x76E`) — **drives `CPAP_Pressure` and `CPAP_IPAP`** at 0.01 cmH2O resolution
-- Unknown timing parameters (`0x074`, `0x07E`) — loaded as Ti/Te but identification contradicted; see §9 open question 10
+- Unknown timing parameters (`0x074`, `0x07E`) — identification contradicted (not Ti/Te); **not exported** (`ExportTimingChannels() = false`); see §9 open question 10
 
 **Sourced from `.evt` and merged by timestamp (fallback only):**
 - IPAP / EPAP / Pressure (from message type `0x42` pressure snapshots) — overridden by PressureTrend when `kG3xUsePressureTrendForPressureChannel = true`

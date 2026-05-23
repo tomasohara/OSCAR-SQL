@@ -145,38 +145,41 @@ Waveform packets are **2048 bytes** each (`kG3xWaveformPacketSize = 0x800`).
 
 ### Waveform Packet Layout (2048 bytes)
 
+See `Notes/G3X/BMC_G3X_00X_FORMAT.md` for the full field map and confidence levels.
+Key offsets used by the current parser:
+
 | Offset | Size | Type | Field | Notes |
 |--------|------|------|-------|-------|
 | 0x000 | 2 | uint8[2] | Magic | Must be `0xAD`, `0xAA` |
-| 0x002 | 2 | — | *unknown* | Not parsed |
-| 0x004 | 1 | uint8 | Year | 1900 + value |
-| 0x005 | 1 | uint8 | Month | |
-| 0x006 | 1 | uint8 | Day | |
-| 0x007 | 1 | uint8 | Hour | |
-| 0x008 | 1 | uint8 | Minute | |
-| 0x009 | 1 | uint8 | Second | |
-| 0x00A | 2 | uint16 LE | Pressure | cmH2O in hundredths; valid range 400–3500 |
-| 0x00C | 104 B | — | *unknown* | Not parsed |
-| 0x074 | 2 | uint16 LE | Raw0x74 | Possibly inspiratory time in centiseconds (experimental); also used for waveform leak blend |
-| 0x076 | 2 | uint16 LE | Raw0x76 | Logged in diagnostics; purpose unknown |
-| 0x078 | 4 B | — | *unknown* | Not parsed |
-| 0x07C | 2 | uint16 LE | Raw0x7C | Logged in diagnostics; purpose unknown |
-| 0x07E | 2 | uint16 LE | Raw0x7E | Possibly expiratory time in centiseconds (experimental) |
-| 0x080 | 458 B | — | *unknown* | Not parsed |
-| 0x24A | 192 B | int16 LE × 96 | PressureWave | 96 samples; decoded as signed16 (or signed10 if env flag set) |
-| 0x36A | 166 B | — | *unknown* | Not parsed |
-| 0x510 | 94 B | int16 LE × 47 | FlowAbnormality | 47 samples; decoded as signed16 or signed10; median-baselined |
-| 0x56E | 8 B | — | *unknown* | Not parsed |
-| 0x576 | 192 B | int16 LE × 96 | Flow | 96 samples; clamped to ±2000; scaled /10.0 for display |
-| 0x636 | 458 B | — | *unknown* | Not parsed |
+| 0x004–0x009 | 6 | uint8[6] | Timestamp | year-1900, month, day, hour, minute, second |
+| 0x00A | 2 | uint16 LE | PressureSeed | cmH2O in hundredths; valid range 400–3500; fallback only if no EVT/IDX seed |
+| 0x074 | 2 | uint16 LE | Raw0x74 | Confirmed **not** patient Ti — sum 0x074+0x07E near-constant (~565 cs); not exported |
+| 0x07E | 2 | uint16 LE | Raw0x7E | Confirmed **not** patient Te; not exported |
+| 0x08A | 1 | uint8 | SpO2 | Percent; 0 = unavailable |
+| 0x08C | 1 | uint8 | PulseRate | BPM; 0 = unavailable |
+| 0x24A | 200 B | int16 LE × 100 | MaskPressure | 100 samples; clamped to [0, 4000]; resampled to 50 output samples |
+| 0x380 | 100 B | uint16 LE × 50 | PressureWave | 50 samples; clamped ≤4000; not exported (`ExportPressureWaveform = false`) |
+| 0x510 | — | — | FlowAbnormality | Zeroed — pending further validation; not exported |
+| 0x52A | 2 | uint16 LE | Leak | Firmware SC.72 / G3-2.11.x only; unintentional leak; raw × 1.6 = tenths L/min |
+| 0x52C | 2 | uint16 LE | TidalVolume | Raw; scale factor TBD |
+| 0x52E | 2 | uint16 LE | MinuteVentilation | Raw; scale factor TBD |
+| 0x530 | 2 | uint16 LE | RespiratoryRate | Breaths/min |
+| 0x56E | 200 B | int16 LE × 100 | Flow | 100 samples; clamped ±2000; scaled /10.0; resampled to 50 output samples |
+| 0x568 | 2 | uint16 LE | AlternateLeak | Firmware SC.74+ / G3-2.12.x+; total mask leak; raw × 1.6 = tenths L/min |
+| 0x76C | 2 | uint16 LE | PressureTrendEPAP | Hundredths cmH2O; drives `CPAP_EPAP` |
+| 0x76E | 2 | uint16 LE | PressureTrendIPAP | Hundredths cmH2O; drives `CPAP_Pressure` / `CPAP_IPAP` |
 
-All three waveform arrays (96, 47, 96 samples) are downsampled to 50 output samples for
-compatibility with the legacy BMC waveform format.
+All waveform arrays are resampled to 50 output samples.
 
-**Experimental timing fields (0x74, 0x7E):** When `OSCAR_BMC_G3X_EXPERIMENTAL_TIMING_747E`
-is set, the parser interprets `0x74` as inspiratory centiseconds and `0x7E` as expiratory
-centiseconds. Cycle time = raw0x74 + raw0x7E. Valid range: 200–2400 centiseconds.
-Respiratory rate = 6000 / cycleCentiseconds. I:E fraction = raw0x74 / cycleCentiseconds.
+**Leak source selection:** Firmware version string is checked first — G3-2.11.x / SC.72 uses
+offset 0x52A (unintentional leak); G3-2.12.x+ (any other `G3-2.` prefix) uses 0x568 (total
+mask leak). If the firmware version string is unavailable, the first 200 waveform packets are
+sampled: if fewer than 10% have non-zero 0x52A, the alternate field 0x568 is used. EVT records
+`0x0C` and `0x42` are **not** used as leak sources.
+
+**Timing fields (0x074, 0x07E):** Confirmed **not** patient Ti/Te — their sum is near-constant
+(~565 cs) regardless of respiratory rate, with no correlation with RR, tidal volume, or
+pressure. `ExportTimingChannels() = false`; Ti, Te, and I:E channels are not exported to OSCAR.
 
 ---
 
@@ -199,26 +202,37 @@ Records without magic `0xAE, 0xAA` at bytes 0–1 are skipped.
 
 ### EVT Message Types
 
-| Type | Interpretation | Value1 | Value2 |
-|------|---------------|--------|--------|
-| 0x02 | UA (unclassified apnea) | Duration seconds | — |
-| 0x03 | OSA | Duration seconds | — |
-| 0x04 | CSA | Duration seconds | — |
-| 0x07 | Hypopnea (subtype A) | Duration seconds | — |
-| 0x08 | Hypopnea (subtype B) | Duration seconds | — |
-| 0x09 | Hypopnea (subtype C) | Duration seconds | — |
-| 0x0A | Unknown respiratory | — | — |
-| 0x0B | Unknown | — | — |
-| 0x0C | High-rate leak update | — | Raw leak (× scale → tenths L/min) |
-| 0x0D | Ignored | — | — |
-| 0x0E | Unknown (possibly tidal volume — unvalidated) | — | — |
-| 0x0F | Unknown (possibly minute ventilation — unvalidated) | — | — |
-| 0x42 | Pressure + leak | Raw leak | Pressure in hundredths cmH2O |
+See `Notes/G3X/BMC_G3X_EVT_FORMAT.md` for full details and confidence levels.
 
-For respiratory events (0x02–0x0A), duration is clamped to 10–180 seconds.
+For respiratory events (0x01–0x0A), **value1** is a wrapping counter (0–999; not used) and
+**value2** is duration in **milliseconds** (confirmed 2026-03-25). Duration is clamped to
+10–180 seconds for all types except 0x09 (PB, unclamped). Timestamp marks the **START**.
 
-**Leak source policy:** If 0x0C records are present for the day, they are used as the primary
-(high-rate) leak source. Otherwise, the leak field from 0x42 records is used as fallback.
+| Type | Interpretation | value2 / unk1e (0x1E) |
+|------|---------------|----------------------|
+| 0x01 | UH — Unclassified hypopnea → `CPAP_Hypopnea` | Duration ms |
+| 0x02 | UA — Unclassified apnea → `CPAP_Apnea` | Duration ms |
+| 0x03 | OSA → `CPAP_Obstructive` | Duration ms |
+| 0x04 | CSA → `CPAP_ClearAirway` | Duration ms |
+| 0x07 | OH — Obstructive hypopnea → `CPAP_Hypopnea` | Duration ms |
+| 0x08 | CH — Central hypopnea → `CPAP_Hypopnea` | Duration ms |
+| 0x09 | **PB episode start marker** → `CPAP_PB`; timestamp = START; duration = uint32 at 0x1C–0x1F (low 16 = value2, high 16 = unk1e), ms | — / high 16 bits of uint32 duration |
+| 0x0A | RERA → `CPAP_RERA` | Duration ms (~10 s) |
+| 0x0B | Unknown (per-breath; not decoded) | Multiples of 20, not duration |
+| 0x0C | Per-breath inspiration (timestamps collected; not decoded to channels) | — |
+| 0x0D | Per-breath expiration (not decoded) | — |
+| 0x0E | **Mild flow limitation** → `CPAP_FLG` grade 1; timestamp = end-of-expiration | Ti in ms (bar width) |
+| 0x0F | **Moderate flow limitation** → `CPAP_FLG` grade 2 | Ti in ms (bar width) |
+| 0x10 | **Severe flow limitation** → `CPAP_FLG` grade 3 | Ti in ms (bar width) |
+| 0x40 | Session start marker (not used — waveform heuristic is more accurate) | — |
+| 0x41 | Session end marker (not used) | — |
+| 0x42 | Pressure snapshot; value2 = **EPAP** hundredths cmH2O; unk1e = **IPAP** hundredths cmH2O | EPAP / IPAP |
+| 0x43 | Unknown (~10-min cadence; not decoded) | — |
+| 0x44 | PB timestamp (secondary; used only if 0x09 absent; no duration) | — |
+
+**Leak source:** Sourced from waveform packet offset `0x52A` (firmware SC.72 / G3-2.11.x) or
+`0x568` (firmware SC.74+ / G3-2.12.x+). See the waveform packet section above for the
+selection rule. EVT records are not used as a leak source.
 
 ---
 
@@ -237,7 +251,8 @@ For respiratory events (0x02–0x0A), duration is clamped to 10–180 seconds.
 | Model number source | USR file at offset 0x2296 | IDX file at offset 0x100 (product name, e.g. `"G3 A20"`); 0x048 is part/config code, not product name |
 | Session data source | USR file (BmcUsrSession) | IDX records + EVT file |
 | Waveform packet magic | `0xAAAD` | `0xAD, 0xAA` |
-| Flow samples per packet | 25 | 96 (downsampled to 50) |
-| Pressure wave samples | 25 | 96 (downsampled to 50) |
-| Flow abnormality samples | 25 | 47 (downsampled to 50) |
+| Flow samples per packet | 25 | 100 (resampled to 50) |
+| Pressure wave samples | 25 | 50 (not resampled; not exported) |
+| Mask pressure samples | — | 100 (resampled to 50) |
+| Flow abnormality samples | 25 | zeroed (pending validation; not exported) |
 | Statistics sub-records | None | IT (indices/totals) and TS (pressure range) |

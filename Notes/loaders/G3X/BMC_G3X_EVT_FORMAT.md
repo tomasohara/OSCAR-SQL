@@ -3,7 +3,7 @@
 **Status:** Reverse-engineered; not vendor-documented.
 **Scope:** `<serial>.evt` event/telemetry stream produced by BMC G3X cards.
 **Implementation:** `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp`
-**Last updated:** 2026-03-30 (0x09 confirmed as PB start marker; uint32 duration; FL value2 used for bar width)
+**Last updated:** 2026-05-23 (timestamp = START confirmed for all respiratory events; 0x0C timestamps collected but not decoded)
 
 ---
 
@@ -58,7 +58,7 @@ The table below reflects analysis of two nights of G3X data (file `A3125636308` 
 | `0x09` | Confirmed | `CPAP_PB` | Wrapping counter (0–999); not used | **uint32 LE duration, ms** — `value2` (0x1C) = low 16 bits, `unk1e` (0x1E) = high 16 bits (confirmed 2026-03-30 via Lijunjun and Kavolodin data) | **Periodic breathing episode start marker.** Timestamp marks the **START** of the episode, consistent with all other respiratory event types. Duration is a uint32 spanning offsets 0x1C–0x1F (reading only the low 16 bits gives wrong durations ~28s/23s; uint32 gives correct ~159s/154s matching PAP-Link on Lijunjun 2026-03-16). Primary PB source in OSCAR. Confirmed on Lijunjun (B20A SC.75) and Kavolodin (A20) data. |
 | `0x0A` | Confirmed | `CPAP_RERA` | Wrapping counter (0–999); not used | **Duration, ms** (confirmed 2026-03-25; ~11 000 ms observed, ≈10 s per PAP-Link) | **Respiratory Effort Related Arousal.** Confirmed 2026-03-24: present in all five independently identified RERA windows from PAP-Link (JCCPAP data, 2026-02-12 through 2026-02-24). Two records at 02:59 and 03:10 on OSCAR day 2/22 match two PAP-Link RERAs on the same night. Duration confirmed ~10 seconds (PAP-Link). ~1–3 records/night on well-treated nights; up to ~200+ on nights with heavy FL. |
 | `0x0B` | Unknown | Not decoded | Wrapping counter (0–999); not used | Multiples of 20, range 400–1060; **not** duration | Frequency varies dramatically night to night (1–1,439/night in JCCPAP; only 3 in G3X-2 on 2026-02-20). On high-FL nights fires once per breath alongside `0x0E` (mild FL), sharing the same sub-byte run-tag. Not a RERA marker (absent from confirmed RERA windows). value2/1000 = 0.4–1.1 s — sub-second, consistent with per-breath timing (breath period), not event duration. Not observed in B33BF114508 reference file. |
-| `0x0C` | Unknown | Not decoded | — | varies | [8308]; mirrors `0x0D` count. Not a leak source. Function unknown. Per-breath inspiration event; byte `0x11` (sub-byte) is non-zero and consistent across consecutive breaths during a flow-limitation episode (run tag). |
+| `0x0C` | Per-breath inspiration | Timestamps collected; not decoded to channels | — | varies | [8308]; mirrors `0x0D` count. **Not a leak source.** Timestamp collected into `rawInspirationTimestamps` for potential future AASM-based PB detection but not currently used. Sub-byte `0x11` is non-zero and consistent across consecutive breaths during FL episodes (run tag). |
 | `0x0D` | Unknown | Not decoded | — | — | [8308]; mirrors `0x0C`. Per-breath expiration event; same sub-byte run-tag behaviour as `0x0C`. |
 | `0x0E` | Confirmed | `CPAP_FLG` (Mild) | Wrapping counter (0–999); not used | **Inspiration duration (Ti), ms** — multiples of 20 ms; median 1.62 s; decreases with FL severity (confirmed 2026-03-26). **Used** as bar width in OSCAR. | **Mild flow limitation.** Confirmed by PAP-Link alignment on two sessions (G3X-2 2026-02-20: 376 events matching PAP-Link mild pattern; JCCPAP 2025-12-20: 181 events). Timestamp = end-of-expiration trough; bar plots forward by value2 ms to cover the inspiratory peak. |
 | `0x0F` | Confirmed | `CPAP_FLG` (Moderate) | Wrapping counter (0–999); not used | **Ti, ms** — multiples of 20 ms; median 1.42 s. **Used** as bar width. | **Moderate flow limitation.** Confirmed: G3X-2 2026-02-20 yielded 22 events vs PAP-Link 21; JCCPAP 2025-12-20 yielded 11 events. |
@@ -149,7 +149,7 @@ For message types `0x01`–`0x08`, `0x0A` (RERA), and `0x09` (PB):
 
 1. **Phase 1 — EVT parse (day slice):**
    - `0x42` → pressure snapshot list (sorted by timestamp, merged into waveform loop).
-   - `0x01`–`0x08`, `0x0A` → raw respiratory event list (timestamp = END, value2 = duration ms).
+   - `0x01`–`0x08`, `0x0A` → raw respiratory event list (timestamp = START, value2 = duration ms).
    - `0x09` → raw PB episode list (timestamp = START, uint32 duration at 0x1C–0x1F).
    - `0x0E`/`0x0F`/`0x10` → raw flow limitation list (timestamp = inspiration trough, value2 = Ti ms).
    - `0x44` → raw PB timestamp list (secondary; used only if 0x09 absent).
