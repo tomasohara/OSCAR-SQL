@@ -24,7 +24,7 @@
       <li>[new] Share part of a profile with other users</li>
       <li>[new] CSV export of data in the database</li>
       <li>[new] Access to all OSCAR data from other programs</li>
-      <li>[new] Align times and offsets from multiple data sources</li>
+      <li>[new] Adjust times for CPAP with wrong times and align data from oximeters and other devices</li>
     </ul>
 
     <b>Backup, Restore, and Share Profile</b>
@@ -86,7 +86,7 @@
 
     <b>Daily Page</b>
     <ul style="margin-top:0">
-      <li>[new] Adjust times for CPAP with wrong times and to align data from oximeters and other devices</li>
+      <li>[new] Adjust times for CPAP with wrong times and align data from oximeters and other devices</li>
       <li>[update] Add optional session bars to SpO2, Pulse, and Movement graphs</li>
       <li>[update] Update large leak and redline terminology</li>
       <li>[update] Graph titles shrink to avoid being too large to fit</li>
@@ -135,30 +135,34 @@
       <li>[fix] Preferences Dialog "older than" date was mangled when translated</li>
       <li>[fix] Dates in various places are translated properly</li>
     </ul>
-
-    <b>Miscellaneous</b>
+    
+    <b>User Interface</b>
     <ul style="margin-top:0">
       <li>[update] Improve messages when no profile is selected but one is required</li>
-      <li>[update] Record more of debug log if there is a crash</li>
-      <li>[update] Improve startup performance</li>
-      <li>[update] Remove profile name from title bar when taking screenshot</li>
       <li>[update] Right sidebar shows AHI or RDI as set in preference setting</li>
       <li>[update] Restore right sidebar to previous state when OSCAR is opened</li>
       <li>[update] System information panel now reports database schema version</li>
+      <li>[fix] Dialogs and other screens now legible if system is in Dark mode</li>
+      <li>[fix] [Windows only] Bottom of OSCAR window won't hide behind taskbar when OSCAR starts</li>
+    </ul>
+
+    <b>Miscellaneous</b>
+    <ul style="margin-top:0">
+      <li>[update] Record more of debug log if there is a crash</li>
+      <li>[update] Improve startup performance</li>
+      <li>[update] Remove profile name from title bar when taking screenshot</li>
       <li>[update] Support running several copies of OSCAR on different data folders simultaneously</li>
       <li>[update] Holding Shift key down at startup toggles between OpenGL and software graphics engines</li>
       <li>[update] Add --OpenGL command-line option to force OpenGL graphics engine</li>
       <li>[update] Remove ANGLE graphics engine option (not supported in Qt6)</li>
-      <li>[fix] Dialogs and other screens now legible if system is in Dark mode</li>
       <li>[fix] Fix various DST edge cases</li>
       <li>[fix] Fix latent bugs that might cause a crash</li>
       <li>[fix] Screen capture with no profile open caused a crash</li>
-      <li>[fix] [Windows only] Bottom of OSCAR window won't hide behind taskbar when OSCAR starts</li>
       <li>[fix] Progress dialog was blank during Resync Device Detected Events reprocessing</li>
     </ul>
     </blockquote>
-
-  <b>Changes and fixes in OSCAR v2.0 beta 6</b>
+    
+      <b>Changes and fixes in OSCAR v2.0 Release Candidate 1</b>
     <br>Portions of OSCAR are &copy; 2019-2026 by
     <i>The OSCAR Team</i></p>
     <ul>
@@ -166,6 +170,7 @@
       <li>[new] Allow advanced user to have multiple databases and switch between them</li>
       <li>[new] Password support has been removed</li>
       <li>[new] Add Steady Breathing to new Other Statistics section on Statistics page</li>
+      <li>[new] Align times and offsets from multiple data sources</li>
       <li>[fix] Oximetry P95 and median data preserved on new imports</li>
       <li>[fix] Viatom import of same data after migration now works</li>
       <li>[fix] Viatom now accepts 100% SpO2 without warning</li>
@@ -209,105 +214,6 @@
       <li>[update] Changes to Device Settings on Statistics page allows similar machines to be combined</li>
     </ul>
 
-  <b>Changes and fixes in OSCAR v2.0 beta 5</b>
-    <br>Portions of OSCAR are &copy; 2019-2026 by
-    <i>The OSCAR Team</i></p>
-    <ul>
-      <li>[fix] Crash while importing a profile</li>
-      <li>[fix] Crash while deleting an incomplete profile</li>
-    </ul>
-
-  <b>Changes and fixes in OSCAR v2.0 beta 4</b>
-    <br>Portions of OSCAR are &copy; 2019-2026 by
-    <i>The OSCAR Team</i></p>
-    <ul>
-      <li>[new] Restore profile from a URL</li>
-      <li>[new] File/Profile/Share Profile... supports sharing profile data with others</li>
-      <li>[new] Add demo program and specs showing how to read data from OSCAR using Python</li>
-      <li>[fix] Correct a waveform edf file's start time if corrupted to avoid missing sessions</li>
-      <li>[fix] Copy layout and global preference settings when copying OSCAR 1.7.1 data</li>
-      <li>[fix] Show AirSense 11 icon on Welcome page for AirSense 11 CPAP</li>
-      <li>[fix] Fix import of summary-only sessions from 1.7.1 to 2.0</li>
-      <li>[fix] Fix latent bugs that might cause a crash</li>
-      <li>[fix] Fix various DST edge cases</li>
-      <li>[fix] Progress dialog was blank during Resync Device Detected Events reprocessing</li>
-      <li>[fix] BMI graph now appears properly after import from 1.7.1</li>
-      <li>[fix] Purging a machine left the machine in the list of machines</li>
-      <li>[updated] Improve Backup Profile dialog</li>
-      <li>[updated] Remove profile name from title bar when taking screenshot</li>
-      <li>[updated] Add instructions and improve Edit Profile dialog</li>
-      <li>[updated] Improve Share Profile dialog</li>
-      <li>[updated] Add Google Drive support to Share Profile dialog</li>
-      <li>[updated] Added standard query to export much of the Statistics page to CSV file</li>
-      <li>[updated] Feelings meter now has a range of 0 to 100</li>
-      <li>[updated] Removed high resolution preference used for Qt5</li>
-      <li>[updated] Performance improvements at startup</li>
-      <li>[updated] Record more of debug log if there is a crash</li>
-      <li>[updated] All permanent data is now in database as of Schema version 14</li>
-      <li>[updated] Add progress bar to profile restore validate</li>
-      <li>[updated] Improve profile backup/share/restore dialogs</li>
-      <li>[updated] Remove DST zone in profile dialog</li>
-    </ul>
-
-  <b>Changes and fixes in OSCAR v2.0 beta 3</b>
-    <br>Portions of OSCAR are &copy; 2019-2026 by
-    <i>The OSCAR Team</i></p>
-    <ul>
-      <li>[fix] Date of last import in profile list is now correct</li>
-      <li>[fix] Dialogs and other screens now legible if system is in Dark mode</li>
-      <li>[fix] Correct translations in system dialogs</li>
-      <li>[fix] Make menu bar more compact, like it was in the past</li>
-      <li>[fix] Importing journal when database is empty causes crash</li>
-      <li>[fix] BMC loader: Corrected graphs and fixed I/E data, RERA, flow limitations</li>
-      <li>[fix] --legacy now sets graphics software engine instead of terminating OSCAR</li>
-      <li>[updated] Cross-platform Fusion theme can be set in Preferences dialog</li>
-      <li>[updated] Improve messages when no profile is selected but one is required</li>
-      <li>[updated] User can set opacity of grid lines on graphs in Preferences dialog</li>
-      <li>[updated] BMC G3X loader distinguishes mask-on from total-hours</li>
-      <li>[updated] BMC G3X loader is complete except for machine settings</li>
-      <li>[updated] Fix assorted translation issues</li>
-      <li>[updated] Minor cosmetic fixes throughout</li>
-      <li>[updated] Added identification of Lowenstein prisma25S and prisma25ST</li>
-
-</ul>
-
-  <b>Changes and fixes in OSCAR v2.0 beta 2</b>
-    <br>Portions of OSCAR are &copy; 2019-2026 by
-    <i>The OSCAR Team</i></p>
-    <ul>
-      <li>[new] Support for Yuwell YH-580, YH-690, YH-830 CPAP</li>
-      <li>[new] Support for ReactHealth/BMC G3 and G3X CPAP (experimental)</li>
-      <li>[new] Allow user to change profile name</li>
-      <li>[fix] Profile preferences are now imported properly from OSCAR 1.x</li>
-      <li>[fix] Changed profile preferences now saved and restored properly</li>
-      <li>[fix] Notes added to Daily/Notes page are now saved</li>
-      <li>[fix] Crash on exit when using Ubuntu 24</li>
-      <li>[fix] Deleting a profile folder from disk could cause OSCAR to crash later</li>
-      <li>[fix] Box for Notes when printing Daily page is sized appropriately</li>
-      <li>[fix] DST change caused data loss in BMC loader</li>
-      <li>[fix] Date on Welcome page is translated properly</li>
-      <li>[fix] Prevent data loss on import if database is locked by another program</li>
-      <li>[fix] Export to CSV report tree view now saved correctly across dialog re-opening</li>
-      <li>[fix] Welcome page now legible when system is in dark mode</li>
-      <li>[fix] Crash in Overview page if mouse moves over no data</li>
-      <li>[fix] Data/Advanced purged data was reappearing after OSCAR restart</li>
-      <li>[fix] Rebuild from backup was destroying backup data in BMC loaders</li>
-      <li>[fix] Preferences Dialog "older than" date mangled when translated</li>
-      <li>[fix] OK and Cancel buttons not translated on one messagebox and several file dialogs</li>
-      <li>[fix] Oximetry importers now work</li>
-      <li>[updated] Translations for French, German</li>
-      <li>[updated] Fix assorted translation issues</li>
-</ul>
-
-  <b>Changes and fixes in OSCAR v2.0 beta 1</b>
-    <br>Portions of OSCAR are &copy; 2019-2026 by
-    <i>The OSCAR Team</i></p>
-    <ul>
-      <li>[<b>Major Update</b>] Migrated OSCAR and OSCAR data to an SQL database</li>
-      <li>[new] Data output to a CSV format by predefined or user configured templates</li>
-      <li>[new] Ability to backup and restore part or all of a profile</li>
-      <li>[updated] All updates from OSCAR 1.7.1</li>
-</ul>
 
    <ul>
       <li>Released under the GNU General Public License version 3</li>
