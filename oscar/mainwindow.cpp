@@ -1337,10 +1337,11 @@ void MainWindow::on_action_Import_OSCAR_Data_triggered()
         // IMPORTANT: Rescan profiles to load the new profile into memory
         // This adds it to Profiles::profiles map so it can be selected
         Profiles::Scan();
-        
-        // Refresh profile list UI
+
+        // Refresh profile list UI and navigate there so the new profile is visible
         if (profileSelector) {
             profileSelector->updateProfileList();
+            ui->tabWidget->setCurrentWidget(profileSelector);
         }
     } else {
         QMessageBox::critical(this, tr("Import Failed"),
@@ -3537,10 +3538,11 @@ void MainWindow::on_actionRestore_Profile_triggered()
     delete dialog;
 
     // Rescan profiles to load any newly restored profile into memory,
-    // then refresh the profile list UI.
+    // then refresh the profile list UI and navigate there.
     Profiles::Scan();
     if (profileSelector) {
         profileSelector->updateProfileList();
+        ui->tabWidget->setCurrentWidget(profileSelector);
     }
 }
 

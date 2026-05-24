@@ -4,6 +4,28 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-24 - Profile selector not shown after import or restore
+
+**Files:** `oscar/mainwindow.cpp` (`on_action_Import_OSCAR_Data_triggered`,
+           `on_actionRestore_Profile_triggered`)
+
+**Symptom:** After successfully importing or restoring a profile, the new profile
+did not appear to the user. The profile list was correctly refreshed in the
+background, but OSCAR stayed on whichever tab was active (e.g. Daily), so the
+user never saw the updated profile selector. Reported as "didn't show up until
+after a restart" — the rename-triggered auto-restart coincidentally landed on
+the profile selector tab, which is why the profile appeared after that restart.
+
+**Root cause:** `profileSelector->updateProfileList()` was called correctly, but
+`ui->tabWidget->setCurrentWidget(profileSelector)` was never called afterward.
+
+**Fix:** Added `ui->tabWidget->setCurrentWidget(profileSelector)` after
+`updateProfileList()` in both import and restore handlers.
+
+Closes #184
+
+---
+
 ## 2026-05-24 - Empty Journal/Summaries directory created unnecessarily
 
 **Files:** `oscar/SleepLib/machine.cpp` (`Machine::Load`),
