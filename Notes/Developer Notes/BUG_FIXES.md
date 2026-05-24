@@ -4,6 +4,32 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-24 - Window drifts by frame border width on each restart (follow-up to #186)
+
+**File:** `oscar/mainwindow.cpp` (`SetupGUI`, `closeEvent`, `RestartApplication`)
+
+**Symptom:** After fixing #186 (geometry save on restart), the window still opened
+one title-bar-height lower than its previous position on every restart triggered
+by a profile rename.  The horizontal position could also drift by the thin side-border
+width, though that was less noticeable.
+
+**Root cause:** `saveGeometry()` records the client-area origin; `restoreGeometry()`
+on Windows reapplies it as if it were the frame origin, shifting the client area down
+(and slightly right) by the frame decoration sizes.  The existing Windows-only clamping
+code in `SetupGUI` only corrected when the window went off-screen, so the drift was
+silently accepted for windows fully on-screen.
+
+**Fix:**
+- Both save sites (`closeEvent` and `RestartApplication`) now also write
+  `MainWindow/frameTopLeft` (a `QPoint`) from `frameGeometry().topLeft()` when the
+  window is not maximized.
+- The Windows `QTimer::singleShot` correction pass at startup reads that saved
+  frame origin and calls `move()` with the appropriate client-area offset so the
+  frame lands at exactly the saved position, then clamps to the available screen area
+  as before.
+
+---
+
 ## 2026-05-24 - Window geometry not preserved on restart after profile rename (GitLab #186)
 
 **File:** `oscar/mainwindow.cpp` (`RestartApplication`)

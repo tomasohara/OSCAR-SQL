@@ -159,9 +159,9 @@ MainWindow::MainWindow(QWidget *parent) :
     settings.endGroup();
 
 #ifdef Q_OS_WIN
-    // restoreGeometry() on Windows can place a manually-maximised window one
-    // title-bar-height too low, hiding the bottom behind the taskbar.  Clamp to
-    // the available screen area after the window is actually shown.
+    // restoreGeometry() on Windows can confuse frame vs. client-area coordinates,
+    // placing the window offset by the frame border widths (most visibly the title bar).
+    // Correct to the saved frame position and clamp to the available screen area.
     // Not applied on Linux because WM decorations arrive asynchronously after
     // show(), making frameGeometry() unreliable at this point.
     QTimer::singleShot(0, this, [this]() {
@@ -169,13 +169,32 @@ MainWindow::MainWindow(QWidget *parent) :
         if (!scr) return;
         QRect avail = scr->availableGeometry();
         QRect frame = frameGeometry();
-        int newY = frame.top();
-        if (frame.bottom() > avail.bottom())
+        // restoreGeometry() on Windows can confuse frame vs. client-area origin,
+        // shifting the window by the frame border widths (most visibly the title bar).
+        // Use the saved frame top-left as the authoritative position for normal windows.
+        QPoint savedFrameTopLeft = frame.topLeft();
+        if (!(windowState() & Qt::WindowMaximized)) {
+            QSettings s;
+            s.beginGroup(QFileInfo(GetAppData()).fileName());
+            savedFrameTopLeft = s.value("MainWindow/frameTopLeft", frame.topLeft()).toPoint();
+            s.endGroup();
+        }
+        int newX = savedFrameTopLeft.x();
+        int newY = savedFrameTopLeft.y();
+        // Clamp to available screen area
+        if (newX + frame.width() > avail.right() + 1)
+            newX = avail.right() - frame.width() + 1;
+        if (newX < avail.left())
+            newX = avail.left();
+        if (newY + frame.height() > avail.bottom() + 1)
             newY = avail.bottom() - frame.height() + 1;
         if (newY < avail.top())
             newY = avail.top();
-        if (newY != frame.top())
-            move(x(), newY);
+        // move() positions the client area; adjust by the current frame offset
+        // so that the frame lands at (newX, newY), not the client area.
+        QPoint delta(newX - frame.left(), newY - frame.top());
+        if (!delta.isNull())
+            move(x() + delta.x(), y() + delta.y());
     });
 #endif
 
@@ -410,6 +429,8 @@ void MainWindow::closeEvent(QCloseEvent * event)
         QSettings settings;
         settings.beginGroup(QFileInfo(GetAppData()).fileName());
         settings.setValue("MainWindow/geometry", saveGeometry());
+        if (!(windowState() & Qt::WindowMaximized))
+            settings.setValue("MainWindow/frameTopLeft", frameGeometry().topLeft());
         settings.endGroup();
 
         settings.setValue("Fingerprint", getFingerprint());
@@ -2141,17 +2162,20 @@ void MainWindow::reloadProfile()
 void MainWindow::RestartApplication(QString cmdline)
 {
     qDebug() << "Restarting OSCAR";
-    CloseProfile();
 
-    // closeEvent() won't fire when we exit via QApplication::exit() + ::exit(0),
-    // so save window geometry here to ensure the restarted instance opens correctly.
+    // closeEvent() won't fire when we exit via QApplication::exit() + ::exit(0).
+    // Save geometry before CloseProfile() so the window is in its stable
+    // user-visible state (deleting tab widgets afterward can shift reported position).
     {
         QSettings settings;
         settings.beginGroup(QFileInfo(GetAppData()).fileName());
         settings.setValue("MainWindow/geometry", saveGeometry());
+        if (!(windowState() & Qt::WindowMaximized))
+            settings.setValue("MainWindow/frameTopLeft", frameGeometry().topLeft());
         settings.endGroup();
     }
 
+    CloseProfile();
     p_pref->Save();
 
     QString apppath;
