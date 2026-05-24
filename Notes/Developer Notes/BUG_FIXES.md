@@ -4,6 +4,58 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-24 - Empty Journal/Summaries directory created unnecessarily
+
+**Files:** `oscar/SleepLib/machine.cpp` (`Machine::Load`),
+           `oscar/profileimporter.cpp` (`ProfileImporter::copyJournalFolders`)
+
+**Symptom:** After creating a new profile and importing CPAP data, an empty
+`Journal_xxx/Summaries/` directory appeared in the profile data folder.  Same
+empty directory was also created during a 1.7.1→2.0 profile migration.  In
+OSCAR 2.0 all journal data lives in the database; the legacy `Summaries/`
+subdirectory is never read or written, so it should not be created.
+
+**Root cause (two paths):**
+
+1. `Machine::Load()` file-based fallback (for machines not yet loaded from DB):
+   line 808 unconditionally called `dir.mkpath(summarypath)` before it knew
+   whether any `.000` files existed to populate that directory.  For the Journal
+   machine this always produced an empty `Summaries/` on the next profile open.
+
+2. `ProfileImporter::copyJournalFolders()` explicitly created the empty
+   `Journal_xxx/Summaries/` subdirectory when copying the journal folder
+   structure during a 1.7.1 import.
+
+**Fix:**
+- `machine.cpp`: Removed the entire "move old files to correct locations" block
+  (SleepyHead-era dead code that relocated `.000`/`.001` files from the machine
+  root to `Summaries/`/`Events/`).  OSCAR 2.0 never writes `.000` files, so the
+  block was permanently unreachable — and its unconditional `mkpath(summarypath)`
+  was what created the empty `Summaries/` folder.  The file-based fallback now
+  goes straight to reading from the existing `Summaries/` subdirectory; if it
+  does not exist, `entryList()` returns empty and no directory is created.
+- `profileimporter.cpp`: Removed the three lines that created the empty
+  `Summaries/` subdirectory; only the `Journal_xxx/` directory itself is created.
+
+---
+
+## 2026-05-23 - HTML files not copied to build output on plain Build (GitLab #182)
+
+**File:** `oscar/oscar.pro`
+
+**Symptom:** Changes to `Htmldocs/*.html` (e.g. `release_notes.html`) were not reflected
+in the Help/About dialog after a plain Build. A Rebuild or manual qmake run was required.
+
+**Root cause:** The copy of `Htmldocs/*.html` → `build/Html/` was done via `system(xcopy)`
+/ `system(cp)` calls inside the `.pro` file, which execute only at qmake time — not at
+compile time.
+
+**Fix:** Replaced the platform-specific `system()` loops for HTML files with a `COPIES`
+entry (`html_copies.files` / `html_copies.path`). qmake's `COPIES` mechanism generates
+proper Makefile dependency rules so a plain Build copies any changed HTML files automatically.
+
+---
+
 ## 2026-05-22 - Backup success message box appears behind main window (GitLab #180)
 
 **File:** `oscar/backupdialog.cpp` (`BackupDialog::onBackupCompleted`)

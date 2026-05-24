@@ -800,57 +800,15 @@ bool Machine::Load(ProgressDialog *progress)
         dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
 
         ///////////////////////////////////////////////////////////////////////
-        // First move any old files to correct locations
+        // Read summary files from Summaries/ subdirectory
         ///////////////////////////////////////////////////////////////////////
         QString summarypath = getSummariesPath();
-        QString eventpath = getEventsPath();
-
-        if (!dir.exists(summarypath)) dir.mkpath(summarypath);
-
+        dir.setPath(summarypath);
         QStringList filters;
         filters << "*.000";
         dir.setNameFilters(filters);
         QStringList filelist = dir.entryList();
         int size = filelist.size();
-
-
-        // Legacy crap.. Summary and Event stuff used to be in one big pile in the device folder root
-        for (auto & filename : filelist) {
-            QFile::rename(path+filename, summarypath+filename);
-        }
-
-        // Copy old Event files to folder
-        filters.clear();
-        filters << "*.001";
-        dir.setNameFilters(filters);
-        filelist = dir.entryList();
-        size = filelist.size();
-        progress->setMessage(QObject::tr("Migrating Summary File Location"));
-        progress->setProgressMax(size);
-        QApplication::processEvents();
-        if (size > 0) {
-            if (!dir.exists(eventpath)) dir.mkpath(eventpath);
-            for (int i=0; i< size; i++) {
-                if ((i % 20) == 0) { // This is slow.. :-/
-                    progress->setProgressValue(i);
-
-                    QApplication::processEvents();
-                }
-
-                QString filename = filelist.at(i);
-                QFile::rename(path+filename, eventpath+filename);
-            }
-        }
-
-        ///////////////////////////////////////////////////////////////////////
-        // Now read summary files from correct location and load them
-        ///////////////////////////////////////////////////////////////////////
-        dir.setPath(summarypath);
-        filters.clear();
-        filters << "*.000";
-        dir.setNameFilters(filters);
-        filelist = dir.entryList();
-        size = filelist.size();
 
         progress->setMessage(QObject::tr("Reading summary files"));
         qDebug() << "Machine::Load: Reading summary files (.000)";

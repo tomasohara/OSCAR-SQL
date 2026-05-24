@@ -449,9 +449,7 @@ bool ProfileImporter::copyJournalFolders(const QString& oldPath,
             QString newJournalPath = newPath + "/" + entry;
             QDir().mkpath(newJournalPath);
             
-            // Create Summaries subdirectory (empty - journal data goes to database)
-            QString newSummariesPath = newJournalPath + "/Summaries";
-            QDir().mkpath(newSummariesPath);
+
         }
     }
     
