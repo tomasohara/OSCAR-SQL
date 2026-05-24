@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-24 - Window geometry not preserved on restart after profile rename (GitLab #186)
+
+**File:** `oscar/mainwindow.cpp` (`RestartApplication`)
+
+**Symptom:** When OSCAR restarts after a profile rename, the main window reopens
+with the geometry from the previous normal session exit rather than the geometry
+at the time of the rename/restart.
+
+**Root cause:** `closeEvent()` is responsible for saving window geometry to
+`QSettings`, but `RestartApplication()` exits via `QApplication::exit()` + `::exit(0)`,
+bypassing `closeEvent()` entirely. The geometry saved was therefore stale — from
+whatever the last normal session exit recorded.
+
+**Fix:** Added an explicit geometry save block at the top of `RestartApplication()`,
+before launching the new process. Uses the same `QSettings` group and key as
+`closeEvent()` so the restarted instance reads the correct value on startup.
+
+Closes #186
+
+---
+
 ## 2026-05-24 - Profile selector not shown after import or restore
 
 **Files:** `oscar/mainwindow.cpp` (`on_action_Import_OSCAR_Data_triggered`,

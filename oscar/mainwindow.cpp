@@ -2142,6 +2142,16 @@ void MainWindow::RestartApplication(QString cmdline)
 {
     qDebug() << "Restarting OSCAR";
     CloseProfile();
+
+    // closeEvent() won't fire when we exit via QApplication::exit() + ::exit(0),
+    // so save window geometry here to ensure the restarted instance opens correctly.
+    {
+        QSettings settings;
+        settings.beginGroup(QFileInfo(GetAppData()).fileName());
+        settings.setValue("MainWindow/geometry", saveGeometry());
+        settings.endGroup();
+    }
+
     p_pref->Save();
 
     QString apppath;
