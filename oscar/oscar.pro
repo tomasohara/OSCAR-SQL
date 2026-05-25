@@ -257,6 +257,10 @@ macx {
     DDIR = $$OUT_PWD/Translations
     HTMLDIR = $$OUT_PWD/Html
 
+    html_copies.files = $$HTML_FILES
+    html_copies.path = $$HTMLDIR
+    COPIES += html_copies
+
     TRANS_FILES = $${TRANSLATIONS_FILES}
 
     win32 {
@@ -266,14 +270,6 @@ macx {
         !exists($$quote($$DDIR)): system(mkdir $$quote($$DDIR))
         for(FILE,TRANS_FILES_WIN) {
             system(xcopy /y $$quote($$FILE) $$quote($$DDIR))
-        }
-
-        HTML_FILES_WIN = $${HTML_FILES}
-        HTML_FILES_WIN ~= s,/,\\,g
-        HTMLDIR ~= s,/,\\,g
-        !exists($$quote($$HTMLDIR)): system(mkdir $$quote($$HTMLDIR))
-        for(FILE,HTML_FILES_WIN) {
-            system(xcopy /y $$quote($$FILE) $$quote($$HTMLDIR))
         }
 
         !contains(DEFINES, helpless) {
@@ -289,11 +285,6 @@ macx {
         system(mkdir -p $$quote($$DDIR))
         for(FILE,TRANS_FILES) {
             system(cp $$quote($$FILE) $$quote($$DDIR))
-        }
-
-        system(mkdir -p $$quote($$HTMLDIR))
-        for(FILE,HTML_FILES) {
-            system(cp $$quote($$FILE) $$quote($$HTMLDIR))
         }
 
         !contains(DEFINES, helpless) {

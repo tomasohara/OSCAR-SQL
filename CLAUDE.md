@@ -6,8 +6,6 @@ OSCAR reads data from SD cards produced by CPAP machines. OSCAR's goal is to pre
 
 "OSCAR" means OSCAR 2.0 (this codebase) unless explicitly stated otherwise. OSCAR 1.7.1 source lives at c:/oscar17/oscar-code — same overall structure but no database layer. Backports to 1.7.1 will be described explicitly when needed.
 
-You are a helpful coding assistant specializing in c++ 17 and Qt.
-
 ## Project Structure
 
 - c:/OSCAR/OSCAR-code is the root directory for all OSCAR files
@@ -19,7 +17,7 @@ You are a helpful coding assistant specializing in c++ 17 and Qt.
   - oscar/network - modules that talk to the network
   - oscar/exports - modules that export information from OSCAR to other applications
   - oscar/docs - files that are bound to the application and used during execution (icons, etc.)
-  - Notes - design, progress, bug fix, and other notes
+  - Notes - design, progress, bug fix, and other notes, organized in topical subdirectories
   - Building - instructions and aids for building on different platforms
 - Main program is oscar/main.cpp
 - Qt pro file is oscar/oscar.pro
@@ -41,19 +39,20 @@ You are a helpful coding assistant specializing in c++ 17 and Qt.
 ## Database
 
 - The application uses SQLite.
-- Schema reference: Notes/DATABASE_SCHEMA_REFERENCE.md (all tables, fields, relationships — schema v15)
-- ER diagram: Notes/Database-ER-Diagram.png
-- Useful queries: Notes/USEFUL_QUERIES.sql, Notes/HOW_TO_USE_QUERIES.md
+- Schema reference: Notes/database/DATABASE_SCHEMA_REFERENCE.md (all tables, fields, relationships — schema v17)
+- ER diagram: Notes/database/Database-ER-Diagram.png
+- Useful queries: Notes/database/USEFUL_QUERIES.sql, Notes/database/HOW_TO_USE_QUERIES.md
 
 ## Other Notes
 
 - Developer builds incrementally in QtCreator.
 - Primary development environment is Windows 11.
 - We use git and GitLab for version control: https://gitlab.com/Seeker4/OSCAR-code
-- Final product is distributed to about 25 different environments (Mac, Linux, etc.).
+- Final product is distributed to about 25 different environments (Windows, Mac, Linux, etc.).
 - After completing a task that involves tool use, provide a quick summary of the work you've done.
 - Never speculate about code you have not opened. Make sure to investigate and read relevant files BEFORE answering questions about the codebase. Never make any claims about code before investigating unless you are certain of the correct answer
-- give grounded and hallucination-free answers.
+- Give grounded and answers.
+- Do not speculate or infer from evidence you have not seen
 
 ## Debugging
 
@@ -108,4 +107,4 @@ If GITLAB_TOKEN is not set, ask the user to provide the token or set the environ
  - After making fixes, log them to Notes/Developer Notes/BUG_FIXES.md.
  - When committing: keep messages concise (one-line subject, 2-3 sentence summary; no change lists). Write summary in lines not exceeding 90 characters. Omit the "co-authored by" line. Include Htmldocs/release_notes.html if changed; if it hasn't been changed, ask whether I want to to update it before committing.
   - To push: git push origin master
-  - Ask user before committing or pushing or updating GitLab issues
+  - Ask user before committing, pushing, or updating GitLab issues

@@ -37,7 +37,7 @@
     <b>Data Export</b>
     <ul style="margin-top:0">
       <li>[new] CSV export format has predefined and user configured templates</li>
-      <li>[new] Journal notes can be exported in a report</li>
+      <li>[new] Journal notes can be exported as a report</li>
       <li>[new] Demo program and specs showing how to read data from OSCAR using Python</li>
     </ul>
 
@@ -138,31 +138,35 @@
     
     <b>User Interface</b>
     <ul style="margin-top:0">
-      <li>[update] Improve messages when no profile is selected but one is required</li>
+      <li>[update] Improve messages when no profile is open but one is required</li>
       <li>[update] Right sidebar shows AHI or RDI as set in preference setting</li>
       <li>[update] Restore right sidebar to previous state when OSCAR is opened</li>
       <li>[update] System information panel now reports database schema version</li>
+      <li>[update] Remove profile name from title bar when taking screenshot</li>
+      <li>[update] Support running several copies of OSCAR on different data folders simultaneously</li>
       <li>[fix] Dialogs and other screens now legible if system is in Dark mode</li>
       <li>[fix] [Windows only] Bottom of OSCAR window won't hide behind taskbar when OSCAR starts</li>
+      <li>[fix] Progress dialog was blank during Resync Device Detected Events reprocessing</li>
+    </ul>
+    
+    <b>Startup Options</b>
+    <ul style="margin-top:0">
+      <li>[update] Improve startup performance</li>
+      <li>[update] Holding Shift key down at startup toggles between OpenGL and software graphics engines</li>
+      <li>[update] Add --OpenGL command-line option to force OpenGL graphics engine</li>
     </ul>
 
     <b>Miscellaneous</b>
     <ul style="margin-top:0">
-      <li>[update] Record more of debug log if there is a crash</li>
-      <li>[update] Improve startup performance</li>
-      <li>[update] Remove profile name from title bar when taking screenshot</li>
-      <li>[update] Support running several copies of OSCAR on different data folders simultaneously</li>
-      <li>[update] Holding Shift key down at startup toggles between OpenGL and software graphics engines</li>
-      <li>[update] Add --OpenGL command-line option to force OpenGL graphics engine</li>
       <li>[update] Remove ANGLE graphics engine option (not supported in Qt6)</li>
+      <li>[update] Record more of debug log if there is a crash</li>
       <li>[fix] Fix various DST edge cases</li>
       <li>[fix] Fix latent bugs that might cause a crash</li>
       <li>[fix] Screen capture with no profile open caused a crash</li>
-      <li>[fix] Progress dialog was blank during Resync Device Detected Events reprocessing</li>
     </ul>
     </blockquote>
     
-      <b>Changes and fixes in OSCAR v2.0 Release Candidate 1</b>
+    <b>Changes and fixes in OSCAR v2.0 Release Candidate 1 since Beta 5</b>
     <br>Portions of OSCAR are &copy; 2019-2026 by
     <i>The OSCAR Team</i></p>
     <ul>
