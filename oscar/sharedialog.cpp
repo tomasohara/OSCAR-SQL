@@ -488,8 +488,9 @@ void ShareDialog::setUiLocked(bool locked)
     ui->googleDriveAuthButton->setEnabled(!locked);
     ui->oneDriveAuthButton->setEnabled(!locked);
 
-    // Close button becomes Cancel while locked; restored when unlocked.
-    ui->closeButton->setText(locked ? tr("Cancel") : tr("Close"));
+    // Button always says Cancel while the dialog is in an active or ready state;
+    // the completion handlers switch it to Close after a successful share.
+    ui->closeButton->setText(tr("Cancel"));
     ui->closeButton->setEnabled(true);
 
     // filenameEdit is only editable for File destination when not locked.
