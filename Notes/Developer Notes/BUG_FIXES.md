@@ -4,6 +4,35 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-24 - Restore dialog: rename label shows wrong text; dialog hidden by taskbar (#190)
+
+**Files:** `oscar/restoredialog.{h,cpp,ui}`
+
+**Symptom 1:** The conflict-resolution group showed the rename radio as "Rename — import
+as <profile name>_restored", which is wrong since the actual rename now produces
+"(copy N)" names. The static label was never updated to match the real proposed name.
+
+**Symptom 2:** After pressing Download (cloud link) or Validate (local file), the
+infoGroup and nameGroup become visible, growing the dialog. On Windows, if the dialog
+was near the bottom of the screen, the expanded portion was hidden behind the taskbar.
+
+**Root cause 1:** The rename radio text was a static string in the .ui file. Nothing
+updated it when the conflict group was shown.
+
+**Root cause 2:** `onValidationFinished()` showed groups and grew the dialog but never
+checked or corrected the dialog's position relative to the available screen area.
+
+**Fix 1:** Added `computeRenameSuggestion(baseName)` helper (strips existing " (copy N)"
+suffix, finds lowest free copy number). Called in `updateConflictForName()` to set the
+rename radio label to the exact proposed name each time a conflict is shown.
+
+**Fix 2:** Added `ensureOnScreen()` using `QTimer::singleShot(0, ...)` to run after the
+layout engine has computed the new dialog size, then clamps `frameGeometry()` to
+`QScreen::availableGeometry()` (which excludes the taskbar). Called at the end of
+`onValidationFinished()`.
+
+---
+
 ## 2026-05-24 - Restore dialog: rename suggestion stacks suffixes on repeated restores (#189)
 
 **File:** `oscar/restoredialog.cpp` (rename radio toggled handler)

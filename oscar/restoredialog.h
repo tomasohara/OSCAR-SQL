@@ -145,6 +145,25 @@ private:
      */
     void updateStatusLabel();
 
+    /*!
+     * \brief Find the lowest available copy name for \a baseName.
+     *
+     * Strips any existing " (copy N)" suffix, then returns the first
+     * "baseName (copy N)" (N >= 2) that does not conflict with an
+     * existing profile.  Used both to label the rename radio and to
+     * set the profile name when the radio is clicked.
+     */
+    QString computeRenameSuggestion(const QString& baseName) const;
+
+    /*!
+     * \brief Move the dialog so it is fully within the screen's available
+     *        geometry (i.e. not hidden behind the taskbar).
+     *
+     * Scheduled via QTimer::singleShot(0) so it runs after the layout
+     * engine has computed the dialog's new size.
+     */
+    void ensureOnScreen();
+
     /*! \brief Persist the last-used package directory to QSettings. */
     void saveSettings();
 

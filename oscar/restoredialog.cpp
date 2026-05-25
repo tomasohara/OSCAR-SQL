@@ -15,10 +15,13 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QRegularExpression>
+#include <QScreen>
 #include <QStandardPaths>
+#include <QTimer>
 
 #include "database/database_manager.h"
 #include "database/app_preferences_repository.h"
@@ -67,25 +70,10 @@ RestoreDialog::RestoreDialog(QWidget* parent)
                 if (checked) {
                     const QString baseName = ui->profileNameEdit->text().trimmed();
                     if (!baseName.isEmpty()) {
-                        // Strip any existing " (copy N)" suffix so repeated clicks
-                        // don't stack suffixes.  Then find the lowest copy number
-                        // >= 2 that doesn't conflict with an existing profile.
-                        static const QRegularExpression copyRe(
-                            QStringLiteral(R"( \(copy \d+\)$)"));
-                        const QString root = QString(baseName).remove(copyRe);
-                        for (int n = 2; n <= 999; ++n) {
-                            const QString candidate =
-                                root + QStringLiteral(" (copy %1)").arg(n);
-                            if (!m_restore ||
-                                m_restore->checkConflicts(candidate)
-                                    != ConflictStatus::UsernameExists) {
-                                // setText triggers on_profileNameEdit_textChanged,
-                                // which re-checks conflicts and hides the conflict
-                                // group when the new name is clear.
-                                ui->profileNameEdit->setText(candidate);
-                                return;
-                            }
-                        }
+                        // setText triggers on_profileNameEdit_textChanged, which
+                        // re-checks conflicts and hides the conflict group when clear.
+                        ui->profileNameEdit->setText(computeRenameSuggestion(baseName));
+                        return;
                     }
                 }
                 updateRestoreButtonState();
@@ -211,6 +199,41 @@ void RestoreDialog::updateRestoreButtonState()
     ui->restoreButton->setEnabled(ready);
 }
 
+QString RestoreDialog::computeRenameSuggestion(const QString& baseName) const
+{
+    // Strip any existing " (copy N)" suffix so we always build from the root name.
+    static const QRegularExpression copyRe(QStringLiteral(R"( \(copy \d+\)$)"));
+    const QString root = QString(baseName).remove(copyRe);
+    for (int n = 2; n <= 999; ++n) {
+        const QString candidate = root + QStringLiteral(" (copy %1)").arg(n);
+        if (!m_restore ||
+            m_restore->checkConflicts(candidate) != ConflictStatus::UsernameExists) {
+            return candidate;
+        }
+    }
+    return root + QStringLiteral(" (copy 999)");
+}
+
+void RestoreDialog::ensureOnScreen()
+{
+    QTimer::singleShot(0, this, [this]() {
+        QScreen* screen = QGuiApplication::screenAt(frameGeometry().topLeft());
+        if (!screen)
+            screen = QGuiApplication::primaryScreen();
+        if (!screen) return;
+
+        const QRect avail = screen->availableGeometry();
+        QRect frame = frameGeometry();
+        if (frame.bottom() > avail.bottom()) frame.moveBottom(avail.bottom());
+        if (frame.top()    < avail.top())    frame.moveTop(avail.top());
+        if (frame.right()  > avail.right())  frame.moveRight(avail.right());
+        if (frame.left()   < avail.left())   frame.moveLeft(avail.left());
+        // move() positions the client area; subtract the frame inset.
+        const QPoint frameInset = frameGeometry().topLeft() - geometry().topLeft();
+        move(frame.topLeft() - frameInset);
+    });
+}
+
 void RestoreDialog::resetValidation()
 {
     delete m_restore;
@@ -266,6 +289,10 @@ void RestoreDialog::updateConflictForName(const QString& name)
                 }
             }
         }
+
+        // Update rename radio label to show the actual proposed copy name.
+        ui->renameRadio->setText(
+            tr("Rename — import as \"%1\"").arg(computeRenameSuggestion(name)));
 
         // Default is Abort radio — Restore stays disabled until user picks Rename or Replace.
         ui->abortRadio->setChecked(true);
@@ -635,6 +662,10 @@ void RestoreDialog::onValidationFinished()
 
     // Run initial conflict check against the default name.
     updateConflictForName(defaultName);
+
+    // The dialog may have grown to show infoGroup / nameGroup / conflictGroup.
+    // Reposition if any part is now hidden behind the taskbar.
+    ensureOnScreen();
 }
 
 // ---------------------------------------------------------------------------
