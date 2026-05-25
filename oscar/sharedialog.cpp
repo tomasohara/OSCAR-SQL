@@ -732,6 +732,8 @@ void ShareDialog::onBackupCompleted(const QString& path)
             tr("File created: %1  (%2)").arg(fi.fileName(), sizeStr));
         ui->openFolderButton->setVisible(true);
         ui->shareButton->setVisible(false);
+        m_operationActive = false;
+        ui->closeButton->setText(tr("Close"));
         ui->closeButton->setEnabled(true);
         // Leave other controls locked so the user sees the result before closing.
     } else {
@@ -795,6 +797,8 @@ void ShareDialog::onUploadFinished(const QString& shareUrl)
     ui->urlEdit->selectAll();
     ui->copyLinkButton->setVisible(true);
     ui->shareButton->setVisible(false);
+    m_operationActive = false;
+    ui->closeButton->setText(tr("Close"));
     ui->closeButton->setEnabled(true);
 }
 

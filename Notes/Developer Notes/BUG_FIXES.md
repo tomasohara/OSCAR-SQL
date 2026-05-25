@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-24 - Share dialog Close button stuck as "Cancel" after successful share (#187)
+
+**File:** `oscar/sharedialog.cpp` (`onBackupCompleted`, `onUploadFinished`)
+
+**Symptom:** After a successful share operation (File destination or cloud upload), the
+Close button retains the label "Cancel". Clicking it triggers the cancellation branch,
+which disables the button as "Cancelling..." — making the dialog impossible to dismiss.
+
+**Root cause:** `on_shareButton_clicked` calls `setUiLocked(true)`, which sets
+`m_operationActive = true` and renames the button to "Cancel". Both completion handlers
+(`onBackupCompleted` for the File path and `onUploadFinished` for cloud) only called
+`closeButton->setEnabled(true)` but never reset `m_operationActive` or the button text.
+The click handler checks `m_operationActive` first, so the button always took the cancel
+branch rather than calling `reject()`.
+
+**Fix:** Added `m_operationActive = false` and `closeButton->setText(tr("Close"))` in
+both completion handlers. The other input controls remain locked intentionally so the
+user sees the result before the dialog can be reused.
+
+---
+
 ## 2026-05-24 - Window drifts by frame border width on each restart (follow-up to #186)
 
 **File:** `oscar/mainwindow.cpp` (`SetupGUI`, `closeEvent`, `RestartApplication`)
