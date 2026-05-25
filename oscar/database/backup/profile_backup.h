@@ -187,6 +187,17 @@ public:
      */
     void setFilename(const QString& filename);
 
+    /*!
+     * \brief Set the package type recorded in the manifest: "share" or "backup".
+     *
+     * This allows the restore dialog to identify share packages by their
+     * content rather than by filename (which is lost when the file is downloaded
+     * from a cloud share link).  Default is "backup".
+     *
+     * \param type  "share" or "backup".
+     */
+    void setPackageType(const QString& type);
+
     // -----------------------------------------------------------------------
     //  Execution
     // -----------------------------------------------------------------------
@@ -396,6 +407,7 @@ private:
     QDate   m_startDate;          ///< Export start date (invalid = no filter).
     QDate   m_endDate;            ///< Export end date (invalid = no filter).
     QString m_profileDataDir;     ///< Resolved Profiles/<username> path (set in createBackup).
+    QString m_packageType       = QStringLiteral("backup"); ///< "share" or "backup"; written to manifest.
     std::atomic<bool> m_cancelRequested{false}; ///< Set by requestCancel(); checked between phases.
 };
 

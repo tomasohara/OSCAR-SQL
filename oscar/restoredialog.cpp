@@ -582,9 +582,17 @@ void RestoreDialog::onValidationFinished()
 
     const QString path = ui->packagePathEdit->text();
 
-    // Detect whether this is a share package by inspecting the filename.
-    m_packageIsShare = QFileInfo(path).fileName()
-                           .startsWith(QStringLiteral("share_"), Qt::CaseInsensitive);
+    // Detect whether this is a share package.  Prefer the manifest's
+    // package_type field (present in packages created after v2.0.0-rc-1);
+    // fall back to filename check for older packages.
+    const QString packageType =
+        m_restore->manifestJson()[QStringLiteral("package_type")].toString();
+    if (!packageType.isEmpty()) {
+        m_packageIsShare = (packageType == QStringLiteral("share"));
+    } else {
+        m_packageIsShare = QFileInfo(path).fileName()
+                               .startsWith(QStringLiteral("share_"), Qt::CaseInsensitive);
+    }
 
     // Show manifest info.  Reuse the already-parsed manifest from ProfileRestore.
     BackupManifest displayManifest;

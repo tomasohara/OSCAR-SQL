@@ -4,6 +4,33 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-24 - Restore dialog: share package not detected when downloaded from cloud (#188)
+
+**Files:** `oscar/restoredialog.cpp` (`onValidationFinished`),
+`oscar/database/backup/backup_manifest.{h,cpp}`,
+`oscar/database/backup/profile_backup.{h,cpp}`,
+`oscar/sharedialog.cpp`, `oscar/backupdialog.cpp`
+
+**Symptom:** When a share .oscar file is downloaded via a cloud link (Dropbox, Google
+Drive, etc.) and restored from the Restore Profile dialog, the proposed profile name
+is the bare original username — not `"username (Shared)"`. If that username already
+exists locally, the conflict-rename path proposes `"username_restored"` instead. The
+disk path (browsing for the `share_*.oscar` file) showed `"username (Shared)"` correctly.
+
+**Root cause:** Share-package detection in `onValidationFinished()` checked only whether
+`QFileInfo(path).fileName().startsWith("share_")`. The `CloudDownloader` saves to a temp
+file named `oscar_download_XXXXXX.oscar`, which does not carry the `share_` prefix, so
+the detection always returned `false` for cloud-originated packages.
+
+**Fix:** Added a `package_type` field ("share" or "backup") to the manifest.
+`BackupManifest::setPackageType()` writes it; `ProfileBackup::setPackageType()` carries
+the value through from the calling dialog. `ShareDialog` sets "share",
+`BackupDialog` sets "backup". `RestoreDialog::onValidationFinished()` reads
+`package_type` from the manifest first and falls back to the filename check for
+old packages that predate this field.
+
+---
+
 ## 2026-05-24 - Share dialog Close button stuck as "Cancel" after successful share (#187)
 
 **File:** `oscar/sharedialog.cpp` (`onBackupCompleted`, `onUploadFinished`)

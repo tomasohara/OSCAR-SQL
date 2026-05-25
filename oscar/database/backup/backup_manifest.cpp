@@ -121,6 +121,11 @@ void BackupManifest::addExportedTable(const QString& tableName)
     m_data["tables_exported"] = tables;
 }
 
+void BackupManifest::setPackageType(const QString& type)
+{
+    m_data["package_type"] = type;
+}
+
 void BackupManifest::setExportOptions(bool          includeDisabled,
                                        bool          compress,
                                        bool          isPartialExport,
@@ -238,6 +243,11 @@ int BackupManifest::eventListsCount() const
 int BackupManifest::machinesCount() const
 {
     return m_data["statistics"].toObject()["machines_count"].toInt(0);
+}
+
+QString BackupManifest::packageType() const
+{
+    return m_data["package_type"].toString();
 }
 
 QString BackupManifest::exportDate() const

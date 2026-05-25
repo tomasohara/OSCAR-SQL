@@ -126,6 +126,15 @@ public:
     void addExportedTable(const QString& tableName);
 
     /*!
+     * \brief Set the package type: "share" or "backup".
+     *
+     * Stored in the manifest so the restore dialog can identify share packages
+     * from their content rather than from the filename (which is lost when the
+     * file is downloaded from a cloud share link).
+     */
+    void setPackageType(const QString& type);
+
+    /*!
      * \brief Record export options.
      * \param includeDisabled  Whether disabled sessions were included.
      * \param compress         Whether the package was compressed.
@@ -215,6 +224,11 @@ public:
      * \brief Return the number of event lists recorded in the statistics block.
      */
     int eventListsCount() const;
+
+    /*!
+     * \brief Return the package type: "share", "backup", or empty for old packages.
+     */
+    QString packageType() const;
 
     /*!
      * \brief Return the number of machines recorded in the statistics block.

@@ -668,6 +668,7 @@ void ShareDialog::on_shareButton_clicked()
         backup->setFilename(filename);
     }
 
+    backup->setPackageType(QStringLiteral("share"));
     backup->setPrivacyMode(true);
     backup->setIncludeSDData(false);
     backup->setDateRange(ui->fromDate->date(), ui->toDate->date());

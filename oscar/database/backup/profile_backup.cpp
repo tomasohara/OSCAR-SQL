@@ -357,6 +357,11 @@ void ProfileBackup::setFilename(const QString& filename)
     m_overrideFilename = filename;
 }
 
+void ProfileBackup::setPackageType(const QString& type)
+{
+    m_packageType = type;
+}
+
 void ProfileBackup::requestCancel()
 {
     m_cancelRequested.store(true);
@@ -1023,6 +1028,7 @@ bool ProfileBackup::createManifest(const QString& tempDir, QJsonObject& manifest
     bm.setExportOptions(m_includeDisabled, m_compress,
                         isPartialExport(), m_startDate, m_endDate, m_privacyMode,
                         m_includeSDData);
+    bm.setPackageType(m_packageType);
 
     // Record the names of exported tables (derived from .sql file names).
     const QStringList sqlFiles =

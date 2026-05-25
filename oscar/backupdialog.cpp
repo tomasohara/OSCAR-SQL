@@ -371,6 +371,7 @@ void BackupDialog::on_backupButton_clicked()
     m_backup = new ProfileBackup(profileId, this);
     ProfileBackup* backup = m_backup;
     backup->setOutputPath(ui->outputDirEdit->text());
+    backup->setPackageType(QStringLiteral("backup"));
     backup->setPrivacyMode(ui->privacyCheck->isChecked());
 
     // Use the user-specified (possibly edited) filename, stripping any path
