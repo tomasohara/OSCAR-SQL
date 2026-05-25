@@ -17,6 +17,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QRadioButton>
+#include <QRegularExpression>
 #include <QStandardPaths>
 
 #include "database/database_manager.h"
@@ -66,11 +67,25 @@ RestoreDialog::RestoreDialog(QWidget* parent)
                 if (checked) {
                     const QString baseName = ui->profileNameEdit->text().trimmed();
                     if (!baseName.isEmpty()) {
-                        // Updating the text triggers on_profileNameEdit_textChanged,
-                        // which re-checks for conflicts and hides the conflict group
-                        // when the new name is clear.
-                        ui->profileNameEdit->setText(baseName + QStringLiteral("_restored"));
-                        return;
+                        // Strip any existing " (copy N)" suffix so repeated clicks
+                        // don't stack suffixes.  Then find the lowest copy number
+                        // >= 2 that doesn't conflict with an existing profile.
+                        static const QRegularExpression copyRe(
+                            QStringLiteral(R"( \(copy \d+\)$)"));
+                        const QString root = QString(baseName).remove(copyRe);
+                        for (int n = 2; n <= 999; ++n) {
+                            const QString candidate =
+                                root + QStringLiteral(" (copy %1)").arg(n);
+                            if (!m_restore ||
+                                m_restore->checkConflicts(candidate)
+                                    != ConflictStatus::UsernameExists) {
+                                // setText triggers on_profileNameEdit_textChanged,
+                                // which re-checks conflicts and hides the conflict
+                                // group when the new name is clear.
+                                ui->profileNameEdit->setText(candidate);
+                                return;
+                            }
+                        }
                     }
                 }
                 updateRestoreButtonState();

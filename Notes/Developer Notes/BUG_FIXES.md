@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-24 - Restore dialog: rename suggestion stacks suffixes on repeated restores (#189)
+
+**File:** `oscar/restoredialog.cpp` (rename radio toggled handler)
+
+**Symptom:** Restoring the same profile a second time presents a conflict. Clicking the
+rename radio appended "_restored" to whatever was in the name field. If that candidate
+also conflicted, clicking rename again produced "_restored_restored". For share packages
+the suffix also looks wrong: "John (Shared)_restored" (underscore abuts parenthetical).
+
+**Root cause:** The handler blindly appended `"_restored"` to the current name field
+text without checking uniqueness, and `setText` → `updateConflictForName` would detect
+another conflict on the freshly-appended name, requiring the user to click Rename again.
+
+**Fix:** Replace the append with a loop: strip any existing `" (copy N)"` suffix from
+the base name to get the root, then try "root (copy 2)", "root (copy 3)", ... until a
+non-conflicting candidate is found. One click on Rename always produces the correct
+unique name regardless of how many copies already exist.
+
+---
+
 ## 2026-05-24 - Restore dialog: share package not detected when downloaded from cloud (#188)
 
 **Files:** `oscar/restoredialog.cpp` (`onValidationFinished`),
