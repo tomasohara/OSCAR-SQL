@@ -788,7 +788,7 @@ void RestoreDialog::onRestoreFailed(const QString& error)
     m_restoreInProgress = false;
     ui->progressBar->setValue(0);
     setBusy(false);
-    ui->closeButton->setText(tr("Close"));
+    ui->closeButton->setText(tr("Cancel"));
     ui->closeButton->setEnabled(true);
 
     if (m_cancelRequested) {
