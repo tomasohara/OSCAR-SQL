@@ -494,7 +494,7 @@ void BackupDialog::onBackupFailed(const QString& error)
     m_operationActive = false;
     m_backup = nullptr;
     ui->progressBar->setValue(0);
-    ui->closeButton->setText(tr("Close"));
+    ui->closeButton->setText(tr("Cancel"));
     ui->closeButton->setEnabled(true);
 
     if (m_cancelRequested) {
