@@ -12,6 +12,8 @@
 #include <test_macros.h>
 
 #include <QTimer>
+#include <QResizeEvent>
+#include <QTextBrowser>
 
 #include "welcome.h"
 #include "ui_welcome.h"
@@ -89,6 +91,7 @@ void Welcome::refreshPage()
 
     ui->cpapInfo->setHtml(GenerateCPAPHTML());
     ui->oxiInfo->setHtml(GenerateOxiHTML());
+    QTimer::singleShot(0, this, &Welcome::adjustInfoBrowserHeights);
 }
 
 void Welcome::on_dailyButton_clicked()
@@ -116,6 +119,23 @@ void Welcome::on_importButton_clicked()
     mainwin->JumpImport();
 }
 
+
+void Welcome::resizeEvent(QResizeEvent* event)
+{
+    QWidget::resizeEvent(event);
+    QTimer::singleShot(0, this, &Welcome::adjustInfoBrowserHeights);
+}
+
+void Welcome::adjustInfoBrowserHeights()
+{
+    for (auto* browser : {ui->cpapInfo, ui->oxiInfo}) {
+        int vw = browser->viewport()->width();
+        if (vw <= 0) continue;
+        browser->document()->setTextWidth(vw);
+        int h = int(browser->document()->size().height());
+        browser->setMinimumHeight(h);
+    }
+}
 
 extern EventDataType calcAHI(QDate start, QDate end);
 extern EventDataType calcFL(QDate start, QDate end);

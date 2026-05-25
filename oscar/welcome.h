@@ -36,7 +36,11 @@ private slots:
 
     void on_importButton_clicked();
 
+protected:
+    void resizeEvent(QResizeEvent* event) override;
+
 private:
+    void adjustInfoBrowserHeights();
     QString GenerateCPAPHTML();
     QString GenerateOxiHTML();
     QPixmap pixmap;
