@@ -319,7 +319,7 @@ QWidget* ReportExporter::createButtonPanel()
     layout->addWidget(m_editSQLButton);
     
     // Close button
-    m_closeButton = new QPushButton(tr("Cancel"), panel);
+    m_closeButton = new QPushButton(tr("Close"), panel);
     connect(m_closeButton, &QPushButton::clicked,
             this, &QDialog::reject);
     layout->addWidget(m_closeButton);
