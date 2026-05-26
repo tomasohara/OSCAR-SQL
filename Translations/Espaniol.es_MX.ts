@@ -8633,9 +8633,9 @@ TTIA: %1</source>
       <location filename="../oscar/SleepLib/loader_plugins/sleepstyle_loader.cpp" line="226" />
       <location filename="../oscar/SleepLib/loader_plugins/vrem_loader.cpp" line="179" />
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="158" />
-      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="476" />
-      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="789" />
-      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1176" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="478" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="791" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1179" />
       <source>Getting Ready...</source>
       <translation>Preparando...</translation>
     </message>
@@ -8985,9 +8985,9 @@ TTIA: %1</source>
       <location filename="../oscar/SleepLib/loader_plugins/intellipap_loader.cpp" line="2758" />
       <location filename="../oscar/SleepLib/loader_plugins/sleepstyle_loader.cpp" line="369" />
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="200" />
-      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="700" />
-      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="831" />
-      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1218" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="702" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="833" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1221" />
       <location filename="../oscar/mainwindow.cpp" line="970" />
       <location filename="../oscar/mainwindow.cpp" line="3140" />
       <source>Finishing up...</source>
@@ -12230,8 +12230,8 @@ popout window, delete it, then pop out this graph again.</source>
       <location filename="../oscar/SleepLib/loader_plugins/intellipap_loader.cpp" line="2734" />
       <location filename="../oscar/SleepLib/loader_plugins/sleepstyle_loader.cpp" line="250" />
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="179" />
-      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="494" />
-      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="810" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="496" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="812" />
       <source>Reading data files...</source>
       <translation>Leyendo archivos de datos...</translation>
     </message>
@@ -12775,7 +12775,34 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <translation>El archivo seleccionado no parece ser un archivo CSV de Dreem válido.\n\nLos datos de Dreem deben tener formato de archivo CSV delimitado por punto y coma. Por favor, asegúrese de que sus datos estén en formato CSV e inténtelo de nuevo.</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1197" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="466" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1060" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1524" />
+      <source>Import Error</source>
+      <extracomment>Machine-translated by Claude - review recommended</extracomment>
+      <translation>Error de importación</translation>
+    </message>
+    <message>
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="377" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="467" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1061" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1525" />
+      <source>This device Record cannot be imported in this profile.</source>
+      <extracomment>Machine-translated by Claude - review recommended</extracomment>
+      <translation>El registro de este dispositivo no puede ser importado en este perfil.</translation>
+    </message>
+    <message>
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="378" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="468" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1062" />
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1526" />
+      <source>The Day records overlap with already existing content.</source>
+      <extracomment>Machine-translated by Claude - review recommended</extracomment>
+      <translation>Los registros del día se superponen con contenido ya existente.</translation>
+    </message>
+    <message>
+      <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1200" />
       <source>Reading session directories...</source>
       <translation>Leyendo directorios de sesiones...</translation>
     </message>
