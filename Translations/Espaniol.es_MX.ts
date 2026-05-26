@@ -2768,8 +2768,9 @@ Do you want to continue?</source>
     <message numerus="yes">
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="127" />
       <source>Exported notes for %n day(s).</source>
-      <translation>Notas exportadas de %n día(s).<numerusform />
-        <numerusform />
+      <translation>
+        <numerusform>Notas exportadas de %n día.</numerusform>
+        <numerusform>Notas exportadas de %n días.</numerusform>
       </translation>
     </message>
     <message>
