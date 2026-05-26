@@ -373,8 +373,9 @@ int YuwellFormatA::Open() {
         } catch (OneTypePerDay& e) {
             Q_UNUSED(e)
             p_profile->DelMachine(m);
-            QMessageBox::warning(nullptr, m_loader->tr("Import Error"),
-                                 m_loader->tr("This device Record cannot be imported in this profile.")+"\n\n"+m_loader->tr("The Day records overlap with already existing content."),
+            QMessageBox::warning(nullptr, QObject::tr("Import Error"),
+                                 QObject::tr("This device Record cannot be imported in this profile.")
+                                     +"\n\n"+QObject::tr("The Day records overlap with already existing content."),
                                  QMessageBox::Ok);
             delete m;
         }
@@ -462,8 +463,9 @@ int YuwellFormatB::Open() {
         } catch (OneTypePerDay& e) {
             Q_UNUSED(e)
             p_profile->DelMachine(m);
-            QMessageBox::warning(nullptr, m_loader->tr("Import Error"),
-                                 m_loader->tr("This device Record cannot be imported in this profile.")+"\n\n"+m_loader->tr("The Day records overlap with already existing content."),
+            QMessageBox::warning(nullptr, QObject::tr("Import Error"),
+                                 QObject::tr("This device Record cannot be imported in this profile.")
+                                     +"\n\n"+QObject::tr("The Day records overlap with already existing content."),
                                  QMessageBox::Ok);
             delete m;
         }
@@ -1055,8 +1057,9 @@ int YuwellFormatC::Open() {
         } catch (OneTypePerDay& e) {
             Q_UNUSED(e)
             p_profile->DelMachine(m);
-            QMessageBox::warning(nullptr, m_loader->tr("Import Error"),
-                                 m_loader->tr("This device Record cannot be imported in this profile.")+"\n\n"+m_loader->tr("The Day records overlap with already existing content."),
+            QMessageBox::warning(nullptr, QObject::tr("Import Error"),
+                                 QObject::tr("This device Record cannot be imported in this profile.")+"\n\n"
+                                     +QObject::tr("The Day records overlap with already existing content."),
                                  QMessageBox::Ok);
             delete m;
         }
@@ -1518,8 +1521,9 @@ int YuwellFormatD::Open() {
         } catch (OneTypePerDay& e) {
             Q_UNUSED(e)
             p_profile->DelMachine(m);
-            QMessageBox::warning(nullptr, m_loader->tr("Import Error"),
-                                 m_loader->tr("This device Record cannot be imported in this profile.")+"\n\n"+m_loader->tr("The Day records overlap with already existing content."),
+            QMessageBox::warning(nullptr, QObject::tr("Import Error"),
+                                 QObject::tr("This device Record cannot be imported in this profile.")+"\n\n"
+                                     +QObject::tr("The Day records overlap with already existing content."),
                                  QMessageBox::Ok);
             delete m;
         }
