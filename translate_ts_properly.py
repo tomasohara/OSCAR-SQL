@@ -159,12 +159,28 @@ def indent_xml(elem, level=0):
             elem.tail = indent
 
 def main():
-    ts_file = r'C:\OSCAR\OSCAR-code\Translations\Espaniol.es_MX.ts'
+    # Accept language as command-line argument, default to Spanish (MX)
+    import sys
+    if len(sys.argv) > 1:
+        lang = sys.argv[1]
+        ts_file = rf'C:\OSCAR\OSCAR-code\Translations\{lang}.ts'
+    else:
+        ts_file = r'C:\OSCAR\OSCAR-code\Translations\Espaniol.es_MX.ts'
+
     client = Anthropic()
 
     print("Loading .ts file...")
     messages, root = extract_unfinished_messages(ts_file)
     print(f"Found {len(messages)} unfinished messages")
+    if not messages:
+        # Debug: check if there are any unfinished at all
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(ts_file)
+        rt = tree.getroot()
+        unfinished_count = sum(1 for msg in rt.findall('.//message')
+                              if msg.find('translation') is not None and
+                                 msg.find('translation').get('type') == 'unfinished')
+        print(f"Debug: Found {unfinished_count} unfinished translations in file")
 
     if not messages:
         print("No unfinished messages found!")
