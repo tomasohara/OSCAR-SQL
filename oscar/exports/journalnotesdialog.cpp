@@ -127,6 +127,7 @@ void JournalNotesDialog::on_exportButton_clicked()
                                      tr("Exported notes for %n day(s).", "", count));
         }
     }
+    ui->closeButton->setText(tr("Close"));
 }
 
 void JournalNotesDialog::on_closeButton_clicked()
@@ -162,6 +163,8 @@ void JournalNotesDialog::populateProfiles()
 
     if (preSelectIndex >= 0)
         ui->profileCombo->setCurrentIndex(preSelectIndex);
+    else
+        ui->profileCombo->setCurrentIndex(-1);
 }
 
 qint64 JournalNotesDialog::selectedProfileId() const
@@ -196,6 +199,8 @@ void JournalNotesDialog::applyDateRange(const QString& rangeText)
         if (!first.isValid() || !last.isValid()) {
             ui->exportButton->setEnabled(false);
             ui->statusLabel->setText(tr("No journal notes found for this profile."));
+            ui->fromDate->setDate(ui->fromDate->minimumDate());
+            ui->toDate->setDate(ui->toDate->minimumDate());
             return;
         }
         ui->exportButton->setEnabled(true);
@@ -209,6 +214,8 @@ void JournalNotesDialog::applyDateRange(const QString& rangeText)
     if (!last.isValid()) {
         ui->exportButton->setEnabled(false);
         ui->statusLabel->setText(tr("No journal notes found for this profile."));
+        ui->fromDate->setDate(ui->fromDate->minimumDate());
+        ui->toDate->setDate(ui->toDate->minimumDate());
         return;
     }
     ui->exportButton->setEnabled(true);
@@ -236,6 +243,7 @@ void JournalNotesDialog::setupCalendarFormatting()
     ui->toDate->setDisplayFormat(fmt);
 
     for (QDateEdit* de : { ui->fromDate, ui->toDate }) {
+        de->setSpecialValueText(QLatin1String(" "));
         QCalendarWidget* cal = de->calendarWidget();
         QTextCharFormat format = cal->weekdayTextFormat(Qt::Saturday);
         format.setForeground(QBrush(Qt::black, Qt::SolidPattern));

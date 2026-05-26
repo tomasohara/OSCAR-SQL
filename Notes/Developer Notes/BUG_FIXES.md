@@ -4,6 +4,48 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-25 - Export Journal Notes dialog: wrong profile pre-selected; button always shows Close
+
+**Files:** `oscar/exports/journalnotesdialog.{cpp,ui}`
+
+**Symptom 1:** When no profile was open, the Profile combo defaulted to the first profile
+in the database instead of being blank.
+
+**Root cause:** `populateProfiles()` only called `setCurrentIndex()` when a match was
+found; when no profile was open (`preSelectIndex == -1`), Qt auto-selected index 0.
+
+**Fix:** Added `else { ui->profileCombo->setCurrentIndex(-1); }` so the combo is
+explicitly blank when no profile is open.
+
+**Symptom 2:** The Cancel/Close button always showed "Close", even before any export
+had been performed.
+
+**Root cause:** The `.ui` file initialised `closeButton` with text "Close" and nothing
+changed it after an export completed.
+
+**Fix:** Changed initial text in `.ui` to "Cancel". Added
+`ui->closeButton->setText(tr("Close"))` at the end of `on_exportButton_clicked()` so
+the label changes to "Close" only after a successful export completes.
+
+---
+
+## 2026-05-25 - Backup dialog closeButton labelled "Close" before any operation runs
+
+**Files:** `oscar/backupdialog.{cpp,ui}`
+
+**Symptom:** The Backup dialog's Cancel/Close button showed "Close" on first open and
+reverted to "Close" after a failed or cancelled backup, even though no backup had
+completed successfully.
+
+**Root cause:** `backupdialog.ui` initialised `closeButton` with text "Close", and
+`onBackupFailed()` reset it to "Close" instead of "Cancel".
+
+**Fix:** Changed the initial text in `.ui` to "Cancel". Changed `onBackupFailed()` to
+set the label back to "Cancel". On success the dialog calls `accept()` and closes, so
+no "Close" state is needed. Matches the same fix applied to Share and Restore dialogs.
+
+---
+
 ## 2026-05-24 - Restore dialog: rename label shows wrong text; dialog hidden by taskbar (#190)
 
 **Files:** `oscar/restoredialog.{h,cpp,ui}`
