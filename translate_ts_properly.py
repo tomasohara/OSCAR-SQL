@@ -113,22 +113,7 @@ def apply_translations(root, messages, translations):
         if i in translations:
             trans_elem = msg_data['element']
             trans_elem.text = translations[i]
-            # Remove the unfinished attribute
-            if 'type' in trans_elem.attrib:
-                del trans_elem.attrib['type']
-
-            # Add a flag comment to indicate auto-translation
-            message_elem = msg_data['message_elem']
-            # Create extracomment element to flag auto-translated strings
-            extracomment = ET.Element('extracomment')
-            extracomment.text = 'Machine-translated by Claude - review recommended'
-
-            # Insert extracomment after source element
-            source_elem = message_elem.find('source')
-            if source_elem is not None:
-                source_index = list(message_elem).index(source_elem)
-                message_elem.insert(source_index + 1, extracomment)
-
+            # Keep type="unfinished" so linguist flags it for review
             applied += 1
 
     return applied
