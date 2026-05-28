@@ -1728,249 +1728,249 @@ The start date MUST be before the end date</source>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="103"/>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="772"/>
         <source>Time Corrections</source>
-        <translation type="unfinished"></translation>
+        <translation>Correction de l&apos;heure</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="30"/>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="223"/>
         <source>Device</source>
-        <translation type="unfinished">Machine</translation>
+        <translation>Machine</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="44"/>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="192"/>
         <source>—</source>
-        <translation type="unfinished"></translation>
+        <translation>—</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="56"/>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="499"/>
         <source>New correction</source>
-        <translation type="unfinished"></translation>
+        <translation>Nouvelle correction</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="65"/>
         <source>Type:</source>
-        <translation type="unfinished">Type :</translation>
+        <translation>Type :</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="69"/>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="226"/>
         <source>Offset</source>
-        <translation type="unfinished"></translation>
+        <translation>Compensation</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="70"/>
         <source>Travel</source>
-        <translation type="unfinished"></translation>
+        <translation>Voyage</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="71"/>
         <source>DST Change</source>
-        <translation type="unfinished"></translation>
+        <translation>Changement heure d&apos;été / heure d&apos;hiver</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="72"/>
         <source>Device Timezone Misconfiguration</source>
-        <translation type="unfinished"></translation>
+        <translation>Erreur de configuration du fuseau horaire au niveau de l&apos;appareil</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="73"/>
         <source>Device Reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Réinitialisation de l&apos;appareil</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="82"/>
         <source>Time Adjustment</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajustement de l&apos;heure</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="89"/>
         <source>+</source>
-        <translation type="unfinished"></translation>
+        <translation>+</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="96"/>
         <source>HH:mm:ss</source>
-        <translation type="unfinished"></translation>
+        <translation>HH:mm:ss</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="111"/>
         <source>Reuse Previous</source>
-        <translation type="unfinished"></translation>
+        <translation>Réutilisation de l&apos;ancienne valeur</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="116"/>
         <source>Reset to Zero</source>
-        <translation type="unfinished"></translation>
+        <translation>Remise à zéro</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="126"/>
         <source>Apply to date range</source>
-        <translation type="unfinished"></translation>
+        <translation>Appliquer à la période</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="135"/>
         <source>Start:</source>
-        <translation type="unfinished">Début :</translation>
+        <translation>Début :</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="138"/>
         <source>End:</source>
-        <translation type="unfinished">Fin :</translation>
+        <translation>Fin :</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="143"/>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="150"/>
         <source>yyyy-MM-dd</source>
-        <translation type="unfinished"></translation>
+        <translation>aaaa-MM-jj</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="156"/>
         <source>No end</source>
-        <translation type="unfinished"></translation>
+        <translation>Infini</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="173"/>
         <source>Save</source>
-        <translation type="unfinished">Sauvegarder</translation>
+        <translation>Sauvegarder</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="179"/>
         <source>Cancel</source>
-        <translation type="unfinished">Annuler</translation>
+        <translation>Annuler</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="185"/>
         <source>Clear</source>
-        <translation type="unfinished">Effacer</translation>
+        <translation>Effacer</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="197"/>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="704"/>
         <source>Delete Correction</source>
-        <translation type="unfinished"></translation>
+        <translation>Effacer la correction</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="214"/>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="106"/>
         <source>Showing corrections active on —</source>
-        <translation type="unfinished"></translation>
+        <translation>Affichage des corrections actives sur —</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="215"/>
         <source>font-style: italic; color: #555555;</source>
-        <translation type="unfinished"></translation>
+        <translation>font-style: italic; color: #555555;</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="224"/>
         <source>Date Range</source>
-        <translation type="unfinished">Période</translation>
+        <translation>Période</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="225"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Type</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="227"/>
         <source>Added</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajout</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.ui" line="243"/>
         <source>color: #cc6600;</source>
-        <translation type="unfinished"></translation>
+        <translation>color: #cc6600;</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="90"/>
         <source>Unsaved Correction</source>
-        <translation type="unfinished"></translation>
+        <translation>Correction non sauvegardée</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="91"/>
         <source>You have an unsaved correction. Save before moving to %1?</source>
-        <translation type="unfinished"></translation>
+        <translation>Vous avez une correction non enregistrée. Veuillez enregistrer avant de passer à %1 ?</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="105"/>
         <source>Showing corrections active on %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Affichage des corrections actives sur %1</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="136"/>
         <source>Reference</source>
-        <translation type="unfinished"></translation>
+        <translation>Référence</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="142"/>
         <source>Other Devices</source>
-        <translation type="unfinished"></translation>
+        <translation>Autres machines</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="284"/>
         <source>Offset exceeds 24 hours and cannot be displayed precisely.</source>
-        <translation type="unfinished"></translation>
+        <translation>Le décalage dépasse 24 heures. Il ne peut donc pas être affiché de manière précise.</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="290"/>
         <source>Large offset — consider using a different correction type.</source>
-        <translation type="unfinished"></translation>
+        <translation>Le décalage est important — il faudrait peut-être ’utiliser un autre type de correction.</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="494"/>
         <source>Drift model — use Drift Analysis dialog to edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Modèle de dérive — utilisez la boîte de dialogue Analyse de la dérive pour le modifier</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="502"/>
         <source>open</source>
-        <translation type="unfinished"></translation>
+        <translation>ouvrir</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="504"/>
         <source>Editing: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Édition : %1</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="689"/>
         <source>Apply Last Offset</source>
-        <translation type="unfinished"></translation>
+        <translation>Appliquer la dernière valeur de décalage</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="690"/>
         <source>No single-night corrections found in the past 7 days.</source>
-        <translation type="unfinished"></translation>
+        <translation>Aucune correction d&apos;une seule nuit n&apos;a été trouvée au cours des 7 derniers jours.</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="707"/>
         <source>open-ended</source>
-        <translation type="unfinished"></translation>
+        <translation>à durée indéterminée</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="709"/>
         <source>Delete correction spanning %1 – %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Suppression de la correction couvrant la période %1 – %2</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="712"/>
         <source>Close from %1 onward (ends %2, keeps prior dates)</source>
-        <translation type="unfinished"></translation>
+        <translation>Fermer à partir de %1 (se termine à %2, conserve les dates précédentes)</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="716"/>
         <source>Remove only %1 (splits into two rows)</source>
-        <translation type="unfinished"></translation>
+        <translation>Supprimer uniquement %1 (séparation en deux lignes)</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="717"/>
         <source>Remove entirely (marks all dates undone)</source>
-        <translation type="unfinished"></translation>
+        <translation>Supprimer complètement (indique toutes les dates non réalisées)</translation>
     </message>
     <message>
         <location filename="../oscar/devicetimecorrectiondialog.cpp" line="772"/>
         <source>Failed to delete correction.</source>
-        <translation type="unfinished"></translation>
+        <translation>Suppression de la correction.impossible.</translation>
     </message>
 </context>
 <context>
@@ -1979,171 +1979,171 @@ The start date MUST be before the end date</source>
         <location filename="../oscar/driftanalysisdialog.ui" line="9"/>
         <location filename="../oscar/driftanalysisdialog.cpp" line="369"/>
         <source>Drift Analysis</source>
-        <translation type="unfinished"></translation>
+        <translation>Analyse de la dérive</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="18"/>
         <source>Device:</source>
-        <translation type="unfinished"></translation>
+        <translation>Machine :</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="30"/>
         <source>Reference device:</source>
-        <translation type="unfinished"></translation>
+        <translation>Référence de la machine :</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="42"/>
         <source>Range start:</source>
-        <translation type="unfinished"></translation>
+        <translation>Début de la période :</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="47"/>
         <location filename="../oscar/driftanalysisdialog.ui" line="56"/>
         <source>yyyy-MM-dd</source>
-        <translation type="unfinished"></translation>
+        <translation>aaaa-MM-jj</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="51"/>
         <source>Range end:</source>
-        <translation type="unfinished"></translation>
+        <translation>Fin de la période :</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="63"/>
         <source>Load Data</source>
-        <translation type="unfinished"></translation>
+        <translation>Charger les données</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="78"/>
         <source>Fit Model</source>
-        <translation type="unfinished"></translation>
+        <translation>Adapter le modèle</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="84"/>
         <source>Use Model</source>
-        <translation type="unfinished"></translation>
+        <translation>Utiliser le modèle</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="93"/>
         <location filename="../oscar/driftanalysisdialog.cpp" line="62"/>
         <source>Select a device and date range, then click Load Data.</source>
-        <translation type="unfinished"></translation>
+        <translation>Sélectionnez un appareil et une plage de dates, puis cliquez sur &quot;Charger les données&quot;.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="99"/>
         <location filename="../oscar/driftanalysisdialog.cpp" line="128"/>
         <location filename="../oscar/driftanalysisdialog.cpp" line="151"/>
         <source>Active drift model: none</source>
-        <translation type="unfinished"></translation>
+        <translation>Modèle actif de la dérive active : aucun</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="101"/>
         <source>font-style: italic; color: #555555;</source>
-        <translation type="unfinished"></translation>
+        <translation>font-style: italic; color: #555555;</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.ui" line="108"/>
         <source>color: #cc6600; font-weight: bold;</source>
-        <translation type="unfinished"></translation>
+        <translation>color: #cc6600; font-weight: bold;</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="78"/>
         <source>No CPAP devices found</source>
-        <translation type="unfinished"></translation>
+        <translation>Aucun respirateur PPC n&apos;a été trouvé</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="91"/>
         <source>— none —</source>
-        <translation type="unfinished"></translation>
+        <translation>— aucun —</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="158"/>
         <source>Active drift model: %1 ms/day, active from %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Modèle actif de la dérive : %1 ms/jour, actif depuis %2</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="164"/>
         <source>Warning: drift rate of %1 ms/day exceeds 5 s/day — verify reference device data.</source>
-        <translation type="unfinished"></translation>
+        <translation>Avertissement : le taux de la dérive (%1 ms/jour) dépasse 5 s/jour — vérifiez les données de l’appareil de référence.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="187"/>
         <source>No CPAP device selected.</source>
-        <translation type="unfinished"></translation>
+        <translation>Aucun appareil PPC sélectionné.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="192"/>
         <source>Select a reference device to measure CPAP drift against.</source>
-        <translation type="unfinished"></translation>
+        <translation>Sélectionnez un appareil de référence pour mesurer la dérive du PPC.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="198"/>
         <source>Invalid date range.</source>
-        <translation type="unfinished"></translation>
+        <translation>Période invalide.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="257"/>
         <source>Drift model active since %1 — no new %2 offset entries in range. Add offset entries for the reference device, then reload.</source>
-        <translation type="unfinished"></translation>
+        <translation>Modèle actif de dérive depuis %1 — aucune nouvelle entrée de décalage %2 dans la plage. Ajoutez des entrées de décalage pour le périphérique de référence, puis rechargez.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="263"/>
         <source>No offset entries found for %1 in the selected range.</source>
-        <translation type="unfinished"></translation>
+        <translation>Aucune entrée de décalage trouvée pour %1 dans la période sélectionnée.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="266"/>
         <source>Drift model active since %1. Showing total %2 corrections (existing model + residuals). %3 points loaded. New fit replaces the existing model from %4 onward.</source>
-        <translation type="unfinished"></translation>
+        <translation>Modèle actif de dérive  depuis %1. Affichage du total de %2 corrections (modèle existant + résidus). %3 points chargés. Le nouvel ajustement remplace le modèle existant à partir de %4.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="275"/>
         <source>%1 %2 offset entries loaded. Click Fit Model to compute drift rate.</source>
-        <translation type="unfinished"></translation>
+        <translation>Les entrées de décalage %1 et %2 sont chargées. Cliquez sur «&#xa0;Ajuster le modèle&#xa0;» pour calculer le taux de dérive.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="296"/>
         <source>Cannot fit: all observations fall on the same date.</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de faire correspondre toutes les observations : elles tombent à la même date.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="318"/>
         <source>R²=%1, drift rate=%2 ms/day</source>
-        <translation type="unfinished"></translation>
+        <translation>R²=%1, taux de dérive=%2 ms/jour</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="322"/>
         <source> — poor fit, Use Model disabled</source>
-        <translation type="unfinished"></translation>
+        <translation> — Mauvaise coupe, &quot;Utiliser le modèle&quot; désactivé</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="324"/>
         <source> — moderate fit</source>
-        <translation type="unfinished"></translation>
+        <translation> — ajustement modéré</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="326"/>
         <source> — will replace model active since %1</source>
-        <translation type="unfinished"></translation>
+        <translation> — remplacera le modèle actif depuis %1</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="366"/>
         <source>Fitted drift model</source>
-        <translation type="unfinished"></translation>
+        <translation>Modèle de dérive ajusté</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="369"/>
         <source>Failed to save drift model.</source>
-        <translation type="unfinished"></translation>
+        <translation>Enregistrement  du modèle de dérive.Impossible.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="377"/>
         <source>CPAP drift model refined. Prior model closed %1; new model active from %2 onward.</source>
-        <translation type="unfinished"></translation>
+        <translation>Le modèle de dérive PPC a été amélioré. Le modèle précédent va être désactivé à partir de %1; Le nouveau modèle sera actif à partir de %2.</translation>
     </message>
     <message>
         <location filename="../oscar/driftanalysisdialog.cpp" line="381"/>
         <source>CPAP drift model committed. Reference device entries in fit range replaced.</source>
-        <translation type="unfinished"></translation>
+        <translation>Le modèle de dérive PPC a été validé. Les entrées des dispositifs de référence dans la plage d&apos;ajustement ont été remplacées.</translation>
     </message>
 </context>
 <context>
@@ -2151,12 +2151,12 @@ The start date MUST be before the end date</source>
     <message>
         <location filename="../oscar/driftplotwidget.cpp" line="103"/>
         <source>No data loaded</source>
-        <translation type="unfinished"></translation>
+        <translation>Aucune données a été chargées</translation>
     </message>
     <message>
         <location filename="../oscar/driftplotwidget.cpp" line="251"/>
         <source>Offset (ms)</source>
-        <translation type="unfinished"></translation>
+        <translation>Décalage (ms)</translation>
     </message>
 </context>
 <context>
@@ -2910,7 +2910,7 @@ Veuillez patienter...</translation>
     <message>
         <location filename="../oscar/exports/journalnotesdialog.ui" line="222"/>
         <source>Cancel</source>
-        <translation type="unfinished">Annuler</translation>
+        <translation>Annuler</translation>
     </message>
     <message>
         <location filename="../oscar/exports/journalnotesdialog.cpp" line="130"/>
@@ -3529,54 +3529,56 @@ Pour ajouter une base de données à la liste des bases de données récentes, o
     <message>
         <location filename="../oscar/mainwindow.cpp" line="1817"/>
         <source>Time Corrections</source>
-        <translation type="unfinished"></translation>
+        <translation>Corrections de l&apos;heure</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="1846"/>
         <source>Drift Analysis</source>
-        <translation type="unfinished"></translation>
+        <translation>Analyse de la dérive</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="1871"/>
         <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-        <translation type="unfinished"></translation>
+        <translation>Cette action supprimera définitivement toutes les corrections d&apos;heure pour chaque appareil de ce profil.
+
+Êtes-vous sûr ?</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="2381"/>
         <source>Unknown</source>
-        <translation type="unfinished">Inconnu</translation>
+        <translation>Inconnu</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="2386"/>
         <source>Confirm Purge</source>
-        <translation type="unfinished"></translation>
+        <translation>Confirmer la purge</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="2387"/>
         <source>&lt;p&gt;Purge &lt;b&gt;%1&lt;/b&gt; data from &lt;b&gt;%2&lt;/b&gt; to &lt;b&gt;%3&lt;/b&gt; (%4 day(s)).&lt;/p&gt;&lt;p&gt;Are you &lt;b&gt;absolutely sure&lt;/b&gt; you want to proceed?&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;Supprimer &lt;b&gt;%1&lt;/b&gt; les données de &lt;b&gt;%2&lt;/b&gt; à &lt;b&gt;%3&lt;/b&gt; (%4 jour(s)).&lt;/p&gt;&lt;p&gt;Êtes-vous &lt;b&gt;absolument sûr&lt;/b&gt; de vouloir continuer&#xa0;?&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="2401"/>
         <source>Purging data...</source>
-        <translation type="unfinished"></translation>
+        <translation>Purge des données en cours...</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="2413"/>
         <source>Purging %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>Purge %1...</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="2426"/>
         <source>Purge Range of Days</source>
-        <translation type="unfinished"></translation>
+        <translation>Purge de la période</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="2427"/>
         <source>No data was found in the selected date range.</source>
-        <translation type="unfinished"></translation>
+        <translation>La période sélectionnée ne contient aucunes données.</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="2485"/>
@@ -3946,12 +3948,12 @@ Il n&apos;y a pas eu de gain de place — La base de données avait déjà été
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3852"/>
         <source>Unable to create zip: the database is locked by another process.</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de créer le fichier zip&#xa0;: la base de données est verrouillée par un autre processus.</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3861"/>
         <source>Creating %1.zip...</source>
-        <translation type="unfinished"></translation>
+        <translation>Création de %1.zip...</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3898"/>
@@ -4084,22 +4086,22 @@ Cette opération peut prendre longtemps. Continuer ?</translation>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2257"/>
         <source>Time Corrections...</source>
-        <translation type="unfinished"></translation>
+        <translation>Corrections de l&apos;heure...</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2260"/>
         <source>Adjust device clock errors (timezone, travel, DST, reset)</source>
-        <translation type="unfinished"></translation>
+        <translation>Régler les erreurs d&apos;horloge de l&apos;appareil (fuseau horaire, voyage, heure d&apos;été, réinitialisation)</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2265"/>
         <source>Drift Analysis...</source>
-        <translation type="unfinished"></translation>
+        <translation>Analyse de la dérive...</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2268"/>
         <source>Analyse and model clock drift over time</source>
-        <translation type="unfinished"></translation>
+        <translation>Analyser et modéliser la dérive de l&apos;horloge au fil du temps</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2289"/>
@@ -4146,7 +4148,7 @@ Cette opération peut prendre longtemps. Continuer ?</translation>
         <location filename="../oscar/mainwindow.ui" line="2535"/>
         <location filename="../oscar/mainwindow.cpp" line="1870"/>
         <source>Purge All Time Corrections</source>
-        <translation type="unfinished"></translation>
+        <translation>Supprimer toutes les corrections temporelles</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2616"/>
@@ -4161,7 +4163,7 @@ Cette opération peut prendre longtemps. Continuer ?</translation>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2647"/>
         <source>Create zip of OSCAR database</source>
-        <translation type="unfinished"></translation>
+        <translation>Créer un fichier zip de la base de données OSCAR</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2668"/>
@@ -4176,7 +4178,7 @@ Cette opération peut prendre longtemps. Continuer ?</translation>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2751"/>
         <source>Purge Range of Days...</source>
-        <translation type="unfinished"></translation>
+        <translation>Purge de la période...</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2771"/>
@@ -6002,12 +6004,12 @@ Destiné au personnel de support et aux développeurs.</translation>
     <message>
         <location filename="../oscar/preferencesdialog.ui" line="3070"/>
         <source>Combine machines with same capabilities in Changes to Device Settings report</source>
-        <translation type="unfinished"></translation>
+        <translation>Regrouper les machines aux capacités identiques dans le rapport &quot;Modifications des paramètres de l&apos;appareil&quot;</translation>
     </message>
     <message>
         <location filename="../oscar/preferencesdialog.ui" line="3073"/>
         <source>Combine similar machines</source>
-        <translation type="unfinished"></translation>
+        <translation>Regrouper les machines aux capacités identiques</translation>
     </message>
     <message>
         <location filename="../oscar/preferencesdialog.ui" line="3100"/>
@@ -7769,57 +7771,57 @@ Are you sure you want to make these changes?</source>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="24"/>
         <source>Purge Range of Days</source>
-        <translation type="unfinished"></translation>
+        <translation>Purge de la période</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="35"/>
         <source>Start date:</source>
-        <translation type="unfinished"></translation>
+        <translation>Date de début :</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="36"/>
         <source>End date:</source>
-        <translation type="unfinished"></translation>
+        <translation>Date de fin :</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="39"/>
         <source>Data to purge</source>
-        <translation type="unfinished"></translation>
+        <translation>Données à purger</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="44"/>
         <source>CPAP</source>
-        <translation type="unfinished">PPC</translation>
+        <translation>PPC</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="45"/>
         <source>Oximetry</source>
-        <translation type="unfinished">Oxymétrie</translation>
+        <translation>Oxymétrie</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="46"/>
         <source>Sleep Stage</source>
-        <translation type="unfinished"></translation>
+        <translation>Etat d&apos;endormissement</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="47"/>
         <source>Position</source>
-        <translation type="unfinished">Position</translation>
+        <translation>Position</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="48"/>
         <source>All except Notes</source>
-        <translation type="unfinished">Tout sauf les Notes</translation>
+        <translation>Tout sauf les Notes</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="49"/>
         <source>All including Notes</source>
-        <translation type="unfinished">Tout y compris les Notes</translation>
+        <translation>Tout y compris les Notes</translation>
     </message>
     <message>
         <location filename="../oscar/purgerangedaysdialog.cpp" line="88"/>
         <source>End date must be on or after start date.</source>
-        <translation type="unfinished"></translation>
+        <translation>La date de fin doit être égale ou postérieure à la date de début.</translation>
     </message>
 </context>
 <context>
@@ -8167,15 +8169,6 @@ Are you sure you want to make these changes?</source>
         <location filename="../oscar/SleepLib/loader_plugins/sleepstyle_loader.h" line="88"/>
         <source>Fisher &amp; Paykel</source>
         <translation>Fisher &amp; Paykel</translation>
-    </message>
-    <message>
-        <location filename="../oscar/SleepLib/loader_plugins/icon_loader.h" line="88"/>
-        <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.h" line="236"/>
-        <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="67"/>
-        <location filename="../oscar/SleepLib/loader_plugins/weinmann_loader.h" line="118"/>
-        <location filename="../oscar/notifyMessageBox.cpp" line="19"/>
-        <source></source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../oscar/SleepLib/common.cpp" line="891"/>
@@ -9167,10 +9160,10 @@ OSCAR ne connaît pas votre %1 %2 (%3).</translation>
         <translation>Anomalie du débit</translation>
     </message>
     <message>
+        <location filename="../oscar/mainwindow.cpp" line="3100"/>
         <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="692"/>
         <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="922"/>
         <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="1001"/>
-        <location filename="../oscar/mainwindow.cpp" line="3100"/>
         <source>Importing Sessions...</source>
         <translation>Import des sessions...</translation>
     </message>
@@ -9498,8 +9491,8 @@ OSCAR ne connaît pas votre %1 %2 (%3).</translation>
         <translation>Température tuyau chauffant PRS1</translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/MinutesAtPressure.cpp" line="716"/>
         <location filename="../oscar/Graphs/gLineChart.cpp" line="1059"/>
+        <location filename="../oscar/Graphs/MinutesAtPressure.cpp" line="716"/>
         <source>Plots Disabled</source>
         <translation>Points désactivés</translation>
     </message>
@@ -9836,8 +9829,8 @@ OSCAR ne connaît pas votre %1 %2 (%3).</translation>
         <translation>Respirations activées par le patient</translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/common.cpp" line="857"/>
         <location filename="../oscar/main.cpp" line="167"/>
+        <location filename="../oscar/SleepLib/common.cpp" line="857"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
@@ -9934,8 +9927,8 @@ OSCAR ne connaît pas votre %1 %2 (%3).</translation>
         <translation>Seuil le plus bas</translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/MinutesAtPressure.cpp" line="727"/>
         <location filename="../oscar/Graphs/gOverviewGraph.cpp" line="1247"/>
+        <location filename="../oscar/Graphs/MinutesAtPressure.cpp" line="727"/>
         <source>No Data</source>
         <translation>Pas de données</translation>
     </message>
@@ -12053,14 +12046,14 @@ TTIA : %1</translation>
         <translation>Session PPC avec résumé seulement</translation>
     </message>
     <message>
+        <location filename="../oscar/mainwindow.cpp" line="970"/>
+        <location filename="../oscar/mainwindow.cpp" line="3140"/>
         <location filename="../oscar/SleepLib/loader_plugins/intellipap_loader.cpp" line="2758"/>
         <location filename="../oscar/SleepLib/loader_plugins/sleepstyle_loader.cpp" line="369"/>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="200"/>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="702"/>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="833"/>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1221"/>
-        <location filename="../oscar/mainwindow.cpp" line="970"/>
-        <location filename="../oscar/mainwindow.cpp" line="3140"/>
         <source>Finishing up...</source>
         <translation>Finalisation...</translation>
     </message>
@@ -13134,14 +13127,16 @@ Longueur : %1</translation>
         <translation>Yuwell</translation>
     </message>
     <message>
+        <location filename="../oscar/updateparser.cpp" line="224"/>
         <source>%1
 Line %2, column %3</source>
-        <translation type="vanished">%1
+        <translation>%1
 Ligne %2, colonne %3</translation>
     </message>
     <message>
+        <location filename="../oscar/updateparser.cpp" line="237"/>
         <source>Could not parse Updates.xml file.</source>
-        <translation type="vanished">Impossible d&apos;analyser le fichier Updates.xml.</translation>
+        <translation>Impossible d&apos;analyser le fichier Updates.xml.</translation>
     </message>
     <message>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376"/>
@@ -13149,7 +13144,7 @@ Ligne %2, colonne %3</translation>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1060"/>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1524"/>
         <source>Import Error</source>
-        <translation type="unfinished">Erreur d&apos;import</translation>
+        <translation>Erreur d&apos;import</translation>
     </message>
     <message>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="377"/>
@@ -13157,7 +13152,7 @@ Ligne %2, colonne %3</translation>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1061"/>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1525"/>
         <source>This device Record cannot be imported in this profile.</source>
-        <translation type="unfinished"></translation>
+        <translation>Cet enregistrement ne peut pas être importé dans ce profil.</translation>
     </message>
     <message>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="378"/>
@@ -13165,7 +13160,7 @@ Ligne %2, colonne %3</translation>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1062"/>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1526"/>
         <source>The Day records overlap with already existing content.</source>
-        <translation type="unfinished"></translation>
+        <translation>Les enregistrements de la journée chevauchent le contenu déjà existant.</translation>
     </message>
     <message>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1200"/>
@@ -13229,14 +13224,16 @@ Ligne %2, colonne %3</translation>
     <message>
         <location filename="../oscar/SleepLib/loader_plugins/dreem_loader.cpp" line="85"/>
         <source>Wrong File Format</source>
-        <translation type="unfinished"></translation>
+        <translation>Mauvais format de fichier</translation>
     </message>
     <message>
         <location filename="../oscar/SleepLib/loader_plugins/dreem_loader.cpp" line="86"/>
         <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Le fichier sélectionné ne semble pas être un fichier CSV valide.pour les machines Dreem
+
+Les données Dreem doivent être formatées en tant que fichier CSV délimité par des points-virgules. Veuillez vérifier que vos données sont bien au format CSV et réessayer.</translation>
     </message>
 </context>
 <context>
@@ -13536,7 +13533,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
         <location filename="../oscar/exports/report_exporter.cpp" line="322"/>
         <source>Close</source>
-        <translation type="unfinished">Fermer</translation>
+        <translation>Fermer</translation>
     </message>
     <message>
         <location filename="../oscar/exports/report_exporter.cpp" line="465"/>
@@ -14411,7 +14408,7 @@ Are you sure you want to replace it?</source>
     <message>
         <location filename="../oscar/restoredialog.cpp" line="295"/>
         <source>Rename — import as &quot;%1&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>Renommer — importer comme &quot;%1&quot;</translation>
     </message>
     <message>
         <location filename="../oscar/restoredialog.cpp" line="323"/>
@@ -14616,7 +14613,7 @@ Are you sure you want to replace it?</source>
     <message>
         <location filename="../oscar/restoredialog.ui" line="346"/>
         <source>Rename — import as a copy</source>
-        <translation type="unfinished"></translation>
+        <translation>Renommer — importer une copie</translation>
     </message>
     <message>
         <source>Rename — import as &lt;profile name&gt;_restored</source>
@@ -16479,94 +16476,110 @@ Fichier → Profils → Restaurer le profil</translation>
     <message>
         <location filename="../oscar/timealignmentwelcomedialog.cpp" line="25"/>
         <source>Time Alignment Instructions</source>
-        <translation type="unfinished"></translation>
+        <translation>Instructions d&apos;alignement de l&apos;heure</translation>
     </message>
     <message>
         <location filename="../oscar/timealignmentwelcomedialog.cpp" line="37"/>
         <source>&lt;h3&gt;Time Alignment Instructions&lt;/h3&gt;&lt;p&gt;All devices should be aligned to the CPAP timeline as the reference. Apply corrections in this order:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;Correct the CPAP device first&lt;/b&gt; &amp;mdash; fix any timezone misconfigurations, DST offsets, or travel adjustments.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Adjust other devices&lt;/b&gt; &amp;mdash; apply the same DST or travel corrections to any additional devices.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Fine-tune alignment&lt;/b&gt; &amp;mdash; apply offsets to bring all devices into sync with the CPAP data.&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;For precise alignment, use short-duration events as reference points. The most reliable markers are those associated with physical movement, such as sudden irregular changes in flow rate, sleep stage transitions, and movement spikes. An example of these events is shown below.&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>h3&gt;Instructions d&apos;alignement horaire&lt;/h3&gt;&lt;p&gt;Tous les appareils doivent être alignés sur la référebce de temps du respirateur PPC. Appliquez les corrections dans cet ordre&#xa0;:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt;Corrigez d&apos;abord le respirateur PPC&lt;/b&gt;&#xa0;: corrigez les erreurs de fuseau horaire, les décalages liés à l&apos;heure d&apos;été ou les ajustements dus aux voyages.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Ajustez les autres appareils&lt;/b&gt;&#xa0;: appliquez les mêmes corrections liées à l&apos;heure d&apos;été ou aux voyages aux autres appareils.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Affinez l&apos;alignement&lt;/b&gt;&#xa0;: appliquez les décalages nécessaires pour synchroniser tous les appareils avec les données du respirateur PPC.&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;Pour un alignement précis, utilisez des événements de courte durée comme points de référence. Les marqueurs les plus fiables sont ceux associés à des mouvements physiques, tels que des changements brusques et irréguliers du débit, des transitions entre les phases de sommeil et des pics de mouvement. Un exemple de ces événements est présenté ci-dessous.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../oscar/timealignmentwelcomedialog.cpp" line="67"/>
         <source>[Place time_alignment_example.png in oscar/icons/ to display the example image here]</source>
-        <translation type="unfinished"></translation>
+        <translation>[Placez time_alignment_example.png dans oscar/icons/ pour afficher l&apos;image d&apos;exemple ici]</translation>
     </message>
     <message>
         <location filename="../oscar/timealignmentwelcomedialog.cpp" line="76"/>
         <source>Don&apos;t show this again</source>
-        <translation type="unfinished"></translation>
+        <translation>Ne plus afficher ceci</translation>
     </message>
     <message>
         <location filename="../oscar/timealignmentwelcomedialog.cpp" line="84"/>
         <source>Continue</source>
-        <translation type="unfinished">Continuer</translation>
+        <translation>Continuer</translation>
     </message>
 </context>
 <context>
     <name>UpdaterWindow</name>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="14"/>
         <source>OSCAR Updater</source>
-        <translation type="vanished">Mise à jour OSCAR</translation>
+        <translation>Mise à jour OSCAR</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="60"/>
         <source>A new version of $APP is available</source>
-        <translation type="vanished">Nouvelle version d&apos;$APP disponible</translation>
+        <translation>Nouvelle version d&apos;$APP disponible</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="106"/>
         <source>Version Information</source>
-        <translation type="vanished">Information de la version</translation>
+        <translation>Information de la version</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="117"/>
         <source>Release Notes</source>
-        <translation type="vanished">Notes de publication</translation>
+        <translation>Notes de publication</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="142"/>
         <source>Build Notes</source>
-        <translation type="vanished">Notes de génération</translation>
+        <translation>Notes de génération</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="195"/>
         <source>Maybe Later</source>
-        <translation type="vanished">Plus tard</translation>
+        <translation>Plus tard</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="215"/>
         <source>Upgrade Now</source>
-        <translation type="vanished">Mise à jour immédiate</translation>
+        <translation>Mise à jour immédiate</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="250"/>
         <source>Please wait while updates are downloaded and installed...</source>
-        <translation type="vanished">Veuillez attendre la fin du téléchargement et de l&apos;installation...</translation>
+        <translation>Veuillez attendre la fin du téléchargement et de l&apos;installation...</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="264"/>
         <source>Updates</source>
-        <translation type="vanished">Mises à jour</translation>
+        <translation>Mises à jour</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="304"/>
         <source>Component</source>
-        <translation type="vanished">Composant</translation>
+        <translation>Composant</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="309"/>
         <source>Version</source>
-        <translation type="vanished">Version</translation>
+        <translation>Version</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="314"/>
         <source>Size</source>
-        <translation type="vanished">Taille</translation>
+        <translation>Taille</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="319"/>
         <source>Progress</source>
-        <translation type="vanished">Progression</translation>
+        <translation>Progression</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="328"/>
         <source>Log</source>
-        <translation type="vanished">Log</translation>
+        <translation>Log</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="374"/>
         <source>Downloading  Installing Updates</source>
-        <translation type="vanished">Application des MàJ</translation>
+        <translation>Application des MàJ</translation>
     </message>
     <message>
+        <location filename="../oscar/UpdaterWindow.ui" line="394"/>
         <source>Finished</source>
-        <translation type="vanished">Fermer</translation>
+        <translation>Fermer</translation>
     </message>
 </context>
 <context>
