@@ -310,7 +310,7 @@ QString Welcome::GenerateCPAPHTML()
                         .arg(perc);
             } else if (cpapmode == MODE_ASV || cpapmode == MODE_AVAPS){
                 EventDataType ipap = day->percentile(pressChanID, perc/100.0);
-                EventDataType epap = qRound(day->settings_wavg(CPAP_EPAP));
+                EventDataType epap = qRound(10.0*day->settings_wavg(CPAP_EPAP))/10.0;
                 html += tr("Your EPAP pressure fixed at %1 %2.")
                         .arg(epap)
                         .arg(schema::channel[epapDataChanID].units())+"<br/>";
