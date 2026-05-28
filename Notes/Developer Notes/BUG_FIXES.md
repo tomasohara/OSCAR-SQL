@@ -4,6 +4,24 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-28 - Purge all device data: spurious "Could not delete" warnings for .000/.001 files
+
+**File:** `oscar/SleepLib/session.cpp` (`Session::Destroy()`)
+
+**Symptom:** Debug log filled with "Could not delete …/Summaries/xxxxxxxx.000" and
+"…/Events/xxxxxxxx.001" warnings whenever "Data > Advanced > Purge all device data" was used.
+
+**Root cause:** `Session::Destroy()` unconditionally called `QDir::remove()` on the `.000`
+and `.001` legacy session files without first checking whether they exist. OSCAR 2.0 no
+longer writes these files (session data is stored in SQLite), so every session generated a
+spurious warning.
+
+**Fix:** Removed the file deletion code entirely. `Machine::Purge()` already calls
+`removeRecursively()` on the Events and Summaries directories, covering any legacy files.
+Also removed the now-unused local `QDir dir` variable.
+
+---
+
 ## 2026-05-25 - Export Journal Notes dialog: wrong profile pre-selected; button always shows Close
 
 **Files:** `oscar/exports/journalnotesdialog.{cpp,ui}`

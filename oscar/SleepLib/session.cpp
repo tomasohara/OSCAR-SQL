@@ -163,18 +163,8 @@ bool Session::OpenEvents(bool debug)
 
 bool Session::Destroy()
 {
-    QDir dir;
     QString base;
     base=toHexid(s_session);
-
-    QString summaryfile = s_machine->getSummariesPath() + base + ".000";
-    QString eventfile = s_machine->getEventsPath() + base + ".001";
-    if ( ! dir.remove(summaryfile)) {
-        qWarning() << "Could not delete" << summaryfile;
-    }
-    if ( ! dir.remove(eventfile)) {
-        qWarning() << "Could not delete" << eventfile;
-    }
 
     // Remove session from database — all child rows (channels, slices, events, etc.)
     // are deleted automatically via ON DELETE CASCADE foreign key constraints.
