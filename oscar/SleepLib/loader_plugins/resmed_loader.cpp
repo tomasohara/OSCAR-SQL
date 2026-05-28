@@ -3448,8 +3448,8 @@ bool ResmedLoader::LoadCSL(Session *sess, const QString & path)
         return false;
     }
 
-    if (!repairEDFStartFromSession(edf, sess, path))
-        return false;
+//    if (!repairEDFStartFromSession(edf, sess, path))
+//        return false;
 
 #ifdef DEBUG_EFFICIENCY
     int edfparsetime = time.elapsed();
@@ -3530,8 +3530,8 @@ bool ResmedLoader::LoadEVE(Session *sess, const QString & path)
         return false;
     }
 
-    if (!repairEDFStartFromSession(edf, sess, path))
-        return false;
+//    if (!repairEDFStartFromSession(edf, sess, path))
+//        return false;
 
 #ifdef DEBUG_EFFICIENCY
     int edfparsetime = time.elapsed();
