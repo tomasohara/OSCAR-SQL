@@ -4,6 +4,50 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-28 - ResMed loader: second session not imported on mid-night re-import
+
+**File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp` (`checkSummaryDay()`)
+
+**Symptom:** When a user sleeps part of the night, imports to OSCAR, sleeps the rest of the
+night, then imports again, OSCAR reports everything up to date and the second session is never
+imported. The user must purge the day and reimport everything to see both sessions.
+
+**Root cause:** `checkSummaryDay()` decides whether to reimport a day by comparing existing
+database sessions against mask-on/off pairs in the STR.edf (`maskevents / 2`). On a mid-night
+re-import the device may not yet have written the second session to the STR, so `maskevents`
+still shows 1 pair. With 1 DB session and 1 STR pair, the skip condition
+`sessions.length() >= numPairs` (`1 >= 1`) is satisfied and the day is skipped, even though
+the EDF files for the second session are already on the card.
+
+**Fix:** Also count distinct EDF session groups on the card (unique timestamp prefix among
+non-EVE/CSL files in `resday.files`). Use `qMax(numPairs, edfGroups)` as the expected session
+count. The EDF file list is already in memory from `ScanFiles()` so this requires no
+additional I/O. Closes GitLab #195.
+
+---
+
+## 2026-05-28 - ResMed loader: false positive EDF corruption warnings for CSL and EVE files
+
+**File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp` (`LoadCSL()`, `LoadEVE()`)
+
+**Symptom:** Log filled with "ResMed: repaired corrupt EDF startdate" warnings for CSL and EVE
+files on days with multiple sessions. The EDF header timestamps were valid but were being
+silently overwritten with incorrect values.
+
+**Root cause:** `repairEDFStartFromSession()` validated an EDF header timestamp by comparing
+it against the current session's mask-on time (from STR.edf), rejecting headers more than
+6 hours from that time. CSL and EVE files are day-wide — they are loaded for every session
+in the OSCAR day, not just the one whose mask-on time matches. On multi-session days, the
+first session's CSL/EVE (e.g. starting at 8:20 PM) was being compared against the second
+session's mask-on time (e.g. 3:22 AM), producing a ~7-hour difference that triggered the
+corruption check even though the EDF header was correct.
+
+**Fix:** Removed the `repairEDFStartFromSession()` call from `LoadCSL()` and `LoadEVE()`.
+The check remains in place for session-specific file types (BRP, SAD, PLD) where the
+session mask-on time is a valid reference. Closes GitLab #194.
+
+---
+
 ## 2026-05-28 - Purge all device data: spurious "Could not delete" warnings for .000/.001 files
 
 **File:** `oscar/SleepLib/session.cpp` (`Session::Destroy()`)

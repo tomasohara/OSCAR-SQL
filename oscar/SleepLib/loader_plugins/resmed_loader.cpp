@@ -1154,11 +1154,22 @@ void ResmedLoader::checkSummaryDay( ResMedDay & resday, QDate date, Machine * ma
             for (int i = 0; i <resday.str.maskevents/2; i++)
                 if (resday.str.maskon[i] != resday.str.maskoff[i])
                     numPairs++;
+            // Count distinct EDF session groups by unique timestamp prefix (excludes
+            // day-wide EVE and CSL files so each group represents one real session).
+            QSet<QString> edfTimestamps;
+            for (auto it = resday.files.begin(); it != resday.files.end(); ++it) {
+                EDFType type = lookupEDFType(it.key());
+                if (type != EDF_EVE && type != EDF_CSL)
+                    edfTimestamps.insert(it.key().section("_", 0, 1));
+            }
+            // Use whichever is higher: STR pairs may lag behind actual EDF data on
+            // mid-night re-imports where the STR hasn't recorded the second session yet.
+            int expectedSessions = qMax(numPairs, (int)edfTimestamps.size());
             QList<Session *> sessions = day->getSessions(MT_CPAP, true);
-            // If we have more sessions that we found in the str file,
-            // or if the sessions are for a different device,
-            // leave well enough alone and don't re-import the day
-            if (sessions.length() >= numPairs || sessions[0]->machine() != mach) {
+            // If we have at least as many sessions as expected (from STR or EDF file
+            // count, whichever is higher), or if the sessions are for a different device,
+            // leave well enough alone and don't re-import the day.
+            if (sessions.length() >= expectedSessions || sessions[0]->machine() != mach) {
 #ifdef STR_DEBUG
                 qDebug() << "No new sessions -- skipping.  Sessions now in day:";
                 qDebug() << " i  sessionID    s_first                   from  -  to";
