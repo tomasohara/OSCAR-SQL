@@ -656,9 +656,25 @@ QString BmcData::GetUsrFilePath(const QString& path)
 }
 
 
-QDateTime BmcData::ReadWaveformPacketTimestamp(const QString& path, quint16 packetOffset)
+int BmcData::DetectFileDataOffset(const QString& path)
 {
-    quint64 byteOffset = (packetOffset * 0x100) + 0xf8;
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly) || f.size() < 0x101)
+        return 0;
+    f.seek(0xFF);
+    const QByteArray magic = f.read(2);
+    f.close();
+    if (magic.size() < 2)
+        return 0;
+    // A 255-byte legacy tail packet ends with Terminator=0xAA at byte 0xFF; the
+    // following 256-byte data packet then starts with header 0xAAAA at bytes 0xFF–0x100.
+    return ((quint8)magic[0] == 0xAA && (quint8)magic[1] == 0xAA) ? 0xFF : 0;
+}
+
+
+QDateTime BmcData::ReadWaveformPacketTimestamp(const QString& path, quint64 packetStartByte)
+{
+    quint64 byteOffset = packetStartByte + 0xf8;
 
     if (!QFile::exists(path))
         return QDateTime();
@@ -786,24 +802,26 @@ void BmcData::BuildWaveformCrumbs()
 
     while (QFile::exists(filepath))
     {
-        QString idxPath = ChangeFileExtension(this->usrFilePath, ".idx");
+        // Some files begin with a 255-byte legacy tail packet before the current
+        // 256-byte data packets.  Detect and account for this 1-byte offset so
+        // that crumb timestamps are read from correctly-aligned packet positions.
+        const int dataOffset = DetectFileDataOffset(filepath);
 
         for (int j = 0; j < 16; j++)
             {
-            quint16 packetOffset = static_cast<quint16>(j * 0x1000);
+            quint64 byteOffset = static_cast<quint64>(dataOffset) + static_cast<quint64>(j) * 0x1000 * 0x100;
 
-            QDateTime timestamp = ReadWaveformPacketTimestamp(filepath, packetOffset);
+            QDateTime timestamp = ReadWaveformPacketTimestamp(filepath, byteOffset);
 
-            quint64 byteOffset = packetOffset * 0x100;
-            if (!timestamp.isNull()){
+            if (!timestamp.isNull() && timestamp.isValid()){
                 BmcWaveformCrumb crumb;
                 crumb.Filepath = filepath;
                 crumb.FileIndex = i;
-                crumb.PacketOffset = packetOffset;
+                crumb.PacketOffset = static_cast<quint16>(byteOffset >> 8);
                 crumb.ByteOffset = byteOffset;
                 crumb.Timestamp = timestamp;
                 this->WaveformCrumbs.append(crumb);
-                qDebug() << "Crumb" << crumb.Timestamp.toString(Qt::ISODate) << crumb.FileIndex << crumb.PacketOffset;
+                qDebug() << "Crumb" << crumb.Timestamp.toString(Qt::ISODate) << crumb.FileIndex << crumb.ByteOffset;
 
             }
         }
@@ -889,6 +907,11 @@ QList<BmcWaveformPacket> BmcData::ReadWaveforms(BmcDataLink& link)
         {
             nnnFile = new QFile(nextPath);
             nnnFile->open(QIODevice::ReadOnly);
+            // Skip the 255-byte legacy tail packet if present so subsequent
+            // 256-byte reads are correctly aligned to the current data region.
+            const int nextDataOffset = DetectFileDataOffset(nextPath);
+            if (nextDataOffset > 0)
+                nnnFile->seek(nextDataOffset);
         }
     }
 
@@ -913,7 +936,7 @@ void BmcData::FindValidSessions()
         QString startPath = ChangeFileExtension(this->usrFilePath, entry.StartFileExtension());
         QString nextPath = ChangeFileExtension(this->usrFilePath, entry.NextFileExtension());
 
-        entry.StartWaveformPacketTimestamp = ReadWaveformPacketTimestamp(startPath, entry.StartOffsetPacket);
+        entry.StartWaveformPacketTimestamp = ReadWaveformPacketTimestamp(startPath, static_cast<quint64>(entry.StartOffsetPacket) * 0x100);
 
 
         auto daysDifference = qAbs(entry.Timestamp.daysTo(entry.StartWaveformPacketTimestamp));

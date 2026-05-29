@@ -436,7 +436,12 @@ protected:
     static QString ChangeFileExtension(const QString& path, QString newExtensionWithDot);
     static QString GetUsrFilePath(const QString& path);
 
-    QDateTime ReadWaveformPacketTimestamp(const QString& path, quint16 packetOffset);
+    // Returns 0xFF if the file begins with a 255-byte legacy tail packet followed by
+    // standard 256-byte packets (detected by 0xAAAA at bytes 0xFF–0x100), or 0 for
+    // the standard all-256-byte layout.
+    static int DetectFileDataOffset(const QString& path);
+
+    QDateTime ReadWaveformPacketTimestamp(const QString& path, quint64 packetStartByte);
 
     void ReadIdxFile();
     void ReadAllSessions();

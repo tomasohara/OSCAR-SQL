@@ -4,6 +4,31 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-29 - BMC legacy loader: G3 B20A imports no data (1-byte packet offset)
+
+**Files:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp`, `bmcDataParsing.h`
+
+**Symptom:** OSCAR detects a BMC G3 B20A SD card but imports 0 sessions.
+
+**Root cause:** Some `.nnn` waveform files begin with a 255-byte legacy tail packet (the
+oldest un-overwritten circular-buffer entry from a previous firmware era), followed by
+standard 256-byte packets starting at byte 0xFF.  The loader assumed all packets were
+256-byte aligned from byte 0.  Crumb timestamps sampled at multiples of 0x100000 fell
+1 byte into the wrong field, producing QDateTime objects with invalid hours (e.g. hour=56)
+whose `toMSecsSinceEpoch()` = INT64_MIN.  These invalid crumbs were selected as "last crumb
+before session start" (INT64_MIN < any valid epoch), and `ReadWaveforms` stopped immediately
+on the first garbage packet because the backward-jump guard fired against the initial
+`lastPacketTimestamp = QDateTime(2000,1,1)`.
+
+**Fix:** Added `DetectFileDataOffset()` which checks whether bytes 0xFF–0x100 form 0xAAAA
+(i.e. the Terminator of the 255-byte packet followed by the header of the first data packet).
+`BuildWaveformCrumbs` uses this offset when computing crumb byte positions and now also
+requires `timestamp.isValid()`.  `ReadWaveforms` seeks past the 255-byte packet when opening
+a successor file.  `ReadWaveformPacketTimestamp` signature changed from `quint16 packetOffset`
+to `quint64 packetStartByte`.
+
+---
+
 ## 2026-05-28 - ResMed loader: second session not imported on mid-night re-import
 
 **File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp` (`checkSummaryDay()`)
