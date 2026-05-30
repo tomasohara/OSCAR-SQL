@@ -8,11 +8,13 @@ import xml.etree.ElementTree as ET
 from anthropic import Anthropic
 import sys
 
+
 def get_all_text(element):
-    """Get all text from an element including tail text"""
+    """Get text from an element (not including child element text)"""
     if element.text is None:
         return ""
     return element.text
+
 
 def extract_unfinished_messages(ts_file):
     """Extract all messages with empty translations from the .ts file"""
@@ -28,37 +30,52 @@ def extract_unfinished_messages(ts_file):
         translation_elem = message.find('translation')
         source_elem = message.find('source')
 
-        if translation_elem is not None and source_elem is not None:
-            source_text = get_all_text(source_elem)
+        if translation_elem is None or source_elem is None:
+            continue
+
+        source_text = get_all_text(source_elem)
+        if not source_text or not source_text.strip():
+            continue
+
+        # variants="yes" is on <translation>, not <message>
+        is_variant = translation_elem.get('variants') == 'yes'
+
+        if is_variant:
+            # For variant messages, check if any <lengthvariant> has content
+            lengthvariants = translation_elem.findall('lengthvariant')
+            any_translated = any(lv.text and lv.text.strip() for lv in lengthvariants)
+            if any_translated:
+                continue  # Already translated, skip
+
+            msg_data = {
+                'source': source_text,
+                'element': translation_elem,
+                'message_elem': message,
+                'is_variant': True,
+                'num_variants': len(lengthvariants),
+            }
+        else:
             translation_text = get_all_text(translation_elem)
-            # Only translate if source is non-empty and translation is empty
-            if source_text and source_text.strip() and not translation_text.strip():
-                msg_data = {
-                    'source': source_text,
-                    'element': translation_elem,
-                    'message_elem': message,
-                    'is_variant': message.get('variants') == 'yes'
-                }
+            if translation_text.strip():
+                continue  # Already translated, skip
 
-                # Extract variant source texts
-                if msg_data['is_variant']:
-                    variants = []
-                    for variant_elem in source_elem.findall('lengthvariant'):
-                        variant_text = get_all_text(variant_elem)
-                        if variant_text:
-                            variants.append(variant_text)
-                    msg_data['variant_sources'] = variants
+            msg_data = {
+                'source': source_text,
+                'element': translation_elem,
+                'message_elem': message,
+                'is_variant': False,
+            }
 
-                messages.append(msg_data)
+        messages.append(msg_data)
 
     return messages, root
+
 
 def translate_messages_batch(messages_batch, client, target_language="English"):
     """Translate a batch of messages using Claude"""
     if not messages_batch:
         return {}
 
-    # Build prompt with source strings numbered
     prompt = f"""Translate the following English strings to {target_language}.
 
 IMPORTANT RULES:
@@ -66,8 +83,7 @@ IMPORTANT RULES:
 - Keep HTML tags (<b>, </b>, <i>, </i>, etc.) exactly as they are
 - Keep all newlines and whitespace exactly as they are
 - Device names and abbreviations (CPAP, BiPAP, ResMed, etc.) stay in English
-- Return ONLY translations in the exact format shown below
-- For variant messages, the MAIN is the primary text and VARIANTS are shorter versions
+- Return ONLY the translations, one per line, numbered to match
 
 Format:
 1. [translation]
@@ -77,91 +93,35 @@ Format:
 Sources to translate:
 """
 
-    item_idx = 1
-    translate_messages_batch._item_to_msg = {}  # Map item number to (message_idx, variant_idx or None)
+    for i, msg in enumerate(messages_batch, 1):
+        display_source = msg['source'].replace('\n', '\\n')
+        prompt += f"\n{i}. {display_source}"
 
-    for msg_idx, msg in enumerate(messages_batch, 1):
-        source = msg['source']
-        display_source = source.replace('\n', '\\n')
-
-        if msg.get('is_variant'):
-            # MAIN text
-            prompt += f"\n{item_idx}. MAIN: {display_source}"
-            translate_messages_batch._item_to_msg[item_idx] = (msg_idx, None)
-            item_idx += 1
-
-            # Each VARIANT
-            for v_idx, variant_source in enumerate(msg.get('variant_sources', []), 1):
-                display_variant = variant_source.replace('\n', '\\n')
-                prompt += f"\n{item_idx}. VARIANT: {display_variant}"
-                translate_messages_batch._item_to_msg[item_idx] = (msg_idx, v_idx - 1)
-                item_idx += 1
-        else:
-            # Regular message
-            prompt += f"\n{item_idx}. {display_source}"
-            translate_messages_batch._item_to_msg[item_idx] = (msg_idx, None)
-            item_idx += 1
-
-    prompt += "\n\nNow provide the translations:"
+    prompt += "\n\nProvide translations:"
 
     try:
         response = client.messages.create(
-            model="claude-opus-4-7",
+            model="claude-sonnet-4-6",
             max_tokens=4096,
             messages=[{"role": "user", "content": prompt}]
         )
 
         response_text = response.content[0].text
-        item_translations = {}
-
-        # Parse numbered list response
-        lines = response_text.strip().split('\n')
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-
-            # Match "N. translation"
-            if line[0].isdigit():
-                dot_idx = line.find('.')
-                if dot_idx > 0:
-                    try:
-                        num = int(line[:dot_idx])
-                        trans = line[dot_idx + 1:].strip()
-                        if trans:
-                            item_translations[num] = trans
-                    except ValueError:
-                        pass
-
-        # Reconstruct translations dict with message indices as keys
-        # Handle both regular messages and variant messages
         translations = {}
-        item_to_msg = getattr(translate_messages_batch, '_item_to_msg', {})
 
-        # First pass: identify variant messages
-        variant_msg_indices = set()
-        for item_num, (msg_idx, var_idx) in item_to_msg.items():
-            if var_idx is not None:
-                variant_msg_indices.add(msg_idx)
-
-        # Initialize dict structure for variant messages
-        for msg_idx in variant_msg_indices:
-            translations[msg_idx] = {'main': None, 'variants': {}}
-
-        # Second pass: assign translations
-        for item_num, trans_text in item_translations.items():
-            if item_num in item_to_msg:
-                msg_idx, var_idx = item_to_msg[item_num]
-
-                if var_idx is None:
-                    # MAIN text or regular message
-                    if msg_idx in variant_msg_indices:
-                        translations[msg_idx]['main'] = trans_text
-                    else:
-                        translations[msg_idx] = trans_text
-                else:
-                    # VARIANT text
-                    translations[msg_idx]['variants'][var_idx] = trans_text
+        for line in response_text.strip().split('\n'):
+            line = line.strip()
+            if not line or not line[0].isdigit():
+                continue
+            dot_idx = line.find('.')
+            if dot_idx > 0:
+                try:
+                    num = int(line[:dot_idx])
+                    trans = line[dot_idx + 1:].strip()
+                    if trans:
+                        translations[num] = trans
+                except ValueError:
+                    pass
 
         return translations
 
@@ -169,46 +129,38 @@ Sources to translate:
         print(f"Error translating batch: {e}")
         return {}
 
-def apply_translations(root, messages, translations):
-    """Apply translations back to the XML"""
+
+def apply_translations(messages, translations):
+    """Apply translations back to the XML elements"""
     applied = 0
 
     for i, msg_data in enumerate(messages, 1):
-        if i in translations:
-            trans_elem = msg_data['element']
-            trans_data = translations[i]
+        if i not in translations:
+            continue
 
-            if msg_data.get('is_variant') and isinstance(trans_data, dict):
-                # Variant message: set main text and create lengthvariant elements
-                trans_elem.text = trans_data.get('main', '')
-                trans_elem.tail = None
+        trans_text = translations[i]
+        trans_elem = msg_data['element']
 
-                # Remove existing lengthvariant elements
-                for lv in trans_elem.findall('lengthvariant'):
-                    trans_elem.remove(lv)
-
-                # Add translated lengthvariant elements
-                for var_idx in sorted(trans_data.get('variants', {}).keys()):
-                    lv_elem = ET.Element('lengthvariant')
-                    lv_elem.text = trans_data['variants'][var_idx]
-                    trans_elem.append(lv_elem)
+        if msg_data.get('is_variant'):
+            # Write translation into the first <lengthvariant> only.
+            # Do NOT touch trans_elem.text — it must stay as whitespace.
+            # Leave other lengthvariants empty (Qt accepts this).
+            lengthvariants = trans_elem.findall('lengthvariant')
+            if lengthvariants:
+                lengthvariants[0].text = trans_text
             else:
-                # Regular message
-                trans_elem.text = str(trans_data) if trans_data else ""
+                # No lengthvariant children yet — create one
+                lv = ET.SubElement(trans_elem, 'lengthvariant')
+                lv.text = trans_text
+        else:
+            # Regular message: set translation text directly
+            trans_elem.text = trans_text
 
-            # Keep type="unfinished" so linguist flags it for review
-            applied += 1
+        # Preserve type="unfinished" so linguist can identify auto-translated strings
+        applied += 1
 
     return applied
 
-def write_xml(root, output_file):
-    """Write XML with proper formatting"""
-    tree = ET.ElementTree(root)
-
-    # Register namespace to preserve it
-    ET.register_namespace('', 'http://www.w3.org/2005/Atom')
-
-    tree.write(output_file, encoding='utf-8', xml_declaration=True)
 
 def indent_xml(elem, level=0):
     """Add proper indentation to XML elements"""
@@ -226,11 +178,14 @@ def indent_xml(elem, level=0):
         if level and (not elem.tail or not elem.tail.strip()):
             elem.tail = indent
 
-def main():
-    # Accept language as command-line argument, default to Spanish (MX)
-    import sys
 
-    # Map filename prefixes to target language names for translation prompt
+def write_xml(root, output_file):
+    """Write XML with proper formatting"""
+    tree = ET.ElementTree(root)
+    tree.write(output_file, encoding='utf-8', xml_declaration=True)
+
+
+def main():
     language_map = {
         'Espaniol.es_MX': 'Spanish (Mexican)',
         'Espaniol.es': 'Spanish (Spain)',
@@ -249,7 +204,7 @@ def main():
         'Arabic.ar': 'Arabic',
         'Hebrew.he': 'Hebrew',
         'Greek.el': 'Greek',
-        'Polish.pl': 'Polish',
+        'Polski.pl': 'Polish',
         'Czech.cz': 'Czech',
         'Hungarian.hu': 'Hungarian',
         'Romanian.ro': 'Romanian',
@@ -258,8 +213,8 @@ def main():
         'Croatian.hr': 'Croatian',
         'Swedish.sv': 'Swedish',
         'Norwegian.no': 'Norwegian',
-        'Danish.da': 'Danish',
-        'Finnish.fi': 'Finnish',
+        'Dansk.da': 'Danish',
+        'Suomi.fi': 'Finnish',
         'Afrikaans.af': 'Afrikaans',
         'Filipino.fil': 'Filipino',
         'Thai.th': 'Thai',
@@ -276,52 +231,46 @@ def main():
 
     client = Anthropic()
 
-    print("Loading .ts file...")
+    print(f"Loading {lang}.ts...")
     messages, root = extract_unfinished_messages(ts_file)
-    print(f"Found {len(messages)} empty translations to fill")
-    if not messages:
-        # Debug: check if there are any unfinished at all
-        import xml.etree.ElementTree as ET
-        tree = ET.parse(ts_file)
-        rt = tree.getroot()
-        unfinished_count = sum(1 for msg in rt.findall('.//message')
-                              if msg.find('translation') is not None and
-                                 msg.find('translation').get('type') == 'unfinished')
-        print(f"Debug: Found {unfinished_count} unfinished translations in file")
+
+    variants = [m for m in messages if m.get('is_variant')]
+    regular = [m for m in messages if not m.get('is_variant')]
+    print(f"Found {len(messages)} messages to translate ({len(regular)} regular, {len(variants)} variants)")
 
     if not messages:
-        print("No unfinished messages found!")
+        print("Nothing to translate.")
         return
 
-    # Process in batches of 20 to stay efficient
     batch_size = 20
     total_applied = 0
 
     for batch_start in range(0, len(messages), batch_size):
-        batch_end = min(batch_start + batch_size, len(messages))
-        batch = messages[batch_start:batch_end]
+        batch = messages[batch_start:batch_start + batch_size]
+        batch_end = batch_start + len(batch)
 
-        print(f"\nProcessing messages {batch_start + 1}-{batch_end}...", end=" ", flush=True)
+        print(f"Processing {batch_start + 1}-{batch_end}...", end=" ", flush=True)
 
         translations = translate_messages_batch(batch, client, target_language)
 
         if translations:
-            applied = apply_translations(batch, batch, translations)
+            applied = apply_translations(batch, translations)
             total_applied += applied
-            print(f"Translated {applied}/{len(batch)}")
+            print(f"{applied}/{len(batch)}")
         else:
             print("Failed")
 
     print(f"\n{'='*60}")
-    print(f"Total messages translated: {total_applied}/{len(messages)}")
+    print(f"Total translated: {total_applied}/{len(messages)}")
 
     if total_applied > 0:
-        print(f"Writing updated .ts file...")
+        print("Writing .ts file...")
         indent_xml(root)
         write_xml(root, ts_file)
-        print(f"Done! File saved to: {ts_file}")
+        print(f"Done: {ts_file}")
     else:
-        print("No translations to apply!")
+        print("No translations applied.")
+
 
 if __name__ == '__main__':
     main()
