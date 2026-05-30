@@ -15,7 +15,7 @@ def get_all_text(element):
     return element.text
 
 def extract_unfinished_messages(ts_file):
-    """Extract all unfinished messages from the .ts file"""
+    """Extract all messages with empty translations from the .ts file"""
     tree = ET.parse(ts_file)
     root = tree.getroot()
 
@@ -24,32 +24,31 @@ def extract_unfinished_messages(ts_file):
         translation_elem = message.find('translation')
         source_elem = message.find('source')
 
-        if translation_elem is not None and translation_elem.get('type') == 'unfinished':
-            if source_elem is not None:
-                source_text = get_all_text(source_elem)
-                if source_text and source_text.strip():
-                    messages.append({
-                        'source': source_text,
-                        'element': translation_elem,
-                        'message_elem': message
-                    })
+        if translation_elem is not None and source_elem is not None:
+            source_text = get_all_text(source_elem)
+            translation_text = get_all_text(translation_elem)
+            # Only translate if source is non-empty and translation is empty
+            if source_text and source_text.strip() and not translation_text.strip():
+                messages.append({
+                    'source': source_text,
+                    'element': translation_elem,
+                    'message_elem': message
+                })
 
     return messages, root
 
-def translate_messages_batch(messages_batch, client):
+def translate_messages_batch(messages_batch, client, target_language="English"):
     """Translate a batch of messages using Claude"""
     if not messages_batch:
         return {}
 
     # Build prompt with source strings numbered
-    prompt = """Translate the following English strings to Spanish (Mexican).
+    prompt = f"""Translate the following English strings to {target_language}.
 
 IMPORTANT RULES:
 - Keep format variables (%1, %2, %3, etc.) exactly as they are
 - Keep HTML tags (<b>, </b>, <i>, </i>, etc.) exactly as they are
 - Keep all newlines and whitespace exactly as they are
-- Use Mexico Spanish (ustedes, not vosotros)
-- Use standard Spanish medical/CPAP terminology
 - Device names and abbreviations (CPAP, BiPAP, ResMed, etc.) stay in English
 - Return ONLY translations in the exact format shown below
 - Each translation on its own line, numbered to match source
@@ -146,17 +145,56 @@ def indent_xml(elem, level=0):
 def main():
     # Accept language as command-line argument, default to Spanish (MX)
     import sys
+
+    # Map filename prefixes to target language names for translation prompt
+    language_map = {
+        'Espaniol.es_MX': 'Spanish (Mexican)',
+        'Espaniol.es': 'Spanish (Spain)',
+        'Nederlands.nl': 'Dutch',
+        'Deutsch.de': 'German',
+        'Francais.fr': 'French',
+        'Italiano.it': 'Italian',
+        'Portugues.pt_BR': 'Portuguese (Brazilian)',
+        'Portugues.pt': 'Portuguese',
+        'Japanese.ja': 'Japanese',
+        'Chinese.zh_CN': 'Chinese (Simplified)',
+        'Chinese.zh_TW': 'Chinese (Traditional)',
+        'Korean.ko': 'Korean',
+        'Russian.ru': 'Russian',
+        'Turkish.tr': 'Turkish',
+        'Arabic.ar': 'Arabic',
+        'Hebrew.he': 'Hebrew',
+        'Greek.el': 'Greek',
+        'Polish.pl': 'Polish',
+        'Czech.cz': 'Czech',
+        'Hungarian.hu': 'Hungarian',
+        'Romanian.ro': 'Romanian',
+        'Bulgarian.bg': 'Bulgarian',
+        'Serbian.sr': 'Serbian',
+        'Croatian.hr': 'Croatian',
+        'Swedish.sv': 'Swedish',
+        'Norwegian.no': 'Norwegian',
+        'Danish.da': 'Danish',
+        'Finnish.fi': 'Finnish',
+        'Afrikaans.af': 'Afrikaans',
+        'Filipino.fil': 'Filipino',
+        'Thai.th': 'Thai',
+    }
+
     if len(sys.argv) > 1:
         lang = sys.argv[1]
         ts_file = rf'C:\OSCAR\OSCAR-code\Translations\{lang}.ts'
+        target_language = language_map.get(lang, lang)
     else:
+        lang = 'Espaniol.es_MX'
         ts_file = r'C:\OSCAR\OSCAR-code\Translations\Espaniol.es_MX.ts'
+        target_language = 'Spanish (Mexican)'
 
     client = Anthropic()
 
     print("Loading .ts file...")
     messages, root = extract_unfinished_messages(ts_file)
-    print(f"Found {len(messages)} unfinished messages")
+    print(f"Found {len(messages)} empty translations to fill")
     if not messages:
         # Debug: check if there are any unfinished at all
         import xml.etree.ElementTree as ET
@@ -181,7 +219,7 @@ def main():
 
         print(f"\nProcessing messages {batch_start + 1}-{batch_end}...", end=" ", flush=True)
 
-        translations = translate_messages_batch(batch, client)
+        translations = translate_messages_batch(batch, client, target_language)
 
         if translations:
             applied = apply_translations(batch, batch, translations)
