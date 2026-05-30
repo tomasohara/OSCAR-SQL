@@ -21,6 +21,10 @@ def extract_unfinished_messages(ts_file):
 
     messages = []
     for message in root.findall('.//message'):
+        # Skip plural forms (numerus="yes") - they need special handling
+        if message.get('numerus') == 'yes':
+            continue
+
         translation_elem = message.find('translation')
         source_elem = message.find('source')
 
@@ -29,11 +33,23 @@ def extract_unfinished_messages(ts_file):
             translation_text = get_all_text(translation_elem)
             # Only translate if source is non-empty and translation is empty
             if source_text and source_text.strip() and not translation_text.strip():
-                messages.append({
+                msg_data = {
                     'source': source_text,
                     'element': translation_elem,
-                    'message_elem': message
-                })
+                    'message_elem': message,
+                    'is_variant': message.get('variants') == 'yes'
+                }
+
+                # Extract variant source texts
+                if msg_data['is_variant']:
+                    variants = []
+                    for variant_elem in source_elem.findall('lengthvariant'):
+                        variant_text = get_all_text(variant_elem)
+                        if variant_text:
+                            variants.append(variant_text)
+                    msg_data['variant_sources'] = variants
+
+                messages.append(msg_data)
 
     return messages, root
 
@@ -51,21 +67,40 @@ IMPORTANT RULES:
 - Keep all newlines and whitespace exactly as they are
 - Device names and abbreviations (CPAP, BiPAP, ResMed, etc.) stay in English
 - Return ONLY translations in the exact format shown below
-- Each translation on its own line, numbered to match source
+- For variant messages, the MAIN is the primary text and VARIANTS are shorter versions
 
 Format:
-1. [translation of first source]
-2. [translation of second source]
+1. [translation]
+2. [translation]
 ... etc
 
 Sources to translate:
 """
 
-    for i, msg in enumerate(messages_batch, 1):
+    item_idx = 1
+    translate_messages_batch._item_to_msg = {}  # Map item number to (message_idx, variant_idx or None)
+
+    for msg_idx, msg in enumerate(messages_batch, 1):
         source = msg['source']
-        # Show source with escaped newlines for clarity in prompt
         display_source = source.replace('\n', '\\n')
-        prompt += f"\n{i}. {display_source}"
+
+        if msg.get('is_variant'):
+            # MAIN text
+            prompt += f"\n{item_idx}. MAIN: {display_source}"
+            translate_messages_batch._item_to_msg[item_idx] = (msg_idx, None)
+            item_idx += 1
+
+            # Each VARIANT
+            for v_idx, variant_source in enumerate(msg.get('variant_sources', []), 1):
+                display_variant = variant_source.replace('\n', '\\n')
+                prompt += f"\n{item_idx}. VARIANT: {display_variant}"
+                translate_messages_batch._item_to_msg[item_idx] = (msg_idx, v_idx - 1)
+                item_idx += 1
+        else:
+            # Regular message
+            prompt += f"\n{item_idx}. {display_source}"
+            translate_messages_batch._item_to_msg[item_idx] = (msg_idx, None)
+            item_idx += 1
 
     prompt += "\n\nNow provide the translations:"
 
@@ -77,7 +112,7 @@ Sources to translate:
         )
 
         response_text = response.content[0].text
-        translations = {}
+        item_translations = {}
 
         # Parse numbered list response
         lines = response_text.strip().split('\n')
@@ -94,9 +129,39 @@ Sources to translate:
                         num = int(line[:dot_idx])
                         trans = line[dot_idx + 1:].strip()
                         if trans:
-                            translations[num] = trans
+                            item_translations[num] = trans
                     except ValueError:
                         pass
+
+        # Reconstruct translations dict with message indices as keys
+        # Handle both regular messages and variant messages
+        translations = {}
+        item_to_msg = getattr(translate_messages_batch, '_item_to_msg', {})
+
+        # First pass: identify variant messages
+        variant_msg_indices = set()
+        for item_num, (msg_idx, var_idx) in item_to_msg.items():
+            if var_idx is not None:
+                variant_msg_indices.add(msg_idx)
+
+        # Initialize dict structure for variant messages
+        for msg_idx in variant_msg_indices:
+            translations[msg_idx] = {'main': None, 'variants': {}}
+
+        # Second pass: assign translations
+        for item_num, trans_text in item_translations.items():
+            if item_num in item_to_msg:
+                msg_idx, var_idx = item_to_msg[item_num]
+
+                if var_idx is None:
+                    # MAIN text or regular message
+                    if msg_idx in variant_msg_indices:
+                        translations[msg_idx]['main'] = trans_text
+                    else:
+                        translations[msg_idx] = trans_text
+                else:
+                    # VARIANT text
+                    translations[msg_idx]['variants'][var_idx] = trans_text
 
         return translations
 
@@ -111,7 +176,26 @@ def apply_translations(root, messages, translations):
     for i, msg_data in enumerate(messages, 1):
         if i in translations:
             trans_elem = msg_data['element']
-            trans_elem.text = translations[i]
+            trans_data = translations[i]
+
+            if msg_data.get('is_variant') and isinstance(trans_data, dict):
+                # Variant message: set main text and create lengthvariant elements
+                trans_elem.text = trans_data.get('main', '')
+                trans_elem.tail = None
+
+                # Remove existing lengthvariant elements
+                for lv in trans_elem.findall('lengthvariant'):
+                    trans_elem.remove(lv)
+
+                # Add translated lengthvariant elements
+                for var_idx in sorted(trans_data.get('variants', {}).keys()):
+                    lv_elem = ET.Element('lengthvariant')
+                    lv_elem.text = trans_data['variants'][var_idx]
+                    trans_elem.append(lv_elem)
+            else:
+                # Regular message
+                trans_elem.text = str(trans_data) if trans_data else ""
+
             # Keep type="unfinished" so linguist flags it for review
             applied += 1
 

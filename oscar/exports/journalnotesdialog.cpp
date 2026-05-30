@@ -124,7 +124,7 @@ void JournalNotesDialog::on_exportButton_clicked()
             QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
         } else {
             QMessageBox::information(this, tr("Export Journal Notes"),
-                                     tr("Exported notes for %n day(s).", "", count));
+                                     tr("Exported notes for %1 day(s).").arg(count));
         }
     }
     ui->closeButton->setText(tr("Close"));
