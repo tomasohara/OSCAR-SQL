@@ -25,8 +25,11 @@ def main():
         print(f"No .ts files found in: {directory}")
         sys.exit(1)
 
-    fmt = "{:<35} {:>8}  {:>10}  {:>7}  {:>8}  {:>8}  {:>8}"
-    sep = "-" * 95
+    names = [os.path.splitext(f)[0] for f in files]
+    total_label = f"TOTAL ({len(files)} files)"
+    col_w = max(len(n) for n in names + [total_label]) + 2
+    fmt = f"{{:<{col_w}}} {{:>8}}  {{:>10}}  {{:>7}}  {{:>8}}  {{:>8}}  {{:>8}}"
+    sep = "-" * (col_w + 60)
 
     print()
     print(f"Translation file statistics: {directory}")
@@ -44,12 +47,12 @@ def main():
         tot_empty += empty
         tot_obs += obs
         tot_van += van
-        name = os.path.splitext(fname)[0]
+        name = names[files.index(fname)]
         print(fmt.format(name, msg, unf, empty, obs, van, active))
 
     print(sep)
     tot_active = tot_msg - tot_obs - tot_van
-    print(fmt.format(f"TOTAL ({len(files)} files)", tot_msg, tot_unf, tot_empty, tot_obs, tot_van, tot_active))
+    print(fmt.format(total_label, tot_msg, tot_unf, tot_empty, tot_obs, tot_van, tot_active))
     print()
 
 
