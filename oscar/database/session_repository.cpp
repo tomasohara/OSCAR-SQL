@@ -101,6 +101,7 @@ bool SessionRepository::update(const SessionData& data)
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::update", query);
         return false;
     }
 
@@ -125,6 +126,7 @@ bool SessionRepository::updateEnabled(qint64 id, bool enabled)
     query.addBindValue(id);
     if (!query.exec()) {
         qWarning() << "SessionRepository::updateEnabled() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::updateEnabled", query);
         return false;
     }
     return true;
@@ -151,6 +153,7 @@ SessionData SessionRepository::findById(qint64 id)
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::findById() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::findById", query);
         return data;
     }
 
@@ -195,6 +198,7 @@ SessionData SessionRepository::findByMachineAndSessionId(qint64 machineId, qint6
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::findByMachineAndSessionId() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::findByMachineAndSessionId", query);
         return data;
     }
 
@@ -237,6 +241,7 @@ QList<SessionData> SessionRepository::findByMachine(qint64 machineId)
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::findByMachine() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::findByMachine", query);
         return result;
     }
 
@@ -281,6 +286,7 @@ QList<SessionData> SessionRepository::findEnabledByMachine(qint64 machineId)
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::findEnabledByMachine() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::findEnabledByMachine", query);
         return result;
     }
 
@@ -328,6 +334,7 @@ QList<SessionData> SessionRepository::findByTimeRange(qint64 machineId, qint64 s
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::findByTimeRange() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::findByTimeRange", query);
         return result;
     }
 
@@ -365,6 +372,7 @@ bool SessionRepository::remove(qint64 id)
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::remove() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::remove", query);
         return false;
     }
 
@@ -385,6 +393,7 @@ bool SessionRepository::removeByMachine(qint64 machineId)
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::removeByMachine() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::removeByMachine", query);
         return false;
     }
 
@@ -405,6 +414,7 @@ int SessionRepository::countByMachine(qint64 machineId)
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::countByMachine() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::countByMachine", query);
         return 0;
     }
 
@@ -430,6 +440,7 @@ bool SessionRepository::exists(qint64 machineId, qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionRepository::exists() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionRepository::exists", query);
         return false;
     }
 

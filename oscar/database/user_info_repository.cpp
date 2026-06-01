@@ -55,6 +55,7 @@ qint64 UserInfoRepository::create(const UserInfoData& data)
 
     if (!query.exec()) {
         qWarning() << "UserInfoRepository::create() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("UserInfoRepository::create", query);
         return -1;
     }
 
@@ -94,6 +95,7 @@ bool UserInfoRepository::update(const UserInfoData& data)
 
     if (!query.exec()) {
         qWarning() << "UserInfoRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("UserInfoRepository::update", query);
         return false;
     }
 
@@ -121,6 +123,7 @@ UserInfoData UserInfoRepository::findByProfile(qint64 profileId)
 
     if (!query.exec()) {
         qWarning() << "UserInfoRepository::findByProfile() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("UserInfoRepository::findByProfile", query);
         return data;
     }
 
@@ -223,6 +226,7 @@ bool UserInfoRepository::remove(qint64 profileId)
 
     if (!query.exec()) {
         qWarning() << "UserInfoRepository::remove() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("UserInfoRepository::remove", query);
         return false;
     }
 

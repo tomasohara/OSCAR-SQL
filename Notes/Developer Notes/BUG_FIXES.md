@@ -4,6 +4,80 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-01 - Compress Database blocked UI thread and used excessive memory
+
+**Files:** `oscar/mainwindow.cpp`
+
+**Symptom:** Compressing a large database (20+ GB) caused OSCAR to use all available system
+memory and block the UI for an extended period with no feedback to the user.
+
+**Root causes (two):**
+
+1. **`VACUUM` used WAL mode internally**, creating a copy of the entire database in the WAL
+   file before merging it back. This effectively doubled peak memory usage.
+
+2. **No wait dialog**, so the application appeared frozen to the user.
+
+**Fix:** Replaced `VACUUM` with `VACUUM INTO 'oscar_new.db'`, which writes the compacted copy
+directly to a new file without WAL involvement. After completion, the old file is swapped out
+and OSCAR restarts. Both the integrity check and the VACUUM now run on background threads
+(`QThread` + `QEventLoop`) with plain wait dialogs so the UI remains responsive throughout.
+
+---
+
+## 2026-06-01 - SQLite corruption errors not surfaced to user
+
+**Files:** `oscar/database/database_manager.{h,cpp}`, all 27 repository `.cpp` files
+
+**Symptom:** If a query failed due to database corruption (`SQLITE_CORRUPT` code 11 or
+`SQLITE_IOERR` code 10), OSCAR logged a warning and silently continued, potentially showing
+wrong or missing data with no explanation.
+
+**Fix:** Added `DatabaseManager::checkQueryError()` which inspects the native SQLite error code
+(low byte of `QSqlError::nativeErrorCode()`). If corruption or I/O error is detected it emits
+`databaseError()` — already wired to a `QMessageBox::critical` in `main.cpp` — with recovery
+guidance. A `m_corruptionReported` flag prevents stacking multiple dialogs on a cascade of
+failures. Added call sites to all exec() failure paths across all 27 repository files.
+
+---
+
+## 2026-06-01 - Compress Database blocked UI thread and used excessive memory
+
+**Files:** `oscar/mainwindow.cpp`
+
+**Symptom:** Compressing a large database (20+ GB) caused OSCAR to use all available system
+memory and block the UI for an extended period with no feedback to the user.
+
+**Root causes (two):**
+
+1. **`VACUUM` used WAL mode internally**, creating a copy of the entire database in the WAL
+   file before merging it back, effectively doubling peak memory usage.
+
+2. **No wait dialog**, so the application appeared frozen to the user.
+
+**Fix:** Replaced `VACUUM` with `VACUUM INTO 'oscar_new.db'`, which writes the compacted copy
+directly to a new file without WAL involvement. After completion the old file is swapped out
+and OSCAR restarts. Both the integrity check and the VACUUM now run on background threads
+(`QThread` + `QEventLoop`) with plain wait dialogs so the UI remains responsive throughout.
+
+---
+
+## 2026-06-01 - SQLite corruption errors not surfaced to user
+
+**Files:** `oscar/database/database_manager.{h,cpp}`, all 27 repository `.cpp` files
+
+**Symptom:** If a query failed due to database corruption (`SQLITE_CORRUPT` code 11 or
+`SQLITE_IOERR` code 10), OSCAR logged a warning and silently continued, potentially showing
+wrong or missing data with no explanation.
+
+**Fix:** Added `DatabaseManager::checkQueryError()` which inspects the native SQLite error
+code (low byte of `QSqlError::nativeErrorCode()`). If corruption or I/O error is detected it
+emits `databaseError()` — already wired to a `QMessageBox::critical` in `main.cpp` — with
+recovery guidance. A `m_corruptionReported` flag prevents stacking multiple dialogs on a
+cascade of failures. Added call sites to all exec() failure paths across all 27 repository files.
+
+---
+
 ## 2026-05-31 - Dirty-shutdown integrity check ran on wrong database after database switch
 
 **Files:** `oscar/main.cpp`, `oscar/database/database_manager.cpp`, `oscar/database/database_manager.h`,

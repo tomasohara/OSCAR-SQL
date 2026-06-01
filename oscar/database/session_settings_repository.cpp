@@ -47,6 +47,7 @@ qint64 SessionSettingsRepository::create(const SessionSettingData& data)
 
     if (!query.exec()) {
         qWarning() << "SessionSettingsRepository::create() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSettingsRepository::create", query);
         return -1;
     }
 
@@ -75,6 +76,7 @@ bool SessionSettingsRepository::update(const SessionSettingData& data)
 
     if (!query.exec()) {
         qWarning() << "SessionSettingsRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSettingsRepository::update", query);
         return false;
     }
 
@@ -100,6 +102,7 @@ QList<SessionSettingData> SessionSettingsRepository::findBySession(qint64 sessio
 
     if (!query.exec()) {
         qWarning() << "SessionSettingsRepository::findBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSettingsRepository::findBySession", query);
         return result;
     }
 
@@ -138,6 +141,7 @@ SessionSettingData SessionSettingsRepository::findBySetting(qint64 sessionId, in
 
     if (!query.exec()) {
         qWarning() << "SessionSettingsRepository::findBySetting() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSettingsRepository::findBySetting", query);
         return data;
     }
 
@@ -183,6 +187,7 @@ bool SessionSettingsRepository::saveBatch(qint64 sessionId, const QList<SessionS
 
         if (!query.exec()) {
             qWarning() << "SessionSettingsRepository::saveBatch() failed:" << query.lastError().text();
+            DatabaseManager::instance().checkQueryError("SessionSettingsRepository::saveBatch", query);
             return false;
         }
     }
@@ -204,6 +209,7 @@ bool SessionSettingsRepository::remove(qint64 id)
 
     if (!query.exec()) {
         qWarning() << "SessionSettingsRepository::remove() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSettingsRepository::remove", query);
         return false;
     }
 
@@ -224,6 +230,7 @@ bool SessionSettingsRepository::removeBySession(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionSettingsRepository::removeBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSettingsRepository::removeBySession", query);
         return false;
     }
 
@@ -244,6 +251,7 @@ int SessionSettingsRepository::countBySession(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionSettingsRepository::countBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSettingsRepository::countBySession", query);
         return 0;
     }
 

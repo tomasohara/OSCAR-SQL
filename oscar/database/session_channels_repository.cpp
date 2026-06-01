@@ -71,6 +71,7 @@ qint64 SessionChannelsRepository::create(const SessionChannelData& data)
 
     if (!query.exec()) {
         qWarning() << "SessionChannelsRepository::create() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionChannelsRepository::create", query);
         return -1;
     }
 
@@ -119,6 +120,7 @@ bool SessionChannelsRepository::update(const SessionChannelData& data)
 
     if (!query.exec()) {
         qWarning() << "SessionChannelsRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionChannelsRepository::update", query);
         return false;
     }
 
@@ -145,6 +147,7 @@ QList<SessionChannelData> SessionChannelsRepository::findBySession(qint64 sessio
 
     if (!query.exec()) {
         qWarning() << "SessionChannelsRepository::findBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionChannelsRepository::findBySession", query);
         return result;
     }
 
@@ -198,6 +201,7 @@ SessionChannelData SessionChannelsRepository::findByChannel(qint64 sessionId, in
 
     if (!query.exec()) {
         qWarning() << "SessionChannelsRepository::findByChannel() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionChannelsRepository::findByChannel", query);
         return data;
     }
 
@@ -289,6 +293,7 @@ bool SessionChannelsRepository::saveBatch(qint64 sessionId, qint64 profileId, co
         if (!query.exec()) {
             qWarning() << "SessionChannelsRepository::saveBatch() failed:" << query.lastError().text();
             qWarning() << "Channel ID:" << data.channelId;
+            DatabaseManager::instance().checkQueryError("SessionChannelsRepository::saveBatch", query);
             return false;
         }
     }
@@ -345,6 +350,7 @@ bool SessionChannelsRepository::saveBatchWithIds(qint64 sessionId, qint64 profil
 
         if (!query.exec()) {
             qWarning() << "SessionChannelsRepository::saveBatchWithIds() failed:" << query.lastError().text();
+            DatabaseManager::instance().checkQueryError("SessionChannelsRepository::saveBatchWithIds", query);
             return false;
         }
         
@@ -372,6 +378,7 @@ bool SessionChannelsRepository::remove(qint64 id)
 
     if (!query.exec()) {
         qWarning() << "SessionChannelsRepository::remove() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionChannelsRepository::remove", query);
         return false;
     }
 
@@ -395,6 +402,7 @@ bool SessionChannelsRepository::removeBySession(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionChannelsRepository::removeBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionChannelsRepository::removeBySession", query);
         return false;
     }
 
@@ -415,6 +423,7 @@ int SessionChannelsRepository::countBySession(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionChannelsRepository::countBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionChannelsRepository::countBySession", query);
         return 0;
     }
 

@@ -41,8 +41,9 @@ qint64 ReportRepository::create(const ReportData& report)
     query.bindValue(":is_system", report.isSystem ? 1 : 0);
     
     if (!query.exec()) {
-        qWarning() << "ReportRepository::create() - Failed to create report:" 
+        qWarning() << "ReportRepository::create() - Failed to create report:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportRepository::create", query);
         return 0;
     }
     
@@ -71,8 +72,9 @@ bool ReportRepository::update(const ReportData& report)
     query.bindValue(":is_system", report.isSystem ? 1 : 0);
     
     if (!query.exec()) {
-        qWarning() << "ReportRepository::update() - Failed to update report:" 
+        qWarning() << "ReportRepository::update() - Failed to update report:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportRepository::update", query);
         return false;
     }
     
@@ -94,8 +96,9 @@ bool ReportRepository::remove(qint64 id)
     query.bindValue(":id", id);
     
     if (!query.exec()) {
-        qWarning() << "ReportRepository::remove() - Failed to delete report:" 
+        qWarning() << "ReportRepository::remove() - Failed to delete report:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportRepository::remove", query);
         return false;
     }
     
@@ -115,8 +118,9 @@ ReportData ReportRepository::findById(qint64 id)
     query.bindValue(":id", id);
     
     if (!query.exec()) {
-        qWarning() << "ReportRepository::findById() - Query failed:" 
+        qWarning() << "ReportRepository::findById() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportRepository::findById", query);
         return ReportData();
     }
     
@@ -145,8 +149,9 @@ QList<ReportData> ReportRepository::findAll()
         "SELECT id, name, description, display_order, is_system, created_at, updated_at "
         "FROM reports"
     )) {
-        qWarning() << "ReportRepository::findAll() - Query failed:" 
+        qWarning() << "ReportRepository::findAll() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportRepository::findAll", query);
         return reports;
     }
     
@@ -178,8 +183,9 @@ QList<ReportData> ReportRepository::findAllOrdered()
         "ORDER BY CASE WHEN display_order = 0 THEN 999999 ELSE display_order END, "
         "         name COLLATE NOCASE"
     )) {
-        qWarning() << "ReportRepository::findAllOrdered() - Query failed:" 
+        qWarning() << "ReportRepository::findAllOrdered() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportRepository::findAllOrdered", query);
         return reports;
     }
     
@@ -207,8 +213,9 @@ bool ReportRepository::exists(const QString& name)
     query.bindValue(":name", name);
     
     if (!query.exec()) {
-        qWarning() << "ReportRepository::exists() - Query failed:" 
+        qWarning() << "ReportRepository::exists() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportRepository::exists", query);
         return false;
     }
     
@@ -228,8 +235,9 @@ bool ReportRepository::isSystemReport(qint64 id)
     query.bindValue(":id", id);
     
     if (!query.exec()) {
-        qWarning() << "ReportRepository::isSystemReport() - Query failed:" 
+        qWarning() << "ReportRepository::isSystemReport() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportRepository::isSystemReport", query);
         return false;
     }
     
@@ -253,8 +261,9 @@ ReportData ReportRepository::findByName(const QString& name)
     query.bindValue(":name", name);
     
     if (!query.exec()) {
-        qWarning() << "ReportRepository::findByName() - Query failed:" 
+        qWarning() << "ReportRepository::findByName() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportRepository::findByName", query);
         return ReportData();
     }
     

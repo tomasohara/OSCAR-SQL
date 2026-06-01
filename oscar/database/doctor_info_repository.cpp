@@ -50,6 +50,7 @@ qint64 DoctorInfoRepository::create(const DoctorInfoData& data)
 
     if (!query.exec()) {
         qWarning() << "DoctorInfoRepository::create() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DoctorInfoRepository::create", query);
         return -1;
     }
 
@@ -84,6 +85,7 @@ bool DoctorInfoRepository::update(const DoctorInfoData& data)
 
     if (!query.exec()) {
         qWarning() << "DoctorInfoRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DoctorInfoRepository::update", query);
         return false;
     }
 
@@ -110,6 +112,7 @@ DoctorInfoData DoctorInfoRepository::findByProfile(qint64 profileId)
 
     if (!query.exec()) {
         qWarning() << "DoctorInfoRepository::findByProfile() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DoctorInfoRepository::findByProfile", query);
         return data;
     }
 
@@ -198,6 +201,7 @@ bool DoctorInfoRepository::remove(qint64 profileId)
 
     if (!query.exec()) {
         qWarning() << "DoctorInfoRepository::remove() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DoctorInfoRepository::remove", query);
         return false;
     }
 

@@ -52,8 +52,9 @@ qint64 ReportTreeRepository::create(const ReportTreeNode& node)
     query.addBindValue(node.displayOrder);
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::create: Failed to insert node:" 
+        qCritical() << "ReportTreeRepository::create: Failed to insert node:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::create", query);
         return 0;
     }
     
@@ -81,8 +82,9 @@ bool ReportTreeRepository::update(const ReportTreeNode& node)
     query.addBindValue(node.id);
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::update: Failed to update node ID" 
+        qCritical() << "ReportTreeRepository::update: Failed to update node ID"
                     << node.id << ":" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::update", query);
         return false;
     }
     
@@ -98,8 +100,9 @@ bool ReportTreeRepository::remove(qint64 id)
     query.addBindValue(id);
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::remove: Failed to delete node ID" 
+        qCritical() << "ReportTreeRepository::remove: Failed to delete node ID"
                     << id << ":" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::remove", query);
         return false;
     }
     
@@ -121,8 +124,9 @@ ReportTreeNode ReportTreeRepository::findById(qint64 id)
     query.addBindValue(id);
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::findById: Query failed:" 
+        qCritical() << "ReportTreeRepository::findById: Query failed:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::findById", query);
         return ReportTreeNode();
     }
     
@@ -168,8 +172,9 @@ QList<ReportTreeNode> ReportTreeRepository::findChildren(qint64 parentId)
     }
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::findChildren: Query failed:" 
+        qCritical() << "ReportTreeRepository::findChildren: Query failed:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::findChildren", query);
         return children;
     }
     
@@ -215,8 +220,9 @@ QList<ReportTreeNode> ReportTreeRepository::findChildrenOrdered(qint64 parentId)
     }
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::findChildrenOrdered: Query failed:" 
+        qCritical() << "ReportTreeRepository::findChildrenOrdered: Query failed:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::findChildrenOrdered", query);
         return children;
     }
     
@@ -256,8 +262,9 @@ QList<ReportTreeNode> ReportTreeRepository::findBySource(const QString& source)
     query.addBindValue(source);
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::findBySource: Query failed:" 
+        qCritical() << "ReportTreeRepository::findBySource: Query failed:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::findBySource", query);
         return nodes;
     }
     
@@ -297,8 +304,9 @@ bool ReportTreeRepository::exists(qint64 parentId, const QString& name)
     }
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::exists: Query failed:" 
+        qCritical() << "ReportTreeRepository::exists: Query failed:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::exists", query);
         return false;
     }
     
@@ -326,9 +334,10 @@ bool ReportTreeRepository::moveNode(qint64 nodeId, qint64 newParentId)
     query.addBindValue(nodeId);
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::moveNode: Failed to move node ID" 
-                    << nodeId << "to parent" << newParentId << ":" 
+        qCritical() << "ReportTreeRepository::moveNode: Failed to move node ID"
+                    << nodeId << "to parent" << newParentId << ":"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::moveNode", query);
         return false;
     }
     
@@ -349,8 +358,9 @@ bool ReportTreeRepository::updateDisplayOrder(qint64 nodeId, int newOrder)
     query.addBindValue(nodeId);
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::updateDisplayOrder: Failed to update node ID" 
+        qCritical() << "ReportTreeRepository::updateDisplayOrder: Failed to update node ID"
                     << nodeId << ":" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::updateDisplayOrder", query);
         return false;
     }
     
@@ -374,8 +384,9 @@ int ReportTreeRepository::countDescendants(qint64 nodeId)
     query.addBindValue(nodeId);
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::countDescendants: Query failed:" 
+        qCritical() << "ReportTreeRepository::countDescendants: Query failed:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::countDescendants", query);
         return 0;
     }
     
@@ -395,8 +406,9 @@ bool ReportTreeRepository::deleteSystemNodes()
     query.prepare("DELETE FROM report_tree WHERE source = 'system' AND node_type != 'root'");
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::deleteSystemNodes: Failed to delete system nodes:" 
+        qCritical() << "ReportTreeRepository::deleteSystemNodes: Failed to delete system nodes:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::deleteSystemNodes", query);
         return false;
     }
     
@@ -417,8 +429,9 @@ qint64 ReportTreeRepository::findRootId(const QString& name)
     query.addBindValue(name);
     
     if (!query.exec()) {
-        qCritical() << "ReportTreeRepository::findRootId: Query failed:" 
+        qCritical() << "ReportTreeRepository::findRootId: Query failed:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportTreeRepository::findRootId", query);
         return 0;
     }
     

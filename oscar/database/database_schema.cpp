@@ -10,6 +10,7 @@
  * for more details. */
 
 #include "database_schema.h"
+#include "database_manager.h"
 #include "reports_initializer.h"
 #include <QSqlQuery>
 #include <QSqlError>
@@ -187,6 +188,7 @@ int DatabaseSchema::getSchemaVersion(QSqlDatabase& db)
     
     if (!query.exec("SELECT version FROM schema_version LIMIT 1")) {
         qWarning() << "DatabaseSchema: Failed to get schema version:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::getSchemaVersion", query);
         return 0;
     }
 
@@ -277,8 +279,9 @@ bool DatabaseSchema::createSchemaVersionTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create schema_version table:" 
+        qCritical() << "DatabaseSchema: Failed to create schema_version table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createSchemaVersionTable", query);
         return false;
     }
 
@@ -312,8 +315,9 @@ bool DatabaseSchema::createProfilesTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create profiles table:" 
+        qCritical() << "DatabaseSchema: Failed to create profiles table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createProfilesTable", query);
         return false;
     }
 
@@ -358,8 +362,9 @@ bool DatabaseSchema::createMachinesTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create machines table:" 
+        qCritical() << "DatabaseSchema: Failed to create machines table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createMachinesTable", query);
         return false;
     }
 
@@ -501,8 +506,9 @@ bool DatabaseSchema::setSchemaVersion(QSqlDatabase& db, int version)
     query.addBindValue(version);
 
     if (!query.exec()) {
-        qCritical() << "DatabaseSchema: Failed to set schema version:" 
+        qCritical() << "DatabaseSchema: Failed to set schema version:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::setSchemaVersion", query);
         return false;
     }
 
@@ -545,8 +551,9 @@ bool DatabaseSchema::createUserInfoTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create user_info table:" 
+        qCritical() << "DatabaseSchema: Failed to create user_info table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createUserInfoTable", query);
         return false;
     }
 
@@ -584,8 +591,9 @@ bool DatabaseSchema::createDoctorInfoTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create doctor_info table:" 
+        qCritical() << "DatabaseSchema: Failed to create doctor_info table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createDoctorInfoTable", query);
         return false;
     }
 
@@ -624,8 +632,9 @@ bool DatabaseSchema::createProfilePreferencesTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create profile_preferences table:" 
+        qCritical() << "DatabaseSchema: Failed to create profile_preferences table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createProfilePreferencesTable", query);
         return false;
     }
 
@@ -667,8 +676,9 @@ bool DatabaseSchema::createSessionsTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create sessions table:" 
+        qCritical() << "DatabaseSchema: Failed to create sessions table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createSessionsTable", query);
         return false;
     }
 
@@ -707,8 +717,9 @@ bool DatabaseSchema::createSessionSettingsTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create session_settings table:" 
+        qCritical() << "DatabaseSchema: Failed to create session_settings table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createSessionSettingsTable", query);
         return false;
     }
 
@@ -760,8 +771,9 @@ bool DatabaseSchema::createSessionChannelsTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create session_channels table:" 
+        qCritical() << "DatabaseSchema: Failed to create session_channels table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createSessionChannelsTable", query);
         return false;
     }
 
@@ -800,8 +812,9 @@ bool DatabaseSchema::createSessionChannelValuesTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create session_channel_values table:" 
+        qCritical() << "DatabaseSchema: Failed to create session_channel_values table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createSessionChannelValuesTable", query);
         return false;
     }
 
@@ -842,8 +855,9 @@ bool DatabaseSchema::createRespiratoryEventsTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create respiratory_events table:" 
+        qCritical() << "DatabaseSchema: Failed to create respiratory_events table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createRespiratoryEventsTable", query);
         return false;
     }
 
@@ -897,8 +911,9 @@ bool DatabaseSchema::createSessionSummariesTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create session_summaries table:" 
+        qCritical() << "DatabaseSchema: Failed to create session_summaries table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createSessionSummariesTable", query);
         return false;
     }
 
@@ -931,8 +946,9 @@ bool DatabaseSchema::createSessionSlicesTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create session_slices table:" 
+        qCritical() << "DatabaseSchema: Failed to create session_slices table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createSessionSlicesTable", query);
         return false;
     }
 
@@ -979,8 +995,9 @@ bool DatabaseSchema::createChannelsTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create channels table:" 
+        qCritical() << "DatabaseSchema: Failed to create channels table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createChannelsTable", query);
         return false;
     }
 
@@ -1014,8 +1031,9 @@ bool DatabaseSchema::createChannelOptionsTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create channel_options table:" 
+        qCritical() << "DatabaseSchema: Failed to create channel_options table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createChannelOptionsTable", query);
         return false;
     }
 
@@ -1085,8 +1103,9 @@ bool DatabaseSchema::createDailySummariesTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create daily_summaries table:" 
+        qCritical() << "DatabaseSchema: Failed to create daily_summaries table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createDailySummariesTable", query);
         return false;
     }
 
@@ -1138,8 +1157,9 @@ bool DatabaseSchema::createEventListsTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create event_lists table:" 
+        qCritical() << "DatabaseSchema: Failed to create event_lists table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createEventListsTable", query);
         return false;
     }
 
@@ -1180,8 +1200,9 @@ bool DatabaseSchema::createEventDataTable(QSqlDatabase& db)
         ")";
 
     if (!query.exec(sql)) {
-        qCritical() << "DatabaseSchema: Failed to create event_data table:" 
+        qCritical() << "DatabaseSchema: Failed to create event_data table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createEventDataTable", query);
         return false;
     }
 
@@ -1223,6 +1244,7 @@ bool DatabaseSchema::createReportTreeTable(QSqlDatabase& db)
     if (!query.exec(sql)) {
         qCritical() << "DatabaseSchema: Failed to create report_tree table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createReportTreeTable", query);
         return false;
     }
 
@@ -1286,6 +1308,7 @@ bool DatabaseSchema::createAppPreferencesTable(QSqlDatabase& db)
     if (!query.exec(sql)) {
         qCritical() << "DatabaseSchema: Failed to create app_preferences table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createAppPreferencesTable", query);
         return false;
     }
 
@@ -1322,6 +1345,7 @@ bool DatabaseSchema::createGraphLayoutsTable(QSqlDatabase& db)
     if (!query.exec(sql)) {
         qCritical() << "DatabaseSchema: Failed to create graph_layouts table:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createGraphLayoutsTable", query);
         return false;
     }
 
@@ -1331,6 +1355,7 @@ bool DatabaseSchema::createGraphLayoutsTable(QSqlDatabase& db)
             "ON graph_layouts(view_name, slot_index) WHERE profile_id IS NULL")) {
         qCritical() << "DatabaseSchema: Failed to create idx_graph_layouts_named:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createGraphLayoutsTable", query);
         return false;
     }
 
@@ -1340,6 +1365,7 @@ bool DatabaseSchema::createGraphLayoutsTable(QSqlDatabase& db)
             "ON graph_layouts(profile_id, view_name) WHERE is_current = 1")) {
         qCritical() << "DatabaseSchema: Failed to create idx_graph_layouts_current:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createGraphLayoutsTable", query);
         return false;
     }
 
@@ -1436,6 +1462,7 @@ bool DatabaseSchema::migrateV14ToV15(QSqlDatabase& db)
     if (!q.exec("DELETE FROM profile_preferences WHERE key = 'DST'")) {
         qCritical() << "DatabaseSchema: migrateV14ToV15: DELETE profile_preferences failed:"
                     << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV14ToV15", q);
         db.rollback();
         return false;
     }
@@ -1475,10 +1502,12 @@ bool DatabaseSchema::createDeviceTimeCorrectionsTable(QSqlDatabase& db)
         )
     )")) {
         qCritical() << "DatabaseSchema: Failed to create device_time_corrections:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createDeviceTimeCorrectionsTable", q);
         return false;
     }
     if (!q.exec("CREATE INDEX IF NOT EXISTS idx_dtc_machine_date ON device_time_corrections(machine_id, date_from, type, undone_at)")) {
         qCritical() << "DatabaseSchema: Failed to create idx_dtc_machine_date:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::createDeviceTimeCorrectionsTable", q);
         return false;
     }
     return true;
@@ -1553,6 +1582,7 @@ bool DatabaseSchema::migrateV15ToV16(QSqlDatabase& db)
     if (!q.exec(createNewTable)) {
         qCritical() << "DatabaseSchema: migrateV15ToV16: CREATE replacement table failed:"
                     << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV15ToV16", q);
         db.rollback();
         return false;
     }
@@ -1587,6 +1617,7 @@ bool DatabaseSchema::migrateV15ToV16(QSqlDatabase& db)
     if (!q.exec(copyData)) {
         qCritical() << "DatabaseSchema: migrateV15ToV16: copy data failed:"
                     << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV15ToV16", q);
         db.rollback();
         return false;
     }
@@ -1595,12 +1626,14 @@ bool DatabaseSchema::migrateV15ToV16(QSqlDatabase& db)
     if (!q.exec("DROP TABLE daily_summaries")) {
         qCritical() << "DatabaseSchema: migrateV15ToV16: DROP old table failed:"
                     << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV15ToV16", q);
         db.rollback();
         return false;
     }
     if (!q.exec("ALTER TABLE daily_summaries_new RENAME TO daily_summaries")) {
         qCritical() << "DatabaseSchema: migrateV15ToV16: RENAME failed:"
                     << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV15ToV16", q);
         db.rollback();
         return false;
     }
@@ -1611,6 +1644,7 @@ bool DatabaseSchema::migrateV15ToV16(QSqlDatabase& db)
     if (!q.exec("DROP INDEX IF EXISTS idx_daily_summaries_profile_machine")) {
         qCritical() << "DatabaseSchema: migrateV15ToV16: DROP INDEX failed:"
                     << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV15ToV16", q);
         db.rollback();
         return false;
     }
@@ -1630,6 +1664,7 @@ bool DatabaseSchema::migrateV15ToV16(QSqlDatabase& db)
         if (!q.exec(indexSql)) {
             qCritical() << "DatabaseSchema: migrateV15ToV16: index rebuild failed:"
                         << q.lastError().text();
+            DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV15ToV16", q);
             db.rollback();
             return false;
         }

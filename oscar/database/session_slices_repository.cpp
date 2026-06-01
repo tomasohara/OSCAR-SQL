@@ -46,6 +46,7 @@ qint64 SessionSlicesRepository::create(const SessionSliceData& data)
 
     if (!query.exec()) {
         qWarning() << "SessionSlicesRepository::create() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSlicesRepository::create", query);
         return -1;
     }
 
@@ -74,6 +75,7 @@ bool SessionSlicesRepository::update(const SessionSliceData& data)
 
     if (!query.exec()) {
         qWarning() << "SessionSlicesRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSlicesRepository::update", query);
         return false;
     }
 
@@ -99,6 +101,7 @@ QList<SessionSliceData> SessionSlicesRepository::findBySession(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionSlicesRepository::findBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSlicesRepository::findBySession", query);
         return result;
     }
 
@@ -146,6 +149,7 @@ bool SessionSlicesRepository::saveBatch(const QList<SessionSliceData>& slices)
 
         if (!query.exec()) {
             qWarning() << "SessionSlicesRepository::saveBatch() failed:" << query.lastError().text();
+            DatabaseManager::instance().checkQueryError("SessionSlicesRepository::saveBatch", query);
 /***
             if (needTransaction) {
                 dbMgr.rollback();
@@ -179,6 +183,7 @@ bool SessionSlicesRepository::remove(qint64 id)
 
     if (!query.exec()) {
         qWarning() << "SessionSlicesRepository::remove() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSlicesRepository::remove", query);
         return false;
     }
 
@@ -199,6 +204,7 @@ bool SessionSlicesRepository::removeBySession(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionSlicesRepository::removeBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSlicesRepository::removeBySession", query);
         return false;
     }
 
@@ -219,6 +225,7 @@ int SessionSlicesRepository::countBySession(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionSlicesRepository::countBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSlicesRepository::countBySession", query);
         return 0;
     }
 

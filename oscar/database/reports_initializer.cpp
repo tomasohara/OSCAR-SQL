@@ -10,6 +10,7 @@
  * for more details. */
 
 #include "reports_initializer.h"
+#include "database_manager.h"
 #include "report_tree_repository.h"
 #include "orf_file_io.h"
 #include <QSqlQuery>
@@ -274,15 +275,17 @@ bool ReportsInitializer::dropOldReportTables(QSqlDatabase& db)
     
     // Drop report_contents first (foreign key constraint)
     if (!query.exec("DROP TABLE IF EXISTS report_contents")) {
-        qWarning() << "ReportsInitializer: Failed to drop report_contents table:" 
+        qWarning() << "ReportsInitializer: Failed to drop report_contents table:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportsInitializer::dropOldReportTables", query);
         return false;
     }
-    
+
     // Drop reports table
     if (!query.exec("DROP TABLE IF EXISTS reports")) {
-        qWarning() << "ReportsInitializer: Failed to drop reports table:" 
+        qWarning() << "ReportsInitializer: Failed to drop reports table:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportsInitializer::dropOldReportTables", query);
         return false;
     }
     

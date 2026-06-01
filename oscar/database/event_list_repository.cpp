@@ -113,6 +113,7 @@ qint64 EventListRepository::create(const EventListData& data)
     if (!m_createQuery.exec()) {
         qCritical() << "EventListRepository: Failed to create event_list:"
                     << m_createQuery.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventListRepository::create", m_createQuery);
         return -1;
     }
     
@@ -149,6 +150,7 @@ QList<EventListData> EventListRepository::findBySession(qint64 sessionId)
     if (!query.exec()) {
         qWarning() << "EventListRepository: Failed to find by session:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventListRepository::findBySession", query);
         return results;
     }
     
@@ -191,6 +193,7 @@ QList<EventListData> EventListRepository::findByChannel(qint64 sessionId, Channe
     if (!query.exec()) {
         qWarning() << "EventListRepository: Failed to find by channel:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventListRepository::findByChannel", query);
         return results;
     }
     
@@ -236,6 +239,7 @@ EventListData EventListRepository::findByIndex(qint64 sessionId, ChannelID chann
     if (!query.exec()) {
         qWarning() << "EventListRepository: Failed to find by index:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventListRepository::findByIndex", query);
         return result;
     }
     
@@ -305,6 +309,7 @@ bool EventListRepository::update(const EventListData& data)
     if (!query.exec()) {
         qCritical() << "EventListRepository: Failed to update event_list:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventListRepository::update", query);
         return false;
     }
     
@@ -330,6 +335,7 @@ bool EventListRepository::deleteById(qint64 id)
     if (!query.exec()) {
         qCritical() << "EventListRepository: Failed to delete event_list:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventListRepository::deleteById", query);
         return false;
     }
     
@@ -355,6 +361,7 @@ bool EventListRepository::deleteBySession(qint64 sessionId)
     if (!query.exec()) {
         qCritical() << "EventListRepository: Failed to delete event_lists for session:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventListRepository::deleteBySession", query);
         return false;
     }
     

@@ -895,8 +895,9 @@ int main(int argc, char *argv[]) {
         QLabel waitLabel(QObject::tr("Checking database integrity, please wait..."), &integrityWait);
         waitLabel.setMargin(20);
         waitLayout.addWidget(&waitLabel);
-        integrityWait.adjustSize();
         integrityWait.setMinimumWidth(400);
+        integrityWait.adjustSize();
+        integrityWait.setFixedSize(integrityWait.size());
         integrityWait.show();
         QApplication::processEvents();
 
@@ -923,8 +924,10 @@ int main(int argc, char *argv[]) {
                     "and the database integrity check found problems.\n\n"
                     "Some data may be missing or corrupted.\n\n"
                     "Recommended actions:\n"
-                    "  • Restore from a recent backup (File → Restore Profile)\n"
-                    "  • Re-import data from your CPAP SD card\n\n"
+                    "  • Restore entire database from a recent system backup\n"
+                    "  • Restore each profile from a recent backup (File → Restore Profile)\n"
+                    "  • Re-import data from your CPAP SD card(s)\n\n"
+                    "For advanced recovery options, see the OSCAR documentation.\n\n"
                     "You may continue, but some data may be incomplete or incorrect."),
                 QMessageBox::Ok | QMessageBox::Close,
                 QMessageBox::Close);

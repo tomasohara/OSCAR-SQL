@@ -66,9 +66,10 @@ qint64 ProfileRepository::create(const ProfileData& data)
     
     if (!query.exec()) {
         qWarning() << "ProfileRepository::create() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::create", query);
         return -1;
     }
-    
+
     qint64 id = query.lastInsertId().toLongLong();
     qDebug() << "ProfileRepository: Created profile" << data.username << "with id" << id;
     
@@ -96,6 +97,7 @@ ProfileData ProfileRepository::findById(qint64 id)
     
     if (!query.exec()) {
         qWarning() << "ProfileRepository::findById() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::findById", query);
         return ProfileData();
     }
     
@@ -127,6 +129,7 @@ ProfileData ProfileRepository::findByUsername(const QString& username)
     
     if (!query.exec()) {
         qWarning() << "ProfileRepository::findByUsername() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::findByUsername", query);
         return ProfileData();
     }
     
@@ -151,6 +154,7 @@ QList<ProfileData> ProfileRepository::findAll()
     if (!query.exec("SELECT id, username, data_folder, status, status_changed_at, created_at, updated_at "
                     "FROM profiles ORDER BY username")) {
         qWarning() << "ProfileRepository::findAll() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::findAll", query);
         return profiles;
     }
     
@@ -177,6 +181,7 @@ QList<ProfileData> ProfileRepository::findActive()
     if (!query.exec("SELECT id, username, data_folder, status, status_changed_at, created_at, updated_at "
                     "FROM profiles WHERE status = 'active' ORDER BY username")) {
         qWarning() << "ProfileRepository::findActive() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::findActive", query);
         return profiles;
     }
     
@@ -203,6 +208,7 @@ QList<ProfileData> ProfileRepository::findMissing()
     if (!query.exec("SELECT id, username, data_folder, status, status_changed_at, created_at, updated_at "
                     "FROM profiles WHERE status = 'missing' ORDER BY username")) {
         qWarning() << "ProfileRepository::findMissing() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::findMissing", query);
         return profiles;
     }
     
@@ -247,9 +253,10 @@ bool ProfileRepository::updateStatus(qint64 id, const QString& status)
     
     if (!query.exec()) {
         qWarning() << "ProfileRepository::updateStatus() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::updateStatus", query);
         return false;
     }
-    
+
     if (query.numRowsAffected() == 0) {
         qWarning() << "ProfileRepository::updateStatus() - no profile found with id" << id;
         return false;
@@ -293,9 +300,10 @@ bool ProfileRepository::update(const ProfileData& data)
     
     if (!query.exec()) {
         qWarning() << "ProfileRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::update", query);
         return false;
     }
-    
+
     if (query.numRowsAffected() == 0) {
         qWarning() << "ProfileRepository::update() - no profile found with id" << data.id;
         return false;
@@ -377,6 +385,7 @@ bool ProfileRepository::remove(qint64 id)
     bool success = false;
     if (!query.exec()) {
         qWarning() << "ProfileRepository::remove() - Delete failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::remove", query);
         db.rollback();
     } else if (query.numRowsAffected() == 0) {
         qWarning() << "ProfileRepository::remove() - no profile found with id" << id;
@@ -477,8 +486,9 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     query.bindValue(0, id);
     
     if (!query.exec()) {
-        qWarning() << "ProfileRepository::removeWithProgress() - Failed to query sessions:" 
+        qWarning() << "ProfileRepository::removeWithProgress() - Failed to query sessions:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::removeWithProgress", query);
         db.rollback();
         query.exec("PRAGMA defer_foreign_keys = OFF");
         query.exec("PRAGMA cache_size = -64000");
@@ -563,8 +573,9 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
         ).arg(inClause);
         
         if (!query.exec(sql)) {
-            qWarning() << "ProfileRepository::removeWithProgress() - Failed to delete session_channel_values:" 
+            qWarning() << "ProfileRepository::removeWithProgress() - Failed to delete session_channel_values:"
                        << query.lastError().text();
+            DatabaseManager::instance().checkQueryError("ProfileRepository::removeWithProgress", query);
             db.rollback();
             query.exec("PRAGMA defer_foreign_keys = OFF");
             query.exec("PRAGMA cache_size = -64000");
@@ -610,8 +621,9 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
         ).arg(inClause);
         
         if (!query.exec(sql)) {
-            qWarning() << "ProfileRepository::removeWithProgress() - Failed to delete event_data:" 
+            qWarning() << "ProfileRepository::removeWithProgress() - Failed to delete event_data:"
                        << query.lastError().text();
+            DatabaseManager::instance().checkQueryError("ProfileRepository::removeWithProgress", query);
             db.rollback();
             query.exec("PRAGMA defer_foreign_keys = OFF");
             query.exec("PRAGMA cache_size = -64000");
@@ -638,8 +650,9 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     
     QString sql = QString("DELETE FROM sessions WHERE id IN (%1)").arg(sessionIdsStr);
     if (!query.exec(sql)) {
-        qWarning() << "ProfileRepository::removeWithProgress() - Failed to delete sessions:" 
+        qWarning() << "ProfileRepository::removeWithProgress() - Failed to delete sessions:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::removeWithProgress", query);
         db.rollback();
         query.exec("PRAGMA defer_foreign_keys = OFF");
         query.exec("PRAGMA cache_size = -64000");
@@ -658,8 +671,9 @@ bool ProfileRepository::removeWithProgress(qint64 id, ProgressCallback progressC
     query.bindValue(0, id);
     
     if (!query.exec()) {
-        qWarning() << "ProfileRepository::removeWithProgress() - Failed to delete profile:" 
+        qWarning() << "ProfileRepository::removeWithProgress() - Failed to delete profile:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::removeWithProgress", query);
         db.rollback();
         query.exec("PRAGMA defer_foreign_keys = OFF");
         query.exec("PRAGMA cache_size = -64000");
@@ -720,6 +734,7 @@ bool ProfileRepository::exists(const QString& username)
     
     if (!query.exec()) {
         qWarning() << "ProfileRepository::exists() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::exists", query);
         return false;
     }
     
@@ -741,6 +756,7 @@ int ProfileRepository::count()
     
     if (!query.exec("SELECT COUNT(*) FROM profiles")) {
         qWarning() << "ProfileRepository::count() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ProfileRepository::count", query);
         return 0;
     }
     

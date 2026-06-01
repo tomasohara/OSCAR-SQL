@@ -50,6 +50,7 @@ qint64 PreferencesRepository::create(const PreferenceData& data)
 
     if (!query.exec()) {
         qWarning() << "PreferencesRepository::create() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("PreferencesRepository::create", query);
         return -1;
     }
 
@@ -77,6 +78,7 @@ bool PreferencesRepository::update(const PreferenceData& data)
 
     if (!query.exec()) {
         qWarning() << "PreferencesRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("PreferencesRepository::update", query);
         return false;
     }
 
@@ -104,6 +106,7 @@ PreferenceData PreferencesRepository::find(qint64 profileId, const QString& cate
 
     if (!query.exec()) {
         qWarning() << "PreferencesRepository::find() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("PreferencesRepository::find", query);
         return data;
     }
 
@@ -138,6 +141,7 @@ QList<PreferenceData> PreferencesRepository::findByProfile(qint64 profileId)
 
     if (!query.exec()) {
         qWarning() << "PreferencesRepository::findByProfile() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("PreferencesRepository::findByProfile", query);
         return result;
     }
 
@@ -175,6 +179,7 @@ QList<PreferenceData> PreferencesRepository::findByCategory(qint64 profileId, co
 
     if (!query.exec()) {
         qWarning() << "PreferencesRepository::findByCategory() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("PreferencesRepository::findByCategory", query);
         return result;
     }
 
@@ -206,6 +211,7 @@ bool PreferencesRepository::remove(qint64 profileId)
 
     if (!query.exec()) {
         qWarning() << "PreferencesRepository::remove() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("PreferencesRepository::remove", query);
         return false;
     }
 
@@ -227,6 +233,7 @@ bool PreferencesRepository::removeCategory(qint64 profileId, const QString& cate
 
     if (!query.exec()) {
         qWarning() << "PreferencesRepository::removeCategory() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("PreferencesRepository::removeCategory", query);
         return false;
     }
 
@@ -253,6 +260,7 @@ bool PreferencesRepository::savePreference(qint64 profileId, const QString& cate
     
     if (!deleteQuery.exec()) {
         qWarning() << "PreferencesRepository::savePreference() - Delete failed:" << deleteQuery.lastError().text();
+        DatabaseManager::instance().checkQueryError("PreferencesRepository::savePreference", deleteQuery);
         return false;
     }
 
@@ -272,6 +280,7 @@ bool PreferencesRepository::savePreference(qint64 profileId, const QString& cate
 
     if (!insertQuery.exec()) {
         qWarning() << "PreferencesRepository::savePreference() - Insert failed:" << insertQuery.lastError().text();
+        DatabaseManager::instance().checkQueryError("PreferencesRepository::savePreference", insertQuery);
         return false;
     }
 

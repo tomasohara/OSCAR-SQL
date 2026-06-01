@@ -40,6 +40,7 @@ DatabaseManager::DatabaseManager()
     : QObject(nullptr)
     , m_initialized(false)
     , m_inTransaction(false)
+    , m_corruptionReported(false)
 {
     // Create unique connection name for this thread
     m_connectionName = QString("OSCAR_DB_%1").arg(quintptr(QThread::currentThread()));
@@ -362,6 +363,51 @@ bool DatabaseManager::rollback()
 bool DatabaseManager::inTransaction() const
 {
     return m_inTransaction;
+}
+
+/*
+ * Check a failed query for SQLite corruption or I/O errors.
+ *
+ * SQLite primary error codes are in the low byte of the native code, so both
+ * primary codes (e.g. 10, 11) and extended codes (e.g. 266, 267) are handled
+ * by masking with 0xFF.
+ *
+ *   SQLITE_IOERR   = 10  — disk read/write failure
+ *   SQLITE_CORRUPT = 11  — database file is malformed
+ *
+ * Emits databaseError() at most once per session so a corruption cascade does
+ * not stack multiple dialogs.
+ *
+ * Returns: true if a corruption or I/O error was detected.
+ */
+bool DatabaseManager::checkQueryError(const QString& context, const QSqlQuery& query)
+{
+    QSqlError err = query.lastError();
+    if (!err.isValid())
+        return false;
+
+    bool ok;
+    int code    = err.nativeErrorCode().toInt(&ok);
+    int primary = ok ? (code & 0xFF) : -1;
+
+    if (primary != 10 && primary != 11)
+        return false;
+
+    qCritical() << "DatabaseManager::checkQueryError: corruption/IO error in"
+                << context << "— native code:" << err.nativeErrorCode()
+                << "—" << err.text();
+
+    if (!m_corruptionReported) {
+        m_corruptionReported = true;
+        emit databaseError(
+            tr("A database corruption or I/O error was detected in %1.\n\n"
+               "Error: %2\n\n"
+               "Recommended actions:\n"
+               "  • Run Help → Troubleshooting → Check Database Integrity\n"
+               "  • Restore from a recent backup if problems are found")
+                .arg(context, err.text()));
+    }
+    return true;
 }
 
 /*

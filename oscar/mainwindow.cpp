@@ -84,6 +84,7 @@
 #include <QProgressDialog>
 #include <QThread>
 #include <QEventLoop>
+#include <functional>
 #include "purgerangedaysdialog.h"
 #include "exports/report_exporter.h"
 #include "exports/journalnotesdialog.h"
@@ -3777,8 +3778,9 @@ void MainWindow::on_actionCheck_Database_Integrity_triggered()
     QLabel waitLabel(tr("Checking database integrity, please wait..."), &waitDlg);
     waitLabel.setMargin(20);
     waitLayout.addWidget(&waitLabel);
-    waitDlg.adjustSize();
     waitDlg.setMinimumWidth(400);
+    waitDlg.adjustSize();
+    waitDlg.setFixedSize(waitDlg.size());
     waitDlg.show();
     QApplication::processEvents();
 
@@ -3815,85 +3817,194 @@ void MainWindow::on_actionCheck_Database_Integrity_triggered()
 
 void MainWindow::on_actionCompress_Database_triggered()
 {
-    // Report database size including the WAL, which holds recently committed data.
     QString dbPath = DatabaseManager::instance().databasePath();
-    auto dbSize = [&]() -> qint64 {
-        qint64 sz = QFileInfo(dbPath).size();
-        QFileInfo wal(dbPath + "-wal");
-        if (wal.exists()) sz += wal.size();
-        return sz;
-    };
 
-    qint64 sizeBefore = dbSize();
-    QString sizeBeforeStr = QLocale().formattedDataSize(sizeBefore);
+    auto fileSize = [](const QString& path) -> qint64 {
+        QFileInfo fi(path);
+        return fi.exists() ? fi.size() : 0;
+    };
+    qint64 sizeBefore = fileSize(dbPath) + fileSize(dbPath + "-wal");
 
     QMessageBox::StandardButton answer = staticQMessageBox::question(this,
         tr("Compress Database"),
         tr("This will compact the database to reclaim unused disk space. "
            "It is most useful after deleting profiles.\n\n"
            "Current database size: %1\n\n"
-           "This may take several minutes. Continue?").arg(sizeBeforeStr),
+           "This may take several minutes for large databases. "
+           "OSCAR will restart automatically when complete.\n\n"
+           "Continue?").arg(QLocale().formattedDataSize(sizeBefore)),
         QMessageBox::Yes | QMessageBox::No,
         QMessageBox::No);
 
     if (answer != QMessageBox::Yes) return;
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    // Helper: show a plain wait dialog while a background thread runs.
+    auto runWithWaitDialog = [this](const QString& message, std::function<void()> work) {
+        QDialog waitDlg(this);
+        waitDlg.setWindowTitle(tr("Compress Database"));
+        waitDlg.setWindowModality(Qt::WindowModal);
+        waitDlg.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        QVBoxLayout layout(&waitDlg);
+        QLabel label(message, &waitDlg);
+        label.setMargin(20);
+        layout.addWidget(&label);
+        waitDlg.setMinimumWidth(450);
+        waitDlg.adjustSize();
+        waitDlg.setFixedSize(waitDlg.size());
+        waitDlg.show();
+        QApplication::processEvents();
 
-    // Integrity check before VACUUM: a corrupt database must not be vacuumed,
-    // as VACUUM rewrites the file and could propagate or obscure existing damage.
-    bool integrityOk = DatabaseManager::instance().checkIntegrity();
+        QThread* thread = QThread::create(work);
+        QEventLoop loop;
+        QObject::connect(thread, &QThread::finished, &loop, &QEventLoop::quit);
+        thread->start();
+        loop.exec();
+        thread->wait();
+        delete thread;
 
-    QApplication::restoreOverrideCursor();
+        waitDlg.hide();
+    };
+
+    // --- Step 1: Integrity check ---
+    bool integrityOk = false;
+    runWithWaitDialog(tr("Checking database integrity, please wait..."), [&]() {
+        integrityOk = DatabaseManager::instance().checkIntegrity();
+    });
 
     if (!integrityOk) {
         staticQMessageBox::warning(this, tr("Compress Database"),
             tr("The database integrity check failed. Compression cannot proceed on a damaged database.\n\n"
                "Recommended actions:\n"
-               "  • Restore from a recent backup (File → Restore Profile)\n"
-               "  • Re-import data from your CPAP SD card"),
+               "  • Restore entire database from a recent system backup\n"
+               "  • Restore each profile from a recent backup (File → Restore Profile)\n"
+               "  • Re-import data from your CPAP SD card(s)\n\n"
+               "For advanced recovery options, see the OSCAR documentation."),
             QMessageBox::Ok);
         return;
     }
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-
-    // VACUUM cannot run inside a transaction; checkpointWAL first so
-    // all committed data is in the main file before VACUUM rewrites it.
+    // --- Step 2: Checkpoint WAL so all data is in the main file ---
     DatabaseManager::instance().checkpointWAL();
 
-    QSqlQuery query(DatabaseManager::instance().database());
-    bool ok = query.exec("VACUUM");
+    // --- Step 3: VACUUM INTO a new file (no WAL involvement, much lower memory) ---
+    QString tempPath = QFileInfo(dbPath).dir().filePath("oscar_new.db");
+    QFile::remove(tempPath);  // clean up any leftover from a previous failed attempt
 
-    // VACUUM writes the rebuilt database through the WAL; checkpoint again
-    // to merge it back into the main file before measuring the final size.
-    if (ok) {
-        DatabaseManager::instance().checkpointWAL();
-    }
+    bool vacuumOk = false;
+    QString vacuumError;
+    runWithWaitDialog(
+        tr("Compressing database, please wait...\n\n"
+           "This may take several minutes for large databases."),
+        [&]() {
+            QString connName = QString("OSCAR_VACUUM_%1")
+                                   .arg(quintptr(QThread::currentThread()));
+            {
+                QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connName);
+                db.setDatabaseName(dbPath);
+                if (db.open()) {
+                    QSqlQuery q(db);
+                    QString safePath = tempPath;
+                    safePath.replace("'", "''");
+                    vacuumOk = q.exec(QString("VACUUM INTO '%1'").arg(safePath));
+                    if (!vacuumOk)
+                        vacuumError = q.lastError().text();
+                    db.close();
+                } else {
+                    vacuumError = db.lastError().text();
+                }
+            }
+            QSqlDatabase::removeDatabase(connName);
+        });
 
-    QApplication::restoreOverrideCursor();
-
-    if (!ok) {
+    if (!vacuumOk) {
+        QFile::remove(tempPath);
         staticQMessageBox::warning(this, tr("Compress Database"),
-            tr("Database compression failed:\n%1").arg(query.lastError().text()),
+            tr("Database compression failed:\n%1").arg(vacuumError),
             QMessageBox::Ok);
         return;
     }
 
-    qint64 sizeAfter = dbSize();
+    qint64 sizeAfter = fileSize(tempPath);
+
+    // --- Step 4: Close profile and DB, swap files, restart ---
+    // Save window geometry before CloseProfile() shifts widget layout.
+    {
+        QSettings settings;
+        settings.beginGroup(QFileInfo(GetAppData()).fileName());
+        settings.setValue("MainWindow/geometry", saveGeometry());
+        if (!(windowState() & Qt::WindowMaximized))
+            settings.setValue("MainWindow/frameTopLeft", frameGeometry().topLeft());
+        settings.endGroup();
+    }
+
+    CloseProfile();
+    p_pref->Save();
+    DatabaseManager::markCleanShutdown(dbPath);
+    DatabaseManager::instance().close();
+
+    // WAL and SHM should be empty after the checkpoint; remove them so the
+    // renamed file starts with a clean slate.
+    QFile::remove(dbPath + "-wal");
+    QFile::remove(dbPath + "-shm");
+
+    // Rename original → .bak (keeps it recoverable if rename of new file fails).
+    QString bakPath = dbPath + ".bak";
+    QFile::remove(bakPath);
+    if (!QFile::rename(dbPath, bakPath)) {
+        DatabaseManager::instance().initialize(dbPath);
+        QFile::remove(tempPath);
+        staticQMessageBox::warning(this, tr("Compress Database"),
+            tr("Compression succeeded but the database file could not be replaced.\n\n"
+               "The original database is unchanged."),
+            QMessageBox::Ok);
+        return;
+    }
+
+    if (!QFile::rename(tempPath, dbPath)) {
+        QFile::rename(bakPath, dbPath);  // restore original
+        DatabaseManager::instance().initialize(dbPath);
+        staticQMessageBox::warning(this, tr("Compress Database"),
+            tr("Compression succeeded but the new file could not be put in place.\n\n"
+               "The original database has been restored."),
+            QMessageBox::Ok);
+        return;
+    }
+
+    QFile::remove(bakPath);
+
+    // --- Step 5: Report and restart ---
     qint64 reclaimed = sizeBefore - sizeAfter;
     QString msg;
     if (reclaimed > 0) {
-        msg = tr("Database compressed successfully.\n\nBefore: %1\nAfter:  %2\nReclaimed: %3")
-                .arg(QLocale().formattedDataSize(sizeBefore),
-                     QLocale().formattedDataSize(sizeAfter),
-                     QLocale().formattedDataSize(reclaimed));
+        msg = tr("Database compressed successfully.\n\n"
+                 "Before:    %1\n"
+                 "After:     %2\n"
+                 "Reclaimed: %3\n\n"
+                 "OSCAR will restart when you press OK.")
+                  .arg(QLocale().formattedDataSize(sizeBefore),
+                       QLocale().formattedDataSize(sizeAfter),
+                       QLocale().formattedDataSize(reclaimed));
     } else {
-        msg = tr("Database compressed successfully.\n\nSize: %1\n\n"
-                 "No space was reclaimed — the database was already compact.")
-                .arg(QLocale().formattedDataSize(sizeAfter));
+        msg = tr("Database compressed successfully.\n\n"
+                 "Size: %1\n\n"
+                 "No space was reclaimed — the database was already compact.\n\n"
+                 "OSCAR will restart when you press OK.")
+                  .arg(QLocale().formattedDataSize(sizeAfter));
     }
     staticQMessageBox::information(this, tr("Compress Database"), msg, QMessageBox::Ok);
+
+    QString apppath = QApplication::instance()->applicationFilePath();
+    QStringList args;
+    args << "-p";
+#ifdef Q_OS_MAC
+    apppath = QApplication::instance()->applicationDirPath().section("/", 0, -3);
+    QStringList macArgs;
+    macArgs << "-n" << apppath << "--args" << "-p";
+    QProcess::startDetached("/usr/bin/open", macArgs);
+#else
+    QProcess::startDetached(apppath, args);
+#endif
+    QApplication::instance()->exit();
 }
 
 void MainWindow::on_actionCreate_OSCAR_Data_zip_triggered()

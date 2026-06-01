@@ -47,6 +47,7 @@ qint64 RespiratoryEventsRepository::create(const RespiratoryEventData& data)
     if (!query.exec()) {
         qWarning() << "RespiratoryEventsRepository::create() - Failed to insert:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("RespiratoryEventsRepository::create", query);
         return -1;
     }
     
@@ -90,6 +91,7 @@ bool RespiratoryEventsRepository::createBatch(const QList<RespiratoryEventData>&
         if (!query.exec()) {
             qWarning() << "RespiratoryEventsRepository::createBatch() - Failed to insert event:"
                        << query.lastError().text();
+            DatabaseManager::instance().checkQueryError("RespiratoryEventsRepository::createBatch", query);
             return false;
         }
         
@@ -125,6 +127,7 @@ QList<RespiratoryEventData> RespiratoryEventsRepository::findBySession(qint64 se
     if (!query.exec()) {
         qWarning() << "RespiratoryEventsRepository::findBySession() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("RespiratoryEventsRepository::findBySession", query);
         return results;
     }
     
@@ -159,6 +162,7 @@ QList<RespiratoryEventData> RespiratoryEventsRepository::findByType(qint64 sessi
     if (!query.exec()) {
         qWarning() << "RespiratoryEventsRepository::findByType() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("RespiratoryEventsRepository::findByType", query);
         return results;
     }
     
@@ -196,6 +200,7 @@ QList<RespiratoryEventData> RespiratoryEventsRepository::findInTimeRange(
     if (!query.exec()) {
         qWarning() << "RespiratoryEventsRepository::findInTimeRange() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("RespiratoryEventsRepository::findInTimeRange", query);
         return results;
     }
     
@@ -221,6 +226,7 @@ bool RespiratoryEventsRepository::deleteBySession(qint64 sessionId)
     if (!query.exec()) {
         qWarning() << "RespiratoryEventsRepository::deleteBySession() - Failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("RespiratoryEventsRepository::deleteBySession", query);
         return false;
     }
     
@@ -249,6 +255,7 @@ QMap<int, int> RespiratoryEventsRepository::countByType(qint64 sessionId)
     if (!query.exec()) {
         qWarning() << "RespiratoryEventsRepository::countByType() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("RespiratoryEventsRepository::countByType", query);
         return counts;
     }
     

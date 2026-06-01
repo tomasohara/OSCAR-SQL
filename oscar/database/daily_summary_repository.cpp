@@ -79,6 +79,7 @@ qint64 DailySummaryRepository::create(const DailySummaryData& data)
     
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::create failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::create", query);
         return -1;
     }
     
@@ -100,6 +101,7 @@ bool DailySummaryRepository::remove(qint64 id)
     
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::remove failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::remove", query);
         return false;
     }
     
@@ -114,6 +116,7 @@ DailySummaryData DailySummaryRepository::findById(qint64 id)
     
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::findById failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::findById", query);
         return DailySummaryData();
     }
     
@@ -134,6 +137,7 @@ DailySummaryData DailySummaryRepository::findByProfileAndDate(qint64 profileId, 
 
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::findByProfileAndDate failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::findByProfileAndDate", query);
         return DailySummaryData();
     }
 
@@ -154,6 +158,7 @@ QList<DailySummaryData> DailySummaryRepository::findByProfile(qint64 profileId)
     
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::findByProfile failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::findByProfile", query);
         return summaries;
     }
     
@@ -177,6 +182,7 @@ QList<DailySummaryData> DailySummaryRepository::findRange(qint64 profileId, cons
 
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::findRange failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::findRange", query);
         return summaries;
     }
 
@@ -368,6 +374,7 @@ bool DailySummaryRepository::invalidateDate(qint64 profileId, const QDate& date)
     
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::invalidateDate failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::invalidateDate", query);
         return false;
     }
     
@@ -384,6 +391,7 @@ bool DailySummaryRepository::invalidateRange(qint64 profileId, const QDate& star
     
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::invalidateRange failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::invalidateRange", query);
         return false;
     }
     
@@ -400,6 +408,7 @@ bool DailySummaryRepository::exists(qint64 profileId, const QDate& date)
 
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::exists failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::exists", query);
         return false;
     }
 
@@ -420,6 +429,7 @@ int DailySummaryRepository::countDays(qint64 profileId, const QDate& startDate, 
     
     if (!query.exec()) {
         qWarning() << "DailySummaryRepository::countDays failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("DailySummaryRepository::countDays", query);
         return 0;
     }
     

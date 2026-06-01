@@ -54,6 +54,7 @@ qint64 ChannelRepository::create(const ChannelData& data)
     
     if (!query.exec()) {
         qWarning() << "ChannelRepository::create failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelRepository::create", query);
         return -1;
     }
     
@@ -93,9 +94,10 @@ bool ChannelRepository::update(const ChannelData& data)
     
     if (!query.exec()) {
         qWarning() << "ChannelRepository::update failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelRepository::update", query);
         return false;
     }
-    
+
     return query.numRowsAffected() > 0;
 }
 
@@ -107,9 +109,10 @@ bool ChannelRepository::remove(qint64 id)
     
     if (!query.exec()) {
         qWarning() << "ChannelRepository::remove failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelRepository::remove", query);
         return false;
     }
-    
+
     return query.numRowsAffected() > 0;
 }
 
@@ -121,6 +124,7 @@ ChannelData ChannelRepository::findById(qint64 id)
     
     if (!query.exec()) {
         qWarning() << "ChannelRepository::findById failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelRepository::findById", query);
         return ChannelData();
     }
     
@@ -141,6 +145,7 @@ QList<ChannelData> ChannelRepository::findByProfile(qint64 profileId)
     
     if (!query.exec()) {
         qWarning() << "ChannelRepository::findByProfile failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelRepository::findByProfile", query);
         return channels;
     }
     
@@ -160,6 +165,7 @@ ChannelData ChannelRepository::findByProfileAndChannelId(qint64 profileId, Chann
     
     if (!query.exec()) {
         qWarning() << "ChannelRepository::findByProfileAndChannelId failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelRepository::findByProfileAndChannelId", query);
         return ChannelData();
     }
     
@@ -225,6 +231,7 @@ bool ChannelRepository::deleteByProfile(qint64 profileId)
     
     if (!query.exec()) {
         qWarning() << "ChannelRepository::deleteByProfile failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelRepository::deleteByProfile", query);
         return false;
     }
     

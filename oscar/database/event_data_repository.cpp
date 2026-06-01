@@ -214,6 +214,7 @@ bool EventDataRepository::storeEventListData(qint64 eventlistId, EventList* even
         PERF_TIMER_STOP("EventDataRepository::DBInsert");
         qCritical() << "EventDataRepository: Failed to store event data:"
                     << m_insertQuery.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventDataRepository::storeEventListData", m_insertQuery);
         return false;
     }
     PERF_TIMER_STOP("EventDataRepository::DBInsert");
@@ -277,6 +278,7 @@ bool EventDataRepository::loadEventListData(qint64 eventlistId, EventList* event
     if (!query.exec()) {
         qCritical() << "EventDataRepository: Failed to load event data:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventDataRepository::loadEventListData", query);
         return false;
     }
     
@@ -357,6 +359,7 @@ bool EventDataRepository::deleteByEventList(qint64 eventlistId)
     if (!query.exec()) {
         qCritical() << "EventDataRepository: Failed to delete event_data:"
                     << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("EventDataRepository::deleteByEventList", query);
         return false;
     }
     

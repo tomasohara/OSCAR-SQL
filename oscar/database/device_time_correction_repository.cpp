@@ -55,6 +55,7 @@ qint64 DeviceTimeCorrectionRepository::create(const DeviceTimeCorrectionData& da
 
     if (!q.exec()) {
         qCritical() << "DeviceTimeCorrectionRepository::create failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DeviceTimeCorrectionRepository::create", q);
         return -1;
     }
     return q.lastInsertId().toLongLong();
@@ -75,6 +76,7 @@ QList<DeviceTimeCorrectionData> DeviceTimeCorrectionRepository::findActive(qint6
     QList<DeviceTimeCorrectionData> rows;
     if (!q.exec()) {
         qCritical() << "DeviceTimeCorrectionRepository::findActive failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DeviceTimeCorrectionRepository::findActive", q);
         return rows;
     }
     while (q.next()) {
@@ -111,6 +113,7 @@ qint64 DeviceTimeCorrectionRepository::upsertTyped(qint64 machineId, const QStri
     q.bindValue(":type",       type);
     if (!q.exec()) {
         qCritical() << "DeviceTimeCorrectionRepository::upsertTyped mark-undone failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DeviceTimeCorrectionRepository::upsertTyped", q);
         return -1;
     }
     if (offsetMs == 0) return 0;
@@ -138,6 +141,7 @@ bool DeviceTimeCorrectionRepository::updateDateTo(qint64 id, const QString& date
     q.bindValue(":id", id);
     if (!q.exec()) {
         qCritical() << "DeviceTimeCorrectionRepository::updateDateTo failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DeviceTimeCorrectionRepository::updateDateTo", q);
         return false;
     }
     return true;
@@ -155,6 +159,7 @@ bool DeviceTimeCorrectionRepository::markUndone(qint64 id)
     q.bindValue(":id", id);
     if (!q.exec()) {
         qCritical() << "DeviceTimeCorrectionRepository::markUndone failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DeviceTimeCorrectionRepository::markUndone", q);
         return false;
     }
     return true;
@@ -178,6 +183,7 @@ QList<DeviceTimeCorrectionData> DeviceTimeCorrectionRepository::findManualOffset
     QList<DeviceTimeCorrectionData> rows;
     if (!q.exec()) {
         qCritical() << "DeviceTimeCorrectionRepository::findManualOffsetRows failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("DeviceTimeCorrectionRepository::findManualOffsetRows", q);
         return rows;
     }
     while (q.next()) {

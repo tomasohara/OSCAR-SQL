@@ -83,6 +83,7 @@ qint64 MachineRepository::create(const MachineData& data)
     
     if (!query.exec()) {
         qWarning() << "MachineRepository::create() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::create", query);
         return -1;
     }
     
@@ -116,6 +117,7 @@ MachineData MachineRepository::findById(qint64 id)
     
     if (!query.exec()) {
         qWarning() << "MachineRepository::findById() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::findById", query);
         return MachineData();
     }
     
@@ -151,6 +153,7 @@ MachineData MachineRepository::findByProfileAndMachineId(qint64 profileId, qint6
     
     if (!query.exec()) {
         qWarning() << "MachineRepository::findByProfileAndMachineId() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::findByProfileAndMachineId", query);
         return MachineData();
     }
     
@@ -186,6 +189,7 @@ MachineData MachineRepository::findBySerialAndLoader(const QString& serialNumber
     
     if (!query.exec()) {
         qWarning() << "MachineRepository::findBySerialAndLoader() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::findBySerialAndLoader", query);
         return MachineData();
     }
     
@@ -229,6 +233,7 @@ MachineData MachineRepository::findBySerialLoaderAndProfile(const QString& seria
     
     if (!query.exec()) {
         qWarning() << "MachineRepository::findBySerialLoaderAndProfile() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::findBySerialLoaderAndProfile", query);
         return MachineData();
     }
     
@@ -265,6 +270,7 @@ QList<MachineData> MachineRepository::findByProfile(qint64 profileId)
     
     if (!query.exec()) {
         qWarning() << "MachineRepository::findByProfile() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::findByProfile", query);
         return machines;
     }
     
@@ -295,6 +301,7 @@ QList<MachineData> MachineRepository::findAll()
         "FROM machines ORDER BY profile_id, brand, model"
     )) {
         qWarning() << "MachineRepository::findAll() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::findAll", query);
         return machines;
     }
     
@@ -355,9 +362,10 @@ bool MachineRepository::update(const MachineData& data)
     
     if (!query.exec()) {
         qWarning() << "MachineRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::update", query);
         return false;
     }
-    
+
     if (query.numRowsAffected() == 0) {
         qWarning() << "MachineRepository::update() - no machine found with id" << data.id;
         return false;
@@ -389,9 +397,10 @@ bool MachineRepository::remove(qint64 id)
     
     if (!query.exec()) {
         qWarning() << "MachineRepository::remove() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::remove", query);
         return false;
     }
-    
+
     if (query.numRowsAffected() == 0) {
         qWarning() << "MachineRepository::remove() - no machine found with id" << id;
         return false;
@@ -424,6 +433,7 @@ bool MachineRepository::exists(qint64 profileId, qint64 machineId)
     
     if (!query.exec()) {
         qWarning() << "MachineRepository::exists() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("MachineRepository::exists", query);
         return false;
     }
     
@@ -449,14 +459,16 @@ int MachineRepository::count(qint64 profileId)
     if (profileId == 0) {
         if (!query.exec("SELECT COUNT(*) FROM machines")) {
             qWarning() << "MachineRepository::count() failed:" << query.lastError().text();
+            DatabaseManager::instance().checkQueryError("MachineRepository::count", query);
             return 0;
         }
     } else {
         query.prepare("SELECT COUNT(*) FROM machines WHERE profile_id = :profile_id");
         query.bindValue(":profile_id", profileId);
-        
+
         if (!query.exec()) {
             qWarning() << "MachineRepository::count() failed:" << query.lastError().text();
+            DatabaseManager::instance().checkQueryError("MachineRepository::count", query);
             return 0;
         }
     }

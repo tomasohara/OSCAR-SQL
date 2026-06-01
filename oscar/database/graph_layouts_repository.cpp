@@ -46,6 +46,7 @@ bool GraphLayoutsRepository::saveCurrentLayout(qint64 profileId, const QString& 
 
     if (!q.exec()) {
         qWarning() << "GraphLayoutsRepository::saveCurrentLayout() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("GraphLayoutsRepository::saveCurrentLayout", q);
         return false;
     }
     return true;
@@ -70,6 +71,7 @@ bool GraphLayoutsRepository::loadCurrentLayout(qint64 profileId, const QString& 
 
     if (!q.exec()) {
         qWarning() << "GraphLayoutsRepository::loadCurrentLayout() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("GraphLayoutsRepository::loadCurrentLayout", q);
         return false;
     }
 
@@ -100,6 +102,7 @@ bool GraphLayoutsRepository::deleteCurrentLayout(qint64 profileId, const QString
     q.addBindValue(viewName.toLower());
     if (!q.exec()) {
         qWarning() << "GraphLayoutsRepository::deleteCurrentLayout() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("GraphLayoutsRepository::deleteCurrentLayout", q);
         return false;
     }
     return true;
@@ -138,6 +141,7 @@ bool GraphLayoutsRepository::saveNamedLayout(const QString& viewName, int slotIn
 
     if (!q.exec()) {
         qWarning() << "GraphLayoutsRepository::saveNamedLayout() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("GraphLayoutsRepository::saveNamedLayout", q);
         return false;
     }
     return true;
@@ -162,6 +166,7 @@ bool GraphLayoutsRepository::loadNamedLayout(const QString& viewName, int slotIn
 
     if (!q.exec()) {
         qWarning() << "GraphLayoutsRepository::loadNamedLayout() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("GraphLayoutsRepository::loadNamedLayout", q);
         return false;
     }
     if (!q.next()) return false;
@@ -191,6 +196,7 @@ bool GraphLayoutsRepository::deleteNamedLayout(const QString& viewName, int slot
     q.addBindValue(slotIndex);
     if (!q.exec()) {
         qWarning() << "GraphLayoutsRepository::deleteNamedLayout() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("GraphLayoutsRepository::deleteNamedLayout", q);
         return false;
     }
     return true;
@@ -212,6 +218,7 @@ bool GraphLayoutsRepository::updateNamedLayoutDescription(const QString& viewNam
     q.addBindValue(slotIndex);
     if (!q.exec()) {
         qWarning() << "GraphLayoutsRepository::updateNamedLayoutDescription() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("GraphLayoutsRepository::updateNamedLayoutDescription", q);
         return false;
     }
     return true;
@@ -232,6 +239,7 @@ QList<GraphLayoutData> GraphLayoutsRepository::loadAllNamedLayouts(const QString
 
     if (!q.exec()) {
         qWarning() << "GraphLayoutsRepository::loadAllNamedLayouts() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("GraphLayoutsRepository::loadAllNamedLayouts", q);
         return result;
     }
 

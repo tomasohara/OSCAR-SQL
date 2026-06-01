@@ -66,6 +66,7 @@ qint64 SessionSummariesRepository::create(const SessionSummaryData& data)
 
     if (!query.exec()) {
         qWarning() << "SessionSummariesRepository::create() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSummariesRepository::create", query);
         return -1;
     }
 
@@ -114,6 +115,7 @@ bool SessionSummariesRepository::update(const SessionSummaryData& data)
 
     if (!query.exec()) {
         qWarning() << "SessionSummariesRepository::update() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSummariesRepository::update", query);
         return false;
     }
 
@@ -142,6 +144,7 @@ SessionSummaryData SessionSummariesRepository::findBySession(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionSummariesRepository::findBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSummariesRepository::findBySession", query);
         return data;
     }
 
@@ -188,6 +191,7 @@ bool SessionSummariesRepository::remove(qint64 id)
 
     if (!query.exec()) {
         qWarning() << "SessionSummariesRepository::remove() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSummariesRepository::remove", query);
         return false;
     }
 
@@ -208,6 +212,7 @@ bool SessionSummariesRepository::removeBySession(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionSummariesRepository::removeBySession() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSummariesRepository::removeBySession", query);
         return false;
     }
 
@@ -228,6 +233,7 @@ bool SessionSummariesRepository::exists(qint64 sessionId)
 
     if (!query.exec()) {
         qWarning() << "SessionSummariesRepository::exists() failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("SessionSummariesRepository::exists", query);
         return false;
     }
 

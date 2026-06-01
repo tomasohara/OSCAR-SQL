@@ -43,8 +43,9 @@ qint64 ReportContentsRepository::create(const ReportContentData& content)
     query.bindValue(":is_system", content.isSystem ? 1 : 0);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::create() - Failed to create content:" 
+        qWarning() << "ReportContentsRepository::create() - Failed to create content:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::create", query);
         return 0;
     }
     
@@ -77,8 +78,9 @@ bool ReportContentsRepository::update(const ReportContentData& content)
     query.bindValue(":is_system", content.isSystem ? 1 : 0);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::update() - Failed to update content:" 
+        qWarning() << "ReportContentsRepository::update() - Failed to update content:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::update", query);
         return false;
     }
     
@@ -100,8 +102,9 @@ bool ReportContentsRepository::remove(qint64 id)
     query.bindValue(":id", id);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::remove() - Failed to delete content:" 
+        qWarning() << "ReportContentsRepository::remove() - Failed to delete content:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::remove", query);
         return false;
     }
     
@@ -121,8 +124,9 @@ ReportContentData ReportContentsRepository::findById(qint64 id)
     query.bindValue(":id", id);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::findById() - Query failed:" 
+        qWarning() << "ReportContentsRepository::findById() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::findById", query);
         return ReportContentData();
     }
     
@@ -157,8 +161,9 @@ QList<ReportContentData> ReportContentsRepository::findByReportId(qint64 reportI
     query.bindValue(":report_id", reportId);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::findByReportId() - Query failed:" 
+        qWarning() << "ReportContentsRepository::findByReportId() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::findByReportId", query);
         return contents;
     }
     
@@ -195,8 +200,9 @@ QList<ReportContentData> ReportContentsRepository::findByReportIdOrdered(qint64 
     query.bindValue(":report_id", reportId);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::findByReportIdOrdered() - Query failed:" 
+        qWarning() << "ReportContentsRepository::findByReportIdOrdered() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::findByReportIdOrdered", query);
         return contents;
     }
     
@@ -231,8 +237,9 @@ ReportContentData ReportContentsRepository::findByReportIdAndVariety(qint64 repo
     query.bindValue(":variety", variety);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::findByReportIdAndVariety() - Query failed:" 
+        qWarning() << "ReportContentsRepository::findByReportIdAndVariety() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::findByReportIdAndVariety", query);
         return ReportContentData();
     }
     
@@ -266,8 +273,9 @@ bool ReportContentsRepository::exists(qint64 reportId, const QString& variety)
     query.bindValue(":variety", variety);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::exists() - Query failed:" 
+        qWarning() << "ReportContentsRepository::exists() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::exists", query);
         return false;
     }
     
@@ -287,8 +295,9 @@ bool ReportContentsRepository::isSystemContent(qint64 id)
     query.bindValue(":id", id);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::isSystemContent() - Query failed:" 
+        qWarning() << "ReportContentsRepository::isSystemContent() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::isSystemContent", query);
         return false;
     }
     
@@ -308,8 +317,9 @@ int ReportContentsRepository::getContentCount(qint64 reportId)
     query.bindValue(":report_id", reportId);
     
     if (!query.exec()) {
-        qWarning() << "ReportContentsRepository::getContentCount() - Query failed:" 
+        qWarning() << "ReportContentsRepository::getContentCount() - Query failed:"
                    << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ReportContentsRepository::getContentCount", query);
         return 0;
     }
     

@@ -139,6 +139,18 @@ public:
     bool checkIntegrity();
 
     /*!
+     * \brief Check a failed query for SQLite corruption or I/O errors
+     * \param context  Human-readable caller identifier (e.g. "SessionRepository::save")
+     * \param query    The query whose lastError() will be inspected
+     * \return true if a corruption or I/O error was detected
+     *
+     * If the error's primary SQLite code is SQLITE_CORRUPT (11) or SQLITE_IOERR (10),
+     * emits databaseError() with recovery guidance. Only emits once per session to
+     * avoid stacking multiple dialogs when a corruption causes a cascade of failures.
+     */
+    bool checkQueryError(const QString& context, const QSqlQuery& query);
+
+    /*!
      * \brief Write the clean-shutdown flag for the given database path to QSettings
      * \param dbPath Full path to the database file
      *
@@ -181,6 +193,7 @@ private:
     QString m_databasePath;
     bool m_initialized;
     bool m_inTransaction;
+    bool m_corruptionReported;
     mutable QMutex m_mutex;
 };
 

@@ -88,6 +88,7 @@ bool AppPreferencesRepository::save(const QString& category, const QString& key,
 
     if (!q.exec()) {
         qWarning() << "AppPreferencesRepository::save() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("AppPreferencesRepository::save", q);
         return false;
     }
     return true;
@@ -115,6 +116,7 @@ bool AppPreferencesRepository::saveBlob(const QString& category, const QString& 
 
     if (!q.exec()) {
         qWarning() << "AppPreferencesRepository::saveBlob() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("AppPreferencesRepository::saveBlob", q);
         return false;
     }
     return true;
@@ -134,6 +136,7 @@ QList<AppPrefData> AppPreferencesRepository::loadByCategory(const QString& categ
     q.addBindValue(category);
     if (!q.exec()) {
         qWarning() << "AppPreferencesRepository::loadByCategory() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("AppPreferencesRepository::loadByCategory", q);
         return result;
     }
 
@@ -159,6 +162,7 @@ QList<AppPrefData> AppPreferencesRepository::loadAll()
     QSqlQuery q(db);
     if (!q.exec("SELECT id, category, key, value, blob_value, data_type FROM app_preferences")) {
         qWarning() << "AppPreferencesRepository::loadAll() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("AppPreferencesRepository::loadAll", q);
         return result;
     }
 
@@ -186,6 +190,7 @@ bool AppPreferencesRepository::remove(const QString& category, const QString& ke
     q.addBindValue(key);
     if (!q.exec()) {
         qWarning() << "AppPreferencesRepository::remove() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("AppPreferencesRepository::remove", q);
         return false;
     }
     return true;
@@ -201,6 +206,7 @@ bool AppPreferencesRepository::removeCategory(const QString& category)
     q.addBindValue(category);
     if (!q.exec()) {
         qWarning() << "AppPreferencesRepository::removeCategory() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("AppPreferencesRepository::removeCategory", q);
         return false;
     }
     return true;
@@ -214,6 +220,7 @@ bool AppPreferencesRepository::removeAll()
     QSqlQuery q(db);
     if (!q.exec("DELETE FROM app_preferences")) {
         qWarning() << "AppPreferencesRepository::removeAll() failed:" << q.lastError().text();
+        DatabaseManager::instance().checkQueryError("AppPreferencesRepository::removeAll", q);
         return false;
     }
     return true;

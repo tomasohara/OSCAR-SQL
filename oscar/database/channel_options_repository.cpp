@@ -38,6 +38,7 @@ qint64 ChannelOptionsRepository::create(const ChannelOptionData& data)
     
     if (!query.exec()) {
         qWarning() << "ChannelOptionsRepository::create failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelOptionsRepository::create", query);
         return -1;
     }
     
@@ -61,9 +62,10 @@ bool ChannelOptionsRepository::update(const ChannelOptionData& data)
     
     if (!query.exec()) {
         qWarning() << "ChannelOptionsRepository::update failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelOptionsRepository::update", query);
         return false;
     }
-    
+
     return query.numRowsAffected() > 0;
 }
 
@@ -75,9 +77,10 @@ bool ChannelOptionsRepository::remove(qint64 id)
     
     if (!query.exec()) {
         qWarning() << "ChannelOptionsRepository::remove failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelOptionsRepository::remove", query);
         return false;
     }
-    
+
     return query.numRowsAffected() > 0;
 }
 
@@ -89,6 +92,7 @@ ChannelOptionData ChannelOptionsRepository::findById(qint64 id)
     
     if (!query.exec()) {
         qWarning() << "ChannelOptionsRepository::findById failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelOptionsRepository::findById", query);
         return ChannelOptionData();
     }
     
@@ -109,6 +113,7 @@ QList<ChannelOptionData> ChannelOptionsRepository::findByChannel(ChannelID chann
     
     if (!query.exec()) {
         qWarning() << "ChannelOptionsRepository::findByChannel failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelOptionsRepository::findByChannel", query);
         return options;
     }
     
@@ -128,6 +133,7 @@ ChannelOptionData ChannelOptionsRepository::findByChannelAndKey(ChannelID channe
     
     if (!query.exec()) {
         qWarning() << "ChannelOptionsRepository::findByChannelAndKey failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelOptionsRepository::findByChannelAndKey", query);
         return ChannelOptionData();
     }
     
@@ -177,6 +183,7 @@ bool ChannelOptionsRepository::saveBatch(ChannelID channelId, const QHash<int, Q
         
         if (!query.exec()) {
             qWarning() << "ChannelOptionsRepository::saveBatch failed:" << query.lastError().text();
+            DatabaseManager::instance().checkQueryError("ChannelOptionsRepository::saveBatch", query);
             success = false;
             break;
         }
@@ -204,6 +211,7 @@ bool ChannelOptionsRepository::deleteByChannel(ChannelID channelId)
     
     if (!query.exec()) {
         qWarning() << "ChannelOptionsRepository::deleteByChannel failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelOptionsRepository::deleteByChannel", query);
         return false;
     }
     
@@ -218,6 +226,7 @@ bool ChannelOptionsRepository::hasOptions(ChannelID channelId)
     
     if (!query.exec()) {
         qWarning() << "ChannelOptionsRepository::hasOptions failed:" << query.lastError().text();
+        DatabaseManager::instance().checkQueryError("ChannelOptionsRepository::hasOptions", query);
         return false;
     }
     
