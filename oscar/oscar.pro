@@ -205,6 +205,9 @@ macx  {
 }
 
 TRANSLATIONS = $$files($$PWD/../Translations/*.ts)
+# EXTRA_TRANSLATIONS are compiled by lrelease but excluded from lupdate scanning.
+# The qt/ files are pre-translated Qt-internal strings that must not be modified by lupdate.
+EXTRA_TRANSLATIONS = $$files($$PWD/../Translations/qt/*.ts)
 
 # qtPrepareTool(LRELEASE, lrelease)
 LRELEASE = $$[QT_INSTALL_BINS]/lrelease
