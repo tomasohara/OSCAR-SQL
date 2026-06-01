@@ -205,7 +205,6 @@ macx  {
 }
 
 TRANSLATIONS = $$files($$PWD/../Translations/*.ts)
-TRANSLATIONS += $$files($$PWD/../Translations/qt/*.ts)
 
 # qtPrepareTool(LRELEASE, lrelease)
 LRELEASE = $$[QT_INSTALL_BINS]/lrelease
