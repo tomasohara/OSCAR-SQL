@@ -3896,10 +3896,10 @@ For advanced recovery options, see the OSCAR documentation.</source>
         <location filename="../oscar/mainwindow.cpp" line="3829"/>
         <location filename="../oscar/mainwindow.cpp" line="3844"/>
         <location filename="../oscar/mainwindow.cpp" line="3875"/>
-        <location filename="../oscar/mainwindow.cpp" line="3919"/>
-        <location filename="../oscar/mainwindow.cpp" line="3954"/>
-        <location filename="../oscar/mainwindow.cpp" line="3964"/>
-        <location filename="../oscar/mainwindow.cpp" line="3992"/>
+        <location filename="../oscar/mainwindow.cpp" line="3921"/>
+        <location filename="../oscar/mainwindow.cpp" line="3956"/>
+        <location filename="../oscar/mainwindow.cpp" line="3966"/>
+        <location filename="../oscar/mainwindow.cpp" line="3994"/>
         <source>Compress Database</source>
         <translation>Comprimir base de datos</translation>
     </message>
@@ -3919,33 +3919,36 @@ Continue?</source>
         <source>The database integrity check failed. Compression cannot proceed on a damaged database.
 
 Recommended actions:
-  • Restore from a recent backup (File → Restore Profile)
-  • Re-import data from your CPAP SD card</source>
+  • Restore entire database from a recent system backup
+  • Restore each profile from a recent backup (File → Restore Profile)
+  • Re-import data from your CPAP SD card(s)
+
+For advanced recovery options, see the OSCAR documentation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3894"/>
+        <location filename="../oscar/mainwindow.cpp" line="3896"/>
         <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3955"/>
+        <location filename="../oscar/mainwindow.cpp" line="3957"/>
         <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3965"/>
+        <location filename="../oscar/mainwindow.cpp" line="3967"/>
         <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3977"/>
+        <location filename="../oscar/mainwindow.cpp" line="3979"/>
         <source>Database compressed successfully.
 
 Before:    %1
@@ -3956,7 +3959,7 @@ OSCAR will restart when you press OK.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3986"/>
+        <location filename="../oscar/mainwindow.cpp" line="3988"/>
         <source>Database compressed successfully.
 
 Size: %1
@@ -3975,7 +3978,7 @@ This may take several minutes. Continue?</source>
         <translation type="vanished">Esto compactará la base de datos para recuperar espacio en disco no utilizado. Es más útil después de eliminar perfiles.\n\nTamaño actual de la base de datos: %1\n\nEsto puede tardar varios minutos. ¿Continuar?</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3920"/>
+        <location filename="../oscar/mainwindow.cpp" line="3922"/>
         <source>Database compression failed:
 %1</source>
         <translation>La compresión de la base de datos falló:\n%1</translation>
@@ -3997,17 +4000,17 @@ No space was reclaimed — the database was already compact.</source>
         <translation type="vanished">Base de datos comprimida correctamente.\n\nTamaño: %1\n\nNo se recuperó espacio — la base de datos ya estaba compacta.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="4033"/>
+        <location filename="../oscar/mainwindow.cpp" line="4035"/>
         <source>Unable to create zip: the database is locked by another process.</source>
         <translation>No se puede crear el archivo zip: la base de datos está bloqueada por otro proceso.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="4042"/>
+        <location filename="../oscar/mainwindow.cpp" line="4044"/>
         <source>Creating %1.zip...</source>
         <translation>Creando %1.zip...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="4079"/>
+        <location filename="../oscar/mainwindow.cpp" line="4081"/>
         <source>Reporting issues is not yet implemented</source>
         <translation>El reporte de problemas aún no está implementado</translation>
     </message>
@@ -4233,14 +4236,14 @@ No space was reclaimed — the database was already compact.</source>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3654"/>
         <location filename="../oscar/mainwindow.cpp" line="3727"/>
-        <location filename="../oscar/mainwindow.cpp" line="4017"/>
+        <location filename="../oscar/mainwindow.cpp" line="4019"/>
         <source>Choose where to save zip</source>
         <translation>Elija dónde guardar el zip</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3654"/>
         <location filename="../oscar/mainwindow.cpp" line="3727"/>
-        <location filename="../oscar/mainwindow.cpp" line="4017"/>
+        <location filename="../oscar/mainwindow.cpp" line="4019"/>
         <source>ZIP files (*.zip)</source>
         <translation>Archivos ZIP (*.zip)</translation>
     </message>
@@ -4257,7 +4260,7 @@ No space was reclaimed — the database was already compact.</source>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="1535"/>
-        <location filename="../oscar/mainwindow.cpp" line="4093"/>
+        <location filename="../oscar/mainwindow.cpp" line="4095"/>
         <source>OSCAR Information</source>
         <translation>Información de OSCAR</translation>
     </message>
@@ -10363,40 +10366,27 @@ Cleaning up, please wait...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="922"/>
-        <source>OSCAR detected that the previous session ended unexpectedly, and the database integrity check found problems.
-
-Some data may be missing or corrupted.
-
-Recommended actions:
-  • Restore from a recent backup (File → Restore Profile)
-  • Re-import data from your CPAP SD card
-
-You may continue, but some data may be incomplete or incorrect.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../oscar/main.cpp" line="980"/>
+        <location filename="../oscar/main.cpp" line="982"/>
         <source>Migrate Data from OSCAR 1.x?</source>
         <translation>¿Migrar datos desde OSCAR 1.x?</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="981"/>
+        <location filename="../oscar/main.cpp" line="983"/>
         <source>On the next screen OSCAR will ask you to select a folder with OSCAR 1.x data</source>
         <translation>En la siguiente pantalla, OSCAR le pedirá que seleccione una carpeta con datos de OSCAR 1.x</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="982"/>
+        <location filename="../oscar/main.cpp" line="984"/>
         <source>Click [OK] to go to the next screen or [No] if you do not wish to use any OSCAR 1.x data.</source>
         <translation>Haga clic en [OK] para ir a la siguiente pantalla o [No] si no desea usar ningún dato de OSCAR 1.x.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="1026"/>
+        <location filename="../oscar/main.cpp" line="1028"/>
         <source>Version &quot;%1&quot; is invalid, cannot continue!</source>
         <translation>La versión &quot;%1&quot; no es válida, ¡no se puede continuar!</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="1035"/>
+        <location filename="../oscar/main.cpp" line="1037"/>
         <source>The version of OSCAR you are running (%1) is OLDER than the one used to create this data (%2).</source>
         <translation>La versión de OSCAR que está ejecutando (%1) es MÁS ANTIGUA que la utilizada para crear estos datos (%2).</translation>
     </message>
@@ -10426,7 +10416,23 @@ You may continue, but some data may be incomplete or incorrect.</source>
         <translation>Directorio de datos:</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="1039"/>
+        <location filename="../oscar/main.cpp" line="922"/>
+        <source>OSCAR detected that the previous session ended unexpectedly, and the database integrity check found problems.
+
+Some data may be missing or corrupted.
+
+Recommended actions:
+  • Restore entire database from a recent system backup
+  • Restore each profile from a recent backup (File → Restore Profile)
+  • Re-import data from your CPAP SD card(s)
+
+For advanced recovery options, see the OSCAR documentation.
+
+You may continue, but some data may be incomplete or incorrect.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/main.cpp" line="1041"/>
         <source>It is likely that doing this will cause data corruption, are you sure you want to do this?</source>
         <translation>Es probable que hacer esto cause corrupción de datos, ¿está seguro de que desea hacerlo?</translation>
     </message>
@@ -10496,7 +10502,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3713"/>
         <location filename="../oscar/mainwindow.cpp" line="3765"/>
-        <location filename="../oscar/mainwindow.cpp" line="4068"/>
+        <location filename="../oscar/mainwindow.cpp" line="4070"/>
         <source>Unable to create zip!</source>
         <translation>¡No se pudo crear el zip!</translation>
     </message>

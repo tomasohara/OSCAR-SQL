@@ -1559,6 +1559,20 @@ Some files may still be present.</source>
     </message>
 </context>
 <context>
+    <name>DatabaseManager</name>
+    <message>
+        <location filename="../oscar/database/database_manager.cpp" line="403"/>
+        <source>A database corruption or I/O error was detected in %1.
+
+Error: %2
+
+Recommended actions:
+  • Run Help → Troubleshooting → Check Database Integrity
+  • Restore from a recent backup if problems are found</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>DateErrorDisplay</name>
     <message>
         <location filename="../oscar/overview.cpp" line="832"/>
@@ -2829,13 +2843,10 @@ Möchten Sie fortfahren?</translation>
         <source>No journal notes found in this date range.</source>
         <translation type="unfinished"></translation>
     </message>
-    <message numerus="yes">
+    <message>
         <location filename="../oscar/exports/journalnotesdialog.cpp" line="127"/>
-        <source>Exported notes for %n day(s).</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-        </translation>
+        <source>Exported notes for %1 day(s).</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../oscar/exports/journalnotesdialog.cpp" line="130"/>
@@ -2884,8 +2895,8 @@ Möchten Sie fortfahren?</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2299"/>
-        <location filename="../oscar/mainwindow.cpp" line="216"/>
+        <location filename="../oscar/mainwindow.ui" line="2300"/>
+        <location filename="../oscar/mainwindow.cpp" line="219"/>
         <source>Exit</source>
         <translation>Beenden</translation>
     </message>
@@ -2896,12 +2907,12 @@ Möchten Sie fortfahren?</translation>
         <translation>Hilfe</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1197"/>
+        <location filename="../oscar/mainwindow.cpp" line="1200"/>
         <source>Please insert your CPAP data card...</source>
         <translation>Bitte benutzen Sie Ihre CPAP-Datenkarte...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2579"/>
+        <location filename="../oscar/mainwindow.ui" line="2580"/>
         <source>Daily Calendar</source>
         <translation>Kalender täglich</translation>
     </message>
@@ -2939,32 +2950,32 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">Import &amp;ZEO Daten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2873"/>
+        <location filename="../oscar/mainwindow.cpp" line="2876"/>
         <source>MSeries Import complete</source>
         <translation>M-Serie komplett Importiert</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1977"/>
+        <location filename="../oscar/mainwindow.cpp" line="1980"/>
         <source>There was an error saving screenshot to file &quot;%1&quot;</source>
         <translation>Es gab einen Fehler beim Speichern des Screenshot in eine Datei &quot;%1&quot;</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="213"/>
+        <location filename="../oscar/mainwindow.cpp" line="216"/>
         <source>About</source>
         <translation>Über</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="393"/>
+        <location filename="../oscar/mainwindow.cpp" line="396"/>
         <source>CSV Export Wizard...</source>
         <translation>CSV-Export-Assistent...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="728"/>
+        <location filename="../oscar/mainwindow.cpp" line="731"/>
         <source>Finishing profile &quot;%1&quot;</source>
         <translation>Finishing-Profil &quot;%1&quot;</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1013"/>
+        <location filename="../oscar/mainwindow.cpp" line="1016"/>
         <source>Couldn&apos;t find any valid Device Data at
 
 %1</source>
@@ -2973,17 +2984,17 @@ Möchten Sie fortfahren?</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1204"/>
+        <location filename="../oscar/mainwindow.cpp" line="1207"/>
         <source>Choose a folder</source>
         <translation>Wählen Sie einen Ordner</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1399"/>
+        <location filename="../oscar/mainwindow.cpp" line="1402"/>
         <source>A %1 file structure for a %2 was located at:</source>
         <translation>Eine%1 Dateistruktur für eine %2 wurde in:</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1555"/>
+        <location filename="../oscar/mainwindow.cpp" line="1558"/>
         <source>Importing Data</source>
         <translation>Importieren von Daten</translation>
     </message>
@@ -2996,17 +3007,17 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">&amp;Willkommensansicht</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2627"/>
+        <location filename="../oscar/mainwindow.ui" line="2628"/>
         <source>Show Performance Information</source>
         <translation>Anzeige der Performance- Informationen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2869"/>
+        <location filename="../oscar/mainwindow.cpp" line="2872"/>
         <source>There was a problem opening MSeries block File: </source>
         <translation>Es gab ein Problem beim Öffnen einer M-Serie Block-Datei: </translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2530"/>
+        <location filename="../oscar/mainwindow.ui" line="2531"/>
         <source>Current Days</source>
         <translation>Aktueller Tag</translation>
     </message>
@@ -3023,7 +3034,7 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">&amp;Übersichtsansicht</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1774"/>
+        <location filename="../oscar/mainwindow.cpp" line="1777"/>
         <source>Access to Preferences has been blocked until recalculation completes.</source>
         <translation>Zugriff auf Einstellungen wurde blockiert, bis die Neuberechnung abgeschlossen ist.</translation>
     </message>
@@ -3032,12 +3043,12 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">Import REMSTAR &amp;M-Serie Daten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2562"/>
+        <location filename="../oscar/mainwindow.ui" line="2563"/>
         <source>Daily Sidebar</source>
         <translation>Randleiste täglich</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2560"/>
+        <location filename="../oscar/mainwindow.cpp" line="2563"/>
         <source>Note as a precaution, the backup folder will be left in place.</source>
         <translation>Als Vorsichtsmaßnahme werden die Backup Ordner an Ort und Stelle belassen.</translation>
     </message>
@@ -3046,17 +3057,17 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">&amp;Benutzer ändern</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3540"/>
+        <location filename="../oscar/mainwindow.cpp" line="3549"/>
         <source>%1&apos;s Journal</source>
         <translation>%1&apos;s Journal</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1013"/>
+        <location filename="../oscar/mainwindow.cpp" line="1016"/>
         <source>Import Problem</source>
         <translation>Importproblem</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3410"/>
+        <location filename="../oscar/mainwindow.cpp" line="3419"/>
         <source>&lt;b&gt;Please be aware you can not undo this operation!&lt;/b&gt;</source>
         <translation>&lt;b&gt;Bitte beachten Sie, dass Sie diesen Vorgang nicht rückgängig machen können!&lt;/b&gt;</translation>
     </message>
@@ -3079,23 +3090,23 @@ Möchten Sie fortfahren?</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="1197"/>
-        <location filename="../oscar/mainwindow.cpp" line="1286"/>
+        <location filename="../oscar/mainwindow.cpp" line="1289"/>
         <source>Import</source>
         <translation>Import</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2510"/>
+        <location filename="../oscar/mainwindow.cpp" line="2513"/>
         <source>Because there are no internal backups to rebuild from, you will have to restore from your own.</source>
         <translation>Es existiert keine interne Datensicherung. Sie müssen Ihre eigene verwenden.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1083"/>
-        <location filename="../oscar/mainwindow.cpp" line="2507"/>
+        <location filename="../oscar/mainwindow.cpp" line="1086"/>
+        <location filename="../oscar/mainwindow.cpp" line="2510"/>
         <source>Please wait, importing from backup folder(s)...</source>
         <translation>Bitte warten, Import von Backup-Ordner (n)...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3401"/>
+        <location filename="../oscar/mainwindow.cpp" line="3410"/>
         <source>Are you sure you want to delete oximetry data for %1</source>
         <translation>Sind Sie sicher, dass Sie die Oxymetriedaten löschen möchten %1</translation>
     </message>
@@ -3113,28 +3124,28 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">&amp;Seitenleiste rechts</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2231"/>
+        <location filename="../oscar/mainwindow.ui" line="2232"/>
         <source>Rebuild CPAP Data</source>
         <translation>Wiederherstellung der CPAP Daten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3515"/>
-        <location filename="../oscar/mainwindow.cpp" line="3542"/>
+        <location filename="../oscar/mainwindow.cpp" line="3524"/>
+        <location filename="../oscar/mainwindow.cpp" line="3551"/>
         <source>XML Files (*.xml)</source>
         <translation>XML Datei (*.xml)</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2049"/>
+        <location filename="../oscar/mainwindow.cpp" line="2052"/>
         <source>The FAQ is not yet implemented</source>
         <translation>Die FAQ ist noch nicht implementiert</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3613"/>
+        <location filename="../oscar/mainwindow.cpp" line="3622"/>
         <source>Export review is not yet implemented</source>
         <translation>Die Exportprüfung ist noch nicht implementiert</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2681"/>
+        <location filename="../oscar/mainwindow.ui" line="2687"/>
         <source>Report an Issue</source>
         <translation>Ein Problem melden</translation>
     </message>
@@ -3179,303 +3190,308 @@ Möchten Sie fortfahren?</translation>
         <translation>Diagramme zurücksetzen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2192"/>
+        <location filename="../oscar/mainwindow.ui" line="2193"/>
         <source>Data</source>
         <translatorcomment>Daten</translatorcomment>
         <translation>Daten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2196"/>
+        <location filename="../oscar/mainwindow.ui" line="2197"/>
         <source>Advanced</source>
         <translation>Fortschrittlich</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2257"/>
+        <location filename="../oscar/mainwindow.ui" line="2258"/>
         <source>Time Corrections...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2260"/>
+        <location filename="../oscar/mainwindow.ui" line="2261"/>
         <source>Adjust device clock errors (timezone, travel, DST, reset)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2265"/>
+        <location filename="../oscar/mainwindow.ui" line="2266"/>
         <source>Drift Analysis...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2268"/>
+        <location filename="../oscar/mainwindow.ui" line="2269"/>
         <source>Analyse and model clock drift over time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2273"/>
+        <location filename="../oscar/mainwindow.ui" line="2274"/>
         <source>Import CPAP Card Data</source>
         <translation>CPAP-Kartendaten importieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2281"/>
+        <location filename="../oscar/mainwindow.ui" line="2282"/>
         <source>Import from OSCAR...</source>
         <translation>Import aus OSCAR...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2284"/>
+        <location filename="../oscar/mainwindow.ui" line="2285"/>
         <source>Import profile from file-based OSCAR</source>
         <translation>Profil aus dateibasiertem OSCAR importieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2289"/>
-        <location filename="../oscar/mainwindow.cpp" line="1769"/>
+        <location filename="../oscar/mainwindow.ui" line="2290"/>
+        <location filename="../oscar/mainwindow.cpp" line="1772"/>
         <source>Preferences</source>
         <translatorcomment>Präferenzen</translatorcomment>
         <translation>Einstellungen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2304"/>
+        <location filename="../oscar/mainwindow.ui" line="2305"/>
         <source>View Daily</source>
         <translation>Täglich ansehen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2315"/>
+        <location filename="../oscar/mainwindow.ui" line="2316"/>
         <source>View Overview</source>
         <translation>Übersicht anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2326"/>
+        <location filename="../oscar/mainwindow.ui" line="2327"/>
         <source>View Welcome</source>
         <translation>Willkommen ansehen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2351"/>
+        <location filename="../oscar/mainwindow.ui" line="2352"/>
         <source>Use AntiAliasing</source>
         <translation>Verwenden Sie AntiAliasing</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2356"/>
+        <location filename="../oscar/mainwindow.ui" line="2357"/>
         <source>About OSCAR</source>
         <translation>Über OSCAR</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2364"/>
+        <location filename="../oscar/mainwindow.ui" line="2365"/>
         <source>Maximize Toggle</source>
         <translation>Maximieren umschalten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2386"/>
+        <location filename="../oscar/mainwindow.ui" line="2387"/>
         <source>Reset Graph Heights</source>
         <translation>Diagrammhöhen zurücksetzen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2394"/>
+        <location filename="../oscar/mainwindow.ui" line="2395"/>
         <source>Take Screenshot</source>
         <translation>Einen Screenshot machen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2402"/>
+        <location filename="../oscar/mainwindow.ui" line="2403"/>
         <source>Oximetry Wizard</source>
         <translation>Oxymetrie-Assistent</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2410"/>
+        <location filename="../oscar/mainwindow.ui" line="2411"/>
         <source>Print Report</source>
         <translation>Druckbericht</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2415"/>
+        <location filename="../oscar/mainwindow.ui" line="2416"/>
         <source>Edit Profile</source>
         <translation>Profil bearbeiten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2420"/>
+        <location filename="../oscar/mainwindow.ui" line="2421"/>
         <source>Online Users Guide</source>
         <translation>Online-Benutzerhandbuch</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2425"/>
+        <location filename="../oscar/mainwindow.ui" line="2426"/>
         <source>Frequently Asked Questions</source>
         <translation>Häufig gestellte Fragen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2430"/>
+        <location filename="../oscar/mainwindow.ui" line="2431"/>
         <source>Automatic Oximetry Cleanup</source>
         <translation>Automatische Oximetrie-Bereinigung</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2435"/>
+        <location filename="../oscar/mainwindow.ui" line="2436"/>
         <source>Change User</source>
         <translation>Benutzer wechseln</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2446"/>
+        <location filename="../oscar/mainwindow.ui" line="2447"/>
         <source>Right Sidebar</source>
         <translation>rechte Sidebar</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2457"/>
-        <location filename="../oscar/mainwindow.ui" line="2460"/>
+        <location filename="../oscar/mainwindow.ui" line="2458"/>
+        <location filename="../oscar/mainwindow.ui" line="2461"/>
         <source>View Statistics</source>
         <translation>Statistiken anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2496"/>
+        <location filename="../oscar/mainwindow.ui" line="2497"/>
         <source>New...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2499"/>
+        <location filename="../oscar/mainwindow.ui" line="2500"/>
         <source>Create a new OSCAR database in a chosen folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2504"/>
+        <location filename="../oscar/mainwindow.ui" line="2505"/>
         <source>Open...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2507"/>
+        <location filename="../oscar/mainwindow.ui" line="2508"/>
         <source>Open an existing OSCAR database folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2512"/>
+        <location filename="../oscar/mainwindow.ui" line="2513"/>
         <source>Delete...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2515"/>
+        <location filename="../oscar/mainwindow.ui" line="2516"/>
         <source>Permanently delete a non-active OSCAR database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2535"/>
-        <location filename="../oscar/mainwindow.cpp" line="1870"/>
+        <location filename="../oscar/mainwindow.ui" line="2536"/>
+        <location filename="../oscar/mainwindow.cpp" line="1873"/>
         <source>Purge All Time Corrections</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2590"/>
+        <location filename="../oscar/mainwindow.ui" line="2591"/>
         <source>Export Journal...</source>
         <translation>Exportjournal...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2595"/>
-        <location filename="../oscar/mainwindow.cpp" line="3508"/>
+        <location filename="../oscar/mainwindow.ui" line="2596"/>
+        <location filename="../oscar/mainwindow.cpp" line="3517"/>
         <source>Import Journal</source>
         <translation>Journal importieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2600"/>
+        <location filename="../oscar/mainwindow.ui" line="2601"/>
         <source>Backup Profile...</source>
         <translation>Sicherungsprofil...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2603"/>
+        <location filename="../oscar/mainwindow.ui" line="2604"/>
         <source>Back up the current profile to a .oscar file</source>
         <translation>Sichern Sie das aktuelle Profil in einer .oscar-Datei</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2608"/>
+        <location filename="../oscar/mainwindow.ui" line="2609"/>
         <source>Restore Profile...</source>
         <translation>Profil wiederherstellen...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2611"/>
+        <location filename="../oscar/mainwindow.ui" line="2612"/>
         <source>Restore a profile from a .oscar backup file</source>
         <translation>Ein Profil aus einer .oscar-Sicherungsdatei wiederherstellen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2616"/>
+        <location filename="../oscar/mainwindow.ui" line="2617"/>
         <source>Share Profile...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2619"/>
+        <location filename="../oscar/mainwindow.ui" line="2620"/>
         <source>Prepare profile data for sharing with another OSCAR user</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2632"/>
+        <location filename="../oscar/mainwindow.ui" line="2633"/>
+        <source>Check database integrity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.ui" line="2638"/>
         <source>Compress database (rarely needed)</source>
         <translation>Datenbank komprimieren (selten erforderlich)</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2647"/>
+        <location filename="../oscar/mainwindow.ui" line="2653"/>
         <source>Create zip of OSCAR database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2660"/>
+        <location filename="../oscar/mainwindow.ui" line="2666"/>
         <source>Manage Reports...</source>
         <translation>Berichte verwalten...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2663"/>
+        <location filename="../oscar/mainwindow.ui" line="2669"/>
         <source>Manage CSV export report definitions</source>
         <translation>CSV-Exportberichtdefinitionen verwalten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2668"/>
+        <location filename="../oscar/mainwindow.ui" line="2674"/>
         <source>Journal Notes...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2671"/>
+        <location filename="../oscar/mainwindow.ui" line="2677"/>
         <source>Export journal notes for a date range to HTML or Markdown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2697"/>
+        <location filename="../oscar/mainwindow.ui" line="2703"/>
         <source>Show Pie Chart</source>
         <translation>Kreisdiagramm anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2738"/>
+        <location filename="../oscar/mainwindow.ui" line="2744"/>
         <source>Check For Updates</source>
         <translation>Auf Updates prüfen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2751"/>
+        <location filename="../oscar/mainwindow.ui" line="2757"/>
         <source>Purge Range of Days...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2756"/>
-        <location filename="../oscar/mainwindow.cpp" line="2375"/>
+        <location filename="../oscar/mainwindow.ui" line="2762"/>
+        <location filename="../oscar/mainwindow.cpp" line="2378"/>
         <source>CPAP</source>
         <translation>CPAP</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2766"/>
-        <location filename="../oscar/mainwindow.cpp" line="2377"/>
+        <location filename="../oscar/mainwindow.ui" line="2772"/>
+        <location filename="../oscar/mainwindow.cpp" line="2380"/>
         <source>Sleep Stage</source>
         <translation>Schlafstadium</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2771"/>
-        <location filename="../oscar/mainwindow.cpp" line="2378"/>
+        <location filename="../oscar/mainwindow.ui" line="2777"/>
+        <location filename="../oscar/mainwindow.cpp" line="2381"/>
         <source>Position</source>
         <translation>Position</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2776"/>
-        <location filename="../oscar/mainwindow.cpp" line="2379"/>
+        <location filename="../oscar/mainwindow.ui" line="2782"/>
+        <location filename="../oscar/mainwindow.cpp" line="2382"/>
         <source>All except Notes</source>
         <translation>Alle außer Notizen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2781"/>
-        <location filename="../oscar/mainwindow.cpp" line="2380"/>
+        <location filename="../oscar/mainwindow.ui" line="2787"/>
+        <location filename="../oscar/mainwindow.cpp" line="2383"/>
         <source>All including Notes</source>
         <translation>Alles inklusive Notizen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1458"/>
+        <location filename="../oscar/mainwindow.cpp" line="1461"/>
         <source>CPAP Data Located</source>
         <translation>CPAP-Daten liegen an</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1290"/>
+        <location filename="../oscar/mainwindow.cpp" line="1293"/>
         <source>Access to Import has been blocked while recalculations are in progress.</source>
         <translation>Der Zugang zu Import wurde blockiert, während Neuberechnungen im Gange sind.</translation>
     </message>
@@ -3484,17 +3500,17 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">Schlafstörungen Nutzungswörterbuch &amp;Wörterverzeichnis</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2495"/>
+        <location filename="../oscar/mainwindow.cpp" line="2498"/>
         <source>Are you really sure you want to do this?</source>
         <translation>Sind Sie wirklich sicher, dass Sie das tun wollen?</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3452"/>
+        <location filename="../oscar/mainwindow.cpp" line="3461"/>
         <source>Select the day with valid oximetry data in daily view first.</source>
         <translation>Wählen Sie zuerst den Tag mit gültigen Oximetriedaten in der Tagesansicht aus.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2200"/>
+        <location filename="../oscar/mainwindow.ui" line="2201"/>
         <source>Purge Oximetry Data</source>
         <translation>Oxymetriedaten löschen</translation>
     </message>
@@ -3508,7 +3524,7 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">Verwenden Sie &amp;Antialiasing</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1302"/>
+        <location filename="../oscar/mainwindow.cpp" line="1305"/>
         <source>Would you like to import from this location?</source>
         <translation>Möchten Sie von diesem Ort impoertieren?</translation>
     </message>
@@ -3524,32 +3540,32 @@ Möchten Sie fortfahren?</translation>
     <message>
         <location filename="../oscar/mainwindow.ui" line="965"/>
         <location filename="../oscar/mainwindow.ui" line="2085"/>
-        <location filename="../oscar/mainwindow.ui" line="2294"/>
+        <location filename="../oscar/mainwindow.ui" line="2295"/>
         <source>Profiles</source>
         <translation>Profile</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2471"/>
+        <location filename="../oscar/mainwindow.ui" line="2472"/>
         <source>Import ZEO Data</source>
         <translation>ZEO-Daten importieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2476"/>
+        <location filename="../oscar/mainwindow.ui" line="2477"/>
         <source>Import Dreem Data</source>
         <translation>Dream-Daten importieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2481"/>
+        <location filename="../oscar/mainwindow.ui" line="2482"/>
         <source>Import RemStar MSeries Data</source>
         <translation>Importieren Sie RemStar MSeries-Daten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2486"/>
+        <location filename="../oscar/mainwindow.ui" line="2487"/>
         <source>Sleep Disorder Terms Glossary</source>
         <translation>Glossar zu Begriffen zu Schlafstörungen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2491"/>
+        <location filename="../oscar/mainwindow.ui" line="2492"/>
         <source>Change Language</source>
         <translation>Sprache ändern</translation>
     </message>
@@ -3558,17 +3574,17 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">Datenordner ändern</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2520"/>
+        <location filename="../oscar/mainwindow.ui" line="2521"/>
         <source>Import Somnopose Data</source>
         <translation>Somnopose-Daten importieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2525"/>
+        <location filename="../oscar/mainwindow.ui" line="2526"/>
         <source>Import Viatom/Wellue Data</source>
         <translation>Viatom/Wellue-Daten importieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2543"/>
+        <location filename="../oscar/mainwindow.ui" line="2544"/>
         <source>Show Line Cursor</source>
         <translation>Zeilencursor anzeigen</translation>
     </message>
@@ -3577,7 +3593,7 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">Backup-Journal</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2655"/>
+        <location filename="../oscar/mainwindow.ui" line="2661"/>
         <source>CSV Export Wizard</source>
         <translation>CSV-Export-Assistent</translation>
     </message>
@@ -3586,12 +3602,12 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">&amp;Automatische Bereinigung der Oxymetrie</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1294"/>
+        <location filename="../oscar/mainwindow.cpp" line="1297"/>
         <source>Import is already running in the background.</source>
         <translation>Import läuft bereits im Hintergrund.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1463"/>
+        <location filename="../oscar/mainwindow.cpp" line="1466"/>
         <source>Specify</source>
         <translation>einzeln Ausführen</translation>
     </message>
@@ -3601,7 +3617,7 @@ Möchten Sie fortfahren?</translation>
         <translation>Standard</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2665"/>
+        <location filename="../oscar/mainwindow.cpp" line="2668"/>
         <source>No help is available.</source>
         <translation>Es ist keine Hilfe verfügbar.</translation>
     </message>
@@ -3612,7 +3628,7 @@ Möchten Sie fortfahren?</translation>
         <translation>Statistiken</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1011"/>
+        <location filename="../oscar/mainwindow.cpp" line="1014"/>
         <source>Up to date</source>
         <translation>Neuster Stand</translation>
     </message>
@@ -3629,7 +3645,7 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">Sicherungskopie &amp;Journal</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1009"/>
+        <location filename="../oscar/mainwindow.cpp" line="1012"/>
         <source>Imported %1 CPAP session(s) from
 
 %2</source>
@@ -3638,70 +3654,103 @@ Möchten Sie fortfahren?</translation>
 %2</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3777"/>
+        <location filename="../oscar/mainwindow.cpp" line="3774"/>
+        <location filename="../oscar/mainwindow.cpp" line="3801"/>
         <location filename="../oscar/mainwindow.cpp" line="3805"/>
-        <location filename="../oscar/mainwindow.cpp" line="3824"/>
+        <source>Check Database Integrity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3778"/>
+        <location filename="../oscar/mainwindow.cpp" line="3870"/>
+        <source>Checking database integrity, please wait...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3802"/>
+        <source>The database integrity check passed. No problems were found.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3806"/>
+        <source>The database integrity check found problems. Some data may be missing or corrupted.
+
+The integrity check covers the entire database, which may contain multiple profiles.
+
+Recommended actions:
+  • Restore entire database from a recent system backup
+  • Restore each profile from a recent backup (File → Restore Profile)
+  • Re-import data from your CPAP SD card(s)
+
+For advanced recovery options, see the OSCAR documentation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3829"/>
+        <location filename="../oscar/mainwindow.cpp" line="3844"/>
+        <location filename="../oscar/mainwindow.cpp" line="3875"/>
+        <location filename="../oscar/mainwindow.cpp" line="3921"/>
+        <location filename="../oscar/mainwindow.cpp" line="3956"/>
+        <location filename="../oscar/mainwindow.cpp" line="3966"/>
+        <location filename="../oscar/mainwindow.cpp" line="3994"/>
         <source>Compress Database</source>
         <translation>Datenbank komprimieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3778"/>
         <source>This will compact the database to reclaim unused disk space. It is most useful after deleting profiles.
 
 Current database size: %1
 
 This may take several minutes. Continue?</source>
-        <translation>Dadurch wird die Datenbank komprimiert, um ungenutzten Speicherplatz freizugeben. Dies ist besonders nach dem Löschen von Profilen sinnvoll.
+        <translation type="vanished">Dadurch wird die Datenbank komprimiert, um ungenutzten Speicherplatz freizugeben. Dies ist besonders nach dem Löschen von Profilen sinnvoll.
 
 Aktuelle Datenbankgröße: %1
 
 Dies kann einige Minuten dauern. Fortfahren?</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3806"/>
+        <location filename="../oscar/mainwindow.cpp" line="3922"/>
         <source>Database compression failed:
 %1</source>
         <translation>Datenbankkomprimierung fehlgeschlagen:
 %1</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3815"/>
         <source>Database compressed successfully.
 
 Before: %1
 After:  %2
 Reclaimed: %3</source>
-        <translation>Datenbank erfolgreich komprimiert.
+        <translation type="vanished">Datenbank erfolgreich komprimiert.
 
 Vorher: %1
 Nachher: ​​%2
 Freigegeben: %3</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3820"/>
         <source>Database compressed successfully.
 
 Size: %1
 
 No space was reclaimed — the database was already compact.</source>
-        <translation>Datenbank erfolgreich komprimiert.
+        <translation type="vanished">Datenbank erfolgreich komprimiert.
 
 Größe: %1
 
 Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimiert.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3852"/>
+        <location filename="../oscar/mainwindow.cpp" line="4035"/>
         <source>Unable to create zip: the database is locked by another process.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3861"/>
+        <location filename="../oscar/mainwindow.cpp" line="4044"/>
         <source>Creating %1.zip...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3898"/>
+        <location filename="../oscar/mainwindow.cpp" line="4081"/>
         <source>Reporting issues is not yet implemented</source>
         <translation>Berichterstattungsprobleme sind noch nicht implementiert</translation>
     </message>
@@ -3710,7 +3759,7 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">Bereinigen, &amp;Aktualisieren des aktuell ausgewählten Tages</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2494"/>
+        <location filename="../oscar/mainwindow.cpp" line="2497"/>
         <source>Provided you have made &lt;i&gt;your &lt;b&gt;own&lt;/b&gt; backups for ALL of your CPAP data&lt;/i&gt;, you can still complete this operation, but you will have to restore from your backups manually.</source>
         <translation>Vorausgesetzt, Sie haben &lt;i&gt;&lt;b&gt;eigene &lt;/b&gt; Backups für ALLE Ihre CPAP-Daten&lt;/i&gt;, die Sie noch vervollständigen können erstellt. Aber Sie müssen die Backups manuell wiederherstellen.</translation>
     </message>
@@ -3723,7 +3772,7 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">&amp;Drucken</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2676"/>
+        <location filename="../oscar/mainwindow.ui" line="2682"/>
         <source>Export for Review</source>
         <translation>Export für Bewertung</translation>
     </message>
@@ -3737,7 +3786,7 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation>Übersicht</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2378"/>
+        <location filename="../oscar/mainwindow.ui" line="2379"/>
         <source>Show Debug Pane</source>
         <translation>Debug-Fenster anzeigen</translation>
     </message>
@@ -3746,18 +3795,18 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">&amp;Profil bearbeiten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1497"/>
+        <location filename="../oscar/mainwindow.cpp" line="1500"/>
         <source>Import Reminder</source>
         <translation>Import Erinnerung</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="403"/>
+        <location filename="../oscar/mainwindow.cpp" line="406"/>
         <source>Help Browser</source>
         <translation>Hilfe Browser</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2204"/>
-        <location filename="../oscar/mainwindow.cpp" line="2230"/>
+        <location filename="../oscar/mainwindow.cpp" line="2207"/>
+        <location filename="../oscar/mainwindow.cpp" line="2233"/>
         <source>If you can read this, the restart command didn&apos;t work. You will have to do it yourself manually.</source>
         <translation>Wenn Sie dies lesen können, hat der Neustartbefehl nicht funktioniert. Sie müssen es manuell tun.</translation>
     </message>
@@ -3766,8 +3815,8 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">Exp&amp;ort Daten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="744"/>
-        <location filename="../oscar/mainwindow.cpp" line="2822"/>
+        <location filename="../oscar/mainwindow.cpp" line="747"/>
+        <location filename="../oscar/mainwindow.cpp" line="2825"/>
         <source>Welcome</source>
         <translation>Willkommen</translation>
     </message>
@@ -3776,7 +3825,7 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">Import &amp;CSV Daten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1979"/>
+        <location filename="../oscar/mainwindow.cpp" line="1982"/>
         <source>Screenshot saved to file &quot;%1&quot;</source>
         <translation>Screenshot Datei gespeichert &quot;%1&quot;</translation>
     </message>
@@ -3785,17 +3834,17 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">&amp;Einstellungen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2572"/>
+        <location filename="../oscar/mainwindow.cpp" line="2575"/>
         <source>Are you &lt;b&gt;absolutely sure&lt;/b&gt; you want to proceed?</source>
         <translation>Sind Sie &lt;b&gt;absolut sicher&lt;/b&gt; das Sie fortfahren möchten?</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1009"/>
+        <location filename="../oscar/mainwindow.cpp" line="1012"/>
         <source>Import Success</source>
         <translation>Erfolgreicher Import</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3542"/>
+        <location filename="../oscar/mainwindow.cpp" line="3551"/>
         <source>Choose where to save journal</source>
         <translation>Wählen, wo das Blatt gespeichert werden soll</translation>
     </message>
@@ -3805,13 +3854,13 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="1147"/>
-        <location filename="../oscar/mainwindow.ui" line="2761"/>
-        <location filename="../oscar/mainwindow.cpp" line="2376"/>
+        <location filename="../oscar/mainwindow.ui" line="2767"/>
+        <location filename="../oscar/mainwindow.cpp" line="2379"/>
         <source>Oximetry</source>
         <translation>Oxymetrie</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1401"/>
+        <location filename="../oscar/mainwindow.cpp" line="1404"/>
         <source>A %1 file structure was located at:</source>
         <translation>Eine%1 Dateistruktur befindet sich unter:</translation>
     </message>
@@ -3825,7 +3874,7 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation>Navigation</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1011"/>
+        <location filename="../oscar/mainwindow.cpp" line="1014"/>
         <source>Already up to date with CPAP data at
 
 %1</source>
@@ -3838,7 +3887,7 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">Es wurde kein Profil für den Import ausgewählt.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2485"/>
+        <location filename="../oscar/mainwindow.cpp" line="2488"/>
         <source>Please note, that this could result in loss of data if OSCAR&apos;s backups have been disabled.</source>
         <translation>Bitte beachten Sie, dass dies zu Datenverlust führen kann, wenn die Backups von OSCAR deaktiviert wurden.</translation>
     </message>
@@ -3847,42 +3896,42 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">&amp;Maximieren des Umschalters</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2042"/>
+        <location filename="../oscar/mainwindow.cpp" line="2045"/>
         <source>The User&apos;s Guide will open in your default browser</source>
         <translation>Das Benutzerhandbuch wird in Ihrem Standardbrowser geöffnet</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2882"/>
+        <location filename="../oscar/mainwindow.cpp" line="2885"/>
         <source>The Glossary will open in your default browser</source>
         <translation>Das Glossar wird in Ihrem Standardbrowser geöffnet</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2307"/>
+        <location filename="../oscar/mainwindow.ui" line="2308"/>
         <source>Show Daily view</source>
         <translation>Tagesansicht anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2318"/>
+        <location filename="../oscar/mainwindow.ui" line="2319"/>
         <source>Show Overview view</source>
         <translation>Übersichtsansicht anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2367"/>
+        <location filename="../oscar/mainwindow.ui" line="2368"/>
         <source>Maximize window</source>
         <translation>Fenster maximieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2389"/>
+        <location filename="../oscar/mainwindow.ui" line="2390"/>
         <source>Reset sizes of graphs</source>
         <translation>Größen von Diagrammen zurücksetzen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2449"/>
+        <location filename="../oscar/mainwindow.ui" line="2450"/>
         <source>Show Right Sidebar</source>
         <translation>Rechte Seitenleiste anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2463"/>
+        <location filename="../oscar/mainwindow.ui" line="2464"/>
         <source>Show Statistics view</source>
         <translation>Statistikansicht anzeigen</translation>
     </message>
@@ -3891,17 +3940,17 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">Zeigt &amp;Cursorlinie an</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2565"/>
+        <location filename="../oscar/mainwindow.ui" line="2566"/>
         <source>Show Daily Left Sidebar</source>
         <translation>Tägliche Ansicht in linker Sidebar anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2582"/>
+        <location filename="../oscar/mainwindow.ui" line="2583"/>
         <source>Show Daily Calendar</source>
         <translation>Tageskalender anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2686"/>
+        <location filename="../oscar/mainwindow.ui" line="2692"/>
         <source>System Information</source>
         <translation>Systeminformationen</translation>
     </message>
@@ -3910,13 +3959,13 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">Torten -&amp;Diagramm anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2700"/>
+        <location filename="../oscar/mainwindow.ui" line="2706"/>
         <source>Show Pie Chart on Daily page</source>
         <translation>Tortendiagramm auf der Tagesseite anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1532"/>
-        <location filename="../oscar/mainwindow.cpp" line="3912"/>
+        <location filename="../oscar/mainwindow.cpp" line="1535"/>
+        <location filename="../oscar/mainwindow.cpp" line="4095"/>
         <source>OSCAR Information</source>
         <translation>OSCAR Information</translation>
     </message>
@@ -3925,7 +3974,7 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">&amp;Grafiken zurücksetzen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2206"/>
+        <location filename="../oscar/mainwindow.ui" line="2207"/>
         <source>Purge ALL Device Data</source>
         <translation>Löschen Sie ALLE Gerätedaten</translation>
     </message>
@@ -3972,7 +4021,7 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">Import &amp;Dreem Daten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2637"/>
+        <location filename="../oscar/mainwindow.ui" line="2643"/>
         <source>Create zip of CPAP data card</source>
         <translation>Zip der CPAP-Datenkarte erstellen</translation>
     </message>
@@ -3985,22 +4034,22 @@ Es wurde kein Speicherplatz freigegeben – die Datenbank war bereits komprimier
         <translation type="vanished">%1 (Profil: %2)</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="934"/>
+        <location filename="../oscar/mainwindow.cpp" line="937"/>
         <source>Importing CPAP data</source>
         <translation>CPAP-Daten importieren</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1324"/>
+        <location filename="../oscar/mainwindow.cpp" line="1327"/>
         <source>Importing Profile </source>
         <translation>Importprofil </translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1354"/>
+        <location filename="../oscar/mainwindow.cpp" line="1357"/>
         <source>Import Complete</source>
         <translation>Import abgeschlossen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1355"/>
+        <location filename="../oscar/mainwindow.cpp" line="1358"/>
         <source>Profile &apos;%1&apos; has been successfully imported.
 
 You can now select it from the profile selector.</source>
@@ -4009,31 +4058,31 @@ You can now select it from the profile selector.</source>
 Sie können es nun in der Profilauswahl auswählen.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1024"/>
-        <location filename="../oscar/mainwindow.cpp" line="1368"/>
-        <location filename="../oscar/mainwindow.cpp" line="3178"/>
+        <location filename="../oscar/mainwindow.cpp" line="1027"/>
+        <location filename="../oscar/mainwindow.cpp" line="1371"/>
+        <location filename="../oscar/mainwindow.cpp" line="3187"/>
         <source>Import Failed</source>
         <translation>Import fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="676"/>
+        <location filename="../oscar/mainwindow.cpp" line="679"/>
         <source>Opening %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="793"/>
+        <location filename="../oscar/mainwindow.cpp" line="796"/>
         <source>%1 (Profile: %2)%3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="961"/>
-        <location filename="../oscar/mainwindow.cpp" line="3131"/>
+        <location filename="../oscar/mainwindow.cpp" line="964"/>
+        <location filename="../oscar/mainwindow.cpp" line="3140"/>
         <source>Database Locked</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="962"/>
-        <location filename="../oscar/mainwindow.cpp" line="3132"/>
+        <location filename="../oscar/mainwindow.cpp" line="965"/>
+        <location filename="../oscar/mainwindow.cpp" line="3141"/>
         <source>Cannot import data: the OSCAR database is locked by another application.
 
 If you have the database open in a SQLite viewer or editor, please close it and try again.
@@ -4042,8 +4091,8 @@ Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1025"/>
-        <location filename="../oscar/mainwindow.cpp" line="3179"/>
+        <location filename="../oscar/mainwindow.cpp" line="1028"/>
+        <location filename="../oscar/mainwindow.cpp" line="3188"/>
         <source>The imported data could not be saved to the database. No data was stored.
 
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
@@ -4052,24 +4101,24 @@ Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1286"/>
+        <location filename="../oscar/mainwindow.cpp" line="1289"/>
         <source>Please open or create a profile before importing data.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1369"/>
+        <location filename="../oscar/mainwindow.cpp" line="1372"/>
         <source>Failed to import profile:
 %1</source>
         <translation>Profil konnte nicht importiert werden:
 %1</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1438"/>
+        <location filename="../oscar/mainwindow.cpp" line="1441"/>
         <source>Different CPAP Machine Detected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1439"/>
+        <location filename="../oscar/mainwindow.cpp" line="1442"/>
         <source>This SD card is from a different machine than the last one imported into this profile.
 
 Last imported: %1
@@ -4079,206 +4128,272 @@ Are you sure you want to import from this card into this profile?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1444"/>
+        <location filename="../oscar/mainwindow.cpp" line="1447"/>
         <source>Continue</source>
         <translation type="unfinished">Weitermachen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1496"/>
+        <location filename="../oscar/mainwindow.cpp" line="1499"/>
         <source>Please remember to select the root folder or drive letter of your data card, and not a folder inside it.</source>
         <translation>Bitte denken Sie daran, den Stammordner oder Laufwerksbuchstaben Ihrer Datenkarte zu wählen und nicht einen Ordner darin.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1769"/>
-        <location filename="../oscar/mainwindow.cpp" line="1817"/>
-        <location filename="../oscar/mainwindow.cpp" line="1846"/>
+        <location filename="../oscar/mainwindow.cpp" line="1772"/>
+        <location filename="../oscar/mainwindow.cpp" line="1820"/>
+        <location filename="../oscar/mainwindow.cpp" line="1849"/>
         <source>Please open or create a profile first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1817"/>
+        <location filename="../oscar/mainwindow.cpp" line="1820"/>
         <source>Time Corrections</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1846"/>
+        <location filename="../oscar/mainwindow.cpp" line="1849"/>
         <source>Drift Analysis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1871"/>
+        <location filename="../oscar/mainwindow.cpp" line="1874"/>
         <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1967"/>
+        <location filename="../oscar/mainwindow.cpp" line="1970"/>
         <source>Choose where to save screenshot</source>
         <translation>Wählen Sie, wo der Screenshot gespeichert werden soll</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1967"/>
+        <location filename="../oscar/mainwindow.cpp" line="1970"/>
         <source>Image files (*.png)</source>
         <translation>Bilddateien (*.png)</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2381"/>
+        <location filename="../oscar/mainwindow.cpp" line="2384"/>
         <source>Unknown</source>
         <translation type="unfinished">Unbekannt</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2386"/>
+        <location filename="../oscar/mainwindow.cpp" line="2389"/>
         <source>Confirm Purge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2387"/>
+        <location filename="../oscar/mainwindow.cpp" line="2390"/>
         <source>&lt;p&gt;Purge &lt;b&gt;%1&lt;/b&gt; data from &lt;b&gt;%2&lt;/b&gt; to &lt;b&gt;%3&lt;/b&gt; (%4 day(s)).&lt;/p&gt;&lt;p&gt;Are you &lt;b&gt;absolutely sure&lt;/b&gt; you want to proceed?&lt;/p&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2401"/>
+        <location filename="../oscar/mainwindow.cpp" line="2404"/>
         <source>Purging data...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2413"/>
+        <location filename="../oscar/mainwindow.cpp" line="2416"/>
         <source>Purging %1...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2426"/>
+        <location filename="../oscar/mainwindow.cpp" line="2429"/>
         <source>Purge Range of Days</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2427"/>
+        <location filename="../oscar/mainwindow.cpp" line="2430"/>
         <source>No data was found in the selected date range.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2762"/>
+        <location filename="../oscar/mainwindow.cpp" line="2765"/>
         <source>Recalculating summaries</source>
         <translation>Zusammenfassungen werden neu berechnet</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2937"/>
+        <location filename="../oscar/mainwindow.cpp" line="2946"/>
         <source>Failed to restart OSCAR. Please restart it manually.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2961"/>
+        <location filename="../oscar/mainwindow.cpp" line="2970"/>
         <source> (active)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2971"/>
+        <location filename="../oscar/mainwindow.cpp" line="2980"/>
         <source>(none)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2980"/>
+        <location filename="../oscar/mainwindow.cpp" line="2989"/>
         <source>Select or Create an Empty Folder for New Database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2987"/>
+        <location filename="../oscar/mainwindow.cpp" line="2996"/>
         <source>New Database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2988"/>
+        <location filename="../oscar/mainwindow.cpp" line="2997"/>
         <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2999"/>
+        <location filename="../oscar/mainwindow.cpp" line="3008"/>
         <source>Select OSCAR Database Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3006"/>
+        <location filename="../oscar/mainwindow.cpp" line="3015"/>
         <source>Open Database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3007"/>
+        <location filename="../oscar/mainwindow.cpp" line="3016"/>
         <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3030"/>
+        <location filename="../oscar/mainwindow.cpp" line="3039"/>
         <source>Delete Database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3031"/>
+        <location filename="../oscar/mainwindow.cpp" line="3040"/>
         <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3499"/>
+        <location filename="../oscar/mainwindow.cpp" line="3508"/>
         <source>You must select and open the profile you wish to modify</source>
         <translation>Sie müssen das Profil, das Sie ändern möchten, auswählen und öffnen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3508"/>
-        <location filename="../oscar/mainwindow.cpp" line="3528"/>
+        <location filename="../oscar/mainwindow.cpp" line="3517"/>
+        <location filename="../oscar/mainwindow.cpp" line="3537"/>
         <source>No profile is currently open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3513"/>
+        <location filename="../oscar/mainwindow.cpp" line="3522"/>
         <source>Choose where to read journal</source>
         <translation>Wählen Sie, wo Sie das Tagebuch lesen möchten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3528"/>
+        <location filename="../oscar/mainwindow.cpp" line="3537"/>
         <source>Export Journal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3623"/>
+        <location filename="../oscar/mainwindow.cpp" line="3632"/>
         <source>Would you like to zip this card?</source>
         <translation>Möchten Sie diese Karte verschließen?</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3645"/>
-        <location filename="../oscar/mainwindow.cpp" line="3718"/>
-        <location filename="../oscar/mainwindow.cpp" line="3836"/>
+        <location filename="../oscar/mainwindow.cpp" line="3654"/>
+        <location filename="../oscar/mainwindow.cpp" line="3727"/>
+        <location filename="../oscar/mainwindow.cpp" line="4019"/>
         <source>Choose where to save zip</source>
         <translation>Wählen Sie, wo die Zip-Datei gespeichert werden soll</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3645"/>
-        <location filename="../oscar/mainwindow.cpp" line="3718"/>
-        <location filename="../oscar/mainwindow.cpp" line="3836"/>
+        <location filename="../oscar/mainwindow.cpp" line="3654"/>
+        <location filename="../oscar/mainwindow.cpp" line="3727"/>
+        <location filename="../oscar/mainwindow.cpp" line="4019"/>
         <source>ZIP files (*.zip)</source>
         <translation>ZIP Dateien (*.zip)</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3692"/>
-        <location filename="../oscar/mainwindow.cpp" line="3732"/>
+        <location filename="../oscar/mainwindow.cpp" line="3701"/>
+        <location filename="../oscar/mainwindow.cpp" line="3741"/>
         <source>Creating zip...</source>
         <translation>Zip erstellen...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3677"/>
+        <location filename="../oscar/mainwindow.cpp" line="3830"/>
+        <source>This will compact the database to reclaim unused disk space. It is most useful after deleting profiles.
+
+Current database size: %1
+
+This may take several minutes for large databases. OSCAR will restart automatically when complete.
+
+Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3876"/>
+        <source>The database integrity check failed. Compression cannot proceed on a damaged database.
+
+Recommended actions:
+  • Restore entire database from a recent system backup
+  • Restore each profile from a recent backup (File → Restore Profile)
+  • Re-import data from your CPAP SD card(s)
+
+For advanced recovery options, see the OSCAR documentation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3896"/>
+        <source>Compressing database, please wait...
+
+This may take several minutes for large databases.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3957"/>
+        <source>Compression succeeded but the database file could not be replaced.
+
+The original database is unchanged.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3967"/>
+        <source>Compression succeeded but the new file could not be put in place.
+
+The original database has been restored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3979"/>
+        <source>Database compressed successfully.
+
+Before:    %1
+After:     %2
+Reclaimed: %3
+
+OSCAR will restart when you press OK.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3988"/>
+        <source>Database compressed successfully.
+
+Size: %1
+
+No space was reclaimed — the database was already compact.
+
+OSCAR will restart when you press OK.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3686"/>
         <source>Calculating size...</source>
         <translation>Größe berechnen...</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2730"/>
+        <location filename="../oscar/mainwindow.ui" line="2736"/>
         <source>Show Personal Data</source>
         <translation>Persönliche Daten anzeigen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2642"/>
+        <location filename="../oscar/mainwindow.ui" line="2648"/>
         <source>Create zip of OSCAR diagnostic logs</source>
         <translation>Zip von OSCAR-Diagnoseprotokollen erstellen</translation>
     </message>
@@ -4287,7 +4402,7 @@ Open databases with File ▸ Database ▸ Open first to add them to the recent l
         <translation type="vanished">Nach &amp;Updates suchen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1908"/>
+        <location filename="../oscar/mainwindow.cpp" line="1911"/>
         <source>Check for updates not implemented</source>
         <translation>Prüfung auf nicht implementierte Updates</translation>
     </message>
@@ -4296,28 +4411,28 @@ Open databases with File ▸ Database ▸ Open first to add them to the recent l
         <translation type="vanished">Import &amp;Viatom/Wellendaten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2708"/>
+        <location filename="../oscar/mainwindow.ui" line="2714"/>
         <source>Standard - CPAP, APAP</source>
         <translation>Standard - CPAP, APAP</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2711"/>
+        <location filename="../oscar/mainwindow.ui" line="2717"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Standard graph order, good for CPAP, APAP,  Basic BPAP&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Standarddiagrammreihenfolge, gut für CPAP, APAP, Basic BPAP&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2716"/>
+        <location filename="../oscar/mainwindow.ui" line="2722"/>
         <source>Advanced - BPAP, ASV</source>
         <translation>Erweitert - BPAP, ASV</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2719"/>
+        <location filename="../oscar/mainwindow.ui" line="2725"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Advanced graph order, good for BPAP w/BU, ASV, AVAPS, IVAPS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Erweiterte Diagrammreihenfolge, gut für BPAP mit BU, ASV, AVAPS, IVAPS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.ui" line="2211"/>
-        <location filename="../oscar/mainwindow.ui" line="2746"/>
+        <location filename="../oscar/mainwindow.ui" line="2212"/>
+        <location filename="../oscar/mainwindow.ui" line="2752"/>
         <source>Purge Current Selected Day</source>
         <translation>Aktuellen ausgewählten Tag bereinigen</translation>
     </message>
@@ -4346,17 +4461,17 @@ Open databases with File ▸ Database ▸ Open first to add them to the recent l
         <translation type="vanished">Alle einschließlich &amp;Notizen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1513"/>
+        <location filename="../oscar/mainwindow.cpp" line="1516"/>
         <source>Find your CPAP data card</source>
         <translation>Finden Sie Ihre CPAP-Datenkarte</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1532"/>
+        <location filename="../oscar/mainwindow.cpp" line="1535"/>
         <source>No supported data was found</source>
         <translation>Es wurden keine unterstützten Daten gefunden</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2482"/>
+        <location filename="../oscar/mainwindow.cpp" line="2485"/>
         <source>Are you sure you want to rebuild all CPAP data for the following device:
 
 </source>
@@ -4365,72 +4480,72 @@ Open databases with File ▸ Database ▸ Open first to add them to the recent l
 </translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2492"/>
+        <location filename="../oscar/mainwindow.cpp" line="2495"/>
         <source>For some reason, OSCAR does not have any backups for the following device:</source>
         <translation>Aus irgendeinem Grund hat OSCAR keine Sicherungen für das folgende Gerät:</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2511"/>
+        <location filename="../oscar/mainwindow.cpp" line="2514"/>
         <source>Would you like to import from your own backups now? (you will have no data visible for this device until you do)</source>
         <translation>Möchten Sie jetzt aus Ihren eigenen Backups importieren? (Bis dahin sind keine Daten für dieses Gerät sichtbar)</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2562"/>
+        <location filename="../oscar/mainwindow.cpp" line="2565"/>
         <source>OSCAR does not have any backups for this device!</source>
         <translation>OSCAR hat keine Backups für dieses Gerät!</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2563"/>
+        <location filename="../oscar/mainwindow.cpp" line="2566"/>
         <source>Unless you have made &lt;i&gt;your &lt;b&gt;own&lt;/b&gt; backups for ALL of your data for this device&lt;/i&gt;, &lt;font size=+2&gt;you will lose this device&apos;s data &lt;b&gt;permanently&lt;/b&gt;!&lt;/font&gt;</source>
         <translation>Sofern Sie nicht &lt;i&gt;Ihre &lt;b&gt;eigenen&lt;/b&gt; Sicherungen für ALLE Ihre Daten für dieses Gerät erstellt haben&lt;/i&gt;, &lt;font size=+2&gt;werden Sie die Daten dieses Geräts &lt;b&gt;dauerhaft&lt;/b verlieren &gt;!&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2569"/>
+        <location filename="../oscar/mainwindow.cpp" line="2572"/>
         <source>You are about to &lt;font size=+2&gt;obliterate&lt;/font&gt; OSCAR&apos;s device database for the following device:&lt;/p&gt;</source>
         <translation>Sie sind dabei, die Gerätedatenbank von OSCAR für das folgende Gerät &lt;font size=+2&gt;zu löschen&lt;/font&gt;:&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2610"/>
+        <location filename="../oscar/mainwindow.cpp" line="2613"/>
         <source>A file permission error caused the purge process to fail; you will have to delete the following folder manually:</source>
         <translation>Ein Dateiberechtigungsfehler führte dazu, dass der Löschvorgang fehlschlug; Sie müssen den folgenden Ordner manuell löschen:</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3190"/>
+        <location filename="../oscar/mainwindow.cpp" line="3199"/>
         <source>There was a problem parsing %1 
 Data File: %2</source>
         <translation>Beim Analysieren von %1 ist ein Problem aufgetreten.
 Datendatei: %2</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3196"/>
-        <location filename="../oscar/mainwindow.cpp" line="3200"/>
+        <location filename="../oscar/mainwindow.cpp" line="3205"/>
+        <location filename="../oscar/mainwindow.cpp" line="3209"/>
         <source>There was a problem opening %1 Data File: %2</source>
         <translation>Es gab ein Problem beim Öffnen von %1 Data File: %2</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3199"/>
+        <location filename="../oscar/mainwindow.cpp" line="3208"/>
         <source>%1 Data Import of %2 file(s) complete</source>
         <translation>%1 Datenimport von %2 Datei(en) abgeschlossen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3201"/>
+        <location filename="../oscar/mainwindow.cpp" line="3210"/>
         <source>%1 Import Partial Success</source>
         <translation>%1 Teilweise erfolgreicher Import</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3203"/>
+        <location filename="../oscar/mainwindow.cpp" line="3212"/>
         <source>%1 Data Import complete</source>
         <translation>%1 Datenimport abgeschlossen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1461"/>
+        <location filename="../oscar/mainwindow.cpp" line="1464"/>
         <source>Yes</source>
         <translation>Ja</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1445"/>
-        <location filename="../oscar/mainwindow.cpp" line="1462"/>
-        <location filename="../oscar/mainwindow.cpp" line="2401"/>
+        <location filename="../oscar/mainwindow.cpp" line="1448"/>
+        <location filename="../oscar/mainwindow.cpp" line="1465"/>
+        <location filename="../oscar/mainwindow.cpp" line="2404"/>
         <source>Cancel</source>
         <translation>Schließen</translation>
     </message>
@@ -8767,7 +8882,7 @@ Sind Sie sicher, dass Sie diese Änderungen vornehmen wollen?</translation>
     </message>
     <message>
         <location filename="../oscar/SleepLib/common.cpp" line="857"/>
-        <location filename="../oscar/main.cpp" line="167"/>
+        <location filename="../oscar/main.cpp" line="172"/>
         <source>Cancel</source>
         <translation>Schließen</translation>
     </message>
@@ -9385,12 +9500,12 @@ Sind Sie sicher, dass Sie diese Änderungen vornehmen wollen?</translation>
         <translation>Masken-Einschaltzeit</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="961"/>
+        <location filename="../oscar/main.cpp" line="1041"/>
         <source>It is likely that doing this will cause data corruption, are you sure you want to do this?</source>
         <translation>Es ist wahrscheinlich, dass dabei eine Datenbeschädigung auftreten kann. Sind Sie sicher, dass Sie das tun wollen?</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="678"/>
+        <location filename="../oscar/mainwindow.cpp" line="681"/>
         <source>Loading profile &quot;%1&quot;...</source>
         <translation>Profil laden &quot;%1&quot;...</translation>
     </message>
@@ -9495,7 +9610,7 @@ Sind Sie sicher, dass Sie diese Änderungen vornehmen wollen?</translation>
         <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="692"/>
         <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="922"/>
         <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="1001"/>
-        <location filename="../oscar/mainwindow.cpp" line="3100"/>
+        <location filename="../oscar/mainwindow.cpp" line="3109"/>
         <source>Importing Sessions...</source>
         <translation>Importiere Sitzung...</translation>
     </message>
@@ -9525,7 +9640,7 @@ Sind Sie sicher, dass Sie diese Änderungen vornehmen wollen?</translation>
         <translation>Eine Schnarchvibration</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="741"/>
+        <location filename="../oscar/main.cpp" line="746"/>
         <source>As you did not select a data folder, OSCAR will exit.</source>
         <translation>Da Sie keinen Datenordner ausgewählt haben, wird OSCAR beendet.</translation>
     </message>
@@ -10685,7 +10800,7 @@ Dauer: %1</translation>
         <translation type="vanished">&amp;Vernichten</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="627"/>
+        <location filename="../oscar/mainwindow.cpp" line="630"/>
         <source>There is a lockfile already present for this profile &apos;%1&apos;, claimed on &apos;%2&apos;.</source>
         <translation>Es ist bereits eine Sperrdatei für dieses Profil vorhanden &apos;%1&apos;, beansprucht am &apos;%2&apos;.</translation>
     </message>
@@ -10933,8 +11048,8 @@ Dauer: %1</translation>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="702"/>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="833"/>
         <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1221"/>
-        <location filename="../oscar/mainwindow.cpp" line="970"/>
-        <location filename="../oscar/mainwindow.cpp" line="3140"/>
+        <location filename="../oscar/mainwindow.cpp" line="973"/>
+        <location filename="../oscar/mainwindow.cpp" line="3149"/>
         <source>Finishing up...</source>
         <translation>Beenden...</translation>
     </message>
@@ -10987,7 +11102,7 @@ Dauer: %1</translation>
         <translation>Überblick</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="768"/>
+        <location filename="../oscar/main.cpp" line="773"/>
         <source>The folder you chose is not empty, nor does it already contain valid OSCAR data.</source>
         <translation>Der von Ihnen gewählte Ordner ist weder leer noch enthält er gültige OSCAR-Daten.</translation>
     </message>
@@ -11002,9 +11117,9 @@ Dauer: %1</translation>
         <translation>Fluss-Wellenform des ganzen Tages</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="740"/>
-        <location filename="../oscar/main.cpp" line="796"/>
-        <location filename="../oscar/main.cpp" line="814"/>
+        <location filename="../oscar/main.cpp" line="745"/>
+        <location filename="../oscar/main.cpp" line="801"/>
+        <location filename="../oscar/main.cpp" line="819"/>
         <source>Exiting</source>
         <translation>Verlassen</translation>
     </message>
@@ -11062,7 +11177,7 @@ Dauer: %1</translation>
         <translation>Maskenalarm</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="419"/>
+        <location filename="../oscar/mainwindow.cpp" line="422"/>
         <source>OSCAR Reminder</source>
         <translation>OSCAR-Erinnerung</translation>
     </message>
@@ -11294,7 +11409,7 @@ Dauer: %1</translation>
         <translation>Min %1 Max %2 (%3)</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="629"/>
+        <location filename="../oscar/mainwindow.cpp" line="632"/>
         <source>If you are using cloud storage, make sure OSCAR is closed and syncing has completed first on the other computer before proceeding.</source>
         <translation>Wenn Sie Cloud-Speicher verwenden, stellen Sie sicher, dass OSCAR geschlossen ist und die Synchronisierung zuerst auf dem anderen Computer abgeschlossen ist, bevor Sie fortfahren.</translation>
     </message>
@@ -11314,7 +11429,7 @@ Dauer: %1</translation>
         <translation>Maximaler Therapiedruck</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="769"/>
+        <location filename="../oscar/main.cpp" line="774"/>
         <source>Are you sure you want to use this folder?</source>
         <translation>Sind Sie sicher, dass Sie diesen Ordner nutzen möchten?</translation>
     </message>
@@ -11447,7 +11562,7 @@ Dauer: %1</translation>
         <translation> (%2 min, %3 sek)</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="628"/>
+        <location filename="../oscar/mainwindow.cpp" line="631"/>
         <source>You can only work with one instance of an individual OSCAR profile at a time.</source>
         <translation>Sie kann nur mit einer einzigen Instanz eines OSCAR-Profils arbeiten.</translation>
     </message>
@@ -11558,7 +11673,7 @@ Dauer: %1</translation>
         <translation>Eine Einschränkung der Atmung aus dem Normalzustand, die zu einer Verflachung der Strömungswellenform führt.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="128"/>
+        <location filename="../oscar/main.cpp" line="133"/>
         <source>or CANCEL to skip migration.</source>
         <translation>oder CANCEL, um die Migration zu überspringen.</translation>
     </message>
@@ -11567,7 +11682,7 @@ Dauer: %1</translation>
         <translation type="vanished">Sie können diesen Ordner nicht verwenden:</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="737"/>
+        <location filename="../oscar/main.cpp" line="742"/>
         <source>Choose or create a new folder for OSCAR data</source>
         <translation>Auswählen oder Erstellen eines neuen Ordners für OSCAR-Daten</translation>
     </message>
@@ -11588,38 +11703,38 @@ Dauer: %1</translation>
         <translation type="vanished">zu </translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="127"/>
+        <location filename="../oscar/main.cpp" line="132"/>
         <source>Choose the OSCAR 1.x data folder to migrate</source>
         <translation>Wählen Sie den OSCAR 1.x-Datenordner für die Migration aus</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="143"/>
+        <location filename="../oscar/main.cpp" line="148"/>
         <source>The folder you chose does not contain valid OSCAR 1.x data.</source>
         <translation>Der von Ihnen gewählte Ordner enthält keine gültigen OSCAR 1.x-Daten.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="144"/>
-        <location filename="../oscar/main.cpp" line="154"/>
+        <location filename="../oscar/main.cpp" line="149"/>
+        <location filename="../oscar/main.cpp" line="159"/>
         <source>You cannot migrate from this folder:</source>
         <translation>Sie können nicht aus diesem Ordner migrieren:</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="153"/>
+        <location filename="../oscar/main.cpp" line="158"/>
         <source>The folder you chose does not contain any OSCAR profiles.</source>
         <translation>Der von Ihnen gewählte Ordner enthält keine OSCAR-Profile.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="166"/>
+        <location filename="../oscar/main.cpp" line="171"/>
         <source>Migrating Profiles</source>
         <translation>Profile migrieren</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="173"/>
+        <location filename="../oscar/main.cpp" line="178"/>
         <source>Migrating OSCAR data</source>
         <translation>Migration der OSCAR-Daten</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="201"/>
+        <location filename="../oscar/main.cpp" line="206"/>
         <source>Migrating profile: %1
 (%2 of %3)
 
@@ -11630,7 +11745,7 @@ Starting import...</source>
 Import wird gestartet …</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="220"/>
+        <location filename="../oscar/main.cpp" line="225"/>
         <source>Cancelling: %1
 (%2 of %3)
 
@@ -11638,7 +11753,7 @@ Cleaning up, please wait...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="236"/>
+        <location filename="../oscar/main.cpp" line="241"/>
         <source>Migrating profile: %1
 (%2 of %3)
 
@@ -11649,138 +11764,169 @@ Cleaning up, please wait...</source>
 %4</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="277"/>
+        <location filename="../oscar/main.cpp" line="282"/>
         <source>Migration cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="279"/>
+        <location filename="../oscar/main.cpp" line="284"/>
         <source>The following profile(s) were fully imported before cancellation:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="282"/>
+        <location filename="../oscar/main.cpp" line="287"/>
         <source>No profiles were imported.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="285"/>
+        <location filename="../oscar/main.cpp" line="290"/>
         <source>Migration Cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="288"/>
+        <location filename="../oscar/main.cpp" line="293"/>
         <source>Successfully migrated %1 profile(s) in %2 seconds.</source>
         <translation>%1 Profile wurden in %2 Sekunden erfolgreich migriert.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="291"/>
-        <location filename="../oscar/main.cpp" line="301"/>
+        <location filename="../oscar/main.cpp" line="296"/>
+        <location filename="../oscar/main.cpp" line="306"/>
         <source>Imported profiles:</source>
         <translation>Importierte Profile:</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="293"/>
+        <location filename="../oscar/main.cpp" line="298"/>
         <source>Migration Complete</source>
         <translation>Migration abgeschlossen</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="296"/>
+        <location filename="../oscar/main.cpp" line="301"/>
         <source>Migrated %1 profile(s) successfully, but %2 profile(s) failed in %3 seconds.</source>
         <translation>%1 Profil(e) wurden erfolgreich migriert, %2 Profil(e) konnten jedoch in %3 Sekunden nicht migriert werden.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="304"/>
+        <location filename="../oscar/main.cpp" line="309"/>
         <source>Failed profiles:</source>
         <translation>Fehlgeschlagene Profile:</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="307"/>
+        <location filename="../oscar/main.cpp" line="312"/>
         <source>Migration Partially Complete</source>
         <translation>Migration teilweise abgeschlossen</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="310"/>
+        <location filename="../oscar/main.cpp" line="315"/>
         <source>Failed to migrate any profiles. All %1 profile(s) failed.</source>
         <translation>Es konnten keine Profile migriert werden. Alle %1 Profile sind fehlgeschlagen.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="313"/>
+        <location filename="../oscar/main.cpp" line="318"/>
         <source>Migration Failed</source>
         <translation>Migration fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="727"/>
+        <location filename="../oscar/main.cpp" line="732"/>
         <source>OSCAR will set up a folder for your data.</source>
         <translation>OSCAR richtet einen Ordner für Ihre Daten ein.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="728"/>
+        <location filename="../oscar/main.cpp" line="733"/>
         <source>If you have been using an older version of OSCAR 1.x,</source>
         <translation>Wenn Sie eine ältere Version von OSCAR 1.x verwendet haben,</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="730"/>
+        <location filename="../oscar/main.cpp" line="735"/>
         <source>We suggest you use this folder: </source>
         <translation>Wir empfehlen Ihnen, diesen Ordner zu verwenden: </translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="731"/>
+        <location filename="../oscar/main.cpp" line="736"/>
         <source>Click Ok to accept this, or No if you want to use a different folder.</source>
         <translation>Klicken Sie auf Ok, um dies zu akzeptieren, oder auf Nein, wenn Sie einen anderen Ordner verwenden möchten.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="742"/>
+        <location filename="../oscar/main.cpp" line="747"/>
         <source>Next time you run OSCAR, you will be asked again.</source>
         <translation>Wenn Sie OSCAR das nächste Mal ausführen, werden Sie erneut gefragt.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="759"/>
+        <location filename="../oscar/main.cpp" line="764"/>
         <source>The folder you chose is for OSCAR 1.x. You must use a different folder for OSCAR 2.0.</source>
         <translation>Der von Ihnen gewählte Ordner ist für OSCAR 1.x. Für OSCAR 2.0 müssen Sie einen anderen Ordner verwenden.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="790"/>
+        <location filename="../oscar/main.cpp" line="795"/>
         <source>Database schema:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="828"/>
+        <location filename="../oscar/main.cpp" line="833"/>
         <source>This OSCAR database folder is already open in another instance of OSCAR.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="829"/>
+        <location filename="../oscar/main.cpp" line="834"/>
         <source>Folder:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="830"/>
+        <location filename="../oscar/main.cpp" line="835"/>
         <source>Close the other OSCAR instance before opening this database.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="832"/>
+        <location filename="../oscar/main.cpp" line="837"/>
         <source>(Other instance process ID: %1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="852"/>
+        <location filename="../oscar/main.cpp" line="869"/>
         <source>Database Error</source>
         <translation>Datenbankfehler</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="902"/>
+        <location filename="../oscar/main.cpp" line="891"/>
+        <source>Check Database Integrity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/main.cpp" line="895"/>
+        <source>Checking database integrity, please wait...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/main.cpp" line="921"/>
+        <source>Database Integrity Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/main.cpp" line="922"/>
+        <source>OSCAR detected that the previous session ended unexpectedly, and the database integrity check found problems.
+
+Some data may be missing or corrupted.
+
+Recommended actions:
+  • Restore entire database from a recent system backup
+  • Restore each profile from a recent backup (File → Restore Profile)
+  • Re-import data from your CPAP SD card(s)
+
+For advanced recovery options, see the OSCAR documentation.
+
+You may continue, but some data may be incomplete or incorrect.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/main.cpp" line="982"/>
         <source>Migrate Data from OSCAR 1.x?</source>
         <translation>Daten von OSCAR 1.x migrieren?</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="903"/>
+        <location filename="../oscar/main.cpp" line="983"/>
         <source>On the next screen OSCAR will ask you to select a folder with OSCAR 1.x data</source>
         <translation>Im nächsten Bildschirm werden Sie von OSCAR aufgefordert, einen Ordner mit OSCAR 1.x-Daten auszuwählen</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="904"/>
+        <location filename="../oscar/main.cpp" line="984"/>
         <source>Click [OK] to go to the next screen or [No] if you do not wish to use any OSCAR 1.x data.</source>
         <translation>Klicken Sie auf [OK], um zum nächsten Bildschirm zu gelangen, oder auf [Nein], wenn Sie keine OSCAR 1.x-Daten verwenden möchten.</translation>
     </message>
@@ -11805,7 +11951,7 @@ Cleaning up, please wait...</source>
         <translation>Typ der Grafik-Engine:</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="789"/>
+        <location filename="../oscar/main.cpp" line="794"/>
         <source>Data directory:</source>
         <translation>Datenverzeichnis:</translation>
     </message>
@@ -12045,34 +12191,34 @@ Cleaning up, please wait...</source>
         <translation>Bewegungsmelder</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="948"/>
+        <location filename="../oscar/main.cpp" line="1028"/>
         <source>Version &quot;%1&quot; is invalid, cannot continue!</source>
         <translation>Version &quot;%1 ist ungültig, kann nicht fortgesetzt werden!</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="957"/>
+        <location filename="../oscar/main.cpp" line="1037"/>
         <source>The version of OSCAR you are running (%1) is OLDER than the one used to create this data (%2).</source>
         <translation>Die Version von OSCAR, die Sie betreiben (%1) ist ÄLTER als derjenige, der zur Erstellung dieser Daten verwendet wurde (%2).</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="419"/>
+        <location filename="../oscar/mainwindow.cpp" line="422"/>
         <source>Don&apos;t forget to place your datacard back in your CPAP device</source>
         <translation>Vergessen Sie nicht, Ihre Datenkarte wieder in Ihr CPAP-Gerät einzulegen</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3655"/>
+        <location filename="../oscar/mainwindow.cpp" line="3664"/>
         <source>Please select a location for your zip other than the data card itself!</source>
         <translation>Bitte wählen Sie einen anderen Ort für Ihren Zip als die Datenkarte selbst!</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="3704"/>
-        <location filename="../oscar/mainwindow.cpp" line="3756"/>
-        <location filename="../oscar/mainwindow.cpp" line="3887"/>
+        <location filename="../oscar/mainwindow.cpp" line="3713"/>
+        <location filename="../oscar/mainwindow.cpp" line="3765"/>
+        <location filename="../oscar/mainwindow.cpp" line="4070"/>
         <source>Unable to create zip!</source>
         <translation>Zip kann nicht erstellt werden!</translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="1501"/>
+        <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="1512"/>
         <source>Parsing STR.edf records...</source>
         <translation>Analysieren von STR.edf-Einträgen...</translation>
     </message>
@@ -12701,17 +12847,17 @@ Cleaning up, please wait...</source>
         <translation>Spitzenfluss während eines 2-Minuten-Intervalls</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="2731"/>
+        <location filename="../oscar/mainwindow.cpp" line="2734"/>
         <source>Recompressing Session Files</source>
         <translation>Sitzungsdateien neu komprimieren</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="607"/>
+        <location filename="../oscar/main.cpp" line="612"/>
         <source>OSCAR crashed due to an incompatibility with your graphics hardware.</source>
         <translation>OSCAR stürzte aufgrund einer Inkompatibilität mit Ihrer Grafikhardware ab.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="608"/>
+        <location filename="../oscar/main.cpp" line="613"/>
         <source>To resolve this, OSCAR has reverted to a slower but more compatible method of drawing.</source>
         <translation>Um dieses Problem zu lösen, ist OSCAR zu einer langsameren, aber kompatibleren Zeichenmethode zurückgekehrt.</translation>
     </message>
@@ -12777,7 +12923,7 @@ Cleaning up, please wait...</source>
         <translation>Nach OSCAR-Updates suchen</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="797"/>
+        <location filename="../oscar/main.cpp" line="802"/>
         <source>Unable to create the OSCAR data folder at</source>
         <translation>Der OSCAR-Datenordner konnte nicht erstellt werden unter</translation>
     </message>
@@ -12799,22 +12945,22 @@ Popup-Fenster, löschen Sie es, und öffnen Sie dann dieses Diagramm erneut.</tr
         <translation>Plus</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="810"/>
+        <location filename="../oscar/main.cpp" line="815"/>
         <source>Unable to write to OSCAR data directory</source>
         <translation>OSCAR-Datenverzeichnis kann nicht beschrieben werden</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="811"/>
+        <location filename="../oscar/main.cpp" line="816"/>
         <source>Error code</source>
         <translation>Fehlercode</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="812"/>
+        <location filename="../oscar/main.cpp" line="817"/>
         <source>OSCAR cannot continue and is exiting.</source>
         <translation>OSCAR kann nicht weitergeführt werden und wird geschlossen.</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="840"/>
+        <location filename="../oscar/main.cpp" line="845"/>
         <source>Unable to write to debug log. You can still use the debug pane (Help/Troubleshooting/Show Debug Pane) but the debug log will not be written to disk.</source>
         <translation>Kann nicht in das Debug-Protokoll schreiben. Sie können immer noch das Debug-Fenster (Hilfe/Fehlerbehebung/Debug-Fenster anzeigen) verwenden, aber das Debug-Protokoll wird nicht auf die Festplatte geschrieben.</translation>
     </message>
@@ -12837,7 +12983,7 @@ Popup-Fenster, löschen Sie es, und öffnen Sie dann dieses Diagramm erneut.</tr
         <translation type="vanished">Wenn Sie SleepyHead oder eine ältere Version von OSCAR verwendet haben,</translation>
     </message>
     <message>
-        <location filename="../oscar/main.cpp" line="729"/>
+        <location filename="../oscar/main.cpp" line="734"/>
         <source>OSCAR can copy your old data to this folder later.</source>
         <translation>OSCAR kann Ihre alten Daten später in diesen Ordner kopieren.</translation>
     </message>
@@ -12854,14 +13000,14 @@ Popup-Fenster, löschen Sie es, und öffnen Sie dann dieses Diagramm erneut.</tr
         <translation type="vanished">Klicken Sie auf [OK], um zum nächsten Bildschirm zu gelangen, oder auf [Nein], wenn Sie keine SleepyHead- oder OSCAR-Daten verwenden möchten.</translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1234"/>
+        <location filename="../oscar/mainwindow.cpp" line="1237"/>
         <source>Chromebook file system detected, but no removable device found
 </source>
         <translation>Chromebook-Dateisystem erkannt, aber kein Wechseldatenträger gefunden
 </translation>
     </message>
     <message>
-        <location filename="../oscar/mainwindow.cpp" line="1235"/>
+        <location filename="../oscar/mainwindow.cpp" line="1238"/>
         <source>You must share your SD card with Linux using the ChromeOS Files program</source>
         <translation>Sie müssen Ihre SD-Karte unter Linux mit dem Programm ChromeOS Files freigeben</translation>
     </message>
@@ -13272,67 +13418,67 @@ Popup-Fenster, löschen Sie es, und öffnen Sie dann dieses Diagramm erneut.</tr
         <translation>Yuwell</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="444"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="453"/>
         <source>Preparing database for deletion...</source>
         <translation>Datenbank wird für die Löschung vorbereitet...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="452"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="461"/>
         <source>Starting database transaction...</source>
         <translation>Datenbanktransaktion wird gestartet...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="467"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="476"/>
         <source>Collecting session information...</source>
         <translation>Sitzungsinformationen werden gesammelt...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="498"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="508"/>
         <source>Deleting profile (no session data)...</source>
         <translation>Profil wird gelöscht (keine Sitzungsdaten)...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="516"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="526"/>
         <source>Profile deleted</source>
         <translation>Profil gelöscht</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="532"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="542"/>
         <source>Deleting session channel data...</source>
         <translation>Sitzungskanaldaten werden gelöscht...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="582"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="593"/>
         <source>Deleting waveform data...</source>
         <translation>Wellenformdaten werden gelöscht...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="600"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="611"/>
         <source>Deleting waveform data (%1 of %2 sessions)...</source>
         <translation>Wellenformdaten werden gelöscht (%1 von %2 Sitzungen)...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="629"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="641"/>
         <source>Deleting session records...</source>
         <translation>Sitzungsdatensätze werden gelöscht...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="653"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="666"/>
         <source>Deleting profile record...</source>
         <translation>Profildatensatz wird gelöscht...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="671"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="685"/>
         <source>Committing database changes...</source>
         <translation>Datenbankänderungen werden übernommen...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="691"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="705"/>
         <source>Reclaiming database disk space...</source>
         <translation>Datenbank-Speicherplatz wird freigegeben...</translation>
     </message>
     <message>
-        <location filename="../oscar/database/profile_repository.cpp" line="699"/>
+        <location filename="../oscar/database/profile_repository.cpp" line="713"/>
         <source>Profile deleted successfully</source>
         <translation>Profil erfolgreich gelöscht</translation>
     </message>
