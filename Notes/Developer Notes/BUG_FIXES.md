@@ -4,6 +4,61 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-05-31 - Dirty-shutdown integrity check ran on wrong database after database switch
+
+**Files:** `oscar/main.cpp`, `oscar/database/database_manager.cpp`, `oscar/database/database_manager.h`,
+`oscar/mainwindow.cpp`
+
+**Symptom:** Switching databases via File → Database → Recent triggered a lengthy integrity check
+on the newly opened database even though the previous session had closed cleanly.
+
+**Root causes (three):**
+
+1. **Flag not path-scoped.** The dirty-shutdown flag (`db/CleanShutdown`) was a single global
+   QSettings key with no association to a database path. A crash on database A set the flag dirty;
+   opening any other database B on the next launch triggered an integrity check on B.
+
+2. **Race condition on database switch.** `switchToDatabase()` spawned the new OSCAR process via
+   `startDetached()` before the old process had written the clean-shutdown flag. The new process
+   started (after its 1-second `-p` delay) and read the still-dirty flag before the old process
+   finished cleanup.
+
+3. **Current database not added to Recent list.** `main.cpp` only called `RecentDatabases::add()`
+   when the list was empty (first run). If the list already had entries, the current database was
+   never recorded, so it was absent from the Recent menu after switching away.
+
+**Fixes:**
+
+1. Added `db/LastShutdownPath` QSettings key alongside `db/CleanShutdown`. Startup now skips the
+   integrity check if the stored path doesn't match the database being opened.
+
+2. Added `DatabaseManager::markCleanShutdown(dbPath)` static method (writes both keys and calls
+   `settings.sync()`). Called in `switchToDatabase()` **before** `startDetached()` so the flag
+   is on disk before the new process is created. Also called from `main()` cleanup as before.
+
+3. Changed `RecentDatabases::add(GetAppData())` in `main.cpp` to run unconditionally on every
+   launch, promoting the current database to the top of the Recent list.
+
+---
+
+## 2026-05-31 - Integrity check dialog showed "(Not Responding)" on large databases
+
+**Files:** `oscar/database/database_manager.cpp`, `oscar/main.cpp`, `oscar/mainwindow.cpp`
+
+**Symptom:** The "Checking database integrity, please wait..." dialog displayed "(Not Responding)"
+in its title bar during the check on large databases, alarming users into thinking OSCAR had hung.
+
+**Root cause:** `checkIntegrity()` ran on the UI thread, blocking the Windows message pump.
+Windows marks any window that stops processing messages for ~5 seconds as "Not Responding".
+
+**Fix:** Rewrote `checkIntegrity()` to open a private temporary SQLite connection (named per
+calling thread) so it is safe to call from any thread — Qt SQL connections are per-thread and
+`m_database` belongs to the main thread. Both call sites (startup check in `main.cpp` and manual
+check in `mainwindow.cpp`) now run the check on a `QThread` with a `QEventLoop` keeping the main
+thread responsive. The wait dialog shows plain text only (no progress bar, which looked frozen).
+
+---
+
 ## 2026-05-29 - BMC legacy loader: G3 B20A imports no data (1-byte packet offset)
 
 **Files:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp`, `bmcDataParsing.h`

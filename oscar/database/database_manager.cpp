@@ -19,6 +19,7 @@
 #include <QThread>
 #include <QMutexLocker>
 #include <QCoreApplication>
+#include <QSettings>
 
 //#define DBDEBUG
 /*
@@ -361,6 +362,93 @@ bool DatabaseManager::rollback()
 bool DatabaseManager::inTransaction() const
 {
     return m_inTransaction;
+}
+
+/*
+ * Write the clean-shutdown flag for dbPath to QSettings and sync to disk.
+ *
+ * This is a static method so it can be called from switchToDatabase() before
+ * spawning a new OSCAR process — the new process reads these keys at startup,
+ * so they must be on disk before startDetached() returns.
+ *
+ * Also called from main() as part of normal shutdown.
+ */
+void DatabaseManager::markCleanShutdown(const QString& dbPath)
+{
+    QSettings settings;
+    settings.setValue("db/CleanShutdown", true);
+    settings.setValue("db/LastShutdownPath", dbPath);
+    settings.sync();
+    qDebug() << "DatabaseManager::markCleanShutdown: clean shutdown marked for" << dbPath;
+}
+
+/*
+ * Run a quick integrity check on the database
+ *
+ * Returns: true if the database passes PRAGMA quick_check, false if corruption
+ * is detected or the check cannot be run.
+ *
+ * PRAGMA quick_check scans the B-tree structure and free-list of every page.
+ * It returns a single "ok" row when clean, or one row per problem found.
+ * It is faster than PRAGMA integrity_check (which also cross-checks indexes)
+ * and suitable for startup checks and pre-VACUUM safety guards.
+ *
+ * This method opens a temporary, private SQLite connection so it is safe to
+ * call from any thread — Qt SQL connections are per-thread and m_database
+ * belongs to the thread that called initialize(). The caller is responsible
+ * for running this on a background thread so the UI stays responsive (a check
+ * on a large database can take several minutes).
+ */
+bool DatabaseManager::checkIntegrity()
+{
+    if (m_databasePath.isEmpty()) {
+        qWarning() << "DatabaseManager::checkIntegrity: No database path set";
+        return false;
+    }
+
+    // Unique connection name per thread so concurrent calls don't collide.
+    QString connName = QString("OSCAR_INTEGRITY_%1")
+                           .arg(quintptr(QThread::currentThread()));
+    bool passed = false;
+
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connName);
+        db.setDatabaseName(m_databasePath);
+
+        if (!db.open()) {
+            qWarning() << "DatabaseManager::checkIntegrity: Cannot open temporary connection:"
+                       << db.lastError().text();
+        } else {
+            qDebug() << "DatabaseManager::checkIntegrity: Running PRAGMA quick_check...";
+            QSqlQuery query(db);
+
+            if (!query.exec("PRAGMA quick_check")) {
+                qWarning() << "DatabaseManager::checkIntegrity: PRAGMA quick_check failed:"
+                           << query.lastError().text();
+            } else {
+                QStringList issues;
+                while (query.next()) {
+                    QString val = query.value(0).toString();
+                    if (val != "ok")
+                        issues << val;
+                }
+
+                if (issues.isEmpty()) {
+                    qDebug() << "DatabaseManager::checkIntegrity: Database passed quick_check";
+                    passed = true;
+                } else {
+                    qWarning() << "DatabaseManager::checkIntegrity: Database failed quick_check with"
+                               << issues.size() << "issue(s):";
+                    for (const QString& issue : issues)
+                        qWarning() << "  -" << issue;
+                }
+            }
+            db.close();
+        }
+    }
+
+    QSqlDatabase::removeDatabase(connName);
+    return passed;
 }
 
 /*

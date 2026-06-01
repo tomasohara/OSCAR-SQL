@@ -400,6 +400,7 @@ class MainWindow : public QMainWindow
 
     void on_mainsplitter_splitterMoved(int pos, int index);
 
+    void on_actionCheck_Database_Integrity_triggered();
     void on_actionCompress_Database_triggered();
 
     void on_actionCreate_Card_zip_triggered();

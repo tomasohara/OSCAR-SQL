@@ -2166,6 +2166,7 @@ p, li { white-space: pre-wrap; }
      <addaction name="actionDebug"/>
      <addaction name="actionShow_Performance_Counters"/>
      <addaction name="separator"/>
+     <addaction name="actionCheck_Database_Integrity"/>
      <addaction name="actionCompress_Database"/>
      <addaction name="separator"/>
      <addaction name="actionCreate_Card_zip"/>
@@ -2625,6 +2626,11 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Show Performance Information</string>
+   </property>
+  </action>
+  <action name="actionCheck_Database_Integrity">
+   <property name="text">
+    <string>Check database integrity</string>
    </property>
   </action>
   <action name="actionCompress_Database">

@@ -25,6 +25,11 @@
 #include <QFontDatabase>
 #include <QStandardPaths>
 #include <QProgressDialog>
+#include <QDialog>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QThread>
+#include <QEventLoop>
 #include <QRegularExpression>
 #include <QStyleHints>
 #include <QStyleFactory>
@@ -845,6 +850,18 @@ int main(int argc, char *argv[]) {
     ///////////////////////////////////////////////////////////////////////////////////////////
     QString dbPath = GetAppData() + "/oscar.db";
 
+    // Dirty-shutdown detection: set the flag false now (dirty) and restore it to
+    // true only after a clean close. If OSCAR crashes, the flag stays false and we
+    // run an integrity check on the next launch — but only on the same database that
+    // was open when the crash occurred (to avoid false checks when switching databases).
+    const QString DBCleanShutdownKey = "db/CleanShutdown";
+    const QString DBLastPathKey      = "db/LastShutdownPath";
+    bool    prevShutdownClean = settings.value(DBCleanShutdownKey, true).toBool();
+    QString prevShutdownPath  = settings.value(DBLastPathKey).toString();
+    settings.setValue(DBCleanShutdownKey, false);
+    settings.setValue(DBLastPathKey, dbPath);
+    settings.sync();
+
     QObject::connect(&DatabaseManager::instance(), &DatabaseManager::databaseError,
                      [](const QString& error) {
                          qCritical() << "Database Manager Error:" << error;
@@ -860,9 +877,69 @@ int main(int argc, char *argv[]) {
     qDebug() << "Main: Database initialized successfully!";
     qDebug() << "Main: Database file:" << dbPath;
 
-    // Seed the Recent databases list on first run with the current data folder.
-    if (RecentDatabases::entries().isEmpty())
-        RecentDatabases::add(GetAppData());
+    // If the previous session ended unexpectedly on this same database, run a quick
+    // integrity check. A progress dialog is shown because the check can take several
+    // minutes on large databases.
+    if (prevShutdownClean) {
+        qDebug() << "Main: Clean shutdown flag OK — skipping integrity check";
+    } else if (prevShutdownPath != dbPath) {
+        qDebug() << "Main: Dirty shutdown flag set for a different database — skipping integrity check";
+    } else {
+        qDebug() << "Main: Previous session ended unexpectedly — running integrity check";
+
+        QDialog integrityWait;
+        integrityWait.setWindowTitle(QObject::tr("Check Database Integrity"));
+        integrityWait.setWindowModality(Qt::ApplicationModal);
+        integrityWait.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        QVBoxLayout waitLayout(&integrityWait);
+        QLabel waitLabel(QObject::tr("Checking database integrity, please wait..."), &integrityWait);
+        waitLabel.setMargin(20);
+        waitLayout.addWidget(&waitLabel);
+        integrityWait.adjustSize();
+        integrityWait.setMinimumWidth(400);
+        integrityWait.show();
+        QApplication::processEvents();
+
+        bool integrityOk = false;
+        QThread* checkThread = QThread::create([&integrityOk]() {
+            integrityOk = DatabaseManager::instance().checkIntegrity();
+        });
+        QEventLoop waitLoop;
+        QObject::connect(checkThread, &QThread::finished, &waitLoop, &QEventLoop::quit);
+        checkThread->start();
+        waitLoop.exec();
+        checkThread->wait();
+        delete checkThread;
+
+        integrityWait.hide();
+
+        if (!integrityOk) {
+            qCritical() << "Main: Database integrity check failed after unclean shutdown";
+            QMessageBox::StandardButton btn = QMessageBox::critical(
+                nullptr,
+                QObject::tr("Database Integrity Warning"),
+                QObject::tr(
+                    "OSCAR detected that the previous session ended unexpectedly, "
+                    "and the database integrity check found problems.\n\n"
+                    "Some data may be missing or corrupted.\n\n"
+                    "Recommended actions:\n"
+                    "  • Restore from a recent backup (File → Restore Profile)\n"
+                    "  • Re-import data from your CPAP SD card\n\n"
+                    "You may continue, but some data may be incomplete or incorrect."),
+                QMessageBox::Ok | QMessageBox::Close,
+                QMessageBox::Close);
+            if (btn == QMessageBox::Close) {
+                return 0;
+            }
+        } else {
+            qDebug() << "Main: Database passed integrity check after unclean shutdown";
+        }
+    }
+
+    // Always add the current database to the recent list so it appears when the
+    // user switches to another database. add() promotes it to the top if already
+    // present and is a no-op on duplicates, so this is safe on every launch.
+    RecentDatabases::add(GetAppData());
 
     importLegacyNamedLayouts();
     importLegacyProfileLayouts();
@@ -1051,6 +1128,9 @@ int main(int argc, char *argv[]) {
     // causing a SIGSEGV when the destructor tries to run "PRAGMA optimize" via QSqlQuery.
     // Closing here sets m_initialized=false so the destructor becomes a no-op.
     DatabaseManager::instance().close();
+
+    // Mark clean shutdown so the next launch skips the integrity check.
+    DatabaseManager::markCleanShutdown(dbPath);
 
     return result;
 }

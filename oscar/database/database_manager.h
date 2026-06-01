@@ -129,6 +129,27 @@ public:
     bool checkpointWAL();
 
     /*!
+     * \brief Run a quick integrity check on the database
+     * \return true if the database passes the check, false if corruption is detected
+     *
+     * Runs PRAGMA quick_check, which scans B-tree structure and the free-list
+     * without the full cross-reference verification of PRAGMA integrity_check.
+     * Suitable for startup checks and pre-VACUUM safety checks.
+     */
+    bool checkIntegrity();
+
+    /*!
+     * \brief Write the clean-shutdown flag for the given database path to QSettings
+     * \param dbPath Full path to the database file
+     *
+     * Called both from main() after a normal close and from switchToDatabase()
+     * before spawning a new OSCAR process, to ensure the flag is on disk before
+     * the new process reads it. Centralises the QSettings key names so they
+     * cannot diverge between callers.
+     */
+    static void markCleanShutdown(const QString& dbPath);
+
+    /*!
      * \brief Counts total rows in database
      * \return total number of rows. -1 if failure.
      */

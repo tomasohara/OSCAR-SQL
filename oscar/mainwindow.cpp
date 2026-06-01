@@ -82,6 +82,8 @@
 #include "restoredialog.h"
 #include "sharedialog.h"
 #include <QProgressDialog>
+#include <QThread>
+#include <QEventLoop>
 #include "purgerangedaysdialog.h"
 #include "exports/report_exporter.h"
 #include "exports/journalnotesdialog.h"
@@ -2914,6 +2916,12 @@ void MainWindow::switchToDatabase(const QString& path)
     // must not change that key here (it would shift GetAppData() under p_pref
     // and cause a spurious mismatch warning during this process's shutdown).
     RecentDatabases::add(path);
+
+    // Mark clean shutdown BEFORE spawning the new process. The new process reads
+    // this flag at startup; if we let main()'s cleanup write it after startDetached()
+    // returns, the new process can race ahead and see the dirty flag.
+    DatabaseManager::markCleanShutdown(DatabaseManager::instance().databasePath());
+
     qDebug() << "=== This log is ending: switching to database" << path << "===";
 
     // Spawn a new OSCAR instance and exit.
@@ -3759,6 +3767,52 @@ void MainWindow::on_actionCreate_Log_zip_triggered()
 }
 
 
+void MainWindow::on_actionCheck_Database_Integrity_triggered()
+{
+    QDialog waitDlg(this);
+    waitDlg.setWindowTitle(tr("Check Database Integrity"));
+    waitDlg.setWindowModality(Qt::WindowModal);
+    waitDlg.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    QVBoxLayout waitLayout(&waitDlg);
+    QLabel waitLabel(tr("Checking database integrity, please wait..."), &waitDlg);
+    waitLabel.setMargin(20);
+    waitLayout.addWidget(&waitLabel);
+    waitDlg.adjustSize();
+    waitDlg.setMinimumWidth(400);
+    waitDlg.show();
+    QApplication::processEvents();
+
+    bool ok = false;
+    QThread* checkThread = QThread::create([&ok]() {
+        ok = DatabaseManager::instance().checkIntegrity();
+    });
+    QEventLoop waitLoop;
+    QObject::connect(checkThread, &QThread::finished, &waitLoop, &QEventLoop::quit);
+    checkThread->start();
+    waitLoop.exec();
+    checkThread->wait();
+    delete checkThread;
+
+    waitDlg.hide();
+
+    if (ok) {
+        staticQMessageBox::information(this, tr("Check Database Integrity"),
+            tr("The database integrity check passed. No problems were found."),
+            QMessageBox::Ok);
+    } else {
+        staticQMessageBox::warning(this, tr("Check Database Integrity"),
+            tr("The database integrity check found problems. "
+               "Some data may be missing or corrupted.\n\n"
+               "The integrity check covers the entire database, which may contain multiple profiles.\n\n"
+               "Recommended actions:\n"
+               "  • Restore entire database from a recent system backup\n"
+               "  • Restore each profile from a recent backup (File → Restore Profile)\n"
+               "  • Re-import data from your CPAP SD card(s)\n\n"
+               "For advanced recovery options, see the OSCAR documentation."),
+            QMessageBox::Ok);
+    }
+}
+
 void MainWindow::on_actionCompress_Database_triggered()
 {
     // Report database size including the WAL, which holds recently committed data.
@@ -3783,6 +3837,24 @@ void MainWindow::on_actionCompress_Database_triggered()
         QMessageBox::No);
 
     if (answer != QMessageBox::Yes) return;
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    // Integrity check before VACUUM: a corrupt database must not be vacuumed,
+    // as VACUUM rewrites the file and could propagate or obscure existing damage.
+    bool integrityOk = DatabaseManager::instance().checkIntegrity();
+
+    QApplication::restoreOverrideCursor();
+
+    if (!integrityOk) {
+        staticQMessageBox::warning(this, tr("Compress Database"),
+            tr("The database integrity check failed. Compression cannot proceed on a damaged database.\n\n"
+               "Recommended actions:\n"
+               "  • Restore from a recent backup (File → Restore Profile)\n"
+               "  • Re-import data from your CPAP SD card"),
+            QMessageBox::Ok);
+        return;
+    }
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
