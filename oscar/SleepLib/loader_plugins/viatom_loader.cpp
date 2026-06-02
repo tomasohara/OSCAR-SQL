@@ -545,15 +545,13 @@ bool ViatomFile::ParseHeader()
     case 0x0005:
         break;
     case 0x0006:
-        sig = 0x0005;
-        break;
+        break;  // 3-byte records (spo2, hr, motion); no oximetry_invalid or vibration fields
     default:
         qDebug() << m_file.fileName() << "Unrecognized DB version number in Viatom data file" << sig;
         return false;
         break;
     }
     m_sig = sig;
-    CHECK_VALUES(m_sig, 3, 5);
 
     if ((year < 2015 || year > 2059) || (month < 1 || month > 12) || (day < 1 || day > 31) ||
         (hour > 23) || (min > 59) || (sec > 59)) {
@@ -617,7 +615,8 @@ bool ViatomFile::ParseHeader()
 
     // Calculate timing resolution (in ms) of the data
     qint64 datasize = m_file.size() - HEADER_SIZE;
-    m_record_count = datasize / RECORD_SIZE;
+    int record_size = (m_sig == 0x0006) ? 3 : RECORD_SIZE;  // sig 0x0006 has 3-byte records
+    m_record_count = datasize / record_size;
     m_resolution = m_duration / m_record_count * 1000L;
     if (m_resolution == 2000 && m_sig == 3) {
         // Interestingly the file size in the header corresponds the number of
@@ -629,9 +628,13 @@ bool ViatomFile::ParseHeader()
     } else {
         CHECK_VALUE(filesize, m_file.size());
     }
-    CHECK_VALUES(m_resolution, 2000, 4000);
+    if (m_sig == 0x0006) {
+        CHECK_VALUE(m_resolution, 1000);
+    } else {
+        CHECK_VALUES(m_resolution, 2000, 4000);
+    }
     if (true) {  // TODO: We need CheckMe sample data where this doesn't hold true.
-        CHECK_VALUE(datasize % RECORD_SIZE, 0);
+        CHECK_VALUE(datasize % record_size, 0);
         CHECK_VALUE(m_duration % m_record_count, 0);
     }
 
@@ -651,16 +654,23 @@ QList<ViatomFile::Record> ViatomFile::ReadData()
     // Read all Pulse, SPO2 and Motion data
     do {
         ViatomFile::Record rec;
-        in >> rec.spo2 >> rec.hr >> rec.oximetry_invalid >> rec.motion >> rec.vibration;
-        CHECK_VALUES(rec.oximetry_invalid, 0, 0xFF);
-        if (rec.vibration) {
-            CHECK_VALUES(rec.vibration, 0x40, 0x80);  // 0x40 or 0x80 when vibration is triggered
-        }
-        // Invalid readings indicate any interruption in the measurements, whether
-        // transitory (e.g. due to movement) or when the device is removed at the end of a session.
-        if (rec.oximetry_invalid == 0xFF) {
-            CHECK_VALUE(rec.spo2, 0xFF);
-            CHECK_VALUE(rec.hr, 0xFF);
+        if (m_sig == 0x0006) {
+            // sig 0x0006 uses 3-byte records: spo2, hr, motion (no invalid/vibration fields)
+            in >> rec.spo2 >> rec.hr >> rec.motion;
+            rec.oximetry_invalid = (rec.spo2 == 0xFF || rec.hr == 0xFF) ? 0xFF : 0;
+            rec.vibration = 0;
+        } else {
+            in >> rec.spo2 >> rec.hr >> rec.oximetry_invalid >> rec.motion >> rec.vibration;
+            CHECK_VALUES(rec.oximetry_invalid, 0, 0xFF);
+            if (rec.vibration) {
+                CHECK_VALUES(rec.vibration, 0x40, 0x80);  // 0x40 or 0x80 when vibration is triggered
+            }
+            // Invalid readings indicate any interruption in the measurements, whether
+            // transitory (e.g. due to movement) or when the device is removed at the end of a session.
+            if (rec.oximetry_invalid == 0xFF) {
+                CHECK_VALUE(rec.spo2, 0xFF);
+                CHECK_VALUE(rec.hr, 0xFF);
+            }
         }
         records.append(rec);
     } while (records.size() < m_record_count);
@@ -701,7 +711,9 @@ QList<ViatomFile::Record> ViatomFile::ReadData()
             records = dedup;
         }
     }
-    if (m_sig == 5) {
+    if (m_sig == 0x0006) {
+        CHECK_VALUE(duration() / records.size(), 1);  // 1s resolution
+    } else if (m_sig == 5) {
         CHECK_VALUES(duration() / records.size(), 2, 4);  // We've seen 2s and 4s resolution.
     } else {
         CHECK_VALUE(duration() / records.size(), 4);  // We've only seen 4s true resolution so far.
