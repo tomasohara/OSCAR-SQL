@@ -6233,11 +6233,13 @@ mz_bool mz_zip_writer_add_mem_ex_v2(mz_zip_archive *pZip, const char *pArchive_n
 
     if (pState->m_zip64)
     {
-        if (uncomp_size >= MZ_UINT32_MAX || local_dir_header_ofs >= MZ_UINT32_MAX)
+        /* Local file headers must not contain local_dir_header_ofs in their Zip64
+         * extra — that field is only valid in central directory headers (APPNOTE 4.5.3).
+         * Only write the local-header Zip64 extra when the file sizes themselves overflow. */
+        if (uncomp_size >= MZ_UINT32_MAX)
         {
             pExtra_data = extra_data;
-            extra_size = mz_zip_writer_create_zip64_extra_data(extra_data, (uncomp_size >= MZ_UINT32_MAX) ? &uncomp_size : NULL,
-                                                               (uncomp_size >= MZ_UINT32_MAX) ? &comp_size : NULL, (local_dir_header_ofs >= MZ_UINT32_MAX) ? &local_dir_header_ofs : NULL);
+            extra_size = mz_zip_writer_create_zip64_extra_data(extra_data, &uncomp_size, &comp_size, NULL);
         }
 
         if (!mz_zip_writer_create_local_dir_header(pZip, local_dir_header, (mz_uint16)archive_name_size, (mz_uint16)(extra_size + user_extra_data_len), 0, 0, 0, method, bit_flags, dos_time, dos_date))
@@ -6354,8 +6356,11 @@ mz_bool mz_zip_writer_add_mem_ex_v2(mz_zip_archive *pZip, const char *pArchive_n
         cur_archive_file_ofs += local_dir_footer_size;
     }
 
-    if (pExtra_data != NULL)
+    /* Central directory Zip64 extra is needed when sizes OR offset overflow.
+     * This is computed independently of the local-header extra above. */
+    if (uncomp_size >= MZ_UINT32_MAX || local_dir_header_ofs >= MZ_UINT32_MAX)
     {
+        pExtra_data = extra_data;
         extra_size = mz_zip_writer_create_zip64_extra_data(extra_data, (uncomp_size >= MZ_UINT32_MAX) ? &uncomp_size : NULL,
                                                            (uncomp_size >= MZ_UINT32_MAX) ? &comp_size : NULL, (local_dir_header_ofs >= MZ_UINT32_MAX) ? &local_dir_header_ofs : NULL);
     }
@@ -6480,11 +6485,13 @@ mz_bool mz_zip_writer_add_read_buf_callback(mz_zip_archive *pZip, const char *pA
     MZ_CLEAR_OBJ(local_dir_header);
     if (pState->m_zip64)
     {
-        if (uncomp_size >= MZ_UINT32_MAX || local_dir_header_ofs >= MZ_UINT32_MAX)
+        /* Local file headers must not contain local_dir_header_ofs in their Zip64
+         * extra — that field is only valid in central directory headers (APPNOTE 4.5.3).
+         * Only write the local-header Zip64 extra when the file sizes themselves overflow. */
+        if (uncomp_size >= MZ_UINT32_MAX)
         {
             pExtra_data = extra_data;
-            extra_size = mz_zip_writer_create_zip64_extra_data(extra_data, (uncomp_size >= MZ_UINT32_MAX) ? &uncomp_size : NULL,
-                                                               (uncomp_size >= MZ_UINT32_MAX) ? &comp_size : NULL, (local_dir_header_ofs >= MZ_UINT32_MAX) ? &local_dir_header_ofs : NULL);
+            extra_size = mz_zip_writer_create_zip64_extra_data(extra_data, &uncomp_size, &comp_size, NULL);
         }
 
         if (!mz_zip_writer_create_local_dir_header(pZip, local_dir_header, (mz_uint16)archive_name_size, (mz_uint16)(extra_size + user_extra_data_len), 0, 0, 0, method, gen_flags, dos_time, dos_date))
@@ -6657,8 +6664,11 @@ mz_bool mz_zip_writer_add_read_buf_callback(mz_zip_archive *pZip, const char *pA
         cur_archive_file_ofs += local_dir_footer_size;
     }
 
-    if (pExtra_data != NULL)
+    /* Central directory Zip64 extra is needed when sizes OR offset overflow.
+     * This is computed independently of the local-header extra above. */
+    if (uncomp_size >= MZ_UINT32_MAX || local_dir_header_ofs >= MZ_UINT32_MAX)
     {
+        pExtra_data = extra_data;
         extra_size = mz_zip_writer_create_zip64_extra_data(extra_data, (uncomp_size >= MZ_UINT32_MAX) ? &uncomp_size : NULL,
                                                            (uncomp_size >= MZ_UINT32_MAX) ? &comp_size : NULL, (local_dir_header_ofs >= MZ_UINT32_MAX) ? &local_dir_header_ofs : NULL);
     }

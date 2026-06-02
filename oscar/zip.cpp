@@ -413,6 +413,25 @@ static void zip_close(void* ctx)
 // ==================================================================================================
 // UnzipFile — ZIP extraction wrapper
 
+// miniz read callback: seeks QFile to file_ofs and reads n bytes into pBuf.
+// This avoids loading the entire archive into RAM, allowing backups of any size.
+static size_t unzip_qfile_read(void* pOpaque, mz_uint64 file_ofs, void* pBuf, size_t n)
+{
+    QFile* f = static_cast<QFile*>(pOpaque);
+    if (!f->seek(static_cast<qint64>(file_ofs))) return 0;
+    const qint64 nread = f->read(static_cast<char*>(pBuf), static_cast<qint64>(n));
+    return nread < 0 ? 0 : static_cast<size_t>(nread);
+}
+
+// miniz write callback: streams decompressed chunks directly into an open QFile.
+// file_ofs always increases monotonically so no seeking is needed.
+static size_t unzip_qfile_write(void* pOpaque, mz_uint64 /*file_ofs*/, const void* pBuf, size_t n)
+{
+    QFile* f = static_cast<QFile*>(pOpaque);
+    const qint64 written = f->write(static_cast<const char*>(pBuf), static_cast<qint64>(n));
+    return written < 0 ? 0 : static_cast<size_t>(written);
+}
+
 /*!
  * \brief Construct an UnzipFile and allocate the internal miniz context.
  */
@@ -434,10 +453,12 @@ UnzipFile::~UnzipFile()
 /*!
  * \brief Open a ZIP archive for reading.
  *
- * Reads the file into memory via QFile (handles Unicode paths on all
- * platforms), then initialises the miniz reader from the in-memory buffer.
- * The buffer is kept alive in m_fileData for the lifetime of the open
- * archive.  After a successful Open(), call ExtractAll() then Close().
+ * Opens the file via QFile (handles Unicode paths on all platforms) and
+ * initialises the miniz reader with a seek+read callback.  The file handle
+ * is kept open in m_file until Close() is called.  This approach works for
+ * archives of any size without loading them fully into RAM.
+ *
+ * After a successful Open(), call ExtractAll() then Close().
  */
 bool UnzipFile::Open(const QString& filepath)
 {
@@ -445,21 +466,20 @@ bool UnzipFile::Open(const QString& filepath)
         Close();
     }
 
-    QFile f(filepath);
-    if (!f.open(QIODevice::ReadOnly)) {
+    m_file.setFileName(filepath);
+    if (!m_file.open(QIODevice::ReadOnly)) {
         qWarning() << "UnzipFile::Open: cannot open" << filepath;
         return false;
     }
-    m_fileData = f.readAll();
-    f.close();
 
     mz_zip_archive* pZip = static_cast<mz_zip_archive*>(m_ctx);
     memset(pZip, 0, sizeof(*pZip));
+    pZip->m_pRead       = unzip_qfile_read;
+    pZip->m_pIO_opaque  = &m_file;
 
-    if (!mz_zip_reader_init_mem(pZip, m_fileData.constData(),
-                                static_cast<size_t>(m_fileData.size()), 0)) {
+    if (!mz_zip_reader_init(pZip, static_cast<mz_uint64>(m_file.size()), 0)) {
         qWarning() << "UnzipFile::Open: not a valid ZIP:" << filepath;
-        m_fileData.clear();
+        m_file.close();
         return false;
     }
 
@@ -532,25 +552,22 @@ bool UnzipFile::ExtractAll(const QString& destDir)
         // Ensure the parent directory exists.
         QDir().mkpath(QFileInfo(destPath).absolutePath());
 
-        // Extract the compressed entry to a heap buffer, then write via QFile.
-        // This avoids platform issues with non-ASCII paths in mz_zip_reader_extract_to_file.
-        size_t extractedSize = 0;
-        void*  data = mz_zip_reader_extract_to_heap(pZip, static_cast<mz_uint>(i),
-                                                    &extractedSize, 0);
-        if (!data) {
-            qWarning() << "UnzipFile::ExtractAll: decompression failed for" << archiveName;
-            return false;
-        }
-
+        // Stream-decompress directly into the output file via callback.
+        // This avoids allocating the entire uncompressed entry in RAM, which would
+        // fail for large files (e.g. event_data.sql can exceed several GB).
         QFile outFile(destPath);
         if (!outFile.open(QIODevice::WriteOnly)) {
-            mz_free(data);
             qWarning() << "UnzipFile::ExtractAll: cannot write" << destPath;
             return false;
         }
-        outFile.write(static_cast<const char*>(data), static_cast<qint64>(extractedSize));
+        const bool ok = mz_zip_reader_extract_to_callback(
+            pZip, static_cast<mz_uint>(i), unzip_qfile_write, &outFile, 0);
         outFile.close();
-        mz_free(data);
+        if (!ok) {
+            QFile::remove(destPath);
+            qWarning() << "UnzipFile::ExtractAll: decompression failed for" << archiveName;
+            return false;
+        }
     }
 
     return true;
@@ -567,7 +584,7 @@ void UnzipFile::Close()
         memset(pZip, 0, sizeof(*pZip));
         m_open = false;
     }
-    m_fileData.clear();
+    m_file.close();
 }
 
 /*!

@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-01 - Edit Profile dialog all-dark on KDE Plasma dark mode
+
+**File:** `oscar/newprofile.cpp` (`NewProfile` constructor)
+
+**Symptom:** On Kubuntu 26.04 in system dark mode, the Edit Profile (NewProfile) wizard
+dialog appeared entirely dark — dark background, white text, dark input fields.
+
+**Root cause:** Qt's `styleHints()->setColorScheme(Light)` hint (set in `main.cpp`) is not
+guaranteed on KDE Plasma; the KDE platform theme injects its own dark palette colors into
+individual windows regardless of the application-level hint. `NewProfile` had no explicit
+light-mode styling, unlike `ProfileSelector` which already had a protective stylesheet
+(see commit `1fc4110c` for the prior SQL editor instance of the same issue).
+
+**Fix:** Added `setAutoFillBackground(true)`, a white `QPalette::Window`, and an explicit
+stylesheet covering all widget types used in the dialog (QLabel, QLineEdit, QTextEdit,
+QComboBox, QDateEdit, QDoubleSpinBox, QCheckBox, QGroupBox, QPushButton, QTextBrowser,
+QPlainTextEdit) — matching the pattern already in `ProfileSelector`.
+
+---
+
 ## 2026-06-01 - Compress Database blocked UI thread and used excessive memory
 
 **Files:** `oscar/mainwindow.cpp`
@@ -3284,3 +3304,41 @@ before the `QTextStream` destructor could flush its internal buffer. For small
 result sets (e.g. a 0-row `device_time_corrections` export) the entire file content
 remained in the stream buffer and was never written to disk. Fixed by calling
 `stream.flush()` before `file.close()`.
+
+---
+
+## 2026-06-01 - Backup restore fails for archives > 4 GB (Zip64 bug)
+
+**Files:** `oscar/zip.{h,cpp}`, `oscar/SleepLib/thirdparty/miniz.c`
+
+**Symptom:** Kubuntu 26.04 user backs up with beta 5 and cannot restore with beta 5 or RC1.
+OSCAR reports "is not a valid backup package." ARK reports "entry 6: invalid Zip64 extra
+field."
+
+**Root causes (two):**
+
+1. **miniz 10.1.0 Zip64 writing bug** (in `oscar/SleepLib/thirdparty/miniz.c`, **patched**):
+   When a ZIP archive grows past 4 GB, miniz sets an internal `m_zip64` flag and thereafter
+   writes Zip64 extended information extra fields in local file headers for entries at
+   offset >= 4 GB. These local-header extras incorrectly include `local_header_offset` — a
+   field the ZIP spec reserves for central directory headers only. libarchive (used by ARK)
+   correctly rejects such entries. The same bug was confirmed present in a newer version of
+   miniz (unfixed upstream). Patched in four spots across `mz_zip_writer_add_mem_ex_v2` and
+   `mz_zip_writer_add_read_buf_callback`: local-header Zip64 extras now only fire when file
+   sizes overflow (passing NULL for offset), while the CDH Zip64-extra blocks were changed
+   from `if (pExtra_data != NULL)` to an explicit size-or-offset condition so the central
+   directory still records the correct 64-bit offset independently.
+
+2. **`UnzipFile::Open()` loaded the entire archive into RAM** (`zip.cpp`):
+   The old implementation called `QFile::readAll()` and passed the resulting `QByteArray` to
+   `mz_zip_reader_init_mem`. For a > 4 GB backup this requires > 4 GB of contiguous RAM; when
+   unavailable, `readAll()` returns a truncated buffer, causing `mz_zip_reader_init_mem` to
+   fail (ECDH not found) and OSCAR to report "not a valid backup package."
+
+**Fix (root cause 2):** Replaced the in-memory approach with a seek+read callback using
+`mz_zip_reader_init`. A static `unzip_qfile_read()` callback seeks `QFile` to `file_ofs`
+and reads `n` bytes, so miniz performs random-access I/O directly against the file without
+ever loading it all into RAM. The `QFile m_file` member (replacing `QByteArray m_fileData`)
+stays open from `Open()` to `Close()`. This allows OSCAR to restore backups of any size,
+including existing archives with the miniz Zip64 writing bug (miniz's reader is lenient about
+local-header Zip64 extras; it skips them by stated length without validation).

@@ -104,9 +104,9 @@ public:
     int entryCount() const;
 
 protected:
-    void*      m_ctx;      ///< Heap-allocated mz_zip_archive.
-    bool       m_open;     ///< True when the archive has been opened successfully.
-    QByteArray m_fileData; ///< File contents kept alive for mz_zip_reader_init_mem.
+    void*  m_ctx;   ///< Heap-allocated mz_zip_archive.
+    bool   m_open;  ///< True when the archive has been opened successfully.
+    QFile  m_file;  ///< Open file handle kept alive for the miniz read callback.
 };
 
 
