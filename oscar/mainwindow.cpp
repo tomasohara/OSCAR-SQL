@@ -2181,6 +2181,10 @@ void MainWindow::RestartApplication(QString cmdline)
     CloseProfile();
     p_pref->Save();
 
+    // Mark clean shutdown before spawning — the new process can race ahead and read
+    // the flag before main()'s cleanup path writes it (same race as switchToDatabase).
+    DatabaseManager::markCleanShutdown(DatabaseManager::instance().databasePath());
+
     QString apppath;
 #ifdef Q_OS_MAC
     // In Mac OS the full path of aplication binary is:

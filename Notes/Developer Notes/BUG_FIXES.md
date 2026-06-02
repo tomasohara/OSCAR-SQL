@@ -4,6 +4,24 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-02 - Planned restart triggers spurious integrity check
+
+**File:** `oscar/mainwindow.cpp` (`MainWindow::RestartApplication`)
+
+**Symptom:** After a profile rename (or language change), OSCAR restarts and runs a
+full database integrity check on the new instance, even though the shutdown was clean.
+
+**Root cause:** `RestartApplication()` calls `QProcess::startDetached()` then
+`QApplication::exit()`. The new process races ahead and reads `CleanShutdown = false`
+(set at startup) before `main()`'s cleanup path writes `markCleanShutdown()`.
+`switchToDatabase()` already fixed this same race explicitly, but `RestartApplication()`
+was never updated to match.
+
+**Fix:** Call `DatabaseManager::markCleanShutdown()` before `QProcess::startDetached()`
+in `RestartApplication()`, same pattern as `switchToDatabase()`.
+
+---
+
 ## 2026-06-02 - Profile rename: no explicit conflict check (issue #198)
 
 **File:** `oscar/newprofile.cpp` (`NewProfile::on_nextButton_clicked`)
