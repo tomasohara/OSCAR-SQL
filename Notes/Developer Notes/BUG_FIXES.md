@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-02 - Profile rename: no explicit conflict check (issue #198)
+
+**File:** `oscar/newprofile.cpp` (`NewProfile::on_nextButton_clicked`)
+
+**Symptom:** Renaming a profile to a name already in use by another profile relied on
+`QDir::rename()` returning false to detect the conflict. This meant non-conflict OS
+failures (permissions, locked files) showed a misleading "Profile Name Already In Use"
+message. Additionally, a DB username conflict without a matching directory was not
+detected at all.
+
+**Root cause:** No explicit pre-checks before attempting `QDir::rename()`.
+
+**Fix:** Added explicit checks for both directory (`profilesDir.exists(newProfileName)`)
+and database (`profileRepo.findByUsername(newProfileName).id != 0`) conflicts before
+attempting the rename. The `ProfileRepository` instance is now shared between the
+pre-check and the subsequent DB update. The fallback error message (OS rename failure)
+now gives an accurate description rather than falsely claiming a name conflict.
+
+---
+
 ## 2026-06-01 - Edit Profile dialog all-dark on KDE Plasma dark mode
 
 **File:** `oscar/newprofile.cpp` (`NewProfile` constructor)

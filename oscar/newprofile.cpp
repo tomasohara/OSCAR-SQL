@@ -312,7 +312,20 @@ void NewProfile::on_nextButton_clicked()
             profile->Save();
             if ( !originalProfileName.isEmpty() && !newProfileName.isEmpty() && (originalProfileName != newProfileName)) {
                 QDir profilesDir(p_pref->Get("{home}/Profiles/"));
-                if (profilesDir.exists(originalProfileName)) {
+
+                // Check for conflicts before attempting the rename.
+                ProfileRepository profileRepo;
+                bool dirConflict = profilesDir.exists(newProfileName);
+                bool dbConflict  = !dirConflict && (profileRepo.findByUsername(newProfileName).id != 0);
+                if (dirConflict || dbConflict) {
+                    staticQMessageBox::information(this,
+                        tr("Profile Name Already In Use"),
+                        tr("The name \"%1\" is already used by another profile. Please choose a different name.").arg(newProfileName),
+                        QMessageBox::Ok);
+                    index=1;
+                    ui->stackedWidget->setCurrentIndex(index);
+                    ui->userNameEdit->setText(newProfileName);
+                } else if (profilesDir.exists(originalProfileName)) {
                     bool status = profilesDir.rename(originalProfileName, newProfileName);
                     if (status) {  // successful rename
                         Profiles::profiles[newProfileName] = p_profile;
@@ -321,7 +334,6 @@ void NewProfile::on_nextButton_clicked()
                         QCoreApplication::processEvents();
                         // Update the database AFTER CloseProfile() so that Save() inside
                         // CloseProfile() can still find "originalProfileName" in the DB.
-                        ProfileRepository profileRepo;
                         ProfileData profileData = profileRepo.findByUsername(originalProfileName);
                         if (profileData.id != 0) {
                             profileData.username = newProfileName;
@@ -335,8 +347,8 @@ void NewProfile::on_nextButton_clicked()
                         exit(0);
                     } else {
                         staticQMessageBox::information(this,
-                            tr("Profile Name Already In Use"),
-                            tr("The name \"%1\" is already used by another profile. Please choose a different name.").arg(newProfileName),
+                            tr("Rename Failed"),
+                            tr("Could not rename the profile directory. Check that no files in the profile are open and that you have write permission."),
                             QMessageBox::Ok);
                         index=1;
                         ui->stackedWidget->setCurrentIndex(index);
