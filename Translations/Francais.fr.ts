@@ -1694,7 +1694,7 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -2966,7 +2966,7 @@ Veuillez patienter...</translation>
     <message>
         <location filename="../oscar/exports/journalnotesdialog.cpp" line="127"/>
         <source>Exported notes for %1 day(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Notes exportées pour %1 jour(s).</translation>
     </message>
     <message numerus="yes">
         <source>Exported notes for %n day(s).</source>
@@ -3312,18 +3312,18 @@ Pour ajouter une base de données à la liste des bases de données récentes, o
         <location filename="../oscar/mainwindow.cpp" line="3801"/>
         <location filename="../oscar/mainwindow.cpp" line="3805"/>
         <source>Check Database Integrity</source>
-        <translation type="unfinished"></translation>
+        <translation>Vérification de l&apos;intégrité de la base de données</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3778"/>
         <location filename="../oscar/mainwindow.cpp" line="3870"/>
         <source>Checking database integrity, please wait...</source>
-        <translation type="unfinished"></translation>
+        <translation>Vérification de l&apos;intégrité de la base de données en cours. Veillez patientez...</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3802"/>
         <source>The database integrity check passed. No problems were found.</source>
-        <translation type="unfinished"></translation>
+        <translation>Le contrôle d&apos;intégrité de la base de données s&apos;est déroulé sans erreur.. Aucun problème n&apos;a été détecté.</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3806"/>
@@ -3337,7 +3337,19 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-        <translation type="unfinished"></translation>
+        <translation>La vérification de l&apos;intégrité de la base de données a détecté un ou plusieurs problèmes. Certaines données peuvent être manquantes ou corrompues.
+
+Cette vérification porte sur l&apos;intégralité de la base de données, qui peut contenir plusieurs profils.
+
+Actions recommandées&#xa0;:
+
+• Restaurez la base de données complète à partir d&apos;une sauvegarde système récente.
+
+• Restaurez chaque profil à partir d&apos;une sauvegarde récente (Fichier → Restaurer le profil).
+
+• Réimportez les données depuis votre ou vos cartes SD CPAP.
+
+Pour des options de récupération avancées, consultez la documentation OSCAR.</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3830"/>
@@ -3348,7 +3360,7 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3876"/>
@@ -3360,35 +3372,28 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3896"/>
         <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../oscar/mainwindow.cpp" line="3922"/>
-        <source>Database compression failed:
-%1</source>
-        <translation>La compression de la base de données a échoué:
-%1</translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3957"/>
         <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3967"/>
         <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3979"/>
@@ -3399,7 +3404,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-        <translation type="unfinished"></translation>
+        <translation>Base de données compressée avec succès.
+
+Avant&#xa0;: %1
+Après&#xa0;: %2
+Espace récupéré&#xa0;: %3
+
+OSCAR redémarrera lorsque vous cliquerez sur OK.</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="3988"/>
@@ -3410,7 +3421,32 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-        <translation type="unfinished"></translation>
+        <translation>Base de données compressée avec succès.
+
+Taille&#xa0;: %1
+
+Aucun espace n&apos;a été récupéré&#xa0;: la base de données était déjà compacte.
+
+OSCAR redémarrera lorsque vous cliquerez sur OK.</translation>
+    </message>
+    <message>
+        <source>The database integrity check failed. Compression cannot proceed on a damaged database.
+
+Recommended actions:
+  • Restore from a recent backup (File → Restore Profile)
+  • Re-import data from your CPAP SD card</source>
+        <translation type="vanished">La vérification d&apos;intégrité de la base de données a recontré un ou plusieurs problèmes. La compression est impossible sur une base de données endommagée.
+
+Actions recommandées&#xa0;:
+• Restaurez une sauvegarde récente (Fichier → Restaurer le profil)
+• Réimportez les données depuis la carte SD de votre appareil CPAP</translation>
+    </message>
+    <message>
+        <location filename="../oscar/mainwindow.cpp" line="3922"/>
+        <source>Database compression failed:
+%1</source>
+        <translation>La compression de la base de données a échoué:
+%1</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.cpp" line="1402"/>
@@ -4280,7 +4316,7 @@ Cette opération peut prendre longtemps. Continuer ?</translation>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2633"/>
         <source>Check database integrity</source>
-        <translation type="unfinished"></translation>
+        <translation>Vérification de l&apos;intégrité de la base de données</translation>
     </message>
     <message>
         <location filename="../oscar/mainwindow.ui" line="2653"/>
@@ -8809,17 +8845,17 @@ Nettoyage en cours, veuillez patientez...</translation>
     <message>
         <location filename="../oscar/main.cpp" line="891"/>
         <source>Check Database Integrity</source>
-        <translation type="unfinished"></translation>
+        <translation>Vérifier l&apos;intégrité de la base de données</translation>
     </message>
     <message>
         <location filename="../oscar/main.cpp" line="895"/>
         <source>Checking database integrity, please wait...</source>
-        <translation type="unfinished"></translation>
+        <translation>Vérification de l&apos;intégrité de la base de données en cours. Veillez patientez...</translation>
     </message>
     <message>
         <location filename="../oscar/main.cpp" line="921"/>
         <source>Database Integrity Warning</source>
-        <translation type="unfinished"></translation>
+        <translation>La vérification de l&apos;intégrité de la base de données a revoyé un ou plusieurs avertissement</translation>
     </message>
     <message>
         <location filename="../oscar/main.cpp" line="922"/>
@@ -8835,7 +8871,38 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-        <translation type="unfinished"></translation>
+        <translation>OSCAR a détecté une interruption inattendue de la session précédente et une anomalie lors du contrôle d&apos;intégrité de la base de données.
+
+Certaines données peuvent être manquantes ou corrompues.
+
+Actions recommandées&#xa0;:
+• Restaurez l&apos;intégralité de la base de données à partir d&apos;une sauvegarde système récente.
+• Restaurez chaque profil à partir d&apos;une sauvegarde récente (Fichier → Restaurer le profil).
+• Réimportez les données depuis votre ou vos cartes SD CPAP.
+
+Pour des options de récupération avancées, consultez la documentation OSCAR.
+
+Vous pouvez continuer, mais certaines données peuvent être incomplètes ou incorrectes.</translation>
+    </message>
+    <message>
+        <source>OSCAR detected that the previous session ended unexpectedly, and the database integrity check found problems.
+
+Some data may be missing or corrupted.
+
+Recommended actions:
+  • Restore from a recent backup (File → Restore Profile)
+  • Re-import data from your CPAP SD card
+
+You may continue, but some data may be incomplete or incorrect.</source>
+        <translation type="vanished">OSCAR a détecté une interruption inattendue de la session précédente et une anomalie lors du contrôle d&apos;intégrité de la base de données.
+
+Certaines données peuvent être manquantes ou corrompues.
+
+Actions recommandées&#xa0;:
+• Restaurez à partir d&apos;une sauvegarde récente (Fichier → Restaurer le profil)
+• Réimportez les données depuis la carte SD de votre appareil CPAP
+
+Vous pouvez continuer, mais certaines données peuvent être incomplètes ou incorrectes.</translation>
     </message>
     <message>
         <location filename="../oscar/database/profile_repository.cpp" line="476"/>

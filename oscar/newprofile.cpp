@@ -21,6 +21,7 @@
 #include <QSettings>
 #include <QComboBox>
 #include <QTimeZone>
+#include <QPalette>
 
 #include "SleepLib/profiles.h"
 #include "database/profile_repository.h"
@@ -40,6 +41,35 @@ NewProfile::NewProfile(QWidget *parent, const QString *user) :
     ui(new Ui::NewProfile)
 {
     ui->setupUi(this);
+
+    // Force light appearance so this dialog is legible in system dark mode.
+    // Qt's ColorScheme::Light hint is not guaranteed on KDE Plasma, which can
+    // inject dark palette colors even when the application requests light mode.
+    setAutoFillBackground(true);
+    QPalette p;
+    p.setColor(QPalette::Window, Qt::white);
+    setPalette(p);
+    setStyleSheet(
+        "QDialog { background-color: white; color: black; }"
+        "QWidget { background-color: white; color: black; }"
+        "QLabel { color: black; background-color: transparent; }"
+        "QLineEdit { background-color: white; color: black; border: 1px solid #adadad; border-radius: 2px; }"
+        "QTextEdit, QPlainTextEdit, QTextBrowser { background-color: white; color: black; }"
+        "QComboBox { background-color: white; color: black; border: 1px solid #adadad; border-radius: 2px; }"
+        "QComboBox QAbstractItemView { background-color: white; color: black; }"
+        "QDateEdit { background-color: white; color: black; border: 1px solid #adadad; border-radius: 2px; }"
+        "QDoubleSpinBox { background-color: white; color: black; border: 1px solid #adadad; border-radius: 2px; }"
+        "QCheckBox { color: black; background-color: transparent; }"
+        "QGroupBox { color: black; border: 1px solid #c0c0c0; border-radius: 4px;"
+        "    margin-top: 8px; padding-top: 4px; }"
+        "QGroupBox::title { color: black; subcontrol-origin: margin; left: 8px; }"
+        "QPushButton { color: black; background-color: #f0f0f0;"
+        "    border: 1px solid #adadad; border-radius: 3px; padding: 3px 8px; }"
+        "QPushButton:hover { background-color: #e5f1fb; border-color: #0078d7; }"
+        "QPushButton:pressed { background-color: #cce4f7; border-color: #0078d7; }"
+        "QPushButton:disabled { color: #a0a0a0; border-color: #d0d0d0; }"
+    );
+
     if (user) {
       originalProfileName=*user;
       ui->userNameEdit->setText(*user);
