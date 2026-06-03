@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-02 - Profile rename always restarted, even for non-open profiles
+
+**File:** `oscar/newprofile.cpp` (`NewProfile::on_nextButton_clicked`)
+
+**Symptom:** Renaming any profile triggered a full application restart, even when the
+renamed profile was not the currently open one.
+
+**Additional bugs in non-open case:**
+- `Profiles::profiles[newProfileName] = p_profile` stored the *open* profile's pointer
+  instead of the renamed profile's pointer, and never removed the old key.
+- `AppSetting->setProfileName()` was called unconditionally, incorrectly changing the
+  active profile name when renaming a different profile.
+- `CloseProfile()` was called unconditionally, closing whatever profile was open.
+
+**Fix:** Split the post-rename path on `profile == p_profile`.
+- Open profile: AppSetting update + CloseProfile + DB update + RestartApplication (unchanged).
+- Non-open profile: DB update + `profileSelector->updateProfileList()` + `accept()`.
+- Both paths: fix `Profiles::profiles` map (remove old key, insert new with correct pointer).
+
+---
+
 ## 2026-06-02 - Planned restart triggers spurious integrity check
 
 **File:** `oscar/mainwindow.cpp` (`MainWindow::RestartApplication`)

@@ -328,23 +328,45 @@ void NewProfile::on_nextButton_clicked()
                 } else if (profilesDir.exists(originalProfileName)) {
                     bool status = profilesDir.rename(originalProfileName, newProfileName);
                     if (status) {  // successful rename
-                        Profiles::profiles[newProfileName] = p_profile;
-                        AppSetting->setProfileName(newProfileName);
-                        if (mainwin) mainwin->CloseProfile();
-                        QCoreApplication::processEvents();
-                        // Update the database AFTER CloseProfile() so that Save() inside
-                        // CloseProfile() can still find "originalProfileName" in the DB.
-                        ProfileData profileData = profileRepo.findByUsername(originalProfileName);
-                        if (profileData.id != 0) {
-                            profileData.username = newProfileName;
-                            profileData.dataFolder = QString("%PROFDIR%/") + newProfileName;
-                            profileRepo.update(profileData);
+                        // Fix the in-memory map: remove old key, insert new with correct pointer.
+                        Profiles::profiles.remove(originalProfileName);
+                        Profiles::profiles[newProfileName] = profile;
+
+                        if (profile == p_profile) {
+                            // Renaming the currently open profile: update settings and restart
+                            // so all in-memory state (window title, paths, tabs) picks up the new name.
+                            AppSetting->setProfileName(newProfileName);
+                            if (mainwin) mainwin->CloseProfile();
+                            QCoreApplication::processEvents();
+                            // Update the database AFTER CloseProfile() so that Save() inside
+                            // CloseProfile() can still find "originalProfileName" in the DB.
+                            ProfileData profileData = profileRepo.findByUsername(originalProfileName);
+                            if (profileData.id != 0) {
+                                profileData.username = newProfileName;
+                                profileData.dataFolder = QString("%PROFDIR%/") + newProfileName;
+                                profileRepo.update(profileData);
+                            } else {
+                                qWarning() << "NewProfile: could not find profile in DB for rename:" << originalProfileName;
+                            }
+                            mainwin->RestartApplication();
+                            QCoreApplication::processEvents();
+                            exit(0);
                         } else {
-                            qWarning() << "NewProfile: could not find profile in DB for rename:" << originalProfileName;
+                            // Renaming a non-open profile: update the DB and refresh the
+                            // profile selector — no restart needed.
+                            ProfileData profileData = profileRepo.findByUsername(originalProfileName);
+                            if (profileData.id != 0) {
+                                profileData.username = newProfileName;
+                                profileData.dataFolder = QString("%PROFDIR%/") + newProfileName;
+                                profileRepo.update(profileData);
+                            } else {
+                                qWarning() << "NewProfile: could not find profile in DB for rename:" << originalProfileName;
+                            }
+                            if (mainwin && mainwin->profileSelector) {
+                                mainwin->profileSelector->updateProfileList();
+                            }
+                            this->accept();
                         }
-                        mainwin->RestartApplication();
-                        QCoreApplication::processEvents();
-                        exit(0);
                     } else {
                         staticQMessageBox::information(this,
                             tr("Rename Failed"),
