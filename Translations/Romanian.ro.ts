@@ -4568,8 +4568,8 @@ Data File: %2</source>
     </message>
     <message>
         <location filename="../oscar/newprofile.ui" line="1067"/>
-        <location filename="../oscar/newprofile.cpp" line="330"/>
-        <location filename="../oscar/newprofile.cpp" line="339"/>
+        <location filename="../oscar/newprofile.cpp" line="372"/>
+        <location filename="../oscar/newprofile.cpp" line="381"/>
         <source>Next</source>
         <translation type="unfinished">Înainte</translation>
     </message>
@@ -4578,76 +4578,86 @@ Data File: %2</source>
         <translation type="vanished">&amp;Urmatorul</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="434"/>
+        <location filename="../oscar/newprofile.cpp" line="476"/>
         <source>Select Country</source>
         <translation>Alegeti tara</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="138"/>
+        <location filename="../oscar/newprofile.cpp" line="168"/>
         <source>Welcome to the Open Source CPAP Analysis Reporter</source>
         <translation>Bun venit la  Open Source CPAP Analysis Reporter</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="145"/>
+        <location filename="../oscar/newprofile.cpp" line="175"/>
         <source>PLEASE READ CAREFULLY</source>
         <translation>CITITI CU ATENTIE</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="149"/>
+        <location filename="../oscar/newprofile.cpp" line="179"/>
         <source>Accuracy of any data displayed is not and can not be guaranteed.</source>
         <translation>Acuratetea datelor afisate nu poate fi garantata.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="151"/>
+        <location filename="../oscar/newprofile.cpp" line="181"/>
         <source>Any reports generated are for PERSONAL USE ONLY, and NOT IN ANY WAY fit for compliance or medical diagnostic purposes.</source>
         <translation>Orice rapoarte generate sunt pentru UZ PERSONAL si NICINTR-UN CAZ nu sunt potrivite pentru complianta sau pentru vreun diagnostic medical.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="158"/>
+        <location filename="../oscar/newprofile.cpp" line="188"/>
         <source>Use of this software is entirely at your own risk.</source>
         <translation>Utilizati acest software pe propriul dvs risc.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="308"/>
+        <location filename="../oscar/newprofile.cpp" line="322"/>
         <source>Profile Name Already In Use</source>
         <translation type="unfinished">Numele profilului este deja utilizat</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="309"/>
+        <location filename="../oscar/newprofile.cpp" line="323"/>
         <source>The name &quot;%1&quot; is already used by another profile. Please choose a different name.</source>
         <translation type="unfinished">Numele „%1&quot; este deja utilizat de un alt profil. Vă rugăm să alegeți un alt nume.</translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="350"/>
+        <source>Rename Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="351"/>
+        <source>Could not rename the profile directory. Check that no files in the profile are open and that you have write permission.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2025 The OSCAR Team</source>
         <translation type="obsolete">OSCAR este copyright &amp;copy;2011-2018 Mark Watkins si module &amp;copy;2019-2022 The OSCAR Team {2011-2018 ?} {2019-2024 ?} {2011-2018 ?} {2019-2025 ?}</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="328"/>
+        <location filename="../oscar/newprofile.cpp" line="370"/>
         <source>Finish</source>
         <translation type="unfinished">Finalizare</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="499"/>
+        <location filename="../oscar/newprofile.cpp" line="541"/>
         <source>Close this window</source>
         <translation type="unfinished">Închide această fereastră</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="143"/>
+        <location filename="../oscar/newprofile.cpp" line="173"/>
         <source>OSCAR has been released freely under the &lt;a href=&apos;qrc:/COPYING&apos;&gt;GNU Public License v3&lt;/a&gt;, and comes with no warranty, and without ANY claims to fitness for any purpose.</source>
         <translation>OSCAR este gratuit sub licenta &lt;a href=&apos;qrc:/COPYING&apos;&gt;GNU Public License v3&lt;/a&gt;, si nu are nicio garantie in ceea ce priveste scopul sau acuratetea informatiilor.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="140"/>
+        <location filename="../oscar/newprofile.cpp" line="170"/>
         <source>This software is being designed to assist you in reviewing the data produced by your CPAP Devices and related equipment.</source>
         <translation>Acest software este conceput pentru a vă ajuta în vizualizarea datelor înregistrate de dispozitivele dumneavoastră CPAP și echipamentele aferente.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="146"/>
+        <location filename="../oscar/newprofile.cpp" line="176"/>
         <source>OSCAR is intended merely as a data viewer, and definitely not a substitute for competent medical guidance from your Doctor.</source>
         <translation>OSCAR este destinat doar a fi un vizualizator de date, și cu siguranță nu este un substitut pentru îndrumarea medicală competentă de la medicul dumneavoastră.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="154"/>
+        <location filename="../oscar/newprofile.cpp" line="184"/>
         <source>The authors will not be held liable for &lt;u&gt;anything&lt;/u&gt; related to the use or misuse of this software.</source>
         <translation>Autorii nu vor fi responsabili de &lt;u&gt;nimic&lt;/u&gt;in legatura cu utilizarea sau neutilizarea acestui software. Asta e free GPU license.</translation>
     </message>
@@ -4656,12 +4666,12 @@ Data File: %2</source>
         <translation type="obsolete">OSCAR este copyright &amp;copy;2011-2018 Mark Watkins si module &amp;copy;2019-2022 The OSCAR Team {2011-2018 ?} {2019-2024 ?}</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="161"/>
+        <location filename="../oscar/newprofile.cpp" line="191"/>
         <source>OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2026 The OSCAR Team</source>
         <translation type="unfinished">OSCAR este copyright &amp;copy;2011-2018 Mark Watkins si module &amp;copy;2019-2022 The OSCAR Team {2011-2018 ?} {2019-2024 ?} {2011-2018 ?} {2019-2026 ?}</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="197"/>
+        <location filename="../oscar/newprofile.cpp" line="227"/>
         <source>Please provide a username for this profile</source>
         <translation>Va rugam furnizati numele de utilizator pentru acest profil</translation>
     </message>
@@ -4670,12 +4680,12 @@ Data File: %2</source>
         <translation type="vanished">Parola introdusa nu e  identica</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Profile Changes</source>
         <translation>Schimbări profil</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Accept and save this information?</source>
         <translation>Accepta si salveaza aceste informatii?</translation>
     </message>

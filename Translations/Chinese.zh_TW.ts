@@ -4399,8 +4399,8 @@ No space was reclaimed — the database was already compact.</source>
     </message>
     <message>
         <location filename="../oscar/newprofile.ui" line="1067"/>
-        <location filename="../oscar/newprofile.cpp" line="330"/>
-        <location filename="../oscar/newprofile.cpp" line="339"/>
+        <location filename="../oscar/newprofile.cpp" line="372"/>
+        <location filename="../oscar/newprofile.cpp" line="381"/>
         <source>Next</source>
         <translation>下一步</translation>
     </message>
@@ -4426,7 +4426,7 @@ No space was reclaimed — the database was already compact.</source>
         <translation>連絡電話</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="151"/>
+        <location filename="../oscar/newprofile.cpp" line="181"/>
         <source>Any reports generated are for PERSONAL USE ONLY, and NOT IN ANY WAY fit for compliance or medical diagnostic purposes.</source>
         <translation>所有產生的報告僅限個人使用，不適用於法規遵循報告或醫療診斷用途。</translation>
     </message>
@@ -4440,7 +4440,7 @@ No space was reclaimed — the database was already compact.</source>
         <translation>編輯使用者資訊</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="154"/>
+        <location filename="../oscar/newprofile.cpp" line="184"/>
         <source>The authors will not be held liable for &lt;u&gt;anything&lt;/u&gt; related to the use or misuse of this software.</source>
         <translation>本程式作者對&lt;u&gt;任何個人或團體&lt;/u&gt; 使用或疏忽使用本程式所產生的任何後果均不承擔任何責任。</translation>
     </message>
@@ -4449,7 +4449,7 @@ No space was reclaimed — the database was already compact.</source>
         <translation type="vanished">OSCAR 的版權為 &amp;copy;2011-2018 Mark Watkins 及 &amp;copy;2019-2024 OSCAR 團隊所有。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="197"/>
+        <location filename="../oscar/newprofile.cpp" line="227"/>
         <source>Please provide a username for this profile</source>
         <translation>請輸入使用者名稱</translation>
     </message>
@@ -4463,39 +4463,49 @@ No space was reclaimed — the database was already compact.</source>
         <translation type="vanished">密碼保護</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="146"/>
+        <location filename="../oscar/newprofile.cpp" line="176"/>
         <source>OSCAR is intended merely as a data viewer, and definitely not a substitute for competent medical guidance from your Doctor.</source>
         <translation>OSCAR 僅僅作為一個資料讀取顯示程式，不能替代醫生提供有效的醫療指導。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="138"/>
+        <location filename="../oscar/newprofile.cpp" line="168"/>
         <source>Welcome to the Open Source CPAP Analysis Reporter</source>
         <translation>歡迎使用開源的呼吸器報告分析軟體</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="140"/>
+        <location filename="../oscar/newprofile.cpp" line="170"/>
         <source>This software is being designed to assist you in reviewing the data produced by your CPAP Devices and related equipment.</source>
         <translation type="unfinished">本程式是用於幫助你檢視持續正氣壓呼吸器所生成之治療記錄。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="143"/>
+        <location filename="../oscar/newprofile.cpp" line="173"/>
         <source>OSCAR has been released freely under the &lt;a href=&apos;qrc:/COPYING&apos;&gt;GNU Public License v3&lt;/a&gt;, and comes with no warranty, and without ANY claims to fitness for any purpose.</source>
         <translation>OSCAR已根據&lt;a href=&apos;qrc:/COPYING&apos;&gt;GNU公共許可證免費發布v3版本&lt;/a&gt;，沒有任何擔保，也沒有任何針對任何目的的適用性聲明。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="149"/>
+        <location filename="../oscar/newprofile.cpp" line="179"/>
         <source>Accuracy of any data displayed is not and can not be guaranteed.</source>
         <translation>不保證任何顯示資料的精準性。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="308"/>
+        <location filename="../oscar/newprofile.cpp" line="322"/>
         <source>Profile Name Already In Use</source>
         <translation type="unfinished">設定檔名稱已被使用</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="309"/>
+        <location filename="../oscar/newprofile.cpp" line="323"/>
         <source>The name &quot;%1&quot; is already used by another profile. Please choose a different name.</source>
         <translation type="unfinished">名稱「%1」已被另一個設定檔使用。請選擇其他名稱。</translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="350"/>
+        <source>Rename Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="351"/>
+        <source>Could not rename the profile directory. Check that no files in the profile are open and that you have write permission.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2025 The OSCAR Team</source>
@@ -4510,12 +4520,12 @@ No space was reclaimed — the database was already compact.</source>
         <translation type="vanished">請更改使用者名稱</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="328"/>
+        <location filename="../oscar/newprofile.cpp" line="370"/>
         <source>Finish</source>
         <translation type="unfinished">完成</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="499"/>
+        <location filename="../oscar/newprofile.cpp" line="541"/>
         <source>Close this window</source>
         <translation type="unfinished">關閉此視窗</translation>
     </message>
@@ -4565,12 +4575,12 @@ No space was reclaimed — the database was already compact.</source>
         <translation>呼吸器模式</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="434"/>
+        <location filename="../oscar/newprofile.cpp" line="476"/>
         <source>Select Country</source>
         <translation>選擇國家</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="145"/>
+        <location filename="../oscar/newprofile.cpp" line="175"/>
         <source>PLEASE READ CAREFULLY</source>
         <translation>請認真閱讀</translation>
     </message>
@@ -4609,12 +4619,12 @@ No space was reclaimed — the database was already compact.</source>
         <translation type="vanished">密碼</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="158"/>
+        <location filename="../oscar/newprofile.cpp" line="188"/>
         <source>Use of this software is entirely at your own risk.</source>
         <translation>使用本程式之風險由閣下承擔。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="161"/>
+        <location filename="../oscar/newprofile.cpp" line="191"/>
         <source>OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2026 The OSCAR Team</source>
         <translation type="unfinished">OSCAR 的版權為 &amp;copy;2011-2018 Mark Watkins 及 &amp;copy;2019-2024 OSCAR 團隊所有。 {2011-2018 ?} {2019-2025 ?} {2011-2018 ?} {2019-2026 ?}</translation>
     </message>
@@ -4647,7 +4657,7 @@ No space was reclaimed — the database was already compact.</source>
         <translation>雙相型陽壓模式 (Bi-level)</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Profile Changes</source>
         <translation>變更個人檔案</translation>
     </message>
@@ -4699,7 +4709,7 @@ No space was reclaimed — the database was already compact.</source>
         <translation>診斷日期</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Accept and save this information?</source>
         <translation>接受並保存這些資料？</translation>
     </message>

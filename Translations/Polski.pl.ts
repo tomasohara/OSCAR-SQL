@@ -4582,8 +4582,8 @@ OSCAR will restart when you press OK.</source>
     </message>
     <message>
         <location filename="../oscar/newprofile.ui" line="1067"/>
-        <location filename="../oscar/newprofile.cpp" line="330"/>
-        <location filename="../oscar/newprofile.cpp" line="339"/>
+        <location filename="../oscar/newprofile.cpp" line="372"/>
+        <location filename="../oscar/newprofile.cpp" line="381"/>
         <source>Next</source>
         <translation>następny</translation>
     </message>
@@ -4592,57 +4592,67 @@ OSCAR will restart when you press OK.</source>
         <translation type="vanished">&amp;Następny</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="434"/>
+        <location filename="../oscar/newprofile.cpp" line="476"/>
         <source>Select Country</source>
         <translation>Wybierz kraj</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="145"/>
+        <location filename="../oscar/newprofile.cpp" line="175"/>
         <source>PLEASE READ CAREFULLY</source>
         <translation>PROSZĘ UWAŻNIE PRZECZYTAĆ</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="149"/>
+        <location filename="../oscar/newprofile.cpp" line="179"/>
         <source>Accuracy of any data displayed is not and can not be guaranteed.</source>
         <translation>Dokładność przedstawionych danych nie jest gwarantowana.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="151"/>
+        <location filename="../oscar/newprofile.cpp" line="181"/>
         <source>Any reports generated are for PERSONAL USE ONLY, and NOT IN ANY WAY fit for compliance or medical diagnostic purposes.</source>
         <translation>Jakiekolwiek raporty są przeznaczone do UŻYTKU OSOBISTEGO i W ŻADNYM WYPADKU nie służą do celów diagnostyki medycznej.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="158"/>
+        <location filename="../oscar/newprofile.cpp" line="188"/>
         <source>Use of this software is entirely at your own risk.</source>
         <translation>Używasz tego programu wyłącznie na własne ryzyko.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="308"/>
+        <location filename="../oscar/newprofile.cpp" line="322"/>
         <source>Profile Name Already In Use</source>
         <translation type="unfinished">Nazwa profilu jest już używana</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="309"/>
+        <location filename="../oscar/newprofile.cpp" line="323"/>
         <source>The name &quot;%1&quot; is already used by another profile. Please choose a different name.</source>
         <translation type="unfinished">Nazwa „%1&quot; jest już używana przez inny profil. Wybierz inną nazwę.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="143"/>
+        <location filename="../oscar/newprofile.cpp" line="350"/>
+        <source>Rename Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="351"/>
+        <source>Could not rename the profile directory. Check that no files in the profile are open and that you have write permission.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="173"/>
         <source>OSCAR has been released freely under the &lt;a href=&apos;qrc:/COPYING&apos;&gt;GNU Public License v3&lt;/a&gt;, and comes with no warranty, and without ANY claims to fitness for any purpose.</source>
         <translation>OSCAR jest udostępniany jako wolne oprogramowanie pod &lt;a href=&apos;qrc:/COPYING&apos;&gt;GNU Public License v3&lt;/a&gt;, i nie daje gwarancji ani praw do roszczeń z jakiegokolwiek powodu.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="140"/>
+        <location filename="../oscar/newprofile.cpp" line="170"/>
         <source>This software is being designed to assist you in reviewing the data produced by your CPAP Devices and related equipment.</source>
         <translation>Ten program jest przeznaczony do pomocy w ocenie danych z aparatu CPAP i akcesoriów.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="146"/>
+        <location filename="../oscar/newprofile.cpp" line="176"/>
         <source>OSCAR is intended merely as a data viewer, and definitely not a substitute for competent medical guidance from your Doctor.</source>
         <translation>OSCAR ma służyć pomocą w przeglądaniu danych CPAP, ale nie zastępowaniu pomocy lekarskiej.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="154"/>
+        <location filename="../oscar/newprofile.cpp" line="184"/>
         <source>The authors will not be held liable for &lt;u&gt;anything&lt;/u&gt; related to the use or misuse of this software.</source>
         <translation>Autorzy nie ponoszą odpowiedzialności za cokolwiek mającego związek z używaniem oprogramowania.</translation>
     </message>
@@ -4655,12 +4665,12 @@ OSCAR will restart when you press OK.</source>
         <translation type="obsolete">OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2024 The OSCAR Team {2011-2018 ?} {2019-2025 ?}</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="161"/>
+        <location filename="../oscar/newprofile.cpp" line="191"/>
         <source>OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2026 The OSCAR Team</source>
         <translation type="unfinished">OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2024 The OSCAR Team {2011-2018 ?} {2019-2025 ?} {2011-2018 ?} {2019-2026 ?}</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="197"/>
+        <location filename="../oscar/newprofile.cpp" line="227"/>
         <source>Please provide a username for this profile</source>
         <translation>Proszę podać nazwę użytkownika dla tego profilu</translation>
     </message>
@@ -4669,12 +4679,12 @@ OSCAR will restart when you press OK.</source>
         <translation type="vanished">Hasła nie są jednakowe</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Profile Changes</source>
         <translation>Zmiany profilu</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Accept and save this information?</source>
         <translation>Czy zaakceptować i zapisać informacje?</translation>
     </message>
@@ -4687,12 +4697,12 @@ OSCAR will restart when you press OK.</source>
         <translation type="vanished">Proszę zmienić nazwę użytkownika </translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="328"/>
+        <location filename="../oscar/newprofile.cpp" line="370"/>
         <source>Finish</source>
         <translation type="unfinished">Zakończ</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="499"/>
+        <location filename="../oscar/newprofile.cpp" line="541"/>
         <source>Close this window</source>
         <translation type="unfinished">Zamknij to okno</translation>
     </message>
@@ -4705,7 +4715,7 @@ OSCAR will restart when you press OK.</source>
         <translation type="vanished">&amp;Zamknij okno</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="138"/>
+        <location filename="../oscar/newprofile.cpp" line="168"/>
         <source>Welcome to the Open Source CPAP Analysis Reporter</source>
         <translation>Witaj w OSCAR</translation>
     </message>

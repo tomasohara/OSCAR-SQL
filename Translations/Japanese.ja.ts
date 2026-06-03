@@ -4612,8 +4612,8 @@ Data File: %2</source>
     </message>
     <message>
         <location filename="../oscar/newprofile.ui" line="1067"/>
-        <location filename="../oscar/newprofile.cpp" line="330"/>
-        <location filename="../oscar/newprofile.cpp" line="339"/>
+        <location filename="../oscar/newprofile.cpp" line="372"/>
+        <location filename="../oscar/newprofile.cpp" line="381"/>
         <source>Next</source>
         <translation>次</translation>
     </message>
@@ -4622,76 +4622,86 @@ Data File: %2</source>
         <translation type="vanished">&amp;N次</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="434"/>
+        <location filename="../oscar/newprofile.cpp" line="476"/>
         <source>Select Country</source>
         <translation>国を選択</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="138"/>
+        <location filename="../oscar/newprofile.cpp" line="168"/>
         <source>Welcome to the Open Source CPAP Analysis Reporter</source>
         <translation>オープンソースCPAP分析レポートへようこそ</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="145"/>
+        <location filename="../oscar/newprofile.cpp" line="175"/>
         <source>PLEASE READ CAREFULLY</source>
         <translation>注意して読んでください</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="149"/>
+        <location filename="../oscar/newprofile.cpp" line="179"/>
         <source>Accuracy of any data displayed is not and can not be guaranteed.</source>
         <translation>ここに表示されているデータの正確性は保証されていません。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="151"/>
+        <location filename="../oscar/newprofile.cpp" line="181"/>
         <source>Any reports generated are for PERSONAL USE ONLY, and NOT IN ANY WAY fit for compliance or medical diagnostic purposes.</source>
         <translation>すべてのレポートは「個人利用」のためであり、「どんな形であっても」コンプライアンスや医療の診断情報として使うことはできません。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="158"/>
+        <location filename="../oscar/newprofile.cpp" line="188"/>
         <source>Use of this software is entirely at your own risk.</source>
         <translation>本ソフトウェアの利用は自己責任です。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="308"/>
+        <location filename="../oscar/newprofile.cpp" line="322"/>
         <source>Profile Name Already In Use</source>
         <translation type="unfinished">プロフィール名は既に使用されています</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="309"/>
+        <location filename="../oscar/newprofile.cpp" line="323"/>
         <source>The name &quot;%1&quot; is already used by another profile. Please choose a different name.</source>
         <translation type="unfinished">「%1」という名前は既に別のプロフィールで使用されています。別の名前を選択してください。</translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="350"/>
+        <source>Rename Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="351"/>
+        <source>Could not rename the profile directory. Check that no files in the profile are open and that you have write permission.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2025 The OSCAR Team</source>
         <translation type="obsolete">OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2022 The OSCAR Team {2011-2018 ?} {2019-2024 ?} {2011-2018 ?} {2019-2025 ?}</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="328"/>
+        <location filename="../oscar/newprofile.cpp" line="370"/>
         <source>Finish</source>
         <translation type="unfinished">完了</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="499"/>
+        <location filename="../oscar/newprofile.cpp" line="541"/>
         <source>Close this window</source>
         <translation type="unfinished">このウィンドウを閉じる</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="143"/>
+        <location filename="../oscar/newprofile.cpp" line="173"/>
         <source>OSCAR has been released freely under the &lt;a href=&apos;qrc:/COPYING&apos;&gt;GNU Public License v3&lt;/a&gt;, and comes with no warranty, and without ANY claims to fitness for any purpose.</source>
         <translation>OSCARは&lt;a href=&apos;qrc:/COPYING&apos;&gt;GNU Public License v3&lt;/a&gt;でリリースされ、いかなる用途への適合性を保証せず、現状有姿で提供されます。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="140"/>
+        <location filename="../oscar/newprofile.cpp" line="170"/>
         <source>This software is being designed to assist you in reviewing the data produced by your CPAP Devices and related equipment.</source>
         <translation>本ソフトウェアは、CPAPや関連機器からデータを取り出し、参照する補助としてデザインされました。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="146"/>
+        <location filename="../oscar/newprofile.cpp" line="176"/>
         <source>OSCAR is intended merely as a data viewer, and definitely not a substitute for competent medical guidance from your Doctor.</source>
         <translation>OSCARは単にデータビューワーとして作成され、お医者様の適切なアドバイスを置き換えるものではありません。</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="154"/>
+        <location filename="../oscar/newprofile.cpp" line="184"/>
         <source>The authors will not be held liable for &lt;u&gt;anything&lt;/u&gt; related to the use or misuse of this software.</source>
         <translation>作者は本ソフトウェアを利用した結果について&lt;u&gt;いかなる場合にも&lt;/u&gt;その責を負いません。</translation>
     </message>
@@ -4701,12 +4711,12 @@ Data File: %2</source>
         <translation type="vanished">OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2022 The OSCAR Team {2011-2018 ?} {2019-2024 ?}</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="161"/>
+        <location filename="../oscar/newprofile.cpp" line="191"/>
         <source>OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2026 The OSCAR Team</source>
         <translation type="unfinished">OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2022 The OSCAR Team {2011-2018 ?} {2019-2024 ?} {2011-2018 ?} {2019-2026 ?}</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="197"/>
+        <location filename="../oscar/newprofile.cpp" line="227"/>
         <source>Please provide a username for this profile</source>
         <translation>このプロフィールのユーザー名を入力してください</translation>
     </message>
@@ -4715,12 +4725,12 @@ Data File: %2</source>
         <translation type="vanished">パスワードが異なっています</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Profile Changes</source>
         <translation>プロフィール変更</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Accept and save this information?</source>
         <translation>この値で保存しますか？</translation>
     </message>

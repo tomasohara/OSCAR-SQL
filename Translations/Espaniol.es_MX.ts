@@ -4571,8 +4571,8 @@ No space was reclaimed — the database was already compact.</source>
     </message>
     <message>
         <location filename="../oscar/newprofile.ui" line="1067"/>
-        <location filename="../oscar/newprofile.cpp" line="330"/>
-        <location filename="../oscar/newprofile.cpp" line="339"/>
+        <location filename="../oscar/newprofile.cpp" line="372"/>
+        <location filename="../oscar/newprofile.cpp" line="381"/>
         <source>Next</source>
         <translation>Siguiente</translation>
     </message>
@@ -4581,86 +4581,96 @@ No space was reclaimed — the database was already compact.</source>
         <translation type="vanished">&amp;Siguiente</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="434"/>
+        <location filename="../oscar/newprofile.cpp" line="476"/>
         <source>Select Country</source>
         <translation>Seleccione País</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="145"/>
+        <location filename="../oscar/newprofile.cpp" line="175"/>
         <source>PLEASE READ CAREFULLY</source>
         <translation>POR FAVOR LEA CUIDADOSAMENTE</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="149"/>
+        <location filename="../oscar/newprofile.cpp" line="179"/>
         <source>Accuracy of any data displayed is not and can not be guaranteed.</source>
         <translation>La exactitud de los datos mostrados no está y no puede ser garantizada.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="151"/>
+        <location filename="../oscar/newprofile.cpp" line="181"/>
         <source>Any reports generated are for PERSONAL USE ONLY, and NOT IN ANY WAY fit for compliance or medical diagnostic purposes.</source>
         <translation>Cualquier reporte generado es EXCLUSIVAMENTE PARA USO PERSONAL y no es adecuado DE NINGÚN MODO para fines de apego al tratamiento o diagnóstico médico.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="158"/>
+        <location filename="../oscar/newprofile.cpp" line="188"/>
         <source>Use of this software is entirely at your own risk.</source>
         <translation>El uso de este software es completamente bajo su propio riesgo.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="138"/>
+        <location filename="../oscar/newprofile.cpp" line="168"/>
         <source>Welcome to the Open Source CPAP Analysis Reporter</source>
         <translation>Bienvenido al Reportador de Análisis CPAP de Código Abierto</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="140"/>
+        <location filename="../oscar/newprofile.cpp" line="170"/>
         <source>This software is being designed to assist you in reviewing the data produced by your CPAP Devices and related equipment.</source>
         <translation>Este software está diseñado para ayudarle a revisar los datos producidos por sus dispositivos CPAP y equipos relacionados.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="143"/>
+        <location filename="../oscar/newprofile.cpp" line="173"/>
         <source>OSCAR has been released freely under the &lt;a href=&apos;qrc:/COPYING&apos;&gt;GNU Public License v3&lt;/a&gt;, and comes with no warranty, and without ANY claims to fitness for any purpose.</source>
         <translation>OSCAR ha sido publicado gratuitamente bajo la &lt;a href=&apos;qrc:/COPYING&apos;&gt;Licencia Pública GNU v3&lt;/a&gt;, y se ofrece sin garantía, y sin NINGUNA pretensión de aptitud para cualquier propósito.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="146"/>
+        <location filename="../oscar/newprofile.cpp" line="176"/>
         <source>OSCAR is intended merely as a data viewer, and definitely not a substitute for competent medical guidance from your Doctor.</source>
         <translation>OSCAR está destinado únicamente como un visor de datos, y definitivamente no es un sustituto de la orientación médica competente de su doctor.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="154"/>
+        <location filename="../oscar/newprofile.cpp" line="184"/>
         <source>The authors will not be held liable for &lt;u&gt;anything&lt;/u&gt; related to the use or misuse of this software.</source>
         <translation>Los autores no se harán responsables de &lt;u&gt;nada&lt;/u&gt; relacionado con el uso o mal uso de este software.</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="161"/>
+        <location filename="../oscar/newprofile.cpp" line="191"/>
         <source>OSCAR is copyright &amp;copy;2011-2018 Mark Watkins and portions &amp;copy;2019-2026 The OSCAR Team</source>
         <translation>OSCAR tiene derechos de autor &amp;copy;2011-2018 Mark Watkins y partes &amp;copy;2019-2026 El equipo de OSCAR</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="197"/>
+        <location filename="../oscar/newprofile.cpp" line="227"/>
         <source>Please provide a username for this profile</source>
         <translation>Por favor proporcione un nombre de usuario para este perfiĺ</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="308"/>
+        <location filename="../oscar/newprofile.cpp" line="322"/>
         <source>Profile Name Already In Use</source>
         <translation>Nombre de perfil ya en uso</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="309"/>
+        <location filename="../oscar/newprofile.cpp" line="323"/>
         <source>The name &quot;%1&quot; is already used by another profile. Please choose a different name.</source>
         <translation>El nombre &quot;%1&quot; ya está siendo usado por otro perfil. Por favor elija un nombre diferente.</translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="350"/>
+        <source>Rename Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../oscar/newprofile.cpp" line="351"/>
+        <source>Could not rename the profile directory. Check that no files in the profile are open and that you have write permission.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Passwords don&apos;t match</source>
         <translation type="vanished">Las contraseñas no coinciden</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Profile Changes</source>
         <translation>Cambios al Perfil</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="235"/>
+        <location filename="../oscar/newprofile.cpp" line="265"/>
         <source>Accept and save this information?</source>
         <translation>¿Aceptar y guardar esta información?</translation>
     </message>
@@ -4673,12 +4683,12 @@ No space was reclaimed — the database was already compact.</source>
         <translation type="vanished">Por favor cambie el nombre de usuario</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="328"/>
+        <location filename="../oscar/newprofile.cpp" line="370"/>
         <source>Finish</source>
         <translation>Finalizar</translation>
     </message>
     <message>
-        <location filename="../oscar/newprofile.cpp" line="499"/>
+        <location filename="../oscar/newprofile.cpp" line="541"/>
         <source>Close this window</source>
         <translation>Cerrar esta ventana</translation>
     </message>
