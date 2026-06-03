@@ -362,8 +362,8 @@ void NewProfile::on_nextButton_clicked()
                             } else {
                                 qWarning() << "NewProfile: could not find profile in DB for rename:" << originalProfileName;
                             }
-                            if (mainwin && mainwin->profileSelector) {
-                                mainwin->profileSelector->updateProfileList();
+                            if (mainwin) {
+                                mainwin->refreshProfileSelector();
                             }
                             this->accept();
                         }

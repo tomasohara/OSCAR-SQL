@@ -3085,6 +3085,13 @@ QString MainWindow::selectedProfileName() const
     return QString();
 }
 
+void MainWindow::refreshProfileSelector()
+{
+    if (profileSelector) {
+        profileSelector->updateProfileList();
+    }
+}
+
 void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefKey)
 {
     // get save location from profile.
