@@ -4,6 +4,37 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-06 - ResMed: second session silently dropped / time-shifted when sessions are close together
+
+**File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp`
+(`ResDayTask::run`, `repairEDFStartFromSession`)
+
+**Symptom:** When two sessions are separated by less than ~60 seconds, the second session's
+EDF data is time-shifted (placed at the wrong session's mask-on time) in the flow charts.
+
+**Root cause:** `repairEDFStartFromSession` used `ovr.start` (the STR mask-on of the session
+the EDF file was assigned to) as the repair target. For devices whose EDF headers store local
+time (labeled UTC), the header and filename time agree after `localNoDST` conversion —
+`edf.startdate ≈ filenameMs`. The repair should therefore be a no-op. But because the STR's
+1-minute resolution causes `maskon[1] = maskoff[0]` when sessions are <60 s apart, the second
+session's EDF files end up in the first session's or second session's overlap depending on the
+exact sub-second timing, and `ovr.start` is the wrong session's mask-on. The tolerance check
+`|edf.startdate − ovr.start| > 6 h` then fires spuriously (difference was ~6h22min in the
+observed case), forcing all the second session's data to the first session's start time.
+
+**Fix:** `repairEDFStartFromSession` now uses the filename-derived time as the primary repair
+target instead of `ovr.start` (STR maskon). The filename records when the device RTC created
+the EDF file — which is what `edf.startdate` should contain — whereas `ovr.start` is when the
+mask was applied (0–60 s earlier), and is simply wrong when the file was mismatched to a
+different session. The STR session time is used as a fallback only if the filename cannot be
+parsed.
+
+Also adds a `fileNearSession` guard to the duration-overlap fallback in `ResDayTask::run` to
+prevent a file starting more than 10 minutes before a session's mask-on from being claimed by
+that session via duration overlap (secondary defense).
+
+---
+
 ## 2026-06-02 - Profile rename always restarted, even for non-open profiles
 
 **File:** `oscar/newprofile.cpp` (`NewProfile::on_nextButton_clicked`)

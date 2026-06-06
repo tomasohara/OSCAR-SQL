@@ -3143,9 +3143,21 @@ void ResDayTask::run()
                   continue;           // skip this file
             }
 **/
+            // Guard: a session may only claim an EDF file via duration overlap if the
+            // file's own start time (from the filename) is within this many seconds of the
+            // session's mask-on.  Without this, a ~40-min file starting at T can be
+            // spuriously matched to a *later* session whose mask-on is T+38min, because
+            // the file's end-time just barely overlaps the later session's window.
+            static constexpr quint32 EDF_FILE_SESSION_MAX_LAG_S = 10 * 60;  // 10 minutes
+
             for (int i=overlaps.size()-1; i>=0; --i) {
                 OverlappingEDF & ovr = overlaps[i];
-                if ((ovr.start < dur.end) && (dur.start < ovr.end)) {
+                // filetime_t must be within EDF_FILE_SESSION_MAX_LAG_S of ovr.start.
+                // (If filetime_t >= ovr.start the file is inside or past the window;
+                //  if filetime_t < ovr.start then the lag is ovr.start - filetime_t.)
+                bool fileNearSession = (filetime_t >= ovr.start)
+                                       || (ovr.start - filetime_t <= EDF_FILE_SESSION_MAX_LAG_S);
+                if ((ovr.start < dur.end) && (dur.start < ovr.end) && fileNearSession) {
                     ovr.filemap.insert(filetime_t, filename);
                     added = true;
 #ifdef SESSION_DEBUG
@@ -3383,15 +3395,33 @@ bool ResmedLoader::repairEDFStartFromSession(ResMedEDFInfo &edf,
                                              Session *sess,
                                              const QString &path)
 {
-    // sess->session() was assigned from ovr.start, which was assigned from
-    // resday->str.maskon[i] during overlap construction in ResDayTask::run.
-    // So sess->session() * 1000LL is the STR.edf mask-on time in milliseconds,
-    // i.e. the authoritative session start time.
-    const qint64 expected = qint64(sess->session()) * 1000LL;
+    // The EDF startdate field records when the *recording* began, which is the
+    // filename timestamp (device RTC at file-creation time).  That is the correct
+    // repair target.
+    //
+    // The STR maskon (sess->session() == ovr.start) records when the *mask* was
+    // applied, which precedes file-creation by 0–60 s.  Using it as the repair
+    // target introduces a small timing error and — when the file has been matched to
+    // the wrong STR session (e.g. because the STR's 1-minute resolution rounds a
+    // short session gap to zero) — a large timing error.
+    //
+    // Strategy: derive the repair target from the filename.  Fall back to
+    // sess->session() only if the filename cannot be parsed.
 
     static constexpr int    EDF_YEAR_MIN     = 2005;
     static constexpr int    EDF_YEAR_MAX     = 2099;
-    static constexpr qint64 EDF_START_TOL_MS = 6LL * 60 * 60 * 1000;   // 6 hours
+    static constexpr qint64 EDF_START_TOL_MS = 6LL * 60 * 60 * 1000;  // 6 hours
+
+    QString filedate = path.section("/",-1).section("_",0,1);
+    QDate df = QDate::fromString(filedate.left(8), "yyyyMMdd");
+    QTime tf = QTime::fromString(filedate.right(6), "hhmmss");
+    QDateTime dtf = QDateTime(df, tf, EDFInfo::localNoDST);
+    const qint64 filenameMs = (dtf.isValid() && dtf.toSecsSinceEpoch() > 0)
+                              ? qint64(dtf.toSecsSinceEpoch()) * 1000LL : 0LL;
+
+    // Prefer filename time; fall back to STR session time if filename is unparseable.
+    const qint64 repairTarget = (filenameMs > 0) ? filenameMs
+                                                  : qint64(sess->session()) * 1000LL;
 
     // Sanity-check what edf.Parse() stored.
     QDateTime dt = QDateTime::fromMSecsSinceEpoch(edf.startdate, Qt::UTC);
@@ -3400,21 +3430,19 @@ bool ResmedLoader::repairEDFStartFromSession(ResMedEDFInfo &edf,
         const int y = dt.date().year();
         if (y < EDF_YEAR_MIN || y > EDF_YEAR_MAX) ok = false;
     }
-    if (ok && expected > 0 && qAbs(edf.startdate - expected) > EDF_START_TOL_MS)
+    if (ok && repairTarget > 0 && qAbs(edf.startdate - repairTarget) > EDF_START_TOL_MS)
         ok = false;
     if (ok) return true;                        // Header intact - no repair needed.
 
-    if (expected <= 0) {
+    if (repairTarget <= 0) {
         qWarning().noquote() << "ResMed: corrupt EDF startdate in"
                              << path.section("/", -2, -1)
-                             << "and no STR/session fallback; skipping file.";
+                             << "and no filename/session fallback; skipping file.";
         return false;
     }
 
-    // Repair. num_data_records and dur_data_record live in different header
-    // bytes than the ASCII datetime field and almost always survive.
     const qint64 oldStart = edf.startdate;
-    edf.startdate = expected;
+    edf.startdate = repairTarget;
     if (edf.GetNumDataRecords() > 0 && edf.GetDurationMillis() > 0) {
         edf.enddate = edf.startdate +
                       qint64(edf.GetNumDataRecords()) * edf.GetDurationMillis();
@@ -3427,8 +3455,8 @@ bool ResmedLoader::repairEDFStartFromSession(ResMedEDFInfo &edf,
         << path.section("/", -2, -1)
         << "header:"
         << QDateTime::fromMSecsSinceEpoch(oldStart, Qt::UTC).toString(Qt::ISODate)
-        << "-> STR/session:"
-        << QDateTime::fromMSecsSinceEpoch(expected, Qt::UTC).toString(Qt::ISODate);
+        << "-> filename:"
+        << QDateTime::fromMSecsSinceEpoch(repairTarget, Qt::UTC).toString(Qt::ISODate);
     return true;
 }
 
