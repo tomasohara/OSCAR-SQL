@@ -12,6 +12,7 @@
 
 ProgressDialog::ProgressDialog(QWidget * parent):
     QDialog(parent /*, Qt::Tool | Qt::FramelessWindowHint*/)
+    , m_allowClose(false)
 {
     qDebug() << "Progress Dialog opened";
     statusMsg = new QLabel(QObject::tr("Please Wait..."));
@@ -33,6 +34,19 @@ ProgressDialog::ProgressDialog(QWidget * parent):
     setMinimumWidth(360);
     abortButton = nullptr;
     setWindowModality(Qt::ApplicationModal);
+}
+
+void ProgressDialog::closeEvent(QCloseEvent* event)
+{
+    if (!m_allowClose) {
+        // Treat the title-bar X as a Cancel: keep the dialog open and signal abort.
+        // The operation must call allowClose() before its own close() call so that
+        // the programmatic close is not intercepted here.
+        event->ignore();
+        onAbortClicked();
+    } else {
+        QDialog::closeEvent(event);
+    }
 }
 
 ProgressDialog::~ProgressDialog()

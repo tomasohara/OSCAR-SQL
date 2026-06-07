@@ -10,6 +10,7 @@
 #ifndef PROGRESSDIALOG_H
 #define PROGRESSDIALOG_H
 
+#include <QCloseEvent>
 #include <QDialog>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -25,6 +26,11 @@ public:
 
     void addAbortButton();
 
+    /*! \brief Call before the programmatic close() at the end of a long operation
+     *  so that closeEvent allows the dialog to close normally. Without this,
+     *  closeEvent treats any close as a Cancel request and ignores it. */
+    void allowClose() { m_allowClose = true; }
+
     void setPixmap(QPixmap &pixmap) { imglabel->setPixmap(pixmap); }
     QProgressBar * progress;
 public slots:
@@ -37,11 +43,14 @@ public slots:
 signals:
     void abortClicked();
 protected:
+    void closeEvent(QCloseEvent* event) override;
+
     QLabel * statusMsg;
     QHBoxLayout *hlayout;
     QLabel * imglabel;
     QVBoxLayout * vlayout;
     QPushButton * abortButton;
+    bool m_allowClose;
 
 };
 

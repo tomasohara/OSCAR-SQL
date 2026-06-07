@@ -4,6 +4,49 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-07 - Profile import: X button on progress dialog hides dialog, leaving OSCAR invisible
+
+**Files:** `oscar/SleepLib/progressdialog.{h,cpp}`, `oscar/mainwindow.cpp`
+(`on_action_Import_OSCAR_Data_triggered`)
+
+**Symptom:** Clicking the title-bar X on the import progress dialog made the dialog
+disappear while the import continued running with no visible window. OSCAR appeared gone
+but was still alive in Task Manager.
+
+**Root cause:** `ProgressDialog` had no `closeEvent` override, so the default
+`QDialog::reject()` → `hide()` fired, removing the only visible window. The import was
+still running on the main thread via `processEvents()`, and no abort signal was wired up
+to `ProfileImporter::cancel()`.
+
+**Fix:**
+- Added `closeEvent` override to `ProgressDialog`: if `m_allowClose` is false, ignores
+  the event and calls `onAbortClicked()` (treats X as Cancel). Added `allowClose()` method
+  so the programmatic `progress.close()` at the end of the import can still close it.
+- Added `progress.addAbortButton()` and connected `progress.abortClicked` →
+  `importer.cancel()` in `on_action_Import_OSCAR_Data_triggered`.
+- `progress.allowClose()` called before `progress.close()` at end of import.
+- Added `importer.wasCancelled()` check to show "Import Cancelled" info message instead
+  of the "Import Failed" error message when the user deliberately stops the import.
+
+---
+
+## 2026-06-07 - Profile import: Backup folder copy slow due to per-file processEvents()
+
+**Files:** `oscar/profileimporter.{h,cpp}` (`copyDirectoryRecursively`)
+
+**Symptom:** Copying the Backup folder during profile import from OSCAR 1.7.1 takes a
+very long time — far longer than the actual I/O would require.
+
+**Root cause:** `copyDirectoryRecursively` called `QApplication::processEvents()` after
+every single file. A ResMed Backup folder with years of EDF files can contain thousands
+of files, so the Qt event queue was drained thousands of times — dominating the copy time.
+
+**Fix:** Added `QElapsedTimer m_copyTimer` to `ProfileImporter`. Started before each
+Backup folder copy. In `copyDirectoryRecursively`, replaced the unconditional per-file
+`processEvents()` with a timer-guarded call that fires at most once per 100ms.
+
+---
+
 ## 2026-06-07 - Profile import: oversized event list blob causes cascade failure
 
 **Files:** `oscar/database/event_data_repository.cpp` (`storeEventListData`),

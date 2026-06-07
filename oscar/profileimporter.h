@@ -15,6 +15,7 @@
 
 #include <QString>
 #include <QObject>
+#include <QElapsedTimer>
 
 class Profile;
 class Machine;
@@ -88,11 +89,15 @@ private:
     int m_loadedSessions;
     QString m_lastEventFailFile;    // filename of the first session whose events failed to store
     QString m_lastEventFailDbError; // SQL error from that failure
+    QElapsedTimer m_copyTimer;      // throttles progress updates during recursive file copy
+    int m_copyFilesDone;            // files copied so far in current backup copy
+    int m_copyFilesTotal;           // total files to copy (from pre-scan)
     
     // Phase 1: Copy folder structure
     bool copyProfileStructure(const QString& oldPath, const QString& newPath);
     bool copyJournalFolders(const QString& oldPath, const QString& newPath);
     bool copyDirectoryRecursively(const QString& sourcePath, const QString& destPath);
+    int countFilesRecursively(const QString& path);
     
     // Phase 2: Load sessions from files
     bool loadSessionsFromFiles(Profile* profile, const QString& oldPath);

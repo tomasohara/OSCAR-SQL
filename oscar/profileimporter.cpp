@@ -32,6 +32,8 @@ ProfileImporter::ProfileImporter(QObject *parent)
     , m_cancelled(false)
     , m_totalSessions(0)
     , m_loadedSessions(0)
+    , m_copyFilesDone(0)
+    , m_copyFilesTotal(0)
 {
 }
 
@@ -388,7 +390,10 @@ bool ProfileImporter::copyProfileStructure(const QString& oldPath,
         QString oldBackupPath = oldMachinePath + "/Backup";
         if (QDir(oldBackupPath).exists()) {
             QString newBackupPath = newMachinePath + "/Backup";
-//            qDebug() << "Copying Backup folder recursively:" << oldBackupPath << "to" << newBackupPath;
+            reportProgress(10, 100, tr("Scanning backup files..."));
+            m_copyFilesTotal = countFilesRecursively(oldBackupPath);
+            m_copyFilesDone = 0;
+            m_copyTimer.start();
             if (!copyDirectoryRecursively(oldBackupPath, newBackupPath)) {
                 qWarning() << "Failed to copy Backup folder recursively:" << oldBackupPath;
                 // Don't fail - Backup is optional
@@ -397,6 +402,21 @@ bool ProfileImporter::copyProfileStructure(const QString& oldPath,
     }
     
     return true;
+}
+
+int ProfileImporter::countFilesRecursively(const QString& path)
+{
+    int count = 0;
+    QDir dir(path);
+    const QFileInfoList entries = dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+    for (const QFileInfo& info : entries) {
+        if (m_cancelled) break;
+        if (info.isDir())
+            count += countFilesRecursively(info.filePath());
+        else
+            count++;
+    }
+    return count;
 }
 
 bool ProfileImporter::copyDirectoryRecursively(const QString& sourcePath, const QString& destPath)
@@ -416,21 +436,35 @@ bool ProfileImporter::copyDirectoryRecursively(const QString& sourcePath, const 
     // Copy all files in this directory
     QStringList files = sourceDir.entryList(QDir::Files);
     for (const QString& fileName : files) {
+        if (m_cancelled) return false;
+
         QString srcFilePath = sourcePath + "/" + fileName;
         QString dstFilePath = destPath + "/" + fileName;
 
         if (!QFile::copy(srcFilePath, dstFilePath)) {
             qWarning() << "Failed to copy file:" << srcFilePath << "to" << dstFilePath;
         }
-        QApplication::processEvents();
+        m_copyFilesDone++;
+        if (m_copyTimer.elapsed() >= 500) {
+            int pct = (m_copyFilesTotal > 0)
+                ? 10 + m_copyFilesDone * 10 / m_copyFilesTotal
+                : 10;
+            reportProgress(pct, 100,
+                tr("Copying backup files: %1 / %2")
+                    .arg(m_copyFilesDone)
+                    .arg(m_copyFilesTotal));
+            m_copyTimer.restart();
+        }
     }
-    
+
     // Recursively copy subdirectories
     QStringList subdirs = sourceDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
     for (const QString& subdir : subdirs) {
+        if (m_cancelled) return false;
+
         QString srcSubdirPath = sourcePath + "/" + subdir;
         QString dstSubdirPath = destPath + "/" + subdir;
-        
+
         if (!copyDirectoryRecursively(srcSubdirPath, dstSubdirPath)) {
             qWarning() << "Failed to copy subdirectory:" << srcSubdirPath;
         }

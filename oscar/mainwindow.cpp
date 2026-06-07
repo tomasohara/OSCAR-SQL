@@ -1325,18 +1325,25 @@ void MainWindow::on_action_Import_OSCAR_Data_triggered()
     // Create progress dialog
     ProgressDialog progress(this);
     progress.setWindowTitle(tr("Importing Profile ") + newName);
+    progress.addAbortButton();
     progress.show();
-    
+
     // Perform import
     ProfileImporter importer;
     connect(&importer, &ProfileImporter::progressChanged,
             &progress, &ProgressDialog::setProgressValue);
-    
+    connect(&progress, &ProgressDialog::abortClicked,
+            &importer, &ProfileImporter::cancel);
+
     bool success = importer.importProfile(sourcePath, newName, &progress);
-    
+
+    progress.allowClose();
     progress.close();
-    
-    if (success) {
+
+    if (importer.wasCancelled()) {
+        QMessageBox::information(this, tr("Import Cancelled"),
+            tr("Profile import was cancelled. Any partial data has been removed."));
+    } else if (success) {
         // Absorb any legacy .shg files copied in by the importer
         extern void importLegacyNamedLayouts();
         extern void importLegacyProfileLayouts();
