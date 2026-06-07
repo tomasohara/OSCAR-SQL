@@ -45,14 +45,20 @@ QString lookupLanguageName(QString language)
 
 QFileDialog::Options nativeDialogOption()
 {
-    // Native OS dialogs are rendered by the platform and cannot be translated by Qt;
-    // their button labels always reflect the OS locale.  When the user has chosen an
-    // OSCAR language that differs from the OS language, force Qt-rendered dialogs so
-    // the buttons are correctly translated.  When they match, prefer native dialogs
-    // for their better appearance and performance.
-    QString sysLang = QLocale::system().name().left(2);
+    // Native OS dialogs use the OS UI display language for button labels.
+    // QLocale::system().name() returns the regional-format locale (date/number style),
+    // which on Windows can differ from the UI display language.  uiLanguages() returns
+    // the actual display-language list, matching what native dialogs will show.
+    // Force Qt-rendered dialogs when no UI language matches the OSCAR language, so
+    // button labels are correctly translated via the installed Qt translation files.
     QString appLang = currentLanguage().left(2);
-    return (sysLang == appLang) ? QFileDialog::Options{} : QFileDialog::DontUseNativeDialog;
+    const QStringList uiLangs = QLocale::system().uiLanguages();
+    for (const QString& lang : uiLangs) {
+        if (lang.left(2) == appLang) {
+            return QFileDialog::Options{};
+        }
+    }
+    return QFileDialog::DontUseNativeDialog;
 }
 
 void initTranslations()
