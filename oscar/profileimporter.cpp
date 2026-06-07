@@ -48,6 +48,8 @@ bool ProfileImporter::importProfile(const QString& sourcePath,
     m_cancelled = false;
     m_totalSessions = 0;
     m_loadedSessions = 0;
+    m_lastEventFailFile.clear();
+    m_lastEventFailDbError.clear();
     
     reportProgress(0, 100, tr("Validating source profile..."));
     
@@ -899,7 +901,14 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
         // Store events if they were loaded
         if (session->eventlist.size() > 0) {
             if (!session->StoreEventsToDatabase()) {
-                qWarning() << "ProfileImporter::loadMachineSessions: Failed to store events for session:" << fileInfo.fileName();
+                QString dbErr = DatabaseManager::instance().lastError().text();
+                qWarning() << "ProfileImporter::loadMachineSessions: Failed to store events for session:"
+                           << fileInfo.fileName()
+                           << (dbErr.isEmpty() ? QString() : QString("(SQL: %1)").arg(dbErr));
+                if (m_lastEventFailFile.isEmpty()) {
+                    m_lastEventFailFile = fileInfo.fileName();
+                    m_lastEventFailDbError = dbErr;
+                }
                 eventFailures++;
             }
         }
@@ -923,6 +932,13 @@ bool ProfileImporter::loadMachineSessions(Machine* machine,
     if (sessionFailures > 0 || eventFailures > 0) {
         m_lastError = tr("Session persistence failures: %1 session(s) and %2 event set(s) failed to store")
                           .arg(sessionFailures).arg(eventFailures);
+        if (!m_lastEventFailFile.isEmpty()) {
+            m_lastError += tr(" (first failure: %1").arg(m_lastEventFailFile);
+            if (!m_lastEventFailDbError.isEmpty()) {
+                m_lastError += tr("; SQL: %1").arg(m_lastEventFailDbError);
+            }
+            m_lastError += ")";
+        }
         return false;
     }
 

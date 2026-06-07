@@ -86,6 +86,8 @@ private:
     bool m_cancelled;
     int m_totalSessions;
     int m_loadedSessions;
+    QString m_lastEventFailFile;    // filename of the first session whose events failed to store
+    QString m_lastEventFailDbError; // SQL error from that failure
     
     // Phase 1: Copy folder structure
     bool copyProfileStructure(const QString& oldPath, const QString& newPath);

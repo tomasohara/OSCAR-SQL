@@ -3577,7 +3577,12 @@ bool Session::StoreEventsToDatabase()
 
     // Clear existing event lists for this session before re-inserting,
     // so re-imports (e.g. to add newly-computed channels) don't hit UNIQUE constraints.
-    eventListRepo.deleteBySession(m_sessionrow_id);
+    // If the delete fails, stale rows remain and subsequent INSERTs will hit the
+    // UNIQUE(session_id, channel_id, eventlist_index) constraint.
+    if (!eventListRepo.deleteBySession(m_sessionrow_id)) {
+        qWarning() << "Session::StoreEventsToDatabase() - Failed to clear existing event_lists for session"
+                   << s_session << "— subsequent INSERTs may fail on UNIQUE constraint";
+    }
 
     int totalEventLists = 0;
     int totalSaved = 0;

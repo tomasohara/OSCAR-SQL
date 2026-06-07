@@ -4,6 +4,33 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-06 - Profile import: "Session persistence failure: 0 session(s) and 1 event set(s) failed to store"
+
+**Files:** `oscar/SleepLib/session.cpp` (`Session::StoreEventsToDatabase`),
+`oscar/profileimporter.{h,cpp}` (`ProfileImporter::loadMachineSessions`)
+
+**Symptom:** Importing an OSCAR 1.x profile fails with the error "Session persistence failure:
+0 session(s) and 1 event set(s) failed to store". The failure affected exactly one session per
+import attempt.
+
+**Root cause:** `Session::StoreEventsToDatabase()` calls
+`EventListRepository::deleteBySession(m_sessionrow_id)` to clear stale `event_lists` rows
+before re-inserting. The return value was silently ignored. If the DELETE fails for any reason
+(e.g., a prior SQL error leaving the connection in an error state), stale rows remain for that
+session. The subsequent `INSERT INTO event_lists` then hits the
+`UNIQUE(session_id, channel_id, eventlist_index)` constraint, `create()` returns -1,
+`totalSaved < totalEventLists`, and `StoreEventsToDatabase()` returns false.
+
+**Fix:**
+1. `session.cpp`: Added return-value check on `deleteBySession()` with a `qWarning()` when it
+   fails, so the failure is surfaced rather than silently swallowed.
+2. `profileimporter.h`: Added `m_lastEventFailFile` and `m_lastEventFailDbError` member strings.
+3. `profileimporter.cpp`: On event-store failure, capture the session filename and SQL error text.
+   Improved the user-visible error message to include the failing session filename and SQL error
+   so future occurrences can be diagnosed from the dialog alone.
+
+---
+
 ## 2026-06-06 - ResMed: second session silently dropped / time-shifted when sessions are close together
 
 **File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp`
