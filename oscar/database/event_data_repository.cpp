@@ -215,6 +215,9 @@ bool EventDataRepository::storeEventListData(qint64 eventlistId, EventList* even
         qCritical() << "EventDataRepository: Failed to store event data:"
                     << m_insertQuery.lastError().text();
         DatabaseManager::instance().checkQueryError("EventDataRepository::storeEventListData", m_insertQuery);
+        // Reset so subsequent calls don't inherit a broken prepared statement and fail
+        // with "Parameter count mismatch" instead of the real error.
+        resetPreparedStatements();
         return false;
     }
     PERF_TIMER_STOP("EventDataRepository::DBInsert");

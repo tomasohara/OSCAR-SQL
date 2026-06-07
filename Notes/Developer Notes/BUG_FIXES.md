@@ -4,6 +4,41 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-07 - Profile import: oversized event list blob causes cascade failure
+
+**Files:** `oscar/database/event_data_repository.cpp` (`storeEventListData`),
+`oscar/SleepLib/session.cpp` (`Session::StoreEventsToDatabase`)
+
+**Symptom:** Profile import fails with multiple "Failed to store event data" warnings:
+first "string or blob too big Unable to bind parameters", then "Parameter count mismatch"
+on subsequent channels, resulting in `totalSaved < totalEventLists` and the whole session
+being counted as failed.
+
+**Root causes (two):**
+
+1. **Corrupted count in legacy .001 file** — one event list (channel 6144, index 23) has a
+   count field that is garbage-large, causing `serializeInt16Array` to produce a blob
+   exceeding SQLite's `SQLITE_MAX_LENGTH` (1 GB default). Compression is already applied
+   in `storeEventListData`; at sizes of 500M+ samples it cannot reduce the blob enough.
+
+2. **Prepared-statement cascade** — after the first `m_insertQuery.exec()` failure,
+   `m_statementsPrepared` remains `true`. The next call to `storeEventListData` reuses the
+   now-invalid SQLite prepared statement and fails with "Parameter count mismatch", causing
+   additional spurious failures.
+
+**Fixes:**
+
+1. `event_data_repository.cpp`: call `resetPreparedStatements()` after a failed `exec()`
+   so subsequent calls get a fresh statement instead of inheriting the broken one.
+
+2. `session.cpp`: before incrementing `totalEventLists`, compute the estimated blob size
+   (`count × sizeof(EventStoreType)`, doubled for second field, plus time array for events).
+   If it exceeds 100 MB — far beyond any legitimate CPAP night even at 250 Hz — skip the
+   event list with a `qWarning` (channel, index, count, estimated size) and `continue`
+   without incrementing `totalEventLists`. The rest of the session then imports cleanly.
+
+---
+
 ## 2026-06-06 - Profile import: "Session persistence failure: 0 session(s) and 1 event set(s) failed to store"
 
 **Files:** `oscar/SleepLib/session.cpp` (`Session::StoreEventsToDatabase`),

@@ -3606,7 +3606,26 @@ bool Session::StoreEventsToDatabase()
             if (!eventList || eventList->count() == 0) {
                 continue;  // Skip empty EventLists
             }
-            
+
+            // Guard against corrupted source data: a count field that overflows to a huge
+            // value produces a blob SQLite cannot bind (SQLITE_TOOBIG). No legitimate CPAP
+            // night comes close to 100 MB for a single event list (even 250 Hz waveforms
+            // for 8 hours are ~14 MB). Skip and log; don't count in totalEventLists so the
+            // rest of the session still imports cleanly.
+            {
+                qint64 estimatedSize = (qint64)eventList->count() * (qint64)sizeof(EventStoreType);
+                if (eventList->hasSecondField()) estimatedSize *= 2;
+                if (eventList->type() != EVL_Waveform)
+                    estimatedSize += (qint64)eventList->count() * (qint64)sizeof(quint32);
+                if (estimatedSize > 100LL * 1024 * 1024) {
+                    qWarning() << "Session::StoreEventsToDatabase() - Skipping oversized event list"
+                               << "channel" << channelId << "index" << index
+                               << "count" << eventList->count()
+                               << "estimated" << estimatedSize << "bytes — corrupted source data";
+                    continue;
+                }
+            }
+
             totalEventLists++;
             
             // 1. Create EventListData from EventList
