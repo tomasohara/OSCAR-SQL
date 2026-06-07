@@ -21,8 +21,8 @@ SetupLogging=yes
 ; Now using separate AppID for Win32 and Win64 and for test builds -- GTS 4/6/2019
 ; New set of AppIDs for OSCAR 2.0
 #if MyPlatform == "Win64"
-    ArchitecturesAllowed=x64
-    ArchitecturesInstallIn64BitMode=x64
+    ArchitecturesAllowed=x64 arm64
+    ArchitecturesInstallIn64BitMode=x64 arm64
     #if MyReleaseStatus == "r" || MyReleaseStatus == "rc"
       AppId={{4868B5EF-AFEE-45C1-BBE6-3C8AB37E1F7D}
       #define MyGroupName "OSCAR 2.0"
