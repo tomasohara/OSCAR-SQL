@@ -4,6 +4,37 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-10 - Export CSV: date formatting inconsistency and stale filename on custom range
+
+**Files:** `oscar/exports/report_exporter.cpp`
+
+**Symptom 1:** In the CSV Export dialog, start date and end date pickers displayed dates
+with different formats — start showed e.g. "5/1/2026" (no leading zeros) while end showed
+"05/01/2026" (with leading zeros).
+
+**Root cause:** `m_endDateEdit->setDisplayFormat("MM/dd/yyyy")` was hardcoded while
+`m_startDateEdit->setDisplayFormat(QLocale().dateFormat(...))` used the locale format.
+Simple copy-paste error; the two widgets used different literal format strings.
+
+**Fix:** Compute a single `dateDisplayFormat` string from the locale and apply it to both
+date edits.
+
+**Symptom 2:** When Custom date range was selected, manually changing start/end dates did
+not update the filename field.
+
+**Root cause:** `dateChanged` on the two date edits was not connected to
+`updateFilenameField()`. The filename was only refreshed when the quick-range combo or
+profile changed.
+
+**Fix:** Connected both `m_startDateEdit::dateChanged` and `m_endDateEdit::dateChanged`
+to `updateFilenameField()` at widget construction time.
+
+**Also:** Deleted the dead `ExportCSV` class (`exportcsv.cpp/.h/.ui`) — it was the
+predecessor to `ReportExporter` and had been unreachable since `ReportExporter` replaced
+it. Removed the stale `#include "exportcsv.h"` from `reportvarietyeditor.cpp`.
+
+---
+
 ## 2026-06-10 - Application font change not propagating to most UI widgets on Qt6/Windows
 
 **Files:** `oscar/SleepLib/common.cpp` (`setApplicationFont`)

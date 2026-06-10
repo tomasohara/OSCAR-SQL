@@ -314,7 +314,6 @@ SOURCES += \
     restoredialog.cpp \
     sharedialog.cpp \
     purgerangedaysdialog.cpp \
-    exportcsv.cpp \
     sqleditor.cpp \
     reportmanager.cpp \
     reportvarietyeditor.cpp \
@@ -492,7 +491,6 @@ HEADERS  += \
     restoredialog.h \
     sharedialog.h \
     purgerangedaysdialog.h \
-    exportcsv.h \
     sqleditor.h \
     reportmanager.h \
     reportvarietyeditor.h \
@@ -653,7 +651,6 @@ FORMS += \
     backupdialog.ui \
     restoredialog.ui \
     sharedialog.ui \
-    exportcsv.ui \
     sqleditor.ui \
     reportmanager.ui \
     reportvarietyeditor.ui \

@@ -13,7 +13,6 @@
 #include "database/profile_repository.h"
 #include "database/database_manager.h"
 #include "SleepLib/profiles.h"
-#include "exportcsv.h"
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QSqlQuery>

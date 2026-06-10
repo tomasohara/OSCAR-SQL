@@ -216,18 +216,26 @@ QWidget* ReportExporter::createRightPanel()
     connect(m_quickRangeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &ReportExporter::onQuickRangeChanged);
 
-    // Date range
+    // Date range — both date edits use the same locale-derived format for consistency
+    QString dateDisplayFormat = QLocale().dateFormat(QLocale::ShortFormat);
+    if (!dateDisplayFormat.toLower().contains("yyyy"))
+        dateDisplayFormat.replace("yy", "yyyy");
+
     m_startDateEdit = new QDateEdit(QDate::currentDate().addDays(-1), panel);
     m_startDateEdit->setCalendarPopup(true);
-    m_startDateEdit->setDisplayFormat(QLocale().dateFormat(QLocale::ShortFormat));
+    m_startDateEdit->setDisplayFormat(dateDisplayFormat);
     m_startDateEdit->setEnabled(false);  // Enabled only for Custom range
     form->addRow(tr("Start Date:"), m_startDateEdit);
+    connect(m_startDateEdit, &QDateEdit::dateChanged,
+            this, &ReportExporter::updateFilenameField);
 
     m_endDateEdit = new QDateEdit(QDate::currentDate(), panel);
     m_endDateEdit->setCalendarPopup(true);
-    m_endDateEdit->setDisplayFormat("MM/dd/yyyy");
+    m_endDateEdit->setDisplayFormat(dateDisplayFormat);
     m_endDateEdit->setEnabled(false);    // Enabled only for Custom range
     form->addRow(tr("End Date:"), m_endDateEdit);
+    connect(m_endDateEdit, &QDateEdit::dateChanged,
+            this, &ReportExporter::updateFilenameField);
 
     outerLayout->addLayout(form);
     outerLayout->addSpacing(8);
