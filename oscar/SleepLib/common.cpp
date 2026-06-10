@@ -469,6 +469,28 @@ void setApplicationFont () {
     font.setItalic(((*p_pref)["Fonts_Application_Italic"]).toBool());
     QApplication::setFont(font);
     mainwin->menuBar()->setFont(font);
+    // Qt6 doesn't reliably propagate font changes to all existing widgets via
+    // ApplicationFontChange: child widgets resolve their font against the parent's
+    // current font, but siblings in the allWidgets() list may not have processed
+    // their own change event yet, leaving children with a stale parent font.
+    // Calling setFont() on mainwindow uses ordered top-down propagation — mainwindow
+    // updates first, then each level of children in turn — so every widget resolves
+    // against an already-updated parent. This covers macOS and Linux.
+    mainwin->setFont(font);
+    // QStyleSheetStyle (active on any widget that has a stylesheet set, either via
+    // qApp->setStyleSheet() or via widget->setStyleSheet()) caches fonts at polish-time
+    // and doesn't automatically reflect font changes even after setFont() updates the
+    // logical font. Re-polish every such widget so the cached font is refreshed.
+    // On Windows/Qt6 this covers all widgets (qApp->setStyleSheet() marks them all
+    // WA_StyleSheet). On macOS/Linux it handles per-widget stylesheet instances such
+    // as ProfileSelector, which also has its own setStyleSheet() call.
+    for (QWidget* w : QApplication::allWidgets()) {
+        if (w->testAttribute(Qt::WA_StyleSheet)) {
+            w->style()->unpolish(w);
+            w->style()->polish(w);
+            w->update();
+        }
+    }
     qDebug() << "Application font set to" << font;
     qDebug() << "Application font reads back as" << QApplication::font();
     qDebug() << "system font is" << QFontDatabase::systemFont(QFontDatabase::GeneralFont).family();

@@ -4,6 +4,38 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-10 - Application font change not propagating to most UI widgets on Qt6/Windows
+
+**Files:** `oscar/SleepLib/common.cpp` (`setApplicationFont`)
+
+**Symptom:** Changing the application font or point size in File → Preferences did not
+update most UI widgets: the main tab bar labels (Profile/Daily/Overview/Statistics), the
+daily page sidebar (text and tab names), the welcome page title labels, and the options
+frames at the bottom of the Overview and Statistics pages.
+
+**Root cause (all platforms):** Qt6's `QApplication::setFont()` sends `ApplicationFontChange`
+to all widgets via `allWidgets()`, but in arbitrary order. Each child widget resolves its
+font against its parent's `data.fnt`, which may not yet be updated when the child
+processes the event. Children end up resolving against a stale parent font and don't
+visually update. Qt5 did not have this ordering problem.
+
+**Root cause (Windows/Qt6 additionally):** OSCAR 2.0 calls `qApp->setStyleSheet()` for
+QComboBox padding. This installs `QStyleSheetStyle` as the application style, which caches
+each widget's font at polish-time. Even after `setFont()` updates the logical font,
+`QStyleSheetStyle` renders with its stale cached font.
+
+**Fix:** Two-part fix in `setApplicationFont()` (`SleepLib/common.cpp`):
+1. Call `mainwin->setFont(font)` — uses ordered top-down propagation (mainwindow first,
+   then each level of children in turn), so every widget always resolves against an
+   already-updated parent. Fixes macOS and Linux.
+2. Iterate `QApplication::allWidgets()` and unpolish+polish every widget that has
+   `WA_StyleSheet` set. This covers both app-level stylesheets (Windows: all widgets are
+   marked) and widget-level stylesheets (e.g. `ProfileSelector::setStyleSheet()` in its
+   constructor). Without this, `QStyleSheetStyle` renders with stale cached fonts even
+   after the logical font has been updated.
+
+---
+
 ## 2026-06-07 - Profile import: X button on progress dialog hides dialog, leaving OSCAR invisible
 
 **Files:** `oscar/SleepLib/progressdialog.{h,cpp}`, `oscar/mainwindow.cpp`
