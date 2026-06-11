@@ -1156,19 +1156,15 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         }
 
         if (!evtSessionStarts.isEmpty()) {
-            // Build one BmcSession per 0x40 marker.  Match each start to the first
-            // 0x41 end that follows it; fall back to dayEntry->EndTimestamp if none.
+            // Build one BmcSession per 0x40 marker.  Pair by index: the i-th start
+            // pairs with the i-th end (BMC firmware emits them in matched pairs).
+            // Fall back to dayEntry->EndTimestamp if the corresponding end is absent.
             for (int i = 0; i < evtSessionStarts.size(); ++i) {
                 BmcSession* s      = new BmcSession();
                 s->StartTimestamp  = evtSessionStarts.at(i);
-                s->EndTimestamp    = dayEntry->EndTimestamp; // fallback
-
-                for (const QDateTime& e : evtSessionEnds) {
-                    if (e > s->StartTimestamp) {
-                        s->EndTimestamp = e;
-                        break;
-                    }
-                }
+                s->EndTimestamp    = (i < evtSessionEnds.size())
+                                         ? evtSessionEnds.at(i)
+                                         : dayEntry->EndTimestamp;
 
                 for (const BmcPressureSnapshot& snap : evtPressureSnapshots) {
                     if (snap.Timestamp >= s->StartTimestamp &&
