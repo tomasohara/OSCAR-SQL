@@ -1137,6 +1137,120 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
 #endif // BMCDEBUG
     }
 
+    // ---- EVT-only path (no waveform data on card) ----
+    if (dayEntry->WaveLength == 0) {
+        // Build BmcPressureSnapshot list from the 0x42 updates already collected in Phase 1.
+        // timedSampleUpdates is sorted chronologically (sorted after Phase 1).
+        QVector<BmcPressureSnapshot> evtPressureSnapshots;
+        for (const G3xTimedSampleUpdate& u : timedSampleUpdates) {
+            const int epap = u.Values.hasEPAP ? u.Values.epapHundredths
+                                              : (u.Values.hasIPAP ? u.Values.ipapHundredths : 0);
+            const int ipap = u.Values.hasIPAP ? u.Values.ipapHundredths : epap;
+            if (epap > 0 || ipap > 0) {
+                BmcPressureSnapshot snap;
+                snap.Timestamp       = QDateTime::fromSecsSinceEpoch(u.TimestampSec);
+                snap.EpapHundredths  = epap;
+                snap.IpapHundredths  = ipap;
+                evtPressureSnapshots.append(snap);
+            }
+        }
+
+        if (!evtSessionStarts.isEmpty()) {
+            // Build one BmcSession per 0x40 marker.  Match each start to the first
+            // 0x41 end that follows it; fall back to dayEntry->EndTimestamp if none.
+            for (int i = 0; i < evtSessionStarts.size(); ++i) {
+                BmcSession* s      = new BmcSession();
+                s->StartTimestamp  = evtSessionStarts.at(i);
+                s->EndTimestamp    = dayEntry->EndTimestamp; // fallback
+
+                for (const QDateTime& e : evtSessionEnds) {
+                    if (e > s->StartTimestamp) {
+                        s->EndTimestamp = e;
+                        break;
+                    }
+                }
+
+                for (const BmcPressureSnapshot& snap : evtPressureSnapshots) {
+                    if (snap.Timestamp >= s->StartTimestamp &&
+                        snap.Timestamp <= s->EndTimestamp) {
+                        s->PressureSnapshots.append(snap);
+                    }
+                }
+                dateSession.Sessions.append(s);
+            }
+        } else {
+            // No EVT session markers: create one synthetic session from IT block duration.
+            BmcSession* s     = new BmcSession();
+            s->StartTimestamp = dayEntry->StartTimestamp;
+            s->EndTimestamp   = dayEntry->EndTimestamp;
+
+            // Add two synthetic pressure snapshots (start + end) at the EPAP setting
+            // so the session passes the downstream skip check and OSCAR has a pressure anchor.
+            if (IsReasonablePressureHundredths(dayEntry->ItPressureEPAPHundredths)) {
+                BmcPressureSnapshot snapStart;
+                snapStart.Timestamp      = s->StartTimestamp;
+                snapStart.EpapHundredths = dayEntry->ItPressureEPAPHundredths;
+                snapStart.IpapHundredths = dayEntry->ItPressureEPAPHundredths;
+                BmcPressureSnapshot snapEnd;
+                snapEnd.Timestamp      = s->EndTimestamp.addSecs(-1);
+                snapEnd.EpapHundredths = dayEntry->ItPressureEPAPHundredths;
+                snapEnd.IpapHundredths = dayEntry->ItPressureEPAPHundredths;
+                s->PressureSnapshots.append(snapStart);
+                s->PressureSnapshots.append(snapEnd);
+            }
+            dateSession.Sessions.append(s);
+        }
+
+        // Assign respiratory and FL events to the session whose window contains them.
+        for (BmcSession* s : dateSession.Sessions) {
+            for (const BmcRespiratoryEvent& evt : dateSession.RespiratoryEvents) {
+                if (evt.StartTime >= s->StartTimestamp && evt.StartTime <= s->EndTimestamp) {
+                    s->RespiratoryEvents.append(evt);
+                }
+            }
+            for (const BmcFlowLimitEvent& evt : dateSession.FlowLimitEvents) {
+                if (evt.Timestamp >= s->StartTimestamp && evt.Timestamp <= s->EndTimestamp) {
+                    s->FlowLimitEvents.append(evt);
+                }
+            }
+        }
+
+        // Machine settings from IT block (mirrors Phase 5 logic in the normal path).
+        const float epapCmH2O = IsReasonablePressureHundredths(dayEntry->ItPressureEPAPHundredths)
+                                    ? dayEntry->ItPressureEPAPHundredths / 100.0f
+                                    : 4.0f;
+        dateSession.MacineSettings.CPAP_TreatP   = epapCmH2O;
+        dateSession.MacineSettings.CPAP_InitialP  = epapCmH2O;
+        dateSession.MacineSettings.CPAP_ManualP   = epapCmH2O;
+
+        int minPressureHundredths = 0;
+        if (IsReasonablePressureHundredths(dayEntry->TsPressureMinHundredths))
+            minPressureHundredths = dayEntry->TsPressureMinHundredths;
+        else if (IsReasonablePressureHundredths(dayEntry->ItPressureMinHundredths))
+            minPressureHundredths = dayEntry->ItPressureMinHundredths;
+
+        int maxPressureHundredths = 0;
+        if (IsReasonablePressureHundredths(dayEntry->TsPressureMaxHundredths))
+            maxPressureHundredths = dayEntry->TsPressureMaxHundredths;
+        else if (IsReasonablePressureHundredths(dayEntry->ItPressureMaxHundredths))
+            maxPressureHundredths = dayEntry->ItPressureMaxHundredths;
+
+        if (minPressureHundredths > 0) {
+            dateSession.MacineSettings.APAP_IntialP = minPressureHundredths / 100.0f;
+            dateSession.MacineSettings.APAP_MinAPAP = minPressureHundredths / 100.0f;
+        }
+        if (maxPressureHundredths > 0)
+            dateSession.MacineSettings.APAP_MaxAPAP = maxPressureHundredths / 100.0f;
+
+        dateSession.MacineSettings.Mode =
+            (minPressureHundredths > 0 && maxPressureHundredths > minPressureHundredths)
+                ? BmcMode::AutoCPAP
+                : BmcMode::CPAP;
+
+        return dateSession;
+    }
+    // ---- End EVT-only path — waveform path continues below ----
+
     // ---- Phase 3: Seed initial pressure from IDX summary ----
     // Used when no EVT pressure records were found.
 
