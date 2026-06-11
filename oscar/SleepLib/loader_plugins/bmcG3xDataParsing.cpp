@@ -1803,54 +1803,67 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
         const quint32 logEnd     = ReadUInt32LE(idxBytes, offset + 0x2C);
         const quint32 logLen     = ReadUInt32LE(idxBytes, offset + 0x30);
 
-        if (waveLen == 0 || waveEnd <= waveStart) {
-            ++idxNoWave;
-#ifdef BMCDEBUG
-            qDebug() << "BmcG3xData IDX: skipping" << QDate(year, month, day).toString(Qt::ISODate)
-                     << "waveLen" << waveLen
-                     << "waveStart" << Qt::hex << waveStart
-                     << "waveEnd"   << Qt::hex << waveEnd
-                     << "evtStart"  << Qt::hex << eventStart
-                     << "evtEnd"    << Qt::hex << eventEnd
-                     << "evtLen"    << Qt::dec << eventLen;
-#endif // BMCDEBUG
-            continue;
-        }
-
-        // Read timestamps from the first and last waveform packets.
-        const QDateTime startTs = ReadWaveformPacketTimestamp(waveStart);
-        const quint32 endPacketOffset = (waveEnd >= kG3xWaveformPacketSize)
-                                            ? (waveEnd - kG3xWaveformPacketSize)
-                                            : waveStart;
-        QDateTime endTs = ReadWaveformPacketTimestamp(endPacketOffset);
-
-        if (!startTs.isValid()) {
-            ++idxBadTs;
-#ifdef BMCDEBUG
-            qDebug() << "BmcG3xData IDX: skipping" << QDate(year, month, day).toString(Qt::ISODate)
-                     << "invalid waveform timestamp at waveStart" << Qt::hex << waveStart;
-#endif // BMCDEBUG
-            continue;
-        }
-        if (!endTs.isValid() || endTs < startTs) {
-            // Fall back to estimating end time from packet count.
-            const quint32 packetCount = std::max<quint32>(1, waveLen / kG3xWaveformPacketSize);
-            endTs = startTs.addSecs(static_cast<int>(packetCount));
-        }
-
         G3xDayEntry dayEntry;
-        dayEntry.Date            = QDate(year, month, day);
-        dayEntry.StartTimestamp  = startTs;
-        dayEntry.EndTimestamp    = endTs.addSecs(1);
-        dayEntry.WaveStartOffset = waveStart;
-        dayEntry.WaveEndOffset   = waveEnd;
-        dayEntry.WaveLength      = waveLen;
+        dayEntry.Date             = QDate(year, month, day);
+        dayEntry.WaveStartOffset  = waveStart;
+        dayEntry.WaveEndOffset    = waveEnd;
+        dayEntry.WaveLength       = waveLen;
         dayEntry.EventStartOffset = eventStart;
         dayEntry.EventEndOffset   = eventEnd;
         dayEntry.EventLength      = eventLen;
         dayEntry.LogStartOffset   = logStart;
         dayEntry.LogEndOffset     = logEnd;
         dayEntry.LogLength        = logLen;
+
+        if (waveLen > 0 && waveEnd > waveStart) {
+            // Normal path: derive session timestamps from waveform packets.
+            const QDateTime startTs = ReadWaveformPacketTimestamp(waveStart);
+            const quint32 endPacketOffset = (waveEnd >= kG3xWaveformPacketSize)
+                                                ? (waveEnd - kG3xWaveformPacketSize)
+                                                : waveStart;
+            QDateTime endTs = ReadWaveformPacketTimestamp(endPacketOffset);
+
+            if (!startTs.isValid()) {
+                ++idxBadTs;
+#ifdef BMCDEBUG
+                qDebug() << "BmcG3xData IDX: skipping" << QDate(year, month, day).toString(Qt::ISODate)
+                         << "invalid waveform timestamp at waveStart" << Qt::hex << waveStart;
+#endif // BMCDEBUG
+                continue;
+            }
+            if (!endTs.isValid() || endTs < startTs) {
+                // Fall back to estimating end time from packet count.
+                const quint32 packetCount = std::max<quint32>(1, waveLen / kG3xWaveformPacketSize);
+                endTs = startTs.addSecs(static_cast<int>(packetCount));
+            }
+            dayEntry.StartTimestamp = startTs;
+            dayEntry.EndTimestamp   = endTs.addSecs(1);
+        } else {
+            // No waveform data: accept the record if IT block or EVT stream has data.
+            const int itOff = offset + 0x80;
+            const bool hasItDuration =
+                (itOff + 0x18 <= idxBytes.size() &&
+                 idxBytes.at(itOff)     == 'I'   &&
+                 idxBytes.at(itOff + 1) == 'T'   &&
+                 ReadUInt32LE(idxBytes, itOff + 0x14) > 0);
+            const bool hasEvtData = (eventLen > 0 && eventEnd > eventStart);
+            if (!hasItDuration && !hasEvtData) {
+                ++idxNoWave;
+#ifdef BMCDEBUG
+                qDebug() << "BmcG3xData IDX: skipping" << QDate(year, month, day).toString(Qt::ISODate)
+                         << "no waveform, no IT duration, no EVT data"
+                         << "evtLen" << eventLen;
+#endif // BMCDEBUG
+                continue;
+            }
+            // Use noon of the IDX calendar date as synthetic start.
+            dayEntry.StartTimestamp = QDateTime(dayEntry.Date, QTime(12, 0, 0), Qt::LocalTime);
+            const quint32 itDuration = hasItDuration
+                                           ? ReadUInt32LE(idxBytes, itOff + 0x14)
+                                           : 0;
+            dayEntry.EndTimestamp = dayEntry.StartTimestamp.addSecs(
+                itDuration > 0 ? static_cast<int>(itDuration) : 3600);
+        }
 
         // Parse the IT (nightly statistics) sub-block if present.
         const int itOffset = offset + 0x80;
@@ -1889,7 +1902,7 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
         ++idxAccepted;
 #ifdef BMCDEBUG
         qDebug() << "BmcG3xData IDX: accepted" << dayEntry.Date.toString(Qt::ISODate)
-                 << "waveTs" << startTs.toString(Qt::ISODate)
+                 << "startTs" << dayEntry.StartTimestamp.toString(Qt::ISODate)
                  << "waveStart" << Qt::hex << waveStart << "waveEnd" << Qt::hex << waveEnd
                  << "evtStart"  << Qt::hex << eventStart << "evtEnd" << Qt::hex << eventEnd;
 #endif // BMCDEBUG
