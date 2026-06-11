@@ -800,6 +800,10 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     int rawRespType0ACount = 0;
     QVector<BmcRespiratoryEvent> rawPbEvents;  // PB episodes from 0x09 records
 
+    // Collected for EVT-only session boundary detection (waveLen == 0).
+    QVector<QDateTime> evtSessionStarts;
+    QVector<QDateTime> evtSessionEnds;
+
     const QString evtFilePath = fileBasePath + ".evt";
     QFile evtFile(evtFilePath);
     if (evtFile.open(QIODevice::ReadOnly)) {
@@ -927,11 +931,11 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 }
 
                 case kG3xEvtTypeSessionStart:
+                    // Collected for EVT-only session building when no waveform data exists.
+                    evtSessionStarts.append(evtTime);
+                    break;
                 case kG3xEvtTypeSessionEnd:
-                    // Session boundary markers — timestamp only, no data fields.
-                    // Confirmed: 0x40 = machine starts recording, 0x41 = machine stops recording.
-                    // Not used: the waveform-heuristic start (findStableStartMs) is more accurate
-                    // because it excludes startup noise; 0x40/0x41 are only second-precise.
+                    evtSessionEnds.append(evtTime);
                     break;
 
                 default:
