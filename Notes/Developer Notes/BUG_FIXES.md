@@ -4,6 +4,24 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-10 — BMC G3X: EVT-only import for PapLink-synced cards
+
+**Files:** `bmcDataParsing.h`, `bmcG3xDataParsing.cpp`, `bmc_loader.cpp`
+
+**Symptom:** OSCAR showed "no data found" for G3X cards that use BMC's PapLink cloud sync;
+the SD card retains only the current session's waveform file (16 KB) but stores
+148+ nights of IT summary statistics and EVT events in the .idx/.evt files.
+
+**Root cause:** `ParseIdxRecords` rejected any IDX record with `waveLen==0`; all 148 historical
+records had `waveLen=0` (waveform data is on BMC's server, not the card).
+
+**Fix:** Accept `waveLen==0` records that have IT-block duration>0 or EVT data. Add EVT-only
+session-building path that splits on 0x40/0x41 markers, populates PressureSnapshots
+from 0x42 records (30s steps), and emits CPAP_Pressure/IPAP/EPAP without a flow
+waveform. IT-only days (no EVT) get a synthetic session using the IT-block duration.
+
+---
+
 ## 2026-06-10 - Daily CSV report: "95th" percentile columns were actually 90th
 
 **Files:** `oscar/docs/system_reports.orf` (Daily Summaries/by Day)
