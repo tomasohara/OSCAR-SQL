@@ -93,6 +93,16 @@ public:
     int DurationMs; ///< Device-reported breath duration in milliseconds (EVT value2)
 };
 
+/// @brief A pressure snapshot from an EVT 0x42 record.
+/// Used for EVT-only sessions where no waveform packets are present.
+class BmcPressureSnapshot
+{
+public:
+    QDateTime Timestamp;
+    int EpapHundredths = 0; ///< EPAP in hundredths of cmH2O
+    int IpapHundredths = 0; ///< IPAP in hundredths of cmH2O
+};
+
 class BmcUsrSession
 {
 public:
@@ -374,6 +384,7 @@ public:
     QList<BmcWaveformPacket> Waveforms;
     QList<BmcRespiratoryEvent> RespiratoryEvents;
     QList<BmcFlowLimitEvent> FlowLimitEvents;
+    QList<BmcPressureSnapshot> PressureSnapshots; ///< From EVT 0x42; populated for EVT-only sessions (waveLen==0).
 };
 
 class BmcDateSession
