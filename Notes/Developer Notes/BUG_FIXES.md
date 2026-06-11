@@ -4,6 +4,26 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-10 - Daily CSV report: "95th" percentile columns were actually 90th
+
+**Files:** `oscar/docs/system_reports.orf` (Daily Summaries/by Day)
+
+**Symptom:** The `by Day` CSV report's `Pressure_95th` and `Leak_95th` columns are
+labelled as the 95th percentile but contain the 90th.
+
+**Root cause:** `daily_summaries.pressure_95th` / `leak_total_95th` are populated by
+`day->p90(...)` (`daily_summary_repository.cpp:302/308`), and `Day::p90()` returns
+`percentile(code, 0.90F)` (`day.cpp:483`) — a hardcoded 90th percentile. The column
+name (and report header) were never reconciled with the stored value. The session-level
+equivalents (`session_summaries`) genuinely store the 95th (`session.cpp:3389/3401`),
+so the two reports disagreed.
+
+**Fix:** Relabelled the `by Day` headers to `Pressure_90th` / `Leak_90th` to match the
+stored value. (Done as part of surfacing additional stored fields in the by-Day and
+by-Session reports.) The deeper day-vs-session percentile-level inconsistency, and the
+day/session leak-channel difference (`CPAP_Leak` vs `CPAP_LeakTotal`), are left for a
+separate fix — see GitLab issue #212.
+
 ## 2026-06-10 - Export CSV: date formatting inconsistency and stale filename on custom range
 
 **Files:** `oscar/exports/report_exporter.cpp`

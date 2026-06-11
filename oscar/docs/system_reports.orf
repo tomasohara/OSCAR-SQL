@@ -22,8 +22,13 @@
 === Report: Daily Summaries/by Day ===
 Description: Daily data, one row per day, no aggregation
 Query: <<SQL
+-- One row per day from daily_summaries (already aggregates across machines).
+-- Pressure_90th / Leak_90th: the stored "95th" columns are actually populated
+-- by Day::p90() (a hardcoded 90th percentile), so they are labelled honestly
+-- here. The Session report's *_95th columns are a genuine 95th — the day vs
+-- session percentile level differs (known inconsistency, tracked separately).
 SELECT
-  ds.date as Period,
+  ds.date as Date,
   ROUND(ds.ahi, 2) as AHI,
   ROUND(ds.rdi, 2) as RDI,
   ds.obstructive_count as OA,
@@ -32,10 +37,22 @@ SELECT
   ds.clear_airway_count as CA,
   ds.rera_count as RERA,
   ROUND(ds.pressure_avg, 2) as Pressure_Avg,
-  ROUND(ds.pressure_95th, 2) as Pressure_95th,
+  ROUND(ds.pressure_min, 2) as Pressure_Min,
+  ROUND(ds.pressure_max, 2) as Pressure_Max,
+  ROUND(ds.pressure_95th, 2) as Pressure_90th,
   ROUND(ds.leak_total_avg, 2) as Leak_Avg,
-  ROUND(ds.leak_total_95th, 2) as Leak_95th,
-  ROUND(ds.mask_on_hours, 2) as Hours
+  ROUND(ds.leak_total_max, 2) as Leak_Max,
+  ROUND(ds.leak_total_95th, 2) as Leak_90th,
+  ROUND(ds.leak_unintentional_avg, 2) as Leak_Unint_Avg,
+  ROUND(NULLIF(ds.spo2_avg, 0), 1) as SpO2_Avg,
+  ROUND(NULLIF(ds.spo2_min, 0), 1) as SpO2_Min,
+  ROUND(NULLIF(ds.pulse_avg, 0), 1) as Pulse_Avg,
+  ROUND(NULLIF(ds.pulse_min, 0), 1) as Pulse_Min,
+  ROUND(NULLIF(ds.pulse_max, 0), 1) as Pulse_Max,
+  ROUND(ds.mask_on_hours, 2) as Hours,
+  ROUND(ds.total_hours, 2) as Total_Hours,
+  ds.session_count as Session_Count,
+  ds.is_compliant as Compliant
 FROM daily_summaries ds
 WHERE ds.profile_id = #PROFILE_ID
   AND ds.date >= #START_DATE
@@ -104,21 +121,40 @@ SQL
 === Report: Session Summaries/by Session ===
 Description: Individual sessions, one row per session, no aggregation
 Query: <<SQL
+-- One row per session. Date is the OSCAR day (noon-split); Start is the
+-- session's clock start time so sessions on the same day are distinguishable.
+-- Pressure_95th / Leak_95th are a genuine 95th percentile (session_summaries
+-- stores percentile(..., 0.95)); cf. the Day report's 90th. session_summaries
+-- has no pulse_min/max, so only Pulse_Avg is available here.
 SELECT
   date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') as Date,
+  time(s.start_time/1000, 'unixepoch', 'localtime') as Start,
   ROUND(ss.ahi, 2) as AHI,
-  ROUND(ss.mask_on_hours, 2) as Hours,
+  ROUND(ss.rdi, 2) as RDI,
   ss.obstructive_count as OA,
   ss.unclassified_count as UA,
   ss.hypopnea_count as H,
   ss.clear_airway_count as CA,
+  ss.rera_count as RERA,
+  ROUND(ss.pressure_avg, 2) as Pressure_Avg,
+  ROUND(ss.pressure_min, 2) as Pressure_Min,
+  ROUND(ss.pressure_max, 2) as Pressure_Max,
+  ROUND(ss.pressure_95th, 2) as Pressure_95th,
+  ROUND(ss.leak_total_avg, 2) as Leak_Avg,
+  ROUND(ss.leak_total_max, 2) as Leak_Max,
+  ROUND(ss.leak_total_95th, 2) as Leak_95th,
+  ROUND(NULLIF(ss.spo2_avg, 0), 1) as SpO2_Avg,
+  ROUND(NULLIF(ss.spo2_min, 0), 1) as SpO2_Min,
+  ROUND(NULLIF(ss.pulse_avg, 0), 1) as Pulse_Avg,
+  ROUND(ss.mask_on_hours, 2) as Hours,
+  ROUND(ss.hours_used, 2) as Hours_Used,
   m.model as Machine
 FROM session_summaries ss
 JOIN sessions s ON ss.session_id = s.id
 JOIN machines m ON s.machine_id = m.id
 WHERE m.profile_id = #PROFILE_ID
-  AND Date >= #START_DATE
-  AND Date <= #END_DATE
+  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') >= #START_DATE
+  AND date(s.start_time/1000 - 43200, 'unixepoch', 'localtime') <= #END_DATE
   AND s.enabled = 1
   AND m.machine_TYPE <> 4
 ORDER BY s.start_time

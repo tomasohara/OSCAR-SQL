@@ -122,21 +122,31 @@ machine-type exclusion, `ORDER BY s.start_time`). `session_summaries` has no
 ## Conventions
 
 - Numeric values rounded to 2 dp, except SpO2/Pulse to 1 dp.
-- Oximetry columns are `NULL` → written as empty fields by `exportcsv.cpp`'s
-  value handler (no special casing needed).
+- **Oximetry blanking:** `daily_summaries`/`session_summaries` store **0.0**
+  (not NULL) for SpO2/Pulse when there is no oximetry. To deliver blank cells
+  (and avoid a misleading "0.0% SpO2"), wrap those columns in
+  `NULLIF(col, 0)` → NULL → empty CSV field. This is display suppression, not a
+  calculation; 0 never occurs as a real SpO2/pulse reading. `Leak_Unint_Avg`
+  is **not** wrapped — 0 is a legitimate value there.
 - No changes to filters, joins, ordering, or any other report.
 
 ## Implementation notes
 
-- **Reload trigger:** `system_reports.orf` is imported "when a new version of
-  OSCAR is detected" (file header; `reports_initializer.cpp`). Editing the file
-  alone will not refresh an existing database. During implementation, confirm
-  how to force a re-import for testing (version bump or a dev/force path) so the
-  edited queries actually take effect — verify before claiming the change works.
-- **Verification:** run each edited report from the Export CSV dialog (or via
-  the standalone query) against a profile that has CPAP-only data and one with
-  oximetry; confirm new columns populate, oximetry blanks where expected, and
-  the relabeled Day percentile headers read `90th`.
+- **Reload mechanism (confirmed in `reports_initializer.cpp`):**
+  1. `getSystemReportsFilePath()` reads the Qt **resource** `:/docs/system_reports.orf`
+     first, so the file is embedded in the executable — **a rebuild is required**
+     after editing `oscar/docs/system_reports.orf`.
+  2. `checkAndUpdateReportVersion()` only re-imports system reports when the OSCAR
+     **version string changes** (saved as `csv_reports_version` in
+     `app_preferences`, category `Reports`). User custom reports are preserved.
+  3. On a real release the version bump auto-updates every user. **To test on an
+     unchanged dev version**, clear the marker so it re-imports on next launch:
+     `DELETE FROM app_preferences WHERE category='Reports' AND key='csv_reports_version';`
+- **Verification status:** both queries verified by direct SQL against a real
+  `oscar.db` — Day 25 cols, Session 22 cols, new fields populate, oximetry
+  blanks for CPAP-only profiles and shows real values for oximetry profiles,
+  Day headers read `90th`, Session `95th`. The in-app path (rebuild + re-import)
+  must be exercised in QtCreator to confirm end-to-end.
 
 ## Out of scope
 
