@@ -64,7 +64,9 @@ void BmcLoaderTask::run()
             if (!bmcSession) {
                 continue;
             }
-            if (bmcSession->Waveforms.length() == 0 && bmcSession->RespiratoryEvents.length() == 0) {
+            if (bmcSession->Waveforms.isEmpty() &&
+                bmcSession->RespiratoryEvents.isEmpty() &&
+                bmcSession->PressureSnapshots.isEmpty()) {
                 continue;
             }
 
@@ -173,7 +175,9 @@ void BmcLoaderTask::run()
             }
             SessionID sessionID = computeSessionId(bmcSession, j);
 
-            if (bmcSession->Waveforms.length() == 0 && bmcSession->RespiratoryEvents.length() == 0)
+            if (bmcSession->Waveforms.isEmpty() &&
+                bmcSession->RespiratoryEvents.isEmpty() &&
+                bmcSession->PressureSnapshots.isEmpty())
                 continue;
 
             //Import the session
