@@ -136,7 +136,8 @@ SELECT
     ROUND(ss.ahi, 2) as ahi,
     ROUND(ss.hours_used, 2) as hours,
     ss.obstructive_count as OA,
-    ss.central_count as CA,
+    ss.clear_airway_count as CA,
+    ss.unclassified_count as UA,
     ss.hypopnea_count as H,
     ROUND(ss.pressure_avg, 2) as pressure_avg,
     ROUND(ss.leak_total_avg, 2) as leak_avg,
@@ -173,7 +174,8 @@ SELECT
     ROUND(ss.ahi, 2) as AHI,
     ROUND(ss.rdi, 2) as RDI,
     ss.obstructive_count as OA,
-    ss.central_count as CA,
+    ss.clear_airway_count as CA,
+    ss.unclassified_count as UA,
     ss.hypopnea_count as H,
     ss.rera_count as RERA,
     ROUND(ss.pressure_avg, 2) as P_avg,
@@ -252,7 +254,7 @@ SELECT
     ss.ahi,
     ss.hours_used,
     ss.obstructive_count,
-    ss.central_count,
+    ss.clear_airway_count,
     ss.hypopnea_count,
     m.serial_number,
     p.username as profile,
@@ -263,7 +265,7 @@ JOIN machines m ON s.machine_id = m.id
 JOIN profiles p ON m.profile_id = p.id
 WHERE ss.ahi = 0 
   AND ss.obstructive_count = 0 
-  AND ss.central_count = 0 
+  AND ss.clear_airway_count = 0 
   AND ss.hypopnea_count = 0
 ORDER BY s.start_time DESC;
 
