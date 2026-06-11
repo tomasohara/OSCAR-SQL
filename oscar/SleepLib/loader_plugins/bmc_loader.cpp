@@ -408,6 +408,27 @@ void BmcLoader::setSessionRespiratoryEvents(BmcSession* bmcSession, Session* osc
 //Given a created session, we add the BMC waveforms for the session to the OSCAR session
 void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSession)
 {
+    // ---- EVT-only path: pressure snapshots only, no waveform ----
+    if (bmcSession->Waveforms.isEmpty() && !bmcSession->PressureSnapshots.isEmpty()) {
+        const double pressureGain = PressureChannelGain();
+        auto wPressure = oscarSession->AddEventList(CPAP_Pressure, EVL_Event, pressureGain, 0.0, 0.0, 0.0, 1000);
+        auto wIPAP     = oscarSession->AddEventList(CPAP_IPAP,     EVL_Event, pressureGain, 0.0, 0.0, 0.0, 1000);
+        auto wEPAP     = oscarSession->AddEventList(CPAP_EPAP,     EVL_Event, pressureGain, 0.0, 0.0, 0.0, 1000);
+
+        for (const BmcPressureSnapshot& snap : bmcSession->PressureSnapshots) {
+            const qint64 ts = snap.Timestamp.toMSecsSinceEpoch();
+            if (snap.IpapHundredths > 0) {
+                wPressure->AddEvent(ts, static_cast<qint16>(snap.IpapHundredths));
+                wIPAP->AddEvent(ts,     static_cast<qint16>(snap.IpapHundredths));
+            }
+            if (snap.EpapHundredths > 0) {
+                wEPAP->AddEvent(ts, static_cast<qint16>(snap.EpapHundredths));
+            }
+        }
+        return; // No flow, no mask pressure, no other channels for EVT-only sessions.
+    }
+    // ---- Normal waveform path continues below ----
+
     const double waveformSampleIntervalMs = WaveformSampleIntervalMs();
     const int waveformSamplesPerPacket = WaveformSamplesPerPacket();
     const qint64 waveformPacketDurationMs = WaveformPacketDurationMs();
