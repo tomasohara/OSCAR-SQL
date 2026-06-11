@@ -1797,34 +1797,40 @@ void FlowParser::flagSteadyBreathing(Session *session)
     qint64 steadytime=0;
     int count;
     int minimumFlagTime_Seconds = 60;
+    bool seekingEnd = false;
+
+    steadytime = 0;
+
     for (auto & el : EVL) {
         count = el->count();
         if (!count) continue;
 
-        steadytime = 0;
-        lastvalue = 10000;
-
         for (int i=0; i < count; ++i) {
             time = el->time(i);
             value = el->data(i);
-            if (value <= threshold) {
-                if (lastvalue >= threshold) {
-                    steadytime = time;
-                }
-            } else if (lastvalue <= threshold) {
-                int duration = (time - steadytime) / 1000L;
-                if (duration>=minimumFlagTime_Seconds){
-                     BF->AddEvent(time, duration);
+            if (seekingEnd){
+                if (value> threshold){
+                    int duration = (time - steadytime) / 1000L;
+                    seekingEnd = false;
+                    if (duration>=minimumFlagTime_Seconds){
+                        BF->AddEvent(time, duration);
+                    }
                 }
             }
-            lastvalue = value;
+            else{
+                if (value<=threshold){
+                    steadytime = time;
+                    seekingEnd = true;
+                }
+            }
+
         }
     }
 
-    if (lastvalue <= threshold) {
+    if (seekingEnd) {
         int duration = (time - steadytime) / 1000L;
         if (duration>=minimumFlagTime_Seconds){
-             BF->AddEvent(time, duration);
+            BF->AddEvent(time, duration);
         }
     }
 }
