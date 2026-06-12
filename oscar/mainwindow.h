@@ -396,6 +396,9 @@ class MainWindow : public QMainWindow
 
     void on_actionExport_CSV_triggered();
 
+    /*! \brief Open the Version 1 (1.7.x-style) CSV export dialog. */
+    void on_actionExport_V1_CSV_triggered();
+
     //! \brief Opens the Report Manager dialog for managing CSV export reports
     void on_actionManage_Reports_triggered();
 

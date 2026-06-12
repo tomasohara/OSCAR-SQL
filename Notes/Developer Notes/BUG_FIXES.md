@@ -4,6 +4,21 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-11 — Add Version 1 CSV export (1.7.x-style) to File > Export Data menu
+
+**Files:** `exports/exportcsv.h`, `exports/exportcsv.cpp`, `exports/exportcsv.ui`,
+`oscar.pro`, `mainwindow.ui`, `mainwindow.h`, `mainwindow.cpp`
+
+**Change:** Ported the 1.7.x `ExportCSV` dialog to OSCAR 2.0 and wired it to a new
+File > Export Data > Version 1 CSV Reports... menu item (positioned after CSV Export Wizard).
+Offers daily summary, per-session summary, and raw event detail CSV exports matching
+the 1.7.x layout. All SleepLib APIs (`Day`, `Session`, `ahiChannels`, etc.) are compatible
+with 2.0; resource path in the .ui updated to `../Resources.qrc`.
+
+**GitLab:** Closes #214
+
+---
+
 ## 2026-06-10 — BMC G3X: EVT-only import for PapLink-synced cards
 
 **Files:** `bmcDataParsing.h`, `bmcG3xDataParsing.cpp`, `bmc_loader.cpp`

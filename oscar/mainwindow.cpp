@@ -88,6 +88,7 @@
 #include "purgerangedaysdialog.h"
 #include "exports/report_exporter.h"
 #include "exports/journalnotesdialog.h"
+#include "exports/exportcsv.h"
 #include "importprofile.h"
 #include "profileimporter.h"
 #include "SleepLib/schema.h"
@@ -3625,6 +3626,13 @@ void MainWindow::on_actionExport_CSV_triggered()
     // Pass the currently open profile name so the dialog can pre-select it.
     QString currentProfile = p_profile ? p_profile->user->userName() : QString();
     ReportExporter *dialog = new ReportExporter(this, currentProfile);
+    dialog->exec();
+    delete dialog;
+}
+
+void MainWindow::on_actionExport_V1_CSV_triggered()
+{
+    ExportCSV *dialog = new ExportCSV(this);
     dialog->exec();
     delete dialog;
 }

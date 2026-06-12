@@ -2078,6 +2078,7 @@ p, li { white-space: pre-wrap; }
       <string>Export Data</string>
      </property>
      <addaction name="actionExport_CSV"/>
+     <addaction name="actionExport_V1_CSV"/>
      <addaction name="actionExport_Journal_Notes"/>
     </widget>
     <widget class="QMenu" name="menuProfiles">
@@ -2659,6 +2660,14 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>CSV Export Wizard</string>
+   </property>
+  </action>
+  <action name="actionExport_V1_CSV">
+   <property name="text">
+    <string>Version 1 CSV Reports...</string>
+   </property>
+   <property name="toolTip">
+    <string>Export data in OSCAR 1.7.x CSV format</string>
    </property>
   </action>
   <action name="actionManage_Reports">

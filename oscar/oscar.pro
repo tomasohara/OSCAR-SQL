@@ -441,6 +441,7 @@ SOURCES += \
     exports/report_exporter.cpp \
     exports/system_report_strings.cpp \
     exports/journalnotesdialog.cpp \
+    exports/exportcsv.cpp \
     database/orf_file_io.cpp \
     database/backup/backup_manifest.cpp \
     database/backup/sql_exporter.cpp \
@@ -622,6 +623,7 @@ HEADERS  += \
     database/report_tree_model.h \
     exports/report_exporter.h \
     exports/journalnotesdialog.h \
+    exports/exportcsv.h \
     database/orf_file_io.h \
     database/backup/backup_manifest.h \
     database/backup/sql_exporter.h \
@@ -660,7 +662,8 @@ FORMS += \
     profileselector.ui \
     aboutdialog.ui \
     welcome.ui \
-    exports/journalnotesdialog.ui
+    exports/journalnotesdialog.ui \
+    exports/exportcsv.ui
 !contains(DEFINES, helpless) {
     FORMS += help.ui
 }
