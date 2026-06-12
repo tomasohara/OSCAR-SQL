@@ -216,6 +216,7 @@ def main():
         'Swedish.sv': 'Swedish',
         'Svenska.sv': 'Swedish',
         'Norwegian.no': 'Norwegian',
+        'Norsk.no': 'Norwegian',
         'Dansk.da': 'Danish',
         'Suomi.fi': 'Finnish',
         'Afrikaans.af': 'Afrikaans',

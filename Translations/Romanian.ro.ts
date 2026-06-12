@@ -2057,292 +2057,275 @@ Sugestie: mai întâi modificați data de început</translation>
   <context>
     <name>ExportCSV</name>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="14" />
-      <location filename="../oscar/exportcsv.ui" line="211" />
+      <location filename="../oscar/exports/exportcsv.ui" line="14" />
       <source>Export as CSV</source>
       <translation>Exporta ca fisier CSV</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="81" />
+      <location filename="../oscar/exports/exportcsv.ui" line="24" />
       <source>Dates:</source>
       <translation>Datele:</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="218" />
-      <location filename="../oscar/exportcsv.cpp" line="358" />
-      <location filename="../oscar/exportcsv.cpp" line="381" />
-      <location filename="../oscar/exportcsv.cpp" line="391" />
-      <location filename="../oscar/exportcsv.cpp" line="408" />
       <source>Edit SQL Query</source>
-      <translation type="unfinished">Editare interogare SQL</translation>
+      <translation type="obsolete">Editare interogare SQL</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="242" />
-      <location filename="../oscar/exportcsv.cpp" line="422" />
-      <location filename="../oscar/exportcsv.cpp" line="546" />
       <source>Days</source>
-      <translation type="unfinished">Zile</translation>
+      <translation type="obsolete">Zile</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="247" />
-      <location filename="../oscar/exportcsv.cpp" line="446" />
-      <location filename="../oscar/exportcsv.cpp" line="568" />
       <source>Weeks</source>
-      <translation type="unfinished">Săptămâni</translation>
+      <translation type="obsolete">Săptămâni</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="252" />
-      <location filename="../oscar/exportcsv.cpp" line="473" />
-      <location filename="../oscar/exportcsv.cpp" line="592" />
       <source>Months</source>
-      <translation type="unfinished">Luni</translation>
+      <translation type="obsolete">Luni</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="268" />
+      <location filename="../oscar/exports/exportcsv.ui" line="37" />
       <source>Resolution:</source>
       <translation>Concluzie:</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.ui" line="46" />
       <source>Details</source>
-      <translation type="vanished">Detalii</translation>
+      <translation>Detalii</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="237" />
-      <location filename="../oscar/exportcsv.cpp" line="524" />
+      <location filename="../oscar/exports/exportcsv.ui" line="53" />
       <source>Sessions</source>
       <translation>Sesiuni</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.ui" line="60" />
       <source>Daily</source>
-      <translation type="vanished">Zilnic</translation>
+      <translation>Zilnic</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="151" />
+      <location filename="../oscar/exports/exportcsv.ui" line="85" />
       <source>Filename:</source>
       <translation>Nume fisier:</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="225" />
+      <location filename="../oscar/exports/exportcsv.ui" line="107" />
       <source>Cancel</source>
       <translation>Anuleaza</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.ui" line="114" />
       <source>Export</source>
-      <translation type="vanished">Exportă</translation>
+      <translation>Exportă</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="96" />
+      <location filename="../oscar/exports/exportcsv.ui" line="131" />
       <source>Start:</source>
       <translation>Start:</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="119" />
+      <location filename="../oscar/exports/exportcsv.ui" line="154" />
       <source>End:</source>
       <translation>Sfârșit:</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="30" />
+      <location filename="../oscar/exports/exportcsv.ui" line="192" />
       <source>Quick Range:</source>
       <translation>Interval rapid:</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="38" />
-      <location filename="../oscar/exportcsv.cpp" line="75" />
-      <location filename="../oscar/exportcsv.cpp" line="156" />
+      <location filename="../oscar/exports/exportcsv.ui" line="200" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="64" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="129" />
       <source>Most Recent Day</source>
       <translation>Cea mai recentă zi</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="43" />
-      <location filename="../oscar/exportcsv.cpp" line="159" />
+      <location filename="../oscar/exports/exportcsv.ui" line="205" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="132" />
       <source>Last Week</source>
       <translation>Saptamana trecuta</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="48" />
-      <location filename="../oscar/exportcsv.cpp" line="162" />
+      <location filename="../oscar/exports/exportcsv.ui" line="210" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="135" />
       <source>Last Fortnight</source>
       <translatorcomment>/Ultimele 14 zile</translatorcomment>
       <translation>Ultimele doua saptamani</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="53" />
-      <location filename="../oscar/exportcsv.cpp" line="165" />
+      <location filename="../oscar/exports/exportcsv.ui" line="215" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="138" />
       <source>Last Month</source>
       <translation>Ultima luna</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="58" />
-      <location filename="../oscar/exportcsv.cpp" line="168" />
+      <location filename="../oscar/exports/exportcsv.ui" line="220" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="141" />
       <source>Last 6 Months</source>
       <translation>Ultimele 6 luni</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="63" />
-      <location filename="../oscar/exportcsv.cpp" line="171" />
+      <location filename="../oscar/exports/exportcsv.ui" line="225" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="144" />
       <source>Last Year</source>
       <translation>Anul trecut</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="68" />
-      <location filename="../oscar/exportcsv.cpp" line="153" />
+      <location filename="../oscar/exports/exportcsv.ui" line="230" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="126" />
       <source>Everything</source>
       <translation>Totul</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="73" />
-      <location filename="../oscar/exportcsv.cpp" line="142" />
+      <location filename="../oscar/exports/exportcsv.ui" line="235" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="115" />
       <source>Custom</source>
       <translation>Personalizat</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.ui" line="275" />
       <source>Report:</source>
-      <translation type="unfinished">Raport:</translation>
+      <translation type="obsolete">Raport:</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="80" />
       <source>Details_</source>
-      <translation type="vanished">Detalii_</translation>
+      <translation>Detalii_</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="82" />
       <source>Sessions_</source>
-      <translation type="vanished">Sesiuni_</translation>
+      <translation>Sesiuni_</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="84" />
       <source>Summary_</source>
-      <translation type="vanished">Sumar_</translation>
+      <translation>Sumar_</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="119" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="93" />
       <source>Select file to export to</source>
       <translation>Selectati fisierul in care sa exportez</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="120" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="94" />
       <source>CSV Files (*.csv)</source>
       <translation>CSV Files (*.csv)</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="183" />
-      <location filename="../oscar/exportcsv.cpp" line="199" />
-      <location filename="../oscar/exportcsv.cpp" line="208" />
-      <location filename="../oscar/exportcsv.cpp" line="220" />
-      <location filename="../oscar/exportcsv.cpp" line="253" />
-      <location filename="../oscar/exportcsv.cpp" line="264" />
-      <location filename="../oscar/exportcsv.cpp" line="278" />
-      <location filename="../oscar/exportcsv.cpp" line="344" />
       <source>Export CSV</source>
-      <translation type="unfinished">Exportare CSV</translation>
+      <translation type="obsolete">Exportare CSV</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="183" />
       <source>Please select a report to export.</source>
-      <translation type="unfinished">Vă rugăm să selectați un raport pentru exportare.</translation>
+      <translation type="obsolete">Vă rugăm să selectați un raport pentru exportare.</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="200" />
       <source>Could not open file for writing: %1</source>
-      <translation type="unfinished">Nu s-a putut deschide fișierul pentru scriere: %1</translation>
+      <translation type="obsolete">Nu s-a putut deschide fișierul pentru scriere: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="208" />
       <source>Database is not open.</source>
-      <translation type="unfinished">Baza de date nu este deschisă.</translation>
+      <translation type="obsolete">Baza de date nu este deschisă.</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="221" />
-      <location filename="../oscar/exportcsv.cpp" line="359" />
       <source>Could not find profile in database.</source>
-      <translation type="unfinished">Profilul nu a putut fi găsit în baza de date.</translation>
+      <translation type="obsolete">Profilul nu a putut fi găsit în baza de date.</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="254" />
-      <location filename="../oscar/exportcsv.cpp" line="382" />
       <source>No report content selected.</source>
-      <translation type="unfinished">Nu a fost selectat niciun conținut pentru raport.</translation>
+      <translation type="obsolete">Nu a fost selectat niciun conținut pentru raport.</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="265" />
-      <location filename="../oscar/exportcsv.cpp" line="392" />
       <source>Could not find query for selected report.</source>
-      <translation type="unfinished">Nu s-a putut găsi interogarea pentru raportul selectat.</translation>
+      <translation type="obsolete">Nu s-a putut găsi interogarea pentru raportul selectat.</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="279" />
       <source>SQL query failed: %1</source>
-      <translation type="unfinished">Interogarea SQL a eșuat: %1</translation>
+      <translation type="obsolete">Interogarea SQL a eșuat: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="345" />
       <source>Export completed successfully.
 %1 rows exported.</source>
-      <translation type="unfinished">Exportarea s-a finalizat cu succes.\n%1 rânduri exportate.</translation>
+      <translation type="obsolete">Exportarea s-a finalizat cu succes.\n%1 rânduri exportate.</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="409" />
       <source>Custom SQL query has been set. Click 'Export as CSV' to run it.
 
 Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been applied.</source>
-      <translation type="unfinished">Interogarea SQL personalizată a fost setată. Faceți clic pe „Exportare ca CSV" pentru a o executa.\n\nNotă: Substituția macro (#PROFILE_ID, #START_DATE, #END_DATE) a fost deja aplicată.</translation>
+      <translation type="obsolete">Interogarea SQL personalizată a fost setată. Faceți clic pe „Exportare ca CSV" pentru a o executa.\n\nNotă: Substituția macro (#PROFILE_ID, #START_DATE, #END_DATE) a fost deja aplicată.</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="420" />
       <source>Daily Summaries</source>
-      <translation type="unfinished">Rezumate zilnice</translation>
+      <translation type="obsolete">Rezumate zilnice</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="522" />
       <source>Session Statistics</source>
-      <translation type="unfinished">Statistici sesiune</translation>
+      <translation type="obsolete">Statistici sesiune</translation>
     </message>
     <message>
-      <location filename="../oscar/exportcsv.cpp" line="636" />
       <source>Device Settings</source>
-      <translation type="unfinished">Setari dispozitiv</translation>
+      <translation type="obsolete">Setari dispozitiv</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="189" />
       <source>DateTime</source>
-      <translation type="vanished">Data</translation>
+      <translation>Data</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="189" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="195" />
       <source>Session</source>
-      <translation type="vanished">Sesiune</translation>
+      <translation>Sesiune</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="189" />
       <source>Event</source>
-      <translation type="vanished">Eveniment</translation>
+      <translation>Eveniment</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="189" />
       <source>Data/Duration</source>
-      <translation type="vanished">Date/Durata</translation>
+      <translation>Date/Durata</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="192" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="195" />
       <source>Date</source>
-      <translation type="vanished">Data</translation>
+      <translation>Data</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="192" />
       <source>Session Count</source>
-      <translation type="vanished">Numar Sesiune</translation>
+      <translation>Numar Sesiune</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="192" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="195" />
       <source>Start</source>
-      <translation type="vanished">Start</translation>
+      <translation>Start</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="192" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="195" />
       <source>End</source>
-      <translation type="vanished">Sfârsit</translation>
+      <translation>Sfârsit</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="193" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="196" />
       <source>Total Time</source>
-      <translation type="vanished">Timp Total</translation>
+      <translation>Timp Total</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="193" />
+      <location filename="../oscar/exports/exportcsv.cpp" line="196" />
       <source>AHI</source>
-      <translation type="vanished">AHI</translation>
+      <translation>AHI</translation>
     </message>
     <message>
+      <location filename="../oscar/exports/exportcsv.cpp" line="200" />
       <source> Count</source>
-      <translation type="vanished"> Număr</translation>
+      <translation> Număr</translation>
     </message>
   </context>
   <context>
@@ -2895,157 +2878,157 @@ Do you want to continue?</source>
     </message>
     <message>
       <location filename="../oscar/mainwindow.ui" line="1147" />
-      <location filename="../oscar/mainwindow.ui" line="2767" />
-      <location filename="../oscar/mainwindow.cpp" line="2379" />
+      <location filename="../oscar/mainwindow.ui" line="2776" />
+      <location filename="../oscar/mainwindow.cpp" line="2391" />
       <source>Oximetry</source>
       <translation>Pulsoximetrie</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.ui" line="1197" />
-      <location filename="../oscar/mainwindow.cpp" line="1289" />
+      <location filename="../oscar/mainwindow.cpp" line="1290" />
       <source>Import</source>
       <translation>Importa</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.ui" line="1247" />
-      <location filename="../oscar/mainwindow.ui" line="2160" />
+      <location filename="../oscar/mainwindow.ui" line="2161" />
       <source>Help</source>
       <translation>Ajutor</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2164" />
+      <location filename="../oscar/mainwindow.ui" line="2165" />
       <source>Troubleshooting</source>
       <translation>Depanare</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2232" />
+      <location filename="../oscar/mainwindow.ui" line="2233" />
       <source>Rebuild CPAP Data</source>
       <translation>Reconstruieste Datele CPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2308" />
+      <location filename="../oscar/mainwindow.ui" line="2309" />
       <source>Show Daily view</source>
       <translation>Arată Vizualizarea Zilnică</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2319" />
+      <location filename="../oscar/mainwindow.ui" line="2320" />
       <source>Show Overview view</source>
       <translation>Arată Vederea de ansamblu</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2368" />
+      <location filename="../oscar/mainwindow.ui" line="2369" />
       <source>Maximize window</source>
       <translation>Mărește fereastra</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2390" />
+      <location filename="../oscar/mainwindow.ui" line="2391" />
       <source>Reset sizes of graphs</source>
       <translation>Resetează înălțimea graficelor</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2450" />
+      <location filename="../oscar/mainwindow.ui" line="2451" />
       <source>Show Right Sidebar</source>
       <translation>Arată Bara laterală Dreaptă</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2464" />
+      <location filename="../oscar/mainwindow.ui" line="2465" />
       <source>Show Statistics view</source>
       <translation>Arată vizualizare Statistici</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2714" />
+      <location filename="../oscar/mainwindow.ui" line="2723" />
       <source>Standard - CPAP, APAP</source>
       <translation>Standard - CPAP, APAP</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2717" />
+      <location filename="../oscar/mainwindow.ui" line="2726" />
       <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Standard graph order, good for CPAP, APAP,  Basic BPAP&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
       <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Grafic Standard, bun pentru CPAP, APAP,  Basic BPAP&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2722" />
+      <location filename="../oscar/mainwindow.ui" line="2731" />
       <source>Advanced - BPAP, ASV</source>
       <translation>Advanced - BPAP, ASV</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2725" />
+      <location filename="../oscar/mainwindow.ui" line="2734" />
       <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Advanced graph order, good for BPAP w/BU, ASV, AVAPS, IVAPS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
       <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Grafic avansat, bun pentru BPAP w/BU, ASV, AVAPS, IVAPS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2212" />
-      <location filename="../oscar/mainwindow.ui" line="2752" />
+      <location filename="../oscar/mainwindow.ui" line="2213" />
+      <location filename="../oscar/mainwindow.ui" line="2761" />
       <source>Purge Current Selected Day</source>
       <translation>Sterge ziua curenta selectata</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2207" />
+      <location filename="../oscar/mainwindow.ui" line="2208" />
       <source>Purge ALL Device Data</source>
       <translation>Ștergeți TOATE datele dispozitivului</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2472" />
+      <location filename="../oscar/mainwindow.ui" line="2473" />
       <source>Import ZEO Data</source>
       <translation type="unfinished">Importați Date ZEO</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2477" />
+      <location filename="../oscar/mainwindow.ui" line="2478" />
       <source>Import Dreem Data</source>
       <translation type="unfinished">Importați Date Dreem</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2482" />
+      <location filename="../oscar/mainwindow.ui" line="2483" />
       <source>Import RemStar MSeries Data</source>
       <translation type="unfinished">Importați Date RemStar MSeries</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2487" />
+      <location filename="../oscar/mainwindow.ui" line="2488" />
       <source>Sleep Disorder Terms Glossary</source>
       <translation type="unfinished">Glosar de Termeni pentru Tulburări de Somn</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2492" />
+      <location filename="../oscar/mainwindow.ui" line="2493" />
       <source>Change Language</source>
       <translation type="unfinished">Schimbați Limba</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2521" />
+      <location filename="../oscar/mainwindow.ui" line="2522" />
       <source>Import Somnopose Data</source>
       <translation type="unfinished">Importați Date Somnopose</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2526" />
+      <location filename="../oscar/mainwindow.ui" line="2527" />
       <source>Import Viatom/Wellue Data</source>
       <translation type="unfinished">Importați Date Viatom/Wellue</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2544" />
+      <location filename="../oscar/mainwindow.ui" line="2545" />
       <source>Show Line Cursor</source>
       <translation type="unfinished">Afișați Cursorul de Linie</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2566" />
+      <location filename="../oscar/mainwindow.ui" line="2567" />
       <source>Show Daily Left Sidebar</source>
       <translation>Arată Bara Laterală Stângă Zilnică</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2583" />
+      <location filename="../oscar/mainwindow.ui" line="2584" />
       <source>Show Daily Calendar</source>
       <translation>Arată Calendarul Zilnic</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2596" />
-      <location filename="../oscar/mainwindow.cpp" line="3517" />
+      <location filename="../oscar/mainwindow.ui" line="2597" />
+      <location filename="../oscar/mainwindow.cpp" line="3536" />
       <source>Import Journal</source>
       <translation type="unfinished">Importați Jurnal</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2643" />
+      <location filename="../oscar/mainwindow.ui" line="2644" />
       <source>Create zip of CPAP data card</source>
       <translation>Crează arhiva ZIP cu datele din card</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2648" />
+      <location filename="../oscar/mainwindow.ui" line="2649" />
       <source>Create zip of OSCAR diagnostic logs</source>
       <translation>Creaza arhiva ZIP cu log-urile de diagnostic ale OSCAR</translation>
     </message>
@@ -3054,37 +3037,37 @@ Do you want to continue?</source>
       <translation type="vanished">Crează arhiva ZIP cu toate datele OSCAR</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2687" />
+      <location filename="../oscar/mainwindow.ui" line="2696" />
       <source>Report an Issue</source>
       <translation>Raporteaza o problema</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2692" />
+      <location filename="../oscar/mainwindow.ui" line="2701" />
       <source>System Information</source>
       <translation>Informații sistem</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2706" />
+      <location filename="../oscar/mainwindow.ui" line="2715" />
       <source>Show Pie Chart on Daily page</source>
       <translation>Arată Graficul Plăcintă pe pagina Vizualizare Zilnică</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2736" />
+      <location filename="../oscar/mainwindow.ui" line="2745" />
       <source>Show Personal Data</source>
       <translation>Arata date personale</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2628" />
+      <location filename="../oscar/mainwindow.ui" line="2629" />
       <source>Show Performance Information</source>
       <translation>Arata informatii despre performanta</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2661" />
+      <location filename="../oscar/mainwindow.ui" line="2662" />
       <source>CSV Export Wizard</source>
       <translation>CSV Export semiautomat</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2682" />
+      <location filename="../oscar/mainwindow.ui" line="2691" />
       <source>Export for Review</source>
       <translation>Exporta pentru evaluare</translation>
     </message>
@@ -3093,23 +3076,23 @@ Do you want to continue?</source>
       <translation type="vanished">E&amp;xit</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2300" />
-      <location filename="../oscar/mainwindow.cpp" line="219" />
+      <location filename="../oscar/mainwindow.ui" line="2301" />
+      <location filename="../oscar/mainwindow.cpp" line="220" />
       <source>Exit</source>
       <translation>Exit</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2379" />
+      <location filename="../oscar/mainwindow.ui" line="2380" />
       <source>Show Debug Pane</source>
       <translation>Aratati panelul de depanare</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2580" />
+      <location filename="../oscar/mainwindow.ui" line="2581" />
       <source>Daily Calendar</source>
       <translation>Calendar Zilnic</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2563" />
+      <location filename="../oscar/mainwindow.ui" line="2564" />
       <source>Daily Sidebar</source>
       <translation>Bara de activitati Zilnica</translation>
     </message>
@@ -3130,8 +3113,8 @@ Do you want to continue?</source>
     </message>
     <message>
       <location filename="../oscar/mainwindow.ui" line="965" />
-      <location filename="../oscar/mainwindow.ui" line="2085" />
-      <location filename="../oscar/mainwindow.ui" line="2295" />
+      <location filename="../oscar/mainwindow.ui" line="2086" />
+      <location filename="../oscar/mainwindow.ui" line="2296" />
       <source>Profiles</source>
       <translation>Profile</translation>
     </message>
@@ -3146,331 +3129,341 @@ Do you want to continue?</source>
       <translation type="unfinished">Exportați Date</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2095" />
+      <location filename="../oscar/mainwindow.ui" line="2096" />
       <source>Journals</source>
       <translation type="unfinished">Jurnale</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2102" />
+      <location filename="../oscar/mainwindow.ui" line="2103" />
       <source>Database</source>
       <translation type="unfinished">Bază de Date</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2106" />
+      <location filename="../oscar/mainwindow.ui" line="2107" />
       <source>Recent</source>
       <translation type="unfinished">Recente</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2131" />
+      <location filename="../oscar/mainwindow.ui" line="2132" />
       <source>View</source>
       <translation type="unfinished">Vizualizare</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2135" />
+      <location filename="../oscar/mainwindow.ui" line="2136" />
       <source>Reset Graphs</source>
       <translation type="unfinished">Resetați Graficele</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2193" />
+      <location filename="../oscar/mainwindow.ui" line="2194" />
       <source>Data</source>
       <translation type="unfinished">Date</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2197" />
+      <location filename="../oscar/mainwindow.ui" line="2198" />
       <source>Advanced</source>
       <translation type="unfinished">Avansat</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2201" />
+      <location filename="../oscar/mainwindow.ui" line="2202" />
       <source>Purge Oximetry Data</source>
       <translation>Elimina Datele de Pulsoximetrie</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2258" />
+      <location filename="../oscar/mainwindow.ui" line="2259" />
       <source>Time Corrections...</source>
       <translation type="unfinished">Corecții de Timp...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2261" />
+      <location filename="../oscar/mainwindow.ui" line="2262" />
       <source>Adjust device clock errors (timezone, travel, DST, reset)</source>
       <translation type="unfinished">Ajustați erorile ceasului dispozitivului (fus orar, călătorie, DST, resetare)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2266" />
+      <location filename="../oscar/mainwindow.ui" line="2267" />
       <source>Drift Analysis...</source>
       <translation type="unfinished">Analiză derivă...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2269" />
+      <location filename="../oscar/mainwindow.ui" line="2270" />
       <source>Analyse and model clock drift over time</source>
       <translation type="unfinished">Analizați și modelați deriva ceasului în timp</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2274" />
+      <location filename="../oscar/mainwindow.ui" line="2275" />
       <source>Import CPAP Card Data</source>
       <translation type="unfinished">Importați date card CPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2282" />
+      <location filename="../oscar/mainwindow.ui" line="2283" />
       <source>Import from OSCAR...</source>
       <translation type="unfinished">Importați din OSCAR...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2285" />
+      <location filename="../oscar/mainwindow.ui" line="2286" />
       <source>Import profile from file-based OSCAR</source>
       <translation type="unfinished">Importați profil din OSCAR bazat pe fișiere</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2290" />
-      <location filename="../oscar/mainwindow.cpp" line="1772" />
+      <location filename="../oscar/mainwindow.ui" line="2291" />
+      <location filename="../oscar/mainwindow.cpp" line="1780" />
       <source>Preferences</source>
       <translation type="unfinished">Preferinte</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2305" />
+      <location filename="../oscar/mainwindow.ui" line="2306" />
       <source>View Daily</source>
       <translation type="unfinished">Vizualizare zilnică</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2316" />
+      <location filename="../oscar/mainwindow.ui" line="2317" />
       <source>View Overview</source>
       <translation type="unfinished">Vizualizare generală</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2327" />
+      <location filename="../oscar/mainwindow.ui" line="2328" />
       <source>View Welcome</source>
       <translation type="unfinished">Vizualizare bun venit</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2352" />
+      <location filename="../oscar/mainwindow.ui" line="2353" />
       <source>Use AntiAliasing</source>
       <translation type="unfinished">Utilizați antialiasing</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2357" />
+      <location filename="../oscar/mainwindow.ui" line="2358" />
       <source>About OSCAR</source>
       <translation type="unfinished">Despre OSCAR</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2365" />
+      <location filename="../oscar/mainwindow.ui" line="2366" />
       <source>Maximize Toggle</source>
       <translation type="unfinished">Comutare maximizare</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2387" />
+      <location filename="../oscar/mainwindow.ui" line="2388" />
       <source>Reset Graph Heights</source>
       <translation type="unfinished">Resetați înălțimile graficelor</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2395" />
+      <location filename="../oscar/mainwindow.ui" line="2396" />
       <source>Take Screenshot</source>
       <translation type="unfinished">Faceți o captură de ecran</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2403" />
+      <location filename="../oscar/mainwindow.ui" line="2404" />
       <source>Oximetry Wizard</source>
       <translation type="unfinished">Pulsoximetrie semiautomata</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2411" />
+      <location filename="../oscar/mainwindow.ui" line="2412" />
       <source>Print Report</source>
       <translation type="unfinished">Tipăriți raportul</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2416" />
+      <location filename="../oscar/mainwindow.ui" line="2417" />
       <source>Edit Profile</source>
       <translation type="unfinished">Editați profilul</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2421" />
+      <location filename="../oscar/mainwindow.ui" line="2422" />
       <source>Online Users Guide</source>
       <translation type="unfinished">Ghid de utilizare online</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2426" />
+      <location filename="../oscar/mainwindow.ui" line="2427" />
       <source>Frequently Asked Questions</source>
       <translation type="unfinished">Întrebări frecvente</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2431" />
+      <location filename="../oscar/mainwindow.ui" line="2432" />
       <source>Automatic Oximetry Cleanup</source>
       <translation type="unfinished">Curățare automată oximetrie</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2436" />
+      <location filename="../oscar/mainwindow.ui" line="2437" />
       <source>Change User</source>
       <translation type="unfinished">Schimbați utilizatorul</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2447" />
+      <location filename="../oscar/mainwindow.ui" line="2448" />
       <source>Right Sidebar</source>
       <translation type="unfinished">Bara laterală dreaptă</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2458" />
-      <location filename="../oscar/mainwindow.ui" line="2461" />
+      <location filename="../oscar/mainwindow.ui" line="2459" />
+      <location filename="../oscar/mainwindow.ui" line="2462" />
       <source>View Statistics</source>
       <translation>Vizualizare Statistici</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2497" />
+      <location filename="../oscar/mainwindow.ui" line="2498" />
       <source>New...</source>
       <translation type="unfinished">Nou...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2500" />
+      <location filename="../oscar/mainwindow.ui" line="2501" />
       <source>Create a new OSCAR database in a chosen folder</source>
       <translation type="unfinished">Creați o nouă bază de date OSCAR într-un folder ales</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2505" />
+      <location filename="../oscar/mainwindow.ui" line="2506" />
       <source>Open...</source>
       <translation type="unfinished">Deschide...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2508" />
+      <location filename="../oscar/mainwindow.ui" line="2509" />
       <source>Open an existing OSCAR database folder</source>
       <translation type="unfinished">Deschideți un folder existent al bazei de date OSCAR</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2513" />
+      <location filename="../oscar/mainwindow.ui" line="2514" />
       <source>Delete...</source>
       <translation type="unfinished">Șterge...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2516" />
+      <location filename="../oscar/mainwindow.ui" line="2517" />
       <source>Permanently delete a non-active OSCAR database</source>
       <translation type="unfinished">Ștergeți permanent o bază de date OSCAR inactivă</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2536" />
-      <location filename="../oscar/mainwindow.cpp" line="1873" />
+      <location filename="../oscar/mainwindow.ui" line="2537" />
+      <location filename="../oscar/mainwindow.cpp" line="1881" />
       <source>Purge All Time Corrections</source>
       <translation type="unfinished">Șterge toate corecțiile de timp</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2591" />
+      <location filename="../oscar/mainwindow.ui" line="2592" />
       <source>Export Journal...</source>
       <translation type="unfinished">Exportați jurnalul...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2601" />
+      <location filename="../oscar/mainwindow.ui" line="2602" />
       <source>Backup Profile...</source>
       <translation type="unfinished">Salvați profilul de rezervă...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2604" />
+      <location filename="../oscar/mainwindow.ui" line="2605" />
       <source>Back up the current profile to a .oscar file</source>
       <translation type="unfinished">Salvați profilul curent într-un fișier .oscar</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2609" />
+      <location filename="../oscar/mainwindow.ui" line="2610" />
       <source>Restore Profile...</source>
       <translation type="unfinished">Restaurați profilul...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2612" />
+      <location filename="../oscar/mainwindow.ui" line="2613" />
       <source>Restore a profile from a .oscar backup file</source>
       <translation type="unfinished">Restaurați un profil dintr-un fișier de rezervă .oscar</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2617" />
+      <location filename="../oscar/mainwindow.ui" line="2618" />
       <source>Share Profile...</source>
       <translation type="unfinished">Partajați profilul...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2620" />
+      <location filename="../oscar/mainwindow.ui" line="2621" />
       <source>Prepare profile data for sharing with another OSCAR user</source>
       <translation type="unfinished">Pregătiți datele profilului pentru partajare cu un alt utilizator OSCAR</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2633" />
+      <location filename="../oscar/mainwindow.ui" line="2634" />
       <source>Check database integrity</source>
       <translation type="unfinished">Verificați integritatea bazei de date</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2638" />
+      <location filename="../oscar/mainwindow.ui" line="2639" />
       <source>Compress database (rarely needed)</source>
       <translation type="unfinished">Comprimați baza de date (rar necesar)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2653" />
+      <location filename="../oscar/mainwindow.ui" line="2654" />
       <source>Create zip of OSCAR database</source>
       <translation type="unfinished">Creați un fișier zip al bazei de date OSCAR</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2666" />
+      <location filename="../oscar/mainwindow.ui" line="2667" />
+      <source>Version 1 CSV Reports...</source>
+      <translation type="unfinished">Rapoarte CSV Versiunea 1...</translation>
+    </message>
+    <message>
+      <location filename="../oscar/mainwindow.ui" line="2670" />
+      <source>Export data in OSCAR 1.7.x CSV format</source>
+      <translation type="unfinished">Exportați datele în format CSV OSCAR 1.7.x</translation>
+    </message>
+    <message>
+      <location filename="../oscar/mainwindow.ui" line="2675" />
       <source>Manage Reports...</source>
       <translation type="unfinished">Gestionați rapoartele...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2669" />
+      <location filename="../oscar/mainwindow.ui" line="2678" />
       <source>Manage CSV export report definitions</source>
       <translation type="unfinished">Gestionați definițiile rapoartelor de export CSV</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2674" />
+      <location filename="../oscar/mainwindow.ui" line="2683" />
       <source>Journal Notes...</source>
       <translation type="unfinished">Note jurnal...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2677" />
+      <location filename="../oscar/mainwindow.ui" line="2686" />
       <source>Export journal notes for a date range to HTML or Markdown</source>
       <translation type="unfinished">Exportați notele din jurnal pentru un interval de date în HTML sau Markdown</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2703" />
+      <location filename="../oscar/mainwindow.ui" line="2712" />
       <source>Show Pie Chart</source>
       <translation type="unfinished">Afișați diagrama circulară</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2744" />
+      <location filename="../oscar/mainwindow.ui" line="2753" />
       <source>Check For Updates</source>
       <translation type="unfinished">Cauta actualizari</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2757" />
+      <location filename="../oscar/mainwindow.ui" line="2766" />
       <source>Purge Range of Days...</source>
       <translation type="unfinished">Ștergeți intervalul de zile...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2762" />
-      <location filename="../oscar/mainwindow.cpp" line="2378" />
+      <location filename="../oscar/mainwindow.ui" line="2771" />
+      <location filename="../oscar/mainwindow.cpp" line="2390" />
       <source>CPAP</source>
       <translation type="unfinished">CPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2772" />
-      <location filename="../oscar/mainwindow.cpp" line="2380" />
+      <location filename="../oscar/mainwindow.ui" line="2781" />
+      <location filename="../oscar/mainwindow.cpp" line="2392" />
       <source>Sleep Stage</source>
       <translation type="unfinished">Stadiul somnului</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2777" />
-      <location filename="../oscar/mainwindow.cpp" line="2381" />
+      <location filename="../oscar/mainwindow.ui" line="2786" />
+      <location filename="../oscar/mainwindow.cpp" line="2393" />
       <source>Position</source>
       <translation type="unfinished">Poziție</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2782" />
-      <location filename="../oscar/mainwindow.cpp" line="2382" />
+      <location filename="../oscar/mainwindow.ui" line="2791" />
+      <location filename="../oscar/mainwindow.cpp" line="2394" />
       <source>All except Notes</source>
       <translation type="unfinished">Toate, cu excepția notelor</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2787" />
-      <location filename="../oscar/mainwindow.cpp" line="2383" />
+      <location filename="../oscar/mainwindow.ui" line="2796" />
+      <location filename="../oscar/mainwindow.cpp" line="2395" />
       <source>All including Notes</source>
       <translation type="unfinished">Toate, inclusiv notele</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.ui" line="2531" />
+      <location filename="../oscar/mainwindow.ui" line="2532" />
       <source>Current Days</source>
       <translation>Zilele curente</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="747" />
-      <location filename="../oscar/mainwindow.cpp" line="2825" />
+      <location filename="../oscar/mainwindow.cpp" line="748" />
+      <location filename="../oscar/mainwindow.cpp" line="2837" />
       <source>Welcome</source>
       <translation>Bun venit</translation>
     </message>
@@ -3479,35 +3472,35 @@ Do you want to continue?</source>
       <translation type="vanished">&amp;Despre</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1086" />
-      <location filename="../oscar/mainwindow.cpp" line="2510" />
+      <location filename="../oscar/mainwindow.cpp" line="1087" />
+      <location filename="../oscar/mainwindow.cpp" line="2522" />
       <source>Please wait, importing from backup folder(s)...</source>
       <translation>Va rog asteptati, import date din backup...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1016" />
+      <location filename="../oscar/mainwindow.cpp" line="1017" />
       <source>Import Problem</source>
       <translation>Problema la importare</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="679" />
+      <location filename="../oscar/mainwindow.cpp" line="680" />
       <source>Opening %1</source>
       <translation type="unfinished">Se deschide %1</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="796" />
+      <location filename="../oscar/mainwindow.cpp" line="797" />
       <source>%1 (Profile: %2)%3</source>
       <translation type="unfinished">%1 (Profil: %2)%3</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="964" />
-      <location filename="../oscar/mainwindow.cpp" line="3140" />
+      <location filename="../oscar/mainwindow.cpp" line="965" />
+      <location filename="../oscar/mainwindow.cpp" line="3159" />
       <source>Database Locked</source>
       <translation type="unfinished">Bază de date blocată</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="965" />
-      <location filename="../oscar/mainwindow.cpp" line="3141" />
+      <location filename="../oscar/mainwindow.cpp" line="966" />
+      <location filename="../oscar/mainwindow.cpp" line="3160" />
       <source>Cannot import data: the OSCAR database is locked by another application.
 
 If you have the database open in a SQLite viewer or editor, please close it and try again.
@@ -3516,7 +3509,7 @@ Error: %1</source>
       <translation type="unfinished">Nu se pot importa datele: baza de date OSCAR este blocată de o altă aplicație.\n\nDacă aveți baza de date deschisă într-un vizualizator sau editor SQLite, închideți-l și încercați din nou.\n\nEroare: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1016" />
+      <location filename="../oscar/mainwindow.cpp" line="1017" />
       <source>Couldn't find any valid Device Data at
 
 %1</source>
@@ -3525,8 +3518,8 @@ Error: %1</source>
 %1</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1028" />
-      <location filename="../oscar/mainwindow.cpp" line="3188" />
+      <location filename="../oscar/mainwindow.cpp" line="1029" />
+      <location filename="../oscar/mainwindow.cpp" line="3207" />
       <source>The imported data could not be saved to the database. No data was stored.
 
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
@@ -3535,27 +3528,37 @@ Error: %1</source>
       <translation type="unfinished">Datele importate nu au putut fi salvate în baza de date. Nu a fost stocat niciun date.\n\nDacă aveți baza de date OSCAR deschisă într-o altă aplicație (de ex., un vizualizator sau editor SQLite), închideți-o și încercați din nou.\n\nEroare: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1200" />
+      <location filename="../oscar/mainwindow.cpp" line="1201" />
       <source>Please insert your CPAP data card...</source>
       <translation>Introduceti cardul cu datele dvs CPAP (vedeti sa fie blocat: Read-Only!)...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1289" />
+      <location filename="../oscar/mainwindow.cpp" line="1290" />
       <source>Please open or create a profile before importing data.</source>
       <translation type="unfinished">Vă rugăm să deschideți sau să creați un profil înainte de a importa date.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1293" />
+      <location filename="../oscar/mainwindow.cpp" line="1294" />
       <source>Access to Import has been blocked while recalculations are in progress.</source>
       <translation>Importul a fost dezactivat cat timp are loc reanaliza datelor.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1441" />
+      <location filename="../oscar/mainwindow.cpp" line="1345" />
+      <source>Import Cancelled</source>
+      <translation type="unfinished">Import Anulat</translation>
+    </message>
+    <message>
+      <location filename="../oscar/mainwindow.cpp" line="1346" />
+      <source>Profile import was cancelled. Any partial data has been removed.</source>
+      <translation type="unfinished">Importul profilului a fost anulat. Orice date parțiale au fost eliminate.</translation>
+    </message>
+    <message>
+      <location filename="../oscar/mainwindow.cpp" line="1449" />
       <source>Different CPAP Machine Detected</source>
       <translation type="unfinished">A fost detectată o altă mașină CPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1442" />
+      <location filename="../oscar/mainwindow.cpp" line="1450" />
       <source>This SD card is from a different machine than the last one imported into this profile.
 
 Last imported: %1
@@ -3565,218 +3568,218 @@ Are you sure you want to import from this card into this profile?</source>
       <translation type="unfinished">Acest card SD provine de la o altă mașină decât ultima importată în acest profil.\n\nUltima importată: %1\nAcest card: %2\n\nSigur doriți să importați de pe acest card în acest profil?</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1447" />
+      <location filename="../oscar/mainwindow.cpp" line="1455" />
       <source>Continue</source>
       <translation type="unfinished">Continuați</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1461" />
+      <location filename="../oscar/mainwindow.cpp" line="1469" />
       <source>CPAP Data Located</source>
       <translation>Date CPAP localizate</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1500" />
+      <location filename="../oscar/mainwindow.cpp" line="1508" />
       <source>Import Reminder</source>
       <translation>Reamintire Importare</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1516" />
+      <location filename="../oscar/mainwindow.cpp" line="1524" />
       <source>Find your CPAP data card</source>
       <translation>Gasiti-va cardul de date CPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1558" />
+      <location filename="../oscar/mainwindow.cpp" line="1566" />
       <source>Importing Data</source>
       <translation>Importez Datele</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1772" />
-      <location filename="../oscar/mainwindow.cpp" line="1820" />
-      <location filename="../oscar/mainwindow.cpp" line="1849" />
+      <location filename="../oscar/mainwindow.cpp" line="1780" />
+      <location filename="../oscar/mainwindow.cpp" line="1828" />
+      <location filename="../oscar/mainwindow.cpp" line="1857" />
       <source>Please open or create a profile first.</source>
       <translation type="unfinished">Vă rugăm să deschideți sau să creați mai întâi un profil.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1820" />
+      <location filename="../oscar/mainwindow.cpp" line="1828" />
       <source>Time Corrections</source>
       <translation type="unfinished">Corecții de timp</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1849" />
+      <location filename="../oscar/mainwindow.cpp" line="1857" />
       <source>Drift Analysis</source>
       <translation type="unfinished">Analiză de derivă</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1874" />
+      <location filename="../oscar/mainwindow.cpp" line="1882" />
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
       <translation type="unfinished">Aceasta va șterge permanent toate corecțiile de timp pentru fiecare dispozitiv din acest profil.\n\nSigur doriți să continuați?</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2045" />
+      <location filename="../oscar/mainwindow.cpp" line="2053" />
       <source>The User's Guide will open in your default browser</source>
       <translation>Ghidul de utilizare se va deschide in browser-ul dvs de internet</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2052" />
+      <location filename="../oscar/mainwindow.cpp" line="2060" />
       <source>The FAQ is not yet implemented</source>
       <translation>Sectiune Intrebari frecvente nu este inca implementata</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2207" />
-      <location filename="../oscar/mainwindow.cpp" line="2233" />
+      <location filename="../oscar/mainwindow.cpp" line="2219" />
+      <location filename="../oscar/mainwindow.cpp" line="2245" />
       <source>If you can read this, the restart command didn't work. You will have to do it yourself manually.</source>
       <translation>Daca puteti citi asta, inseamna ca nu a functionat repornirea. Va trebui sa reporniti manual.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2384" />
+      <location filename="../oscar/mainwindow.cpp" line="2396" />
       <source>Unknown</source>
       <translation type="unfinished">Necunoscut</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2389" />
+      <location filename="../oscar/mainwindow.cpp" line="2401" />
       <source>Confirm Purge</source>
       <translation type="unfinished">Confirmați ștergerea</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2390" />
+      <location filename="../oscar/mainwindow.cpp" line="2402" />
       <source>&lt;p&gt;Purge &lt;b&gt;%1&lt;/b&gt; data from &lt;b&gt;%2&lt;/b&gt; to &lt;b&gt;%3&lt;/b&gt; (%4 day(s)).&lt;/p&gt;&lt;p&gt;Are you &lt;b&gt;absolutely sure&lt;/b&gt; you want to proceed?&lt;/p&gt;</source>
       <translation type="unfinished">&lt;p&gt;Șterge datele &lt;b&gt;%1&lt;/b&gt; de la &lt;b&gt;%2&lt;/b&gt; până la &lt;b&gt;%3&lt;/b&gt; (%4 zi(le)).&lt;/p&gt;&lt;p&gt;Ești &lt;b&gt;absolut sigur(ă)&lt;/b&gt; că vrei să continui?&lt;/p&gt;</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2404" />
+      <location filename="../oscar/mainwindow.cpp" line="2416" />
       <source>Purging data...</source>
       <translation type="unfinished">Se șterg datele...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2416" />
+      <location filename="../oscar/mainwindow.cpp" line="2428" />
       <source>Purging %1...</source>
       <translation type="unfinished">Se șterg %1...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2429" />
+      <location filename="../oscar/mainwindow.cpp" line="2441" />
       <source>Purge Range of Days</source>
       <translation type="unfinished">Interval de zile de șters</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2430" />
+      <location filename="../oscar/mainwindow.cpp" line="2442" />
       <source>No data was found in the selected date range.</source>
       <translation type="unfinished">Nu au fost găsite date în intervalul de date selectat.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2668" />
+      <location filename="../oscar/mainwindow.cpp" line="2680" />
       <source>No help is available.</source>
       <translation>Nu exista Help (Ajutor) disponibil.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2946" />
+      <location filename="../oscar/mainwindow.cpp" line="2958" />
       <source>Failed to restart OSCAR. Please restart it manually.</source>
       <translation type="unfinished">Repornirea OSCAR a eșuat. Vă rugăm să o reporniți manual.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2970" />
+      <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
       <translation type="unfinished">(activ)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2980" />
+      <location filename="../oscar/mainwindow.cpp" line="2992" />
       <source>(none)</source>
       <translation type="unfinished">(niciunul)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2989" />
+      <location filename="../oscar/mainwindow.cpp" line="3001" />
       <source>Select or Create an Empty Folder for New Database</source>
       <translation type="unfinished">Selectați sau creați un dosar gol pentru noua bază de date</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2996" />
+      <location filename="../oscar/mainwindow.cpp" line="3008" />
       <source>New Database</source>
       <translation type="unfinished">Bază de date nouă</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2997" />
+      <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
       <translation type="unfinished">Dosarul selectat conține deja o bază de date OSCAR.\nUtilizați Fișier ▸ Bază de date ▸ Deschide pentru a deschide o bază de date existentă.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3008" />
+      <location filename="../oscar/mainwindow.cpp" line="3020" />
       <source>Select OSCAR Database Folder</source>
       <translation type="unfinished">Selectați dosarul bazei de date OSCAR</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3015" />
+      <location filename="../oscar/mainwindow.cpp" line="3027" />
       <source>Open Database</source>
       <translation type="unfinished">Deschide baza de date</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3016" />
+      <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
       <translation type="unfinished">Dosarul selectat nu conține o bază de date OSCAR.\nVă rugăm să selectați un dosar care conține un fișier oscar.db.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3039" />
+      <location filename="../oscar/mainwindow.cpp" line="3051" />
       <source>Delete Database</source>
       <translation type="unfinished">Șterge baza de date</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3040" />
+      <location filename="../oscar/mainwindow.cpp" line="3052" />
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
       <translation type="unfinished">Nu există baze de date inactive în lista recentă de șters.\n\nDeschideți bazele de date cu Fișier ▸ Bază de date ▸ Deschide pentru a le adăuga în lista recentă.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3205" />
-      <location filename="../oscar/mainwindow.cpp" line="3209" />
+      <location filename="../oscar/mainwindow.cpp" line="3224" />
+      <location filename="../oscar/mainwindow.cpp" line="3228" />
       <source>There was a problem opening %1 Data File: %2</source>
       <translation>A aparut o problema la deschiderea %1 fisier date: %2</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3208" />
+      <location filename="../oscar/mainwindow.cpp" line="3227" />
       <source>%1 Data Import of %2 file(s) complete</source>
       <translation>%1 Import Date din %2 fisier(e) complet</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3210" />
+      <location filename="../oscar/mainwindow.cpp" line="3229" />
       <source>%1 Import Partial Success</source>
       <translation>%1 Import Partial Succes</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3212" />
+      <location filename="../oscar/mainwindow.cpp" line="3231" />
       <source>%1 Data Import complete</source>
       <translation>%1 Import Date complet</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3517" />
-      <location filename="../oscar/mainwindow.cpp" line="3537" />
+      <location filename="../oscar/mainwindow.cpp" line="3536" />
+      <location filename="../oscar/mainwindow.cpp" line="3556" />
       <source>No profile is currently open.</source>
       <translation type="unfinished">Niciun profil nu este deschis în prezent.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3522" />
+      <location filename="../oscar/mainwindow.cpp" line="3541" />
       <source>Choose where to read journal</source>
       <translation type="unfinished">Alegeți de unde să citiți jurnalul</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3537" />
+      <location filename="../oscar/mainwindow.cpp" line="3556" />
       <source>Export Journal</source>
       <translation type="unfinished">Exportați jurnalul</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3549" />
+      <location filename="../oscar/mainwindow.cpp" line="3568" />
       <source>%1's Journal</source>
       <translation>Jurnalul lui %1</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3551" />
+      <location filename="../oscar/mainwindow.cpp" line="3570" />
       <source>Choose where to save journal</source>
       <translation>Alegeti unde salvez jurnalul</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3830" />
+      <location filename="../oscar/mainwindow.cpp" line="3856" />
       <source>This will compact the database to reclaim unused disk space. It is most useful after deleting profiles.
 
 Current database size: %1
@@ -3787,7 +3790,7 @@ Continue?</source>
       <translation type="unfinished">Aceasta va compacta baza de date pentru a recupera spațiul pe disc neutilizat. Este cel mai util după ștergerea profilurilor.\n\nDimensiunea curentă a bazei de date: %1\n\nAcest proces poate dura câteva minute pentru bazele de date mari. OSCAR va reporni automat când se termină.\n\nContinuați?</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3876" />
+      <location filename="../oscar/mainwindow.cpp" line="3902" />
       <source>The database integrity check failed. Compression cannot proceed on a damaged database.
 
 Recommended actions:
@@ -3799,28 +3802,28 @@ For advanced recovery options, see the OSCAR documentation.</source>
       <translation type="unfinished">Verificarea integrității bazei de date a eșuat. Compresia nu poate continua pe o bază de date deteriorată.\n\nAcțiuni recomandate:\n  • Restaurați întreaga bază de date dintr-o copie de rezervă recentă a sistemului\n  • Restaurați fiecare profil dintr-o copie de rezervă recentă (Fișier → Restaurare profil)\n  • Reimportați datele de pe cardurile SD CPAP\n\nPentru opțiuni avansate de recuperare, consultați documentația OSCAR.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3896" />
+      <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
       <translation type="unfinished">Se comprimă baza de date, vă rugăm așteptați...\n\nAcest proces poate dura câteva minute pentru bazele de date mari.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3957" />
+      <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
       <translation type="unfinished">Compresia a reușit, dar fișierul bazei de date nu a putut fi înlocuit.\n\nBaza de date originală este nemodificată.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3967" />
+      <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
       <translation type="unfinished">Compresia a reușit, dar noul fișier nu a putut fi pus la loc.\n\nBaza de date originală a fost restaurată.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3979" />
+      <location filename="../oscar/mainwindow.cpp" line="4005" />
       <source>Database compressed successfully.
 
 Before:    %1
@@ -3831,7 +3834,7 @@ OSCAR will restart when you press OK.</source>
       <translation type="unfinished">Baza de date a fost comprimată cu succes.\n\nÎnainte:    %1\nDupă:      %2\nRecuperat: %3\n\nOSCAR va reporni când apăsați OK.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3988" />
+      <location filename="../oscar/mainwindow.cpp" line="4014" />
       <source>Database compressed successfully.
 
 Size: %1
@@ -3842,66 +3845,66 @@ OSCAR will restart when you press OK.</source>
       <translation type="unfinished">Baza de date a fost comprimată cu succes.\n\nDimensiune: %1\n\nNu a fost recuperat niciun spațiu — baza de date era deja compactă.\n\nOSCAR va reporni când apăsați OK.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3524" />
-      <location filename="../oscar/mainwindow.cpp" line="3551" />
+      <location filename="../oscar/mainwindow.cpp" line="3543" />
+      <location filename="../oscar/mainwindow.cpp" line="3570" />
       <source>XML Files (*.xml)</source>
       <translation>XML Files (*.xml)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3622" />
+      <location filename="../oscar/mainwindow.cpp" line="3648" />
       <source>Export review is not yet implemented</source>
       <translation>Exportul sumarului nu este inca implementat</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3632" />
+      <location filename="../oscar/mainwindow.cpp" line="3658" />
       <source>Would you like to zip this card?</source>
       <translation>Doriți să arhivați acest card într-o arhivă ZIP?</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3654" />
-      <location filename="../oscar/mainwindow.cpp" line="3727" />
-      <location filename="../oscar/mainwindow.cpp" line="4019" />
+      <location filename="../oscar/mainwindow.cpp" line="3680" />
+      <location filename="../oscar/mainwindow.cpp" line="3753" />
+      <location filename="../oscar/mainwindow.cpp" line="4045" />
       <source>Choose where to save zip</source>
       <translation>Unde să salvez arhiva ZIP</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3654" />
-      <location filename="../oscar/mainwindow.cpp" line="3727" />
-      <location filename="../oscar/mainwindow.cpp" line="4019" />
+      <location filename="../oscar/mainwindow.cpp" line="3680" />
+      <location filename="../oscar/mainwindow.cpp" line="3753" />
+      <location filename="../oscar/mainwindow.cpp" line="4045" />
       <source>ZIP files (*.zip)</source>
       <translation>Fișier arhivă ZIP (*.zip)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3701" />
-      <location filename="../oscar/mainwindow.cpp" line="3741" />
+      <location filename="../oscar/mainwindow.cpp" line="3727" />
+      <location filename="../oscar/mainwindow.cpp" line="3767" />
       <source>Creating zip...</source>
       <translation>Crează arhiva ZIP...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3686" />
+      <location filename="../oscar/mainwindow.cpp" line="3712" />
       <source>Calculating size...</source>
       <translation>Calculez dimensiunea...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3774" />
-      <location filename="../oscar/mainwindow.cpp" line="3801" />
-      <location filename="../oscar/mainwindow.cpp" line="3805" />
+      <location filename="../oscar/mainwindow.cpp" line="3800" />
+      <location filename="../oscar/mainwindow.cpp" line="3827" />
+      <location filename="../oscar/mainwindow.cpp" line="3831" />
       <source>Check Database Integrity</source>
       <translation type="unfinished">Verificați integritatea bazei de date</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3778" />
-      <location filename="../oscar/mainwindow.cpp" line="3870" />
+      <location filename="../oscar/mainwindow.cpp" line="3804" />
+      <location filename="../oscar/mainwindow.cpp" line="3896" />
       <source>Checking database integrity, please wait...</source>
       <translation type="unfinished">Se verifică integritatea bazei de date, vă rugăm așteptați...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3802" />
+      <location filename="../oscar/mainwindow.cpp" line="3828" />
       <source>The database integrity check passed. No problems were found.</source>
       <translation type="unfinished">Verificarea integrității bazei de date a trecut. Nu au fost găsite probleme.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3806" />
+      <location filename="../oscar/mainwindow.cpp" line="3832" />
       <source>The database integrity check found problems. Some data may be missing or corrupted.
 
 The integrity check covers the entire database, which may contain multiple profiles.
@@ -3915,13 +3918,13 @@ For advanced recovery options, see the OSCAR documentation.</source>
       <translation type="unfinished">Verificarea integrității bazei de date a găsit probleme. Unele date pot fi lipsă sau corupte.\n\nVerificarea integrității acoperă întreaga bază de date, care poate conține mai multe profiluri.\n\nAcțiuni recomandate:\n  • Restaurați întreaga bază de date dintr-o copie de rezervă recentă a sistemului\n  • Restaurați fiecare profil dintr-o copie de rezervă recentă (Fișier → Restaurare profil)\n  • Reimportați datele de pe cardurile SD CPAP\n\nPentru opțiuni avansate de recuperare, consultați documentația OSCAR.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3829" />
-      <location filename="../oscar/mainwindow.cpp" line="3844" />
-      <location filename="../oscar/mainwindow.cpp" line="3875" />
-      <location filename="../oscar/mainwindow.cpp" line="3921" />
-      <location filename="../oscar/mainwindow.cpp" line="3956" />
-      <location filename="../oscar/mainwindow.cpp" line="3966" />
-      <location filename="../oscar/mainwindow.cpp" line="3994" />
+      <location filename="../oscar/mainwindow.cpp" line="3855" />
+      <location filename="../oscar/mainwindow.cpp" line="3870" />
+      <location filename="../oscar/mainwindow.cpp" line="3901" />
+      <location filename="../oscar/mainwindow.cpp" line="3947" />
+      <location filename="../oscar/mainwindow.cpp" line="3982" />
+      <location filename="../oscar/mainwindow.cpp" line="3992" />
+      <location filename="../oscar/mainwindow.cpp" line="4020" />
       <source>Compress Database</source>
       <translation type="unfinished">Comprimați baza de date</translation>
     </message>
@@ -3934,7 +3937,7 @@ This may take several minutes. Continue?</source>
       <translation type="obsolete">Aceasta va compacta baza de date pentru a recupera spațiul de pe disc neutilizat. Este cel mai util după ștergerea profilurilor.\n\nDimensiunea curentă a bazei de date: %1\n\nAcest proces poate dura câteva minute. Continuați?</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3922" />
+      <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
       <translation type="unfinished">Compactarea bazei de date a eșuat:\n%1</translation>
@@ -3956,77 +3959,77 @@ No space was reclaimed — the database was already compact.</source>
       <translation type="obsolete">Baza de date a fost compactată cu succes.\n\nDimensiune: %1\n\nNiciun spațiu nu a fost recuperat — baza de date era deja compactată.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="4035" />
+      <location filename="../oscar/mainwindow.cpp" line="4061" />
       <source>Unable to create zip: the database is locked by another process.</source>
       <translation type="unfinished">Imposibil de creat arhiva zip: baza de date este blocată de un alt proces.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="4044" />
+      <location filename="../oscar/mainwindow.cpp" line="4070" />
       <source>Creating %1.zip...</source>
       <translation type="unfinished">Se creează %1.zip...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="4081" />
+      <location filename="../oscar/mainwindow.cpp" line="4107" />
       <source>Reporting issues is not yet implemented</source>
       <translation>Raportarea problemelor online nu este inca implementata</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="406" />
+      <location filename="../oscar/mainwindow.cpp" line="407" />
       <source>Help Browser</source>
       <translation>Vizualizare Help (Ajutor)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="216" />
+      <location filename="../oscar/mainwindow.cpp" line="217" />
       <source>About</source>
       <translation type="unfinished">Despre</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="396" />
+      <location filename="../oscar/mainwindow.cpp" line="397" />
       <source>CSV Export Wizard...</source>
       <translation type="unfinished">Expert export CSV...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="731" />
+      <location filename="../oscar/mainwindow.cpp" line="732" />
       <source>Finishing profile "%1"</source>
       <translation type="unfinished">Se finalizează profilul „%1"</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="937" />
+      <location filename="../oscar/mainwindow.cpp" line="938" />
       <source>Importing CPAP data</source>
       <translation type="unfinished">Se importă date CPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1327" />
+      <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
       <translation type="unfinished">Se importă profilul</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1357" />
+      <location filename="../oscar/mainwindow.cpp" line="1365" />
       <source>Import Complete</source>
       <translation type="unfinished">Import finalizat</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1358" />
+      <location filename="../oscar/mainwindow.cpp" line="1366" />
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
       <translation type="unfinished">Profilul „%1" a fost importat cu succes.\n\nÎl puteți selecta acum din selectorul de profiluri.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1027" />
-      <location filename="../oscar/mainwindow.cpp" line="1371" />
-      <location filename="../oscar/mainwindow.cpp" line="3187" />
+      <location filename="../oscar/mainwindow.cpp" line="1028" />
+      <location filename="../oscar/mainwindow.cpp" line="1379" />
+      <location filename="../oscar/mainwindow.cpp" line="3206" />
       <source>Import Failed</source>
       <translation type="unfinished">Import eșuat</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1372" />
+      <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
       <translation type="unfinished">Importul profilului a eșuat:\n%1</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1535" />
+      <location filename="../oscar/mainwindow.cpp" line="1543" />
       <source>No supported data was found</source>
       <translation>Nu am gasit date utilizabile</translation>
     </message>
@@ -4035,22 +4038,22 @@ You can now select it from the profile selector.</source>
       <translation type="vanished">Va rugam deschideti mai intai un Profil pacient.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1911" />
+      <location filename="../oscar/mainwindow.cpp" line="1919" />
       <source>Check for updates not implemented</source>
       <translation>Cautarea actualizarilor nu e implementata</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1970" />
+      <location filename="../oscar/mainwindow.cpp" line="1978" />
       <source>Choose where to save screenshot</source>
       <translation>Unde să salvez captura ecranului</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1970" />
+      <location filename="../oscar/mainwindow.cpp" line="1978" />
       <source>Image files (*.png)</source>
       <translation>Fisier Imagine (*.png)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2485" />
+      <location filename="../oscar/mainwindow.cpp" line="2497" />
       <source>Are you sure you want to rebuild all CPAP data for the following device:
 
 </source>
@@ -4059,79 +4062,79 @@ You can now select it from the profile selector.</source>
 </translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2495" />
+      <location filename="../oscar/mainwindow.cpp" line="2507" />
       <source>For some reason, OSCAR does not have any backups for the following device:</source>
       <translation>Din anumite motive, OSCAR nu are copii de rezervă pentru următorul dispozitiv:</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2497" />
+      <location filename="../oscar/mainwindow.cpp" line="2509" />
       <source>Provided you have made &lt;i&gt;your &lt;b&gt;own&lt;/b&gt; backups for ALL of your CPAP data&lt;/i&gt;, you can still complete this operation, but you will have to restore from your backups manually.</source>
       <translation>Daca v-ati facut &lt;i&gt;propriile &lt;b&gt;backup-uri&lt;/b&gt; la toate datele CPAP&lt;/i&gt;, puteti finaliza aceasta operatiune, dar va trebui sa le restaurati la nevoie din backup manual.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2498" />
+      <location filename="../oscar/mainwindow.cpp" line="2510" />
       <source>Are you really sure you want to do this?</source>
       <translation>Sunteti sigur ca doriti ca asta doriti sa faceti?</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2513" />
+      <location filename="../oscar/mainwindow.cpp" line="2525" />
       <source>Because there are no internal backups to rebuild from, you will have to restore from your own.</source>
       <translation>Deoarece nu exista backup-uri interne pentru a reface datele, va trebui sa faceti restaurarea manuala a lor.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2563" />
+      <location filename="../oscar/mainwindow.cpp" line="2575" />
       <source>Note as a precaution, the backup folder will be left in place.</source>
       <translation>Nota: Ca precautie, dosarul de backup va fi lasat la locul lui.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2575" />
+      <location filename="../oscar/mainwindow.cpp" line="2587" />
       <source>Are you &lt;b&gt;absolutely sure&lt;/b&gt; you want to proceed?</source>
       <translation>Sunteti &lt;b&gt;absolut sigur&lt;/b&gt; ca doriti ca continuati?</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2613" />
+      <location filename="../oscar/mainwindow.cpp" line="2625" />
       <source>A file permission error caused the purge process to fail; you will have to delete the following folder manually:</source>
       <translation>O eroare de permisiune a fișierului a cauzat eșecul procesului de curățare; va trebui să ștergeți manual următorul folder:</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2765" />
+      <location filename="../oscar/mainwindow.cpp" line="2777" />
       <source>Recalculating summaries</source>
       <translation type="unfinished">Se recalculează rezumatele</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2885" />
+      <location filename="../oscar/mainwindow.cpp" line="2897" />
       <source>The Glossary will open in your default browser</source>
       <translation>Glosarul de termeni se va deschide in browser-ul dvs de internet</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3199" />
+      <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
       <translation type="unfinished">A apărut o problemă la procesarea %1 \nFișier de date: %2</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3410" />
+      <location filename="../oscar/mainwindow.cpp" line="3429" />
       <source>Are you sure you want to delete oximetry data for %1</source>
       <translation>Sunteti sigur ca vreti sa stergeti datele pulsoximetriei pentru %1</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3419" />
+      <location filename="../oscar/mainwindow.cpp" line="3438" />
       <source>&lt;b&gt;Please be aware you can not undo this operation!&lt;/b&gt;</source>
       <translation>&lt;b&gt;Atentie, nu veti mai putea reveni asupra acestei operatiuni !!&lt;/b&gt;</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3461" />
+      <location filename="../oscar/mainwindow.cpp" line="3480" />
       <source>Select the day with valid oximetry data in daily view first.</source>
       <translation>Selectati mai intai ziua cu Date valide de Pulsoximetrie in Fereasta de vizualizare a zilei.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3508" />
+      <location filename="../oscar/mainwindow.cpp" line="3527" />
       <source>You must select and open the profile you wish to modify</source>
       <translation>Trebuie să selectați și să deschideți profilul pe care doriți să îl modificați</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1535" />
-      <location filename="../oscar/mainwindow.cpp" line="4095" />
+      <location filename="../oscar/mainwindow.cpp" line="1543" />
+      <location filename="../oscar/mainwindow.cpp" line="4121" />
       <source>OSCAR Information</source>
       <translation>Infoemații OSCAR</translation>
     </message>
@@ -4144,7 +4147,7 @@ Data File: %2</source>
       <translation type="vanished">%1 (Pacient: %2)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1012" />
+      <location filename="../oscar/mainwindow.cpp" line="1013" />
       <source>Imported %1 CPAP session(s) from
 
 %2</source>
@@ -4153,12 +4156,12 @@ Data File: %2</source>
 %2</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1012" />
+      <location filename="../oscar/mainwindow.cpp" line="1013" />
       <source>Import Success</source>
       <translation>Importul s-a finalizat cu succes</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1014" />
+      <location filename="../oscar/mainwindow.cpp" line="1015" />
       <source>Already up to date with CPAP data at
 
 %1</source>
@@ -4167,12 +4170,12 @@ Data File: %2</source>
 %1</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1014" />
+      <location filename="../oscar/mainwindow.cpp" line="1015" />
       <source>Up to date</source>
       <translation>La zi</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1207" />
+      <location filename="../oscar/mainwindow.cpp" line="1208" />
       <source>Choose a folder</source>
       <translation>Alegeti un dosar</translation>
     </message>
@@ -4181,94 +4184,94 @@ Data File: %2</source>
       <translation type="vanished">Nu a fost selectat niciun Profil pacient pentru Import.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1297" />
+      <location filename="../oscar/mainwindow.cpp" line="1298" />
       <source>Import is already running in the background.</source>
       <translation>Importarea ruleaza inca in fundal.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1402" />
+      <location filename="../oscar/mainwindow.cpp" line="1410" />
       <source>A %1 file structure for a %2 was located at:</source>
       <translation>O structura %1 a fisierului pentru %2 a fost localizata la:</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1404" />
+      <location filename="../oscar/mainwindow.cpp" line="1412" />
       <source>A %1 file structure was located at:</source>
       <translation>Un fisier %1 a fost localizat la:</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1499" />
+      <location filename="../oscar/mainwindow.cpp" line="1507" />
       <source>Please remember to select the root folder or drive letter of your data card, and not a folder inside it.</source>
       <translation>Alegeți corect sursa, dosarul rădăcină al cardului (sau litera de ex E:\) și NU un alt dosar din card.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1305" />
+      <location filename="../oscar/mainwindow.cpp" line="1306" />
       <source>Would you like to import from this location?</source>
       <translation>Doriti sa importati din aceasta locatie?</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1466" />
+      <location filename="../oscar/mainwindow.cpp" line="1474" />
       <source>Specify</source>
       <translation>Specificati</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1777" />
+      <location filename="../oscar/mainwindow.cpp" line="1785" />
       <source>Access to Preferences has been blocked until recalculation completes.</source>
       <translation>Preferintele au fost dezactivate cat timp are loc reanaliza datelor.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1980" />
+      <location filename="../oscar/mainwindow.cpp" line="1988" />
       <source>There was an error saving screenshot to file "%1"</source>
       <translation>A aparut o problema la salvarea capturii in fisierul "%1"</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1982" />
+      <location filename="../oscar/mainwindow.cpp" line="1990" />
       <source>Screenshot saved to file "%1"</source>
       <translation>Captura ecran salvata in fisierul "%1"</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2488" />
+      <location filename="../oscar/mainwindow.cpp" line="2500" />
       <source>Please note, that this could result in loss of data if OSCAR's backups have been disabled.</source>
       <translation>Atentie, puteti pierde datele daca backup-ul OSCAR a fost dezactivat.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2514" />
+      <location filename="../oscar/mainwindow.cpp" line="2526" />
       <source>Would you like to import from your own backups now? (you will have no data visible for this device until you do)</source>
       <translation>Doriți să importați din propriile copii de rezervă acum? (nu veți avea date vizibile pentru acest dispozitiv până când nu o faceți)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2565" />
+      <location filename="../oscar/mainwindow.cpp" line="2577" />
       <source>OSCAR does not have any backups for this device!</source>
       <translation>OSCAR nu are copii de rezervă pentru acest dispozitiv!</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2566" />
+      <location filename="../oscar/mainwindow.cpp" line="2578" />
       <source>Unless you have made &lt;i&gt;your &lt;b&gt;own&lt;/b&gt; backups for ALL of your data for this device&lt;/i&gt;, &lt;font size=+2&gt;you will lose this device's data &lt;b&gt;permanently&lt;/b&gt;!&lt;/font&gt;</source>
       <translation>Cu excepția cazului în care v-ați făcut &lt;i&gt;&lt;b&gt;propriile copii de siguranță&lt;/b&gt; pentru TOATE datele pentru acest dispozitiv&lt;/i&gt;, &lt;font size=+2&gt;veți pierde  &lt;b&gt;permanent&lt;/b &gt; datele acestui dispozitiv&gt;!&lt;/font&gt;</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2572" />
+      <location filename="../oscar/mainwindow.cpp" line="2584" />
       <source>You are about to &lt;font size=+2&gt;obliterate&lt;/font&gt; OSCAR's device database for the following device:&lt;/p&gt;</source>
       <translation>Sunteți pe cale să &lt;font size=+2&gt;ștergeți&lt;/font&gt; baza de date OSCAR pentru următorul dispozitiv:&lt;/p&gt;</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2872" />
+      <location filename="../oscar/mainwindow.cpp" line="2884" />
       <source>There was a problem opening MSeries block File: </source>
       <translation>A aparut o problema la deschiderea fisierului din aparatul MSeries: </translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2876" />
+      <location filename="../oscar/mainwindow.cpp" line="2888" />
       <source>MSeries Import complete</source>
       <translation>Importul finalizat din aparatul MSeries</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1464" />
+      <location filename="../oscar/mainwindow.cpp" line="1472" />
       <source>Yes</source>
       <translation>Da</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1448" />
-      <location filename="../oscar/mainwindow.cpp" line="1465" />
-      <location filename="../oscar/mainwindow.cpp" line="2404" />
+      <location filename="../oscar/mainwindow.cpp" line="1456" />
+      <location filename="../oscar/mainwindow.cpp" line="1473" />
+      <location filename="../oscar/mainwindow.cpp" line="2416" />
       <source>Cancel</source>
       <translation>Anuleaza</translation>
     </message>
@@ -4567,8 +4570,8 @@ Data File: %2</source>
     </message>
     <message>
       <location filename="../oscar/newprofile.ui" line="1067" />
-      <location filename="../oscar/newprofile.cpp" line="372" />
-      <location filename="../oscar/newprofile.cpp" line="381" />
+      <location filename="../oscar/newprofile.cpp" line="394" />
+      <location filename="../oscar/newprofile.cpp" line="403" />
       <source>Next</source>
       <translation type="unfinished">Înainte</translation>
     </message>
@@ -4577,7 +4580,7 @@ Data File: %2</source>
       <translation type="vanished">&amp;Urmatorul</translation>
     </message>
     <message>
-      <location filename="../oscar/newprofile.cpp" line="476" />
+      <location filename="../oscar/newprofile.cpp" line="498" />
       <source>Select Country</source>
       <translation>Alegeti tara</translation>
     </message>
@@ -4617,12 +4620,12 @@ Data File: %2</source>
       <translation type="unfinished">Numele „%1" este deja utilizat de un alt profil. Vă rugăm să alegeți un alt nume.</translation>
     </message>
     <message>
-      <location filename="../oscar/newprofile.cpp" line="350" />
+      <location filename="../oscar/newprofile.cpp" line="372" />
       <source>Rename Failed</source>
       <translation type="unfinished">Redenumire eșuată</translation>
     </message>
     <message>
-      <location filename="../oscar/newprofile.cpp" line="351" />
+      <location filename="../oscar/newprofile.cpp" line="373" />
       <source>Could not rename the profile directory. Check that no files in the profile are open and that you have write permission.</source>
       <translation type="unfinished">Nu s-a putut redenumi directorul profilului. Verificați că niciun fișier din profil nu este deschis și că aveți permisiune de scriere.</translation>
     </message>
@@ -4631,12 +4634,12 @@ Data File: %2</source>
       <translation type="obsolete">OSCAR este copyright &amp;copy;2011-2018 Mark Watkins si module &amp;copy;2019-2022 The OSCAR Team {2011-2018 ?} {2019-2024 ?} {2011-2018 ?} {2019-2025 ?}</translation>
     </message>
     <message>
-      <location filename="../oscar/newprofile.cpp" line="370" />
+      <location filename="../oscar/newprofile.cpp" line="392" />
       <source>Finish</source>
       <translation type="unfinished">Finalizare</translation>
     </message>
     <message>
-      <location filename="../oscar/newprofile.cpp" line="541" />
+      <location filename="../oscar/newprofile.cpp" line="563" />
       <source>Close this window</source>
       <translation type="unfinished">Închide această fereastră</translation>
     </message>
@@ -7107,167 +7110,187 @@ Vreti să faceti asta acum?</translation>
   <context>
     <name>ProfileImporter</name>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="52" />
+      <location filename="../oscar/profileimporter.cpp" line="56" />
       <source>Validating source profile...</source>
       <translation type="unfinished">Se validează profilul sursă...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="55" />
+      <location filename="../oscar/profileimporter.cpp" line="59" />
       <source>Invalid source profile: %1</source>
       <translation type="unfinished">Profil sursă invalid: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="64" />
+      <location filename="../oscar/profileimporter.cpp" line="68" />
       <source>Failed to begin database transaction: %1</source>
       <translation type="unfinished">Eroare la începerea tranzacției bazei de date: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="74" />
+      <location filename="../oscar/profileimporter.cpp" line="78" />
       <source>Copying profile structure...</source>
       <translation type="unfinished">Se copiază structura profilului...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="87" />
+      <location filename="../oscar/profileimporter.cpp" line="91" />
       <source>Failed to copy machines.xml</source>
       <translation type="unfinished">Eroare la copierea fișierului machines.xml</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="94" />
+      <location filename="../oscar/profileimporter.cpp" line="98" />
       <source>Creating profile in database...</source>
       <translation type="unfinished">Se creează profilul în baza de date...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="102" />
+      <location filename="../oscar/profileimporter.cpp" line="106" />
       <source>Migrating profile metadata...</source>
       <translation type="unfinished">Se migrează metadatele profilului...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="117" />
+      <location filename="../oscar/profileimporter.cpp" line="121" />
       <source>Copying user information...</source>
       <translation type="unfinished">Se copiază informațiile utilizatorului...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="205" />
+      <location filename="../oscar/profileimporter.cpp" line="209" />
       <source>Saving profile metadata...</source>
       <translation type="unfinished">Se salvează metadatele profilului...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="207" />
+      <location filename="../oscar/profileimporter.cpp" line="211" />
       <source>Failed to commit profile metadata: %1</source>
       <translation type="unfinished">Eroare la confirmarea metadatelor profilului: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="220" />
+      <location filename="../oscar/profileimporter.cpp" line="224" />
       <source>Loading session data from files...</source>
       <translation type="unfinished">Se încarcă datele sesiunii din fișiere...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="252" />
+      <location filename="../oscar/profileimporter.cpp" line="256" />
       <source>Failed to begin transaction for summaries: %1</source>
       <translation type="unfinished">Eroare la începerea tranzacției pentru sumare: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="263" />
+      <location filename="../oscar/profileimporter.cpp" line="267" />
       <source>Calculating daily summaries...</source>
       <translation type="unfinished">Se calculează sumarele zilnice...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="270" />
+      <location filename="../oscar/profileimporter.cpp" line="274" />
       <source>Saving profile data...</source>
       <translation type="unfinished">Se salvează datele profilului...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="277" />
+      <location filename="../oscar/profileimporter.cpp" line="281" />
       <source>Failed to save profile to database</source>
       <translation type="unfinished">Eroare la salvarea profilului în baza de date</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="290" />
+      <location filename="../oscar/profileimporter.cpp" line="294" />
       <source>Committing final data...</source>
       <translation type="unfinished">Se confirmă datele finale...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="293" />
+      <location filename="../oscar/profileimporter.cpp" line="297" />
       <source>Failed to commit final data: %1</source>
       <translation type="unfinished">Eroare la confirmarea datelor finale: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="317" />
+      <location filename="../oscar/profileimporter.cpp" line="321" />
       <source>Import complete!</source>
       <translation type="unfinished">Import finalizat!</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="333" />
+      <location filename="../oscar/profileimporter.cpp" line="337" />
       <source>Source path does not exist</source>
       <translation type="unfinished">Calea sursă nu există</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="338" />
+      <location filename="../oscar/profileimporter.cpp" line="342" />
       <source>Source is not a valid OSCAR profile (missing machines.xml)</source>
       <translation type="unfinished">Sursa nu este un profil OSCAR valid (lipsește machines.xml)</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="381" />
+      <location filename="../oscar/profileimporter.cpp" line="385" />
       <source>Failed to create machine folder: %1</source>
       <translation type="unfinished">Eroare la crearea folderului pentru dispozitiv: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="477" />
+      <location filename="../oscar/profileimporter.cpp" line="393" />
+      <source>Scanning backup files...</source>
+      <translation type="unfinished">Se scanează fișierele de rezervă...</translation>
+    </message>
+    <message>
+      <location filename="../oscar/profileimporter.cpp" line="453" />
+      <source>Copying backup files: %1 / %2</source>
+      <translation type="unfinished">Se copiază fișierele de rezervă: %1 / %2</translation>
+    </message>
+    <message>
+      <location filename="../oscar/profileimporter.cpp" line="513" />
       <source>Failed to load machines from database</source>
       <translation type="unfinished">Eroare la încărcarea dispozitivelor din baza de date</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="687" />
+      <location filename="../oscar/profileimporter.cpp" line="723" />
       <source>No machine folders found in source profile</source>
       <translation type="unfinished">Nu s-au găsit foldere de dispozitive în profilul sursă</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="706" />
+      <location filename="../oscar/profileimporter.cpp" line="742" />
       <source>Loading machine %1 of %2...</source>
       <translation type="unfinished">Se încarcă dispozitivul %1 din %2...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="726" />
-      <location filename="../oscar/profileimporter.cpp" line="792" />
+      <location filename="../oscar/profileimporter.cpp" line="762" />
+      <location filename="../oscar/profileimporter.cpp" line="828" />
       <source>Failed to start transaction for machine: %1</source>
       <translation type="unfinished">Eroare la inițierea tranzacției pentru dispozitivul: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="735" />
+      <location filename="../oscar/profileimporter.cpp" line="771" />
       <source>Saving sessions for machine %1 of %2...</source>
       <translation type="unfinished">Se salvează sesiunile pentru dispozitivul %1 din %2...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="737" />
-      <location filename="../oscar/profileimporter.cpp" line="802" />
+      <location filename="../oscar/profileimporter.cpp" line="773" />
+      <location filename="../oscar/profileimporter.cpp" line="838" />
       <source>Failed to commit sessions for machine: %1</source>
       <translation type="unfinished">Eroare la salvarea sesiunilor pentru dispozitivul: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="800" />
+      <location filename="../oscar/profileimporter.cpp" line="836" />
       <source>Saving sessions...</source>
       <translation type="unfinished">Se salvează sesiunile...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="810" />
-      <location filename="../oscar/profileimporter.cpp" line="815" />
+      <location filename="../oscar/profileimporter.cpp" line="846" />
+      <location filename="../oscar/profileimporter.cpp" line="851" />
       <source>Could not match machine folder(s) to imported profile: %1</source>
       <translation type="unfinished">Nu s-au putut asocia folderul/folderele dispozitivului cu profilul importat: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="858" />
+      <location filename="../oscar/profileimporter.cpp" line="894" />
       <source>Import cancelled by user</source>
       <translation type="unfinished">Import anulat de utilizator</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="919" />
+      <location filename="../oscar/profileimporter.cpp" line="962" />
       <source>Loaded %1 of %2 sessions...</source>
       <translation type="unfinished">S-au încărcat %1 din %2 sesiuni...</translation>
     </message>
     <message>
-      <location filename="../oscar/profileimporter.cpp" line="924" />
+      <location filename="../oscar/profileimporter.cpp" line="967" />
       <source>Session persistence failures: %1 session(s) and %2 event set(s) failed to store</source>
       <translation type="unfinished">Erori de persistență a sesiunilor: %1 sesiune(sesiuni) și %2 set(uri) de evenimente nu au putut fi stocate</translation>
+    </message>
+    <message>
+      <location filename="../oscar/profileimporter.cpp" line="970" />
+      <source> (first failure: %1</source>
+      <translation type="unfinished">(prima eroare: %1</translation>
+    </message>
+    <message>
+      <location filename="../oscar/profileimporter.cpp" line="972" />
+      <source>; SQL: %1</source>
+      <translation type="unfinished">; SQL: %1</translation>
     </message>
   </context>
   <context>
@@ -7573,7 +7596,7 @@ Vreti să faceti asta acum?</translation>
   <context>
     <name>ProgressDialog</name>
     <message>
-      <location filename="../oscar/SleepLib/progressdialog.cpp" line="66" />
+      <location filename="../oscar/SleepLib/progressdialog.cpp" line="80" />
       <source>Abort</source>
       <translation>Anuleaza</translation>
     </message>
@@ -7733,22 +7756,22 @@ Vreti să faceti asta acum?</translation>
       <translation>Dec</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="814" />
+      <location filename="../oscar/SleepLib/common.cpp" line="836" />
       <source>ft</source>
       <translation>ft</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="815" />
+      <location filename="../oscar/SleepLib/common.cpp" line="837" />
       <source>lb</source>
       <translation>lb</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="816" />
+      <location filename="../oscar/SleepLib/common.cpp" line="838" />
       <source>oz</source>
       <translation>oz</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="818" />
+      <location filename="../oscar/SleepLib/common.cpp" line="840" />
       <source>cmH2O</source>
       <translation>cmH2O</translation>
     </message>
@@ -7797,7 +7820,7 @@ Vreti să faceti asta acum?</translation>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="381" />
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="45" />
-      <location filename="../oscar/SleepLib/common.cpp" line="819" />
+      <location filename="../oscar/SleepLib/common.cpp" line="841" />
       <source>Hours</source>
       <translation>Ore</translation>
     </message>
@@ -7866,83 +7889,83 @@ TTIA: %1</source>
 TTIA: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="820" />
+      <location filename="../oscar/SleepLib/common.cpp" line="842" />
       <source>Minutes</source>
       <translation>Minute</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="821" />
+      <location filename="../oscar/SleepLib/common.cpp" line="843" />
       <source>Seconds</source>
       <translation>Secunde</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="823" />
+      <location filename="../oscar/SleepLib/common.cpp" line="845" />
       <source>h</source>
       <translation>h</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="824" />
+      <location filename="../oscar/SleepLib/common.cpp" line="846" />
       <source>m</source>
       <translation>m</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="825" />
+      <location filename="../oscar/SleepLib/common.cpp" line="847" />
       <source>s</source>
       <translation>s</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="826" />
+      <location filename="../oscar/SleepLib/common.cpp" line="848" />
       <source>ms</source>
       <translation>ms</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="827" />
+      <location filename="../oscar/SleepLib/common.cpp" line="849" />
       <source>Events/hr</source>
       <translation>Evenimente/ora</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="829" />
+      <location filename="../oscar/SleepLib/common.cpp" line="851" />
       <source>Hz</source>
       <translation>Hz</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="830" />
+      <location filename="../oscar/SleepLib/common.cpp" line="852" />
       <source>bpm</source>
       <translation>bpm</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="832" />
+      <location filename="../oscar/SleepLib/common.cpp" line="854" />
       <source>Litres</source>
       <translation>Litri</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="833" />
+      <location filename="../oscar/SleepLib/common.cpp" line="855" />
       <source>ml</source>
       <translation>ml</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="834" />
+      <location filename="../oscar/SleepLib/common.cpp" line="856" />
       <source>Breaths/min</source>
       <translation>Respiratii/min</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="837" />
+      <location filename="../oscar/SleepLib/common.cpp" line="859" />
       <source>Severity (0-1)</source>
       <translation>Severitate (0-1)</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="838" />
+      <location filename="../oscar/SleepLib/common.cpp" line="860" />
       <source>Degrees</source>
       <translation>Grade</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="841" />
+      <location filename="../oscar/SleepLib/common.cpp" line="863" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2942" />
       <source>Error</source>
       <translation>Eroare</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="842" />
+      <location filename="../oscar/SleepLib/common.cpp" line="864" />
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="981" />
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="982" />
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="983" />
@@ -7950,27 +7973,27 @@ TTIA: %1</translation>
       <translation>Avertisment</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="843" />
+      <location filename="../oscar/SleepLib/common.cpp" line="865" />
       <source>Information</source>
       <translation>Informatie</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="844" />
+      <location filename="../oscar/SleepLib/common.cpp" line="866" />
       <source>Busy</source>
       <translation>Ocupat</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="845" />
+      <location filename="../oscar/SleepLib/common.cpp" line="867" />
       <source>Please Note</source>
       <translation>Va rog aveti grija</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="849" />
+      <location filename="../oscar/SleepLib/common.cpp" line="871" />
       <source>Graphs Switched Off</source>
       <translation>Grafic dezactivat</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="851" />
+      <location filename="../oscar/SleepLib/common.cpp" line="873" />
       <source>Sessions Switched Off</source>
       <translation>Sesiunile au fost oprite</translation>
     </message>
@@ -7995,73 +8018,73 @@ TTIA: %1</translation>
       <translation type="vanished">&amp;Salvare</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="861" />
+      <location filename="../oscar/SleepLib/common.cpp" line="883" />
       <location filename="../oscar/SleepLib/schema.cpp" line="342" />
       <source>BMI</source>
       <translatorcomment>indice de masa corporala</translatorcomment>
       <translation>IMC</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="862" />
+      <location filename="../oscar/SleepLib/common.cpp" line="884" />
       <location filename="../oscar/SleepLib/schema.cpp" line="338" />
       <source>Weight</source>
       <translation>Greutate</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="864" />
+      <location filename="../oscar/SleepLib/common.cpp" line="886" />
       <location filename="../oscar/SleepLib/schema.cpp" line="213" />
       <source>Pulse Rate</source>
       <translation>Puls</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="866" />
+      <location filename="../oscar/SleepLib/common.cpp" line="888" />
       <location filename="../oscar/SleepLib/schema.cpp" line="219" />
       <source>Plethy</source>
       <translation>Plethy</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="867" />
+      <location filename="../oscar/SleepLib/common.cpp" line="889" />
       <source>Pressure</source>
       <translation>Presiune</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="869" />
+      <location filename="../oscar/SleepLib/common.cpp" line="891" />
       <source>Daily</source>
       <translation>Zilnic</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="870" />
+      <location filename="../oscar/SleepLib/common.cpp" line="892" />
       <source>Profile</source>
       <translation>Pacient</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="871" />
+      <location filename="../oscar/SleepLib/common.cpp" line="893" />
       <source>Overview</source>
       <translation>Vedere de ansamblu</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="872" />
+      <location filename="../oscar/SleepLib/common.cpp" line="894" />
       <source>Oximetry</source>
       <translation>Pulsoximetrie</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="874" />
+      <location filename="../oscar/SleepLib/common.cpp" line="896" />
       <source>Oximeter</source>
       <translation>Pulsoximetru</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="875" />
+      <location filename="../oscar/SleepLib/common.cpp" line="897" />
       <source>Event Flags</source>
       <translation>Evenimente</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="878" />
+      <location filename="../oscar/SleepLib/common.cpp" line="900" />
       <source>Default</source>
       <translation>Implicite</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="881" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="637" />
+      <location filename="../oscar/SleepLib/common.cpp" line="903" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="662" />
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="883" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2863" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="140" />
@@ -8069,204 +8092,204 @@ TTIA: %1</translation>
       <translation>CPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="882" />
+      <location filename="../oscar/SleepLib/common.cpp" line="904" />
       <source>BiPAP</source>
       <translation>BiPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="883" />
+      <location filename="../oscar/SleepLib/common.cpp" line="905" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2866" />
       <source>Bi-Level</source>
       <translation>Bi-Level</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="884" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="756" />
+      <location filename="../oscar/SleepLib/common.cpp" line="906" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="781" />
       <source>EPAP</source>
       <translation>EPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="885" />
+      <location filename="../oscar/SleepLib/common.cpp" line="907" />
       <source>EEPAP</source>
       <translation>EEPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="886" />
+      <location filename="../oscar/SleepLib/common.cpp" line="908" />
       <source>Min EEPAP</source>
       <translation type="unfinished">Min EEPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="887" />
+      <location filename="../oscar/SleepLib/common.cpp" line="909" />
       <source>Max EEPAP</source>
       <translation type="unfinished">Max EEPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="888" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="782" />
+      <location filename="../oscar/SleepLib/common.cpp" line="910" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="807" />
       <source>Min EPAP</source>
       <translation>Min EPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="889" />
+      <location filename="../oscar/SleepLib/common.cpp" line="911" />
       <source>Max EPAP</source>
       <translation>Max EPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="890" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="759" />
+      <location filename="../oscar/SleepLib/common.cpp" line="912" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="784" />
       <source>IPAP</source>
       <translation>IPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="891" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="785" />
+      <location filename="../oscar/SleepLib/common.cpp" line="913" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="810" />
       <source>Min IPAP</source>
       <translation>Min IPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="892" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="788" />
+      <location filename="../oscar/SleepLib/common.cpp" line="914" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="813" />
       <source>Max IPAP</source>
       <translation>Max IPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="893" />
+      <location filename="../oscar/SleepLib/common.cpp" line="915" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="141" />
       <source>APAP</source>
       <translation>APAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="894" />
+      <location filename="../oscar/SleepLib/common.cpp" line="916" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2868" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="147" />
       <source>ASV</source>
       <translation>ASV</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="895" />
+      <location filename="../oscar/SleepLib/common.cpp" line="917" />
       <location filename="../oscar/SleepLib/schema.cpp" line="322" />
       <source>AVAPS</source>
       <translation>AVAPS</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="896" />
+      <location filename="../oscar/SleepLib/common.cpp" line="918" />
       <source>ST/ASV</source>
       <translation>ST/ASV</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="898" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="661" />
+      <location filename="../oscar/SleepLib/common.cpp" line="920" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="686" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2927" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2954" />
       <source>Humidifier</source>
       <translation>Umidificator</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="900" />
+      <location filename="../oscar/SleepLib/common.cpp" line="922" />
       <location filename="../oscar/SleepLib/schema.cpp" line="172" />
       <source>H</source>
       <translatorcomment>Probabil Hipopnee, prescurtarile astea o sa trebuiasca corectate pe masura ce folosim OSCAR</translatorcomment>
       <translation>H</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="901" />
+      <location filename="../oscar/SleepLib/common.cpp" line="923" />
       <location filename="../oscar/SleepLib/schema.cpp" line="170" />
       <source>OA</source>
       <translatorcomment>Apnee obstructivă</translatorcomment>
       <translation>AO</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="902" />
+      <location filename="../oscar/SleepLib/common.cpp" line="924" />
       <location filename="../oscar/SleepLib/schema.cpp" line="176" />
       <source>A</source>
       <translatorcomment>Apnee</translatorcomment>
       <translation>A</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="904" />
+      <location filename="../oscar/SleepLib/common.cpp" line="926" />
       <location filename="../oscar/SleepLib/schema.cpp" line="168" />
       <source>CA</source>
       <translatorcomment>Căi aeriene Libere = Apnee Centrală</translatorcomment>
       <translation>CL=AC</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="905" />
+      <location filename="../oscar/SleepLib/common.cpp" line="927" />
       <location filename="../oscar/SleepLib/schema.cpp" line="178" />
       <source>FL</source>
       <translation>FL</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="906" />
+      <location filename="../oscar/SleepLib/common.cpp" line="928" />
       <location filename="../oscar/SleepLib/schema.cpp" line="200" />
       <source>SA</source>
       <translation>SA</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="907" />
+      <location filename="../oscar/SleepLib/common.cpp" line="929" />
       <source>LE</source>
       <translation>LE</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="908" />
+      <location filename="../oscar/SleepLib/common.cpp" line="930" />
       <location filename="../oscar/SleepLib/schema.cpp" line="197" />
       <source>EP</source>
       <translatorcomment>Presiune Expiratorie</translatorcomment>
       <translation>PE</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="909" />
+      <location filename="../oscar/SleepLib/common.cpp" line="931" />
       <location filename="../oscar/SleepLib/schema.cpp" line="182" />
       <source>VS</source>
       <translation>VS</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="911" />
+      <location filename="../oscar/SleepLib/common.cpp" line="933" />
       <location filename="../oscar/SleepLib/schema.cpp" line="184" />
       <source>VS2</source>
       <translation>VS2</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="912" />
+      <location filename="../oscar/SleepLib/common.cpp" line="934" />
       <source>RERA</source>
       <translatorcomment> Trezire Cauzata de Efortul Respirator: o restrictie in respiratie care determina fie o trezire, fie o tulburare a somnului.</translatorcomment>
       <translation>RERA</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="913" />
+      <location filename="../oscar/SleepLib/common.cpp" line="935" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2854" />
       <source>PP</source>
       <translation>PP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="914" />
+      <location filename="../oscar/SleepLib/common.cpp" line="936" />
       <source>P</source>
       <translation>P</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="915" />
+      <location filename="../oscar/SleepLib/common.cpp" line="937" />
       <location filename="../oscar/SleepLib/schema.cpp" line="180" />
       <source>RE</source>
       <translation>RE</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="916" />
+      <location filename="../oscar/SleepLib/common.cpp" line="938" />
       <location filename="../oscar/SleepLib/schema.cpp" line="194" />
       <source>NR</source>
       <translation>NR</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="917" />
+      <location filename="../oscar/SleepLib/common.cpp" line="939" />
       <source>NRI</source>
       <translatorcomment>Non Responding Insomnia to Treatment Index</translatorcomment>
       <translation>NRI</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="918" />
+      <location filename="../oscar/SleepLib/common.cpp" line="940" />
       <source>O2</source>
       <translation>O2</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="919" />
+      <location filename="../oscar/SleepLib/common.cpp" line="941" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2871" />
       <location filename="../oscar/SleepLib/schema.cpp" line="225" />
       <source>PC</source>
@@ -8274,243 +8297,243 @@ TTIA: %1</translation>
       <translation>PC</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="920" />
+      <location filename="../oscar/SleepLib/common.cpp" line="942" />
       <location filename="../oscar/SleepLib/schema.cpp" line="203" />
       <source>UF1</source>
       <translation>UF1</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="921" />
+      <location filename="../oscar/SleepLib/common.cpp" line="943" />
       <location filename="../oscar/SleepLib/schema.cpp" line="206" />
       <source>UF2</source>
       <translation>UF2</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="922" />
+      <location filename="../oscar/SleepLib/common.cpp" line="944" />
       <location filename="../oscar/SleepLib/schema.cpp" line="209" />
       <source>UF3</source>
       <translation>UF3</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="924" />
+      <location filename="../oscar/SleepLib/common.cpp" line="946" />
       <source>PS</source>
       <translatorcomment>Presiune Suport, care se adauga presiunilor Min si Max setate in aparat.</translatorcomment>
       <translation>PS</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="925" />
+      <location filename="../oscar/SleepLib/common.cpp" line="947" />
       <location filename="../oscar/SleepLib/schema.cpp" line="284" />
       <source>AHI</source>
       <translatorcomment>Indice Apnne-Hipopnee</translatorcomment>
       <translation>AHI</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="926" />
+      <location filename="../oscar/SleepLib/common.cpp" line="948" />
       <location filename="../oscar/SleepLib/schema.cpp" line="293" />
       <source>RDI</source>
       <translatorcomment>Indice de afectare respiratorie, Resp Disturbance Index</translatorcomment>
       <translation>IAR</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="927" />
+      <location filename="../oscar/SleepLib/common.cpp" line="949" />
       <source>AI</source>
       <translatorcomment>indice apnee</translatorcomment>
       <translation>IA</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="928" />
+      <location filename="../oscar/SleepLib/common.cpp" line="950" />
       <source>HI</source>
       <translatorcomment>Indice hipopnee</translatorcomment>
       <translation>IH</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="929" />
+      <location filename="../oscar/SleepLib/common.cpp" line="951" />
       <source>UAI</source>
       <translatorcomment>Index de Apnnei Neclasificate</translatorcomment>
       <translation>UAI</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="930" />
+      <location filename="../oscar/SleepLib/common.cpp" line="952" />
       <source>CAI</source>
       <translatorcomment>Index Apnei Centrale</translatorcomment>
       <translation>CAI</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="931" />
+      <location filename="../oscar/SleepLib/common.cpp" line="953" />
       <source>FLI</source>
       <translation>FLI</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="933" />
+      <location filename="../oscar/SleepLib/common.cpp" line="955" />
       <source>REI</source>
       <translation>REI</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="934" />
+      <location filename="../oscar/SleepLib/common.cpp" line="956" />
       <source>EPI</source>
       <translation>EPI</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="936" />
+      <location filename="../oscar/SleepLib/common.cpp" line="958" />
       <location filename="../oscar/SleepLib/schema.cpp" line="166" />
       <source>PB</source>
       <translatorcomment>Respiratie periodică</translatorcomment>
       <translation>Resp period</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="940" />
+      <location filename="../oscar/SleepLib/common.cpp" line="962" />
       <source>IE</source>
       <translatorcomment>Indice Expirator?</translatorcomment>
       <translation>IE</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="941" />
+      <location filename="../oscar/SleepLib/common.cpp" line="963" />
       <location filename="../oscar/SleepLib/schema.cpp" line="269" />
       <source>Insp. Time</source>
       <translation>Timp Insp</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="942" />
+      <location filename="../oscar/SleepLib/common.cpp" line="964" />
       <location filename="../oscar/SleepLib/schema.cpp" line="266" />
       <source>Exp. Time</source>
       <translation>Timp Expir</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="943" />
+      <location filename="../oscar/SleepLib/common.cpp" line="965" />
       <location filename="../oscar/SleepLib/schema.cpp" line="272" />
       <source>Resp. Event</source>
       <translation>Ev. Resp</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="944" />
+      <location filename="../oscar/SleepLib/common.cpp" line="966" />
       <location filename="../oscar/SleepLib/schema.cpp" line="275" />
       <source>Flow Limitation</source>
       <translation>Limitare Flux</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="945" />
+      <location filename="../oscar/SleepLib/common.cpp" line="967" />
       <source>Flow Limit</source>
       <translation>Limita Flux</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="946" />
+      <location filename="../oscar/SleepLib/common.cpp" line="968" />
       <location filename="../oscar/SleepLib/loader_plugins/sleepstyle_loader.cpp" line="1029" />
       <source>SensAwake</source>
       <translation>SensAwake</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="947" />
+      <location filename="../oscar/SleepLib/common.cpp" line="969" />
       <source>Pat. Trig. Breath</source>
       <translation>Resp decl.de pacient</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="948" />
+      <location filename="../oscar/SleepLib/common.cpp" line="970" />
       <source>Tgt. Min. Vent</source>
       <translation>Volum/Min Tinta</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="949" />
+      <location filename="../oscar/SleepLib/common.cpp" line="971" />
       <location filename="../oscar/SleepLib/schema.cpp" line="278" />
       <source>Target Vent.</source>
       <translation>Tinta Vent.</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="950" />
+      <location filename="../oscar/SleepLib/common.cpp" line="972" />
       <location filename="../oscar/SleepLib/schema.cpp" line="250" />
       <source>Minute Vent.</source>
       <translation>Volum/Min.</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="951" />
+      <location filename="../oscar/SleepLib/common.cpp" line="973" />
       <location filename="../oscar/SleepLib/schema.cpp" line="244" />
       <source>Tidal Volume</source>
       <translation>Vol.Respirator</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="952" />
+      <location filename="../oscar/SleepLib/common.cpp" line="974" />
       <location filename="../oscar/SleepLib/schema.cpp" line="253" />
       <source>Resp. Rate</source>
       <translation>Frecv. Resp</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="953" />
+      <location filename="../oscar/SleepLib/common.cpp" line="975" />
       <location filename="../oscar/SleepLib/loader_plugins/intellipap_loader.cpp" line="2817" />
       <location filename="../oscar/SleepLib/schema.cpp" line="247" />
       <source>Snore</source>
       <translation>Sforăit</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="954" />
+      <location filename="../oscar/SleepLib/common.cpp" line="976" />
       <source>Leak</source>
       <translation>Scăpare</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="955" />
+      <location filename="../oscar/SleepLib/common.cpp" line="977" />
       <source>Leaks</source>
       <translation>Scăpări</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="956" />
+      <location filename="../oscar/SleepLib/common.cpp" line="978" />
       <source>Large Leak</source>
       <translation>Scăpare din Mască semnificativă</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="957" />
+      <location filename="../oscar/SleepLib/common.cpp" line="979" />
       <location filename="../oscar/SleepLib/schema.cpp" line="191" />
       <source>LL</source>
       <translatorcomment>Scăpare din mască</translatorcomment>
       <translation>Scăpări din Mască</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="958" />
+      <location filename="../oscar/SleepLib/common.cpp" line="980" />
       <location filename="../oscar/SleepLib/schema.cpp" line="287" />
       <source>Total Leaks</source>
       <translation>Scăpări totale</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="959" />
+      <location filename="../oscar/SleepLib/common.cpp" line="981" />
       <source>Unintentional Leaks</source>
       <translation>Scăpări Neintenționale</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="960" />
+      <location filename="../oscar/SleepLib/common.cpp" line="982" />
       <source>MaskPressure</source>
       <translation>PresiuneMască</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="961" />
+      <location filename="../oscar/SleepLib/common.cpp" line="983" />
       <location filename="../oscar/SleepLib/schema.cpp" line="235" />
       <source>Flow Rate</source>
       <translation>Flux</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="962" />
+      <location filename="../oscar/SleepLib/common.cpp" line="984" />
       <location filename="../oscar/SleepLib/schema.cpp" line="355" />
       <source>Sleep Stage</source>
       <translation>Stadiul somnului</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="963" />
+      <location filename="../oscar/SleepLib/common.cpp" line="985" />
       <source>Usage</source>
       <translation>Utilizare</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="964" />
+      <location filename="../oscar/SleepLib/common.cpp" line="986" />
       <source>Sessions</source>
       <translation>Sesiuni</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="965" />
+      <location filename="../oscar/SleepLib/common.cpp" line="987" />
       <source>Pr. Relief</source>
       <translation>Pr. Relief</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="976" />
+      <location filename="../oscar/SleepLib/common.cpp" line="998" />
       <source>Device</source>
       <translation>Dispozitiv</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="847" />
+      <location filename="../oscar/SleepLib/common.cpp" line="869" />
       <source>No Data Available</source>
       <translation>Nu sunt Date disponibile</translation>
     </message>
@@ -8545,7 +8568,7 @@ TTIA: %1</translation>
       <translation>App key:</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="808" />
+      <location filename="../oscar/SleepLib/common.cpp" line="830" />
       <source>Software Engine</source>
       <translation>Program</translation>
     </message>
@@ -8555,80 +8578,80 @@ TTIA: %1</translation>
       <translation type="vanished">ANGLE / OpenGLES</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="809" />
+      <location filename="../oscar/SleepLib/common.cpp" line="831" />
       <source>Desktop OpenGL</source>
       <translatorcomment>Foloseste Graphic Engine " OpenGL" din Windows pt redarea graficelor</translatorcomment>
       <translation>Desktop OpenGL</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="811" />
+      <location filename="../oscar/SleepLib/common.cpp" line="833" />
       <source> m</source>
       <translation> m</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="812" />
+      <location filename="../oscar/SleepLib/common.cpp" line="834" />
       <source> cm</source>
       <translation> cm</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="813" />
+      <location filename="../oscar/SleepLib/common.cpp" line="835" />
       <source>in</source>
       <translation>in</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="817" />
+      <location filename="../oscar/SleepLib/common.cpp" line="839" />
       <source>kg</source>
       <translation>kg</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="822" />
+      <location filename="../oscar/SleepLib/common.cpp" line="844" />
       <source>milliSeconds</source>
       <translation type="unfinished">milisecunde</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="831" />
+      <location filename="../oscar/SleepLib/common.cpp" line="853" />
       <source>l/min</source>
       <translation>l/min</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="848" />
+      <location filename="../oscar/SleepLib/common.cpp" line="870" />
       <source>Only Settings and Compliance Data Available</source>
       <translation>Sunt disponibile doar setările și datele de conformitate</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="850" />
+      <location filename="../oscar/SleepLib/common.cpp" line="872" />
       <source>Summary Data Only</source>
       <translation>Doar date sumare</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="857" />
+      <location filename="../oscar/SleepLib/common.cpp" line="879" />
       <location filename="../oscar/main.cpp" line="172" />
       <source>Cancel</source>
       <translation type="unfinished">Anuleaza</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="858" />
+      <location filename="../oscar/SleepLib/common.cpp" line="880" />
       <source>Destroy</source>
       <translation type="unfinished">Distruge</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="859" />
+      <location filename="../oscar/SleepLib/common.cpp" line="881" />
       <source>Save</source>
       <translation type="unfinished">Salvează</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="863" />
+      <location filename="../oscar/SleepLib/common.cpp" line="885" />
       <location filename="../oscar/SleepLib/schema.cpp" line="343" />
       <source>Feeling</source>
       <translation type="unfinished">Stare generală</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="967" />
+      <location filename="../oscar/SleepLib/common.cpp" line="989" />
       <source>Bookmarks</source>
       <translation>Semne de carte</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="971" />
+      <location filename="../oscar/SleepLib/common.cpp" line="993" />
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="878" />
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="880" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2858" />
@@ -8640,107 +8663,107 @@ TTIA: %1</translation>
       <translation>Mod</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="972" />
+      <location filename="../oscar/SleepLib/common.cpp" line="994" />
       <source>Model</source>
       <translation>Model</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="973" />
+      <location filename="../oscar/SleepLib/common.cpp" line="995" />
       <source>Brand</source>
       <translation>Brand</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="974" />
+      <location filename="../oscar/SleepLib/common.cpp" line="996" />
       <source>Serial</source>
       <translation>Serial</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="975" />
+      <location filename="../oscar/SleepLib/common.cpp" line="997" />
       <source>Series</source>
       <translation>Serie</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="977" />
+      <location filename="../oscar/SleepLib/common.cpp" line="999" />
       <source>Channel</source>
       <translation>Parametru</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="978" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1000" />
       <source>Settings</source>
       <translation>Setari</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="980" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1002" />
       <location filename="../oscar/SleepLib/schema.cpp" line="300" />
       <source>Inclination</source>
       <translation>Inclinație</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="981" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1003" />
       <location filename="../oscar/SleepLib/schema.cpp" line="297" />
       <source>Orientation</source>
       <translation>Orientare</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="982" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1004" />
       <source>Motion</source>
       <translation>Deplasare</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="984" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1006" />
       <source>Name</source>
       <translation>Nume</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="985" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1007" />
       <source>DOB</source>
       <translatorcomment>disorder of breathing, number of apneas and hypopneas per hour</translatorcomment>
       <translation>Evenim</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="986" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1008" />
       <source>Phone</source>
       <translation>Telefon</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="987" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1009" />
       <source>Address</source>
       <translation>Adresa</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="988" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1010" />
       <source>Email</source>
       <translation>Email</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="989" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1011" />
       <source>Patient ID</source>
       <translation>ID pacient</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="990" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1012" />
       <source>Date</source>
       <translation>Data</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="992" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1014" />
       <source>Bedtime</source>
       <translation>Ora de culcare</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="993" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1015" />
       <source>Wake-up</source>
       <translation>Trezire</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="994" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1016" />
       <source>Mask Time</source>
       <translation>Timp cu Masca</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="995" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="644" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="712" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1017" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="669" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="737" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="152" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="229" />
       <location filename="../oscar/SleepLib/loader_plugins/weinmann_loader.h" line="126" />
@@ -8748,96 +8771,96 @@ TTIA: %1</translation>
       <translation>Necunoscut</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="996" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1018" />
       <source>None</source>
       <translation>Niciuna</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="997" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1019" />
       <source>Ready</source>
       <translation>Pregatit</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="999" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1021" />
       <source>First</source>
       <translation>Primul</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1000" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1022" />
       <source>Last</source>
       <translation>Ultimul</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1001" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1023" />
       <location filename="../oscar/SleepLib/schema.cpp" line="344" />
       <source>Start</source>
       <translation>Start</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1002" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1024" />
       <location filename="../oscar/SleepLib/schema.cpp" line="345" />
       <source>End</source>
       <translation>Sfârsit</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1003" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1025" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="215" />
       <source>On</source>
       <translation>Pornit</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1004" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1026" />
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="896" />
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="1105" />
       <source>Off</source>
       <translation>Oprit</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="855" />
-      <location filename="../oscar/SleepLib/common.cpp" line="1006" />
+      <location filename="../oscar/SleepLib/common.cpp" line="877" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1028" />
       <source>Yes</source>
       <translation>Da</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="856" />
-      <location filename="../oscar/SleepLib/common.cpp" line="1007" />
+      <location filename="../oscar/SleepLib/common.cpp" line="878" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1029" />
       <source>No</source>
       <translation>Nu</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1009" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1031" />
       <source>Min</source>
       <translation>Min</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1010" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1032" />
       <source>Max</source>
       <translation>Max</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1011" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1033" />
       <source>Med</source>
       <translation>Med</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1013" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1035" />
       <source>Average</source>
       <translation>Medie</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1014" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1036" />
       <source>Median</source>
       <translation>Medie</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="228" />
-      <location filename="../oscar/SleepLib/common.cpp" line="1015" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1037" />
       <source>Avg</source>
       <translation>Med</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="226" />
-      <location filename="../oscar/SleepLib/common.cpp" line="1016" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1038" />
       <source>W-Avg</source>
       <translation>Medie Ponderată</translation>
     </message>
@@ -8920,7 +8943,7 @@ TTIA: %1</translation>
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.cpp" line="692" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="922" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="1001" />
-      <location filename="../oscar/mainwindow.cpp" line="3109" />
+      <location filename="../oscar/mainwindow.cpp" line="3128" />
       <source>Importing Sessions...</source>
       <translation>Import Sesiunile...</translation>
     </message>
@@ -9259,8 +9282,8 @@ TTIA: %1</translation>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="702" />
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="833" />
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="1221" />
-      <location filename="../oscar/mainwindow.cpp" line="973" />
-      <location filename="../oscar/mainwindow.cpp" line="3149" />
+      <location filename="../oscar/mainwindow.cpp" line="974" />
+      <location filename="../oscar/mainwindow.cpp" line="3168" />
       <source>Finishing up...</source>
       <translation>Finalizare....</translation>
     </message>
@@ -9276,7 +9299,7 @@ TTIA: %1</translation>
       <translation>CPAP-Check</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="638" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="663" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2864" />
       <source>AutoCPAP</source>
       <translation>AutoCPAP</translation>
@@ -9292,318 +9315,318 @@ TTIA: %1</translation>
       <translation>AutoBiLevel</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="236" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="240" />
       <source>Import Error - Out of Memory</source>
       <translation type="unfinished">Eroare Import - Memorie Insuficientă</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="237" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="241" />
       <source>Additional memory could not be allocated during the import.</source>
       <translation type="unfinished">Nu s-a putut aloca memorie suplimentară în timpul importului.</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="238" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="242" />
       <source>Please try switching to 64-bit OSCAR or setting your preferences to ignore older sessions.</source>
       <translation type="unfinished">Vă rugăm să încercați să treceți la OSCAR pe 64 de biți sau să setați preferințele pentru a ignora sesiunile mai vechi.</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="635" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="660" />
       <source>BMC Mode</source>
       <translation type="unfinished">Mod BMC</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="639" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="664" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2869" />
       <source>S</source>
       <translation>S</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="640" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="665" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2870" />
       <source>S/T</source>
       <translation>S/T</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="641" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="666" />
       <source>T</source>
       <translation type="unfinished">T</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="642" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="667" />
       <source>Titration</source>
       <translation type="unfinished">Titrare</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="643" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="668" />
       <source>AutoS</source>
       <translation type="unfinished">AutoS</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="648" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="673" />
       <source>Reslex</source>
       <translation type="unfinished">Reslex</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="648" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="673" />
       <source>BMC Reslex is an exhalation pressure relief feature</source>
       <translation type="unfinished">BMC Reslex este o funcție de reducere a presiunii la expirație</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="650" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="663" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="718" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="675" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="688" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="743" />
       <location filename="../oscar/SleepLib/loader_plugins/vrem_loader.cpp" line="652" />
       <source>1</source>
       <translation type="unfinished">1</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="651" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="664" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="719" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="676" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="689" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="744" />
       <location filename="../oscar/SleepLib/loader_plugins/vrem_loader.cpp" line="653" />
       <source>2</source>
       <translation type="unfinished">2</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="652" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="665" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="720" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="677" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="690" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="745" />
       <location filename="../oscar/SleepLib/loader_plugins/vrem_loader.cpp" line="654" />
       <source>3</source>
       <translation type="unfinished">3</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="653" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="794" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="678" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="819" />
       <source>Patient</source>
       <translation type="unfinished">Pacient</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="657" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="682" />
       <source>Reslex Mode</source>
       <translation type="unfinished">Mod Reslex</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="666" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="721" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="691" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="746" />
       <location filename="../oscar/SleepLib/loader_plugins/vrem_loader.cpp" line="655" />
       <source>4</source>
       <translation type="unfinished">4</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="667" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="722" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="692" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="747" />
       <location filename="../oscar/SleepLib/loader_plugins/vrem_loader.cpp" line="656" />
       <source>5</source>
       <translation type="unfinished">5</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="671" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="696" />
       <source>SmartA</source>
       <translation type="unfinished">SmartA</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="676" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="701" />
       <source>SmartB</source>
       <translation type="unfinished">SmartB</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="681" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="706" />
       <source>SmartC</source>
       <translation type="unfinished">SmartC</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="696" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="721" />
       <source>Leak Alert</source>
       <translation type="unfinished">Alertă de scurgere</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="701" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="726" />
       <source>Air Tube Type</source>
       <translation type="unfinished">Tip tub de aer</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="702" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="727" />
       <source>Normal 22mm</source>
       <translation type="unfinished">Normal 22mm</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="703" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="728" />
       <source>Normal 15mm</source>
       <translation type="unfinished">Normal 15mm</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="704" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="705" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="729" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="730" />
       <source>Heated 22mm</source>
       <translation type="unfinished">Încălzit 22mm</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="711" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="736" />
       <source>Nasal Pillows</source>
       <translation type="unfinished">Perne nazale</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="716" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="741" />
       <source>Heated Tube Level</source>
       <translation type="unfinished">Nivel tub încălzit</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="727" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <source>BmcRampTime</source>
       <translation type="unfinished">BmcRampTime</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="727" />
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="730" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
       <translation type="unfinished">Timp rampă</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="730" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>BmcRampAuto</source>
       <translation type="unfinished">BmcRampAuto</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="735" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="760" />
       <source>InitialP</source>
       <translation type="unfinished">InitialP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="735" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="760" />
       <source>Initial P</source>
       <translation type="unfinished">P inițial</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="738" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="763" />
       <source>TreatP</source>
       <translation type="unfinished">TreatP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="738" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="763" />
       <source>Treat P</source>
       <translation type="unfinished">P tratament</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="741" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="766" />
       <source>ManualP</source>
       <translation type="unfinished">ManualP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="741" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="766" />
       <source>Manual P</source>
       <translation type="unfinished">P manual</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="744" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="769" />
       <source>Min APAP</source>
       <translation type="unfinished">Min APAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="747" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="772" />
       <source>Max APAP</source>
       <translation type="unfinished">Max APAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="750" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="775" />
       <source>Sensitivity</source>
       <translation type="unfinished">Sensibilitate</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="753" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="778" />
       <source>Initial EPAP</source>
       <translation type="unfinished">EPAP inițial</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="762" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="787" />
       <source>ISens</source>
       <translation type="unfinished">ISens</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="762" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="787" />
       <source>I Sens</source>
       <translation type="unfinished">I Sens</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="765" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="790" />
       <source>ESens</source>
       <translation type="unfinished">ESens</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="765" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="790" />
       <source>E Sens</source>
       <translation type="unfinished">E Sens</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="771" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="796" />
       <source>Ti Min</source>
       <translation type="unfinished">Ti Min</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="774" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="799" />
       <source>Ti Max</source>
       <translation type="unfinished">Ti Max</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="777" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="802" />
       <source>BackupRR</source>
       <translation type="unfinished">BackupRR</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="777" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="802" />
       <source>Backup RR</source>
       <translation type="unfinished">Backup RR</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="782" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="807" />
       <source>MinEPAP</source>
       <translation type="unfinished">MinEPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="785" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="810" />
       <source>MinIPAP</source>
       <translation type="unfinished">MinIPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="788" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="813" />
       <source>MaxIPAP</source>
       <translation type="unfinished">MaxIPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="792" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="817" />
       <source>Reslex Availability</source>
       <translation type="unfinished">Disponibilitate Reslex</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="792" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="817" />
       <source>Reslex setting can be restricted to only clinician menu or may be made available for the user to change</source>
       <translation type="unfinished">Setarea Reslex poate fi restricționată doar la meniul clinicianului sau poate fi făcută disponibilă pentru utilizator pentru a o modifica</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="793" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="818" />
       <source>Clinician</source>
       <translation type="unfinished">Clinician</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="823" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="848" />
       <location filename="../oscar/SleepLib/loader_plugins/bmcg3x_loader.cpp" line="63" />
       <source>Reading data...</source>
       <translation type="unfinished">Citire date...</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="839" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="864" />
       <location filename="../oscar/SleepLib/loader_plugins/bmcg3x_loader.cpp" line="71" />
       <source>Find sessions to import...</source>
       <translation type="unfinished">Căutare sesiuni pentru import...</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="886" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="911" />
       <location filename="../oscar/SleepLib/loader_plugins/bmcg3x_loader.cpp" line="148" />
       <source>Creating data backup...</source>
       <translation type="unfinished">Creare copie de rezervă a datelor...</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="914" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="939" />
       <location filename="../oscar/SleepLib/loader_plugins/bmcg3x_loader.cpp" line="167" />
       <source>Starting import...</source>
       <translation type="unfinished">Pornire import...</translation>
@@ -9970,7 +9993,7 @@ TTIA: %1</translation>
       <translation>P-Flex</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="768" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="793" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2885" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2909" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2911" />
@@ -10032,14 +10055,14 @@ TTIA: %1</translation>
       <translation>12mm</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="686" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="711" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="3007" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="3009" />
       <source>Auto On</source>
       <translation>Auto activat</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="691" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="716" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="3016" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="3018" />
       <source>Auto Off</source>
@@ -10566,7 +10589,7 @@ TTIA: %1</translation>
       <translation>Obstructie partiala a cailor aeriene</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="903" />
+      <location filename="../oscar/SleepLib/common.cpp" line="925" />
       <location filename="../oscar/SleepLib/schema.cpp" line="174" />
       <source>UA</source>
       <translation>UA</translation>
@@ -10708,7 +10731,7 @@ TTIA: %1</translation>
       <translation>Raport intre timpul Inspirator si Expirator</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="836" />
+      <location filename="../oscar/SleepLib/common.cpp" line="858" />
       <source>ratio</source>
       <translation>raport</translation>
     </message>
@@ -10753,7 +10776,7 @@ TTIA: %1</translation>
       <translation>EPAP Setări</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="935" />
+      <location filename="../oscar/SleepLib/common.cpp" line="957" />
       <location filename="../oscar/SleepLib/schema.cpp" line="164" />
       <source>CSR</source>
       <translatorcomment> Respiratie Cheyne Stokes</translatorcomment>
@@ -11578,7 +11601,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <translation>Probabil daca faceti asta datele vor fi corupte, sigur doriti asta?</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="840" />
+      <location filename="../oscar/SleepLib/common.cpp" line="862" />
       <source>Question</source>
       <translation>Intrebare</translation>
     </message>
@@ -11595,56 +11618,56 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <translation>Sunteti sigur ca doriti sa utilizati acest dosar?</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="422" />
+      <location filename="../oscar/mainwindow.cpp" line="423" />
       <source>OSCAR Reminder</source>
       <translation>Reamintire OSCAR</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="422" />
+      <location filename="../oscar/mainwindow.cpp" line="423" />
       <source>Don't forget to place your datacard back in your CPAP device</source>
       <translation>Nu uitați să puneți cardul de date înapoi în dispozitivul CPAP</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="631" />
+      <location filename="../oscar/mainwindow.cpp" line="632" />
       <source>You can only work with one instance of an individual OSCAR profile at a time.</source>
       <translation>Puteti lucra cu un singur Profil pacient la un moment dat.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="632" />
+      <location filename="../oscar/mainwindow.cpp" line="633" />
       <source>If you are using cloud storage, make sure OSCAR is closed and syncing has completed first on the other computer before proceeding.</source>
       <translation>Daca salvati datele in cloud, asigurati-va ca OSCAR este inchis si ca sincronizarea cu cloud-ul s-a finalizat inainte de a reporni programul.</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="681" />
+      <location filename="../oscar/mainwindow.cpp" line="682" />
       <source>Loading profile "%1"...</source>
       <translation>Incarc Profil pacient "%1"...</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1237" />
+      <location filename="../oscar/mainwindow.cpp" line="1238" />
       <source>Chromebook file system detected, but no removable device found
 </source>
       <translation>Chromebook-ul dvs nu are un dispozitiv de memorie detasabil (card de memorie)
 </translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="1238" />
+      <location filename="../oscar/mainwindow.cpp" line="1239" />
       <source>You must share your SD card with Linux using the ChromeOS Files program</source>
       <translation>Trebuie să partajați cardul SD cu Linux utilizând programul ChromeOS Files</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="2734" />
+      <location filename="../oscar/mainwindow.cpp" line="2746" />
       <source>Recompressing Session Files</source>
       <translation>Recomprim fișierele sesiunii</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3664" />
+      <location filename="../oscar/mainwindow.cpp" line="3690" />
       <source>Please select a location for your zip other than the data card itself!</source>
       <translation>Vă rog selectați o altă locație pentru arhiva zip., în afară de cardul de date în sine!</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="3713" />
-      <location filename="../oscar/mainwindow.cpp" line="3765" />
-      <location filename="../oscar/mainwindow.cpp" line="4070" />
+      <location filename="../oscar/mainwindow.cpp" line="3739" />
+      <location filename="../oscar/mainwindow.cpp" line="3791" />
+      <location filename="../oscar/mainwindow.cpp" line="4096" />
       <source>Unable to create zip!</source>
       <translation>Nu pot crea zip!</translation>
     </message>
@@ -11783,7 +11806,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <translation>(Doar sumar)</translation>
     </message>
     <message>
-      <location filename="../oscar/mainwindow.cpp" line="630" />
+      <location filename="../oscar/mainwindow.cpp" line="631" />
       <source>There is a lockfile already present for this profile '%1', claimed on '%2'.</source>
       <translation>Exista deja un fisier blocat pentru acest Profil pacient'%1', creat pe '%2'.</translation>
     </message>
@@ -12307,7 +12330,7 @@ fereastra popout, să o ștergeți, apoi să deschideți din nou acest grafic.</
       <translation type="unfinished">RiseEnable</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="768" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="793" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="265" />
       <source>RiseTime</source>
       <translation type="unfinished">RiseTime</translation>
@@ -12323,13 +12346,13 @@ fereastra popout, să o ștergeți, apoi să deschideți din nou acest grafic.</
       <translation type="unfinished">Declanșator</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="774" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="799" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="284" />
       <source>TiMax</source>
       <translation type="unfinished">TiMax</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="771" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="796" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="288" />
       <source>TiMin</source>
       <translation type="unfinished">TiMin</translation>
@@ -12472,14 +12495,14 @@ fereastra popout, să o ștergeți, apoi să deschideți din nou acest grafic.</
       <translation>Parcurg înregistrările STR.edf...</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/common.cpp" line="1005" />
+      <location filename="../oscar/SleepLib/common.cpp" line="1027" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="2967" />
       <location filename="../oscar/SleepLib/loader_plugins/prs1_loader.cpp" line="3058" />
       <source>Auto</source>
       <translation>Auto</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="708" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="733" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="224" />
       <source>Mask</source>
       <translation>Masca</translation>
@@ -12495,13 +12518,13 @@ fereastra popout, să o ștergeți, apoi să deschideți din nou acest grafic.</
       <translation>Perne</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="709" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="734" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="227" />
       <source>Full Face</source>
       <translation>Faciala</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="710" />
+      <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="735" />
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="228" />
       <source>Nasal</source>
       <translation>Nazala</translation>
@@ -12576,7 +12599,7 @@ fereastra popout, să o ștergeți, apoi să deschideți din nou acest grafic.</
       <translation type="unfinished">Se încarcă %1 sesiuni din baza de date...</translation>
     </message>
     <message>
-      <location filename="../oscar/SleepLib/progressdialog.cpp" line="17" />
+      <location filename="../oscar/SleepLib/progressdialog.cpp" line="18" />
       <source>Please Wait...</source>
       <translation>Va rog asteptati...</translation>
     </message>
@@ -13046,7 +13069,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="136" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="785" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="793" />
       <source>Select a report from the tree to export</source>
       <translation type="unfinished">Selectați un raport din arbore pentru a exporta</translation>
     </message>
@@ -13101,74 +13124,74 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <translation type="unfinished">Interval rapid:</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="224" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="228" />
       <source>Start Date:</source>
       <translation type="unfinished">Data de început:</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="230" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="236" />
       <source>End Date:</source>
       <translation type="unfinished">Data de sfârșit:</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="238" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="246" />
       <source>Output filename...</source>
       <translation type="unfinished">Nume fișier de ieșire...</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="239" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="247" />
       <source>...</source>
       <translation type="unfinished">...</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="248" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="256" />
       <source>Filename:</source>
       <translation type="unfinished">Nume fisier:</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="260" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="268" />
       <source>After Export</source>
       <translation type="unfinished">După export</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="263" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="271" />
       <source>Open file after export</source>
       <translation type="unfinished">Deschide fișierul după export</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="267" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="275" />
       <source>Program:</source>
       <translation type="unfinished">Program:</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="270" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="278" />
       <source>(System default)</source>
       <translation type="unfinished">(Implicit sistem)</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="271" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="279" />
       <source>Excel</source>
       <translation type="unfinished">Excel</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="272" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="280" />
       <source>LibreOffice Calc</source>
       <translation type="unfinished">LibreOffice Calc</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="308" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="1157" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="1162" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="1168" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="1196" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="316" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1165" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1170" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1176" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1204" />
       <source>Export CSV</source>
       <translation type="unfinished">Export CSV</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="315" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="474" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="559" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="778" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="323" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="482" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="567" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="786" />
       <source>Edit SQL</source>
       <translation type="unfinished">Editare SQL</translation>
     </message>
@@ -13177,339 +13200,339 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <translation type="obsolete">Anuleaza</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="322" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="330" />
       <source>Close</source>
       <translation type="unfinished">Inchide</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="380" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="388" />
       <source>View Query</source>
       <translation type="unfinished">Vizualizare interogare</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="381" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="387" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="636" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="389" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="395" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="644" />
       <source>Duplicate to User</source>
       <translation type="unfinished">Duplicare pentru utilizator</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="383" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="408" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="391" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="416" />
       <source>Show Description</source>
       <translation type="unfinished">Afișare descriere</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="389" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="393" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="420" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="430" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="397" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="401" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="428" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="438" />
       <source>Expand All</source>
       <translation type="unfinished">Extinde tot</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="390" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="394" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="421" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="431" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="398" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="402" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="429" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="439" />
       <source>Collapse All</source>
       <translation type="unfinished">Restrânge tot</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="399" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="407" />
       <source>Edit Query</source>
       <translation type="unfinished">Editare interogare</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="400" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="408" />
       <source>View Query (Substituted)</source>
       <translation type="unfinished">Vizualizare interogare (substituită)</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="402" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="415" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="410" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="423" />
       <source>Rename</source>
       <translation type="unfinished">Redenumire</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="403" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="617" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="411" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="625" />
       <source>Duplicate</source>
       <translation type="unfinished">Duplicare</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="404" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="416" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="599" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="412" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="424" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="607" />
       <source>Delete</source>
       <translation type="unfinished">Sterge</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="406" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="656" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="661" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="414" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="664" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="669" />
       <source>Edit Description</source>
       <translation type="unfinished">Editare descriere</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="412" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="424" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="497" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="513" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="420" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="432" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="505" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="521" />
       <source>New Report</source>
       <translation type="unfinished">Raport nou</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="413" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="425" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="531" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="538" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="421" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="433" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="539" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="546" />
       <source>New Folder</source>
       <translation type="unfinished">Dosar nou</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="418" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="427" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="426" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="435" />
       <source>Import Reports...</source>
       <translation type="unfinished">Import rapoarte...</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="428" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="436" />
       <source>Export All User Reports...</source>
       <translation type="unfinished">Export toate rapoartele utilizatorului...</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="465" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="473" />
       <source>View SQL — %1 (read only)</source>
       <translation type="unfinished">Vizualizare SQL — %1 (doar citire)</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="470" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="554" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="478" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="562" />
       <source>Edit SQL — %1</source>
       <translation type="unfinished">Editare SQL — %1</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="474" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="559" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="482" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="567" />
       <source>Failed to save query.</source>
       <translation type="unfinished">Salvarea interogării a eșuat.</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="498" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="506" />
       <source>Report name:</source>
       <translation type="unfinished">Numele raportului:</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="514" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="522" />
       <source>Failed to create report. A report with that name may already exist.</source>
       <translation type="unfinished">Crearea raportului a eșuat. Un raport cu acel nume poate exista deja.</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="532" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="540" />
       <source>Folder name:</source>
       <translation type="unfinished">Numele folderului:</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="539" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="547" />
       <source>Failed to create folder. A folder with that name may already exist.</source>
       <translation type="unfinished">Crearea folderului a eșuat. Un folder cu acel nume poate exista deja.</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="570" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="578" />
       <source>View SQL (Substituted) — %1</source>
       <translation type="unfinished">Vizualizare SQL (Substituit) — %1</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="588" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="596" />
       <source>report</source>
       <translation type="unfinished">raport</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="588" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="596" />
       <source>folder</source>
       <translation type="unfinished">folder</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="591" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="599" />
       <source>Delete %1 "%2" and all %3 item(s) inside it?</source>
       <translation type="unfinished">Ștergeți %1 "%2" și toate cele %3 element(e) din interior?</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="592" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="600" />
       <source>Delete %1 "%2"?</source>
       <translation type="unfinished">Ștergeți %1 "%2"?</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="594" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="602" />
       <source>Confirm Delete</source>
       <translation type="unfinished">Confirmați ștergerea</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="599" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="607" />
       <source>Failed to delete item.</source>
       <translation type="unfinished">Ștergerea elementului a eșuat.</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="609" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
       <translation type="unfinished">(Copie)</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="617" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="625" />
       <source>Failed to duplicate item.</source>
       <translation type="unfinished">Duplicarea elementului a eșuat.</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="636" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="644" />
       <source>Failed to copy item to User branch.</source>
       <translation type="unfinished">Copierea elementului în ramura Utilizator a eșuat.</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="645" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="653" />
       <source>Description: %1</source>
       <translation type="unfinished">Descriere: %1</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="646" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="654" />
       <source>(no description)</source>
       <translation type="unfinished">(fără descriere)</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="657" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="665" />
       <source>Description for "%1":</source>
       <translation type="unfinished">Descriere pentru „%1":</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="661" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="669" />
       <source>Failed to save description.</source>
       <translation type="unfinished">Salvarea descrierii a eșuat.</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="674" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="681" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="682" />
       <location filename="../oscar/exports/report_exporter.cpp" line="689" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="698" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="697" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="706" />
       <source>Import Reports</source>
       <translation type="unfinished">Importați rapoarte</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="675" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="710" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="683" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="718" />
       <source>OSCAR Report Files (*.orf)</source>
       <translation type="unfinished">Fișiere raport OSCAR (*.orf)</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="682" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
       <translation type="unfinished">Eroare la analizarea fișierului:\n%1</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="690" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
       <translation type="unfinished">Import eșuat:\n%1</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="699" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
       <translation type="unfinished">Au fost importate %1 raport(e) din:\n%2</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="708" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="716" />
       <source>Export Reports</source>
       <translation type="unfinished">Exportare rapoarte</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="718" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="725" />
-      <location filename="../oscar/exports/report_exporter.cpp" line="730" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="726" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="733" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="738" />
       <source>Export</source>
       <translation type="unfinished">Exportă</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="719" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="727" />
       <source>No reports to export under "%1".</source>
       <translation type="unfinished">Nu există rapoarte de exportat în „%1".</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="726" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
       <translation type="unfinished">Eroare la scrierea fișierului:\n%1</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="731" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
       <translation type="unfinished">Au fost exportate %1 raport(e) în:\n%2</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="778" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="786" />
       <source>View SQL</source>
       <translation type="unfinished">Vizualizare SQL</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="791" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="799" />
       <source>System</source>
       <translation type="unfinished">Sistem</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="791" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="799" />
       <source>User</source>
       <translation type="unfinished">Utilizator</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="797" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="805" />
       <source>Report: %1 (%2) — right-click for options</source>
       <translation type="unfinished">Raport: %1 (%2) — clic dreapta pentru opțiuni</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="799" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="807" />
       <source>Folder: %1 — right-click for options</source>
       <translation type="unfinished">Dosar: %1 — clic dreapta pentru opțiuni</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="801" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="809" />
       <source>%1 branch — right-click for options</source>
       <translation type="unfinished">Ramura %1 — clic dreapta pentru opțiuni</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="858" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="866" />
       <source>(No profiles)</source>
       <translation type="unfinished">(Niciun profil)</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="1137" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1145" />
       <source>Save CSV</source>
       <translation type="unfinished">Salvare CSV</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="1139" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1147" />
       <source>CSV Files (*.csv)</source>
       <translation type="unfinished">CSV Files (*.csv)</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="1157" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1165" />
       <source>Please specify an output filename.</source>
       <translation type="unfinished">Vă rugăm să specificați un nume de fișier de ieșire.</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="1163" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
       <translation type="unfinished">Interogare eșuată:\n%1</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="1169" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
       <translation type="unfinished">Nu se poate scrie fișierul:\n%1</translation>
     </message>
     <message>
-      <location filename="../oscar/exports/report_exporter.cpp" line="1197" />
+      <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
       <translation type="unfinished">Au fost exportate %1 rânduri în:\n%2</translation>
@@ -13778,7 +13801,7 @@ This will also delete %1 report varieties.</source>
     <name>ReportVarietyEditor</name>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="14" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="36" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="35" />
       <source>Report Variety Editor</source>
       <translation type="unfinished">Editor Variantă Raport</translation>
     </message>
@@ -13842,9 +13865,9 @@ This will also delete %1 report varieties.</source>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="136" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="146" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="168" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="145" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="167" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="191" />
       <source>Test Query</source>
       <translation type="unfinished">Testați Interogarea</translation>
     </message>
@@ -13864,59 +13887,59 @@ This will also delete %1 report varieties.</source>
       <translation type="unfinished">Anuleaza</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="42" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="41" />
       <source>Copy Report Variety</source>
       <translation type="unfinished">Copiați Varianta Raportului</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="44" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="43" />
       <source>New Report Variety</source>
       <translation type="unfinished">Varietate Raport Nou</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="78" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="77" />
       <source>Load Variety</source>
       <translation type="unfinished">Încarcă Varietate</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="79" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="78" />
       <source>Could not load source variety.</source>
       <translation type="unfinished">Nu s-a putut încărca varietatea sursă.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="89" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
       <translation type="unfinished">(Copie)</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="95" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
       <source>Copying variety '%1' from report '%2'</source>
       <translation type="unfinished">Copiere varietate '%1' din raportul '%2'</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="114" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="121" />
       <source>Select Report</source>
       <translation type="unfinished">Selectează Raport</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="116" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
       <translation type="unfinished">Nu există rapoarte personalizate disponibile.\nIntroduceți un nume nou pentru raport pentru a crea unul.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="123" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
       <source>Select target report:</source>
       <translation type="unfinished">Selectați raportul țintă:</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="147" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="146" />
       <source>Could not find profile in database.</source>
       <translation type="unfinished">Nu s-a putut găsi profilul în baza de date.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="166" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="165" />
       <source>Query failed:
 
 %1
@@ -13926,103 +13949,103 @@ SQL Error:
       <translation type="unfinished">Interogare eșuată:\n\n%1\n\nEroare SQL:\n%2</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="193" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
       <translation type="unfinished">Interogare executată cu succes.\n\nNu s-au returnat rezultate (acest lucru poate fi normal dacă nu există date pentru intervalul de date).</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
       <translation type="unfinished">Rezultate Test Interogare\n</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="202" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
       <translation type="unfinished">(Se afișează primele %1 rânduri)\n\n</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="214" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
       <source>Test Query Results</source>
       <translation type="unfinished">Rezultate Test Interogare</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="215" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="214" />
       <source>Query executed successfully!</source>
       <translation type="unfinished">Interogare executată cu succes!</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="236" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="255" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="262" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="235" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="254" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="261" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="386" />
       <source>Save Variety</source>
       <translation type="unfinished">Salvează Varietate</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="237" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="236" />
       <source>Failed to get or create target report.</source>
       <translation type="unfinished">Nu s-a reușit obținerea sau crearea raportului țintă.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="256" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="255" />
       <source>Failed to save variety to database.</source>
       <translation type="unfinished">Nu s-a reușit salvarea varietății în baza de date.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="263" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="262" />
       <source>Variety '%1' saved successfully to report '%2'.</source>
       <translation type="unfinished">Varietatea '%1' a fost salvată cu succes în raportul '%2'.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="298" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="305" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="313" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="320" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="337" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="363" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="297" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="304" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="312" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="319" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="336" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="353" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="362" />
       <source>Validation</source>
       <translation type="unfinished">Validare</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="299" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="298" />
       <source>Report name cannot be empty.</source>
       <translation type="unfinished">Numele raportului nu poate fi gol.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="306" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="305" />
       <source>Variety name cannot be empty.</source>
       <translation type="unfinished">Numele varietății nu poate fi gol.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="314" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="313" />
       <source>Report name too long (maximum 100 characters).</source>
       <translation type="unfinished">Numele raportului este prea lung (maximum 100 de caractere).</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="321" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="320" />
       <source>Variety name too long (maximum 50 characters).</source>
       <translation type="unfinished">Numele varietății este prea lung (maximum 50 de caractere).</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="338" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="337" />
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
       <translation type="unfinished">O varietate numită '%1' există deja în raportul '%2'.\n\nVă rugăm să alegeți un alt nume de varietate.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="355" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
       <source>SQL query cannot be empty.</source>
       <translation type="unfinished">Interogarea SQL nu poate fi goală.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="364" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="363" />
       <source>Query does not contain all required macros:
 
 #PROFILE_ID, #START_DATE, #END_DATE
@@ -14033,27 +14056,27 @@ Continue anyway?</source>
       <translation type="unfinished">Interogarea nu conține toate macrocomenzile necesare:\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\nInterogarea poate să nu funcționeze corect.\n\nContinuați oricum?</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="388" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
       <translation type="unfinished">Nu se pot adăuga varietăți la raportul de sistem '%1'.\n\nVă rugăm să alegeți un alt nume de raport.</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="397" />
-      <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="408" />
       <source>Create Report</source>
       <translation type="unfinished">Creare raport</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="398" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="397" />
       <source>Report '%1' does not exist.
 
 Create it?</source>
       <translation type="unfinished">Raportul '%1' nu există.\n\nÎl creați?</translation>
     </message>
     <message>
-      <location filename="../oscar/reportvarietyeditor.cpp" line="410" />
+      <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
       <source>Description (optional):</source>
       <translation type="unfinished">Descriere (opțional):</translation>
     </message>
