@@ -197,6 +197,14 @@ void DatabaseManager::close()
             qDebug() << "DatabaseManager::close: PRAGMA optimize complete";
         }
 
+        // Merge all WAL frames into the main file and truncate the WAL so that
+        // only oscar.db needs to be synced by cloud-storage tools (e.g. Dropbox).
+        if (!query.exec("PRAGMA wal_checkpoint(TRUNCATE)")) {
+            qWarning() << "DatabaseManager::close: WAL checkpoint failed:" << query.lastError().text();
+        } else {
+            qDebug() << "DatabaseManager::close: WAL checkpoint complete";
+        }
+
         qDebug() << "DatabaseManager::close: Closing database connection";
         m_database.close();
     }
