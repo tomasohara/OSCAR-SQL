@@ -192,23 +192,29 @@ void gFlagsGroup::paint(QPainter &painter, gGraph &g, const QRegion &region)
     }
     dur = maxx - minx;
 
+    // Use the current view bounds for the Selection Length text so it tracks zoom.
+    // (blockZoom keeps minx/maxx at full-day range for drawing; min_x/max_x reflect zoom.)
+    qint64 selminx = g.min_x;
+    qint64 selmaxx = g.max_x;
+    qint64 seldur  = selmaxx - selminx;
+
     #if BAR_TITLE_BAR_DEBUG
     // debug for minimum size for event flags.  adding required height for enabled events , number eventTypes , height of an event bar
    QString text= QString("%1 -> %2     %3: %4 H:%5 Vis:%6 barH:%7").
-        arg(QDateTime::fromMSecsSinceEpoch(minx).time().toString()).
-        arg(QDateTime::fromMSecsSinceEpoch(maxx).time().toString()).
+        arg(QDateTime::fromMSecsSinceEpoch(selminx).time().toString()).
+        arg(QDateTime::fromMSecsSinceEpoch(selmaxx).time().toString()).
         arg(QObject::tr("Selection Length")).
-        arg(QTime(0,0).addMSecs(dur).toString("H:mm:ss.zzz"))
+        arg(QTime(0,0).addMSecs(seldur).toString("H:mm:ss.zzz"))
         .arg(height)
         .arg(vis)
         .arg(m_barh)
         ;
     #else
     QString text= QString("%1 -> %2       %3: %4").
-        arg(QDateTime::fromMSecsSinceEpoch(minx).time().toString()).
-        arg(QDateTime::fromMSecsSinceEpoch(maxx).time().toString()).
+        arg(QDateTime::fromMSecsSinceEpoch(selminx).time().toString()).
+        arg(QDateTime::fromMSecsSinceEpoch(selmaxx).time().toString()).
         arg(QObject::tr("Selection Length")).
-        arg(QTime(0,0).addMSecs(dur).toString("H:mm:ss.zzz")) ;
+        arg(QTime(0,0).addMSecs(seldur).toString("H:mm:ss.zzz")) ;
     #endif
     g.renderText(text, left , top -5 );
 

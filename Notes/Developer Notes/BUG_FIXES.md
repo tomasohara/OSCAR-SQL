@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-13 — Daily page: Selection Length not updating on zoom
+
+**File:** `oscar/Graphs/gFlagsLine.cpp` — `gFlagsGroup::paint()`
+
+**Symptom:** On the Daily page, the "Selection Length" text at the top of the Event Flags
+graph always showed the full night's duration even after zooming in on another graph.
+
+**Root cause:** The Event Flags graph has `blockZoom = true` so that flags remain visible
+across the full day regardless of zoom. In `gFlagsGroup::paint()`, the same
+`blockZoom`-aware bounds (`g.rmin_x`/`g.rmax_x`) were used for both drawing the flag bars
+AND computing the Selection Length text. `rmin_x`/`rmax_x` are the full-day immutable
+bounds and are never updated by `SetXBounds`, so the Selection Length never reflected the
+zoomed window. In 1.7.1 the text used `g.graphView()->GetXBounds()` which always returns
+the current view bounds.
+
+**Fix:** Introduced separate `selminx`/`selmaxx`/`seldur` variables in `paint()` that always
+read `g.min_x`/`g.max_x`. These are updated by `SetXBounds` when any graph in the group
+zooms. Flag drawing continues to use the `blockZoom`-aware full-day bounds.
+
+---
+
 ## 2026-06-11 — Add Version 1 CSV export (1.7.x-style) to File > Export Data menu
 
 **Files:** `exports/exportcsv.h`, `exports/exportcsv.cpp`, `exports/exportcsv.ui`,
