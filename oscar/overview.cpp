@@ -26,6 +26,7 @@
 #include "SleepLib/profiles.h"
 #include "overview.h"
 #include "ui_overview.h"
+#include "combocheckdelegate.h"
 #include "common_gui.h"
 #include "Graphs/gXAxis.h"
 #include "Graphs/gLineChart.h"
@@ -171,6 +172,8 @@ Overview::Overview(QWidget *parent, gGraphView *shared) :
     icon_off = new QIcon(":/icons/session-off.png");
     icon_up_down = new QIcon(":/icons/up-down.png");
     icon_warning = new QIcon(":/icons/warning.png");
+
+    ui->graphCombo->view()->setItemDelegate(new ComboCheckDelegate(this));
 
     GraphView->resetLayout();
     GraphView->SaveDefaultSettings();
@@ -505,17 +508,18 @@ void Overview::updateGraphCombo()
     ui->graphCombo->clear();
     gGraph *g;
 
-    ui->graphCombo->addItem(*icon_up_down, "", true); 
+    ui->graphCombo->addItem(*icon_up_down, "", true);
     for (int i = 0; i < GraphView->size(); i++) {
         g = (*GraphView)[i];
 
         if (g->isEmpty()) { continue; }
 
-        if (g->visible()) {
-            ui->graphCombo->addItem(*icon_on, g->title(), true);
-        } else {
-            ui->graphCombo->addItem(*icon_off, g->title(), false);
-        }
+        bool vis = g->visible();
+        ui->graphCombo->addItem(vis ? *icon_on : *icon_off, g->title(), vis);
+        int idx = ui->graphCombo->count() - 1;
+        ui->graphCombo->model()->setData(
+            ui->graphCombo->model()->index(idx, 0),
+            vis ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
     }
     ui->graphCombo->addItem(*icon_on,STR_HIDE_ALL_GRAPHS,true);
     ui->graphCombo->setCurrentIndex(0);
@@ -907,6 +911,9 @@ void Overview::setRange(QDate& start, QDate& end, bool updateGraphs/*zoom*/)
 void Overview::showGraph(int index,bool show, bool updateGraph) {
     ui->graphCombo->setItemData(index,show,Qt::UserRole);
     ui->graphCombo->setItemIcon(index, show ? *icon_on : *icon_off);
+    ui->graphCombo->model()->setData(
+        ui->graphCombo->model()->index(index, 0),
+        show ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
     if (!updateGraph) return;
     QString graphName = ui->graphCombo->itemText(index);
     gGraph* graph=GraphView->findGraphTitle(graphName);

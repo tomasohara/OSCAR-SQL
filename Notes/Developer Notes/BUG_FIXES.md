@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-13 — Daily page: right-click menu checkboxes invisible when checked
+
+**File:** `oscar/Graphs/gGraphView.cpp` — `gGraphView::populateMenu()`
+
+**Symptom:** In the right-click context menu's Plots, CPAP Overlays, Oximeter Overlays, and
+Dotted Lines submenus, checked items showed no visual indicator at all; only unchecked items
+showed the empty-box outline.
+
+**Root cause:** In Qt6, applying any stylesheet to a `QCheckBox` (even just a hover
+background rule) activates QStyleSheetStyle for the entire widget. Without explicit
+`::indicator` rules in that stylesheet, QStyleSheetStyle cannot properly delegate the
+checked-state indicator to the native platform renderer inside a styled `QMenu`. The
+unchecked border outline still rendered (it's a simple CSS border), but the checked-state
+checkmark/fill was invisible.
+
+**Fix:** Added explicit `QCheckBox::indicator` stylesheet rules to all three
+`chbox->setStyleSheet(...)` calls in `populateMenu()`, using the already-existing
+`:/icons/empty_box.png` and `:/icons/checkmark.png` resource icons.
+
+---
+
 ## 2026-06-13 — Daily page: Selection Length not updating on zoom
 
 **File:** `oscar/Graphs/gFlagsLine.cpp` — `gFlagsGroup::paint()`

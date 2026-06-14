@@ -479,6 +479,7 @@ HEADERS  += \
     notifyMessageBox.h \
     dailySearchTab.h \
     daily.h \
+    combocheckdelegate.h \
     saveGraphLayoutSettings.h \
     overview.h \
     common_gui.h \

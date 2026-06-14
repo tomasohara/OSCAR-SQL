@@ -69,6 +69,8 @@
         <file>icons/cog.png</file>
         <file>icons/question_mark.png</file>
         <file>icons/checkmark.png</file>
+        <file>icons/white_tick.png</file>
+        <file>icons/dark_tick.png</file>
         <file>icons/empty_box.png</file>
         <file>icons/resvent.png</file>
         <file>icons/bmc.png</file>

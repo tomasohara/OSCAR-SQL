@@ -2371,7 +2371,11 @@ void gGraphView::populateMenu(gGraph * graph)
 
                 QCheckBox *chbox = new QCheckBox(chan.calc[dot.type].label(), context_menu);
                 chbox->setMouseTracking(true);
-                chbox->setStyleSheet(QString("QCheckBox:hover { background: %1; }").arg(QApplication::palette().highlight().color().name()));
+                chbox->setStyleSheet(QString("QCheckBox { padding-left: 5px; padding-top: 3px; padding-bottom: 3px; spacing: 5px; }"
+                             "QCheckBox:hover { background: %1; }"
+                             "QCheckBox::indicator { width: 16px; height: 16px; border: 1px solid #888888; border-radius: 3px; background-color: white; }"
+                             "QCheckBox::indicator:checked { background-color: #0078d4; border-color: #005a9e; image: url(:/icons/white_tick.png); }")
+                            .arg(QApplication::palette().highlight().color().name()));
 
                 widget->setDefaultWidget(chbox);
 
@@ -2413,7 +2417,11 @@ void gGraphView::populateMenu(gGraph * graph)
             QCheckBox *chbox = new QCheckBox(schema::channel[code].label(), context_menu);
             chbox->setMouseTracking(true);
             chbox->setToolTip(schema::channel[code].description());
-            chbox->setStyleSheet(QString("QCheckBox:hover { background: %1; }").arg(QApplication::palette().highlight().color().name()));
+            chbox->setStyleSheet(QString("QCheckBox { padding-left: 5px; padding-top: 3px; padding-bottom: 3px; spacing: 5px; }"
+                             "QCheckBox:hover { background: %1; }"
+                             "QCheckBox::indicator { width: 16px; height: 16px; border: 1px solid #888888; border-radius: 3px; background-color: white; }"
+                             "QCheckBox::indicator:checked { background-color: #0078d4; border-color: #005a9e; image: url(:/icons/white_tick.png); }")
+                            .arg(QApplication::palette().highlight().color().name()));
 
 
             widget->setDefaultWidget(chbox);
@@ -2464,7 +2472,11 @@ void gGraphView::populateMenu(gGraph * graph)
             chbox->setPalette(context_menu->palette());
             chbox->setMouseTracking(true);
             chbox->setToolTip(schema::channel[code].description());
-            chbox->setStyleSheet(QString("QCheckBox:hover { background: %1; }").arg(QApplication::palette().highlight().color().name()));
+            chbox->setStyleSheet(QString("QCheckBox { padding-left: 5px; padding-top: 3px; padding-bottom: 3px; spacing: 5px; }"
+                             "QCheckBox:hover { background: %1; }"
+                             "QCheckBox::indicator { width: 16px; height: 16px; border: 1px solid #888888; border-radius: 3px; background-color: white; }"
+                             "QCheckBox::indicator:checked { background-color: #0078d4; border-color: #005a9e; image: url(:/icons/white_tick.png); }")
+                            .arg(QApplication::palette().highlight().color().name()));
 
             widget->setDefaultWidget(chbox);
 

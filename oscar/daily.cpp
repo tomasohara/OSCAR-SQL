@@ -162,6 +162,8 @@ void Daily::setSidebarVisible(bool visible)
     ui->splitter_2->setStretchFactor(1,1);
 }
 
+#include "combocheckdelegate.h"
+
 Daily::Daily(QWidget *parent,gGraphView * shared)
     :QWidget(parent), ui(new Ui::Daily)
 {
@@ -583,6 +585,10 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     icon_off=new QIcon(":/icons/session-off.png");
     icon_up_down=new QIcon(":/icons/up-down.png");
     icon_warning=new QIcon(":/icons/warning.png");
+
+    auto *comboDelegate = new ComboCheckDelegate(this);
+    ui->graphCombo->view()->setItemDelegate(comboDelegate);
+    ui->eventsCombo->view()->setItemDelegate(new ComboCheckDelegate(this));
 
     ui->splitter->setVisible(false);
 
@@ -3212,6 +3218,9 @@ void Daily::showAllGraphs(bool show) {
 void Daily::showGraph(int index,bool show, bool updateGraph) {
     ui->graphCombo->setItemData(index,show,Qt::UserRole);
     ui->graphCombo->setItemIcon(index, show ? *icon_on : *icon_off);
+    ui->graphCombo->model()->setData(
+        ui->graphCombo->model()->index(index, 0),
+        show ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
     if (!updateGraph) return;
     QString graphName = ui->graphCombo->itemText(index);
     gGraph* graph=GraphView->findGraphTitle(graphName);
@@ -3273,11 +3282,12 @@ void Daily::updateGraphCombo()
         g=(*GraphView)[i];
         if (g->isEmpty()) continue;
 
-        if (g->visible()) {
-            ui->graphCombo->addItem(*icon_on,g->title(),true);
-        } else {
-            ui->graphCombo->addItem(*icon_off,g->title(),false);
-        }
+        bool vis = g->visible();
+        ui->graphCombo->addItem(vis ? *icon_on : *icon_off, g->title(), vis);
+        int idx = ui->graphCombo->count() - 1;
+        ui->graphCombo->model()->setData(
+            ui->graphCombo->model()->index(idx, 0),
+            vis ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
     }
     ui->graphCombo->addItem(*icon_on,STR_HIDE_ALL_GRAPHS,true);
     ui->graphCombo->setCurrentIndex(0);
@@ -3306,8 +3316,12 @@ void Daily::updateEventsCombo(Day* day) {
         #endif
         int comboxBoxIndex = i+1;
         schema::Channel & chan = schema::channel[code];
-        ui->eventsCombo->addItem(chan.enabled() ? *icon_on : * icon_off, chan.label(), code);
+        bool on = chan.enabled();
+        ui->eventsCombo->addItem(on ? *icon_on : *icon_off, chan.label(), code);
         ui->eventsCombo->setItemData(comboxBoxIndex, chan.fullname(), Qt::ToolTipRole);
+        ui->eventsCombo->model()->setData(
+            ui->eventsCombo->model()->index(comboxBoxIndex, 0),
+            on ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
         dailySearchTab->updateEvents(code,chan.fullname());
     }
     ui->eventsCombo->addItem(*icon_on,"" , Qt::ToolTipRole);
@@ -3355,6 +3369,9 @@ void Daily::on_eventsCombo_activated(int index)
             bool b = !chan->enabled();
             chan->setEnabled(b);
             ui->eventsCombo->setItemIcon(index,b ? *icon_on : *icon_off);
+            ui->eventsCombo->model()->setData(
+                ui->eventsCombo->model()->index(index, 0),
+                b ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
         }
         ui->eventsCombo->showPopup();
     }
