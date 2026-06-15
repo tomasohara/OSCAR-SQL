@@ -250,7 +250,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">귀하의 .oscar 백업에는 민감한 의료 데이터가 포함되어 있습니다:\n• 수면 치료 세션 데이터 및 이벤트 파형\n• 개인 정보 (이름, 생년월일 등)\n  (개인정보 보호 모드가 활성화되지 않은 경우)\n\n저장 권장 사항:\n• 암호화된 저장소에 백업을 저장하세요\n• 안전하고 접근이 통제된 위치에 백업을 보관하세요\n• 승인되지 않은 당사자와 백업 파일을 공유하지 마세요</translation>
+      <translation type="unfinished">귀하의 .oscar 백업에는 민감한 의료 데이터가 포함되어 있습니다:
+• 수면 치료 세션 데이터 및 이벤트 파형
+• 개인 정보 (이름, 생년월일 등)
+  (개인정보 보호 모드가 활성화되지 않은 경우)
+
+저장 권장 사항:
+• 암호화된 저장소에 백업을 저장하세요
+• 안전하고 접근이 통제된 위치에 백업을 보관하세요
+• 승인되지 않은 당사자와 백업 파일을 공유하지 마세요</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -298,7 +306,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">백업이 성공적으로 생성되었습니다.\n\n파일: %1\n크기: %2</translation>
+      <translation type="unfinished">백업이 성공적으로 생성되었습니다.
+
+파일: %1
+크기: %2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -320,7 +331,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">백업을 완료할 수 없습니다.\n\n%1</translation>
+      <translation type="unfinished">백업을 완료할 수 없습니다.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -384,7 +397,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">Proton Drive 공유 링크는 파일이 종단 간 암호화되어 있고 브라우저 기반 복호화가 필요하기 때문에 직접 다운로드할 수 없습니다.\n\n브라우저에서 파일을 다운로드한 후 로컬 파일 옵션을 사용해 주세요.</translation>
+      <translation type="unfinished">Proton Drive 공유 링크는 파일이 종단 간 암호화되어 있고 브라우저 기반 복호화가 필요하기 때문에 직접 다운로드할 수 없습니다.
+
+브라우저에서 파일을 다운로드한 후 로컬 파일 옵션을 사용해 주세요.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -393,7 +408,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">OSCAR이 이 URL을 지원되는 클라우드 서비스로 인식하지 못합니다.\n\n브라우저에서 파일을 다운로드한 후 로컬 파일 옵션을 사용해 주세요.\n\n지원되는 서비스: Dropbox, Google Drive, OneDrive, Box, 0x0.st, 또는 .oscar 파일에 대한 직접 링크.</translation>
+      <translation type="unfinished">OSCAR이 이 URL을 지원되는 클라우드 서비스로 인식하지 못합니다.
+
+브라우저에서 파일을 다운로드한 후 로컬 파일 옵션을 사용해 주세요.
+
+지원되는 서비스: Dropbox, Google Drive, OneDrive, Box, 0x0.st, 또는 .oscar 파일에 대한 직접 링크.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -404,7 +423,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">임시 파일을 생성할 수 없습니다:\n%1</translation>
+      <translation type="unfinished">임시 파일을 생성할 수 없습니다:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -448,7 +468,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">읽기 위해 파일을 열 수 없습니다:\n%1</translation>
+      <translation type="unfinished">읽기 위해 파일을 열 수 없습니다:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -1242,7 +1263,8 @@ Jumps to Date's Events</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">JUmps\n날짜의 메모로 이동</translation>
+      <translation type="unfinished">JUmps
+날짜의 메모로 이동</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1444,7 +1466,10 @@ Jumps to Date's Notes</source>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">경로: %1\n크기: %2\n프로필: %3\n참고: 이 폴더의 모든 세션 데이터 및 SD 카드 백업 데이터가 영구적으로 삭제됩니다.</translation>
+      <translation type="unfinished">경로: %1
+크기: %2
+프로필: %3
+참고: 이 폴더의 모든 세션 데이터 및 SD 카드 백업 데이터가 영구적으로 삭제됩니다.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1462,7 +1487,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">다음 위치의 데이터베이스\n%1\n을(를) 단독으로 열 수 없습니다. OSCAR의 다른 인스턴스가 이미 열고 있을 수 있습니다.</translation>
+      <translation type="unfinished">다음 위치의 데이터베이스
+%1
+을(를) 단독으로 열 수 없습니다. OSCAR의 다른 인스턴스가 이미 열고 있을 수 있습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1474,7 +1501,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">이 데이터베이스를 영구적으로 삭제하려면 "%1"을(를) 입력하세요.\n\n폴더의 모든 세션 데이터 및 SD 카드 백업 데이터가 삭제됩니다. 이 작업은 취소할 수 없습니다.</translation>
+      <translation type="unfinished">이 데이터베이스를 영구적으로 삭제하려면 "%1"을(를) 입력하세요.
+
+폴더의 모든 세션 데이터 및 SD 카드 백업 데이터가 삭제됩니다. 이 작업은 취소할 수 없습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1496,7 +1525,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">삭제할 수 없습니다\n%1\n데이터베이스 파일이 아직 존재합니다. 파일 잠금을 확인하고 다시 시도하세요.</translation>
+      <translation type="unfinished">삭제할 수 없습니다
+%1
+데이터베이스 파일이 아직 존재합니다. 파일 잠금을 확인하고 다시 시도하세요.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1508,7 +1539,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">데이터베이스는 삭제되었지만\n%1\n에서 모든 파일을 제거하지 못했습니다. 일부 파일이 남아 있을 수 있습니다.</translation>
+      <translation type="unfinished">데이터베이스는 삭제되었지만
+%1
+에서 모든 파일을 제거하지 못했습니다. 일부 파일이 남아 있을 수 있습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1532,7 +1565,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">%1에서 데이터베이스 손상 또는 I/O 오류가 감지되었습니다.\n\n오류: %2\n\n권장 조치:\n  • 도움말 → 문제 해결 → 데이터베이스 무결성 검사 실행\n  • 문제가 발견된 경우 최근 백업에서 복원하십시오</translation>
+      <translation type="unfinished">%1에서 데이터베이스 손상 또는 I/O 오류가 감지되었습니다.
+
+오류: %2
+
+권장 조치:
+  • 도움말 → 문제 해결 → 데이터베이스 무결성 검사 실행
+  • 문제가 발견된 경우 최근 백업에서 복원하십시오</translation>
     </message>
   </context>
   <context>
@@ -1969,17 +2008,17 @@ Hint: Change the start date first</source>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— 불량 적합, 모델 사용 비활성화됨</translation>
+      <translation type="unfinished"> — 불량 적합, 모델 사용 비활성화됨</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— 보통 적합</translation>
+      <translation type="unfinished"> — 보통 적합</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— %1부터 활성화된 모델을 대체함</translation>
+      <translation type="unfinished"> — %1부터 활성화된 모델을 대체함</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2041,7 +2080,8 @@ Hint: Change the start date first</source>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">읽기 위해 파일을 열 수 없습니다:\n%1</translation>
+      <translation type="unfinished">읽기 위해 파일을 열 수 없습니다:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2424,7 +2464,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">읽기 위해 파일을 열 수 없습니다:\n%1</translation>
+      <translation type="unfinished">읽기 위해 파일을 열 수 없습니다:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2582,7 +2623,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">%1 검사 중...\n\n잠시 기다려 주세요...</translation>
+      <translation type="unfinished">%1 검사 중...
+
+잠시 기다려 주세요...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2593,7 +2636,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">선택한 폴더가 유효한 OSCAR 프로필이 아닌 것 같습니다.\nmachines.xml이 포함된 폴더를 선택해 주세요.</translation>
+      <translation type="unfinished">선택한 폴더가 유효한 OSCAR 프로필이 아닌 것 같습니다.
+machines.xml이 포함된 폴더를 선택해 주세요.</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2606,7 +2650,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">이 프로필의 크기는 %1 GB입니다.\n가져오기에 상당한 시간이 걸릴 수 있습니다.\n\n계속하시겠습니까?</translation>
+      <translation type="unfinished">이 프로필의 크기는 %1 GB입니다.
+가져오기에 상당한 시간이 걸릴 수 있습니다.
+
+계속하시겠습니까?</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2776,7 +2823,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">파일을 쓸 수 없습니다:\n%1</translation>
+      <translation type="unfinished">파일을 쓸 수 없습니다:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -3533,7 +3581,11 @@ Do you want to continue?</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">데이터를 가져올 수 없습니다: OSCAR 데이터베이스가 다른 애플리케이션에 의해 잠겨 있습니다.\n\nSQLite 뷰어 또는 편집기에서 데이터베이스를 열어 두었다면, 닫은 후 다시 시도하십시오.\n\n오류: %1</translation>
+      <translation type="unfinished">데이터를 가져올 수 없습니다: OSCAR 데이터베이스가 다른 애플리케이션에 의해 잠겨 있습니다.
+
+SQLite 뷰어 또는 편집기에서 데이터베이스를 열어 두었다면, 닫은 후 다시 시도하십시오.
+
+오류: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1017" />
@@ -3552,7 +3604,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">가져온 데이터를 데이터베이스에 저장할 수 없습니다. 저장된 데이터가 없습니다.\n\n다른 애플리케이션(예: SQLite 뷰어 또는 편집기)에서 OSCAR 데이터베이스를 열어 두었다면, 닫은 후 다시 시도하십시오.\n\n오류: %1</translation>
+      <translation type="unfinished">가져온 데이터를 데이터베이스에 저장할 수 없습니다. 저장된 데이터가 없습니다.
+
+다른 애플리케이션(예: SQLite 뷰어 또는 편집기)에서 OSCAR 데이터베이스를 열어 두었다면, 닫은 후 다시 시도하십시오.
+
+오류: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1201" />
@@ -3592,7 +3648,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">이 SD 카드는 이 프로필에 마지막으로 가져온 기기와 다른 기기의 것입니다.\n\n마지막으로 가져온 기기: %1\n이 카드: %2\n\n정말로 이 카드에서 이 프로필로 가져오시겠습니까?</translation>
+      <translation type="unfinished">이 SD 카드는 이 프로필에 마지막으로 가져온 기기와 다른 기기의 것입니다.
+
+마지막으로 가져온 기기: %1
+이 카드: %2
+
+정말로 이 카드에서 이 프로필로 가져오시겠습니까?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3641,7 +3702,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">이 프로필의 모든 기기에 대한 시간 보정이 영구적으로 삭제됩니다.\n\n계속하시겠습니까?</translation>
+      <translation type="unfinished">이 프로필의 모든 기기에 대한 시간 보정이 영구적으로 삭제됩니다.
+
+계속하시겠습니까?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1978" />
@@ -3717,7 +3780,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">(활성)</translation>
+      <translation type="unfinished"> (활성)</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3738,7 +3801,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">선택한 폴더에 이미 OSCAR 데이터베이스가 있습니다.\n기존 데이터베이스를 열려면 파일 ▸ 데이터베이스 ▸ 열기를 사용하세요.</translation>
+      <translation type="unfinished">선택한 폴더에 이미 OSCAR 데이터베이스가 있습니다.
+기존 데이터베이스를 열려면 파일 ▸ 데이터베이스 ▸ 열기를 사용하세요.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3754,7 +3818,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">선택한 폴더에 OSCAR 데이터베이스가 없습니다.\noscar.db 파일이 있는 폴더를 선택해 주세요.</translation>
+      <translation type="unfinished">선택한 폴더에 OSCAR 데이터베이스가 없습니다.
+oscar.db 파일이 있는 폴더를 선택해 주세요.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3766,7 +3831,9 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">최근 목록에 삭제할 비활성 데이터베이스가 없습니다.\n\n파일 ▸ 데이터베이스 ▸ 열기로 데이터베이스를 먼저 열어 최근 목록에 추가하세요.</translation>
+      <translation type="unfinished">최근 목록에 삭제할 비활성 데이터베이스가 없습니다.
+
+파일 ▸ 데이터베이스 ▸ 열기로 데이터베이스를 먼저 열어 최근 목록에 추가하세요.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3527" />
@@ -3808,7 +3875,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">이 작업은 사용하지 않는 디스크 공간을 회수하기 위해 데이터베이스를 압축합니다. 프로필을 삭제한 후에 가장 유용합니다.\n\n현재 데이터베이스 크기: %1\n\n대용량 데이터베이스의 경우 몇 분 정도 걸릴 수 있습니다. 완료되면 OSCAR가 자동으로 재시작됩니다.\n\n계속하시겠습니까?</translation>
+      <translation type="unfinished">이 작업은 사용하지 않는 디스크 공간을 회수하기 위해 데이터베이스를 압축합니다. 프로필을 삭제한 후에 가장 유용합니다.
+
+현재 데이터베이스 크기: %1
+
+대용량 데이터베이스의 경우 몇 분 정도 걸릴 수 있습니다. 완료되면 OSCAR가 자동으로 재시작됩니다.
+
+계속하시겠습니까?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -3820,28 +3893,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">데이터베이스 무결성 검사에 실패했습니다. 손상된 데이터베이스에서는 압축을 진행할 수 없습니다.\n\n권장 조치:\n  • 최근 시스템 백업에서 전체 데이터베이스 복원\n  • 최근 백업에서 각 프로필 복원 (파일 → 프로필 복원)\n  • CPAP SD 카드에서 데이터 재가져오기\n\n고급 복구 옵션은 OSCAR 설명서를 참조하십시오.</translation>
+      <translation type="unfinished">데이터베이스 무결성 검사에 실패했습니다. 손상된 데이터베이스에서는 압축을 진행할 수 없습니다.
+
+권장 조치:
+  • 최근 시스템 백업에서 전체 데이터베이스 복원
+  • 최근 백업에서 각 프로필 복원 (파일 → 프로필 복원)
+  • CPAP SD 카드에서 데이터 재가져오기
+
+고급 복구 옵션은 OSCAR 설명서를 참조하십시오.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">데이터베이스를 압축하는 중입니다. 잠시 기다려 주십시오...\n\n대용량 데이터베이스의 경우 몇 분 정도 걸릴 수 있습니다.</translation>
+      <translation type="unfinished">데이터베이스를 압축하는 중입니다. 잠시 기다려 주십시오...
+
+대용량 데이터베이스의 경우 몇 분 정도 걸릴 수 있습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">압축에 성공했지만 데이터베이스 파일을 교체할 수 없습니다.\n\n원본 데이터베이스는 변경되지 않았습니다.</translation>
+      <translation type="unfinished">압축에 성공했지만 데이터베이스 파일을 교체할 수 없습니다.
+
+원본 데이터베이스는 변경되지 않았습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">압축에 성공했지만 새 파일을 제자리에 놓을 수 없습니다.\n\n원본 데이터베이스가 복원되었습니다.</translation>
+      <translation type="unfinished">압축에 성공했지만 새 파일을 제자리에 놓을 수 없습니다.
+
+원본 데이터베이스가 복원되었습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -3852,7 +3938,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">데이터베이스가 성공적으로 압축되었습니다.\n\n이전:    %1\n이후:     %2\n회수됨: %3\n\nOSCAR는 확인을 누르면 재시작됩니다.</translation>
+      <translation type="unfinished">데이터베이스가 성공적으로 압축되었습니다.
+
+이전:    %1
+이후:     %2
+회수됨: %3
+
+OSCAR는 확인을 누르면 재시작됩니다.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -3863,7 +3955,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">데이터베이스가 성공적으로 압축되었습니다.\n\n크기: %1\n\n공간이 회수되지 않았습니다 — 데이터베이스가 이미 압축되어 있었습니다.\n\nOSCAR는 확인을 누르면 재시작됩니다.</translation>
+      <translation type="unfinished">데이터베이스가 성공적으로 압축되었습니다.
+
+크기: %1
+
+공간이 회수되지 않았습니다 — 데이터베이스가 이미 압축되어 있었습니다.
+
+OSCAR는 확인을 누르면 재시작됩니다.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3543" />
@@ -3936,7 +4034,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">데이터베이스 무결성 검사에서 문제가 발견되었습니다. 일부 데이터가 누락되거나 손상되었을 수 있습니다.\n\n무결성 검사는 여러 프로필이 포함될 수 있는 전체 데이터베이스를 대상으로 합니다.\n\n권장 조치:\n  • 최근 시스템 백업에서 전체 데이터베이스 복원\n  • 최근 백업에서 각 프로필 복원 (파일 → 프로필 복원)\n  • CPAP SD 카드에서 데이터 재가져오기\n\n고급 복구 옵션은 OSCAR 설명서를 참조하십시오.</translation>
+      <translation type="unfinished">데이터베이스 무결성 검사에서 문제가 발견되었습니다. 일부 데이터가 누락되거나 손상되었을 수 있습니다.
+
+무결성 검사는 여러 프로필이 포함될 수 있는 전체 데이터베이스를 대상으로 합니다.
+
+권장 조치:
+  • 최근 시스템 백업에서 전체 데이터베이스 복원
+  • 최근 백업에서 각 프로필 복원 (파일 → 프로필 복원)
+  • CPAP SD 카드에서 데이터 재가져오기
+
+고급 복구 옵션은 OSCAR 설명서를 참조하십시오.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -3961,7 +4068,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">데이터베이스 압축 실패:\n%1</translation>
+      <translation type="unfinished">데이터베이스 압축 실패:
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -4032,7 +4140,7 @@ No space was reclaimed — the database was already compact.</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">프로필 가져오는 중</translation>
+      <translation type="unfinished">프로필 가져오는 중 </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -4044,7 +4152,9 @@ No space was reclaimed — the database was already compact.</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">프로필 '%1'을(를) 성공적으로 가져왔습니다.\n\n이제 프로필 선택기에서 선택할 수 있습니다.</translation>
+      <translation type="unfinished">프로필 '%1'을(를) 성공적으로 가져왔습니다.
+
+이제 프로필 선택기에서 선택할 수 있습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -4057,7 +4167,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">프로필 가져오기 실패:\n%1</translation>
+      <translation type="unfinished">프로필 가져오기 실패:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1507" />
@@ -4151,7 +4262,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">%1 파싱 중 문제가 발생했습니다 \n데이터 파일: %2</translation>
+      <translation type="unfinished">%1 파싱 중 문제가 발생했습니다 
+데이터 파일: %2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3224" />
@@ -4816,7 +4928,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">읽기 위해 파일을 열 수 없습니다:\n%1</translation>
+      <translation type="unfinished">읽기 위해 파일을 열 수 없습니다:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4837,7 +4950,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">파일이 OneDrive에 업로드되었지만 공유 링크를 생성할 수 없습니다 (HTTP %1).\n참고: Microsoft 계정 설정에서 익명 공유가 비활성화되어 있을 수 있습니다.</translation>
+      <translation type="unfinished">파일이 OneDrive에 업로드되었지만 공유 링크를 생성할 수 없습니다 (HTTP %1).
+참고: Microsoft 계정 설정에서 익명 공유가 비활성화되어 있을 수 있습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -6418,7 +6532,8 @@ CMS50 산소포화도 측정기의 녹화 모드를 시작하는 시간과 CPAP 
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">파일 &gt; 데이터베이스에 새로 만들기, 열기, 최근 항목, 삭제 항목을 추가합니다.\n지원 담당자 및 개발자를 위한 기능입니다.</translation>
+      <translation type="unfinished">파일 &gt; 데이터베이스에 새로 만들기, 열기, 최근 항목, 삭제 항목을 추가합니다.
+지원 담당자 및 개발자를 위한 기능입니다.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6600,7 +6715,9 @@ Intended for support staff and developers.</source>
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">플랫폼 기본 테마 대신 Qt의 Fusion 테마를 사용합니다.\n플랫폼 간 일관된 모양을 제공합니다.\n확인을 클릭하면 OSCAR가 재시작됩니다.</translation>
+      <translation type="unfinished">플랫폼 기본 테마 대신 Qt의 Fusion 테마를 사용합니다.
+플랫폼 간 일관된 모양을 제공합니다.
+확인을 클릭하면 OSCAR가 재시작됩니다.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -6625,7 +6742,7 @@ OSCAR will restart when you click OK.</source>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">교대 색상 간격</translation>
+      <translation type="unfinished"> 교대 색상 간격</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3620" />
@@ -6690,7 +6807,7 @@ OSCAR will restart when you click OK.</source>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">허용 모드가 활성화되어 있어야 합니다. 임상 탭을 참조하세요</translation>
+      <translation type="unfinished">허용 모드가 활성화되어 있어야 합니다. 임상 탭을 참조하세요 </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6707,7 +6824,9 @@ OSCAR will restart when you click OK.</source>
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">정상 호흡(SB)은 유량을 기반으로 합니다.\nCPAP 유량을 사용하여 파형과 SPAN 이벤트를 생성합니다.\n정상 호흡이 활성화되어 있고 CPAP 데이터가 (재)가져오기된 경우에만 작동합니다.</translation>
+      <translation type="unfinished">정상 호흡(SB)은 유량을 기반으로 합니다.
+CPAP 유량을 사용하여 파형과 SPAN 이벤트를 생성합니다.
+정상 호흡이 활성화되어 있고 CPAP 데이터가 (재)가져오기된 경우에만 작동합니다.  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6743,13 +6862,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">임상 모드는 비활성화된 세션을 허용하지 않습니다.\n비활성화된 세션은 그래프 또는 통계에 사용되지 않습니다.</translation>
+      <translation type="unfinished">임상 모드는 비활성화된 세션을 허용하지 않습니다.
+비활성화된 세션은 그래프 또는 통계에 사용되지 않습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">허용 모드는 비활성화된 세션을 허용합니다.\n비활성화된 세션은 그래프 및 통계에 사용됩니다.</translation>
+      <translation type="unfinished">허용 모드는 비활성화된 세션을 허용합니다.
+비활성화된 세션은 그래프 및 통계에 사용됩니다.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6762,7 +6883,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">기본적으로 OSCAR는 산소측정 데이터의 첫 번째 시간을 기준으로 계산합니다.\n이 설정을 통해 고정 값으로 재정의할 수 있습니다.\n이는 첫 번째 시간이 전체 데이터셋을 대표하지 않을 때 유용할 수 있습니다.\n또한 날짜 간 비교를 더 쉽게 하는 데 유용할 수 있습니다.</translation>
+      <translation type="unfinished">기본적으로 OSCAR는 산소측정 데이터의 첫 번째 시간을 기준으로 계산합니다.
+이 설정을 통해 고정 값으로 재정의할 수 있습니다.
+이는 첫 번째 시간이 전체 데이터셋을 대표하지 않을 때 유용할 수 있습니다.
+또한 날짜 간 비교를 더 쉽게 하는 데 유용할 수 있습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1861" />
@@ -6781,7 +6905,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;산소측정기와 CPAP 데이터 동기화&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;SpO2Review(.spoR 파일)에서 가져오거나 직렬 가져오기 방법으로 가져온 CMS50 데이터는 동기화에 필요한 올바른 타임스탬프가 &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;없습니다&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;라이브 보기 모드(직렬 케이블 사용)는 CMS50 산소측정기에서 정확한 동기화를 달성하는 한 가지 방법이지만, CPAP 시계 오차를 보정하지는 않습니다.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;CPAP 장치를 시작하는 것과 &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;정확히 &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;동시에 산소측정기의 기록 모드를 시작하면 동기화를 달성할 수 있습니다.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;직렬 가져오기 과정은 전날 밤 첫 번째 CPAP 세션의 시작 시간을 사용합니다. (CPAP 데이터를 먼저 가져오는 것을 잊지 마세요!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;산소측정기와 CPAP 데이터 동기화&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;SpO2Review(.spoR 파일)에서 가져오거나 직렬 가져오기 방법으로 가져온 CMS50 데이터는 동기화에 필요한 올바른 타임스탬프가 &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;없습니다&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;라이브 보기 모드(직렬 케이블 사용)는 CMS50 산소측정기에서 정확한 동기화를 달성하는 한 가지 방법이지만, CPAP 시계 오차를 보정하지는 않습니다.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;CPAP 장치를 시작하는 것과 &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;정확히 &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;동시에 산소측정기의 기록 모드를 시작하면 동기화를 달성할 수 있습니다.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;직렬 가져오기 과정은 전날 밤 첫 번째 CPAP 세션의 시작 시간을 사용합니다. (CPAP 데이터를 먼저 가져오는 것을 잊지 마세요!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3003" />
@@ -7368,7 +7501,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(첫 번째 오류: %1</translation>
+      <translation type="unfinished"> (첫 번째 오류: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7456,7 +7589,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">Id:</translation>
+      <translation type="unfinished">Id: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="295" />
@@ -7545,7 +7678,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">프로필 삭제 중</translation>
+      <translation type="unfinished">프로필 삭제 중 </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7576,7 +7709,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">이름:</translation>
+      <translation type="unfinished">이름: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -9614,7 +9747,7 @@ TTIA: %1</source>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">램프 시간</translation>
+      <translation type="unfinished">램프 시간 </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -11446,7 +11579,10 @@ TTIA: %1</source>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">프로필 마이그레이션 중: %1\n(%2/%3)\n\n가져오기 시작...</translation>
+      <translation type="unfinished">프로필 마이그레이션 중: %1
+(%2/%3)
+
+가져오기 시작...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -11454,7 +11590,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">취소 중: %1\n(%2/%3)\n\n정리 중, 잠시 기다려 주세요...</translation>
+      <translation type="unfinished">취소 중: %1
+(%2/%3)
+
+정리 중, 잠시 기다려 주세요...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -11462,7 +11601,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">프로필 마이그레이션 중: %1\n(%2/%3)\n\n%4</translation>
+      <translation type="unfinished">프로필 마이그레이션 중: %1
+(%2/%3)
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -11619,7 +11761,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">OSCAR는 이전 세션이 예기치 않게 종료된 것을 감지했으며, 데이터베이스 무결성 검사에서 문제가 발견되었습니다.\n\n일부 데이터가 누락되거나 손상되었을 수 있습니다.\n\n권장 조치:\n  • 최근 시스템 백업에서 전체 데이터베이스 복원\n  • 최근 백업에서 각 프로필 복원 (파일 → 프로필 복원)\n  • CPAP SD 카드에서 데이터 재가져오기\n\n고급 복구 옵션은 OSCAR 설명서를 참조하십시오.\n\n계속할 수 있지만 일부 데이터가 불완전하거나 올바르지 않을 수 있습니다.</translation>
+      <translation type="unfinished">OSCAR는 이전 세션이 예기치 않게 종료된 것을 감지했으며, 데이터베이스 무결성 검사에서 문제가 발견되었습니다.
+
+일부 데이터가 누락되거나 손상되었을 수 있습니다.
+
+권장 조치:
+  • 최근 시스템 백업에서 전체 데이터베이스 복원
+  • 최근 백업에서 각 프로필 복원 (파일 → 프로필 복원)
+  • CPAP SD 카드에서 데이터 재가져오기
+
+고급 복구 옵션은 OSCAR 설명서를 참조하십시오.
+
+계속할 수 있지만 일부 데이터가 불완전하거나 올바르지 않을 수 있습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -12909,7 +13062,7 @@ popout window, delete it, then pop out this graph again.</source>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR:</translation>
+      <translation type="unfinished">IPR: </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/journal.cpp" line="176" />
@@ -12921,7 +13074,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">일지 마이그레이션 완료:\n%1개의 일지 항목이 데이터베이스로 마이그레이션됨\n%2개의 오류</translation>
+      <translation type="unfinished">일지 마이그레이션 완료:
+%1개의 일지 항목이 데이터베이스로 마이그레이션됨
+%2개의 오류</translation>
     </message>
     <message>
       <location filename="../oscar/notifyMessageBox.cpp" line="18" />
@@ -13077,7 +13232,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">선택한 파일이 유효한 Dreem CSV 파일이 아닌 것 같습니다.\n\nDreem 데이터는 세미콜론으로 구분된 CSV 파일 형식이어야 합니다. 데이터가 CSV 형식인지 확인하고 다시 시도하십시오.</translation>
+      <translation type="unfinished">선택한 파일이 유효한 Dreem CSV 파일이 아닌 것 같습니다.
+
+Dreem 데이터는 세미콜론으로 구분된 CSV 파일 형식이어야 합니다. 데이터가 CSV 형식인지 확인하고 다시 시도하십시오.</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13445,7 +13602,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">(복사)</translation>
+      <translation type="unfinished"> (복사)</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13495,19 +13652,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">파일을 파싱하지 못했습니다:\n%1</translation>
+      <translation type="unfinished">파일을 파싱하지 못했습니다:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">가져오기 실패:\n%1</translation>
+      <translation type="unfinished">가져오기 실패:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">다음에서 보고서 %1개를 가져왔습니다:\n%2</translation>
+      <translation type="unfinished">다음에서 보고서 %1개를 가져왔습니다:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13530,13 +13690,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">파일을 쓰지 못했습니다:\n%1</translation>
+      <translation type="unfinished">파일을 쓰지 못했습니다:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">다음으로 보고서 %1개를 내보냈습니다:\n%2</translation>
+      <translation type="unfinished">다음으로 보고서 %1개를 내보냈습니다:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13592,19 +13754,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">쿼리 실패:\n%1</translation>
+      <translation type="unfinished">쿼리 실패:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">파일을 쓸 수 없습니다:\n%1</translation>
+      <translation type="unfinished">파일을 쓸 수 없습니다:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">%1개의 행을 내보냈습니다:\n%2</translation>
+      <translation type="unfinished">%1개의 행을 내보냈습니다:
+%2</translation>
     </message>
   </context>
   <context>
@@ -13750,7 +13915,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">이 이름의 보고서가 이미 존재합니다.\n다른 이름을 선택해 주세요.</translation>
+      <translation type="unfinished">이 이름의 보고서가 이미 존재합니다.
+다른 이름을 선택해 주세요.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13766,7 +13932,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">보고서 '%1'이(가) 생성되었습니다.\n이 보고서에 쿼리를 추가하려면 '종류 복사'를 사용하세요.</translation>
+      <translation type="unfinished">보고서 '%1'이(가) 생성되었습니다.
+이 보고서에 쿼리를 추가하려면 '종류 복사'를 사용하세요.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13776,7 +13943,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">(복사)</translation>
+      <translation type="unfinished"> (복사)</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13787,7 +13954,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">보고서가 성공적으로 복사되었습니다.\n%1개의 종류가 복사되었습니다.</translation>
+      <translation type="unfinished">보고서가 성공적으로 복사되었습니다.
+%1개의 종류가 복사되었습니다.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13804,7 +13972,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\n이 작업을 수행하면 %1개의 보고서 종류도 함께 삭제됩니다.</translation>
+      <translation type="unfinished">
+
+이 작업을 수행하면 %1개의 보고서 종류도 함께 삭제됩니다.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13925,7 +14095,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">매크로와 함께 SQL 쿼리 입력:\n#PROFILE_ID - 현재 프로필 ID\n#START_DATE - 보고서 시작 날짜\n#END_DATE - 보고서 종료 날짜</translation>
+      <translation type="unfinished">매크로와 함께 SQL 쿼리 입력:
+#PROFILE_ID - 현재 프로필 ID
+#START_DATE - 보고서 시작 날짜
+#END_DATE - 보고서 종료 날짜</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -13978,7 +14151,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">(복사)</translation>
+      <translation type="unfinished"> (복사)</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -13995,7 +14168,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">사용 가능한 사용자 지정 보고서가 없습니다.\n새 보고서 이름을 입력하여 생성하세요.</translation>
+      <translation type="unfinished">사용 가능한 사용자 지정 보고서가 없습니다.
+새 보고서 이름을 입력하여 생성하세요.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -14015,27 +14189,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">쿼리 실패:\n\n%1\n\nSQL 오류:\n%2</translation>
+      <translation type="unfinished">쿼리 실패:
+
+%1
+
+SQL 오류:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">쿼리가 성공적으로 실행되었습니다.\n\n반환된 결과가 없습니다 (해당 날짜 범위에 데이터가 없는 경우 정상일 수 있습니다).</translation>
+      <translation type="unfinished">쿼리가 성공적으로 실행되었습니다.
+
+반환된 결과가 없습니다 (해당 날짜 범위에 데이터가 없는 경우 정상일 수 있습니다).</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">쿼리 테스트 결과\n</translation>
+      <translation type="unfinished">쿼리 테스트 결과
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">(처음 %1개 행 표시 중)\n\n</translation>
+      <translation type="unfinished">(처음 %1개 행 표시 중)
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -14106,7 +14290,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">'%1'(이)라는 변형이 보고서 '%2'에 이미 존재합니다.\n\n다른 변형 이름을 선택하십시오.</translation>
+      <translation type="unfinished">'%1'(이)라는 변형이 보고서 '%2'에 이미 존재합니다.
+
+다른 변형 이름을 선택하십시오.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -14122,14 +14308,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">쿼리에 필요한 매크로가 모두 포함되어 있지 않습니다:\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\n쿼리가 올바르게 작동하지 않을 수 있습니다.\n\n계속하시겠습니까?</translation>
+      <translation type="unfinished">쿼리에 필요한 매크로가 모두 포함되어 있지 않습니다:
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+쿼리가 올바르게 작동하지 않을 수 있습니다.
+
+계속하시겠습니까?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">시스템 보고서 '%1'에 변형을 추가할 수 없습니다.\n\n다른 보고서 이름을 선택하십시오.</translation>
+      <translation type="unfinished">시스템 보고서 '%1'에 변형을 추가할 수 없습니다.
+
+다른 보고서 이름을 선택하십시오.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -14142,7 +14336,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">보고서 '%1'이(가) 존재하지 않습니다.\n\n생성하시겠습니까?</translation>
+      <translation type="unfinished">보고서 '%1'이(가) 존재하지 않습니다.
+
+생성하시겠습니까?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14443,7 +14639,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">선택한 파일이 유효한 백업 패키지가 아닙니다.\n\n%1</translation>
+      <translation type="unfinished">선택한 파일이 유효한 백업 패키지가 아닙니다.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14455,7 +14653,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">이 백업은 복원할 수 없습니다.\n\n%1</translation>
+      <translation type="unfinished">이 백업은 복원할 수 없습니다.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14464,7 +14664,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">이 백업은 이전 데이터베이스 스키마(v%1; 현재 버전 v%2)로 생성되었습니다.\n\n수면 세션 데이터는 완전히 복원됩니다. 일부 설정 또는 보고서 구성은 복원되지 않을 수 있으며 OSCAR 첫 실행 시 재생성됩니다.\n\n계속하려면 유효성 검사를 클릭하세요.</translation>
+      <translation type="unfinished">이 백업은 이전 데이터베이스 스키마(v%1; 현재 버전 v%2)로 생성되었습니다.
+
+수면 세션 데이터는 완전히 복원됩니다. 일부 설정 또는 보고서 구성은 복원되지 않을 수 있으며 OSCAR 첫 실행 시 재생성됩니다.
+
+계속하려면 유효성 검사를 클릭하세요.</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14478,7 +14682,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">경고: 기존 프로필 "%1"에 CPAP 백업 데이터를 보관하는 Backup 디렉토리가 있습니다.\n\n이 복원 패키지에는 SD 카드 데이터가 포함되어 있으므로, 모든 CPAP 백업 데이터를 포함한 전체 프로필 디렉토리가 영구적으로 삭제되고 교체됩니다.\n\n이 작업은 취소할 수 없습니다. 계속하시겠습니까?</translation>
+      <translation type="unfinished">경고: 기존 프로필 "%1"에 CPAP 백업 데이터를 보관하는 Backup 디렉토리가 있습니다.
+
+이 복원 패키지에는 SD 카드 데이터가 포함되어 있으므로, 모든 CPAP 백업 데이터를 포함한 전체 프로필 디렉토리가 영구적으로 삭제되고 교체됩니다.
+
+이 작업은 취소할 수 없습니다. 계속하시겠습니까?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14490,7 +14698,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">기존 프로필과 모든 데이터가 영구적으로 삭제됩니다.\n\n교체하시겠습니까?</translation>
+      <translation type="unfinished">기존 프로필과 모든 데이터가 영구적으로 삭제됩니다.
+
+교체하시겠습니까?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14532,7 +14742,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">복원을 완료할 수 없습니다. 데이터베이스가 수정되지 않았습니다.\n\n%1</translation>
+      <translation type="unfinished">복원을 완료할 수 없습니다. 데이터베이스가 수정되지 않았습니다.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14546,13 +14758,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">아래 SQL 쿼리를 편집하십시오. 쿼리는 OSCAR 데이터베이스에 대해 실행됩니다.\n사용 가능한 매크로: #PROFILE_ID, #START_DATE, #END_DATE</translation>
+      <translation type="unfinished">아래 SQL 쿼리를 편집하십시오. 쿼리는 OSCAR 데이터베이스에 대해 실행됩니다.
+사용 가능한 매크로: #PROFILE_ID, #START_DATE, #END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">참고: 쿼리를 수정할 때 주의하십시오. 잘못된 SQL은 내보내기 실패를 유발합니다.\n공통 테이블: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
+      <translation type="unfinished">참고: 쿼리를 수정할 때 주의하십시오. 잘못된 SQL은 내보내기 실패를 유발합니다.
+공통 테이블: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -15409,7 +15623,13 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">수면 치료 데이터가 포함된 파일을 공유하려고 합니다.\n\n• 이 파일에는 선택한 날짜 범위의 세션 데이터, 이벤트 및\n  기기 설정이 포함되어 있습니다\n• 개인 정보(이름, 생년월일, 연락처)는 제거됩니다\n\n이 데이터를 공유하기 전에 수신자를 신뢰할 수 있는지 확인하세요.</translation>
+      <translation type="unfinished">수면 치료 데이터가 포함된 파일을 공유하려고 합니다.
+
+• 이 파일에는 선택한 날짜 범위의 세션 데이터, 이벤트 및
+  기기 설정이 포함되어 있습니다
+• 개인 정보(이름, 생년월일, 연락처)는 제거됩니다
+
+이 데이터를 공유하기 전에 수신자를 신뢰할 수 있는지 확인하세요.</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15496,7 +15716,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">공유 파일을 생성할 수 없습니다.\n\n%1</translation>
+      <translation type="unfinished">공유 파일을 생성할 수 없습니다.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />

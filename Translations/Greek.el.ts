@@ -250,7 +250,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">Το αντίγραφο ασφαλείας .oscar περιέχει ευαίσθητα ιατρικά δεδομένα:\n• Δεδομένα συνεδριών θεραπείας ύπνου και κυματομορφές συμβάντων\n• Προσωπικές πληροφορίες (όνομα, ημερομηνία γέννησης, κ.λπ.)\n  (εκτός εάν είναι ενεργοποιημένη η λειτουργία απορρήτου)\n\nΣυστάσεις αποθήκευσης:\n• Αποθηκεύστε τα αντίγραφα ασφαλείας σε κρυπτογραφημένο χώρο αποθήκευσης\n• Διατηρήστε τα αντίγραφα ασφαλείας σε ασφαλή τοποθεσία με ελεγχόμενη πρόσβαση\n• Μην κοινοποιείτε αρχεία αντιγράφων ασφαλείας σε μη εξουσιοδοτημένα άτομα</translation>
+      <translation type="unfinished">Το αντίγραφο ασφαλείας .oscar περιέχει ευαίσθητα ιατρικά δεδομένα:
+• Δεδομένα συνεδριών θεραπείας ύπνου και κυματομορφές συμβάντων
+• Προσωπικές πληροφορίες (όνομα, ημερομηνία γέννησης, κ.λπ.)
+  (εκτός εάν είναι ενεργοποιημένη η λειτουργία απορρήτου)
+
+Συστάσεις αποθήκευσης:
+• Αποθηκεύστε τα αντίγραφα ασφαλείας σε κρυπτογραφημένο χώρο αποθήκευσης
+• Διατηρήστε τα αντίγραφα ασφαλείας σε ασφαλή τοποθεσία με ελεγχόμενη πρόσβαση
+• Μην κοινοποιείτε αρχεία αντιγράφων ασφαλείας σε μη εξουσιοδοτημένα άτομα</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -298,7 +306,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">Το αντίγραφο ασφαλείας δημιουργήθηκε επιτυχώς.\n\nΑρχείο: %1\nΜέγεθος: %2</translation>
+      <translation type="unfinished">Το αντίγραφο ασφαλείας δημιουργήθηκε επιτυχώς.
+
+Αρχείο: %1
+Μέγεθος: %2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -320,7 +331,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">Δεν ήταν δυνατή η ολοκλήρωση του αντιγράφου ασφαλείας.\n\n%1</translation>
+      <translation type="unfinished">Δεν ήταν δυνατή η ολοκλήρωση του αντιγράφου ασφαλείας.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -384,7 +397,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">Οι σύνδεσμοι κοινής χρήσης του Proton Drive δεν μπορούν να ληφθούν απευθείας επειδή τα αρχεία είναι κρυπτογραφημένα από άκρο σε άκρο και απαιτούν αποκρυπτογράφηση μέσω προγράμματος περιήγησης.\n\nΠαρακαλώ κατεβάστε το αρχείο στο πρόγραμμα περιήγησής σας και χρησιμοποιήστε την επιλογή Τοπικό Αρχείο.</translation>
+      <translation type="unfinished">Οι σύνδεσμοι κοινής χρήσης του Proton Drive δεν μπορούν να ληφθούν απευθείας επειδή τα αρχεία είναι κρυπτογραφημένα από άκρο σε άκρο και απαιτούν αποκρυπτογράφηση μέσω προγράμματος περιήγησης.
+
+Παρακαλώ κατεβάστε το αρχείο στο πρόγραμμα περιήγησής σας και χρησιμοποιήστε την επιλογή Τοπικό Αρχείο.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -393,7 +408,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">Το OSCAR δεν αναγνωρίζει αυτή τη διεύθυνση URL ως υποστηριζόμενη υπηρεσία cloud.\n\nΠαρακαλώ κατεβάστε το αρχείο στο πρόγραμμα περιήγησής σας και χρησιμοποιήστε την επιλογή Τοπικό Αρχείο.\n\nΥποστηριζόμενες υπηρεσίες: Dropbox, Google Drive, OneDrive, Box, 0x0.st, ή οποιοσδήποτε άμεσος σύνδεσμος σε αρχείο .oscar.</translation>
+      <translation type="unfinished">Το OSCAR δεν αναγνωρίζει αυτή τη διεύθυνση URL ως υποστηριζόμενη υπηρεσία cloud.
+
+Παρακαλώ κατεβάστε το αρχείο στο πρόγραμμα περιήγησής σας και χρησιμοποιήστε την επιλογή Τοπικό Αρχείο.
+
+Υποστηριζόμενες υπηρεσίες: Dropbox, Google Drive, OneDrive, Box, 0x0.st, ή οποιοσδήποτε άμεσος σύνδεσμος σε αρχείο .oscar.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -404,7 +423,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">Δεν ήταν δυνατή η δημιουργία προσωρινού αρχείου:\n%1</translation>
+      <translation type="unfinished">Δεν ήταν δυνατή η δημιουργία προσωρινού αρχείου:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -448,7 +468,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Δεν ήταν δυνατό το άνοιγμα του αρχείου για ανάγνωση:\n%1</translation>
+      <translation type="unfinished">Δεν ήταν δυνατό το άνοιγμα του αρχείου για ανάγνωση:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -714,7 +735,7 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
     <message>
       <location filename="../oscar/daily.cpp" line="662" />
       <source> Disabling Sessions requires Permissive Mode be set in OSCAR Preferences in the Clinical tab.</source>
-      <translation type="unfinished">Η απενεργοποίηση Συνεδριών απαιτεί να έχει οριστεί Επιτρεπτική Λειτουργία στις Προτιμήσεις OSCAR στην καρτέλα Κλινική.</translation>
+      <translation type="unfinished"> Η απενεργοποίηση Συνεδριών απαιτεί να έχει οριστεί Επιτρεπτική Λειτουργία στις Προτιμήσεις OSCAR στην καρτέλα Κλινική.</translation>
     </message>
     <message>
       <location filename="../oscar/daily.cpp" line="747" />
@@ -1023,7 +1044,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/dailySearchTab.cpp" line="328" />
       <source>DATE
 Jumps to Date</source>
-      <translation type="unfinished">ΗΜΕΡΟΜΗΝΙΑ\nΜετάβαση σε Ημερομηνία</translation>
+      <translation type="unfinished">ΗΜΕΡΟΜΗΝΙΑ
+Μετάβαση σε Ημερομηνία</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="508" />
@@ -1053,7 +1075,7 @@ Jumps to Date</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="513" />
       <source>AHI </source>
-      <translation type="unfinished">AHI</translation>
+      <translation type="unfinished">AHI </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="514" />
@@ -1114,96 +1136,106 @@ Jumps to Date</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1254" />
       <source>Number Disabled Session
 Jumps to Date's Details </source>
-      <translation type="unfinished">Αριθμός Απενεργοποιημένης Συνεδρίας\nΜετάβαση στις Λεπτομέρειες Ημερομηνίας</translation>
+      <translation type="unfinished">Αριθμός Απενεργοποιημένης Συνεδρίας
+Μετάβαση στις Λεπτομέρειες Ημερομηνίας </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">Άλματα\nΜετάβαση στις Σημειώσεις Ημερομηνίας</translation>
+      <translation type="unfinished">Άλματα
+Μετάβαση στις Σημειώσεις Ημερομηνίας</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1265" />
       <location filename="../oscar/dailySearchTab.cpp" line="1281" />
       <source>Note
 Jumps to Date's Notes</source>
-      <translation type="unfinished">Σημείωση\nΜετάβαση στις Σημειώσεις Ημερομηνίας</translation>
+      <translation type="unfinished">Σημείωση
+Μετάβαση στις Σημειώσεις Ημερομηνίας</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1270" />
       <location filename="../oscar/dailySearchTab.cpp" line="1275" />
       <source>Bookmark
 Jumps to Date's Bookmark</source>
-      <translation type="unfinished">Σελιδοδείκτης\nΜετάβαση στον Σελιδοδείκτη Ημερομηνίας</translation>
+      <translation type="unfinished">Σελιδοδείκτης
+Μετάβαση στον Σελιδοδείκτη Ημερομηνίας</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1287" />
       <source>AHI
 Jumps to Date's Details</source>
-      <translation type="unfinished">AHI\nΜετάβαση στις Λεπτομέρειες Ημερομηνίας</translation>
+      <translation type="unfinished">AHI
+Μετάβαση στις Λεπτομέρειες Ημερομηνίας</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1290" />
       <source> EventsPerHour</source>
-      <translation type="unfinished">ΓεγονόταΑνάΏρα</translation>
+      <translation type="unfinished"> ΓεγονόταΑνάΏρα</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1300" />
       <source>Set of Apnea:Length
 Jumps to Date's Events</source>
-      <translation type="unfinished">Σύνολο Άπνοιας:Διάρκεια\nΜετάβαση στα Γεγονότα Ημερομηνίας</translation>
+      <translation type="unfinished">Σύνολο Άπνοιας:Διάρκεια
+Μετάβαση στα Γεγονότα Ημερομηνίας</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1306" />
       <location filename="../oscar/dailySearchTab.cpp" line="1456" />
       <source> Seconds</source>
-      <translation type="unfinished">Δευτερόλεπτα</translation>
+      <translation type="unfinished"> Δευτερόλεπτα</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1309" />
       <source>Session Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">Διάρκεια Συνεδρίας\nΜετάβαση στις Λεπτομέρειες Ημερομηνίας</translation>
+      <translation type="unfinished">Διάρκεια Συνεδρίας
+Μετάβαση στις Λεπτομέρειες Ημερομηνίας</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1313" />
       <location filename="../oscar/dailySearchTab.cpp" line="1461" />
       <source> Minutes</source>
-      <translation type="unfinished">Λεπτά</translation>
+      <translation type="unfinished"> Λεπτά</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1318" />
       <source>Number of Sessions
 Jumps to Date's Details</source>
-      <translation type="unfinished">Αριθμός Συνεδριών\nΜετάβαση στις Λεπτομέρειες Ημερομηνίας</translation>
+      <translation type="unfinished">Αριθμός Συνεδριών
+Μετάβαση στις Λεπτομέρειες Ημερομηνίας</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1323" />
       <source> Sessions</source>
-      <translation type="unfinished">Συνεδρίες</translation>
+      <translation type="unfinished"> Συνεδρίες</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1326" />
       <source>Daily Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">Ημερήσια Διάρκεια\nΜετάβαση στις Λεπτομέρειες Ημερομηνίας</translation>
+      <translation type="unfinished">Ημερήσια Διάρκεια
+Μετάβαση στις Λεπτομέρειες Ημερομηνίας</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1332" />
       <location filename="../oscar/dailySearchTab.cpp" line="1451" />
       <source> Hours</source>
-      <translation type="unfinished">Ώρες</translation>
+      <translation type="unfinished"> Ώρες</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1336" />
       <source>Number of events
 Jumps to Date's Events</source>
-      <translation type="unfinished">Αριθμός γεγονότων\nΜετάβαση στα Γεγονότα Ημερομηνίας</translation>
+      <translation type="unfinished">Αριθμός γεγονότων
+Μετάβαση στα Γεγονότα Ημερομηνίας</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1340" />
       <source> Events</source>
-      <translation type="unfinished">Γεγονότα</translation>
+      <translation type="unfinished"> Γεγονότα</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1229,7 +1261,7 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1666" />
       <source> Skip:%1</source>
-      <translation type="unfinished">Παράλειψη:%1</translation>
+      <translation type="unfinished"> Παράλειψη:%1</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1667" />
@@ -1239,7 +1271,7 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1670" />
       <source>Found %1 </source>
-      <translation type="unfinished">Βρέθηκαν %1</translation>
+      <translation type="unfinished">Βρέθηκαν %1 </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1688" />
@@ -1254,12 +1286,12 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1778" />
       <source>  Searches from last day to first day.</source>
-      <translation type="unfinished">Αναζήτηση από την τελευταία ημέρα έως την πρώτη ημέρα.</translation>
+      <translation type="unfinished">  Αναζήτηση από την τελευταία ημέρα έως την πρώτη ημέρα.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1779" />
       <source>  Skips Days with no graphing data.</source>
-      <translation type="unfinished">Παραλείπει ημέρες χωρίς δεδομένα γραφήματος.</translation>
+      <translation type="unfinished">  Παραλείπει ημέρες χωρίς δεδομένα γραφήματος.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1781" />
@@ -1269,12 +1301,12 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1782" />
       <source>  Then click on the operation to modify it.</source>
-      <translation type="unfinished">Στη συνέχεια κάντε κλικ στην εντολή για να την τροποποιήσετε.</translation>
+      <translation type="unfinished">  Στη συνέχεια κάντε κλικ στην εντολή για να την τροποποιήσετε.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1783" />
       <source>  or update the value</source>
-      <translation type="unfinished">ή ενημερώστε την τιμή</translation>
+      <translation type="unfinished">  ή ενημερώστε την τιμή</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1785" />
@@ -1284,17 +1316,17 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1787" />
       <source>Compare Operations: numberic or character. </source>
-      <translation type="unfinished">Εντολές Σύγκρισης: αριθμητικές ή χαρακτήρων.</translation>
+      <translation type="unfinished">Εντολές Σύγκρισης: αριθμητικές ή χαρακτήρων. </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1788" />
       <source>  Numberic  Operations: </source>
-      <translation type="unfinished">Αριθμητικές Εντολές:</translation>
+      <translation type="unfinished">  Αριθμητικές Εντολές: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1789" />
       <source>  Character Operations: </source>
-      <translation type="unfinished">Εντολές Χαρακτήρων:</translation>
+      <translation type="unfinished">  Εντολές Χαρακτήρων: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1791" />
@@ -1304,17 +1336,17 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1792" />
       <source>  Left:Summary - Number of Day searched</source>
-      <translation type="unfinished">Αριστερά: Σύνοψη - Αριθμός ημερών που αναζητήθηκαν</translation>
+      <translation type="unfinished">  Αριστερά: Σύνοψη - Αριθμός ημερών που αναζητήθηκαν</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1793" />
       <source>  Center:Number of Items Found</source>
-      <translation type="unfinished">Κέντρο: Αριθμός Στοιχείων που Βρέθηκαν</translation>
+      <translation type="unfinished">  Κέντρο: Αριθμός Στοιχείων που Βρέθηκαν</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1794" />
       <source>  Right:Minimum/Maximum for item searched</source>
-      <translation type="unfinished">Δεξιά: Ελάχιστο/Μέγιστο για το στοιχείο που αναζητήθηκε</translation>
+      <translation type="unfinished">  Δεξιά: Ελάχιστο/Μέγιστο για το στοιχείο που αναζητήθηκε</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1796" />
@@ -1324,17 +1356,17 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1797" />
       <source>  Column One: Date of match. Click selects date.</source>
-      <translation type="unfinished">Πρώτη Στήλη: Ημερομηνία αντιστοίχισης. Το κλικ επιλέγει ημερομηνία.</translation>
+      <translation type="unfinished">  Πρώτη Στήλη: Ημερομηνία αντιστοίχισης. Το κλικ επιλέγει ημερομηνία.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1798" />
       <source>  Column two: Information. Click selects date.</source>
-      <translation type="unfinished">Δεύτερη Στήλη: Πληροφορίες. Το κλικ επιλέγει ημερομηνία.</translation>
+      <translation type="unfinished">  Δεύτερη Στήλη: Πληροφορίες. Το κλικ επιλέγει ημερομηνία.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1799" />
       <source>    Then Jumps the appropiate tab.</source>
-      <translation type="unfinished">Στη συνέχεια μεταβαίνει στην κατάλληλη καρτέλα.</translation>
+      <translation type="unfinished">    Στη συνέχεια μεταβαίνει στην κατάλληλη καρτέλα.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1801" />
@@ -1344,37 +1376,37 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1802" />
       <source>  Wildcards use 3 characters:</source>
-      <translation type="unfinished">Τα μπαλαντέρ χρησιμοποιούν 3 χαρακτήρες:</translation>
+      <translation type="unfinished">  Τα μπαλαντέρ χρησιμοποιούν 3 χαρακτήρες:</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1803" />
       <source>  Asterisk</source>
-      <translation type="unfinished">Αστερίσκος</translation>
+      <translation type="unfinished">  Αστερίσκος</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1804" />
       <source>  Question Mark</source>
-      <translation type="unfinished">Ερωτηματικό</translation>
+      <translation type="unfinished">  Ερωτηματικό</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1805" />
       <source>  Backslash.</source>
-      <translation type="unfinished">Ανάστροφη κάθετος.</translation>
+      <translation type="unfinished">  Ανάστροφη κάθετος.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1806" />
       <source>  Asterisk matches any number of characters.</source>
-      <translation type="unfinished">Ο αστερίσκος αντιστοιχεί σε οποιονδήποτε αριθμό χαρακτήρων.</translation>
+      <translation type="unfinished">  Ο αστερίσκος αντιστοιχεί σε οποιονδήποτε αριθμό χαρακτήρων.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1807" />
       <source>  Question Mark matches a single character.</source>
-      <translation type="unfinished">Το ερωτηματικό αντιστοιχεί σε έναν μόνο χαρακτήρα.</translation>
+      <translation type="unfinished">  Το ερωτηματικό αντιστοιχεί σε έναν μόνο χαρακτήρα.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1808" />
       <source>  Backslash matches next character.</source>
-      <translation type="unfinished">Η ανάστροφη κάθετος αντιστοιχεί στον επόμενο χαρακτήρα.</translation>
+      <translation type="unfinished">  Η ανάστροφη κάθετος αντιστοιχεί στον επόμενο χαρακτήρα.</translation>
     </message>
   </context>
   <context>
@@ -1421,7 +1453,10 @@ Jumps to Date's Events</source>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">Διαδρομή: %1\nΜέγεθος: %2\nΠροφίλ: %3\nΣημείωση: όλα τα δεδομένα συνεδριών και τυχόν εφεδρικά δεδομένα κάρτας SD σε αυτόν τον φάκελο θα διαγραφούν οριστικά.</translation>
+      <translation type="unfinished">Διαδρομή: %1
+Μέγεθος: %2
+Προφίλ: %3
+Σημείωση: όλα τα δεδομένα συνεδριών και τυχόν εφεδρικά δεδομένα κάρτας SD σε αυτόν τον φάκελο θα διαγραφούν οριστικά.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1439,7 +1474,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">Η βάση δεδομένων στη διαδρομή\n%1\nδεν μπορεί να ανοιχτεί αποκλειστικά. Μια άλλη παρουσία του OSCAR ενδέχεται να την έχει ανοιχτή.</translation>
+      <translation type="unfinished">Η βάση δεδομένων στη διαδρομή
+%1
+δεν μπορεί να ανοιχτεί αποκλειστικά. Μια άλλη παρουσία του OSCAR ενδέχεται να την έχει ανοιχτή.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1451,7 +1488,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">Πληκτρολογήστε "%1" για να διαγράψετε οριστικά αυτή τη βάση δεδομένων.\n\nΌλα τα δεδομένα συνεδριών και τα εφεδρικά δεδομένα κάρτας SD στον φάκελο θα διαγραφούν. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</translation>
+      <translation type="unfinished">Πληκτρολογήστε "%1" για να διαγράψετε οριστικά αυτή τη βάση δεδομένων.
+
+Όλα τα δεδομένα συνεδριών και τα εφεδρικά δεδομένα κάρτας SD στον φάκελο θα διαγραφούν. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1473,7 +1512,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">Δεν ήταν δυνατή η διαγραφή\n%1\nΤο αρχείο βάσης δεδομένων εξακολουθεί να υπάρχει. Ελέγξτε για ανοιχτές κλειδώσεις αρχείων και δοκιμάστε ξανά.</translation>
+      <translation type="unfinished">Δεν ήταν δυνατή η διαγραφή
+%1
+Το αρχείο βάσης δεδομένων εξακολουθεί να υπάρχει. Ελέγξτε για ανοιχτές κλειδώσεις αρχείων και δοκιμάστε ξανά.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1485,7 +1526,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">Η βάση δεδομένων διαγράφηκε, αλλά δεν ήταν δυνατή η κατάργηση όλων των αρχείων από\n%1\nΟρισμένα αρχεία ενδέχεται να εξακολουθούν να υπάρχουν.</translation>
+      <translation type="unfinished">Η βάση δεδομένων διαγράφηκε, αλλά δεν ήταν δυνατή η κατάργηση όλων των αρχείων από
+%1
+Ορισμένα αρχεία ενδέχεται να εξακολουθούν να υπάρχουν.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1509,7 +1552,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">Ανιχνεύθηκε καταστροφή βάσης δεδομένων ή σφάλμα I/O στο %1.\n\nΣφάλμα: %2\n\nΣυνιστώμενες ενέργειες:\n  • Εκτελέστε Βοήθεια → Αντιμετώπιση προβλημάτων → Έλεγχος ακεραιότητας βάσης δεδομένων\n  • Επαναφέρετε από πρόσφατο αντίγραφο ασφαλείας εάν βρεθούν προβλήματα</translation>
+      <translation type="unfinished">Ανιχνεύθηκε καταστροφή βάσης δεδομένων ή σφάλμα I/O στο %1.
+
+Σφάλμα: %2
+
+Συνιστώμενες ενέργειες:
+  • Εκτελέστε Βοήθεια → Αντιμετώπιση προβλημάτων → Έλεγχος ακεραιότητας βάσης δεδομένων
+  • Επαναφέρετε από πρόσφατο αντίγραφο ασφαλείας εάν βρεθούν προβλήματα</translation>
     </message>
   </context>
   <context>
@@ -1518,7 +1567,8 @@ Recommended actions:
       <location filename="../oscar/overview.cpp" line="832" />
       <source>ERROR
 The start date MUST be before the end date</source>
-      <translation type="unfinished">ΣΦΑΛΜΑ\nΗ ημερομηνία έναρξης ΠΡΕΠΕΙ να είναι πριν από την ημερομηνία λήξης</translation>
+      <translation type="unfinished">ΣΦΑΛΜΑ
+Η ημερομηνία έναρξης ΠΡΕΠΕΙ να είναι πριν από την ημερομηνία λήξης</translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="835" />
@@ -1529,12 +1579,13 @@ The start date MUST be before the end date</source>
       <location filename="../oscar/overview.cpp" line="836" />
       <source>
 Hint: Change the end date first</source>
-      <translation type="unfinished">\nΥπόδειξη: Αλλάξτε πρώτα την ημερομηνία λήξης</translation>
+      <translation type="unfinished">
+Υπόδειξη: Αλλάξτε πρώτα την ημερομηνία λήξης</translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="838" />
       <source>The entered end date %1 </source>
-      <translation type="unfinished">Η εισαχθείσα ημερομηνία λήξης %1</translation>
+      <translation type="unfinished">Η εισαχθείσα ημερομηνία λήξης %1 </translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="839" />
@@ -1545,7 +1596,8 @@ Hint: Change the end date first</source>
       <location filename="../oscar/overview.cpp" line="840" />
       <source>
 Hint: Change the start date first</source>
-      <translation type="unfinished">\nΥπόδειξη: Αλλάξτε πρώτα την ημερομηνία έναρξης</translation>
+      <translation type="unfinished">
+Υπόδειξη: Αλλάξτε πρώτα την ημερομηνία έναρξης</translation>
     </message>
   </context>
   <context>
@@ -1940,17 +1992,17 @@ Hint: Change the start date first</source>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— κακή προσαρμογή, η Χρήση Μοντέλου είναι απενεργοποιημένη</translation>
+      <translation type="unfinished"> — κακή προσαρμογή, η Χρήση Μοντέλου είναι απενεργοποιημένη</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— μέτρια προσαρμογή</translation>
+      <translation type="unfinished"> — μέτρια προσαρμογή</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— θα αντικαταστήσει το μοντέλο που είναι ενεργό από %1</translation>
+      <translation type="unfinished"> — θα αντικαταστήσει το μοντέλο που είναι ενεργό από %1</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2012,7 +2064,8 @@ Hint: Change the start date first</source>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Δεν ήταν δυνατό το άνοιγμα του αρχείου για ανάγνωση:\n%1</translation>
+      <translation type="unfinished">Δεν ήταν δυνατό το άνοιγμα του αρχείου για ανάγνωση:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2395,7 +2448,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Δεν ήταν δυνατό το άνοιγμα του αρχείου για ανάγνωση:\n%1</translation>
+      <translation type="unfinished">Δεν ήταν δυνατό το άνοιγμα του αρχείου για ανάγνωση:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2553,7 +2607,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">Εξέταση %1...\n\nΠαρακαλώ περιμένετε...</translation>
+      <translation type="unfinished">Εξέταση %1...
+
+Παρακαλώ περιμένετε...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2564,7 +2620,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">Ο επιλεγμένος φάκελος δεν φαίνεται να είναι έγκυρο προφίλ OSCAR.\nΠαρακαλώ επιλέξτε έναν φάκελο που περιέχει το αρχείο machines.xml</translation>
+      <translation type="unfinished">Ο επιλεγμένος φάκελος δεν φαίνεται να είναι έγκυρο προφίλ OSCAR.
+Παρακαλώ επιλέξτε έναν φάκελο που περιέχει το αρχείο machines.xml</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2577,7 +2634,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">Αυτό το προφίλ έχει μέγεθος %1 GB.\nΗ εισαγωγή ενδέχεται να διαρκέσει σημαντικό χρονικό διάστημα.\n\nΘέλετε να συνεχίσετε;</translation>
+      <translation type="unfinished">Αυτό το προφίλ έχει μέγεθος %1 GB.
+Η εισαγωγή ενδέχεται να διαρκέσει σημαντικό χρονικό διάστημα.
+
+Θέλετε να συνεχίσετε;</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2747,7 +2807,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">Αδυναμία εγγραφής αρχείου:\n%1</translation>
+      <translation type="unfinished">Αδυναμία εγγραφής αρχείου:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -3497,7 +3558,9 @@ Do you want to continue?</source>
       <source>Couldn't find any valid Device Data at
 
 %1</source>
-      <translation type="unfinished">Δεν ήταν δυνατή η εύρεση έγκυρων Δεδομένων Συσκευής στο\n\n%1</translation>
+      <translation type="unfinished">Δεν ήταν δυνατή η εύρεση έγκυρων Δεδομένων Συσκευής στο
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1201" />
@@ -3512,7 +3575,7 @@ Do you want to continue?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">Εισαγωγή Προφίλ</translation>
+      <translation type="unfinished">Εισαγωγή Προφίλ </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -3524,7 +3587,9 @@ Do you want to continue?</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">Το προφίλ '%1' εισήχθη με επιτυχία.\n\nΤώρα μπορείτε να το επιλέξετε από τον επιλογέα προφίλ.</translation>
+      <translation type="unfinished">Το προφίλ '%1' εισήχθη με επιτυχία.
+
+Τώρα μπορείτε να το επιλέξετε από τον επιλογέα προφίλ.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -3557,7 +3622,11 @@ You can now select it from the profile selector.</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Αδύνατη η εισαγωγή δεδομένων: η βάση δεδομένων OSCAR είναι κλειδωμένη από άλλη εφαρμογή.\n\nΕάν έχετε ανοιχτή τη βάση δεδομένων σε πρόγραμμα προβολής ή επεξεργασίας SQLite, κλείστε το και δοκιμάστε ξανά.\n\nΣφάλμα: %1</translation>
+      <translation type="unfinished">Αδύνατη η εισαγωγή δεδομένων: η βάση δεδομένων OSCAR είναι κλειδωμένη από άλλη εφαρμογή.
+
+Εάν έχετε ανοιχτή τη βάση δεδομένων σε πρόγραμμα προβολής ή επεξεργασίας SQLite, κλείστε το και δοκιμάστε ξανά.
+
+Σφάλμα: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1029" />
@@ -3567,7 +3636,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Τα εισαχθέντα δεδομένα δεν ήταν δυνατό να αποθηκευτούν στη βάση δεδομένων. Δεν αποθηκεύτηκαν δεδομένα.\n\nΕάν έχετε ανοιχτή τη βάση δεδομένων OSCAR σε άλλη εφαρμογή (π.χ. πρόγραμμα προβολής ή επεξεργασίας SQLite), κλείστε το και δοκιμάστε ξανά.\n\nΣφάλμα: %1</translation>
+      <translation type="unfinished">Τα εισαχθέντα δεδομένα δεν ήταν δυνατό να αποθηκευτούν στη βάση δεδομένων. Δεν αποθηκεύτηκαν δεδομένα.
+
+Εάν έχετε ανοιχτή τη βάση δεδομένων OSCAR σε άλλη εφαρμογή (π.χ. πρόγραμμα προβολής ή επεξεργασίας SQLite), κλείστε το και δοκιμάστε ξανά.
+
+Σφάλμα: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1290" />
@@ -3588,7 +3661,8 @@ Error: %1</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">Αποτυχία εισαγωγής προφίλ:\n%1</translation>
+      <translation type="unfinished">Αποτυχία εισαγωγής προφίλ:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1449" />
@@ -3603,7 +3677,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">Αυτή η κάρτα SD προέρχεται από διαφορετική συσκευή από την τελευταία που εισήχθη σε αυτό το προφίλ.\n\nΤελευταία εισαγωγή: %1\nΑυτή η κάρτα: %2\n\nΕίστε σίγουροι ότι θέλετε να εισαγάγετε από αυτή την κάρτα σε αυτό το προφίλ;</translation>
+      <translation type="unfinished">Αυτή η κάρτα SD προέρχεται από διαφορετική συσκευή από την τελευταία που εισήχθη σε αυτό το προφίλ.
+
+Τελευταία εισαγωγή: %1
+Αυτή η κάρτα: %2
+
+Είστε σίγουροι ότι θέλετε να εισαγάγετε από αυτή την κάρτα σε αυτό το προφίλ;</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3657,7 +3736,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">Αυτό θα διαγράψει μόνιμα όλες τις διορθώσεις ώρας για κάθε συσκευή σε αυτό το προφίλ.\n\nΕίστε σίγουροι;</translation>
+      <translation type="unfinished">Αυτό θα διαγράψει μόνιμα όλες τις διορθώσεις ώρας για κάθε συσκευή σε αυτό το προφίλ.
+
+Είστε σίγουροι;</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1978" />
@@ -3738,7 +3819,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">(ενεργό)</translation>
+      <translation type="unfinished"> (ενεργό)</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3759,7 +3840,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">Ο επιλεγμένος φάκελος περιέχει ήδη μια βάση δεδομένων OSCAR.\nΧρησιμοποιήστε Αρχείο ▸ Βάση Δεδομένων ▸ Άνοιγμα για να ανοίξετε μια υπάρχουσα βάση δεδομένων.</translation>
+      <translation type="unfinished">Ο επιλεγμένος φάκελος περιέχει ήδη μια βάση δεδομένων OSCAR.
+Χρησιμοποιήστε Αρχείο ▸ Βάση Δεδομένων ▸ Άνοιγμα για να ανοίξετε μια υπάρχουσα βάση δεδομένων.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3775,7 +3857,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">Ο επιλεγμένος φάκελος δεν περιέχει βάση δεδομένων OSCAR.\nΠαρακαλώ επιλέξτε έναν φάκελο που περιέχει αρχείο oscar.db.</translation>
+      <translation type="unfinished">Ο επιλεγμένος φάκελος δεν περιέχει βάση δεδομένων OSCAR.
+Παρακαλώ επιλέξτε έναν φάκελο που περιέχει αρχείο oscar.db.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3787,7 +3870,9 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">Δεν υπάρχουν ανενεργές βάσεις δεδομένων στην πρόσφατη λίστα για διαγραφή.\n\nΑνοίξτε βάσεις δεδομένων με Αρχείο ▸ Βάση Δεδομένων ▸ Άνοιγμα πρώτα για να τις προσθέσετε στην πρόσφατη λίστα.</translation>
+      <translation type="unfinished">Δεν υπάρχουν ανενεργές βάσεις δεδομένων στην πρόσφατη λίστα για διαγραφή.
+
+Ανοίξτε βάσεις δεδομένων με Αρχείο ▸ Βάση Δεδομένων ▸ Άνοιγμα πρώτα για να τις προσθέσετε στην πρόσφατη λίστα.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3536" />
@@ -3819,7 +3904,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">Αυτό θα συμπιέσει τη βάση δεδομένων για ανάκτηση αχρησιμοποίητου χώρου στο δίσκο. Είναι πιο χρήσιμο μετά τη διαγραφή προφίλ.\n\nΤρέχον μέγεθος βάσης δεδομένων: %1\n\nΑυτό ενδέχεται να διαρκέσει αρκετά λεπτά για μεγάλες βάσεις δεδομένων. Το OSCAR θα επανεκκινήσει αυτόματα όταν ολοκληρωθεί.\n\nΣυνέχεια;</translation>
+      <translation type="unfinished">Αυτό θα συμπιέσει τη βάση δεδομένων για ανάκτηση αχρησιμοποίητου χώρου στο δίσκο. Είναι πιο χρήσιμο μετά τη διαγραφή προφίλ.
+
+Τρέχον μέγεθος βάσης δεδομένων: %1
+
+Αυτό ενδέχεται να διαρκέσει αρκετά λεπτά για μεγάλες βάσεις δεδομένων. Το OSCAR θα επανεκκινήσει αυτόματα όταν ολοκληρωθεί.
+
+Συνέχεια;</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -3831,28 +3922,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Ο έλεγχος ακεραιότητας της βάσης δεδομένων απέτυχε. Η συμπίεση δεν μπορεί να προχωρήσει σε κατεστραμμένη βάση δεδομένων.\n\nΣυνιστώμενες ενέργειες:\n  • Επαναφέρετε ολόκληρη τη βάση δεδομένων από πρόσφατο αντίγραφο ασφαλείας συστήματος\n  • Επαναφέρετε κάθε προφίλ από πρόσφατο αντίγραφο ασφαλείας (Αρχείο → Επαναφορά προφίλ)\n  • Επανεισαγάγετε δεδομένα από την/τις κάρτα/ες SD του CPAP σας\n\nΓια προχωρημένες επιλογές ανάκτησης, ανατρέξτε στην τεκμηρίωση του OSCAR.</translation>
+      <translation type="unfinished">Ο έλεγχος ακεραιότητας της βάσης δεδομένων απέτυχε. Η συμπίεση δεν μπορεί να προχωρήσει σε κατεστραμμένη βάση δεδομένων.
+
+Συνιστώμενες ενέργειες:
+  • Επαναφέρετε ολόκληρη τη βάση δεδομένων από πρόσφατο αντίγραφο ασφαλείας συστήματος
+  • Επαναφέρετε κάθε προφίλ από πρόσφατο αντίγραφο ασφαλείας (Αρχείο → Επαναφορά προφίλ)
+  • Επανεισαγάγετε δεδομένα από την/τις κάρτα/ες SD του CPAP σας
+
+Για προχωρημένες επιλογές ανάκτησης, ανατρέξτε στην τεκμηρίωση του OSCAR.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">Συμπίεση βάσης δεδομένων, παρακαλώ περιμένετε...\n\nΑυτό ενδέχεται να διαρκέσει αρκετά λεπτά για μεγάλες βάσεις δεδομένων.</translation>
+      <translation type="unfinished">Συμπίεση βάσης δεδομένων, παρακαλώ περιμένετε...
+
+Αυτό ενδέχεται να διαρκέσει αρκετά λεπτά για μεγάλες βάσεις δεδομένων.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">Η συμπίεση ολοκληρώθηκε επιτυχώς, αλλά το αρχείο βάσης δεδομένων δεν ήταν δυνατό να αντικατασταθεί.\n\nΗ αρχική βάση δεδομένων παραμένει αναλλοίωτη.</translation>
+      <translation type="unfinished">Η συμπίεση ολοκληρώθηκε επιτυχώς, αλλά το αρχείο βάσης δεδομένων δεν ήταν δυνατό να αντικατασταθεί.
+
+Η αρχική βάση δεδομένων παραμένει αναλλοίωτη.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">Η συμπίεση ολοκληρώθηκε επιτυχώς, αλλά το νέο αρχείο δεν ήταν δυνατό να τοποθετηθεί στη θέση του.\n\nΗ αρχική βάση δεδομένων έχει αποκατασταθεί.</translation>
+      <translation type="unfinished">Η συμπίεση ολοκληρώθηκε επιτυχώς, αλλά το νέο αρχείο δεν ήταν δυνατό να τοποθετηθεί στη θέση του.
+
+Η αρχική βάση δεδομένων έχει αποκατασταθεί.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -3863,7 +3967,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Η βάση δεδομένων συμπιέστηκε επιτυχώς.\n\nΠριν:        %1\nΜετά:        %2\nΑνακτήθηκε: %3\n\nΤο OSCAR θα επανεκκινήσει όταν πατήσετε OK.</translation>
+      <translation type="unfinished">Η βάση δεδομένων συμπιέστηκε επιτυχώς.
+
+Πριν:        %1
+Μετά:        %2
+Ανακτήθηκε: %3
+
+Το OSCAR θα επανεκκινήσει όταν πατήσετε OK.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -3874,7 +3984,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Η βάση δεδομένων συμπιέστηκε επιτυχώς.\n\nΜέγεθος: %1\n\nΔεν ανακτήθηκε χώρος — η βάση δεδομένων ήταν ήδη συμπιεσμένη.\n\nΤο OSCAR θα επανεκκινήσει όταν πατήσετε OK.</translation>
+      <translation type="unfinished">Η βάση δεδομένων συμπιέστηκε επιτυχώς.
+
+Μέγεθος: %1
+
+Δεν ανακτήθηκε χώρος — η βάση δεδομένων ήταν ήδη συμπιεσμένη.
+
+Το OSCAR θα επανεκκινήσει όταν πατήσετε OK.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3543" />
@@ -3886,7 +4002,8 @@ OSCAR will restart when you press OK.</source>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">Παρουσιάστηκε πρόβλημα κατά την ανάλυση του %1 \nΑρχείο Δεδομένων: %2</translation>
+      <translation type="unfinished">Παρουσιάστηκε πρόβλημα κατά την ανάλυση του %1 
+Αρχείο Δεδομένων: %2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3224" />
@@ -3984,7 +4101,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Ο έλεγχος ακεραιότητας της βάσης δεδομένων εντόπισε προβλήματα. Ορισμένα δεδομένα ενδέχεται να λείπουν ή να είναι κατεστραμμένα.\n\nΟ έλεγχος ακεραιότητας καλύπτει ολόκληρη τη βάση δεδομένων, η οποία μπορεί να περιέχει πολλά προφίλ.\n\nΣυνιστώμενες ενέργειες:\n  • Επαναφέρετε ολόκληρη τη βάση δεδομένων από πρόσφατο αντίγραφο ασφαλείας συστήματος\n  • Επαναφέρετε κάθε προφίλ από πρόσφατο αντίγραφο ασφαλείας (Αρχείο → Επαναφορά προφίλ)\n  • Επανεισαγάγετε δεδομένα από την/τις κάρτα/ες SD του CPAP σας\n\nΓια προχωρημένες επιλογές ανάκτησης, ανατρέξτε στην τεκμηρίωση του OSCAR.</translation>
+      <translation type="unfinished">Ο έλεγχος ακεραιότητας της βάσης δεδομένων εντόπισε προβλήματα. Ορισμένα δεδομένα ενδέχεται να λείπουν ή να είναι κατεστραμμένα.
+
+Ο έλεγχος ακεραιότητας καλύπτει ολόκληρη τη βάση δεδομένων, η οποία μπορεί να περιέχει πολλά προφίλ.
+
+Συνιστώμενες ενέργειες:
+  • Επαναφέρετε ολόκληρη τη βάση δεδομένων από πρόσφατο αντίγραφο ασφαλείας συστήματος
+  • Επαναφέρετε κάθε προφίλ από πρόσφατο αντίγραφο ασφαλείας (Αρχείο → Επαναφορά προφίλ)
+  • Επανεισαγάγετε δεδομένα από την/τις κάρτα/ες SD του CPAP σας
+
+Για προχωρημένες επιλογές ανάκτησης, ανατρέξτε στην τεκμηρίωση του OSCAR.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -4009,7 +4135,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">Η συμπίεση της βάσης δεδομένων απέτυχε:\n%1</translation>
+      <translation type="unfinished">Η συμπίεση της βάσης δεδομένων απέτυχε:
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -4076,7 +4203,9 @@ No space was reclaimed — the database was already compact.</source>
       <source>Are you sure you want to rebuild all CPAP data for the following device:
 
 </source>
-      <translation type="unfinished">Είστε σίγουροι ότι θέλετε να αναδημιουργήσετε όλα τα δεδομένα CPAP για την ακόλουθη συσκευή:\n\n</translation>
+      <translation type="unfinished">Είστε σίγουροι ότι θέλετε να αναδημιουργήσετε όλα τα δεδομένα CPAP για την ακόλουθη συσκευή:
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2507" />
@@ -4759,7 +4888,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Δεν ήταν δυνατό το άνοιγμα του αρχείου για ανάγνωση:\n%1</translation>
+      <translation type="unfinished">Δεν ήταν δυνατό το άνοιγμα του αρχείου για ανάγνωση:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4780,7 +4910,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">Το αρχείο μεταφορτώθηκε στο OneDrive, αλλά δεν ήταν δυνατή η δημιουργία συνδέσμου κοινής χρήσης (HTTP %1).\nΣημείωση: η ανώνυμη κοινή χρήση ενδέχεται να είναι απενεργοποιημένη στις ρυθμίσεις του λογαριασμού σας Microsoft.</translation>
+      <translation type="unfinished">Το αρχείο μεταφορτώθηκε στο OneDrive, αλλά δεν ήταν δυνατή η δημιουργία συνδέσμου κοινής χρήσης (HTTP %1).
+Σημείωση: η ανώνυμη κοινή χρήση ενδέχεται να είναι απενεργοποιημένη στις ρυθμίσεις του λογαριασμού σας Microsoft.</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -6160,7 +6291,7 @@ If you've got a new computer with a small solid state disk, this is a good optio
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">Η λειτουργία Permissive Mode ΠΡΕΠΕΙ να είναι ενεργοποιημένη. Δείτε την καρτέλα Clinical</translation>
+      <translation type="unfinished">Η λειτουργία Permissive Mode ΠΡΕΠΕΙ να είναι ενεργοποιημένη. Δείτε την καρτέλα Clinical </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6177,7 +6308,9 @@ If you've got a new computer with a small solid state disk, this is a good optio
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">Η Σταθερή Αναπνοή (SB) βασίζεται στον Ρυθμό Ροής.\nΔημιουργεί κυματομορφή και συμβάντα SPAN χρησιμοποιώντας τον ρυθμό ροής CPAP.\nΛειτουργεί μόνο όταν η Σταθερή Αναπνοή είναι ενεργοποιημένη και τα δεδομένα CPAP (επαν)εισάγονται.</translation>
+      <translation type="unfinished">Η Σταθερή Αναπνοή (SB) βασίζεται στον Ρυθμό Ροής.
+Δημιουργεί κυματομορφή και συμβάντα SPAN χρησιμοποιώντας τον ρυθμό ροής CPAP.
+Λειτουργεί μόνο όταν η Σταθερή Αναπνοή είναι ενεργοποιημένη και τα δεδομένα CPAP (επαν)εισάγονται.  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6197,7 +6330,7 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1484" />
       <source> Seconds</source>
-      <translation type="unfinished">Δευτερόλεπτα</translation>
+      <translation type="unfinished"> Δευτερόλεπτα</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1503" />
@@ -6213,13 +6346,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">Η Clinical Mode δεν επιτρέπει απενεργοποιημένες συνεδρίες.\nΟι απενεργοποιημένες συνεδρίες δεν χρησιμοποιούνται για γραφήματα ή Στατιστικά.</translation>
+      <translation type="unfinished">Η Clinical Mode δεν επιτρέπει απενεργοποιημένες συνεδρίες.
+Οι απενεργοποιημένες συνεδρίες δεν χρησιμοποιούνται για γραφήματα ή Στατιστικά.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">Η Permissive Mode επιτρέπει απενεργοποιημένες συνεδρίες.\nΟι απενεργοποιημένες συνεδρίες χρησιμοποιούνται για γραφήματα και Στατιστικά.</translation>
+      <translation type="unfinished">Η Permissive Mode επιτρέπει απενεργοποιημένες συνεδρίες.
+Οι απενεργοποιημένες συνεδρίες χρησιμοποιούνται για γραφήματα και Στατιστικά.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6232,7 +6367,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">Από προεπιλογή, το OSCAR χρησιμοποιεί έναν υπολογισμό από την πρώτη ώρα δεδομένων οξυμετρίας ως βάση.\nΑυτή η ρύθμιση σάς επιτρέπει να την παρακάμψετε με μια στατική τιμή.\nΑυτό μπορεί να είναι χρήσιμο όταν η πρώτη ώρα δεν είναι αντιπροσωπευτική του συνόλου των δεδομένων.\nΜπορεί επίσης να είναι χρήσιμο για ευκολότερη σύγκριση μεταξύ ημερών.</translation>
+      <translation type="unfinished">Από προεπιλογή, το OSCAR χρησιμοποιεί έναν υπολογισμό από την πρώτη ώρα δεδομένων οξυμετρίας ως βάση.
+Αυτή η ρύθμιση σάς επιτρέπει να την παρακάμψετε με μια στατική τιμή.
+Αυτό μπορεί να είναι χρήσιμο όταν η πρώτη ώρα δεν είναι αντιπροσωπευτική του συνόλου των δεδομένων.
+Μπορεί επίσης να είναι χρήσιμο για ευκολότερη σύγκριση μεταξύ ημερών.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2034" />
@@ -6246,7 +6384,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Συγχρονισμός Δεδομένων Οξυμετρίας και CPAP&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Τα δεδομένα CMS50 που εισάγονται από το SpO2Review (από αρχεία .spoR) ή με τη μέθοδο σειριακής εισαγωγής &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;δεν&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; διαθέτουν τη σωστή χρονική σήμανση που απαιτείται για τον συγχρονισμό.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Η λειτουργία ζωντανής προβολής (με χρήση σειριακού καλωδίου) είναι ένας τρόπος για την επίτευξη ακριβούς συγχρονισμού σε οξύμετρα CMS50, αλλά δεν αντισταθμίζει την απόκλιση ρολογιού του CPAP.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Εάν εκκινήσετε τη λειτουργία εγγραφής του Οξύμετρού σας &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;ακριβώς &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;την ίδια στιγμή που εκκινείτε τη συσκευή CPAP σας, μπορείτε πλέον επίσης να επιτύχετε συγχρονισμό. &lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Η διαδικασία σειριακής εισαγωγής λαμβάνει την ώρα έναρξης από την πρώτη συνεδρία CPAP της προηγούμενης νύχτας. (Θυμηθείτε να εισαγάγετε πρώτα τα δεδομένα CPAP σας!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Συγχρονισμός Δεδομένων Οξυμετρίας και CPAP&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Τα δεδομένα CMS50 που εισάγονται από το SpO2Review (από αρχεία .spoR) ή με τη μέθοδο σειριακής εισαγωγής &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;δεν&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; διαθέτουν τη σωστή χρονική σήμανση που απαιτείται για τον συγχρονισμό.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Η λειτουργία ζωντανής προβολής (με χρήση σειριακού καλωδίου) είναι ένας τρόπος για την επίτευξη ακριβούς συγχρονισμού σε οξύμετρα CMS50, αλλά δεν αντισταθμίζει την απόκλιση ρολογιού του CPAP.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Εάν εκκινήσετε τη λειτουργία εγγραφής του Οξύμετρού σας &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;ακριβώς &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;την ίδια στιγμή που εκκινείτε τη συσκευή CPAP σας, μπορείτε πλέον επίσης να επιτύχετε συγχρονισμό. &lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Η διαδικασία σειριακής εισαγωγής λαμβάνει την ώρα έναρξης από την πρώτη συνεδρία CPAP της προηγούμενης νύχτας. (Θυμηθείτε να εισαγάγετε πρώτα τα δεδομένα CPAP σας!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2269" />
@@ -6257,7 +6404,8 @@ p, li { white-space: pre-wrap; }
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">Προσθέτει στοιχεία Νέο, Άνοιγμα, Πρόσφατα και Διαγραφή στο Αρχείο &gt; Βάση Δεδομένων.\nΠροορίζεται για το προσωπικό υποστήριξης και τους προγραμματιστές.</translation>
+      <translation type="unfinished">Προσθέτει στοιχεία Νέο, Άνοιγμα, Πρόσφατα και Διαγραφή στο Αρχείο &gt; Βάση Δεδομένων.
+Προορίζεται για το προσωπικό υποστήριξης και τους προγραμματιστές.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6457,7 +6605,9 @@ Try it and see if you like it.</source>
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">Χρήση του θέματος Fusion του Qt αντί για το εγγενές θέμα της πλατφόρμας.\nΠαρέχει συνεπή εμφάνιση σε όλες τις πλατφόρμες.\nΤο OSCAR θα επανεκκινήσει όταν κάνετε κλικ στο OK.</translation>
+      <translation type="unfinished">Χρήση του θέματος Fusion του Qt αντί για το εγγενές θέμα της πλατφόρμας.
+Παρέχει συνεπή εμφάνιση σε όλες τις πλατφόρμες.
+Το OSCAR θα επανεκκινήσει όταν κάνετε κλικ στο OK.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -6487,7 +6637,12 @@ which is common on Mac  Linux platforms..
 
 OSCAR can import from this compressed backup directory natively.. 
 To use it with ResScan will require the .gz files to be uncompressed first..</source>
-      <translation type="unfinished">Συμπίεση αντιγράφων ασφαλείας ResMed (EDF) για εξοικονόμηση χώρου στο δίσκο.\nΤα αρχεία EDF που έχουν αποθηκευτεί ως αντίγραφα ασφαλείας αποθηκεύονται σε μορφή .gz, \nη οποία είναι συνηθισμένη σε πλατφόρμες Mac και Linux..\n\nΤο OSCAR μπορεί να εισάγει από αυτόν τον συμπιεσμένο κατάλογο αντιγράφων ασφαλείας εγγενώς.. \nΓια χρήση με το ResScan θα απαιτηθεί πρώτα αποσυμπίεση των αρχείων .gz..</translation>
+      <translation type="unfinished">Συμπίεση αντιγράφων ασφαλείας ResMed (EDF) για εξοικονόμηση χώρου στο δίσκο.
+Τα αρχεία EDF που έχουν αποθηκευτεί ως αντίγραφα ασφαλείας αποθηκεύονται σε μορφή .gz, 
+η οποία είναι συνηθισμένη σε πλατφόρμες Mac και Linux..
+
+Το OSCAR μπορεί να εισάγει από αυτόν τον συμπιεσμένο κατάλογο αντιγράφων ασφαλείας εγγενώς.. 
+Για χρήση με το ResScan θα απαιτηθεί πρώτα αποσυμπίεση των αρχείων .gz..</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="493" />
@@ -6498,7 +6653,13 @@ and graph data older than 30 days..
 
 OSCAR can keep a copy of this data if you ever need to reinstall. 
 (Highly recomended, unless your short on disk space or don't care about the graph data)</source>
-      <translation type="unfinished">Αυτό διατηρεί ένα αντίγραφο ασφαλείας των δεδομένων κάρτας SD για συσκευές ResMed, \n\nΟι συσκευές ResMed S9 series διαγράφουν δεδομένα υψηλής ανάλυσης παλαιότερα από 7 ημέρες, \nκαι δεδομένα γραφημάτων παλαιότερα από 30 ημέρες..\n\nΤο OSCAR μπορεί να κρατήσει ένα αντίγραφο αυτών των δεδομένων αν χρειαστεί ποτέ να επανεγκαταστήσετε. \n(Συνιστάται ανεπιφύλακτα, εκτός αν έχετε περιορισμένο χώρο στο δίσκο ή δεν σας ενδιαφέρουν τα δεδομένα γραφημάτων)</translation>
+      <translation type="unfinished">Αυτό διατηρεί ένα αντίγραφο ασφαλείας των δεδομένων κάρτας SD για συσκευές ResMed, 
+
+Οι συσκευές ResMed S9 series διαγράφουν δεδομένα υψηλής ανάλυσης παλαιότερα από 7 ημέρες, 
+και δεδομένα γραφημάτων παλαιότερα από 30 ημέρες..
+
+Το OSCAR μπορεί να κρατήσει ένα αντίγραφο αυτών των δεδομένων αν χρειαστεί ποτέ να επανεγκαταστήσετε. 
+(Συνιστάται ανεπιφύλακτα, εκτός αν έχετε περιορισμένο χώρο στο δίσκο ή δεν σας ενδιαφέρουν τα δεδομένα γραφημάτων)</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="653" />
@@ -6522,14 +6683,20 @@ OSCAR can keep a copy of this data if you ever need to reinstall.
 The Unintentional Leak calculations used here are linear, they don't model the mask vent curve.
 
 If you use a few different masks, pick average values instead. It should still be close enough.</source>
-      <translation type="unfinished">Αυτός ο υπολογισμός απαιτεί δεδομένα Συνολικών Διαρροών από τη συσκευή CPAP. (Π.χ. PRS1, αλλά όχι ResMed, που τα διαθέτει ήδη)\n\nΟι υπολογισμοί Ακούσιων Διαρροών που χρησιμοποιούνται εδώ είναι γραμμικοί, δεν μοντελοποιούν την καμπύλη αεραγωγού μάσκας.\n\nΑν χρησιμοποιείτε διάφορες μάσκες, επιλέξτε μέσες τιμές. Θα πρέπει να παραμένει αρκετά κοντά.</translation>
+      <translation type="unfinished">Αυτός ο υπολογισμός απαιτεί δεδομένα Συνολικών Διαρροών από τη συσκευή CPAP. (Π.χ. PRS1, αλλά όχι ResMed, που τα διαθέτει ήδη)
+
+Οι υπολογισμοί Ακούσιων Διαρροών που χρησιμοποιούνται εδώ είναι γραμμικοί, δεν μοντελοποιούν την καμπύλη αεραγωγού μάσκας.
+
+Αν χρησιμοποιείτε διάφορες μάσκες, επιλέξτε μέσες τιμές. Θα πρέπει να παραμένει αρκετά κοντά.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="898" />
       <source>Enable/disable experimental event flagging enhancements. 
 It allows detecting borderline events, and some the device missed.
 This option must be enabled before import, otherwise a purge is required.</source>
-      <translation type="unfinished">Ενεργοποίηση/απενεργοποίηση πειραματικών βελτιώσεων επισήμανσης συμβάντων. \nΕπιτρέπει την ανίχνευση οριακών συμβάντων και ορισμένων που η συσκευή παρέλειψε.\nΑυτή η επιλογή πρέπει να ενεργοποιηθεί πριν την εισαγωγή, διαφορετικά απαιτείται εκκαθάριση.</translation>
+      <translation type="unfinished">Ενεργοποίηση/απενεργοποίηση πειραματικών βελτιώσεων επισήμανσης συμβάντων. 
+Επιτρέπει την ανίχνευση οριακών συμβάντων και ορισμένων που η συσκευή παρέλειψε.
+Αυτή η επιλογή πρέπει να ενεργοποιηθεί πριν την εισαγωγή, διαφορετικά απαιτείται εκκαθάριση.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="950" />
@@ -6559,7 +6726,7 @@ This option must be enabled before import, otherwise a purge is required.</sourc
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1206" />
       <source> l/min</source>
-      <translation type="unfinished">l/min</translation>
+      <translation type="unfinished"> l/min</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1298" />
@@ -6592,7 +6759,7 @@ This option must be enabled before import, otherwise a purge is required.</sourc
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1628" />
       <source>Select  Oscar Operating Mode </source>
-      <translation type="unfinished">Επιλογή Λειτουργίας Oscar</translation>
+      <translation type="unfinished">Επιλογή Λειτουργίας Oscar </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1638" />
@@ -6607,7 +6774,7 @@ This option must be enabled before import, otherwise a purge is required.</sourc
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1665" />
       <source> Hours</source>
-      <translation type="unfinished">Ώρες</translation>
+      <translation type="unfinished"> Ώρες</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1692" />
@@ -6687,7 +6854,7 @@ This option must be enabled before import, otherwise a purge is required.</sourc
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">Εναλλασσόμενη Απόσταση Χρώματος</translation>
+      <translation type="unfinished"> Εναλλασσόμενη Απόσταση Χρώματος</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3227" />
@@ -7245,7 +7412,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(πρώτη αποτυχία: %1</translation>
+      <translation type="unfinished"> (πρώτη αποτυχία: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7333,7 +7500,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">Αναγν.:</translation>
+      <translation type="unfinished">Αναγν.: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="295" />
@@ -7422,7 +7589,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">Διαγραφή προφίλ</translation>
+      <translation type="unfinished">Διαγραφή προφίλ </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7453,7 +7620,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">Όνομα:</translation>
+      <translation type="unfinished">Όνομα: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -7793,7 +7960,8 @@ Would you like do this now?</source>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="30" />
       <source>
 Length: %1</source>
-      <translation type="unfinished">\nΜήκος: %1</translation>
+      <translation type="unfinished">
+Μήκος: %1</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="96" />
@@ -9486,7 +9654,7 @@ TTIA: %1</translation>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">Χρόνος Ανόδου</translation>
+      <translation type="unfinished">Χρόνος Ανόδου </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -11278,7 +11446,10 @@ TTIA: %1</translation>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">Μετεγκατάσταση προφίλ: %1\n(%2 από %3)\n\nΈναρξη εισαγωγής...</translation>
+      <translation type="unfinished">Μετεγκατάσταση προφίλ: %1
+(%2 από %3)
+
+Έναρξη εισαγωγής...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -11286,7 +11457,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">Ακύρωση: %1\n(%2 από %3)\n\nΕκκαθάριση, παρακαλώ περιμένετε...</translation>
+      <translation type="unfinished">Ακύρωση: %1
+(%2 από %3)
+
+Εκκαθάριση, παρακαλώ περιμένετε...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -11294,7 +11468,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">Μετεγκατάσταση προφίλ: %1\n(%2 από %3)\n\n%4</translation>
+      <translation type="unfinished">Μετεγκατάσταση προφίλ: %1
+(%2 από %3)
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -11481,7 +11658,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">Το OSCAR εντόπισε ότι η προηγούμενη συνεδρία τερματίστηκε απροσδόκητα και ο έλεγχος ακεραιότητας της βάσης δεδομένων εντόπισε προβλήματα.\n\nΟρισμένα δεδομένα ενδέχεται να λείπουν ή να είναι κατεστραμμένα.\n\nΣυνιστώμενες ενέργειες:\n  • Επαναφέρετε ολόκληρη τη βάση δεδομένων από πρόσφατο αντίγραφο ασφαλείας συστήματος\n  • Επαναφέρετε κάθε προφίλ από πρόσφατο αντίγραφο ασφαλείας (Αρχείο → Επαναφορά προφίλ)\n  • Επανεισαγάγετε δεδομένα από την/τις κάρτα/ες SD του CPAP σας\n\nΓια προχωρημένες επιλογές ανάκτησης, ανατρέξτε στην τεκμηρίωση του OSCAR.\n\nΜπορείτε να συνεχίσετε, αλλά ορισμένα δεδομένα ενδέχεται να είναι ελλιπή ή εσφαλμένα.</translation>
+      <translation type="unfinished">Το OSCAR εντόπισε ότι η προηγούμενη συνεδρία τερματίστηκε απροσδόκητα και ο έλεγχος ακεραιότητας της βάσης δεδομένων εντόπισε προβλήματα.
+
+Ορισμένα δεδομένα ενδέχεται να λείπουν ή να είναι κατεστραμμένα.
+
+Συνιστώμενες ενέργειες:
+  • Επαναφέρετε ολόκληρη τη βάση δεδομένων από πρόσφατο αντίγραφο ασφαλείας συστήματος
+  • Επαναφέρετε κάθε προφίλ από πρόσφατο αντίγραφο ασφαλείας (Αρχείο → Επαναφορά προφίλ)
+  • Επανεισαγάγετε δεδομένα από την/τις κάρτα/ες SD του CPAP σας
+
+Για προχωρημένες επιλογές ανάκτησης, ανατρέξτε στην τεκμηρίωση του OSCAR.
+
+Μπορείτε να συνεχίσετε, αλλά ορισμένα δεδομένα ενδέχεται να είναι ελλιπή ή εσφαλμένα.</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -11559,7 +11747,8 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <location filename="../oscar/mainwindow.cpp" line="1238" />
       <source>Chromebook file system detected, but no removable device found
 </source>
-      <translation type="unfinished">Εντοπίστηκε σύστημα αρχείων Chromebook, αλλά δεν βρέθηκε αφαιρούμενη συσκευή\n</translation>
+      <translation type="unfinished">Εντοπίστηκε σύστημα αρχείων Chromebook, αλλά δεν βρέθηκε αφαιρούμενη συσκευή
+</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1239" />
@@ -11662,7 +11851,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
     <message>
       <location filename="../oscar/reports.cpp" line="298" />
       <source>AI=%1 </source>
-      <translation type="unfinished">AI=%1</translation>
+      <translation type="unfinished">AI=%1 </translation>
     </message>
     <message>
       <location filename="../oscar/reports.cpp" line="374" />
@@ -11975,7 +12164,8 @@ Please Rebuild CPAP Data</source>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="640" />
       <source>The popout window is full. You should capture the existing
 popout window, delete it, then pop out this graph again.</source>
-      <translation type="unfinished">Το αναδυόμενο παράθυρο είναι πλήρες. Θα πρέπει να καταγράψετε το υπάρχον\nαναδυόμενο παράθυρο, να το διαγράψετε και στη συνέχεια να αναδύσετε ξανά αυτό το γράφημα.</translation>
+      <translation type="unfinished">Το αναδυόμενο παράθυρο είναι πλήρες. Θα πρέπει να καταγράψετε το υπάρχον
+αναδυόμενο παράθυρο, να το διαγράψετε και στη συνέχεια να αναδύσετε ξανά αυτό το γράφημα.</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="1666" />
@@ -12662,7 +12852,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">Η μετεγκατάσταση Ημερολογίου ολοκληρώθηκε:\n%1 εγγραφές ημερολογίου μεταφέρθηκαν στη βάση δεδομένων\n%2 σφάλματα</translation>
+      <translation type="unfinished">Η μετεγκατάσταση Ημερολογίου ολοκληρώθηκε:
+%1 εγγραφές ημερολογίου μεταφέρθηκαν στη βάση δεδομένων
+%2 σφάλματα</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.h" line="236" />
@@ -12702,7 +12894,7 @@ popout window, delete it, then pop out this graph again.</source>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR:</translation>
+      <translation type="unfinished">IPR: </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/sleepstyle_loader.cpp" line="1027" />
@@ -12911,7 +13103,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">Το επιλεγμένο αρχείο δεν φαίνεται να είναι έγκυρο αρχείο Dreem CSV.\n\nΤα δεδομένα Dreem πρέπει να είναι διαμορφωμένα ως αρχείο CSV οριοθετημένο με ερωτηματικά. Βεβαιωθείτε ότι τα δεδομένα σας είναι σε μορφή CSV και δοκιμάστε ξανά.</translation>
+      <translation type="unfinished">Το επιλεγμένο αρχείο δεν φαίνεται να είναι έγκυρο αρχείο Dreem CSV.
+
+Τα δεδομένα Dreem πρέπει να είναι διαμορφωμένα ως αρχείο CSV οριοθετημένο με ερωτηματικά. Βεβαιωθείτε ότι τα δεδομένα σας είναι σε μορφή CSV και δοκιμάστε ξανά.</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13279,7 +13473,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Αντίγραφο)</translation>
+      <translation type="unfinished"> (Αντίγραφο)</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13329,19 +13523,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">Αποτυχία ανάλυσης αρχείου:\n%1</translation>
+      <translation type="unfinished">Αποτυχία ανάλυσης αρχείου:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">Η εισαγωγή απέτυχε:\n%1</translation>
+      <translation type="unfinished">Η εισαγωγή απέτυχε:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">Εισήχθησαν %1 αναφορά/ές από:\n%2</translation>
+      <translation type="unfinished">Εισήχθησαν %1 αναφορά/ές από:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13364,13 +13561,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">Αποτυχία εγγραφής αρχείου:\n%1</translation>
+      <translation type="unfinished">Αποτυχία εγγραφής αρχείου:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">Εξήχθησαν %1 αναφορά/ές σε:\n%2</translation>
+      <translation type="unfinished">Εξήχθησαν %1 αναφορά/ές σε:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13426,19 +13625,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">Η ερώτηση απέτυχε:\n%1</translation>
+      <translation type="unfinished">Η ερώτηση απέτυχε:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">Δεν είναι δυνατή η εγγραφή αρχείου:\n%1</translation>
+      <translation type="unfinished">Δεν είναι δυνατή η εγγραφή αρχείου:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">Εξήχθησαν %1 γραμμές σε:\n%2</translation>
+      <translation type="unfinished">Εξήχθησαν %1 γραμμές σε:
+%2</translation>
     </message>
   </context>
   <context>
@@ -13584,7 +13786,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">Υπάρχει ήδη μια αναφορά με αυτό το όνομα.\nΠαρακαλώ επιλέξτε διαφορετικό όνομα.</translation>
+      <translation type="unfinished">Υπάρχει ήδη μια αναφορά με αυτό το όνομα.
+Παρακαλώ επιλέξτε διαφορετικό όνομα.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13600,7 +13803,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">Η αναφορά '%1' δημιουργήθηκε.\nΧρησιμοποιήστε την 'Αντιγραφή Ποικιλίας' για να προσθέσετε ερωτήματα σε αυτή την αναφορά.</translation>
+      <translation type="unfinished">Η αναφορά '%1' δημιουργήθηκε.
+Χρησιμοποιήστε την 'Αντιγραφή Ποικιλίας' για να προσθέσετε ερωτήματα σε αυτή την αναφορά.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13610,7 +13814,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Αντίγραφο)</translation>
+      <translation type="unfinished"> (Αντίγραφο)</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13621,7 +13825,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">Η αναφορά αντιγράφηκε επιτυχώς.\n%1 ποικιλίες αντιγράφηκαν.</translation>
+      <translation type="unfinished">Η αναφορά αντιγράφηκε επιτυχώς.
+%1 ποικιλίες αντιγράφηκαν.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13638,7 +13843,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\nΑυτό θα διαγράψει επίσης %1 ποικιλίες αναφοράς.</translation>
+      <translation type="unfinished">
+
+Αυτό θα διαγράψει επίσης %1 ποικιλίες αναφοράς.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13759,7 +13966,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">Εισάγετε ερώτημα SQL με μακροεντολές:\n#PROFILE_ID - Τρέχον ID προφίλ\n#START_DATE - Ημερομηνία έναρξης αναφοράς\n#END_DATE - Ημερομηνία λήξης αναφοράς</translation>
+      <translation type="unfinished">Εισάγετε ερώτημα SQL με μακροεντολές:
+#PROFILE_ID - Τρέχον ID προφίλ
+#START_DATE - Ημερομηνία έναρξης αναφοράς
+#END_DATE - Ημερομηνία λήξης αναφοράς</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -13812,7 +14022,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Αντίγραφο)</translation>
+      <translation type="unfinished"> (Αντίγραφο)</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -13829,7 +14039,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">Δεν υπάρχουν διαθέσιμες προσαρμοσμένες αναφορές.\nΕισάγετε ένα νέο όνομα αναφοράς για να δημιουργήσετε μία.</translation>
+      <translation type="unfinished">Δεν υπάρχουν διαθέσιμες προσαρμοσμένες αναφορές.
+Εισάγετε ένα νέο όνομα αναφοράς για να δημιουργήσετε μία.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -13849,27 +14060,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">Αποτυχία ερωτήματος:\n\n%1\n\nΣφάλμα SQL:\n%2</translation>
+      <translation type="unfinished">Αποτυχία ερωτήματος:
+
+%1
+
+Σφάλμα SQL:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">Το ερώτημα εκτελέστηκε επιτυχώς.\n\nΔεν επιστράφηκαν αποτελέσματα (αυτό μπορεί να είναι φυσιολογικό εάν δεν υπάρχουν δεδομένα για το χρονικό εύρος).</translation>
+      <translation type="unfinished">Το ερώτημα εκτελέστηκε επιτυχώς.
+
+Δεν επιστράφηκαν αποτελέσματα (αυτό μπορεί να είναι φυσιολογικό εάν δεν υπάρχουν δεδομένα για το χρονικό εύρος).</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">Αποτελέσματα Δοκιμής Ερωτήματος\n</translation>
+      <translation type="unfinished">Αποτελέσματα Δοκιμής Ερωτήματος
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">(Εμφάνιση πρώτων %1 γραμμών)\n\n</translation>
+      <translation type="unfinished">(Εμφάνιση πρώτων %1 γραμμών)
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -13940,7 +14161,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">Μια ποικιλία με το όνομα '%1' υπάρχει ήδη στην αναφορά '%2'.\n\nΠαρακαλώ επιλέξτε διαφορετικό όνομα ποικιλίας.</translation>
+      <translation type="unfinished">Μια ποικιλία με το όνομα '%1' υπάρχει ήδη στην αναφορά '%2'.
+
+Παρακαλώ επιλέξτε διαφορετικό όνομα ποικιλίας.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -13956,14 +14179,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">Το ερώτημα δεν περιέχει όλες τις απαιτούμενες μακροεντολές:\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\nΤο ερώτημα ενδέχεται να μην λειτουργεί σωστά.\n\nΣυνέχεια;</translation>
+      <translation type="unfinished">Το ερώτημα δεν περιέχει όλες τις απαιτούμενες μακροεντολές:
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+Το ερώτημα ενδέχεται να μην λειτουργεί σωστά.
+
+Συνέχεια;</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">Δεν είναι δυνατή η προσθήκη ποικιλιών στην αναφορά συστήματος '%1'.\n\nΠαρακαλώ επιλέξτε διαφορετικό όνομα αναφοράς.</translation>
+      <translation type="unfinished">Δεν είναι δυνατή η προσθήκη ποικιλιών στην αναφορά συστήματος '%1'.
+
+Παρακαλώ επιλέξτε διαφορετικό όνομα αναφοράς.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -13976,7 +14207,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">Η αναφορά '%1' δεν υπάρχει.\n\nΝα δημιουργηθεί;</translation>
+      <translation type="unfinished">Η αναφορά '%1' δεν υπάρχει.
+
+Να δημιουργηθεί;</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14277,7 +14510,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">Το επιλεγμένο αρχείο δεν είναι έγκυρο πακέτο αντιγράφου ασφαλείας.\n\n%1</translation>
+      <translation type="unfinished">Το επιλεγμένο αρχείο δεν είναι έγκυρο πακέτο αντιγράφου ασφαλείας.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14289,7 +14524,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">Αυτό το αντίγραφο ασφαλείας δεν μπορεί να αποκατασταθεί.\n\n%1</translation>
+      <translation type="unfinished">Αυτό το αντίγραφο ασφαλείας δεν μπορεί να αποκατασταθεί.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14298,7 +14535,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">Αυτό το αντίγραφο ασφαλείας δημιουργήθηκε με παλαιότερο σχήμα βάσης δεδομένων (v%1· τρέχουσα έκδοση: v%2).\n\nΤα δεδομένα των συνεδριών ύπνου σας θα αποκατασταθούν πλήρως. Ορισμένες ρυθμίσεις ή διαμορφώσεις αναφορών ενδέχεται να μην αποκατασταθούν και θα αναδημιουργηθούν από το OSCAR κατά την πρώτη χρήση.\n\nΚάντε κλικ στο Επικύρωση για να συνεχίσετε.</translation>
+      <translation type="unfinished">Αυτό το αντίγραφο ασφαλείας δημιουργήθηκε με παλαιότερο σχήμα βάσης δεδομένων (v%1· τρέχουσα έκδοση: v%2).
+
+Τα δεδομένα των συνεδριών ύπνου σας θα αποκατασταθούν πλήρως. Ορισμένες ρυθμίσεις ή διαμορφώσεις αναφορών ενδέχεται να μην αποκατασταθούν και θα αναδημιουργηθούν από το OSCAR κατά την πρώτη χρήση.
+
+Κάντε κλικ στο Επικύρωση για να συνεχίσετε.</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14312,7 +14553,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Το υπάρχον προφίλ "%1" περιέχει έναν κατάλογο Αντιγράφων Ασφαλείας που αποθηκεύει δεδομένα αντιγράφων ασφαλείας CPAP.\n\nΕπειδή αυτό το πακέτο επαναφοράς περιλαμβάνει δεδομένα κάρτας SD, ολόκληρος ο κατάλογος προφίλ — συμπεριλαμβανομένων όλων των δεδομένων αντιγράφων ασφαλείας CPAP — θα διαγραφεί οριστικά και θα αντικατασταθεί.\n\nΑυτή η ενέργεια δεν μπορεί να αναιρεθεί. Είστε σίγουροι ότι θέλετε να συνεχίσετε;</translation>
+      <translation type="unfinished">ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Το υπάρχον προφίλ "%1" περιέχει έναν κατάλογο Αντιγράφων Ασφαλείας που αποθηκεύει δεδομένα αντιγράφων ασφαλείας CPAP.
+
+Επειδή αυτό το πακέτο επαναφοράς περιλαμβάνει δεδομένα κάρτας SD, ολόκληρος ο κατάλογος προφίλ — συμπεριλαμβανομένων όλων των δεδομένων αντιγράφων ασφαλείας CPAP — θα διαγραφεί οριστικά και θα αντικατασταθεί.
+
+Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Είστε σίγουροι ότι θέλετε να συνεχίσετε;</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14324,7 +14569,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">Αυτό θα διαγράψει οριστικά το υπάρχον προφίλ και όλα τα δεδομένα του.\n\nΕίστε σίγουροι ότι θέλετε να το αντικαταστήσετε;</translation>
+      <translation type="unfinished">Αυτό θα διαγράψει οριστικά το υπάρχον προφίλ και όλα τα δεδομένα του.
+
+Είστε σίγουροι ότι θέλετε να το αντικαταστήσετε;</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14366,7 +14613,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">Η επαναφορά δεν ήταν δυνατό να ολοκληρωθεί. Η βάση δεδομένων δεν τροποποιήθηκε.\n\n%1</translation>
+      <translation type="unfinished">Η επαναφορά δεν ήταν δυνατό να ολοκληρωθεί. Η βάση δεδομένων δεν τροποποιήθηκε.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14380,13 +14629,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">Επεξεργαστείτε το παρακάτω ερώτημα SQL. Το ερώτημα θα εκτελεστεί στη βάση δεδομένων του OSCAR.\nΔιαθέσιμες Μακροεντολές: #PROFILE_ID, #START_DATE, #END_DATE</translation>
+      <translation type="unfinished">Επεξεργαστείτε το παρακάτω ερώτημα SQL. Το ερώτημα θα εκτελεστεί στη βάση δεδομένων του OSCAR.
+Διαθέσιμες Μακροεντολές: #PROFILE_ID, #START_DATE, #END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">Σημείωση: Να είστε προσεκτικοί κατά την τροποποίηση ερωτημάτων. Μη έγκυρη SQL θα προκαλέσει αποτυχία εξαγωγής.\nΚοινοί πίνακες: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
+      <translation type="unfinished">Σημείωση: Να είστε προσεκτικοί κατά την τροποποίηση ερωτημάτων. Μη έγκυρη SQL θα προκαλέσει αποτυχία εξαγωγής.
+Κοινοί πίνακες: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -14555,7 +14806,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="240" />
       <source> (right/left)MouseClick</source>
-      <translation type="unfinished">(δεξί/αριστερό) Κλικ Ποντικιού</translation>
+      <translation type="unfinished"> (δεξί/αριστερό) Κλικ Ποντικιού</translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="242" />
@@ -14720,7 +14971,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
       <source>Daily: Event (bottom left corner) </source>
-      <translation type="unfinished">Ημερήσια: Συμβάν (κάτω αριστερή γωνία)</translation>
+      <translation type="unfinished">Ημερήσια: Συμβάν (κάτω αριστερή γωνία) </translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
@@ -15243,7 +15494,13 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">Πρόκειται να κοινοποιήσετε ένα αρχείο που περιέχει τα δεδομένα θεραπείας ύπνου σας.\n\n• Το αρχείο περιέχει δεδομένα συνεδριών, συμβάντα και ρυθμίσεις συσκευής\n  για το επιλεγμένο εύρος ημερομηνιών\n• Προσωπικές πληροφορίες (όνομα, ημερομηνία γέννησης, στοιχεία επικοινωνίας) θα αφαιρεθούν\n\nΒεβαιωθείτε ότι εμπιστεύεστε τον παραλήπτη πριν κοινοποιήσετε αυτά τα δεδομένα.</translation>
+      <translation type="unfinished">Πρόκειται να κοινοποιήσετε ένα αρχείο που περιέχει τα δεδομένα θεραπείας ύπνου σας.
+
+• Το αρχείο περιέχει δεδομένα συνεδριών, συμβάντα και ρυθμίσεις συσκευής
+  για το επιλεγμένο εύρος ημερομηνιών
+• Προσωπικές πληροφορίες (όνομα, ημερομηνία γέννησης, στοιχεία επικοινωνίας) θα αφαιρεθούν
+
+Βεβαιωθείτε ότι εμπιστεύεστε τον παραλήπτη πριν κοινοποιήσετε αυτά τα δεδομένα.</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15330,7 +15587,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">Δεν ήταν δυνατή η δημιουργία του αρχείου κοινοποίησης.\n\n%1</translation>
+      <translation type="unfinished">Δεν ήταν δυνατή η δημιουργία του αρχείου κοινοποίησης.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />

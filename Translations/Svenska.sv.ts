@@ -250,7 +250,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">Din .oscar-säkerhetskopia innehåller känsliga medicinska uppgifter:\n• Sömnterapi-sessionsdata och händelsevågor\n• Personlig information (namn, födelsedatum, etc.)\n  (om inte integritetsläge är aktiverat)\n\nRekommendationer för lagring:\n• Lagra säkerhetskopior på krypterad lagring\n• Förvara säkerhetskopior på en säker, åtkomstkontrollerad plats\n• Dela inte säkerhetskopior med obehöriga parter</translation>
+      <translation type="unfinished">Din .oscar-säkerhetskopia innehåller känsliga medicinska uppgifter:
+• Sömnterapi-sessionsdata och händelsevågor
+• Personlig information (namn, födelsedatum, etc.)
+  (om inte integritetsläge är aktiverat)
+
+Rekommendationer för lagring:
+• Lagra säkerhetskopior på krypterad lagring
+• Förvara säkerhetskopior på en säker, åtkomstkontrollerad plats
+• Dela inte säkerhetskopior med obehöriga parter</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -298,7 +306,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">Säkerhetskopian skapades.\n\nFil: %1\nStorlek: %2</translation>
+      <translation type="unfinished">Säkerhetskopian skapades.
+
+Fil: %1
+Storlek: %2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -320,7 +331,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">Säkerhetskopieringen kunde inte slutföras.\n\n%1</translation>
+      <translation type="unfinished">Säkerhetskopieringen kunde inte slutföras.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -384,7 +397,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">Proton Drive-delnlänkar kan inte laddas ned direkt eftersom filerna är end-to-end-krypterade och kräver webbläsarbaserad dekryptering.\n\nLadda ned filen i din webbläsare och använd alternativet Lokal fil.</translation>
+      <translation type="unfinished">Proton Drive-delnlänkar kan inte laddas ned direkt eftersom filerna är end-to-end-krypterade och kräver webbläsarbaserad dekryptering.
+
+Ladda ned filen i din webbläsare och använd alternativet Lokal fil.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -393,7 +408,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">OSCAR känner inte igen denna URL som en stödd molntjänst.\n\nLadda ned filen i din webbläsare och använd alternativet Lokal fil.\n\nTjänster som stöds: Dropbox, Google Drive, OneDrive, Box, 0x0.st, eller en direktlänk till en .oscar-fil.</translation>
+      <translation type="unfinished">OSCAR känner inte igen denna URL som en stödd molntjänst.
+
+Ladda ned filen i din webbläsare och använd alternativet Lokal fil.
+
+Tjänster som stöds: Dropbox, Google Drive, OneDrive, Box, 0x0.st, eller en direktlänk till en .oscar-fil.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -404,7 +423,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">Det gick inte att skapa en temporär fil:\n%1</translation>
+      <translation type="unfinished">Det gick inte att skapa en temporär fil:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -448,7 +468,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Det gick inte att öppna filen för läsning:\n%1</translation>
+      <translation type="unfinished">Det gick inte att öppna filen för läsning:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -704,7 +725,7 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
     <message>
       <location filename="../oscar/daily.cpp" line="662" />
       <source> Disabling Sessions requires Permissive Mode be set in OSCAR Preferences in the Clinical tab.</source>
-      <translation type="unfinished">För att inaktivera sessioner krävs att Tillåtande läge är inställt i OSCAR-inställningar under fliken Klinisk.</translation>
+      <translation type="unfinished"> För att inaktivera sessioner krävs att Tillåtande läge är inställt i OSCAR-inställningar under fliken Klinisk.</translation>
     </message>
     <message>
       <location filename="../oscar/daily.cpp" line="747" />
@@ -1023,7 +1044,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/dailySearchTab.cpp" line="328" />
       <source>DATE
 Jumps to Date</source>
-      <translation type="unfinished">DATUM\nHoppar till datum</translation>
+      <translation type="unfinished">DATUM
+Hoppar till datum</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="508" />
@@ -1053,7 +1075,7 @@ Jumps to Date</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="513" />
       <source>AHI </source>
-      <translation type="unfinished">AHI</translation>
+      <translation type="unfinished">AHI </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="514" />
@@ -1114,96 +1136,106 @@ Jumps to Date</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1254" />
       <source>Number Disabled Session
 Jumps to Date's Details </source>
-      <translation type="unfinished">Antal inaktiverade sessioner\nHoppar till datumets detaljer</translation>
+      <translation type="unfinished">Antal inaktiverade sessioner
+Hoppar till datumets detaljer </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">Hoppar\nHoppar till datumets anteckningar</translation>
+      <translation type="unfinished">Hoppar
+Hoppar till datumets anteckningar</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1265" />
       <location filename="../oscar/dailySearchTab.cpp" line="1281" />
       <source>Note
 Jumps to Date's Notes</source>
-      <translation type="unfinished">Anteckning\nHoppar till datumets anteckningar</translation>
+      <translation type="unfinished">Anteckning
+Hoppar till datumets anteckningar</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1270" />
       <location filename="../oscar/dailySearchTab.cpp" line="1275" />
       <source>Bookmark
 Jumps to Date's Bookmark</source>
-      <translation type="unfinished">Bokmärke\nHoppar till datumets bokmärke</translation>
+      <translation type="unfinished">Bokmärke
+Hoppar till datumets bokmärke</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1287" />
       <source>AHI
 Jumps to Date's Details</source>
-      <translation type="unfinished">AHI\nHoppar till datumets detaljer</translation>
+      <translation type="unfinished">AHI
+Hoppar till datumets detaljer</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1290" />
       <source> EventsPerHour</source>
-      <translation type="unfinished">HändelserPerTimme</translation>
+      <translation type="unfinished"> HändelserPerTimme</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1300" />
       <source>Set of Apnea:Length
 Jumps to Date's Events</source>
-      <translation type="unfinished">Uppsättning av apné:Längd\nHoppar till datumets händelser</translation>
+      <translation type="unfinished">Uppsättning av apné:Längd
+Hoppar till datumets händelser</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1306" />
       <location filename="../oscar/dailySearchTab.cpp" line="1456" />
       <source> Seconds</source>
-      <translation type="unfinished">Sekunder</translation>
+      <translation type="unfinished"> Sekunder</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1309" />
       <source>Session Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">Sessionslängd\nHoppar till datumets detaljer</translation>
+      <translation type="unfinished">Sessionslängd
+Hoppar till datumets detaljer</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1313" />
       <location filename="../oscar/dailySearchTab.cpp" line="1461" />
       <source> Minutes</source>
-      <translation type="unfinished">Minuter</translation>
+      <translation type="unfinished"> Minuter</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1318" />
       <source>Number of Sessions
 Jumps to Date's Details</source>
-      <translation type="unfinished">Antal sessioner\nHoppar till datumets detaljer</translation>
+      <translation type="unfinished">Antal sessioner
+Hoppar till datumets detaljer</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1323" />
       <source> Sessions</source>
-      <translation type="unfinished">Sessioner</translation>
+      <translation type="unfinished"> Sessioner</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1326" />
       <source>Daily Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">Daglig varaktighet\nHoppar till datumets detaljer</translation>
+      <translation type="unfinished">Daglig varaktighet
+Hoppar till datumets detaljer</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1332" />
       <location filename="../oscar/dailySearchTab.cpp" line="1451" />
       <source> Hours</source>
-      <translation type="unfinished">Timmar</translation>
+      <translation type="unfinished"> Timmar</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1336" />
       <source>Number of events
 Jumps to Date's Events</source>
-      <translation type="unfinished">Antal händelser\nHoppar till datumets händelser</translation>
+      <translation type="unfinished">Antal händelser
+Hoppar till datumets händelser</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1340" />
       <source> Events</source>
-      <translation type="unfinished">Händelser</translation>
+      <translation type="unfinished"> Händelser</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1229,7 +1261,7 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1666" />
       <source> Skip:%1</source>
-      <translation type="unfinished">Hoppa över:%1</translation>
+      <translation type="unfinished"> Hoppa över:%1</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1667" />
@@ -1239,7 +1271,7 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1670" />
       <source>Found %1 </source>
-      <translation type="unfinished">Hittade %1</translation>
+      <translation type="unfinished">Hittade %1 </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1688" />
@@ -1254,12 +1286,12 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1778" />
       <source>  Searches from last day to first day.</source>
-      <translation type="unfinished">Söker från sista dagen till första dagen.</translation>
+      <translation type="unfinished">  Söker från sista dagen till första dagen.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1779" />
       <source>  Skips Days with no graphing data.</source>
-      <translation type="unfinished">Hoppar över dagar utan grafdata.</translation>
+      <translation type="unfinished">  Hoppar över dagar utan grafdata.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1781" />
@@ -1269,12 +1301,12 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1782" />
       <source>  Then click on the operation to modify it.</source>
-      <translation type="unfinished">Klicka sedan på åtgärden för att ändra den.</translation>
+      <translation type="unfinished">  Klicka sedan på åtgärden för att ändra den.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1783" />
       <source>  or update the value</source>
-      <translation type="unfinished">eller uppdatera värdet</translation>
+      <translation type="unfinished">  eller uppdatera värdet</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1785" />
@@ -1284,17 +1316,17 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1787" />
       <source>Compare Operations: numberic or character. </source>
-      <translation type="unfinished">Jämförelseoperationer: numeriska eller tecken.</translation>
+      <translation type="unfinished">Jämförelseoperationer: numeriska eller tecken. </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1788" />
       <source>  Numberic  Operations: </source>
-      <translation type="unfinished">Numeriska operationer:</translation>
+      <translation type="unfinished">  Numeriska operationer: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1789" />
       <source>  Character Operations: </source>
-      <translation type="unfinished">Teckenoperationer:</translation>
+      <translation type="unfinished">  Teckenoperationer: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1791" />
@@ -1304,17 +1336,17 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1792" />
       <source>  Left:Summary - Number of Day searched</source>
-      <translation type="unfinished">Vänster: Sammanfattning - Antal sökta dagar</translation>
+      <translation type="unfinished">  Vänster: Sammanfattning - Antal sökta dagar</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1793" />
       <source>  Center:Number of Items Found</source>
-      <translation type="unfinished">Mitten: Antal hittade poster</translation>
+      <translation type="unfinished">  Mitten: Antal hittade poster</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1794" />
       <source>  Right:Minimum/Maximum for item searched</source>
-      <translation type="unfinished">Höger: Minimum/Maximum för sökt post</translation>
+      <translation type="unfinished">  Höger: Minimum/Maximum för sökt post</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1796" />
@@ -1324,17 +1356,17 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1797" />
       <source>  Column One: Date of match. Click selects date.</source>
-      <translation type="unfinished">Kolumn ett: Matchningsdatum. Klick väljer datum.</translation>
+      <translation type="unfinished">  Kolumn ett: Matchningsdatum. Klick väljer datum.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1798" />
       <source>  Column two: Information. Click selects date.</source>
-      <translation type="unfinished">Kolumn två: Information. Klick väljer datum.</translation>
+      <translation type="unfinished">  Kolumn två: Information. Klick väljer datum.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1799" />
       <source>    Then Jumps the appropiate tab.</source>
-      <translation type="unfinished">Hoppar sedan till lämplig flik.</translation>
+      <translation type="unfinished">    Hoppar sedan till lämplig flik.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1801" />
@@ -1344,37 +1376,37 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1802" />
       <source>  Wildcards use 3 characters:</source>
-      <translation type="unfinished">Jokertecken använder 3 tecken:</translation>
+      <translation type="unfinished">  Jokertecken använder 3 tecken:</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1803" />
       <source>  Asterisk</source>
-      <translation type="unfinished">Asterisk</translation>
+      <translation type="unfinished">  Asterisk</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1804" />
       <source>  Question Mark</source>
-      <translation type="unfinished">Frågetecken</translation>
+      <translation type="unfinished">  Frågetecken</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1805" />
       <source>  Backslash.</source>
-      <translation type="unfinished">Omvänt snedstreck.</translation>
+      <translation type="unfinished">  Omvänt snedstreck.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1806" />
       <source>  Asterisk matches any number of characters.</source>
-      <translation type="unfinished">Asterisk matchar valfritt antal tecken.</translation>
+      <translation type="unfinished">  Asterisk matchar valfritt antal tecken.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1807" />
       <source>  Question Mark matches a single character.</source>
-      <translation type="unfinished">Frågetecken matchar ett enskilt tecken.</translation>
+      <translation type="unfinished">  Frågetecken matchar ett enskilt tecken.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1808" />
       <source>  Backslash matches next character.</source>
-      <translation type="unfinished">Omvänt snedstreck matchar nästa tecken.</translation>
+      <translation type="unfinished">  Omvänt snedstreck matchar nästa tecken.</translation>
     </message>
   </context>
   <context>
@@ -1421,7 +1453,10 @@ Jumps to Date's Events</source>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">Sökväg: %1\nStorlek: %2\nProfiler: %3\nObs: all sessionsdata och eventuell SD-kortsäkerhetskopia i den här mappen kommer att raderas permanent.</translation>
+      <translation type="unfinished">Sökväg: %1
+Storlek: %2
+Profiler: %3
+Obs: all sessionsdata och eventuell SD-kortsäkerhetskopia i den här mappen kommer att raderas permanent.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1439,7 +1474,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">Databasen på\n%1\nkan inte öppnas exklusivt. En annan instans av OSCAR kan ha den öppen.</translation>
+      <translation type="unfinished">Databasen på
+%1
+kan inte öppnas exklusivt. En annan instans av OSCAR kan ha den öppen.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1451,7 +1488,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">Skriv "%1" för att permanent ta bort den här databasen.\n\nAll sessionsdata och SD-kortsäkerhetskopia i mappen kommer att raderas. Detta kan inte ångras.</translation>
+      <translation type="unfinished">Skriv "%1" för att permanent ta bort den här databasen.
+
+All sessionsdata och SD-kortsäkerhetskopia i mappen kommer att raderas. Detta kan inte ångras.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1473,7 +1512,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">Kunde inte ta bort\n%1\nDatabasfilen finns fortfarande kvar. Kontrollera om det finns öppna fillås och försök igen.</translation>
+      <translation type="unfinished">Kunde inte ta bort
+%1
+Databasfilen finns fortfarande kvar. Kontrollera om det finns öppna fillås och försök igen.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1485,7 +1526,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">Databasen raderades men alla filer kunde inte tas bort från\n%1\nEn del filer kan fortfarande finnas kvar.</translation>
+      <translation type="unfinished">Databasen raderades men alla filer kunde inte tas bort från
+%1
+En del filer kan fortfarande finnas kvar.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1509,7 +1552,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">En databaskorruption eller I/O-fel upptäcktes i %1.\n\nFel: %2\n\nRekommenderade åtgärder:\n  • Kör Hjälp → Felsökning → Kontrollera databasintegritet\n  • Återställ från en nylig säkerhetskopia om problem hittas</translation>
+      <translation type="unfinished">En databaskorruption eller I/O-fel upptäcktes i %1.
+
+Fel: %2
+
+Rekommenderade åtgärder:
+  • Kör Hjälp → Felsökning → Kontrollera databasintegritet
+  • Återställ från en nylig säkerhetskopia om problem hittas</translation>
     </message>
   </context>
   <context>
@@ -1518,7 +1567,8 @@ Recommended actions:
       <location filename="../oscar/overview.cpp" line="832" />
       <source>ERROR
 The start date MUST be before the end date</source>
-      <translation type="unfinished">FEL\nStartdatumet MÅSTE vara före slutdatumet</translation>
+      <translation type="unfinished">FEL
+Startdatumet MÅSTE vara före slutdatumet</translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="835" />
@@ -1529,12 +1579,13 @@ The start date MUST be before the end date</source>
       <location filename="../oscar/overview.cpp" line="836" />
       <source>
 Hint: Change the end date first</source>
-      <translation type="unfinished">\nTips: Ändra slutdatumet först</translation>
+      <translation type="unfinished">
+Tips: Ändra slutdatumet först</translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="838" />
       <source>The entered end date %1 </source>
-      <translation type="unfinished">Det angivna slutdatumet %1</translation>
+      <translation type="unfinished">Det angivna slutdatumet %1 </translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="839" />
@@ -1545,7 +1596,8 @@ Hint: Change the end date first</source>
       <location filename="../oscar/overview.cpp" line="840" />
       <source>
 Hint: Change the start date first</source>
-      <translation type="unfinished">\nTips: Ändra startdatumet först</translation>
+      <translation type="unfinished">
+Tips: Ändra startdatumet först</translation>
     </message>
   </context>
   <context>
@@ -1940,17 +1992,17 @@ Hint: Change the start date first</source>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— dålig anpassning, Använd modell inaktiverad</translation>
+      <translation type="unfinished"> — dålig anpassning, Använd modell inaktiverad</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— måttlig anpassning</translation>
+      <translation type="unfinished"> — måttlig anpassning</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— kommer att ersätta modellen aktiv sedan %1</translation>
+      <translation type="unfinished"> — kommer att ersätta modellen aktiv sedan %1</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2012,7 +2064,8 @@ Hint: Change the start date first</source>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Det gick inte att öppna filen för läsning:\n%1</translation>
+      <translation type="unfinished">Det gick inte att öppna filen för läsning:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2396,7 +2449,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Det gick inte att öppna filen för läsning:\n%1</translation>
+      <translation type="unfinished">Det gick inte att öppna filen för läsning:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2554,7 +2608,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">Undersöker %1...\n\nVänligen vänta...</translation>
+      <translation type="unfinished">Undersöker %1...
+
+Vänligen vänta...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2565,7 +2621,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">Den valda mappen verkar inte vara en giltig OSCAR-profil.\nVälj en mapp som innehåller machines.xml</translation>
+      <translation type="unfinished">Den valda mappen verkar inte vara en giltig OSCAR-profil.
+Välj en mapp som innehåller machines.xml</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2578,7 +2635,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">Den här profilen är %1 GB stor.\nImport kan ta lång tid.\n\nVill du fortsätta?</translation>
+      <translation type="unfinished">Den här profilen är %1 GB stor.
+Import kan ta lång tid.
+
+Vill du fortsätta?</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2748,7 +2808,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">Kunde inte skriva filen:\n%1</translation>
+      <translation type="unfinished">Kunde inte skriva filen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -3539,7 +3600,7 @@ Do you want to continue?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">Importerar profil</translation>
+      <translation type="unfinished">Importerar profil </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -3551,7 +3612,9 @@ Do you want to continue?</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">Profilen '%1' har importerats.\n\nDu kan nu välja den i profilväljaren.</translation>
+      <translation type="unfinished">Profilen '%1' har importerats.
+
+Du kan nu välja den i profilväljaren.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -3584,7 +3647,11 @@ You can now select it from the profile selector.</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Kan inte importera data: OSCAR-databasen är låst av ett annat program.\n\nOm du har databasen öppen i ett SQLite-visningsprogram eller en editor, stäng det och försök igen.\n\nFel: %1</translation>
+      <translation type="unfinished">Kan inte importera data: OSCAR-databasen är låst av ett annat program.
+
+Om du har databasen öppen i ett SQLite-visningsprogram eller en editor, stäng det och försök igen.
+
+Fel: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1029" />
@@ -3594,7 +3661,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Det importerade datat kunde inte sparas till databasen. Ingen data lagrades.\n\nOm du har OSCAR-databasen öppen i ett annat program (t.ex. ett SQLite-visningsprogram eller en editor), stäng det och försök igen.\n\nFel: %1</translation>
+      <translation type="unfinished">Det importerade datat kunde inte sparas till databasen. Ingen data lagrades.
+
+Om du har OSCAR-databasen öppen i ett annat program (t.ex. ett SQLite-visningsprogram eller en editor), stäng det och försök igen.
+
+Fel: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1290" />
@@ -3615,7 +3686,8 @@ Error: %1</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">Det gick inte att importera profilen:\n%1</translation>
+      <translation type="unfinished">Det gick inte att importera profilen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1410" />
@@ -3640,7 +3712,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">Det här SD-kortet tillhör en annan maskin än den som senast importerades till den här profilen.\n\nSenast importerad: %1\nDetta kort: %2\n\nÄr du säker på att du vill importera från det här kortet till den här profilen?</translation>
+      <translation type="unfinished">Det här SD-kortet tillhör en annan maskin än den som senast importerades till den här profilen.
+
+Senast importerad: %1
+Detta kort: %2
+
+Är du säker på att du vill importera från det här kortet till den här profilen?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3689,7 +3766,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">Detta kommer att permanent ta bort alla tidskorrigeringar för varje enhet i denna profil.\n\nÄr du säker?</translation>
+      <translation type="unfinished">Detta kommer att permanent ta bort alla tidskorrigeringar för varje enhet i denna profil.
+
+Är du säker?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2396" />
@@ -3778,7 +3857,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">(aktiv)</translation>
+      <translation type="unfinished"> (aktiv)</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3799,7 +3878,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">Den valda mappen innehåller redan en OSCAR-databas.\nAnvänd Arkiv ▸ Databas ▸ Öppna för att öppna en befintlig databas.</translation>
+      <translation type="unfinished">Den valda mappen innehåller redan en OSCAR-databas.
+Använd Arkiv ▸ Databas ▸ Öppna för att öppna en befintlig databas.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3815,7 +3895,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">Den valda mappen innehåller ingen OSCAR-databas.\nVälj en mapp som innehåller en oscar.db-fil.</translation>
+      <translation type="unfinished">Den valda mappen innehåller ingen OSCAR-databas.
+Välj en mapp som innehåller en oscar.db-fil.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3827,13 +3908,16 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">Det finns inga inaktiva databaser i den senaste listan att ta bort.\n\nÖppna databaser med Fil ▸ Databas ▸ Öppna först för att lägga till dem i den senaste listan.</translation>
+      <translation type="unfinished">Det finns inga inaktiva databaser i den senaste listan att ta bort.
+
+Öppna databaser med Fil ▸ Databas ▸ Öppna först för att lägga till dem i den senaste listan.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">Ett problem uppstod vid tolkning av %1 \nDatafil: %2</translation>
+      <translation type="unfinished">Ett problem uppstod vid tolkning av %1 
+Datafil: %2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3224" />
@@ -3865,7 +3949,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">Detta kommer att komprimera databasen för att återvinna oanvänt diskutrymme. Det är mest användbart efter att profiler har tagits bort.\n\nAktuell databasstorlek: %1\n\nDetta kan ta flera minuter för stora databaser. OSCAR startar om automatiskt när det är klart.\n\nFortsätta?</translation>
+      <translation type="unfinished">Detta kommer att komprimera databasen för att återvinna oanvänt diskutrymme. Det är mest användbart efter att profiler har tagits bort.
+
+Aktuell databasstorlek: %1
+
+Detta kan ta flera minuter för stora databaser. OSCAR startar om automatiskt när det är klart.
+
+Fortsätta?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -3877,28 +3967,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Databasintegritetskontollen misslyckades. Komprimering kan inte utföras på en skadad databas.\n\nRekommenderade åtgärder:\n  • Återställ hela databasen från en nylig systemsäkerhetskopia\n  • Återställ varje profil från en nylig säkerhetskopia (Arkiv → Återställ profil)\n  • Importera om data från ditt/dina CPAP SD-kort\n\nFör avancerade återställningsalternativ, se OSCAR-dokumentationen.</translation>
+      <translation type="unfinished">Databasintegritetskontollen misslyckades. Komprimering kan inte utföras på en skadad databas.
+
+Rekommenderade åtgärder:
+  • Återställ hela databasen från en nylig systemsäkerhetskopia
+  • Återställ varje profil från en nylig säkerhetskopia (Arkiv → Återställ profil)
+  • Importera om data från ditt/dina CPAP SD-kort
+
+För avancerade återställningsalternativ, se OSCAR-dokumentationen.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">Komprimerar databasen, vänta...\n\nDetta kan ta flera minuter för stora databaser.</translation>
+      <translation type="unfinished">Komprimerar databasen, vänta...
+
+Detta kan ta flera minuter för stora databaser.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">Komprimeringen lyckades men databasfilen kunde inte ersättas.\n\nOriginaldatabasen är oförändrad.</translation>
+      <translation type="unfinished">Komprimeringen lyckades men databasfilen kunde inte ersättas.
+
+Originaldatabasen är oförändrad.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">Komprimeringen lyckades men den nya filen kunde inte placeras på plats.\n\nOriginaldatabasen har återställts.</translation>
+      <translation type="unfinished">Komprimeringen lyckades men den nya filen kunde inte placeras på plats.
+
+Originaldatabasen har återställts.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -3909,7 +4012,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Databasen komprimerades framgångsrikt.\n\nFöre:        %1\nEfter:       %2\nÅtervunnet: %3\n\nOSCAR startar om när du trycker på OK.</translation>
+      <translation type="unfinished">Databasen komprimerades framgångsrikt.
+
+Före:        %1
+Efter:       %2
+Återvunnet: %3
+
+OSCAR startar om när du trycker på OK.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -3920,7 +4029,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Databasen komprimerades framgångsrikt.\n\nStorlek: %1\n\nInget utrymme återvanns — databasen var redan komprimerad.\n\nOSCAR startar om när du trycker på OK.</translation>
+      <translation type="unfinished">Databasen komprimerades framgångsrikt.
+
+Storlek: %1
+
+Inget utrymme återvanns — databasen var redan komprimerad.
+
+OSCAR startar om när du trycker på OK.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1543" />
@@ -4111,7 +4226,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Databasintegritetskontollen hittade problem. Vissa data kan saknas eller vara skadade.\n\nIntegritetskontollen täcker hela databasen, som kan innehålla flera profiler.\n\nRekommenderade åtgärder:\n  • Återställ hela databasen från en nylig systemsäkerhetskopia\n  • Återställ varje profil från en nylig säkerhetskopia (Arkiv → Återställ profil)\n  • Importera om data från ditt/dina CPAP SD-kort\n\nFör avancerade återställningsalternativ, se OSCAR-dokumentationen.</translation>
+      <translation type="unfinished">Databasintegritetskontollen hittade problem. Vissa data kan saknas eller vara skadade.
+
+Integritetskontollen täcker hela databasen, som kan innehålla flera profiler.
+
+Rekommenderade åtgärder:
+  • Återställ hela databasen från en nylig systemsäkerhetskopia
+  • Återställ varje profil från en nylig säkerhetskopia (Arkiv → Återställ profil)
+  • Importera om data från ditt/dina CPAP SD-kort
+
+För avancerade återställningsalternativ, se OSCAR-dokumentationen.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -4136,7 +4260,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">Databaskomprimering misslyckades:\n%1</translation>
+      <translation type="unfinished">Databaskomprimering misslyckades:
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -4776,7 +4901,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Det gick inte att öppna filen för läsning:\n%1</translation>
+      <translation type="unfinished">Det gick inte att öppna filen för läsning:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4797,7 +4923,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">Filen laddades upp till OneDrive men det gick inte att skapa en delningslänk (HTTP %1).\nObs: anonym delning kan vara inaktiverad i dina Microsoft-kontoinställningar.</translation>
+      <translation type="unfinished">Filen laddades upp till OneDrive men det gick inte att skapa en delningslänk (HTTP %1).
+Obs: anonym delning kan vara inaktiverad i dina Microsoft-kontoinställningar.</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -5903,7 +6030,12 @@ which is common on Mac  Linux platforms..
 
 OSCAR can import from this compressed backup directory natively.. 
 To use it with ResScan will require the .gz files to be uncompressed first..</source>
-      <translation type="unfinished">Komprimera ResMed (EDF)-säkerhetskopior för att spara diskutrymme.\nSäkerhetskopierade EDF-filer lagras i .gz-format, \nvilket är vanligt på Mac- och Linux-plattformar..\n\nOSCAR kan importera från denna komprimerade säkerhetskopieringskatalog direkt.. \nFör att använda det med ResScan krävs att .gz-filerna dekomprimeras först..</translation>
+      <translation type="unfinished">Komprimera ResMed (EDF)-säkerhetskopior för att spara diskutrymme.
+Säkerhetskopierade EDF-filer lagras i .gz-format, 
+vilket är vanligt på Mac- och Linux-plattformar..
+
+OSCAR kan importera från denna komprimerade säkerhetskopieringskatalog direkt.. 
+För att använda det med ResScan krävs att .gz-filerna dekomprimeras först..</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="619" />
@@ -6171,7 +6303,7 @@ Om du har en dator med liten disk, är det här ett bra alternativ.</translation
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1628" />
       <source>Select  Oscar Operating Mode </source>
-      <translation type="unfinished">Välj driftläge för Oscar</translation>
+      <translation type="unfinished">Välj driftläge för Oscar </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1638" />
@@ -6186,7 +6318,7 @@ Om du har en dator med liten disk, är det här ett bra alternativ.</translation
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1665" />
       <source> Hours</source>
-      <translation type="unfinished">Timmar</translation>
+      <translation type="unfinished"> Timmar</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1692" />
@@ -6246,7 +6378,7 @@ Om du har en dator med liten disk, är det här ett bra alternativ.</translation
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">Alternerande färgavstånd</translation>
+      <translation type="unfinished"> Alternerande färgavstånd</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3227" />
@@ -6414,7 +6546,7 @@ Om du har en dator med liten disk, är det här ett bra alternativ.</translation
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">Tillåtande läge MÅSTE vara aktiverat. Se fliken Klinisk</translation>
+      <translation type="unfinished">Tillåtande läge MÅSTE vara aktiverat. Se fliken Klinisk </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6431,7 +6563,9 @@ Om du har en dator med liten disk, är det här ett bra alternativ.</translation
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">Steady Breathing (SB) baseras på flödeshastighet.\nSkapar en vågform och SPAN-händelser med CPAP-flödeshastighet.\nFungerar endast när Steady Breathing är aktiverat och CPAP-data (åter)importeras.</translation>
+      <translation type="unfinished">Steady Breathing (SB) baseras på flödeshastighet.
+Skapar en vågform och SPAN-händelser med CPAP-flödeshastighet.
+Fungerar endast när Steady Breathing är aktiverat och CPAP-data (åter)importeras.  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6451,7 +6585,7 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1484" />
       <source> Seconds</source>
-      <translation type="unfinished">Sekunder</translation>
+      <translation type="unfinished"> Sekunder</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1503" />
@@ -6467,13 +6601,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">Kliniskt läge tillåter inte inaktiverade sessioner.\nInaktiverade sessioner används inte för diagram eller statistik.</translation>
+      <translation type="unfinished">Kliniskt läge tillåter inte inaktiverade sessioner.
+Inaktiverade sessioner används inte för diagram eller statistik.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">Tillåtande läge tillåter inaktiverade sessioner.\nInaktiverade sessioner används för diagram och statistik.</translation>
+      <translation type="unfinished">Tillåtande läge tillåter inaktiverade sessioner.
+Inaktiverade sessioner används för diagram och statistik.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6486,7 +6622,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">Som standard använder OSCAR en beräkning från den första timmen av oximetridata som basvärde.\nDen här inställningen låter dig åsidosätta det med ett statiskt värde.\nDetta kan vara användbart när den första timmen inte är typisk för hela datamängden.\nDet kan också vara användbart för att ge enklare jämförelse mellan dagar.</translation>
+      <translation type="unfinished">Som standard använder OSCAR en beräkning från den första timmen av oximetridata som basvärde.
+Den här inställningen låter dig åsidosätta det med ett statiskt värde.
+Detta kan vara användbart när den första timmen inte är typisk för hela datamängden.
+Det kan också vara användbart för att ge enklare jämförelse mellan dagar.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2034" />
@@ -6500,7 +6639,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Synkronisering av oximetri och CPAP-data&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;CMS50-data importerad från SpO2Review (från .spoR-filer) eller den seriella importmetoden har &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;inte&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; den korrekta tidsstämpel som krävs för synkronisering.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live-visningsläge (med en seriell kabel) är ett sätt att uppnå en exakt synkronisering på CMS50-oximetrar, men motverkar inte CPAP-klockdrift.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Om du startar din oximeters inspelningsläge &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exakt &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;samtidigt som du startar din CPAP-enhet kan du nu också uppnå synkronisering. &lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Den seriella importprocessen hämtar starttiden från föregående natts första CPAP-session. (Kom ihåg att importera din CPAP-data först!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Synkronisering av oximetri och CPAP-data&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;CMS50-data importerad från SpO2Review (från .spoR-filer) eller den seriella importmetoden har &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;inte&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; den korrekta tidsstämpel som krävs för synkronisering.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live-visningsläge (med en seriell kabel) är ett sätt att uppnå en exakt synkronisering på CMS50-oximetrar, men motverkar inte CPAP-klockdrift.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Om du startar din oximeters inspelningsläge &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exakt &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;samtidigt som du startar din CPAP-enhet kan du nu också uppnå synkronisering. &lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Den seriella importprocessen hämtar starttiden från föregående natts första CPAP-session. (Kom ihåg att importera din CPAP-data först!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2269" />
@@ -6511,7 +6659,8 @@ p, li { white-space: pre-wrap; }
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">Lägger till Ny, Öppna, Senaste och Ta bort alternativ i Arkiv &gt; Databas.\nAvsett för supportpersonal och utvecklare.</translation>
+      <translation type="unfinished">Lägger till Ny, Öppna, Senaste och Ta bort alternativ i Arkiv &gt; Databas.
+Avsett för supportpersonal och utvecklare.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6727,7 +6876,9 @@ Prova och se om du gillar det.</translation>
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">Använd Qt:s Fusion-tema istället för plattformens inbyggda tema.\nGer ett konsekvent utseende på alla plattformar.\nOSCAR startas om när du klickar på OK.</translation>
+      <translation type="unfinished">Använd Qt:s Fusion-tema istället för plattformens inbyggda tema.
+Ger ett konsekvent utseende på alla plattformar.
+OSCAR startas om när du klickar på OK.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -7276,7 +7427,7 @@ Vill du göra det nu?</translation>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(första felet: %1</translation>
+      <translation type="unfinished"> (första felet: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7364,7 +7515,7 @@ Vill du göra det nu?</translation>
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">Id:</translation>
+      <translation type="unfinished">Id: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="295" />
@@ -7453,7 +7604,7 @@ Vill du göra det nu?</translation>
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">Raderar profil</translation>
+      <translation type="unfinished">Raderar profil </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7484,7 +7635,7 @@ Vill du göra det nu?</translation>
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">Namn:</translation>
+      <translation type="unfinished">Namn: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -7749,7 +7900,8 @@ Vill du göra det nu?</translation>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="30" />
       <source>
 Length: %1</source>
-      <translation type="unfinished">\nLängd: %1</translation>
+      <translation type="unfinished">
+Längd: %1</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="96" />
@@ -9453,7 +9605,7 @@ TTIA: %1</translation>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">Ramptid</translation>
+      <translation type="unfinished">Ramptid </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -10355,7 +10507,10 @@ TTIA: %1</translation>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">Migrerar profil: %1\n(%2 av %3)\n\nStartar import...</translation>
+      <translation type="unfinished">Migrerar profil: %1
+(%2 av %3)
+
+Startar import...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -10363,7 +10518,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">Avbryter: %1\n(%2 av %3)\n\nStädar upp, vänta...</translation>
+      <translation type="unfinished">Avbryter: %1
+(%2 av %3)
+
+Städar upp, vänta...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -10371,7 +10529,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">Migrerar profil: %1\n(%2 av %3)\n\n%4</translation>
+      <translation type="unfinished">Migrerar profil: %1
+(%2 av %3)
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -10528,7 +10689,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">OSCAR upptäckte att föregående session avslutades oväntat och databasintegritetskontollen hittade problem.\n\nVissa data kan saknas eller vara skadade.\n\nRekommenderade åtgärder:\n  • Återställ hela databasen från en nylig systemsäkerhetskopia\n  • Återställ varje profil från en nylig säkerhetskopia (Arkiv → Återställ profil)\n  • Importera om data från ditt/dina CPAP SD-kort\n\nFör avancerade återställningsalternativ, se OSCAR-dokumentationen.\n\nDu kan fortsätta, men vissa data kan vara ofullständiga eller felaktiga.</translation>
+      <translation type="unfinished">OSCAR upptäckte att föregående session avslutades oväntat och databasintegritetskontollen hittade problem.
+
+Vissa data kan saknas eller vara skadade.
+
+Rekommenderade åtgärder:
+  • Återställ hela databasen från en nylig systemsäkerhetskopia
+  • Återställ varje profil från en nylig säkerhetskopia (Arkiv → Återställ profil)
+  • Importera om data från ditt/dina CPAP SD-kort
+
+För avancerade återställningsalternativ, se OSCAR-dokumentationen.
+
+Du kan fortsätta, men vissa data kan vara ofullständiga eller felaktiga.</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -12772,7 +12944,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">Journalmigrering slutförd:\n%1 journalposter migrerade till databasen\n%2 fel</translation>
+      <translation type="unfinished">Journalmigrering slutförd:
+%1 journalposter migrerade till databasen
+%2 fel</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/prisma_loader.h" line="236" />
@@ -12812,7 +12986,7 @@ popout window, delete it, then pop out this graph again.</source>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR:</translation>
+      <translation type="unfinished">IPR: </translation>
     </message>
     <message>
       <location filename="../oscar/notifyMessageBox.cpp" line="18" />
@@ -12968,7 +13142,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">Den valda filen verkar inte vara en giltig Dreem CSV-fil.\n\nDreem-data måste vara formaterad som en semikolonavgränsad CSV-fil. Kontrollera att dina data är i CSV-format och försök igen.</translation>
+      <translation type="unfinished">Den valda filen verkar inte vara en giltig Dreem CSV-fil.
+
+Dreem-data måste vara formaterad som en semikolonavgränsad CSV-fil. Kontrollera att dina data är i CSV-format och försök igen.</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13336,7 +13512,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopia)</translation>
+      <translation type="unfinished"> (Kopia)</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13386,19 +13562,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">Det gick inte att tolka filen:\n%1</translation>
+      <translation type="unfinished">Det gick inte att tolka filen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">Importen misslyckades:\n%1</translation>
+      <translation type="unfinished">Importen misslyckades:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">Importerade %1 rapport(er) från:\n%2</translation>
+      <translation type="unfinished">Importerade %1 rapport(er) från:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13421,13 +13600,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">Det gick inte att skriva filen:\n%1</translation>
+      <translation type="unfinished">Det gick inte att skriva filen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">Exporterade %1 rapport(er) till:\n%2</translation>
+      <translation type="unfinished">Exporterade %1 rapport(er) till:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13483,19 +13664,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">Frågan misslyckades:\n%1</translation>
+      <translation type="unfinished">Frågan misslyckades:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">Kan inte skriva filen:\n%1</translation>
+      <translation type="unfinished">Kan inte skriva filen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">Exporterade %1 rader till:\n%2</translation>
+      <translation type="unfinished">Exporterade %1 rader till:
+%2</translation>
     </message>
   </context>
   <context>
@@ -13641,7 +13825,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">En rapport med det här namnet finns redan.\nVälj ett annat namn.</translation>
+      <translation type="unfinished">En rapport med det här namnet finns redan.
+Välj ett annat namn.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13657,7 +13842,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">Rapporten '%1' skapades.\nAnvänd 'Kopiera typ' för att lägga till frågor i den här rapporten.</translation>
+      <translation type="unfinished">Rapporten '%1' skapades.
+Använd 'Kopiera typ' för att lägga till frågor i den här rapporten.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13667,7 +13853,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopia)</translation>
+      <translation type="unfinished"> (Kopia)</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13678,7 +13864,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">Rapport kopierad.\n%1 varianter kopierade.</translation>
+      <translation type="unfinished">Rapport kopierad.
+%1 varianter kopierade.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13695,7 +13882,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\nDetta kommer även att ta bort %1 rapportvarianter.</translation>
+      <translation type="unfinished">
+
+Detta kommer även att ta bort %1 rapportvarianter.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13816,7 +14005,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">Ange SQL-fråga med makron:\n#PROFILE_ID - Aktuellt profil-ID\n#START_DATE - Rapportens startdatum\n#END_DATE - Rapportens slutdatum</translation>
+      <translation type="unfinished">Ange SQL-fråga med makron:
+#PROFILE_ID - Aktuellt profil-ID
+#START_DATE - Rapportens startdatum
+#END_DATE - Rapportens slutdatum</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -13869,7 +14061,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopia)</translation>
+      <translation type="unfinished"> (Kopia)</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -13886,7 +14078,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">Inga anpassade rapporter tillgängliga.\nAnge ett nytt rapportnamn för att skapa en.</translation>
+      <translation type="unfinished">Inga anpassade rapporter tillgängliga.
+Ange ett nytt rapportnamn för att skapa en.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -13906,27 +14099,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">Frågan misslyckades:\n\n%1\n\nSQL-fel:\n%2</translation>
+      <translation type="unfinished">Frågan misslyckades:
+
+%1
+
+SQL-fel:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">Frågan utfördes framgångsrikt.\n\nInga resultat returnerades (detta kan vara normalt om det inte finns några data för datumintervallet).</translation>
+      <translation type="unfinished">Frågan utfördes framgångsrikt.
+
+Inga resultat returnerades (detta kan vara normalt om det inte finns några data för datumintervallet).</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">Testresultat för fråga\n</translation>
+      <translation type="unfinished">Testresultat för fråga
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">(Visar första %1 raderna)\n\n</translation>
+      <translation type="unfinished">(Visar första %1 raderna)
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -13997,7 +14200,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">En variant med namnet '%1' finns redan i rapporten '%2'.\n\nVälj ett annat variantnamn.</translation>
+      <translation type="unfinished">En variant med namnet '%1' finns redan i rapporten '%2'.
+
+Välj ett annat variantnamn.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -14013,14 +14218,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">Frågan innehåller inte alla obligatoriska makron:\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\nFrågan kanske inte fungerar korrekt.\n\nFortsätta ändå?</translation>
+      <translation type="unfinished">Frågan innehåller inte alla obligatoriska makron:
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+Frågan kanske inte fungerar korrekt.
+
+Fortsätta ändå?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">Kan inte lägga till varianter till systemrapporten '%1'.\n\nVälj ett annat rapportnamn.</translation>
+      <translation type="unfinished">Kan inte lägga till varianter till systemrapporten '%1'.
+
+Välj ett annat rapportnamn.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -14033,7 +14246,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">Rapporten '%1' finns inte.\n\nSkapa den?</translation>
+      <translation type="unfinished">Rapporten '%1' finns inte.
+
+Skapa den?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14334,7 +14549,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">Den valda filen är inte ett giltigt säkerhetskopiepaket.\n\n%1</translation>
+      <translation type="unfinished">Den valda filen är inte ett giltigt säkerhetskopiepaket.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14346,7 +14563,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">Den här säkerhetskopian kan inte återställas.\n\n%1</translation>
+      <translation type="unfinished">Den här säkerhetskopian kan inte återställas.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14355,7 +14574,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">Den här säkerhetskopian skapades med ett äldre databasschema (v%1; nuvarande är v%2).\n\nDina sömnsessionsdata kommer att återställas fullständigt. Vissa inställningar eller rapportkonfigurationer kanske inte återställs och kommer att genereras om av OSCAR vid första användning.\n\nKlicka på Validera för att fortsätta.</translation>
+      <translation type="unfinished">Den här säkerhetskopian skapades med ett äldre databasschema (v%1; nuvarande är v%2).
+
+Dina sömnsessionsdata kommer att återställas fullständigt. Vissa inställningar eller rapportkonfigurationer kanske inte återställs och kommer att genereras om av OSCAR vid första användning.
+
+Klicka på Validera för att fortsätta.</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14369,7 +14592,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">VARNING: Den befintliga profilen "%1" innehåller en säkerhetskopieringskatalog som innehåller CPAP-säkerhetskopieringsdata.\n\nEftersom det här återställningspaketet innehåller SD-kortsdata kommer hela profilkatalogen — inklusive all CPAP-säkerhetskopieringsdata — att raderas permanent och ersättas.\n\nDetta kan inte ångras. Är du säker på att du vill fortsätta?</translation>
+      <translation type="unfinished">VARNING: Den befintliga profilen "%1" innehåller en säkerhetskopieringskatalog som innehåller CPAP-säkerhetskopieringsdata.
+
+Eftersom det här återställningspaketet innehåller SD-kortsdata kommer hela profilkatalogen — inklusive all CPAP-säkerhetskopieringsdata — att raderas permanent och ersättas.
+
+Detta kan inte ångras. Är du säker på att du vill fortsätta?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14381,7 +14608,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">Detta kommer att permanent radera den befintliga profilen och all dess data.\n\nÄr du säker på att du vill ersätta den?</translation>
+      <translation type="unfinished">Detta kommer att permanent radera den befintliga profilen och all dess data.
+
+Är du säker på att du vill ersätta den?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14423,7 +14652,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">Återställningen kunde inte slutföras. Databasen ändrades inte.\n\n%1</translation>
+      <translation type="unfinished">Återställningen kunde inte slutföras. Databasen ändrades inte.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14437,13 +14668,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">Redigera SQL-frågan nedan. Frågan kommer att köras mot OSCAR-databasen.\nTillgängliga makron: #PROFILE_ID, #START_DATE, #END_DATE</translation>
+      <translation type="unfinished">Redigera SQL-frågan nedan. Frågan kommer att köras mot OSCAR-databasen.
+Tillgängliga makron: #PROFILE_ID, #START_DATE, #END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">Obs: Var försiktig när du ändrar frågor. Ogiltig SQL kommer att orsaka att exporten misslyckas.\nVanliga tabeller: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
+      <translation type="unfinished">Obs: Var försiktig när du ändrar frågor. Ogiltig SQL kommer att orsaka att exporten misslyckas.
+Vanliga tabeller: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -14612,7 +14845,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="240" />
       <source> (right/left)MouseClick</source>
-      <translation type="unfinished">(höger/vänster)musklick</translation>
+      <translation type="unfinished"> (höger/vänster)musklick</translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="242" />
@@ -14777,7 +15010,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
       <source>Daily: Event (bottom left corner) </source>
-      <translation type="unfinished">Daglig: Händelse (nedre vänstra hörnet)</translation>
+      <translation type="unfinished">Daglig: Händelse (nedre vänstra hörnet) </translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
@@ -15300,7 +15533,13 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">Du håller på att dela en fil som innehåller din sömnterapi-data.\n\n• Filen innehåller sessionsdata, händelser och maskininställningar\n  för det valda datumintervallet\n• Personlig information (namn, födelsedatum, kontaktuppgifter) kommer att tas bort\n\nSe till att du litar på mottagaren innan du delar denna data.</translation>
+      <translation type="unfinished">Du håller på att dela en fil som innehåller din sömnterapi-data.
+
+• Filen innehåller sessionsdata, händelser och maskininställningar
+  för det valda datumintervallet
+• Personlig information (namn, födelsedatum, kontaktuppgifter) kommer att tas bort
+
+Se till att du litar på mottagaren innan du delar denna data.</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15387,7 +15626,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">Det gick inte att skapa delningsfilen.\n\n%1</translation>
+      <translation type="unfinished">Det gick inte att skapa delningsfilen.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />

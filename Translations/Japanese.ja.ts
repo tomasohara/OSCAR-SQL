@@ -250,7 +250,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">.oscarバックアップには機密性の高い医療データが含まれています：\n• 睡眠療法のセッションデータおよびイベント波形\n• 個人情報（氏名、生年月日など）\n  （プライバシーモードが有効でない場合）\n\n保存に関する推奨事項：\n• 暗号化されたストレージにバックアップを保存してください\n• アクセス管理された安全な場所にバックアップを保管してください\n• 権限のない第三者とバックアップファイルを共有しないでください</translation>
+      <translation type="unfinished">.oscarバックアップには機密性の高い医療データが含まれています：
+• 睡眠療法のセッションデータおよびイベント波形
+• 個人情報（氏名、生年月日など）
+  （プライバシーモードが有効でない場合）
+
+保存に関する推奨事項：
+• 暗号化されたストレージにバックアップを保存してください
+• アクセス管理された安全な場所にバックアップを保管してください
+• 権限のない第三者とバックアップファイルを共有しないでください</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -298,7 +306,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">バックアップが正常に作成されました。\n\nファイル: %1\nサイズ: %2</translation>
+      <translation type="unfinished">バックアップが正常に作成されました。
+
+ファイル: %1
+サイズ: %2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -320,7 +331,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">バックアップを完了できませんでした。\n\n%1</translation>
+      <translation type="unfinished">バックアップを完了できませんでした。
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -384,7 +397,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">Proton Driveの共有リンクは、ファイルがエンドツーエンドで暗号化されており、ブラウザによる復号化が必要なため、直接ダウンロードできません。\n\nブラウザでファイルをダウンロードし、ローカルファイルオプションをご使用ください。</translation>
+      <translation type="unfinished">Proton Driveの共有リンクは、ファイルがエンドツーエンドで暗号化されており、ブラウザによる復号化が必要なため、直接ダウンロードできません。
+
+ブラウザでファイルをダウンロードし、ローカルファイルオプションをご使用ください。</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -393,7 +408,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">OSCARはこのURLをサポートされているクラウドサービスとして認識できません。\n\nブラウザでファイルをダウンロードし、ローカルファイルオプションをご使用ください。\n\nサポートされているサービス: Dropbox、Google Drive、OneDrive、Box、0x0.st、または.oscarファイルへの直接リンク。</translation>
+      <translation type="unfinished">OSCARはこのURLをサポートされているクラウドサービスとして認識できません。
+
+ブラウザでファイルをダウンロードし、ローカルファイルオプションをご使用ください。
+
+サポートされているサービス: Dropbox、Google Drive、OneDrive、Box、0x0.st、または.oscarファイルへの直接リンク。</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -404,7 +423,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">一時ファイルを作成できませんでした:\n%1</translation>
+      <translation type="unfinished">一時ファイルを作成できませんでした:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -448,7 +468,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">ファイルを読み取り用に開けませんでした:\n%1</translation>
+      <translation type="unfinished">ファイルを読み取り用に開けませんでした:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -1248,7 +1269,8 @@ Jumps to Date's Events</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">ジャンプ\n日付のメモへジャンプ</translation>
+      <translation type="unfinished">ジャンプ
+日付のメモへジャンプ</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1455,7 +1477,10 @@ Jumps to Date's Notes</source>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">パス: %1\nサイズ: %2\nプロファイル数: %3\n注意: このフォルダー内のすべてのセッションデータおよびSDカードバックアップデータは完全に削除されます。</translation>
+      <translation type="unfinished">パス: %1
+サイズ: %2
+プロファイル数: %3
+注意: このフォルダー内のすべてのセッションデータおよびSDカードバックアップデータは完全に削除されます。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1473,7 +1498,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">\n%1\nにあるデータベースを排他的に開くことができません。OSCARの別のインスタンスが開いている可能性があります。</translation>
+      <translation type="unfinished">
+%1
+にあるデータベースを排他的に開くことができません。OSCARの別のインスタンスが開いている可能性があります。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1485,7 +1512,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">このデータベースを完全に削除するには「%1」と入力してください。\n\nフォルダー内のすべてのセッションデータおよびSDカードバックアップデータが削除されます。この操作は元に戻せません。</translation>
+      <translation type="unfinished">このデータベースを完全に削除するには「%1」と入力してください。
+
+フォルダー内のすべてのセッションデータおよびSDカードバックアップデータが削除されます。この操作は元に戻せません。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1507,7 +1536,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">削除できませんでした\n%1\nデータベースファイルがまだ存在しています。ファイルロックを確認して、もう一度お試しください。</translation>
+      <translation type="unfinished">削除できませんでした
+%1
+データベースファイルがまだ存在しています。ファイルロックを確認して、もう一度お試しください。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1519,7 +1550,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">データベースは削除されましたが、\n%1\nからすべてのファイルを削除できませんでした。一部のファイルがまだ残っている可能性があります。</translation>
+      <translation type="unfinished">データベースは削除されましたが、
+%1
+からすべてのファイルを削除できませんでした。一部のファイルがまだ残っている可能性があります。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1543,7 +1576,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">%1でデータベースの破損またはI/Oエラーが検出されました。\n\nエラー: %2\n\n推奨される対処法:\n  • ヘルプ → トラブルシューティング → データベースの整合性チェック を実行する\n  • 問題が見つかった場合は、最新のバックアップから復元する</translation>
+      <translation type="unfinished">%1でデータベースの破損またはI/Oエラーが検出されました。
+
+エラー: %2
+
+推奨される対処法:
+  • ヘルプ → トラブルシューティング → データベースの整合性チェック を実行する
+  • 問題が見つかった場合は、最新のバックアップから復元する</translation>
     </message>
   </context>
   <context>
@@ -1977,17 +2016,17 @@ Hint: Change the start date first</source>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— フィットが不良のため、「モデルを使用」は無効です</translation>
+      <translation type="unfinished"> — フィットが不良のため、「モデルを使用」は無効です</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— フィットが中程度です</translation>
+      <translation type="unfinished"> — フィットが中程度です</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— %1 から有効な既存モデルを置き換えます</translation>
+      <translation type="unfinished"> — %1 から有効な既存モデルを置き換えます</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2049,7 +2088,8 @@ Hint: Change the start date first</source>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">読み取り用にファイルを開けませんでした:\n%1</translation>
+      <translation type="unfinished">読み取り用にファイルを開けませんでした:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2439,7 +2479,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">読み取り用にファイルを開けませんでした:\n%1</translation>
+      <translation type="unfinished">読み取り用にファイルを開けませんでした:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2597,7 +2638,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">%1を確認中...\n\nしばらくお待ちください...</translation>
+      <translation type="unfinished">%1を確認中...
+
+しばらくお待ちください...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2608,7 +2651,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">選択したフォルダーは有効なOSCARプロファイルではないようです。\nmachines.xmlを含むフォルダーを選択してください</translation>
+      <translation type="unfinished">選択したフォルダーは有効なOSCARプロファイルではないようです。
+machines.xmlを含むフォルダーを選択してください</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2621,7 +2665,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">このプロファイルのサイズは%1 GBです。\nインポートにかなりの時間がかかる場合があります。\n\n続行しますか？</translation>
+      <translation type="unfinished">このプロファイルのサイズは%1 GBです。
+インポートにかなりの時間がかかる場合があります。
+
+続行しますか？</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2791,7 +2838,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">ファイルを書き込めませんでした:\n%1</translation>
+      <translation type="unfinished">ファイルを書き込めませんでした:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -3551,7 +3599,11 @@ Do you want to continue?</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">データをインポートできません：OSCARデータベースが別のアプリケーションによってロックされています。\n\nデータベースをSQLiteビューアまたはエディタで開いている場合は、閉じてから再試行してください。\n\nエラー: %1</translation>
+      <translation type="unfinished">データをインポートできません：OSCARデータベースが別のアプリケーションによってロックされています。
+
+データベースをSQLiteビューアまたはエディタで開いている場合は、閉じてから再試行してください。
+
+エラー: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1017" />
@@ -3570,7 +3622,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">インポートされたデータをデータベースに保存できませんでした。データは保存されませんでした。\n\nOSCARデータベースを別のアプリケーション（例：SQLiteビューアまたはエディタ）で開いている場合は、閉じてから再試行してください。\n\nエラー: %1</translation>
+      <translation type="unfinished">インポートされたデータをデータベースに保存できませんでした。データは保存されませんでした。
+
+OSCARデータベースを別のアプリケーション（例：SQLiteビューアまたはエディタ）で開いている場合は、閉じてから再試行してください。
+
+エラー: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1201" />
@@ -3610,7 +3666,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">このSDカードは、このプロファイルに最後にインポートされたものとは異なるマシンのものです。\n\n最後にインポートされたマシン: %1\nこのカード: %2\n\nこのカードからこのプロファイルにインポートしてもよろしいですか？</translation>
+      <translation type="unfinished">このSDカードは、このプロファイルに最後にインポートされたものとは異なるマシンのものです。
+
+最後にインポートされたマシン: %1
+このカード: %2
+
+このカードからこのプロファイルにインポートしてもよろしいですか？</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3659,7 +3720,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">このプロファイル内のすべてのデバイスの時刻補正を完全に削除します。\n\nよろしいですか？</translation>
+      <translation type="unfinished">このプロファイル内のすべてのデバイスの時刻補正を完全に削除します。
+
+よろしいですか？</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1978" />
@@ -3735,7 +3798,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">(アクティブ)</translation>
+      <translation type="unfinished"> (アクティブ)</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3756,7 +3819,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">選択したフォルダーにはすでにOSCARデータベースが含まれています。\n既存のデータベースを開くには、ファイル ▸ データベース ▸ 開く を使用してください。</translation>
+      <translation type="unfinished">選択したフォルダーにはすでにOSCARデータベースが含まれています。
+既存のデータベースを開くには、ファイル ▸ データベース ▸ 開く を使用してください。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3772,7 +3836,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">選択したフォルダーにはOSCARデータベースが含まれていません。\noscar.dbファイルが含まれているフォルダーを選択してください。</translation>
+      <translation type="unfinished">選択したフォルダーにはOSCARデータベースが含まれていません。
+oscar.dbファイルが含まれているフォルダーを選択してください。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3784,7 +3849,9 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">削除する非アクティブなデータベースが最近のリストにありません。\n\n先にファイル ▸ データベース ▸ 開く でデータベースを開き、最近のリストに追加してください。</translation>
+      <translation type="unfinished">削除する非アクティブなデータベースが最近のリストにありません。
+
+先にファイル ▸ データベース ▸ 開く でデータベースを開き、最近のリストに追加してください。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3527" />
@@ -3826,7 +3893,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">この操作により、データベースを圧縮して未使用のディスク領域を回収します。プロファイルを削除した後に最も効果的です。\n\n現在のデータベースサイズ: %1\n\n大きなデータベースの場合、数分かかることがあります。完了するとOSCARは自動的に再起動します。\n\n続行しますか？</translation>
+      <translation type="unfinished">この操作により、データベースを圧縮して未使用のディスク領域を回収します。プロファイルを削除した後に最も効果的です。
+
+現在のデータベースサイズ: %1
+
+大きなデータベースの場合、数分かかることがあります。完了するとOSCARは自動的に再起動します。
+
+続行しますか？</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -3838,28 +3911,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">データベースの整合性チェックに失敗しました。破損したデータベースでは圧縮を続行できません。\n\n推奨される対処法:\n  • 最新のシステムバックアップからデータベース全体を復元する\n  • 最新のバックアップから各プロファイルを復元する（ファイル → プロファイルを復元）\n  • CPAP SDカードからデータを再インポートする\n\n高度な復元オプションについては、OSCARのドキュメントを参照してください。</translation>
+      <translation type="unfinished">データベースの整合性チェックに失敗しました。破損したデータベースでは圧縮を続行できません。
+
+推奨される対処法:
+  • 最新のシステムバックアップからデータベース全体を復元する
+  • 最新のバックアップから各プロファイルを復元する（ファイル → プロファイルを復元）
+  • CPAP SDカードからデータを再インポートする
+
+高度な復元オプションについては、OSCARのドキュメントを参照してください。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">データベースを圧縮しています。しばらくお待ちください...\n\n大きなデータベースの場合、数分かかることがあります。</translation>
+      <translation type="unfinished">データベースを圧縮しています。しばらくお待ちください...
+
+大きなデータベースの場合、数分かかることがあります。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">圧縮は成功しましたが、データベースファイルを置き換えることができませんでした。\n\n元のデータベースは変更されていません。</translation>
+      <translation type="unfinished">圧縮は成功しましたが、データベースファイルを置き換えることができませんでした。
+
+元のデータベースは変更されていません。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">圧縮は成功しましたが、新しいファイルを所定の場所に配置できませんでした。\n\n元のデータベースは復元されました。</translation>
+      <translation type="unfinished">圧縮は成功しましたが、新しいファイルを所定の場所に配置できませんでした。
+
+元のデータベースは復元されました。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -3870,7 +3956,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">データベースの圧縮が正常に完了しました。\n\n圧縮前:    %1\n圧縮後:     %2\n回収容量: %3\n\nOKを押すとOSCARが再起動します。</translation>
+      <translation type="unfinished">データベースの圧縮が正常に完了しました。
+
+圧縮前:    %1
+圧縮後:     %2
+回収容量: %3
+
+OKを押すとOSCARが再起動します。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -3881,7 +3973,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">データベースの圧縮が正常に完了しました。\n\nサイズ: %1\n\n領域は回収されませんでした — データベースはすでに最適化されていました。\n\nOKを押すとOSCARが再起動します。</translation>
+      <translation type="unfinished">データベースの圧縮が正常に完了しました。
+
+サイズ: %1
+
+領域は回収されませんでした — データベースはすでに最適化されていました。
+
+OKを押すとOSCARが再起動します。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3543" />
@@ -3954,7 +4052,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">データベースの整合性チェックで問題が見つかりました。一部のデータが失われているか、破損している可能性があります。\n\n整合性チェックはデータベース全体を対象としており、複数のプロファイルが含まれている場合があります。\n\n推奨される対処法:\n  • 最新のシステムバックアップからデータベース全体を復元する\n  • 最新のバックアップから各プロファイルを復元する（ファイル → プロファイルを復元）\n  • CPAP SDカードからデータを再インポートする\n\n高度な復元オプションについては、OSCARのドキュメントを参照してください。</translation>
+      <translation type="unfinished">データベースの整合性チェックで問題が見つかりました。一部のデータが失われているか、破損している可能性があります。
+
+整合性チェックはデータベース全体を対象としており、複数のプロファイルが含まれている場合があります。
+
+推奨される対処法:
+  • 最新のシステムバックアップからデータベース全体を復元する
+  • 最新のバックアップから各プロファイルを復元する（ファイル → プロファイルを復元）
+  • CPAP SDカードからデータを再インポートする
+
+高度な復元オプションについては、OSCARのドキュメントを参照してください。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -3979,7 +4086,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">データベースの圧縮に失敗しました:\n%1</translation>
+      <translation type="unfinished">データベースの圧縮に失敗しました:
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -4050,7 +4158,7 @@ No space was reclaimed — the database was already compact.</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">プロフィールをインポート中</translation>
+      <translation type="unfinished">プロフィールをインポート中 </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -4062,7 +4170,9 @@ No space was reclaimed — the database was already compact.</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">プロフィール「%1」のインポートが完了しました。\n\nプロフィールセレクターから選択できるようになりました。</translation>
+      <translation type="unfinished">プロフィール「%1」のインポートが完了しました。
+
+プロフィールセレクターから選択できるようになりました。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -4075,7 +4185,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">プロフィールのインポートに失敗しました：\n%1</translation>
+      <translation type="unfinished">プロフィールのインポートに失敗しました：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1507" />
@@ -4170,7 +4281,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">%1 の解析中に問題が発生しました\nデータファイル：%2</translation>
+      <translation type="unfinished">%1 の解析中に問題が発生しました
+データファイル：%2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3224" />
@@ -4838,7 +4950,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">ファイルを読み取り用に開けませんでした:\n%1</translation>
+      <translation type="unfinished">ファイルを読み取り用に開けませんでした:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4859,7 +4972,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">ファイルはOneDriveにアップロードされましたが、共有リンクを作成できませんでした (HTTP %1)。\nメモ：Microsoftアカウントの設定で匿名共有が無効になっている可能性があります。</translation>
+      <translation type="unfinished">ファイルはOneDriveにアップロードされましたが、共有リンクを作成できませんでした (HTTP %1)。
+メモ：Microsoftアカウントの設定で匿名共有が無効になっている可能性があります。</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -6266,7 +6380,7 @@ If you've got a new computer with a small solid state disk, this is a good optio
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">許可モードを有効にする必要があります。「臨床」タブを参照してください</translation>
+      <translation type="unfinished">許可モードを有効にする必要があります。「臨床」タブを参照してください </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6283,7 +6397,9 @@ If you've got a new computer with a small solid state disk, this is a good optio
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">安定呼吸（SB）はフローレートに基づいています。\nCPAPフローレートを使用して波形とSPANイベントを作成します。\n安定呼吸が有効で、CPAPデータが（再）インポートされている場合にのみ機能します。</translation>
+      <translation type="unfinished">安定呼吸（SB）はフローレートに基づいています。
+CPAPフローレートを使用して波形とSPANイベントを作成します。
+安定呼吸が有効で、CPAPデータが（再）インポートされている場合にのみ機能します。  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6319,13 +6435,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">臨床モードでは無効なセッションは使用できません。\n無効なセッションはグラフや統計に使用されません。</translation>
+      <translation type="unfinished">臨床モードでは無効なセッションは使用できません。
+無効なセッションはグラフや統計に使用されません。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">許可モードでは無効なセッションが使用できます。\n無効なセッションはグラフや統計に使用されます。</translation>
+      <translation type="unfinished">許可モードでは無効なセッションが使用できます。
+無効なセッションはグラフや統計に使用されます。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6338,7 +6456,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">デフォルトでは、OSCARは酸素測定データの最初の1時間の計算をベースラインとして使用します。\nこの設定では、静的な値でそれを上書きすることができます。\nこれは、最初の1時間がデータセット全体の典型的なものでない場合に役立つことがあります。\nまた、日ごとの比較を容易にするためにも役立つ場合があります。</translation>
+      <translation type="unfinished">デフォルトでは、OSCARは酸素測定データの最初の1時間の計算をベースラインとして使用します。
+この設定では、静的な値でそれを上書きすることができます。
+これは、最初の1時間がデータセット全体の典型的なものでない場合に役立つことがあります。
+また、日ごとの比較を容易にするためにも役立つ場合があります。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1861" />
@@ -6357,7 +6478,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;血中酸素濃度とCPAPデータの同期&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;SpO2Review（.spoRファイル）またはシリアルインポート方式でインポートされたCMS50データには、同期に必要な正確なタイムスタンプが&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;ありません&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;。&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;ライブビューモード（シリアルケーブル使用）はCMS50オキシメーターで正確な同期を実現する方法の一つですが、CPAPの時計のずれには対応していません。&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;CPAPデバイスを起動するのと&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;まったく同時に&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;オキシメーターの記録モードを開始することで、同期を実現することもできます。&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;シリアルインポート処理では、前夜の最初のCPAPセッションの開始時刻を使用します。（最初にCPAPデータをインポートしてください！）&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;血中酸素濃度とCPAPデータの同期&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;SpO2Review（.spoRファイル）またはシリアルインポート方式でインポートされたCMS50データには、同期に必要な正確なタイムスタンプが&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;ありません&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;。&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;ライブビューモード（シリアルケーブル使用）はCMS50オキシメーターで正確な同期を実現する方法の一つですが、CPAPの時計のずれには対応していません。&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;CPAPデバイスを起動するのと&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;まったく同時に&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;オキシメーターの記録モードを開始することで、同期を実現することもできます。&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;シリアルインポート処理では、前夜の最初のCPAPセッションの開始時刻を使用します。（最初にCPAPデータをインポートしてください！）&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2262" />
@@ -6373,7 +6503,8 @@ p, li { white-space: pre-wrap; }
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">ファイル＞データベースに「新規」「開く」「最近」「削除」項目を追加します。\nサポートスタッフおよび開発者向けです。</translation>
+      <translation type="unfinished">ファイル＞データベースに「新規」「開く」「最近」「削除」項目を追加します。
+サポートスタッフおよび開発者向けです。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6573,7 +6704,9 @@ Try it and see if you like it.</source>
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">プラットフォームネイティブテーマの代わりにQtのFusionテーマを使用します。\nプラットフォーム間で一貫した外観を提供します。\nOKをクリックするとOSCARが再起動します。</translation>
+      <translation type="unfinished">プラットフォームネイティブテーマの代わりにQtのFusionテーマを使用します。
+プラットフォーム間で一貫した外観を提供します。
+OKをクリックするとOSCARが再起動します。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -6836,7 +6969,7 @@ p, li { white-space: pre-wrap; }
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">交互カラーの間隔</translation>
+      <translation type="unfinished"> 交互カラーの間隔</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3227" />
@@ -7394,7 +7527,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(最初のエラー: %1</translation>
+      <translation type="unfinished"> (最初のエラー: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7482,7 +7615,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">ID:</translation>
+      <translation type="unfinished">ID: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="295" />
@@ -7571,7 +7704,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">プロファイルを削除中</translation>
+      <translation type="unfinished">プロファイルを削除中 </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7602,7 +7735,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">名前：</translation>
+      <translation type="unfinished">名前： </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -9642,7 +9775,7 @@ TTIA: %1</translation>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">ランプタイム</translation>
+      <translation type="unfinished">ランプタイム </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -11453,7 +11586,10 @@ TTIA: %1</translation>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">プロファイルを移行中：%1\n（%2 / %3）\n\nインポートを開始しています...</translation>
+      <translation type="unfinished">プロファイルを移行中：%1
+（%2 / %3）
+
+インポートを開始しています...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -11461,7 +11597,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">キャンセル中：%1\n（%2 / %3）\n\nクリーンアップ中、しばらくお待ちください...</translation>
+      <translation type="unfinished">キャンセル中：%1
+（%2 / %3）
+
+クリーンアップ中、しばらくお待ちください...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -11469,7 +11608,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">プロファイルを移行中：%1\n（%2 / %3）\n\n%4</translation>
+      <translation type="unfinished">プロファイルを移行中：%1
+（%2 / %3）
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -11656,7 +11798,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">OSCARは前回のセッションが予期せず終了したことを検出し、データベースの整合性チェックで問題が見つかりました。\n\n一部のデータが失われているか、破損している可能性があります。\n\n推奨される対処法:\n  • 最新のシステムバックアップからデータベース全体を復元する\n  • 最新のバックアップから各プロファイルを復元する（ファイル → プロファイルを復元）\n  • CPAP SDカードからデータを再インポートする\n\n高度な復元オプションについては、OSCARのドキュメントを参照してください。\n\n続行することはできますが、一部のデータが不完全または不正確な場合があります。</translation>
+      <translation type="unfinished">OSCARは前回のセッションが予期せず終了したことを検出し、データベースの整合性チェックで問題が見つかりました。
+
+一部のデータが失われているか、破損している可能性があります。
+
+推奨される対処法:
+  • 最新のシステムバックアップからデータベース全体を復元する
+  • 最新のバックアップから各プロファイルを復元する（ファイル → プロファイルを復元）
+  • CPAP SDカードからデータを再インポートする
+
+高度な復元オプションについては、OSCARのドキュメントを参照してください。
+
+続行することはできますが、一部のデータが不完全または不正確な場合があります。</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -12948,7 +13101,7 @@ popout window, delete it, then pop out this graph again.</source>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR:</translation>
+      <translation type="unfinished">IPR: </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/journal.cpp" line="176" />
@@ -12960,7 +13113,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">ジャーナルの移行が完了しました:\n%1件のジャーナルエントリがデータベースに移行されました\n%2件のエラー</translation>
+      <translation type="unfinished">ジャーナルの移行が完了しました:
+%1件のジャーナルエントリがデータベースに移行されました
+%2件のエラー</translation>
     </message>
     <message>
       <location filename="../oscar/notifyMessageBox.cpp" line="18" />
@@ -13116,7 +13271,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">選択されたファイルは有効なDreem CSVファイルではないようです。\n\nDreemのデータはセミコロン区切りのCSVファイルとしてフォーマットされている必要があります。データがCSV形式であることを確認して、もう一度お試しください。</translation>
+      <translation type="unfinished">選択されたファイルは有効なDreem CSVファイルではないようです。
+
+Dreemのデータはセミコロン区切りのCSVファイルとしてフォーマットされている必要があります。データがCSV形式であることを確認して、もう一度お試しください。</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13484,7 +13641,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">（コピー）</translation>
+      <translation type="unfinished"> （コピー）</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13534,19 +13691,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">ファイルの解析に失敗しました：\n%1</translation>
+      <translation type="unfinished">ファイルの解析に失敗しました：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">インポートに失敗しました：\n%1</translation>
+      <translation type="unfinished">インポートに失敗しました：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">%1 件のレポートをインポートしました：\n%2</translation>
+      <translation type="unfinished">%1 件のレポートをインポートしました：
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13569,13 +13729,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">ファイルの書き込みに失敗しました：\n%1</translation>
+      <translation type="unfinished">ファイルの書き込みに失敗しました：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">%1 件のレポートをエクスポートしました：\n%2</translation>
+      <translation type="unfinished">%1 件のレポートをエクスポートしました：
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13631,19 +13793,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">クエリに失敗しました：\n%1</translation>
+      <translation type="unfinished">クエリに失敗しました：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">ファイルに書き込めません：\n%1</translation>
+      <translation type="unfinished">ファイルに書き込めません：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">%1 行をエクスポートしました:\n%2</translation>
+      <translation type="unfinished">%1 行をエクスポートしました:
+%2</translation>
     </message>
   </context>
   <context>
@@ -13789,7 +13954,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">この名前のレポートはすでに存在します。\n別の名前を選択してください。</translation>
+      <translation type="unfinished">この名前のレポートはすでに存在します。
+別の名前を選択してください。</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13805,7 +13971,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">レポート「%1」が作成されました。\n「バリエーションのコピー」を使用して、このレポートにクエリを追加してください。</translation>
+      <translation type="unfinished">レポート「%1」が作成されました。
+「バリエーションのコピー」を使用して、このレポートにクエリを追加してください。</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13815,7 +13982,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">（コピー）</translation>
+      <translation type="unfinished"> （コピー）</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13826,7 +13993,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">レポートのコピーに成功しました。\n%1件のバリエーションがコピーされました。</translation>
+      <translation type="unfinished">レポートのコピーに成功しました。
+%1件のバリエーションがコピーされました。</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13843,7 +14011,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\nこの操作により、%1件のレポートバリエーションも削除されます。</translation>
+      <translation type="unfinished">
+
+この操作により、%1件のレポートバリエーションも削除されます。</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13964,7 +14134,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">マクロを使用してSQLクエリを入力してください:\n#PROFILE_ID - 現在のプロファイルID\n#START_DATE - レポート開始日\n#END_DATE - レポート終了日</translation>
+      <translation type="unfinished">マクロを使用してSQLクエリを入力してください:
+#PROFILE_ID - 現在のプロファイルID
+#START_DATE - レポート開始日
+#END_DATE - レポート終了日</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -14017,7 +14190,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">(コピー)</translation>
+      <translation type="unfinished"> (コピー)</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -14034,7 +14207,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">カスタムレポートがありません。\n新しいレポート名を入力して作成してください。</translation>
+      <translation type="unfinished">カスタムレポートがありません。
+新しいレポート名を入力して作成してください。</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -14054,27 +14228,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">クエリが失敗しました：\n\n%1\n\nSQLエラー：\n%2</translation>
+      <translation type="unfinished">クエリが失敗しました：
+
+%1
+
+SQLエラー：
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">クエリが正常に実行されました。\n\n結果は返されませんでした（指定した日付範囲にデータが存在しない場合は正常です）。</translation>
+      <translation type="unfinished">クエリが正常に実行されました。
+
+結果は返されませんでした（指定した日付範囲にデータが存在しない場合は正常です）。</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">クエリテスト結果\n</translation>
+      <translation type="unfinished">クエリテスト結果
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">(最初の%1行を表示中)\n\n</translation>
+      <translation type="unfinished">(最初の%1行を表示中)
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -14145,7 +14329,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">'%1' という名前のバリエーションはレポート '%2' に既に存在します。\n\n別のバリエーション名を選択してください。</translation>
+      <translation type="unfinished">'%1' という名前のバリエーションはレポート '%2' に既に存在します。
+
+別のバリエーション名を選択してください。</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -14161,14 +14347,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">クエリに必要なマクロがすべて含まれていません：\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\nクエリが正しく動作しない可能性があります。\n\n続行しますか？</translation>
+      <translation type="unfinished">クエリに必要なマクロがすべて含まれていません：
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+クエリが正しく動作しない可能性があります。
+
+続行しますか？</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">システムレポート '%1' にバリエーションを追加できません。\n\n別のレポート名を選択してください。</translation>
+      <translation type="unfinished">システムレポート '%1' にバリエーションを追加できません。
+
+別のレポート名を選択してください。</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -14181,7 +14375,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">レポート '%1' が存在しません。\n\n作成しますか？</translation>
+      <translation type="unfinished">レポート '%1' が存在しません。
+
+作成しますか？</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14482,7 +14678,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">選択されたファイルは有効なバックアップパッケージではありません。\n\n%1</translation>
+      <translation type="unfinished">選択されたファイルは有効なバックアップパッケージではありません。
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14494,7 +14692,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">このバックアップは復元できません。\n\n%1</translation>
+      <translation type="unfinished">このバックアップは復元できません。
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14503,7 +14703,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">このバックアップは古いデータベーススキーマ (v%1; 現在はv%2) で作成されました。\n\n睡眠セッションデータは完全に復元されます。一部の設定またはレポート設定が復元されない場合があり、OSCARが初回使用時に再生成します。\n\n続行するには「検証」をクリックしてください。</translation>
+      <translation type="unfinished">このバックアップは古いデータベーススキーマ (v%1; 現在はv%2) で作成されました。
+
+睡眠セッションデータは完全に復元されます。一部の設定またはレポート設定が復元されない場合があり、OSCARが初回使用時に再生成します。
+
+続行するには「検証」をクリックしてください。</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14517,7 +14721,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">警告: 既存のプロファイル「%1」には、CPAPバックアップデータを保持するバックアップディレクトリが含まれています。\n\nこの復元パッケージにはSDカードデータが含まれているため、すべてのCPAPバックアップデータを含むプロファイルディレクトリ全体が完全に削除され、置換されます。\n\nこの操作は元に戻せません。続行してもよろしいですか？</translation>
+      <translation type="unfinished">警告: 既存のプロファイル「%1」には、CPAPバックアップデータを保持するバックアップディレクトリが含まれています。
+
+この復元パッケージにはSDカードデータが含まれているため、すべてのCPAPバックアップデータを含むプロファイルディレクトリ全体が完全に削除され、置換されます。
+
+この操作は元に戻せません。続行してもよろしいですか？</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14529,7 +14737,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">既存のプロファイルとそのすべてのデータが完全に削除されます。\n\n置換してもよろしいですか？</translation>
+      <translation type="unfinished">既存のプロファイルとそのすべてのデータが完全に削除されます。
+
+置換してもよろしいですか？</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14571,7 +14781,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">復元を完了できませんでした。データベースは変更されていません。\n\n%1</translation>
+      <translation type="unfinished">復元を完了できませんでした。データベースは変更されていません。
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14585,13 +14797,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">以下のSQLクエリを編集してください。このクエリはOSCARデータベースに対して実行されます。\n使用可能なマクロ: #PROFILE_ID, #START_DATE, #END_DATE</translation>
+      <translation type="unfinished">以下のSQLクエリを編集してください。このクエリはOSCARデータベースに対して実行されます。
+使用可能なマクロ: #PROFILE_ID, #START_DATE, #END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">注意: クエリの変更は慎重に行ってください。無効なSQLはエクスポートの失敗を引き起こします。\n共通テーブル: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
+      <translation type="unfinished">注意: クエリの変更は慎重に行ってください。無効なSQLはエクスポートの失敗を引き起こします。
+共通テーブル: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -15448,7 +15662,13 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">睡眠療法データを含むファイルを共有しようとしています。\n\n• このファイルには、選択した日付範囲の\n  セッションデータ、イベント、および機器設定が含まれています\n• 個人情報（氏名、生年月日、連絡先）は削除されます\n\nこのデータを共有する前に、受信者を信頼できることを確認してください。</translation>
+      <translation type="unfinished">睡眠療法データを含むファイルを共有しようとしています。
+
+• このファイルには、選択した日付範囲の
+  セッションデータ、イベント、および機器設定が含まれています
+• 個人情報（氏名、生年月日、連絡先）は削除されます
+
+このデータを共有する前に、受信者を信頼できることを確認してください。</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15535,7 +15755,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">共有ファイルを作成できませんでした。\n\n%1</translation>
+      <translation type="unfinished">共有ファイルを作成できませんでした。
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />

@@ -246,7 +246,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">.oscar yedeğiniz hassas tıbbi veriler içermektedir:\n• Uyku terapisi seans verileri ve olay dalga formları\n• Kişisel bilgiler (ad, doğum tarihi, vb.)\n  (gizlilik modu etkin değilse)\n\nDepolama önerileri:\n• Yedekleri şifrelenmiş depolama alanında saklayın\n• Yedekleri güvenli, erişim denetimli bir konumda tutun\n• Yedek dosyaları yetkisiz kişilerle paylaşmayın</translation>
+      <translation type="unfinished">.oscar yedeğiniz hassas tıbbi veriler içermektedir:
+• Uyku terapisi seans verileri ve olay dalga formları
+• Kişisel bilgiler (ad, doğum tarihi, vb.)
+  (gizlilik modu etkin değilse)
+
+Depolama önerileri:
+• Yedekleri şifrelenmiş depolama alanında saklayın
+• Yedekleri güvenli, erişim denetimli bir konumda tutun
+• Yedek dosyaları yetkisiz kişilerle paylaşmayın</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -294,7 +302,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">Yedekleme başarıyla oluşturuldu.\n\nDosya: %1\nBoyut: %2</translation>
+      <translation type="unfinished">Yedekleme başarıyla oluşturuldu.
+
+Dosya: %1
+Boyut: %2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -316,7 +327,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">Yedekleme tamamlanamadı.\n\n%1</translation>
+      <translation type="unfinished">Yedekleme tamamlanamadı.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -380,7 +393,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">Proton Drive paylaşım bağlantıları doğrudan indirilemez; dosyalar uçtan uca şifrelenmiş olup tarayıcı tabanlı şifre çözme gerektirmektedir.\n\nLütfen dosyayı tarayıcınızda indirin ve Yerel Dosya seçeneğini kullanın.</translation>
+      <translation type="unfinished">Proton Drive paylaşım bağlantıları doğrudan indirilemez; dosyalar uçtan uca şifrelenmiş olup tarayıcı tabanlı şifre çözme gerektirmektedir.
+
+Lütfen dosyayı tarayıcınızda indirin ve Yerel Dosya seçeneğini kullanın.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -389,7 +404,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">OSCAR bu URL'yi desteklenen bir bulut hizmeti olarak tanımamaktadır.\n\nLütfen dosyayı tarayıcınızda indirin ve Yerel Dosya seçeneğini kullanın.\n\nDesteklenen hizmetler: Dropbox, Google Drive, OneDrive, Box, 0x0.st veya herhangi bir .oscar dosyasına doğrudan bağlantı.</translation>
+      <translation type="unfinished">OSCAR bu URL'yi desteklenen bir bulut hizmeti olarak tanımamaktadır.
+
+Lütfen dosyayı tarayıcınızda indirin ve Yerel Dosya seçeneğini kullanın.
+
+Desteklenen hizmetler: Dropbox, Google Drive, OneDrive, Box, 0x0.st veya herhangi bir .oscar dosyasına doğrudan bağlantı.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -400,7 +419,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">Geçici dosya oluşturulamadı:\n%1</translation>
+      <translation type="unfinished">Geçici dosya oluşturulamadı:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -444,7 +464,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Dosya okuma için açılamadı:\n%1</translation>
+      <translation type="unfinished">Dosya okuma için açılamadı:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -710,7 +731,7 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
     <message>
       <location filename="../oscar/daily.cpp" line="662" />
       <source> Disabling Sessions requires Permissive Mode be set in OSCAR Preferences in the Clinical tab.</source>
-      <translation type="unfinished">Oturumları Devre Dışı Bırakmak, OSCAR Tercihlerinin Klinik sekmesinde İzin Verici Modun ayarlanmasını gerektirir.</translation>
+      <translation type="unfinished"> Oturumları Devre Dışı Bırakmak, OSCAR Tercihlerinin Klinik sekmesinde İzin Verici Modun ayarlanmasını gerektirir.</translation>
     </message>
     <message>
       <location filename="../oscar/daily.cpp" line="747" />
@@ -1102,53 +1123,56 @@ Tarihe Atlar</translation>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">Atlamalar\nTarihin Notlarına Atlar</translation>
+      <translation type="unfinished">Atlamalar
+Tarihin Notlarına Atlar</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1270" />
       <location filename="../oscar/dailySearchTab.cpp" line="1275" />
       <source>Bookmark
 Jumps to Date's Bookmark</source>
-      <translation type="unfinished">Yer İmi\nTarihin Yer İmine Atlar</translation>
+      <translation type="unfinished">Yer İmi
+Tarihin Yer İmine Atlar</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1290" />
       <source> EventsPerHour</source>
-      <translation type="unfinished">SaatteOlay</translation>
+      <translation type="unfinished"> SaatteOlay</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1300" />
       <source>Set of Apnea:Length
 Jumps to Date's Events</source>
-      <translation type="unfinished">Apne:Uzunluk Kümesi\nTarihin Olaylarına Atlar</translation>
+      <translation type="unfinished">Apne:Uzunluk Kümesi
+Tarihin Olaylarına Atlar</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1306" />
       <location filename="../oscar/dailySearchTab.cpp" line="1456" />
       <source> Seconds</source>
-      <translation type="unfinished">Saniye</translation>
+      <translation type="unfinished"> Saniye</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1313" />
       <location filename="../oscar/dailySearchTab.cpp" line="1461" />
       <source> Minutes</source>
-      <translation type="unfinished">Dakika</translation>
+      <translation type="unfinished"> Dakika</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1323" />
       <source> Sessions</source>
-      <translation type="unfinished">Oturumlar</translation>
+      <translation type="unfinished"> Oturumlar</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1332" />
       <location filename="../oscar/dailySearchTab.cpp" line="1451" />
       <source> Hours</source>
-      <translation type="unfinished">Saatler</translation>
+      <translation type="unfinished"> Saatler</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1340" />
       <source> Events</source>
-      <translation type="unfinished">Olaylar</translation>
+      <translation type="unfinished"> Olaylar</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1173,7 +1197,7 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1670" />
       <source>Found %1 </source>
-      <translation type="unfinished">%1 Bulundu. {1 ?}</translation>
+      <translation type="unfinished">%1 Bulundu. {1 ?} </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1688" />
@@ -1183,12 +1207,12 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1804" />
       <source>  Question Mark</source>
-      <translation type="unfinished">Soru İşareti</translation>
+      <translation type="unfinished">  Soru İşareti</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1805" />
       <source>  Backslash.</source>
-      <translation type="unfinished">Ters Eğik Çizgi.</translation>
+      <translation type="unfinished">  Ters Eğik Çizgi.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1254" />
@@ -1273,7 +1297,7 @@ Tarihin Olaylarına Atlar</translation>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1779" />
       <source>  Skips Days with no graphing data.</source>
-      <translation type="unfinished">Grafik verisi olmayan günleri atlar.</translation>
+      <translation type="unfinished">  Grafik verisi olmayan günleri atlar.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1781" />
@@ -1425,7 +1449,10 @@ Tarihin Olaylarına Atlar</translation>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">Yol: %1\nBoyut: %2\nProfiller: %3\nNot: bu klasördeki tüm oturum verileri ve SD kart yedek verileri kalıcı olarak silinecektir.</translation>
+      <translation type="unfinished">Yol: %1
+Boyut: %2
+Profiller: %3
+Not: bu klasördeki tüm oturum verileri ve SD kart yedek verileri kalıcı olarak silinecektir.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1443,7 +1470,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">\n%1\nkonumundaki veritabanı yalnızca açılamıyor. OSCAR'ın başka bir örneği onu açmış olabilir.</translation>
+      <translation type="unfinished">
+%1
+konumundaki veritabanı yalnızca açılamıyor. OSCAR'ın başka bir örneği onu açmış olabilir.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1455,7 +1484,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">Bu veritabanını kalıcı olarak silmek için "%1" yazın.\n\nKlasördeki tüm seans verileri ve SD kart yedekleme verileri silinecektir. Bu işlem geri alınamaz.</translation>
+      <translation type="unfinished">Bu veritabanını kalıcı olarak silmek için "%1" yazın.
+
+Klasördeki tüm seans verileri ve SD kart yedekleme verileri silinecektir. Bu işlem geri alınamaz.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1477,7 +1508,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">Silinemedi\n%1\nVeritabanı dosyası hâlâ mevcut. Açık dosya kilitlerini kontrol edin ve tekrar deneyin.</translation>
+      <translation type="unfinished">Silinemedi
+%1
+Veritabanı dosyası hâlâ mevcut. Açık dosya kilitlerini kontrol edin ve tekrar deneyin.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1489,7 +1522,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">Veritabanı silindi ancak tüm dosyalar kaldırılamadı\n%1\nBazı dosyalar hâlâ mevcut olabilir.</translation>
+      <translation type="unfinished">Veritabanı silindi ancak tüm dosyalar kaldırılamadı
+%1
+Bazı dosyalar hâlâ mevcut olabilir.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1513,7 +1548,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">%1 içinde bir veritabanı bozulması veya G/Ç hatası tespit edildi.\n\nHata: %2\n\nÖnerilen işlemler:\n  • Yardım → Sorun Giderme → Veritabanı Bütünlüğünü Kontrol Et seçeneğini çalıştırın\n  • Sorun bulunursa son yedeğinizden geri yükleyin</translation>
+      <translation type="unfinished">%1 içinde bir veritabanı bozulması veya G/Ç hatası tespit edildi.
+
+Hata: %2
+
+Önerilen işlemler:
+  • Yardım → Sorun Giderme → Veritabanı Bütünlüğünü Kontrol Et seçeneğini çalıştırın
+  • Sorun bulunursa son yedeğinizden geri yükleyin</translation>
     </message>
   </context>
   <context>
@@ -1947,17 +1988,17 @@ Hint: Change the start date first</source>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— zayıf uyum, Modeli Kullan devre dışı</translation>
+      <translation type="unfinished"> — zayıf uyum, Modeli Kullan devre dışı</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— orta düzey uyum</translation>
+      <translation type="unfinished"> — orta düzey uyum</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— %1 tarihinden itibaren etkin olan modelin yerini alacak</translation>
+      <translation type="unfinished"> — %1 tarihinden itibaren etkin olan modelin yerini alacak</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2019,7 +2060,8 @@ Hint: Change the start date first</source>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Dosya okuma için açılamadı:\n%1</translation>
+      <translation type="unfinished">Dosya okuma için açılamadı:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2402,7 +2444,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Dosya okuma için açılamadı:\n%1</translation>
+      <translation type="unfinished">Dosya okuma için açılamadı:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2560,7 +2603,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">%1 inceleniyor...\n\nLütfen bekleyin...</translation>
+      <translation type="unfinished">%1 inceleniyor...
+
+Lütfen bekleyin...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2571,7 +2616,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">Seçilen klasör geçerli bir OSCAR profili gibi görünmüyor.\nLütfen machines.xml dosyasını içeren bir klasör seçin.</translation>
+      <translation type="unfinished">Seçilen klasör geçerli bir OSCAR profili gibi görünmüyor.
+Lütfen machines.xml dosyasını içeren bir klasör seçin.</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2584,7 +2630,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">Bu profilin boyutu %1 GB.\nİçe aktarma işlemi önemli miktarda zaman alabilir.\n\nDevam etmek istiyor musunuz?</translation>
+      <translation type="unfinished">Bu profilin boyutu %1 GB.
+İçe aktarma işlemi önemli miktarda zaman alabilir.
+
+Devam etmek istiyor musunuz?</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2754,7 +2803,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">Dosya yazılamadı:\n%1</translation>
+      <translation type="unfinished">Dosya yazılamadı:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -3503,7 +3553,11 @@ Do you want to continue?</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Veri içe aktarılamıyor: OSCAR veritabanı başka bir uygulama tarafından kilitlenmiş.\n\nVeritabanını bir SQLite görüntüleyici veya düzenleyicide açtıysanız, lütfen kapatın ve tekrar deneyin.\n\nHata: %1</translation>
+      <translation type="unfinished">Veri içe aktarılamıyor: OSCAR veritabanı başka bir uygulama tarafından kilitlenmiş.
+
+Veritabanını bir SQLite görüntüleyici veya düzenleyicide açtıysanız, lütfen kapatın ve tekrar deneyin.
+
+Hata: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1017" />
@@ -3520,7 +3574,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">İçe aktarılan veriler veritabanına kaydedilemedi. Hiçbir veri depolanmadı.\n\nOSCAR veritabanını başka bir uygulamada (örn. bir SQLite görüntüleyici veya düzenleyici) açtıysanız, lütfen kapatın ve tekrar deneyin.\n\nHata: %1</translation>
+      <translation type="unfinished">İçe aktarılan veriler veritabanına kaydedilemedi. Hiçbir veri depolanmadı.
+
+OSCAR veritabanını başka bir uygulamada (örn. bir SQLite görüntüleyici veya düzenleyici) açtıysanız, lütfen kapatın ve tekrar deneyin.
+
+Hata: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1201" />
@@ -3560,7 +3618,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">Bu SD kart, bu profile en son içe aktarılan cihazdan farklı bir cihaza ait.\n\nSon içe aktarılan: %1\nBu kart: %2\n\nBu karttan bu profile içe aktarmak istediğinizden emin misiniz?</translation>
+      <translation type="unfinished">Bu SD kart, bu profile en son içe aktarılan cihazdan farklı bir cihaza ait.
+
+Son içe aktarılan: %1
+Bu kart: %2
+
+Bu karttan bu profile içe aktarmak istediğinizden emin misiniz?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3609,7 +3672,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">Bu işlem, bu profildeki tüm cihazlara ait tüm zaman düzeltmelerini kalıcı olarak silecek.\n\nEmin misiniz?</translation>
+      <translation type="unfinished">Bu işlem, bu profildeki tüm cihazlara ait tüm zaman düzeltmelerini kalıcı olarak silecek.
+
+Emin misiniz?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1978" />
@@ -3685,7 +3750,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">(etkin)</translation>
+      <translation type="unfinished"> (etkin)</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3706,7 +3771,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">Seçilen klasör zaten bir OSCAR veritabanı içeriyor.\nYeni bir veritabanı açmak için Dosya ▸ Veritabanı ▸ Aç seçeneğini kullanın.</translation>
+      <translation type="unfinished">Seçilen klasör zaten bir OSCAR veritabanı içeriyor.
+Yeni bir veritabanı açmak için Dosya ▸ Veritabanı ▸ Aç seçeneğini kullanın.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3722,7 +3788,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">Seçilen klasör bir OSCAR veritabanı içermiyor.\nLütfen oscar.db dosyası içeren bir klasör seçin.</translation>
+      <translation type="unfinished">Seçilen klasör bir OSCAR veritabanı içermiyor.
+Lütfen oscar.db dosyası içeren bir klasör seçin.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3734,7 +3801,9 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">Son listesinde silinecek etkin olmayan veritabanı yok.\n\nÖnce Dosya ▸ Veritabanı ▸ Aç ile veritabanlarını açarak son listesine ekleyin.</translation>
+      <translation type="unfinished">Son listesinde silinecek etkin olmayan veritabanı yok.
+
+Önce Dosya ▸ Veritabanı ▸ Aç ile veritabanlarını açarak son listesine ekleyin.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3527" />
@@ -3776,7 +3845,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">Bu işlem, kullanılmayan disk alanını geri kazanmak için veritabanını sıkıştıracaktır. En çok profil silindikten sonra işe yarar.\n\nMevcut veritabanı boyutu: %1\n\nBüyük veritabanları için bu işlem birkaç dakika sürebilir. İşlem tamamlandığında OSCAR otomatik olarak yeniden başlayacaktır.\n\nDevam edilsin mi?</translation>
+      <translation type="unfinished">Bu işlem, kullanılmayan disk alanını geri kazanmak için veritabanını sıkıştıracaktır. En çok profil silindikten sonra işe yarar.
+
+Mevcut veritabanı boyutu: %1
+
+Büyük veritabanları için bu işlem birkaç dakika sürebilir. İşlem tamamlandığında OSCAR otomatik olarak yeniden başlayacaktır.
+
+Devam edilsin mi?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -3788,28 +3863,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Veritabanı bütünlük kontrolü başarısız oldu. Sıkıştırma, hasarlı bir veritabanında gerçekleştirilemiyor.\n\nÖnerilen işlemler:\n  • Tüm veritabanını son sistem yedeğinizden geri yükleyin\n  • Her profili son yedeğinizden geri yükleyin (Dosya → Profili Geri Yükle)\n  • Verilerinizi CPAP SD kartından yeniden içe aktarın\n\nGelişmiş kurtarma seçenekleri için OSCAR belgelerine bakın.</translation>
+      <translation type="unfinished">Veritabanı bütünlük kontrolü başarısız oldu. Sıkıştırma, hasarlı bir veritabanında gerçekleştirilemiyor.
+
+Önerilen işlemler:
+  • Tüm veritabanını son sistem yedeğinizden geri yükleyin
+  • Her profili son yedeğinizden geri yükleyin (Dosya → Profili Geri Yükle)
+  • Verilerinizi CPAP SD kartından yeniden içe aktarın
+
+Gelişmiş kurtarma seçenekleri için OSCAR belgelerine bakın.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">Veritabanı sıkıştırılıyor, lütfen bekleyin...\n\nBüyük veritabanları için bu işlem birkaç dakika sürebilir.</translation>
+      <translation type="unfinished">Veritabanı sıkıştırılıyor, lütfen bekleyin...
+
+Büyük veritabanları için bu işlem birkaç dakika sürebilir.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">Sıkıştırma başarılı oldu ancak veritabanı dosyası değiştirilemedi.\n\nOrijinal veritabanı değiştirilmedi.</translation>
+      <translation type="unfinished">Sıkıştırma başarılı oldu ancak veritabanı dosyası değiştirilemedi.
+
+Orijinal veritabanı değiştirilmedi.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">Sıkıştırma başarılı oldu ancak yeni dosya yerine konulamadı.\n\nOrijinal veritabanı geri yüklendi.</translation>
+      <translation type="unfinished">Sıkıştırma başarılı oldu ancak yeni dosya yerine konulamadı.
+
+Orijinal veritabanı geri yüklendi.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -3820,7 +3908,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Veritabanı başarıyla sıkıştırıldı.\n\nÖnce:        %1\nSonra:       %2\nKazanılan:   %3\n\nTamam'a bastığınızda OSCAR yeniden başlayacaktır.</translation>
+      <translation type="unfinished">Veritabanı başarıyla sıkıştırıldı.
+
+Önce:        %1
+Sonra:       %2
+Kazanılan:   %3
+
+Tamam'a bastığınızda OSCAR yeniden başlayacaktır.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -3831,7 +3925,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Veritabanı başarıyla sıkıştırıldı.\n\nBoyut: %1\n\nHerhangi bir alan kazanılmadı — veritabanı zaten sıkıştırılmış durumdaydı.\n\nTamam'a bastığınızda OSCAR yeniden başlayacaktır.</translation>
+      <translation type="unfinished">Veritabanı başarıyla sıkıştırıldı.
+
+Boyut: %1
+
+Herhangi bir alan kazanılmadı — veritabanı zaten sıkıştırılmış durumdaydı.
+
+Tamam'a bastığınızda OSCAR yeniden başlayacaktır.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3543" />
@@ -3904,7 +4004,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Veritabanı bütünlük kontrolü sorunlar tespit etti. Bazı veriler eksik veya bozulmuş olabilir.\n\nBütünlük kontrolü, birden fazla profil içerebilecek tüm veritabanını kapsar.\n\nÖnerilen işlemler:\n  • Tüm veritabanını son sistem yedeğinizden geri yükleyin\n  • Her profili son yedeğinizden geri yükleyin (Dosya → Profili Geri Yükle)\n  • Verilerinizi CPAP SD kartından yeniden içe aktarın\n\nGelişmiş kurtarma seçenekleri için OSCAR belgelerine bakın.</translation>
+      <translation type="unfinished">Veritabanı bütünlük kontrolü sorunlar tespit etti. Bazı veriler eksik veya bozulmuş olabilir.
+
+Bütünlük kontrolü, birden fazla profil içerebilecek tüm veritabanını kapsar.
+
+Önerilen işlemler:
+  • Tüm veritabanını son sistem yedeğinizden geri yükleyin
+  • Her profili son yedeğinizden geri yükleyin (Dosya → Profili Geri Yükle)
+  • Verilerinizi CPAP SD kartından yeniden içe aktarın
+
+Gelişmiş kurtarma seçenekleri için OSCAR belgelerine bakın.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -3929,7 +4038,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">Veritabanı sıkıştırma başarısız oldu:\n%1</translation>
+      <translation type="unfinished">Veritabanı sıkıştırma başarısız oldu:
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -4000,7 +4110,7 @@ No space was reclaimed — the database was already compact.</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">Profil İçe Aktarılıyor</translation>
+      <translation type="unfinished">Profil İçe Aktarılıyor </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -4012,7 +4122,9 @@ No space was reclaimed — the database was already compact.</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">'%1' profili başarıyla içe aktarıldı.\n\nArtık profil seçiciden seçebilirsiniz.</translation>
+      <translation type="unfinished">'%1' profili başarıyla içe aktarıldı.
+
+Artık profil seçiciden seçebilirsiniz.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -4025,7 +4137,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">Profil içe aktarılamadı:\n%1</translation>
+      <translation type="unfinished">Profil içe aktarılamadı:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1507" />
@@ -4119,7 +4232,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">%1 ayrıştırılırken bir sorun oluştu \nVeri Dosyası: %2</translation>
+      <translation type="unfinished">%1 ayrıştırılırken bir sorun oluştu 
+Veri Dosyası: %2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3224" />
@@ -4776,7 +4890,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Dosya okuma için açılamadı:\n%1</translation>
+      <translation type="unfinished">Dosya okuma için açılamadı:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4797,7 +4912,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">Dosya OneDrive'a yüklendi ancak paylaşım bağlantısı oluşturulamadı (HTTP %1).\nNot: Microsoft hesap ayarlarınızda anonim paylaşım devre dışı bırakılmış olabilir.</translation>
+      <translation type="unfinished">Dosya OneDrive'a yüklendi ancak paylaşım bağlantısı oluşturulamadı (HTTP %1).
+Not: Microsoft hesap ayarlarınızda anonim paylaşım devre dışı bırakılmış olabilir.</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -6260,7 +6376,7 @@ Eğer küçük bir SSD (solid state disk) içeren yeni bir bilgisayarınız vars
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">İzin Verici Mod ETKİNLEŞTİRİLMELİDİR. Klinik Sekmesine Bakın</translation>
+      <translation type="unfinished">İzin Verici Mod ETKİNLEŞTİRİLMELİDİR. Klinik Sekmesine Bakın </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6277,7 +6393,9 @@ Eğer küçük bir SSD (solid state disk) içeren yeni bir bilgisayarınız vars
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">Sabit Nefes (SB) Akış Hızına dayanır.\nBir dalga formu ve CPAP akış hızı kullanarak SPAN olayları oluşturur.\nYalnızca Sabit Nefes etkinleştirildiğinde ve CPAP verileri (yeniden) içe aktarıldığında çalışır.</translation>
+      <translation type="unfinished">Sabit Nefes (SB) Akış Hızına dayanır.
+Bir dalga formu ve CPAP akış hızı kullanarak SPAN olayları oluşturur.
+Yalnızca Sabit Nefes etkinleştirildiğinde ve CPAP verileri (yeniden) içe aktarıldığında çalışır.  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6297,7 +6415,7 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1484" />
       <source> Seconds</source>
-      <translation type="unfinished">Saniye</translation>
+      <translation type="unfinished"> Saniye</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1503" />
@@ -6313,13 +6431,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">Klinik Mod devre dışı bırakılmış oturumlara izin vermez.\nDevre Dışı Bırakılan Oturumlar grafik veya İstatistikler için kullanılmaz.</translation>
+      <translation type="unfinished">Klinik Mod devre dışı bırakılmış oturumlara izin vermez.
+Devre Dışı Bırakılan Oturumlar grafik veya İstatistikler için kullanılmaz.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">İzin Verici Mod devre dışı bırakılmış oturumlara izin verir.\nDevre Dışı Bırakılan Oturumlar grafik ve İstatistikler için kullanılır.</translation>
+      <translation type="unfinished">İzin Verici Mod devre dışı bırakılmış oturumlara izin verir.
+Devre Dışı Bırakılan Oturumlar grafik ve İstatistikler için kullanılır.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6332,7 +6452,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">Varsayılan olarak OSCAR, temel değer olarak oksimetri verilerinin ilk saatinden bir hesaplama kullanır.\nBu ayar, bunu sabit bir değerle geçersiz kılmanıza olanak tanır.\nBu, ilk saatin tüm veri kümesinin tipik olmadığı durumlarda yararlı olabilir.\nGünler arasında daha kolay karşılaştırma sağlamak için de yararlı olabilir.</translation>
+      <translation type="unfinished">Varsayılan olarak OSCAR, temel değer olarak oksimetri verilerinin ilk saatinden bir hesaplama kullanır.
+Bu ayar, bunu sabit bir değerle geçersiz kılmanıza olanak tanır.
+Bu, ilk saatin tüm veri kümesinin tipik olmadığı durumlarda yararlı olabilir.
+Günler arasında daha kolay karşılaştırma sağlamak için de yararlı olabilir.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2034" />
@@ -6346,7 +6469,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Oksimetri ve CPAP Verilerini Senkronize Etme&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;SpO2Review'den (.spoR dosyalarından) veya seri içe aktarma yöntemiyle içe aktarılan CMS50 verileri, senkronizasyon için gereken doğru zaman damgasına &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;sahip değildir&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Canlı görünüm modu (seri kablo kullanarak) CMS50 oksimetrelerde doğru senkronizasyon sağlamanın bir yoludur, ancak CPAP saat kaymasını telafi etmez.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Oksimetrenizin kayıt modunu CPAP cihazınızı başlattığınız anda &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;tam olarak &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;başlatırsanız, artık senkronizasyon da sağlayabilirsiniz. &lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Seri içe aktarma işlemi, başlangıç zamanını dün geceki ilk CPAP oturumundan alır. (CPAP verilerinizi önce içe aktarmayı unutmayın!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Oksimetri ve CPAP Verilerini Senkronize Etme&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;SpO2Review'den (.spoR dosyalarından) veya seri içe aktarma yöntemiyle içe aktarılan CMS50 verileri, senkronizasyon için gereken doğru zaman damgasına &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;sahip değildir&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Canlı görünüm modu (seri kablo kullanarak) CMS50 oksimetrelerde doğru senkronizasyon sağlamanın bir yoludur, ancak CPAP saat kaymasını telafi etmez.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Oksimetrenizin kayıt modunu CPAP cihazınızı başlattığınız anda &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;tam olarak &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;başlatırsanız, artık senkronizasyon da sağlayabilirsiniz. &lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Seri içe aktarma işlemi, başlangıç zamanını dün geceki ilk CPAP oturumundan alır. (CPAP verilerinizi önce içe aktarmayı unutmayın!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2269" />
@@ -6357,7 +6489,8 @@ p, li { white-space: pre-wrap; }
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">Dosya &gt; Veritabanı'na Yeni, Aç, Son ve Sil öğeleri ekler.\nDestek personeli ve geliştiriciler için tasarlanmıştır.</translation>
+      <translation type="unfinished">Dosya &gt; Veritabanı'na Yeni, Aç, Son ve Sil öğeleri ekler.
+Destek personeli ve geliştiriciler için tasarlanmıştır.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6562,7 +6695,9 @@ Deneyin ve beğenip beğenmediğinizi görün.</translation>
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">Platform yerel teması yerine Qt'nin Fusion temasını kullanın.\nPlatformlar arasında tutarlı bir görünüm sağlar.\nTamam'a tıkladığınızda OSCAR yeniden başlayacaktır.</translation>
+      <translation type="unfinished">Platform yerel teması yerine Qt'nin Fusion temasını kullanın.
+Platformlar arasında tutarlı bir görünüm sağlar.
+Tamam'a tıkladığınızda OSCAR yeniden başlayacaktır.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -6587,7 +6722,12 @@ which is common on Mac  Linux platforms..
 
 OSCAR can import from this compressed backup directory natively.. 
 To use it with ResScan will require the .gz files to be uncompressed first..</source>
-      <translation type="unfinished">Disk alanından tasarruf etmek için ResMed (EDF) yedeklerini sıkıştırın.\nYedeklenen EDF dosyaları .gz formatında depolanır, \nbu format Mac ve Linux platformlarında yaygındır..\n\nOSCAR bu sıkıştırılmış yedekleme dizininden doğrudan içe aktarabilir..\nResScan ile kullanmak için .gz dosyalarının önce sıkıştırması açılmalıdır..</translation>
+      <translation type="unfinished">Disk alanından tasarruf etmek için ResMed (EDF) yedeklerini sıkıştırın.
+Yedeklenen EDF dosyaları .gz formatında depolanır, 
+bu format Mac ve Linux platformlarında yaygındır..
+
+OSCAR bu sıkıştırılmış yedekleme dizininden doğrudan içe aktarabilir..
+ResScan ile kullanmak için .gz dosyalarının önce sıkıştırması açılmalıdır..</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="687" />
@@ -6630,7 +6770,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1628" />
       <source>Select  Oscar Operating Mode </source>
-      <translation type="unfinished">Oscar Çalışma Modunu Seçin</translation>
+      <translation type="unfinished">Oscar Çalışma Modunu Seçin </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1638" />
@@ -6645,7 +6785,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1665" />
       <source> Hours</source>
-      <translation type="unfinished">Saat</translation>
+      <translation type="unfinished"> Saat</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1692" />
@@ -6715,7 +6855,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">Dönüşümlü Renk Aralığı</translation>
+      <translation type="unfinished"> Dönüşümlü Renk Aralığı</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3227" />
@@ -7273,7 +7413,7 @@ Bunu şimdi yapmak ister misiniz?</translation>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(ilk hata: %1</translation>
+      <translation type="unfinished"> (ilk hata: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7361,7 +7501,7 @@ Bunu şimdi yapmak ister misiniz?</translation>
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">Kimlik:</translation>
+      <translation type="unfinished">Kimlik: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="295" />
@@ -7450,7 +7590,7 @@ Bunu şimdi yapmak ister misiniz?</translation>
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">Profil siliniyor</translation>
+      <translation type="unfinished">Profil siliniyor </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7481,7 +7621,7 @@ Bunu şimdi yapmak ister misiniz?</translation>
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">Ad:</translation>
+      <translation type="unfinished">Ad: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -9519,7 +9659,7 @@ TTIA: %1</translation>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">Rampa Süresi</translation>
+      <translation type="unfinished">Rampa Süresi </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -11325,7 +11465,10 @@ TTIA: %1</translation>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">Profil taşınıyor: %1\n(%2 / %3)\n\nİçe aktarma başlatılıyor...</translation>
+      <translation type="unfinished">Profil taşınıyor: %1
+(%2 / %3)
+
+İçe aktarma başlatılıyor...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -11333,7 +11476,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">İptal ediliyor: %1\n(%2 / %3)\n\nTemizleniyor, lütfen bekleyin...</translation>
+      <translation type="unfinished">İptal ediliyor: %1
+(%2 / %3)
+
+Temizleniyor, lütfen bekleyin...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -11341,7 +11487,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">Profil taşınıyor: %1\n(%2 / %3)\n\n%4</translation>
+      <translation type="unfinished">Profil taşınıyor: %1
+(%2 / %3)
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -11528,7 +11677,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">OSCAR, önceki oturumun beklenmedik şekilde sona erdiğini tespit etti ve veritabanı bütünlük kontrolü sorunlar buldu.\n\nBazı veriler eksik veya bozulmuş olabilir.\n\nÖnerilen işlemler:\n  • Tüm veritabanını son sistem yedeğinizden geri yükleyin\n  • Her profili son yedeğinizden geri yükleyin (Dosya → Profili Geri Yükle)\n  • Verilerinizi CPAP SD kartından yeniden içe aktarın\n\nGelişmiş kurtarma seçenekleri için OSCAR belgelerine bakın.\n\nDevam edebilirsiniz, ancak bazı veriler eksik veya hatalı olabilir.</translation>
+      <translation type="unfinished">OSCAR, önceki oturumun beklenmedik şekilde sona erdiğini tespit etti ve veritabanı bütünlük kontrolü sorunlar buldu.
+
+Bazı veriler eksik veya bozulmuş olabilir.
+
+Önerilen işlemler:
+  • Tüm veritabanını son sistem yedeğinizden geri yükleyin
+  • Her profili son yedeğinizden geri yükleyin (Dosya → Profili Geri Yükle)
+  • Verilerinizi CPAP SD kartından yeniden içe aktarın
+
+Gelişmiş kurtarma seçenekleri için OSCAR belgelerine bakın.
+
+Devam edebilirsiniz, ancak bazı veriler eksik veya hatalı olabilir.</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -12780,7 +12940,9 @@ silmeniz, ve daha sonra bu grafiği tekrar açılır pencere haline getrimenzi g
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">Günlük Taşıma Tamamlandı:\n%1 günlük girişi veritabanına taşındı\n%2 hata</translation>
+      <translation type="unfinished">Günlük Taşıma Tamamlandı:
+%1 günlük girişi veritabanına taşındı
+%2 hata</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.cpp" line="905" />
@@ -12810,7 +12972,7 @@ silmeniz, ve daha sonra bu grafiği tekrar açılır pencere haline getrimenzi g
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR:</translation>
+      <translation type="unfinished">IPR: </translation>
     </message>
     <message>
       <location filename="../oscar/notifyMessageBox.cpp" line="18" />
@@ -12966,7 +13128,9 @@ silmeniz, ve daha sonra bu grafiği tekrar açılır pencere haline getrimenzi g
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">Seçilen dosya geçerli bir Dreem CSV dosyası görünmüyor.\n\nDreem verileri noktalı virgülle ayrılmış CSV dosyası olarak biçimlendirilmelidir. Lütfen verilerinizin CSV biçiminde olduğundan emin olun ve tekrar deneyin.</translation>
+      <translation type="unfinished">Seçilen dosya geçerli bir Dreem CSV dosyası görünmüyor.
+
+Dreem verileri noktalı virgülle ayrılmış CSV dosyası olarak biçimlendirilmelidir. Lütfen verilerinizin CSV biçiminde olduğundan emin olun ve tekrar deneyin.</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13334,7 +13498,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopya)</translation>
+      <translation type="unfinished"> (Kopya)</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13384,19 +13548,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">Dosya ayrıştırılamadı:\n%1</translation>
+      <translation type="unfinished">Dosya ayrıştırılamadı:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">İçe aktarma başarısız:\n%1</translation>
+      <translation type="unfinished">İçe aktarma başarısız:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">%2 konumundan %1 rapor içe aktarıldı:\n%2</translation>
+      <translation type="unfinished">%2 konumundan %1 rapor içe aktarıldı:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13419,13 +13586,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">Dosya yazılamadı:\n%1</translation>
+      <translation type="unfinished">Dosya yazılamadı:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">%1 rapor dışa aktarıldı:\n%2</translation>
+      <translation type="unfinished">%1 rapor dışa aktarıldı:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13481,19 +13650,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">Sorgu başarısız oldu:\n%1</translation>
+      <translation type="unfinished">Sorgu başarısız oldu:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">Dosya yazılamıyor:\n%1</translation>
+      <translation type="unfinished">Dosya yazılamıyor:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">%1 satır dışa aktarıldı:\n%2</translation>
+      <translation type="unfinished">%1 satır dışa aktarıldı:
+%2</translation>
     </message>
   </context>
   <context>
@@ -13639,7 +13811,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">Bu isimde bir rapor zaten mevcut.\nLütfen farklı bir isim seçin.</translation>
+      <translation type="unfinished">Bu isimde bir rapor zaten mevcut.
+Lütfen farklı bir isim seçin.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13655,7 +13828,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">'%1' raporu oluşturuldu.\nBu rapora sorgular eklemek için 'Çeşidi Kopyala' seçeneğini kullanın.</translation>
+      <translation type="unfinished">'%1' raporu oluşturuldu.
+Bu rapora sorgular eklemek için 'Çeşidi Kopyala' seçeneğini kullanın.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13665,7 +13839,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopya)</translation>
+      <translation type="unfinished"> (Kopya)</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13676,7 +13850,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">Rapor başarıyla kopyalandı.\n%1 çeşit kopyalandı.</translation>
+      <translation type="unfinished">Rapor başarıyla kopyalandı.
+%1 çeşit kopyalandı.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13693,7 +13868,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\nBu işlem aynı zamanda %1 rapor çeşidini de silecektir.</translation>
+      <translation type="unfinished">
+
+Bu işlem aynı zamanda %1 rapor çeşidini de silecektir.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13814,7 +13991,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">Makrolarla SQL sorgusu girin:\n#PROFILE_ID - Mevcut profil kimliği\n#START_DATE - Rapor başlangıç tarihi\n#END_DATE - Rapor bitiş tarihi</translation>
+      <translation type="unfinished">Makrolarla SQL sorgusu girin:
+#PROFILE_ID - Mevcut profil kimliği
+#START_DATE - Rapor başlangıç tarihi
+#END_DATE - Rapor bitiş tarihi</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -13867,7 +14047,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopya)</translation>
+      <translation type="unfinished"> (Kopya)</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -13884,7 +14064,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">Özel rapor mevcut değil.\nBir tane oluşturmak için yeni bir rapor adı girin.</translation>
+      <translation type="unfinished">Özel rapor mevcut değil.
+Bir tane oluşturmak için yeni bir rapor adı girin.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -13904,27 +14085,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">Sorgu başarısız oldu:\n\n%1\n\nSQL Hatası:\n%2</translation>
+      <translation type="unfinished">Sorgu başarısız oldu:
+
+%1
+
+SQL Hatası:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">Sorgu başarıyla yürütüldü.\n\nSonuç döndürülmedi (tarih aralığı için veri mevcut değilse bu normal olabilir).</translation>
+      <translation type="unfinished">Sorgu başarıyla yürütüldü.
+
+Sonuç döndürülmedi (tarih aralığı için veri mevcut değilse bu normal olabilir).</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">Sorgu Test Sonuçları\n</translation>
+      <translation type="unfinished">Sorgu Test Sonuçları
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">(İlk %1 satır gösteriliyor)\n\n</translation>
+      <translation type="unfinished">(İlk %1 satır gösteriliyor)
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -13995,7 +14186,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">'%2' raporunda '%1' adında bir çeşit zaten mevcut.\n\nLütfen farklı bir çeşit adı seçin.</translation>
+      <translation type="unfinished">'%2' raporunda '%1' adında bir çeşit zaten mevcut.
+
+Lütfen farklı bir çeşit adı seçin.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -14011,14 +14204,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">Sorgu gerekli tüm makroları içermiyor:\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\nSorgu düzgün çalışmayabilir.\n\nYine de devam edilsin mi?</translation>
+      <translation type="unfinished">Sorgu gerekli tüm makroları içermiyor:
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+Sorgu düzgün çalışmayabilir.
+
+Yine de devam edilsin mi?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">'%1' sistem raporuna çeşit eklenemez.\n\nLütfen farklı bir rapor adı seçin.</translation>
+      <translation type="unfinished">'%1' sistem raporuna çeşit eklenemez.
+
+Lütfen farklı bir rapor adı seçin.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -14031,7 +14232,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">'%1' raporu mevcut değil.\n\nOluşturulsun mu?</translation>
+      <translation type="unfinished">'%1' raporu mevcut değil.
+
+Oluşturulsun mu?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14332,7 +14535,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">Seçilen dosya geçerli bir yedek paketi değil.\n\n%1</translation>
+      <translation type="unfinished">Seçilen dosya geçerli bir yedek paketi değil.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14344,7 +14549,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">Bu yedek geri yüklenemez.\n\n%1</translation>
+      <translation type="unfinished">Bu yedek geri yüklenemez.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14353,7 +14560,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">Bu yedek, daha eski bir veritabanı şemasıyla oluşturulmuştur (v%1; mevcut sürüm v%2).\n\nUyku oturumu verileriniz tamamen geri yüklenecektir. Bazı ayarlar veya rapor yapılandırmaları geri yüklenmeyebilir ve OSCAR tarafından ilk kullanımda yeniden oluşturulacaktır.\n\nDevam etmek için Doğrula'ya tıklayın.</translation>
+      <translation type="unfinished">Bu yedek, daha eski bir veritabanı şemasıyla oluşturulmuştur (v%1; mevcut sürüm v%2).
+
+Uyku oturumu verileriniz tamamen geri yüklenecektir. Bazı ayarlar veya rapor yapılandırmaları geri yüklenmeyebilir ve OSCAR tarafından ilk kullanımda yeniden oluşturulacaktır.
+
+Devam etmek için Doğrula'ya tıklayın.</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14367,7 +14578,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">UYARI: Mevcut "%1" profili, CPAP yedek verilerini barındıran bir Yedek dizini içermektedir.\n\nBu geri yükleme paketi SD kart verilerini içerdiğinden, tüm profil dizini — tüm CPAP yedek verileri dahil — kalıcı olarak silinecek ve değiştirilecektir.\n\nBu işlem geri alınamaz. Devam etmek istediğinizden emin misiniz?</translation>
+      <translation type="unfinished">UYARI: Mevcut "%1" profili, CPAP yedek verilerini barındıran bir Yedek dizini içermektedir.
+
+Bu geri yükleme paketi SD kart verilerini içerdiğinden, tüm profil dizini — tüm CPAP yedek verileri dahil — kalıcı olarak silinecek ve değiştirilecektir.
+
+Bu işlem geri alınamaz. Devam etmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14379,7 +14594,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">Bu işlem mevcut profili ve tüm verilerini kalıcı olarak silecektir.\n\nDeğiştirmek istediğinizden emin misiniz?</translation>
+      <translation type="unfinished">Bu işlem mevcut profili ve tüm verilerini kalıcı olarak silecektir.
+
+Değiştirmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14421,7 +14638,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">Geri yükleme tamamlanamadı. Veritabanı değiştirilmedi.\n\n%1</translation>
+      <translation type="unfinished">Geri yükleme tamamlanamadı. Veritabanı değiştirilmedi.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14435,13 +14654,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">Aşağıdaki SQL sorgusunu düzenleyin. Sorgu, OSCAR veritabanına karşı çalıştırılacaktır.\nKullanılabilir Makrolar: #PROFILE_ID, #START_DATE, #END_DATE</translation>
+      <translation type="unfinished">Aşağıdaki SQL sorgusunu düzenleyin. Sorgu, OSCAR veritabanına karşı çalıştırılacaktır.
+Kullanılabilir Makrolar: #PROFILE_ID, #START_DATE, #END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">Not: Sorguları değiştirirken dikkatli olun. Geçersiz SQL, dışa aktarmanın başarısız olmasına neden olur.\nYaygın tablolar: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
+      <translation type="unfinished">Not: Sorguları değiştirirken dikkatli olun. Geçersiz SQL, dışa aktarmanın başarısız olmasına neden olur.
+Yaygın tablolar: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -14605,7 +14826,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="240" />
       <source> (right/left)MouseClick</source>
-      <translation type="unfinished">(sağ/sol) Fare Tıklaması</translation>
+      <translation type="unfinished"> (sağ/sol) Fare Tıklaması</translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="242" />
@@ -14770,7 +14991,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
       <source>Daily: Event (bottom left corner) </source>
-      <translation type="unfinished">Günlük: Olay (sol alt köşe)</translation>
+      <translation type="unfinished">Günlük: Olay (sol alt köşe) </translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
@@ -15298,7 +15519,12 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">Uyku tedavisi verilerinizi içeren bir dosyayı paylaşmak üzeresiniz.\n\n• Dosya, seçilen tarih aralığına ait seans verilerini, olayları ve cihaz ayarlarını içermektedir\n• Kişisel bilgiler (ad, doğum tarihi, iletişim bilgileri) kaldırılacaktır\n\nBu verileri paylaşmadan önce alıcıya güvendiğinizden emin olun.</translation>
+      <translation type="unfinished">Uyku tedavisi verilerinizi içeren bir dosyayı paylaşmak üzeresiniz.
+
+• Dosya, seçilen tarih aralığına ait seans verilerini, olayları ve cihaz ayarlarını içermektedir
+• Kişisel bilgiler (ad, doğum tarihi, iletişim bilgileri) kaldırılacaktır
+
+Bu verileri paylaşmadan önce alıcıya güvendiğinizden emin olun.</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15385,7 +15611,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">Paylaşım dosyası oluşturulamadı.\n\n%1</translation>
+      <translation type="unfinished">Paylaşım dosyası oluşturulamadı.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />

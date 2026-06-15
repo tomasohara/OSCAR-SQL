@@ -250,7 +250,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">.oscar-varmuuskopiosi sisältää arkaluonteisia lääketieteellisiä tietoja:\n• Uniterapiaistuntojen tiedot ja tapahtumamuodot\n• Henkilökohtaiset tiedot (nimi, syntymäaika jne.)\n  (ellei yksityisyystila ole käytössä)\n\nSäilytyssuositukset:\n• Tallenna varmuuskopiot salatulle tallennusvälineelle\n• Pidä varmuuskopiot turvallisessa, pääsynvalvotussa paikassa\n• Älä jaa varmuuskopiotiedostoja luvattomille osapuolille</translation>
+      <translation type="unfinished">.oscar-varmuuskopiosi sisältää arkaluonteisia lääketieteellisiä tietoja:
+• Uniterapiaistuntojen tiedot ja tapahtumamuodot
+• Henkilökohtaiset tiedot (nimi, syntymäaika jne.)
+  (ellei yksityisyystila ole käytössä)
+
+Säilytyssuositukset:
+• Tallenna varmuuskopiot salatulle tallennusvälineelle
+• Pidä varmuuskopiot turvallisessa, pääsynvalvotussa paikassa
+• Älä jaa varmuuskopiotiedostoja luvattomille osapuolille</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -298,7 +306,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">Varmuuskopiointi onnistui.\n\nTiedosto: %1\nKoko: %2</translation>
+      <translation type="unfinished">Varmuuskopiointi onnistui.
+
+Tiedosto: %1
+Koko: %2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -320,7 +331,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">Varmuuskopiointia ei voitu suorittaa loppuun.\n\n%1</translation>
+      <translation type="unfinished">Varmuuskopiointia ei voitu suorittaa loppuun.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -384,7 +397,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">Proton Drive -jakolinkkejä ei voi ladata suoraan, koska tiedostot ovat päästä päähän -salattuja ja vaativat selainpohjaisen salauksen purkamisen.\n\nLataa tiedosto selaimessasi ja käytä Paikallinen tiedosto -vaihtoehtoa.</translation>
+      <translation type="unfinished">Proton Drive -jakolinkkejä ei voi ladata suoraan, koska tiedostot ovat päästä päähän -salattuja ja vaativat selainpohjaisen salauksen purkamisen.
+
+Lataa tiedosto selaimessasi ja käytä Paikallinen tiedosto -vaihtoehtoa.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -393,7 +408,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">OSCAR ei tunnista tätä URL-osoitetta tuetuksi pilvipalveluksi.\n\nLataa tiedosto selaimessasi ja käytä Paikallinen tiedosto -vaihtoehtoa.\n\nTuetut palvelut: Dropbox, Google Drive, OneDrive, Box, 0x0.st tai mikä tahansa suora linkki .oscar-tiedostoon.</translation>
+      <translation type="unfinished">OSCAR ei tunnista tätä URL-osoitetta tuetuksi pilvipalveluksi.
+
+Lataa tiedosto selaimessasi ja käytä Paikallinen tiedosto -vaihtoehtoa.
+
+Tuetut palvelut: Dropbox, Google Drive, OneDrive, Box, 0x0.st tai mikä tahansa suora linkki .oscar-tiedostoon.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -404,7 +423,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">Väliaikaistiedoston luominen epäonnistui:\n%1</translation>
+      <translation type="unfinished">Väliaikaistiedoston luominen epäonnistui:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -448,7 +468,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Tiedostoa ei voitu avata lukemista varten:\n%1</translation>
+      <translation type="unfinished">Tiedostoa ei voitu avata lukemista varten:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -715,7 +736,7 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
     <message>
       <location filename="../oscar/daily.cpp" line="662" />
       <source> Disabling Sessions requires Permissive Mode be set in OSCAR Preferences in the Clinical tab.</source>
-      <translation type="unfinished">Istuntojen poistaminen käytöstä vaatii, että Salliva tila on asetettu OSCAR-asetuksissa Kliininen-välilehdellä.</translation>
+      <translation type="unfinished"> Istuntojen poistaminen käytöstä vaatii, että Salliva tila on asetettu OSCAR-asetuksissa Kliininen-välilehdellä.</translation>
     </message>
     <message>
       <location filename="../oscar/daily.cpp" line="747" />
@@ -1177,53 +1198,56 @@ Menee päivän tapahtumien yksityiskohtiin</translation>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">Hyppää\nHyppää päivämäärän muistiinpanoihin</translation>
+      <translation type="unfinished">Hyppää
+Hyppää päivämäärän muistiinpanoihin</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1270" />
       <location filename="../oscar/dailySearchTab.cpp" line="1275" />
       <source>Bookmark
 Jumps to Date's Bookmark</source>
-      <translation type="unfinished">Kirjanmerkki\nHyppää päivämäärän kirjanmerkkiin</translation>
+      <translation type="unfinished">Kirjanmerkki
+Hyppää päivämäärän kirjanmerkkiin</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1290" />
       <source> EventsPerHour</source>
-      <translation type="unfinished">TapahtumiaTunnissa</translation>
+      <translation type="unfinished"> TapahtumiaTunnissa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1300" />
       <source>Set of Apnea:Length
 Jumps to Date's Events</source>
-      <translation type="unfinished">Apnea:Pituus-joukko\nHyppää päivämäärän tapahtumiin</translation>
+      <translation type="unfinished">Apnea:Pituus-joukko
+Hyppää päivämäärän tapahtumiin</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1306" />
       <location filename="../oscar/dailySearchTab.cpp" line="1456" />
       <source> Seconds</source>
-      <translation type="unfinished">Sekuntia</translation>
+      <translation type="unfinished"> Sekuntia</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1313" />
       <location filename="../oscar/dailySearchTab.cpp" line="1461" />
       <source> Minutes</source>
-      <translation type="unfinished">Minuuttia</translation>
+      <translation type="unfinished"> Minuuttia</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1323" />
       <source> Sessions</source>
-      <translation type="unfinished">Istuntoja</translation>
+      <translation type="unfinished"> Istuntoja</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1332" />
       <location filename="../oscar/dailySearchTab.cpp" line="1451" />
       <source> Hours</source>
-      <translation type="unfinished">Tuntia</translation>
+      <translation type="unfinished"> Tuntia</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1340" />
       <source> Events</source>
-      <translation type="unfinished">Tapahtumia</translation>
+      <translation type="unfinished"> Tapahtumia</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1248,7 +1272,7 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1670" />
       <source>Found %1 </source>
-      <translation type="unfinished">Löytyi %1. {1 ?}</translation>
+      <translation type="unfinished">Löytyi %1. {1 ?} </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1688" />
@@ -1263,12 +1287,12 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1778" />
       <source>  Searches from last day to first day.</source>
-      <translation type="unfinished">Hakee viimeisestä päivästä ensimmäiseen päivään.</translation>
+      <translation type="unfinished">  Hakee viimeisestä päivästä ensimmäiseen päivään.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1779" />
       <source>  Skips Days with no graphing data.</source>
-      <translation type="unfinished">Ohittaa päivät, joilla ei ole graafista dataa.</translation>
+      <translation type="unfinished">  Ohittaa päivät, joilla ei ole graafista dataa.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1781" />
@@ -1278,12 +1302,12 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1782" />
       <source>  Then click on the operation to modify it.</source>
-      <translation type="unfinished">Napsauta sitten toimintoa muokataksesi sitä.</translation>
+      <translation type="unfinished">  Napsauta sitten toimintoa muokataksesi sitä.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1783" />
       <source>  or update the value</source>
-      <translation type="unfinished">tai päivitä arvo</translation>
+      <translation type="unfinished">  tai päivitä arvo</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1785" />
@@ -1293,17 +1317,17 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1787" />
       <source>Compare Operations: numberic or character. </source>
-      <translation type="unfinished">Vertailutoiminnot: numeerinen tai merkkipohjainen.</translation>
+      <translation type="unfinished">Vertailutoiminnot: numeerinen tai merkkipohjainen. </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1788" />
       <source>  Numberic  Operations: </source>
-      <translation type="unfinished">Numeeriset toiminnot:</translation>
+      <translation type="unfinished">  Numeeriset toiminnot: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1789" />
       <source>  Character Operations: </source>
-      <translation type="unfinished">Merkkipohjaiset toiminnot:</translation>
+      <translation type="unfinished">  Merkkipohjaiset toiminnot: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1791" />
@@ -1313,17 +1337,17 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1792" />
       <source>  Left:Summary - Number of Day searched</source>
-      <translation type="unfinished">Vasen: Yhteenveto - Haettujen päivien lukumäärä</translation>
+      <translation type="unfinished">  Vasen: Yhteenveto - Haettujen päivien lukumäärä</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1793" />
       <source>  Center:Number of Items Found</source>
-      <translation type="unfinished">Keskellä: Löydettyjen kohteiden määrä</translation>
+      <translation type="unfinished">  Keskellä: Löydettyjen kohteiden määrä</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1794" />
       <source>  Right:Minimum/Maximum for item searched</source>
-      <translation type="unfinished">Oikealla: Haetun kohteen minimi/maksimi</translation>
+      <translation type="unfinished">  Oikealla: Haetun kohteen minimi/maksimi</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1796" />
@@ -1333,17 +1357,17 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1797" />
       <source>  Column One: Date of match. Click selects date.</source>
-      <translation type="unfinished">Sarake yksi: Osuman päivämäärä. Napsauttaminen valitsee päivämäärän.</translation>
+      <translation type="unfinished">  Sarake yksi: Osuman päivämäärä. Napsauttaminen valitsee päivämäärän.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1798" />
       <source>  Column two: Information. Click selects date.</source>
-      <translation type="unfinished">Sarake kaksi: Tiedot. Napsauttaminen valitsee päivämäärän.</translation>
+      <translation type="unfinished">  Sarake kaksi: Tiedot. Napsauttaminen valitsee päivämäärän.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1799" />
       <source>    Then Jumps the appropiate tab.</source>
-      <translation type="unfinished">Sitten hyppää asianmukaiselle välilehdelle.</translation>
+      <translation type="unfinished">    Sitten hyppää asianmukaiselle välilehdelle.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1801" />
@@ -1353,37 +1377,37 @@ Jumps to Date's Events</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1802" />
       <source>  Wildcards use 3 characters:</source>
-      <translation type="unfinished">Yleismerkit käyttävät kolmea merkkiä:</translation>
+      <translation type="unfinished">  Yleismerkit käyttävät kolmea merkkiä:</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1803" />
       <source>  Asterisk</source>
-      <translation type="unfinished">Tähti</translation>
+      <translation type="unfinished">  Tähti</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1804" />
       <source>  Question Mark</source>
-      <translation type="unfinished">Kysymysmerkki</translation>
+      <translation type="unfinished">  Kysymysmerkki</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1805" />
       <source>  Backslash.</source>
-      <translation type="unfinished">Kenoviiva.</translation>
+      <translation type="unfinished">  Kenoviiva.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1806" />
       <source>  Asterisk matches any number of characters.</source>
-      <translation type="unfinished">Tähti vastaa mitä tahansa määrää merkkejä.</translation>
+      <translation type="unfinished">  Tähti vastaa mitä tahansa määrää merkkejä.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1807" />
       <source>  Question Mark matches a single character.</source>
-      <translation type="unfinished">Kysymysmerkki vastaa yhtä merkkiä.</translation>
+      <translation type="unfinished">  Kysymysmerkki vastaa yhtä merkkiä.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1808" />
       <source>  Backslash matches next character.</source>
-      <translation type="unfinished">Kenoviiva vastaa seuraavaa merkkiä.</translation>
+      <translation type="unfinished">  Kenoviiva vastaa seuraavaa merkkiä.</translation>
     </message>
   </context>
   <context>
@@ -1430,7 +1454,10 @@ Jumps to Date's Events</source>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">Polku: %1\nKoko: %2\nProfiilit: %3\nHuomio: kaikki istuntodata ja mahdollinen SD-kortin varmuuskopiodata tässä kansiossa poistetaan pysyvästi.</translation>
+      <translation type="unfinished">Polku: %1
+Koko: %2
+Profiilit: %3
+Huomio: kaikki istuntodata ja mahdollinen SD-kortin varmuuskopiodata tässä kansiossa poistetaan pysyvästi.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1448,7 +1475,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">Tietokantaa osoitteessa\n%1\nei voi avata yksinomaisesti. Toinen OSCAR-instanssi saattaa pitää sitä auki.</translation>
+      <translation type="unfinished">Tietokantaa osoitteessa
+%1
+ei voi avata yksinomaisesti. Toinen OSCAR-instanssi saattaa pitää sitä auki.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1460,7 +1489,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">Kirjoita "%1" poistaaksesi tämän tietokannan pysyvästi.\n\nKaikki istuntodata ja SD-kortin varmuuskopiodata kansiossa poistetaan. Tätä toimintoa ei voi kumota.</translation>
+      <translation type="unfinished">Kirjoita "%1" poistaaksesi tämän tietokannan pysyvästi.
+
+Kaikki istuntodata ja SD-kortin varmuuskopiodata kansiossa poistetaan. Tätä toimintoa ei voi kumota.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1482,7 +1513,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">Ei voitu poistaa\n%1\nTietokantatiedosto on yhä olemassa. Tarkista avoimet tiedostolukot ja yritä uudelleen.</translation>
+      <translation type="unfinished">Ei voitu poistaa
+%1
+Tietokantatiedosto on yhä olemassa. Tarkista avoimet tiedostolukot ja yritä uudelleen.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1494,7 +1527,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">Tietokanta poistettiin, mutta kaikkia tiedostoja ei voitu poistaa kansiosta\n%1\nJotkin tiedostot saattavat olla yhä olemassa.</translation>
+      <translation type="unfinished">Tietokanta poistettiin, mutta kaikkia tiedostoja ei voitu poistaa kansiosta
+%1
+Jotkin tiedostot saattavat olla yhä olemassa.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1518,7 +1553,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">Tietokantavaurio tai I/O-virhe havaittiin kohteessa %1.\n\nVirhe: %2\n\nSuositellut toimenpiteet:\n  • Suorita Ohje → Vianmääritys → Tarkista tietokannan eheys\n  • Palauta viimeisimmästä varmuuskopiosta, jos ongelmia löytyy</translation>
+      <translation type="unfinished">Tietokantavaurio tai I/O-virhe havaittiin kohteessa %1.
+
+Virhe: %2
+
+Suositellut toimenpiteet:
+  • Suorita Ohje → Vianmääritys → Tarkista tietokannan eheys
+  • Palauta viimeisimmästä varmuuskopiosta, jos ongelmia löytyy</translation>
     </message>
   </context>
   <context>
@@ -1952,17 +1993,17 @@ Vihje: Muuta aloituspäivä ensin</translation>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— heikko sovitus, Käytä mallia poistettu käytöstä</translation>
+      <translation type="unfinished"> — heikko sovitus, Käytä mallia poistettu käytöstä</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— kohtalainen sovitus</translation>
+      <translation type="unfinished"> — kohtalainen sovitus</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— korvaa mallin, joka on ollut aktiivinen %1 lähtien</translation>
+      <translation type="unfinished"> — korvaa mallin, joka on ollut aktiivinen %1 lähtien</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2024,7 +2065,8 @@ Vihje: Muuta aloituspäivä ensin</translation>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Tiedostoa ei voitu avata lukemista varten:\n%1</translation>
+      <translation type="unfinished">Tiedostoa ei voitu avata lukemista varten:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2407,7 +2449,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Tiedostoa ei voitu avata lukemista varten:\n%1</translation>
+      <translation type="unfinished">Tiedostoa ei voitu avata lukemista varten:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2565,7 +2608,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">Tutkitaan %1...\n\nOdota hetki...</translation>
+      <translation type="unfinished">Tutkitaan %1...
+
+Odota hetki...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2576,7 +2621,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">Valittu kansio ei vaikuta olevan kelvollinen OSCAR-profiili.\nValitse kansio, joka sisältää tiedoston machines.xml</translation>
+      <translation type="unfinished">Valittu kansio ei vaikuta olevan kelvollinen OSCAR-profiili.
+Valitse kansio, joka sisältää tiedoston machines.xml</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2589,7 +2635,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">Tämän profiilin koko on %1 Gt.\nTuonti voi kestää huomattavan kauan.\n\nHaluatko jatkaa?</translation>
+      <translation type="unfinished">Tämän profiilin koko on %1 Gt.
+Tuonti voi kestää huomattavan kauan.
+
+Haluatko jatkaa?</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2759,7 +2808,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">Tiedoston kirjoittaminen epäonnistui:\n%1</translation>
+      <translation type="unfinished">Tiedoston kirjoittaminen epäonnistui:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -3526,7 +3576,7 @@ Do you want to continue?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">Tuodaan profiilia</translation>
+      <translation type="unfinished">Tuodaan profiilia </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -3538,7 +3588,9 @@ Do you want to continue?</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">Profiili '%1' on tuotu onnistuneesti.\n\nVoit nyt valita sen profiilivalitsimesta.</translation>
+      <translation type="unfinished">Profiili '%1' on tuotu onnistuneesti.
+
+Voit nyt valita sen profiilivalitsimesta.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -3571,7 +3623,11 @@ You can now select it from the profile selector.</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Tietoja ei voi tuoda: OSCAR-tietokanta on toisen sovelluksen lukitsema.\n\nJos tietokanta on auki SQLite-katseluohjelmassa tai -editorissa, sulje se ja yritä uudelleen.\n\nVirhe: %1</translation>
+      <translation type="unfinished">Tietoja ei voi tuoda: OSCAR-tietokanta on toisen sovelluksen lukitsema.
+
+Jos tietokanta on auki SQLite-katseluohjelmassa tai -editorissa, sulje se ja yritä uudelleen.
+
+Virhe: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1029" />
@@ -3581,7 +3637,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Tuotuja tietoja ei voitu tallentaa tietokantaan. Mitään tietoja ei tallennettu.\n\nJos OSCAR-tietokanta on auki toisessa sovelluksessa (esim. SQLite-katseluohjelmassa tai -editorissa), sulje se ja yritä uudelleen.\n\nVirhe: %1</translation>
+      <translation type="unfinished">Tuotuja tietoja ei voitu tallentaa tietokantaan. Mitään tietoja ei tallennettu.
+
+Jos OSCAR-tietokanta on auki toisessa sovelluksessa (esim. SQLite-katseluohjelmassa tai -editorissa), sulje se ja yritä uudelleen.
+
+Virhe: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1290" />
@@ -3602,7 +3662,8 @@ Error: %1</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">Profiilin tuonti epäonnistui:\n%1</translation>
+      <translation type="unfinished">Profiilin tuonti epäonnistui:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1449" />
@@ -3617,7 +3678,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">Tämä SD-kortti on eri laitteesta kuin viimeksi tähän profiiliin tuotu.\n\nViimeksi tuotu: %1\nTämä kortti: %2\n\nHaluatko varmasti tuoda tiedot tästä kortista tähän profiiliin?</translation>
+      <translation type="unfinished">Tämä SD-kortti on eri laitteesta kuin viimeksi tähän profiiliin tuotu.
+
+Viimeksi tuotu: %1
+Tämä kortti: %2
+
+Haluatko varmasti tuoda tiedot tästä kortista tähän profiiliin?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3666,7 +3732,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">Tämä poistaa pysyvästi kaikki aikakorjaukset jokaiselta tämän profiilin laitteelta.\n\nOletko varma?</translation>
+      <translation type="unfinished">Tämä poistaa pysyvästi kaikki aikakorjaukset jokaiselta tämän profiilin laitteelta.
+
+Oletko varma?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2053" />
@@ -3765,7 +3833,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">(aktiivinen)</translation>
+      <translation type="unfinished"> (aktiivinen)</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3786,7 +3854,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">Valittu kansio sisältää jo OSCAR-tietokannan.\nAvaa olemassa oleva tietokanta valitsemalla Tiedosto ▸ Tietokanta ▸ Avaa.</translation>
+      <translation type="unfinished">Valittu kansio sisältää jo OSCAR-tietokannan.
+Avaa olemassa oleva tietokanta valitsemalla Tiedosto ▸ Tietokanta ▸ Avaa.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3802,7 +3871,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">Valittu kansio ei sisällä OSCAR-tietokantaa.\nValitse kansio, joka sisältää oscar.db-tiedoston.</translation>
+      <translation type="unfinished">Valittu kansio ei sisällä OSCAR-tietokantaa.
+Valitse kansio, joka sisältää oscar.db-tiedoston.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3814,13 +3884,16 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">Viimeisimmässä listassa ei ole poistettavia passiivisia tietokantoja.\n\nAvaa tietokannat ensin kohdasta Tiedosto ▸ Tietokanta ▸ Avaa lisätäksesi ne viimeisimpien listaan.</translation>
+      <translation type="unfinished">Viimeisimmässä listassa ei ole poistettavia passiivisia tietokantoja.
+
+Avaa tietokannat ensin kohdasta Tiedosto ▸ Tietokanta ▸ Avaa lisätäksesi ne viimeisimpien listaan.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">Ongelma jäsennettäessä tiedostoa %1 \nDatatiedosto: %2</translation>
+      <translation type="unfinished">Ongelma jäsennettäessä tiedostoa %1 
+Datatiedosto: %2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3224" />
@@ -3883,7 +3956,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">Tämä tiivistää tietokannan vapauttaakseen käyttämättömän levytilan. Se on hyödyllisintä profiilien poistamisen jälkeen.\n\nTietokannan nykyinen koko: %1\n\nTämä voi kestää useita minuutteja suurille tietokannoille. OSCAR käynnistyy automaattisesti uudelleen, kun toiminto on valmis.\n\nJatketaanko?</translation>
+      <translation type="unfinished">Tämä tiivistää tietokannan vapauttaakseen käyttämättömän levytilan. Se on hyödyllisintä profiilien poistamisen jälkeen.
+
+Tietokannan nykyinen koko: %1
+
+Tämä voi kestää useita minuutteja suurille tietokannoille. OSCAR käynnistyy automaattisesti uudelleen, kun toiminto on valmis.
+
+Jatketaanko?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -3895,28 +3974,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Tietokannan eheystarkistus epäonnistui. Tiivistäminen ei voi jatkua vaurioituneessa tietokannassa.\n\nSuositellut toimenpiteet:\n  • Palauta koko tietokanta viimeisimmästä järjestelmävarmuuskopiosta\n  • Palauta jokainen profiili viimeisimmästä varmuuskopiosta (Tiedosto → Palauta profiili)\n  • Tuo tiedot uudelleen CPAP SD-kortilta/korteilta\n\nLisätietoja palautusvaihtoehdoista löytyy OSCAR-dokumentaatiosta.</translation>
+      <translation type="unfinished">Tietokannan eheystarkistus epäonnistui. Tiivistäminen ei voi jatkua vaurioituneessa tietokannassa.
+
+Suositellut toimenpiteet:
+  • Palauta koko tietokanta viimeisimmästä järjestelmävarmuuskopiosta
+  • Palauta jokainen profiili viimeisimmästä varmuuskopiosta (Tiedosto → Palauta profiili)
+  • Tuo tiedot uudelleen CPAP SD-kortilta/korteilta
+
+Lisätietoja palautusvaihtoehdoista löytyy OSCAR-dokumentaatiosta.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">Tiivistetään tietokantaa, odota...\n\nTämä voi kestää useita minuutteja suurille tietokannoille.</translation>
+      <translation type="unfinished">Tiivistetään tietokantaa, odota...
+
+Tämä voi kestää useita minuutteja suurille tietokannoille.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">Tiivistäminen onnistui, mutta tietokantatiedostoa ei voitu korvata.\n\nAlkuperäinen tietokanta on muuttumaton.</translation>
+      <translation type="unfinished">Tiivistäminen onnistui, mutta tietokantatiedostoa ei voitu korvata.
+
+Alkuperäinen tietokanta on muuttumaton.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">Tiivistäminen onnistui, mutta uutta tiedostoa ei voitu asettaa paikalleen.\n\nAlkuperäinen tietokanta on palautettu.</translation>
+      <translation type="unfinished">Tiivistäminen onnistui, mutta uutta tiedostoa ei voitu asettaa paikalleen.
+
+Alkuperäinen tietokanta on palautettu.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -3927,7 +4019,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Tietokanta tiivistetty onnistuneesti.\n\nEnnen:      %1\nJälkeen:    %2\nVapautettu: %3\n\nOSCAR käynnistyy uudelleen, kun painat OK.</translation>
+      <translation type="unfinished">Tietokanta tiivistetty onnistuneesti.
+
+Ennen:      %1
+Jälkeen:    %2
+Vapautettu: %3
+
+OSCAR käynnistyy uudelleen, kun painat OK.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -3938,7 +4036,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Tietokanta tiivistetty onnistuneesti.\n\nKoko: %1\n\nTilaa ei vapautettu — tietokanta oli jo tiivistetty.\n\nOSCAR käynnistyy uudelleen, kun painat OK.</translation>
+      <translation type="unfinished">Tietokanta tiivistetty onnistuneesti.
+
+Koko: %1
+
+Tilaa ei vapautettu — tietokanta oli jo tiivistetty.
+
+OSCAR käynnistyy uudelleen, kun painat OK.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3543" />
@@ -4182,7 +4286,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Tietokannan eheystarkistus löysi ongelmia. Joitakin tietoja saattaa puuttua tai olla vaurioituneita.\n\nEheystarkistus kattaa koko tietokannan, joka voi sisältää useita profiileja.\n\nSuositellut toimenpiteet:\n  • Palauta koko tietokanta viimeisimmästä järjestelmävarmuuskopiosta\n  • Palauta jokainen profiili viimeisimmästä varmuuskopiosta (Tiedosto → Palauta profiili)\n  • Tuo tiedot uudelleen CPAP SD-kortilta/korteilta\n\nLisätietoja palautusvaihtoehdoista löytyy OSCAR-dokumentaatiosta.</translation>
+      <translation type="unfinished">Tietokannan eheystarkistus löysi ongelmia. Joitakin tietoja saattaa puuttua tai olla vaurioituneita.
+
+Eheystarkistus kattaa koko tietokannan, joka voi sisältää useita profiileja.
+
+Suositellut toimenpiteet:
+  • Palauta koko tietokanta viimeisimmästä järjestelmävarmuuskopiosta
+  • Palauta jokainen profiili viimeisimmästä varmuuskopiosta (Tiedosto → Palauta profiili)
+  • Tuo tiedot uudelleen CPAP SD-kortilta/korteilta
+
+Lisätietoja palautusvaihtoehdoista löytyy OSCAR-dokumentaatiosta.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -4207,7 +4320,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">Tietokannan pakkaaminen epäonnistui:\n%1</translation>
+      <translation type="unfinished">Tietokannan pakkaaminen epäonnistui:
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -4787,7 +4901,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Tiedostoa ei voitu avata lukemista varten:\n%1</translation>
+      <translation type="unfinished">Tiedostoa ei voitu avata lukemista varten:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4808,7 +4923,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">Tiedosto ladattiin OneDriveen, mutta jakolinkin luominen epäonnistui (HTTP %1).\nHuomio: anonyymi jakaminen saattaa olla poistettu käytöstä Microsoft-tilisi asetuksissa.</translation>
+      <translation type="unfinished">Tiedosto ladattiin OneDriveen, mutta jakolinkin luominen epäonnistui (HTTP %1).
+Huomio: anonyymi jakaminen saattaa olla poistettu käytöstä Microsoft-tilisi asetuksissa.</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -6271,7 +6387,7 @@ Vaikuttaa eniten tuontitoimintoihin.</translation>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">Salliva tila TÄYTYY olla käytössä. Katso Kliininen-välilehti</translation>
+      <translation type="unfinished">Salliva tila TÄYTYY olla käytössä. Katso Kliininen-välilehti </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6288,7 +6404,9 @@ Vaikuttaa eniten tuontitoimintoihin.</translation>
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">Tasainen hengitys (SB) perustuu virtausnopeuteen.\nLuo aaltomuodon ja SPAN-tapahtumat CPAP-virtausnopeuden avulla.\nToimii vain kun Tasainen hengitys on käytössä ja CPAP-tiedot on (uudelleen)tuotu.</translation>
+      <translation type="unfinished">Tasainen hengitys (SB) perustuu virtausnopeuteen.
+Luo aaltomuodon ja SPAN-tapahtumat CPAP-virtausnopeuden avulla.
+Toimii vain kun Tasainen hengitys on käytössä ja CPAP-tiedot on (uudelleen)tuotu.  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6308,7 +6426,7 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1484" />
       <source> Seconds</source>
-      <translation type="unfinished">Sekuntia</translation>
+      <translation type="unfinished"> Sekuntia</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1503" />
@@ -6324,13 +6442,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">Kliininen tila ei salli poistettuja istuntoja.\nPoistettuja istuntoja ei käytetä kaavioissa tai tilastoissa.</translation>
+      <translation type="unfinished">Kliininen tila ei salli poistettuja istuntoja.
+Poistettuja istuntoja ei käytetä kaavioissa tai tilastoissa.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">Salliva tila sallii poistetut istunnot.\nPoistettuja istuntoja käytetään kaavioissa ja tilastoissa.</translation>
+      <translation type="unfinished">Salliva tila sallii poistetut istunnot.
+Poistettuja istuntoja käytetään kaavioissa ja tilastoissa.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6343,7 +6463,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">Oletusarvoisesti OSCAR käyttää laskelmaa oksimetrian ensimmäisen tunnin tiedoista lähtötasona.\nTämä asetus mahdollistaa sen korvaamisen staattisella arvolla.\nTästä voi olla hyötyä, kun ensimmäinen tunti ei ole tyypillinen koko aineiston kannalta.\nSe voi myös helpottaa päivien välistä vertailua.</translation>
+      <translation type="unfinished">Oletusarvoisesti OSCAR käyttää laskelmaa oksimetrian ensimmäisen tunnin tiedoista lähtötasona.
+Tämä asetus mahdollistaa sen korvaamisen staattisella arvolla.
+Tästä voi olla hyötyä, kun ensimmäinen tunti ei ole tyypillinen koko aineiston kannalta.
+Se voi myös helpottaa päivien välistä vertailua.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2034" />
@@ -6357,7 +6480,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Oksimetrian ja CPAP-tietojen synkronointi&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;CMS50-tiedot, jotka on tuotu SpO2Review:stä (.spoR-tiedostoista) tai sarjaportti-tuontimenetelmällä, &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;eivät&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; sisällä oikeaa aikaleimaa synkronointia varten.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Reaaliaikainen näkymä (sarjakaapelilla) on yksi tapa saavuttaa tarkka synkronointi CMS50-pulssioksimetreille, mutta se ei korjaa CPAP-laitteen kellodrifttiä.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Jos käynnistät oksimetrisi tallennustilan &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;täsmälleen &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;samaan aikaan kuin käynnistät CPAP-laitteesi, voit myös saavuttaa synkronoinnin.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Sarjaportti-tuontiprosessi ottaa aloitusajan viime yön ensimmäisestä CPAP-istunnosta. (Muista tuoda CPAP-tiedot ensin!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Oksimetrian ja CPAP-tietojen synkronointi&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;CMS50-tiedot, jotka on tuotu SpO2Review:stä (.spoR-tiedostoista) tai sarjaportti-tuontimenetelmällä, &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;eivät&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; sisällä oikeaa aikaleimaa synkronointia varten.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Reaaliaikainen näkymä (sarjakaapelilla) on yksi tapa saavuttaa tarkka synkronointi CMS50-pulssioksimetreille, mutta se ei korjaa CPAP-laitteen kellodrifttiä.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Jos käynnistät oksimetrisi tallennustilan &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;täsmälleen &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;samaan aikaan kuin käynnistät CPAP-laitteesi, voit myös saavuttaa synkronoinnin.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Sarjaportti-tuontiprosessi ottaa aloitusajan viime yön ensimmäisestä CPAP-istunnosta. (Muista tuoda CPAP-tiedot ensin!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2269" />
@@ -6368,7 +6500,8 @@ p, li { white-space: pre-wrap; }
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">Lisää Uusi, Avaa, Viimeisimmät ja Poista -kohteet Tiedosto &gt; Tietokanta -valikkoon.\nTarkoitettu tukihenkilöstölle ja kehittäjille.</translation>
+      <translation type="unfinished">Lisää Uusi, Avaa, Viimeisimmät ja Poista -kohteet Tiedosto &gt; Tietokanta -valikkoon.
+Tarkoitettu tukihenkilöstölle ja kehittäjille.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6569,7 +6702,9 @@ Se voi aiheuttaa ongelmia fonttien piirtämisen kanssa kaaviokuvissa nyt käytö
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">Käytä Qt:n Fusion-teemaa alustan natiiviteeman sijaan.\nTarjoaa yhtenäisen ulkoasun eri alustoilla.\nOSCAR käynnistyy uudelleen, kun napsautat OK.</translation>
+      <translation type="unfinished">Käytä Qt:n Fusion-teemaa alustan natiiviteeman sijaan.
+Tarjoaa yhtenäisen ulkoasun eri alustoilla.
+OSCAR käynnistyy uudelleen, kun napsautat OK.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -6594,7 +6729,12 @@ which is common on Mac  Linux platforms..
 
 OSCAR can import from this compressed backup directory natively.. 
 To use it with ResScan will require the .gz files to be uncompressed first..</source>
-      <translation type="unfinished">Pakkaa ResMed (EDF) varmuuskopiot levytilan säästämiseksi.\nVarmuuskopioidut EDF-tiedostot tallennetaan .gz-muodossa, \njoka on yleinen Mac- ja Linux-alustoilla..\n\nOSCAR voi tuoda tästä pakatusta varmuuskopiohakemistosta suoraan.. \nResScanin käyttöä varten .gz-tiedostot on ensin purettava..</translation>
+      <translation type="unfinished">Pakkaa ResMed (EDF) varmuuskopiot levytilan säästämiseksi.
+Varmuuskopioidut EDF-tiedostot tallennetaan .gz-muodossa, 
+joka on yleinen Mac- ja Linux-alustoilla..
+
+OSCAR voi tuoda tästä pakatusta varmuuskopiohakemistosta suoraan.. 
+ResScanin käyttöä varten .gz-tiedostot on ensin purettava..</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="687" />
@@ -6633,7 +6773,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1628" />
       <source>Select  Oscar Operating Mode </source>
-      <translation type="unfinished">Valitse Oscarin käyttötila</translation>
+      <translation type="unfinished">Valitse Oscarin käyttötila </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1638" />
@@ -6648,7 +6788,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1665" />
       <source> Hours</source>
-      <translation type="unfinished">Tuntia</translation>
+      <translation type="unfinished"> Tuntia</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1692" />
@@ -6728,7 +6868,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">Vuorotteleva värivälistys</translation>
+      <translation type="unfinished"> Vuorotteleva värivälistys</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3227" />
@@ -7284,7 +7424,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(ensimmäinen virhe: %1</translation>
+      <translation type="unfinished"> (ensimmäinen virhe: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7372,7 +7512,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">Tunnus:</translation>
+      <translation type="unfinished">Tunnus: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="295" />
@@ -7461,7 +7601,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">Poistetaan profiilia</translation>
+      <translation type="unfinished">Poistetaan profiilia </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7492,7 +7632,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">Nimi:</translation>
+      <translation type="unfinished">Nimi: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -9457,7 +9597,7 @@ TTIA: %1</translation>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">Rampin aika</translation>
+      <translation type="unfinished">Rampin aika </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -11330,7 +11470,10 @@ TTIA: %1</translation>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">Siirretään profiilia: %1\n(%2 / %3)\n\nAloitetaan tuonti...</translation>
+      <translation type="unfinished">Siirretään profiilia: %1
+(%2 / %3)
+
+Aloitetaan tuonti...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -11338,7 +11481,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">Peruutetaan: %1\n(%2 / %3)\n\nSiivotan, odota hetki...</translation>
+      <translation type="unfinished">Peruutetaan: %1
+(%2 / %3)
+
+Siivotan, odota hetki...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -11346,7 +11492,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">Siirretään profiilia: %1\n(%2 / %3)\n\n%4</translation>
+      <translation type="unfinished">Siirretään profiilia: %1
+(%2 / %3)
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -11503,7 +11652,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">OSCAR havaitsi, että edellinen istunto päättyi odottamattomasti, ja tietokannan eheystarkistus löysi ongelmia.\n\nJoitakin tietoja saattaa puuttua tai olla vaurioituneita.\n\nSuositellut toimenpiteet:\n  • Palauta koko tietokanta viimeisimmästä järjestelmävarmuuskopiosta\n  • Palauta jokainen profiili viimeisimmästä varmuuskopiosta (Tiedosto → Palauta profiili)\n  • Tuo tiedot uudelleen CPAP SD-kortilta/korteilta\n\nLisätietoja palautusvaihtoehdoista löytyy OSCAR-dokumentaatiosta.\n\nVoit jatkaa, mutta jotkut tiedot saattavat olla puutteellisia tai virheellisiä.</translation>
+      <translation type="unfinished">OSCAR havaitsi, että edellinen istunto päättyi odottamattomasti, ja tietokannan eheystarkistus löysi ongelmia.
+
+Joitakin tietoja saattaa puuttua tai olla vaurioituneita.
+
+Suositellut toimenpiteet:
+  • Palauta koko tietokanta viimeisimmästä järjestelmävarmuuskopiosta
+  • Palauta jokainen profiili viimeisimmästä varmuuskopiosta (Tiedosto → Palauta profiili)
+  • Tuo tiedot uudelleen CPAP SD-kortilta/korteilta
+
+Lisätietoja palautusvaihtoehdoista löytyy OSCAR-dokumentaatiosta.
+
+Voit jatkaa, mutta jotkut tiedot saattavat olla puutteellisia tai virheellisiä.</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -12792,7 +12952,9 @@ ponnahdusikkuna, poista se ja avaa sitten tämä kaavio uudelleen.</translation>
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">Päiväkirjan siirto valmis:\n%1 päiväkirjamerkintää siirretty tietokantaan\n%2 virhettä</translation>
+      <translation type="unfinished">Päiväkirjan siirto valmis:
+%1 päiväkirjamerkintää siirretty tietokantaan
+%2 virhettä</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.cpp" line="905" />
@@ -12822,7 +12984,7 @@ ponnahdusikkuna, poista se ja avaa sitten tämä kaavio uudelleen.</translation>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR:</translation>
+      <translation type="unfinished">IPR: </translation>
     </message>
     <message>
       <location filename="../oscar/notifyMessageBox.cpp" line="18" />
@@ -12978,7 +13140,9 @@ ponnahdusikkuna, poista se ja avaa sitten tämä kaavio uudelleen.</translation>
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">Valittu tiedosto ei vaikuta olevan kelvollinen Dreem CSV-tiedosto.\n\nDreem-datan tulee olla puolipisteellä eroteltu CSV-tiedosto. Varmista, että tietosi ovat CSV-muodossa ja yritä uudelleen.</translation>
+      <translation type="unfinished">Valittu tiedosto ei vaikuta olevan kelvollinen Dreem CSV-tiedosto.
+
+Dreem-datan tulee olla puolipisteellä eroteltu CSV-tiedosto. Varmista, että tietosi ovat CSV-muodossa ja yritä uudelleen.</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13346,7 +13510,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopio)</translation>
+      <translation type="unfinished"> (Kopio)</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13396,19 +13560,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">Tiedoston jäsentäminen epäonnistui:\n%1</translation>
+      <translation type="unfinished">Tiedoston jäsentäminen epäonnistui:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">Tuonti epäonnistui:\n%1</translation>
+      <translation type="unfinished">Tuonti epäonnistui:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">Tuotiin %1 raportti(a) kohteesta:\n%2</translation>
+      <translation type="unfinished">Tuotiin %1 raportti(a) kohteesta:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13431,13 +13598,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">Tiedoston kirjoittaminen epäonnistui:\n%1</translation>
+      <translation type="unfinished">Tiedoston kirjoittaminen epäonnistui:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">Vietiin %1 raportti(a) kohteeseen:\n%2</translation>
+      <translation type="unfinished">Vietiin %1 raportti(a) kohteeseen:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13493,19 +13662,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">Kysely epäonnistui:\n%1</translation>
+      <translation type="unfinished">Kysely epäonnistui:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">Tiedostoa ei voi kirjoittaa:\n%1</translation>
+      <translation type="unfinished">Tiedostoa ei voi kirjoittaa:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">Vietiin %1 riviä kohteeseen:\n%2</translation>
+      <translation type="unfinished">Vietiin %1 riviä kohteeseen:
+%2</translation>
     </message>
   </context>
   <context>
@@ -13651,7 +13823,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">Tällä nimellä on jo olemassa raportti.\nOle hyvä ja valitse eri nimi.</translation>
+      <translation type="unfinished">Tällä nimellä on jo olemassa raportti.
+Ole hyvä ja valitse eri nimi.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13667,7 +13840,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">Raportti '%1' luotu.\nKäytä 'Kopioi lajike' -toimintoa lisätäksesi kyselyitä tähän raporttiin.</translation>
+      <translation type="unfinished">Raportti '%1' luotu.
+Käytä 'Kopioi lajike' -toimintoa lisätäksesi kyselyitä tähän raporttiin.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13677,7 +13851,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopio)</translation>
+      <translation type="unfinished"> (Kopio)</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13688,7 +13862,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">Raportti kopioitu onnistuneesti.\n%1 lajiketta kopioitu.</translation>
+      <translation type="unfinished">Raportti kopioitu onnistuneesti.
+%1 lajiketta kopioitu.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13705,7 +13880,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\nTämä poistaa myös %1 raporttilajiketta.</translation>
+      <translation type="unfinished">
+
+Tämä poistaa myös %1 raporttilajiketta.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13826,7 +14003,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">Syötä SQL-kysely makrojen kanssa:\n#PROFILE_ID - Nykyinen profiilin tunnus\n#START_DATE - Raportin alkupäivämäärä\n#END_DATE - Raportin loppupäivämäärä</translation>
+      <translation type="unfinished">Syötä SQL-kysely makrojen kanssa:
+#PROFILE_ID - Nykyinen profiilin tunnus
+#START_DATE - Raportin alkupäivämäärä
+#END_DATE - Raportin loppupäivämäärä</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -13879,7 +14059,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopio)</translation>
+      <translation type="unfinished"> (Kopio)</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -13896,7 +14076,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">Ei mukautettuja raportteja saatavilla.\nAnna uusi raportin nimi luodaksesi sellaisen.</translation>
+      <translation type="unfinished">Ei mukautettuja raportteja saatavilla.
+Anna uusi raportin nimi luodaksesi sellaisen.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -13916,27 +14097,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">Kysely epäonnistui:\n\n%1\n\nSQL-virhe:\n%2</translation>
+      <translation type="unfinished">Kysely epäonnistui:
+
+%1
+
+SQL-virhe:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">Kysely suoritettiin onnistuneesti.\n\nEi tuloksia palautettu (tämä voi olla normaalia, jos valitulle aikavälille ei ole tietoja).</translation>
+      <translation type="unfinished">Kysely suoritettiin onnistuneesti.
+
+Ei tuloksia palautettu (tämä voi olla normaalia, jos valitulle aikavälille ei ole tietoja).</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">Kyselyn testitulokset\n</translation>
+      <translation type="unfinished">Kyselyn testitulokset
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">(Näytetään ensimmäiset %1 riviä)\n\n</translation>
+      <translation type="unfinished">(Näytetään ensimmäiset %1 riviä)
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -14007,7 +14198,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">Lajike nimeltä '%1' on jo olemassa raportissa '%2'.\n\nValitse eri lajikkeen nimi.</translation>
+      <translation type="unfinished">Lajike nimeltä '%1' on jo olemassa raportissa '%2'.
+
+Valitse eri lajikkeen nimi.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -14023,14 +14216,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">Kysely ei sisällä kaikkia vaadittuja makroja:\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\nKysely ei välttämättä toimi oikein.\n\nJatketaanko silti?</translation>
+      <translation type="unfinished">Kysely ei sisällä kaikkia vaadittuja makroja:
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+Kysely ei välttämättä toimi oikein.
+
+Jatketaanko silti?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">Lajikkeita ei voi lisätä järjestelmäraporttiin '%1'.\n\nValitse eri raportin nimi.</translation>
+      <translation type="unfinished">Lajikkeita ei voi lisätä järjestelmäraporttiin '%1'.
+
+Valitse eri raportin nimi.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -14043,7 +14244,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">Raporttia '%1' ei ole olemassa.\n\nLuodaanko se?</translation>
+      <translation type="unfinished">Raporttia '%1' ei ole olemassa.
+
+Luodaanko se?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14344,7 +14547,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">Valittu tiedosto ei ole kelvollinen varmuuskopiointipaketti.\n\n%1</translation>
+      <translation type="unfinished">Valittu tiedosto ei ole kelvollinen varmuuskopiointipaketti.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14356,7 +14561,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">Tätä varmuuskopiota ei voi palauttaa.\n\n%1</translation>
+      <translation type="unfinished">Tätä varmuuskopiota ei voi palauttaa.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14365,7 +14572,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">Tämä varmuuskopio on luotu vanhemmalla tietokantaskeemalla (v%1; nykyinen on v%2).\n\nUnitietosi palautetaan täysin. Joitain asetuksia tai raporttimäärityksiä ei ehkä palauteta, ja OSCAR luo ne uudelleen ensimmäisellä käyttökerralla.\n\nJatka napsauttamalla Vahvista.</translation>
+      <translation type="unfinished">Tämä varmuuskopio on luotu vanhemmalla tietokantaskeemalla (v%1; nykyinen on v%2).
+
+Unitietosi palautetaan täysin. Joitain asetuksia tai raporttimäärityksiä ei ehkä palauteta, ja OSCAR luo ne uudelleen ensimmäisellä käyttökerralla.
+
+Jatka napsauttamalla Vahvista.</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14379,7 +14590,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">VAROITUS: Olemassa oleva profiili "%1" sisältää Backup-hakemiston, joka sisältää CPAP-varmuuskopiotietoja.\n\nKoska tämä palautuspaketti sisältää SD-kortin tietoja, koko profiilihakemisto — mukaan lukien kaikki CPAP-varmuuskopiotiedot — poistetaan pysyvästi ja korvataan uusilla.\n\nTätä toimintoa ei voi kumota. Haluatko varmasti jatkaa?</translation>
+      <translation type="unfinished">VAROITUS: Olemassa oleva profiili "%1" sisältää Backup-hakemiston, joka sisältää CPAP-varmuuskopiotietoja.
+
+Koska tämä palautuspaketti sisältää SD-kortin tietoja, koko profiilihakemisto — mukaan lukien kaikki CPAP-varmuuskopiotiedot — poistetaan pysyvästi ja korvataan uusilla.
+
+Tätä toimintoa ei voi kumota. Haluatko varmasti jatkaa?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14391,7 +14606,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">Tämä poistaa pysyvästi olemassa olevan profiilin ja kaikki sen tiedot.\n\nHaluatko varmasti korvata sen?</translation>
+      <translation type="unfinished">Tämä poistaa pysyvästi olemassa olevan profiilin ja kaikki sen tiedot.
+
+Haluatko varmasti korvata sen?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14433,7 +14650,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">Palautusta ei voitu suorittaa loppuun. Tietokantaa ei muutettu.\n\n%1</translation>
+      <translation type="unfinished">Palautusta ei voitu suorittaa loppuun. Tietokantaa ei muutettu.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14447,13 +14666,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">Muokkaa alla olevaa SQL-kyselyä. Kysely suoritetaan OSCAR-tietokantaa vasten.\nKäytettävissä olevat makrot: #PROFILE_ID, #START_DATE, #END_DATE</translation>
+      <translation type="unfinished">Muokkaa alla olevaa SQL-kyselyä. Kysely suoritetaan OSCAR-tietokantaa vasten.
+Käytettävissä olevat makrot: #PROFILE_ID, #START_DATE, #END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">Huomio: Ole varovainen kyselyitä muokatessasi. Virheellinen SQL aiheuttaa viennin epäonnistumisen.\nYleiset taulut: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
+      <translation type="unfinished">Huomio: Ole varovainen kyselyitä muokatessasi. Virheellinen SQL aiheuttaa viennin epäonnistumisen.
+Yleiset taulut: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -14617,7 +14838,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="240" />
       <source> (right/left)MouseClick</source>
-      <translation type="unfinished">(oikea/vasen) hiiren napsautus</translation>
+      <translation type="unfinished"> (oikea/vasen) hiiren napsautus</translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="242" />
@@ -14782,7 +15003,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
       <source>Daily: Event (bottom left corner) </source>
-      <translation type="unfinished">Päivittäinen: Tapahtuma (vasempi alakulma)</translation>
+      <translation type="unfinished">Päivittäinen: Tapahtuma (vasempi alakulma) </translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
@@ -15310,7 +15531,13 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">Olet jakamassa tiedostoa, joka sisältää uniterapiatietosi.\n\n• Tiedosto sisältää istuntotiedot, tapahtumat ja laiteasetukset\n  valitulle aikavälille\n• Henkilökohtaiset tiedot (nimi, syntymäaika, yhteystiedot) poistetaan\n\nVarmista, että luotat vastaanottajaan ennen tietojen jakamista.</translation>
+      <translation type="unfinished">Olet jakamassa tiedostoa, joka sisältää uniterapiatietosi.
+
+• Tiedosto sisältää istuntotiedot, tapahtumat ja laiteasetukset
+  valitulle aikavälille
+• Henkilökohtaiset tiedot (nimi, syntymäaika, yhteystiedot) poistetaan
+
+Varmista, että luotat vastaanottajaan ennen tietojen jakamista.</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15397,7 +15624,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">Jaettavan tiedoston luominen epäonnistui.\n\n%1</translation>
+      <translation type="unfinished">Jaettavan tiedoston luominen epäonnistui.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />

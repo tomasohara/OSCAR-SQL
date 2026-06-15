@@ -246,7 +246,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">קובץ הגיבוי .oscar שלך מכיל נתונים רפואיים רגישים:\n• נתוני טיפול שינה וגלי אירועים\n• מידע אישי (שם, תאריך לידה, וכו')\n  (אלא אם מצב פרטיות מופעל)\n\nהמלצות לאחסון:\n• אחסן גיבויים באחסון מוצפן\n• שמור גיבויים במיקום מאובטח עם בקרת גישה\n• אל תשתף קבצי גיבוי עם גורמים לא מורשים</translation>
+      <translation type="unfinished">קובץ הגיבוי .oscar שלך מכיל נתונים רפואיים רגישים:
+• נתוני טיפול שינה וגלי אירועים
+• מידע אישי (שם, תאריך לידה, וכו')
+  (אלא אם מצב פרטיות מופעל)
+
+המלצות לאחסון:
+• אחסן גיבויים באחסון מוצפן
+• שמור גיבויים במיקום מאובטח עם בקרת גישה
+• אל תשתף קבצי גיבוי עם גורמים לא מורשים</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -294,7 +302,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">הגיבוי נוצר בהצלחה.\n\nקובץ: %1\nגודל: %2</translation>
+      <translation type="unfinished">הגיבוי נוצר בהצלחה.
+
+קובץ: %1
+גודל: %2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -316,7 +327,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">לא ניתן היה להשלים את הגיבוי.\n\n%1</translation>
+      <translation type="unfinished">לא ניתן היה להשלים את הגיבוי.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -380,7 +393,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">קישורי שיתוף של Proton Drive אינם ניתנים להורדה ישירה מכיוון שהקבצים מוצפנים מקצה לקצה ודורשים פענוח מבוסס דפדפן.\n\nאנא הורד את הקובץ בדפדפן שלך והשתמש באפשרות קובץ מקומי.</translation>
+      <translation type="unfinished">קישורי שיתוף של Proton Drive אינם ניתנים להורדה ישירה מכיוון שהקבצים מוצפנים מקצה לקצה ודורשים פענוח מבוסס דפדפן.
+
+אנא הורד את הקובץ בדפדפן שלך והשתמש באפשרות קובץ מקומי.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -389,7 +404,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">OSCAR אינו מזהה כתובת URL זו כשירות ענן נתמך.\n\nאנא הורד את הקובץ בדפדפן שלך והשתמש באפשרות קובץ מקומי.\n\nשירותים נתמכים: Dropbox, Google Drive, OneDrive, Box, 0x0.st, או כל קישור ישיר לקובץ .oscar.</translation>
+      <translation type="unfinished">OSCAR אינו מזהה כתובת URL זו כשירות ענן נתמך.
+
+אנא הורד את הקובץ בדפדפן שלך והשתמש באפשרות קובץ מקומי.
+
+שירותים נתמכים: Dropbox, Google Drive, OneDrive, Box, 0x0.st, או כל קישור ישיר לקובץ .oscar.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -400,7 +419,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">לא ניתן היה ליצור קובץ זמני:\n%1</translation>
+      <translation type="unfinished">לא ניתן היה ליצור קובץ זמני:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -444,7 +464,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">לא ניתן היה לפתוח את הקובץ לקריאה:\n%1</translation>
+      <translation type="unfinished">לא ניתן היה לפתוח את הקובץ לקריאה:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -801,7 +822,7 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
     <message>
       <location filename="../oscar/daily.cpp" line="662" />
       <source> Disabling Sessions requires Permissive Mode be set in OSCAR Preferences in the Clinical tab.</source>
-      <translation type="unfinished">השבתת סשנים דורשת שמצב מתירני יוגדר בהעדפות OSCAR בלשונית הקלינית.</translation>
+      <translation type="unfinished"> השבתת סשנים דורשת שמצב מתירני יוגדר בהעדפות OSCAR בלשונית הקלינית.</translation>
     </message>
     <message>
       <location filename="../oscar/daily.cpp" line="957" />
@@ -1016,7 +1037,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/dailySearchTab.cpp" line="1275" />
       <source>Bookmark
 Jumps to Date's Bookmark</source>
-      <translation type="unfinished">סימנייה\nקופץ לסימנייה של התאריך</translation>
+      <translation type="unfinished">סימנייה
+קופץ לסימנייה של התאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1516" />
@@ -1028,7 +1050,8 @@ Jumps to Date's Bookmark</source>
       <location filename="../oscar/dailySearchTab.cpp" line="328" />
       <source>DATE
 Jumps to Date</source>
-      <translation type="unfinished">תאריך\nקופץ לתאריך</translation>
+      <translation type="unfinished">תאריך
+קופץ לתאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="273" />
@@ -1058,7 +1081,7 @@ Jumps to Date</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="513" />
       <source>AHI </source>
-      <translation type="unfinished">AHI</translation>
+      <translation type="unfinished">AHI </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="514" />
@@ -1104,83 +1127,91 @@ Jumps to Date</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1254" />
       <source>Number Disabled Session
 Jumps to Date's Details </source>
-      <translation type="unfinished">סשן מושבת\nקופץ לפרטי התאריך</translation>
+      <translation type="unfinished">סשן מושבת
+קופץ לפרטי התאריך </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1265" />
       <location filename="../oscar/dailySearchTab.cpp" line="1281" />
       <source>Note
 Jumps to Date's Notes</source>
-      <translation type="unfinished">הערה\nקופץ להערות התאריך</translation>
+      <translation type="unfinished">הערה
+קופץ להערות התאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1287" />
       <source>AHI
 Jumps to Date's Details</source>
-      <translation type="unfinished">AHI\nקופץ לפרטי התאריך</translation>
+      <translation type="unfinished">AHI
+קופץ לפרטי התאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1290" />
       <source> EventsPerHour</source>
-      <translation type="unfinished">אירועים לשעה</translation>
+      <translation type="unfinished"> אירועים לשעה</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1300" />
       <source>Set of Apnea:Length
 Jumps to Date's Events</source>
-      <translation type="unfinished">סט של דום נשימה:אורך\nקופץ לאירועי התאריך</translation>
+      <translation type="unfinished">סט של דום נשימה:אורך
+קופץ לאירועי התאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1306" />
       <location filename="../oscar/dailySearchTab.cpp" line="1456" />
       <source> Seconds</source>
-      <translation type="unfinished">שניות</translation>
+      <translation type="unfinished"> שניות</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1309" />
       <source>Session Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">משך הסשן\nקופץ לפרטי התאריך</translation>
+      <translation type="unfinished">משך הסשן
+קופץ לפרטי התאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1313" />
       <location filename="../oscar/dailySearchTab.cpp" line="1461" />
       <source> Minutes</source>
-      <translation type="unfinished">דקות</translation>
+      <translation type="unfinished"> דקות</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1318" />
       <source>Number of Sessions
 Jumps to Date's Details</source>
-      <translation type="unfinished">מספר סשנים\nקופץ לפרטי התאריך</translation>
+      <translation type="unfinished">מספר סשנים
+קופץ לפרטי התאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1323" />
       <source> Sessions</source>
-      <translation type="unfinished">סשנים</translation>
+      <translation type="unfinished"> סשנים</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1326" />
       <source>Daily Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">משך יומי\nקופץ לפרטי התאריך</translation>
+      <translation type="unfinished">משך יומי
+קופץ לפרטי התאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1332" />
       <location filename="../oscar/dailySearchTab.cpp" line="1451" />
       <source> Hours</source>
-      <translation type="unfinished">שעות</translation>
+      <translation type="unfinished"> שעות</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1336" />
       <source>Number of events
 Jumps to Date's Events</source>
-      <translation type="unfinished">מספר אירועים\nקופץ לאירועי התאריך</translation>
+      <translation type="unfinished">מספר אירועים
+קופץ לאירועי התאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1340" />
       <source> Events</source>
-      <translation type="unfinished">אירועים</translation>
+      <translation type="unfinished"> אירועים</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="602" />
@@ -1216,7 +1247,8 @@ Jumps to Date's Events</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">קפיצות\nקופץ להערות התאריך</translation>
+      <translation type="unfinished">קפיצות
+קופץ להערות התאריך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1226,7 +1258,7 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1666" />
       <source> Skip:%1</source>
-      <translation type="unfinished">דלג:%1</translation>
+      <translation type="unfinished"> דלג:%1</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1667" />
@@ -1236,7 +1268,7 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1670" />
       <source>Found %1 </source>
-      <translation type="unfinished">נמצא %1</translation>
+      <translation type="unfinished">נמצא %1 </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1688" />
@@ -1251,12 +1283,12 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1778" />
       <source>  Searches from last day to first day.</source>
-      <translation type="unfinished">מחפש מהיום האחרון ליום הראשון.</translation>
+      <translation type="unfinished">  מחפש מהיום האחרון ליום הראשון.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1779" />
       <source>  Skips Days with no graphing data.</source>
-      <translation type="unfinished">מדלג על ימים ללא נתוני גרף.</translation>
+      <translation type="unfinished">  מדלג על ימים ללא נתוני גרף.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1781" />
@@ -1266,12 +1298,12 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1782" />
       <source>  Then click on the operation to modify it.</source>
-      <translation type="unfinished">לאחר מכן לחץ על הפעולה לשינוי.</translation>
+      <translation type="unfinished">  לאחר מכן לחץ על הפעולה לשינוי.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1783" />
       <source>  or update the value</source>
-      <translation type="unfinished">או עדכן את הערך</translation>
+      <translation type="unfinished">  או עדכן את הערך</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1785" />
@@ -1281,17 +1313,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1787" />
       <source>Compare Operations: numberic or character. </source>
-      <translation type="unfinished">פעולות השוואה: מספרי או תווים.</translation>
+      <translation type="unfinished">פעולות השוואה: מספרי או תווים. </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1788" />
       <source>  Numberic  Operations: </source>
-      <translation type="unfinished">פעולות מספריות:</translation>
+      <translation type="unfinished">  פעולות מספריות: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1789" />
       <source>  Character Operations: </source>
-      <translation type="unfinished">פעולות תווים:</translation>
+      <translation type="unfinished">  פעולות תווים: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1791" />
@@ -1301,17 +1333,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1792" />
       <source>  Left:Summary - Number of Day searched</source>
-      <translation type="unfinished">שמאל: סיכום - מספר ימים שנחפשו</translation>
+      <translation type="unfinished">  שמאל: סיכום - מספר ימים שנחפשו</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1793" />
       <source>  Center:Number of Items Found</source>
-      <translation type="unfinished">מרכז: מספר פריטים שנמצאו</translation>
+      <translation type="unfinished">  מרכז: מספר פריטים שנמצאו</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1794" />
       <source>  Right:Minimum/Maximum for item searched</source>
-      <translation type="unfinished">ימין: מינימום/מקסימום עבור הפריט שנחפש</translation>
+      <translation type="unfinished">  ימין: מינימום/מקסימום עבור הפריט שנחפש</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1796" />
@@ -1321,17 +1353,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1797" />
       <source>  Column One: Date of match. Click selects date.</source>
-      <translation type="unfinished">עמודה ראשונה: תאריך ההתאמה. לחיצה בוחרת תאריך.</translation>
+      <translation type="unfinished">  עמודה ראשונה: תאריך ההתאמה. לחיצה בוחרת תאריך.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1798" />
       <source>  Column two: Information. Click selects date.</source>
-      <translation type="unfinished">עמודה שנייה: מידע. לחיצה בוחרת תאריך.</translation>
+      <translation type="unfinished">  עמודה שנייה: מידע. לחיצה בוחרת תאריך.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1799" />
       <source>    Then Jumps the appropiate tab.</source>
-      <translation type="unfinished">לאחר מכן קופץ לכרטיסייה המתאימה.</translation>
+      <translation type="unfinished">    לאחר מכן קופץ לכרטיסייה המתאימה.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1801" />
@@ -1341,37 +1373,37 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1802" />
       <source>  Wildcards use 3 characters:</source>
-      <translation type="unfinished">התווים הכלליים משתמשים ב-3 תווים:</translation>
+      <translation type="unfinished">  התווים הכלליים משתמשים ב-3 תווים:</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1803" />
       <source>  Asterisk</source>
-      <translation type="unfinished">כוכבית</translation>
+      <translation type="unfinished">  כוכבית</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1804" />
       <source>  Question Mark</source>
-      <translation type="unfinished">סימן שאלה</translation>
+      <translation type="unfinished">  סימן שאלה</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1805" />
       <source>  Backslash.</source>
-      <translation type="unfinished">לוכסן הפוך.</translation>
+      <translation type="unfinished">  לוכסן הפוך.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1806" />
       <source>  Asterisk matches any number of characters.</source>
-      <translation type="unfinished">כוכבית מתאימה לכל מספר של תווים.</translation>
+      <translation type="unfinished">  כוכבית מתאימה לכל מספר של תווים.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1807" />
       <source>  Question Mark matches a single character.</source>
-      <translation type="unfinished">סימן שאלה מתאים לתו בודד.</translation>
+      <translation type="unfinished">  סימן שאלה מתאים לתו בודד.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1808" />
       <source>  Backslash matches next character.</source>
-      <translation type="unfinished">לוכסן הפוך מתאים לתו הבא.</translation>
+      <translation type="unfinished">  לוכסן הפוך מתאים לתו הבא.</translation>
     </message>
   </context>
   <context>
@@ -1418,7 +1450,10 @@ Jumps to Date's Notes</source>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">נתיב: %1\nגודל: %2\nפרופילים: %3\nהערה: כל נתוני ההפעלה ונתוני הגיבוי מכרטיס ה-SD בתיקייה זו יימחקו לצמיתות.</translation>
+      <translation type="unfinished">נתיב: %1
+גודל: %2
+פרופילים: %3
+הערה: כל נתוני ההפעלה ונתוני הגיבוי מכרטיס ה-SD בתיקייה זו יימחקו לצמיתות.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1436,7 +1471,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">מסד הנתונים בכתובת\n%1\nלא ניתן לפתיחה ייחודית. ייתכן שמופע אחר של OSCAR פתח אותו.</translation>
+      <translation type="unfinished">מסד הנתונים בכתובת
+%1
+לא ניתן לפתיחה ייחודית. ייתכן שמופע אחר של OSCAR פתח אותו.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1448,7 +1485,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">הקלד "%1" כדי למחוק לצמיתות את מסד הנתונים.\n\nכל נתוני ההפעלה ונתוני הגיבוי מכרטיס ה-SD בתיקייה יימחקו. לא ניתן לבטל פעולה זו.</translation>
+      <translation type="unfinished">הקלד "%1" כדי למחוק לצמיתות את מסד הנתונים.
+
+כל נתוני ההפעלה ונתוני הגיבוי מכרטיס ה-SD בתיקייה יימחקו. לא ניתן לבטל פעולה זו.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1470,7 +1509,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">לא ניתן למחוק\n%1\nקובץ מסד הנתונים עדיין קיים. בדוק אם קיימות נעילות קובץ פתוחות ונסה שנית.</translation>
+      <translation type="unfinished">לא ניתן למחוק
+%1
+קובץ מסד הנתונים עדיין קיים. בדוק אם קיימות נעילות קובץ פתוחות ונסה שנית.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1482,7 +1523,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">מסד הנתונים נמחק אך לא ניתן היה להסיר את כל הקבצים מ\n%1\nייתכן שחלק מהקבצים עדיין קיימים.</translation>
+      <translation type="unfinished">מסד הנתונים נמחק אך לא ניתן היה להסיר את כל הקבצים מ
+%1
+ייתכן שחלק מהקבצים עדיין קיימים.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1506,7 +1549,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">זוהתה שחיתות במסד הנתונים או שגיאת קלט/פלט ב-%1.\n\nשגיאה: %2\n\nפעולות מומלצות:\n  • הפעל עזרה ← פתרון בעיות ← בדוק את שלמות מסד הנתונים\n  • שחזר מגיבוי אחרון אם נמצאות בעיות</translation>
+      <translation type="unfinished">זוהתה שחיתות במסד הנתונים או שגיאת קלט/פלט ב-%1.
+
+שגיאה: %2
+
+פעולות מומלצות:
+  • הפעל עזרה ← פתרון בעיות ← בדוק את שלמות מסד הנתונים
+  • שחזר מגיבוי אחרון אם נמצאות בעיות</translation>
     </message>
   </context>
   <context>
@@ -1939,17 +1988,17 @@ Hint: Change the start date first</source>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— התאמה גרועה, השימוש במודל מושבת</translation>
+      <translation type="unfinished"> — התאמה גרועה, השימוש במודל מושבת</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— התאמה בינונית</translation>
+      <translation type="unfinished"> — התאמה בינונית</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— יחליף את המודל הפעיל מאז %1</translation>
+      <translation type="unfinished"> — יחליף את המודל הפעיל מאז %1</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2011,7 +2060,8 @@ Hint: Change the start date first</source>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">לא ניתן לפתוח את הקובץ לקריאה:\n%1</translation>
+      <translation type="unfinished">לא ניתן לפתוח את הקובץ לקריאה:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2259,7 +2309,7 @@ Hint: Change the start date first</source>
     <message>
       <location filename="../oscar/exports/exportcsv.cpp" line="200" />
       <source> Count</source>
-      <translation type="unfinished">מספר</translation>
+      <translation type="unfinished"> מספר</translation>
     </message>
     <message>
       <source>Export CSV</source>
@@ -2394,7 +2444,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">לא ניתן לפתוח את הקובץ לקריאה:\n%1</translation>
+      <translation type="unfinished">לא ניתן לפתוח את הקובץ לקריאה:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2552,7 +2603,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">בודק את %1...\n\nאנא המתן...</translation>
+      <translation type="unfinished">בודק את %1...
+
+אנא המתן...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2563,7 +2616,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">התיקייה שנבחרה אינה נראית כפרופיל OSCAR תקין.\nאנא בחר תיקייה המכילה את הקובץ machines.xml</translation>
+      <translation type="unfinished">התיקייה שנבחרה אינה נראית כפרופיל OSCAR תקין.
+אנא בחר תיקייה המכילה את הקובץ machines.xml</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2576,7 +2630,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">פרופיל זה הוא בגודל %1 GB.\nהייבוא עשוי לקחת זמן רב.\n\nהאם ברצונך להמשיך?</translation>
+      <translation type="unfinished">פרופיל זה הוא בגודל %1 GB.
+הייבוא עשוי לקחת זמן רב.
+
+האם ברצונך להמשיך?</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2746,7 +2803,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">לא ניתן לכתוב את הקובץ:\n%1</translation>
+      <translation type="unfinished">לא ניתן לכתוב את הקובץ:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -3561,7 +3619,8 @@ Do you want to continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">הייתה בעיה בניתוח %1 \nקובץ נתונים: %2</translation>
+      <translation type="unfinished">הייתה בעיה בניתוח %1 
+קובץ נתונים: %2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3224" />
@@ -3714,7 +3773,7 @@ Data File: %2</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">מייבא פרופיל</translation>
+      <translation type="unfinished">מייבא פרופיל </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -3726,7 +3785,9 @@ Data File: %2</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">הפרופיל '%1' יובא בהצלחה.\n\nכעת תוכל לבחור אותו מבורר הפרופילים.</translation>
+      <translation type="unfinished">הפרופיל '%1' יובא בהצלחה.
+
+כעת תוכל לבחור אותו מבורר הפרופילים.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -3759,7 +3820,11 @@ You can now select it from the profile selector.</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">לא ניתן לייבא נתונים: מסד הנתונים של OSCAR נעול על ידי יישום אחר.\n\nאם מסד הנתונים פתוח בתוכנת צפייה או עריכה של SQLite, אנא סגור אותו ונסה שנית.\n\nשגיאה: %1</translation>
+      <translation type="unfinished">לא ניתן לייבא נתונים: מסד הנתונים של OSCAR נעול על ידי יישום אחר.
+
+אם מסד הנתונים פתוח בתוכנת צפייה או עריכה של SQLite, אנא סגור אותו ונסה שנית.
+
+שגיאה: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1029" />
@@ -3769,7 +3834,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">לא ניתן היה לשמור את הנתונים המיובאים במסד הנתונים. לא נשמרו נתונים.\n\nאם מסד הנתונים של OSCAR פתוח ביישום אחר (למשל, תוכנת צפייה או עריכה של SQLite), אנא סגור אותו ונסה שנית.\n\nשגיאה: %1</translation>
+      <translation type="unfinished">לא ניתן היה לשמור את הנתונים המיובאים במסד הנתונים. לא נשמרו נתונים.
+
+אם מסד הנתונים של OSCAR פתוח ביישום אחר (למשל, תוכנת צפייה או עריכה של SQLite), אנא סגור אותו ונסה שנית.
+
+שגיאה: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1290" />
@@ -3790,7 +3859,8 @@ Error: %1</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">ייבוא הפרופיל נכשל:\n%1</translation>
+      <translation type="unfinished">ייבוא הפרופיל נכשל:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1449" />
@@ -3805,7 +3875,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">כרטיס SD זה שייך למכשיר שונה מהאחרון שיובא לפרופיל זה.\n\nיובא לאחרונה: %1\nכרטיס זה: %2\n\nהאם אתה בטוח שברצונך לייבא מכרטיס זה לפרופיל זה?</translation>
+      <translation type="unfinished">כרטיס SD זה שייך למכשיר שונה מהאחרון שיובא לפרופיל זה.
+
+יובא לאחרונה: %1
+כרטיס זה: %2
+
+האם אתה בטוח שברצונך לייבא מכרטיס זה לפרופיל זה?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3839,7 +3914,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">פעולה זו תמחק לצמיתות את כל תיקוני הזמן עבור כל מכשיר בפרופיל זה.\n\nהאם אתה בטוח?</translation>
+      <translation type="unfinished">פעולה זו תמחק לצמיתות את כל תיקוני הזמן עבור כל מכשיר בפרופיל זה.
+
+האם אתה בטוח?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2396" />
@@ -3881,7 +3958,9 @@ Are you sure?</source>
       <source>Are you sure you want to rebuild all CPAP data for the following device:
 
 </source>
-      <translation type="unfinished">האם אתה בטוח שברצונך לבנות מחדש את כל נתוני ה-CPAP עבור המכשיר הבא:\n\n</translation>
+      <translation type="unfinished">האם אתה בטוח שברצונך לבנות מחדש את כל נתוני ה-CPAP עבור המכשיר הבא:
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2507" />
@@ -3941,7 +4020,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">(פעיל)</translation>
+      <translation type="unfinished"> (פעיל)</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3962,7 +4041,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">התיקייה שנבחרה כבר מכילה מסד נתונים של OSCAR.\nהשתמש ב-File ▸ Database ▸ Open כדי לפתוח מסד נתונים קיים.</translation>
+      <translation type="unfinished">התיקייה שנבחרה כבר מכילה מסד נתונים של OSCAR.
+השתמש ב-File ▸ Database ▸ Open כדי לפתוח מסד נתונים קיים.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3978,7 +4058,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">התיקייה שנבחרה אינה מכילה מסד נתונים של OSCAR.\nאנא בחר תיקייה המכילה קובץ oscar.db.</translation>
+      <translation type="unfinished">התיקייה שנבחרה אינה מכילה מסד נתונים של OSCAR.
+אנא בחר תיקייה המכילה קובץ oscar.db.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3990,7 +4071,9 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">אין מסדי נתונים לא פעילים ברשימה האחרונה למחיקה.\n\nפתח מסדי נתונים עם קובץ ▸ מסד נתונים ▸ פתח תחילה כדי להוסיפם לרשימה האחרונה.</translation>
+      <translation type="unfinished">אין מסדי נתונים לא פעילים ברשימה האחרונה למחיקה.
+
+פתח מסדי נתונים עם קובץ ▸ מסד נתונים ▸ פתח תחילה כדי להוסיפם לרשימה האחרונה.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3429" />
@@ -4047,7 +4130,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">פעולה זו תדחוס את מסד הנתונים כדי לפנות שטח דיסק שאינו בשימוש. היא שימושית במיוחד לאחר מחיקת פרופילים.\n\nגודל מסד הנתונים הנוכחי: %1\n\nפעולה זו עשויה לקחת מספר דקות עבור מסדי נתונים גדולים. OSCAR יופעל מחדש אוטומטית עם השלמתה.\n\nלהמשיך?</translation>
+      <translation type="unfinished">פעולה זו תדחוס את מסד הנתונים כדי לפנות שטח דיסק שאינו בשימוש. היא שימושית במיוחד לאחר מחיקת פרופילים.
+
+גודל מסד הנתונים הנוכחי: %1
+
+פעולה זו עשויה לקחת מספר דקות עבור מסדי נתונים גדולים. OSCAR יופעל מחדש אוטומטית עם השלמתה.
+
+להמשיך?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -4059,28 +4148,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">בדיקת שלמות מסד הנתונים נכשלה. לא ניתן לבצע דחיסה על מסד נתונים פגום.\n\nפעולות מומלצות:\n  • שחזר את מסד הנתונים כולו מגיבוי מערכת אחרון\n  • שחזר כל פרופיל מגיבוי אחרון (קובץ ← שחזר פרופיל)\n  • ייבא מחדש נתונים מכרטיס/י SD של ה-CPAP שלך\n\nלאפשרויות שחזור מתקדמות, עיין בתיעוד של OSCAR.</translation>
+      <translation type="unfinished">בדיקת שלמות מסד הנתונים נכשלה. לא ניתן לבצע דחיסה על מסד נתונים פגום.
+
+פעולות מומלצות:
+  • שחזר את מסד הנתונים כולו מגיבוי מערכת אחרון
+  • שחזר כל פרופיל מגיבוי אחרון (קובץ ← שחזר פרופיל)
+  • ייבא מחדש נתונים מכרטיס/י SD של ה-CPAP שלך
+
+לאפשרויות שחזור מתקדמות, עיין בתיעוד של OSCAR.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">דוחס את מסד הנתונים, אנא המתן...\n\nפעולה זו עשויה לקחת מספר דקות עבור מסדי נתונים גדולים.</translation>
+      <translation type="unfinished">דוחס את מסד הנתונים, אנא המתן...
+
+פעולה זו עשויה לקחת מספר דקות עבור מסדי נתונים גדולים.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">הדחיסה הצליחה אך לא ניתן היה להחליף את קובץ מסד הנתונים.\n\nמסד הנתונים המקורי לא השתנה.</translation>
+      <translation type="unfinished">הדחיסה הצליחה אך לא ניתן היה להחליף את קובץ מסד הנתונים.
+
+מסד הנתונים המקורי לא השתנה.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">הדחיסה הצליחה אך לא ניתן היה למקם את הקובץ החדש במקומו.\n\nמסד הנתונים המקורי שוחזר.</translation>
+      <translation type="unfinished">הדחיסה הצליחה אך לא ניתן היה למקם את הקובץ החדש במקומו.
+
+מסד הנתונים המקורי שוחזר.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -4091,7 +4193,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">מסד הנתונים נדחס בהצלחה.\n\nלפני:    %1\nאחרי:     %2\nפונה: %3\n\nOSCAR יופעל מחדש כאשר תלחץ אישור.</translation>
+      <translation type="unfinished">מסד הנתונים נדחס בהצלחה.
+
+לפני:    %1
+אחרי:     %2
+פונה: %3
+
+OSCAR יופעל מחדש כאשר תלחץ אישור.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -4102,7 +4210,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">מסד הנתונים נדחס בהצלחה.\n\nגודל: %1\n\nלא פונה שטח — מסד הנתונים כבר היה דחוס.\n\nOSCAR יופעל מחדש כאשר תלחץ אישור.</translation>
+      <translation type="unfinished">מסד הנתונים נדחס בהצלחה.
+
+גודל: %1
+
+לא פונה שטח — מסד הנתונים כבר היה דחוס.
+
+OSCAR יופעל מחדש כאשר תלחץ אישור.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3543" />
@@ -4175,7 +4289,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">בדיקת שלמות מסד הנתונים מצאה בעיות. ייתכן שחלק מהנתונים חסרים או פגומים.\n\nבדיקת השלמות מכסה את מסד הנתונים כולו, אשר עשוי להכיל מספר פרופילים.\n\nפעולות מומלצות:\n  • שחזר את מסד הנתונים כולו מגיבוי מערכת אחרון\n  • שחזר כל פרופיל מגיבוי אחרון (קובץ ← שחזר פרופיל)\n  • ייבא מחדש נתונים מכרטיס/י SD של ה-CPAP שלך\n\nלאפשרויות שחזור מתקדמות, עיין בתיעוד של OSCAR.</translation>
+      <translation type="unfinished">בדיקת שלמות מסד הנתונים מצאה בעיות. ייתכן שחלק מהנתונים חסרים או פגומים.
+
+בדיקת השלמות מכסה את מסד הנתונים כולו, אשר עשוי להכיל מספר פרופילים.
+
+פעולות מומלצות:
+  • שחזר את מסד הנתונים כולו מגיבוי מערכת אחרון
+  • שחזר כל פרופיל מגיבוי אחרון (קובץ ← שחזר פרופיל)
+  • ייבא מחדש נתונים מכרטיס/י SD של ה-CPAP שלך
+
+לאפשרויות שחזור מתקדמות, עיין בתיעוד של OSCAR.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -4200,7 +4323,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">דחיסת מסד הנתונים נכשלה:\n%1</translation>
+      <translation type="unfinished">דחיסת מסד הנתונים נכשלה:
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -4758,7 +4882,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">לא ניתן לפתוח את הקובץ לקריאה:\n%1</translation>
+      <translation type="unfinished">לא ניתן לפתוח את הקובץ לקריאה:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4779,7 +4904,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">הקובץ הועלה ל-OneDrive אך לא ניתן היה ליצור קישור שיתוף (HTTP %1).\nשים לב: שיתוף אנונימי עשוי להיות מושבת בהגדרות חשבון Microsoft שלך.</translation>
+      <translation type="unfinished">הקובץ הועלה ל-OneDrive אך לא ניתן היה ליצור קישור שיתוף (HTTP %1).
+שים לב: שיתוף אנונימי עשוי להיות מושבת בהגדרות חשבון Microsoft שלך.</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -5516,7 +5642,7 @@ Index</source>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="178" />
       <source>Combine Close Sessions </source>
-      <translation type="unfinished">שלב סשנים קרובים</translation>
+      <translation type="unfinished">שלב סשנים קרובים </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="188" />
@@ -5528,7 +5654,8 @@ Index</source>
       <location filename="../oscar/preferencesdialog.ui" line="208" />
       <source>Multiple sessions closer together than this value will be kept on the same day.
 </source>
-      <translation type="unfinished">סשנים מרובים הקרובים זה לזה יותר מערך זה יישמרו באותו יום.\n</translation>
+      <translation type="unfinished">סשנים מרובים הקרובים זה לזה יותר מערך זה יישמרו באותו יום.
+</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="263" />
@@ -5564,7 +5691,13 @@ and graph data older than 30 days..
 
 OSCAR can keep a copy of this data if you ever need to reinstall. 
 (Highly recomended, unless your short on disk space or don't care about the graph data)</source>
-      <translation type="unfinished">אפשרות זו שומרת גיבוי של נתוני כרטיס SD עבור מכשירי ResMed, \n\nמכשירי ResMed S9 מוחקים נתוני רזולוציה גבוהה ישנים מ-7 ימים, \nונתוני גרף ישנים מ-30 ימים..\n\nOSCAR יכול לשמור עותק של נתונים אלה אם תצטרך להתקין מחדש. \n(מומלץ מאוד, אלא אם כן אין לך מספיק מקום בדיסק או שאתה לא צריך את נתוני הגרף)</translation>
+      <translation type="unfinished">אפשרות זו שומרת גיבוי של נתוני כרטיס SD עבור מכשירי ResMed, 
+
+מכשירי ResMed S9 מוחקים נתוני רזולוציה גבוהה ישנים מ-7 ימים, 
+ונתוני גרף ישנים מ-30 ימים..
+
+OSCAR יכול לשמור עותק של נתונים אלה אם תצטרך להתקין מחדש. 
+(מומלץ מאוד, אלא אם כן אין לך מספיק מקום בדיסק או שאתה לא צריך את נתוני הגרף)</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="653" />
@@ -5583,14 +5716,20 @@ OSCAR can keep a copy of this data if you ever need to reinstall.
 The Unintentional Leak calculations used here are linear, they don't model the mask vent curve.
 
 If you use a few different masks, pick average values instead. It should still be close enough.</source>
-      <translation type="unfinished">חישוב זה דורש שנתוני דליפות כוללות יסופקו על ידי מכשיר ה-CPAP. (לדוגמה, PRS1, אך לא ResMed, שכבר כולל אותם)\n\nחישובי הדליפה הלא מכוונת המשמשים כאן הם ליניאריים, הם אינם מדמים את עקומת פתחי האוורור של המסכה.\n\nאם אתה משתמש במספר מסכות שונות, בחר ערכים ממוצעים במקום זאת. זה עדיין אמור להיות קרוב מספיק.</translation>
+      <translation type="unfinished">חישוב זה דורש שנתוני דליפות כוללות יסופקו על ידי מכשיר ה-CPAP. (לדוגמה, PRS1, אך לא ResMed, שכבר כולל אותם)
+
+חישובי הדליפה הלא מכוונת המשמשים כאן הם ליניאריים, הם אינם מדמים את עקומת פתחי האוורור של המסכה.
+
+אם אתה משתמש במספר מסכות שונות, בחר ערכים ממוצעים במקום זאת. זה עדיין אמור להיות קרוב מספיק.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="898" />
       <source>Enable/disable experimental event flagging enhancements. 
 It allows detecting borderline events, and some the device missed.
 This option must be enabled before import, otherwise a purge is required.</source>
-      <translation type="unfinished">הפעל/השבת שיפורים ניסיוניים לסימון אירועים. \nמאפשר זיהוי אירועים גבוליים, וחלק מהאירועים שהמכשיר פספס.\nאפשרות זו חייבת להיות מופעלת לפני הייבוא, אחרת נדרשת מחיקה מלאה.</translation>
+      <translation type="unfinished">הפעל/השבת שיפורים ניסיוניים לסימון אירועים. 
+מאפשר זיהוי אירועים גבוליים, וחלק מהאירועים שהמכשיר פספס.
+אפשרות זו חייבת להיות מופעלת לפני הייבוא, אחרת נדרשת מחיקה מלאה.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="950" />
@@ -5626,7 +5765,8 @@ This option must be enabled before import, otherwise a purge is required.</sourc
       <location filename="../oscar/preferencesdialog.ui" line="1026" />
       <source>Percentage of restriction in airflow from the median value. 
 A value of 20% works well for detecting apneas. </source>
-      <translation type="unfinished">אחוז ההגבלה בזרימת האוויר מהערך החציוני. \nערך של 20% עובד היטב לזיהוי דום נשימה.</translation>
+      <translation type="unfinished">אחוז ההגבלה בזרימת האוויר מהערך החציוני. 
+ערך של 20% עובד היטב לזיהוי דום נשימה. </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1047" />
@@ -5651,12 +5791,13 @@ A value of 20% works well for detecting apneas. </source>
       <location filename="../oscar/preferencesdialog.ui" line="1144" />
       <source>Adjusts the amount of data considered for each point in the AHI/Hour graph.
 Defaults to 60 minutes.. Highly recommend it's left at this value.</source>
-      <translation type="unfinished">מכוונן את כמות הנתונים הנחשבת עבור כל נקודה בגרף AHI/שעה.\nברירת המחדל היא 60 דקות.. מומלץ מאוד להשאיר ערך זה כפי שהוא.</translation>
+      <translation type="unfinished">מכוונן את כמות הנתונים הנחשבת עבור כל נקודה בגרף AHI/שעה.
+ברירת המחדל היא 60 דקות.. מומלץ מאוד להשאיר ערך זה כפי שהוא.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1148" />
       <source> minutes</source>
-      <translation type="unfinished">דקות</translation>
+      <translation type="unfinished"> דקות</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1187" />
@@ -5694,7 +5835,7 @@ Defaults to 60 minutes.. Highly recommend it's left at this value.</source>
       <location filename="../oscar/preferencesdialog.ui" line="1851" />
       <location filename="../oscar/preferencesdialog.ui" line="1961" />
       <source> bpm</source>
-      <translation type="unfinished">פעימות לדקה</translation>
+      <translation type="unfinished"> פעימות לדקה</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1906" />
@@ -5740,7 +5881,8 @@ Defaults to 60 minutes.. Highly recommend it's left at this value.</source>
       <location filename="../oscar/preferencesdialog.ui" line="2244" />
       <source>Allow use of multiple CPU cores where available to improve performance. 
 Mainly affects the importer.</source>
-      <translation type="unfinished">אפשר שימוש במספר ליבות מעבד במידת הצורך לשיפור הביצועים. \nמשפיע בעיקר על יבואן הנתונים.</translation>
+      <translation type="unfinished">אפשר שימוש במספר ליבות מעבד במידת הצורך לשיפור הביצועים. 
+משפיע בעיקר על יבואן הנתונים.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2248" />
@@ -5776,7 +5918,8 @@ Mainly affects the importer.</source>
       <location filename="../oscar/preferencesdialog.ui" line="1254" />
       <source>For consistancy, ResMed users should use 95% here,
 as this is the only value available on summary-only days.</source>
-      <translation type="unfinished">לעקביות, משתמשי ResMed צריכים להשתמש ב-95% כאן,\nמכיוון שזהו הערך היחיד הזמין בימים של סיכום בלבד.</translation>
+      <translation type="unfinished">לעקביות, משתמשי ResMed צריכים להשתמש ב-95% כאן,
+מכיוון שזהו הערך היחיד הזמין בימים של סיכום בלבד.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1305" />
@@ -5842,7 +5985,7 @@ as this is the only value available on summary-only days.</source>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2435" />
       <source>Last Checked For Updates: </source>
-      <translation type="unfinished">בדיקה אחרונה לעדכונים:</translation>
+      <translation type="unfinished">בדיקה אחרונה לעדכונים: </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2448" />
@@ -5858,7 +6001,8 @@ as this is the only value available on summary-only days.</source>
       <location filename="../oscar/preferencesdialog.ui" line="2687" />
       <source>The visual method of displaying waveform overlay flags.
 </source>
-      <translation type="unfinished">שיטת התצוגה החזותית של דגלי שכבת-על של צורת גל.\n</translation>
+      <translation type="unfinished">שיטת התצוגה החזותית של דגלי שכבת-על של צורת גל.
+</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2692" />
@@ -5915,7 +6059,9 @@ as this is the only value available on summary-only days.</source>
       <source>This makes OSCAR's data take around half as much space.
 But it makes import and day changing take longer.. 
 If you've got a new computer with a small solid state disk, this is a good option.</source>
-      <translation type="unfinished">זה גורם לנתוני OSCAR לתפוס כמחצית מהשטח.\nאך זה גורם לייבוא ולמעבר בין ימים להימשך יותר זמן.. \nאם יש לך מחשב חדש עם דיסק קשיח מוצק קטן, זו אפשרות טובה.</translation>
+      <translation type="unfinished">זה גורם לנתוני OSCAR לתפוס כמחצית מהשטח.
+אך זה גורם לייבוא ולמעבר בין ימים להימשך יותר זמן.. 
+אם יש לך מחשב חדש עם דיסק קשיח מוצק קטן, זו אפשרות טובה.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="486" />
@@ -6033,7 +6179,7 @@ If you've got a new computer with a small solid state disk, this is a good optio
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1206" />
       <source> l/min</source>
-      <translation type="unfinished">l/min</translation>
+      <translation type="unfinished"> l/min</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1298" />
@@ -6083,7 +6229,12 @@ which is common on Mac  Linux platforms..
 
 OSCAR can import from this compressed backup directory natively.. 
 To use it with ResScan will require the .gz files to be uncompressed first..</source>
-      <translation type="unfinished">דחוס גיבויי ResMed‏ (EDF) לחיסכון בשטח דיסק.\nקבצי EDF המגובים מאוחסנים בפורמט ‎.gz, \nהנפוץ בפלטפורמות Mac ו-Linux..\n\nOSCAR יכול לייבא מתיקיית גיבוי דחוסה זו באופן ישיר.. \nלשימוש עם ResScan יש לפתוח את קבצי ה-‎.gz תחילה..</translation>
+      <translation type="unfinished">דחוס גיבויי ResMed‏ (EDF) לחיסכון בשטח דיסק.
+קבצי EDF המגובים מאוחסנים בפורמט ‎.gz, 
+הנפוץ בפלטפורמות Mac ו-Linux..
+
+OSCAR יכול לייבא מתיקיית גיבוי דחוסה זו באופן ישיר.. 
+לשימוש עם ResScan יש לפתוח את קבצי ה-‎.gz תחילה..</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1173" />
@@ -6198,7 +6349,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1628" />
       <source>Select  Oscar Operating Mode </source>
-      <translation type="unfinished">בחר מצב הפעלה של Oscar</translation>
+      <translation type="unfinished">בחר מצב הפעלה של Oscar </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1638" />
@@ -6213,7 +6364,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1665" />
       <source> Hours</source>
-      <translation type="unfinished">שעות</translation>
+      <translation type="unfinished"> שעות</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1692" />
@@ -6260,7 +6411,8 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">מוסיף פריטי חדש, פתח, אחרון ומחק לקובץ &gt; מסד נתונים.\nמיועד לצוות תמיכה ומפתחים.</translation>
+      <translation type="unfinished">מוסיף פריטי חדש, פתח, אחרון ומחק לקובץ &gt; מסד נתונים.
+מיועד לצוות תמיכה ומפתחים.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6437,7 +6589,11 @@ Certain plots look more attractive with this on.
 This also affects printed reports.
 
 Try it and see if you like it.</source>
-      <translation type="unfinished">החלקת קצוות מיישמת החלקה על תרשימי גרף.. \nתרשימים מסוימים נראים אטרקטיביים יותר כאשר זה מופעל. \nזה משפיע גם על דוחות מודפסים.\n\nנסה זאת וראה אם אתה אוהב.</translation>
+      <translation type="unfinished">החלקת קצוות מיישמת החלקה על תרשימי גרף.. 
+תרשימים מסוימים נראים אטרקטיביים יותר כאשר זה מופעל. 
+זה משפיע גם על דוחות מודפסים.
+
+נסה זאת וראה אם אתה אוהב.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3010" />
@@ -6494,7 +6650,9 @@ Try it and see if you like it.</source>
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">השתמש בערכת הנושא Fusion של Qt במקום בערכת הנושא המקורית של הפלטפורמה.\nמספק מראה עקבי בין פלטפורמות.\nOSCAR יופעל מחדש כאשר תלחץ על אישור.</translation>
+      <translation type="unfinished">השתמש בערכת הנושא Fusion של Qt במקום בערכת הנושא המקורית של הפלטפורמה.
+מספק מראה עקבי בין פלטפורמות.
+OSCAR יופעל מחדש כאשר תלחץ על אישור.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -6534,7 +6692,7 @@ OSCAR will restart when you click OK.</source>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">יש להפעיל את מצב מתירני. ראה לשונית קלינית</translation>
+      <translation type="unfinished">יש להפעיל את מצב מתירני. ראה לשונית קלינית </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6551,7 +6709,9 @@ OSCAR will restart when you click OK.</source>
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">נשימה יציבה (SB) מבוססת על קצב זרימה.\nיוצרת צורת גל ואירועי SPAN באמצעות קצב זרימת CPAP.\nפועלת רק כאשר נשימה יציבה מופעלת ונתוני CPAP מיובאים (מחדש).</translation>
+      <translation type="unfinished">נשימה יציבה (SB) מבוססת על קצב זרימה.
+יוצרת צורת גל ואירועי SPAN באמצעות קצב זרימת CPAP.
+פועלת רק כאשר נשימה יציבה מופעלת ונתוני CPAP מיובאים (מחדש).  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6571,7 +6731,7 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1484" />
       <source> Seconds</source>
-      <translation type="unfinished">שניות</translation>
+      <translation type="unfinished"> שניות</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1503" />
@@ -6587,13 +6747,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">מצב קליני אינו מאפשר סשנים מושבתים.\nסשנים מושבתים אינם משמשים לגרפים או סטטיסטיקות.</translation>
+      <translation type="unfinished">מצב קליני אינו מאפשר סשנים מושבתים.
+סשנים מושבתים אינם משמשים לגרפים או סטטיסטיקות.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">מצב מתירני מאפשר סשנים מושבתים.\nסשנים מושבתים משמשים לגרפים וסטטיסטיקות.</translation>
+      <translation type="unfinished">מצב מתירני מאפשר סשנים מושבתים.
+סשנים מושבתים משמשים לגרפים וסטטיסטיקות.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6606,7 +6768,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">כברירת מחדל, OSCAR משתמש בחישוב מהשעה הראשונה של נתוני האוקסימטריה כבסיס.\nהגדרה זו מאפשרת לך לעקוף זאת עם ערך סטטי.\nייתכן שזה יהיה שימושי כאשר השעה הראשונה אינה אופיינית למערך הנתונים כולו.\nייתכן שיהיה שימושי גם לספק השוואה קלה יותר בין ימים.</translation>
+      <translation type="unfinished">כברירת מחדל, OSCAR משתמש בחישוב מהשעה הראשונה של נתוני האוקסימטריה כבסיס.
+הגדרה זו מאפשרת לך לעקוף זאת עם ערך סטטי.
+ייתכן שזה יהיה שימושי כאשר השעה הראשונה אינה אופיינית למערך הנתונים כולו.
+ייתכן שיהיה שימושי גם לספק השוואה קלה יותר בין ימים.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1861" />
@@ -6625,7 +6790,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;סנכרון נתוני אוקסימטריה ו-CPAP&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;נתוני CMS50 המיובאים מ-SpO2Review (מקבצי .spoR) או בשיטת הייבוא הטורי &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;אינם&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; כוללים את חותמת הזמן הנכונה הנדרשת לסנכרון.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;מצב תצוגה חי (באמצעות כבל טורי) הוא דרך אחת להשיג סנכרון מדויק באוקסימטרים מסוג CMS50, אך אינו מתחשב בסחף שעון ה-CPAP.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;אם תפעיל את מצב ההקלטה של האוקסימטר שלך ב&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;דיוק &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;באותו הזמן שבו אתה מפעיל את מכשיר ה-CPAP שלך, תוכל כעת להשיג סנכרון גם כן.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;תהליך הייבוא הטורי לוקח את זמן ההתחלה מהסשן הראשון של CPAP של אמש. (זכור לייבא תחילה את נתוני ה-CPAP שלך!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;סנכרון נתוני אוקסימטריה ו-CPAP&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;נתוני CMS50 המיובאים מ-SpO2Review (מקבצי .spoR) או בשיטת הייבוא הטורי &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;אינם&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; כוללים את חותמת הזמן הנכונה הנדרשת לסנכרון.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;מצב תצוגה חי (באמצעות כבל טורי) הוא דרך אחת להשיג סנכרון מדויק באוקסימטרים מסוג CMS50, אך אינו מתחשב בסחף שעון ה-CPAP.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;אם תפעיל את מצב ההקלטה של האוקסימטר שלך ב&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;דיוק &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;באותו הזמן שבו אתה מפעיל את מכשיר ה-CPAP שלך, תוכל כעת להשיג סנכרון גם כן.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;תהליך הייבוא הטורי לוקח את זמן ההתחלה מהסשן הראשון של CPAP של אמש. (זכור לייבא תחילה את נתוני ה-CPAP שלך!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2473" />
@@ -6680,7 +6854,7 @@ p, li { white-space: pre-wrap; }
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">ריווח צבעים מתחלף</translation>
+      <translation type="unfinished"> ריווח צבעים מתחלף</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3262" />
@@ -6695,7 +6869,7 @@ p, li { white-space: pre-wrap; }
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3300" />
       <source>Bold  </source>
-      <translation type="unfinished">מודגש</translation>
+      <translation type="unfinished">מודגש  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3322" />
@@ -6965,7 +7139,9 @@ p, li { white-space: pre-wrap; }
       <source>A data re/decompression proceedure is required to apply these changes. This operation may take a couple of minutes to complete.
 
 Are you sure you want to make these changes?</source>
-      <translation type="unfinished">נדרשת פרוצדורת דחיסה/פריסה מחדש של נתונים כדי להחיל שינויים אלה. פעולה זו עשויה לקחת כמה דקות להשלמה.\n\nהאם אתה בטוח שברצונך לבצע שינויים אלה?</translation>
+      <translation type="unfinished">נדרשת פרוצדורת דחיסה/פריסה מחדש של נתונים כדי להחיל שינויים אלה. פעולה זו עשויה לקחת כמה דקות להשלמה.
+
+האם אתה בטוח שברצונך לבצע שינויים אלה?</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="886" />
@@ -6977,7 +7153,9 @@ Are you sure you want to make these changes?</source>
       <source>A data reindexing proceedure is required to apply these changes. This operation may take a couple of minutes to complete.
 
 Are you sure you want to make these changes?</source>
-      <translation type="unfinished">נדרשת פרוצדורת אינדוקס מחדש של נתונים כדי להחיל שינויים אלה. פעולה זו עשויה לקחת כמה דקות להשלמה.\n\nהאם אתה בטוח שברצונך לבצע שינויים אלה?</translation>
+      <translation type="unfinished">נדרשת פרוצדורת אינדוקס מחדש של נתונים כדי להחיל שינויים אלה. פעולה זו עשויה לקחת כמה דקות להשלמה.
+
+האם אתה בטוח שברצונך לבצע שינויים אלה?</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="893" />
@@ -7001,24 +7179,26 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1314" />
       <source> If you ever need to reimport this data again (whether in OSCAR or ResScan) this data won't come back.</source>
-      <translation type="unfinished">אם תצטרך לייבא מחדש נתונים אלה (בין אם ב-OSCAR או ב-ResScan), הנתונים לא יחזרו.</translation>
+      <translation type="unfinished"> אם תצטרך לייבא מחדש נתונים אלה (בין אם ב-OSCAR או ב-ResScan), הנתונים לא יחזרו.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1315" />
       <source> If you need to conserve disk space, please remember to carry out manual backups.</source>
-      <translation type="unfinished">אם עליך לחסוך בשטח דיסק, אנא זכור לבצע גיבויים ידניים.</translation>
+      <translation type="unfinished"> אם עליך לחסוך בשטח דיסק, אנא זכור לבצע גיבויים ידניים.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1316" />
       <source> Are you sure you want to disable these backups?</source>
-      <translation type="unfinished">האם אתה בטוח שברצונך להשבית גיבויים אלה?</translation>
+      <translation type="unfinished"> האם אתה בטוח שברצונך להשבית גיבויים אלה?</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1412" />
       <source>Switching off backups is not a good idea, because OSCAR needs these to rebuild the database if errors are found.
 
 </source>
-      <translation type="unfinished">כיבוי הגיבויים אינו רעיון טוב, מכיוון ש-OSCAR זקוק להם כדי לבנות מחדש את מסד הנתונים אם נמצאו שגיאות.\n\n</translation>
+      <translation type="unfinished">כיבוי הגיבויים אינו רעיון טוב, מכיוון ש-OSCAR זקוק להם כדי לבנות מחדש את מסד הנתונים אם נמצאו שגיאות.
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1413" />
@@ -7209,7 +7389,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(כשל ראשון: %1</translation>
+      <translation type="unfinished"> (כשל ראשון: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7297,7 +7477,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">מזהה:</translation>
+      <translation type="unfinished">מזהה: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="295" />
@@ -7366,7 +7546,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">מוחק פרופיל</translation>
+      <translation type="unfinished">מוחק פרופיל </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7448,7 +7628,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">שם:</translation>
+      <translation type="unfinished">שם: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -7614,13 +7794,13 @@ Would you like do this now?</source>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="273" />
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="283" />
       <source>Min: </source>
-      <translation type="unfinished">מינימום:</translation>
+      <translation type="unfinished">מינימום: </translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="278" />
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="288" />
       <source>Max: </source>
-      <translation type="unfinished">מקסימום:</translation>
+      <translation type="unfinished">מקסימום: </translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="307" />
@@ -7630,12 +7810,12 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="313" />
       <source>%1 (%2 days): </source>
-      <translation type="unfinished">%1 (%2 ימים):</translation>
+      <translation type="unfinished">%1 (%2 ימים): </translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="315" />
       <source>%1 (%2 day): </source>
-      <translation type="unfinished">%1 (%2 יום):</translation>
+      <translation type="unfinished">%1 (%2 יום): </translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="375" />
@@ -7658,7 +7838,8 @@ Would you like do this now?</source>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="30" />
       <source>
 Length: %1</source>
-      <translation type="unfinished">\nאורך: %1</translation>
+      <translation type="unfinished">
+אורך: %1</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="96" />
@@ -7676,7 +7857,10 @@ Length: %1</source>
 Length: %3
 Start: %2
 </source>
-      <translation type="unfinished">%1\nאורך: %3\nהתחלה: %2\n</translation>
+      <translation type="unfinished">%1
+אורך: %3
+התחלה: %2
+</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSessionTimesChart.cpp" line="225" />
@@ -7693,7 +7877,9 @@ Start: %2
       <source>%1
 Length: %3
 Start: %2</source>
-      <translation type="unfinished">%1\nאורך: %3\nהתחלה: %2</translation>
+      <translation type="unfinished">%1
+אורך: %3
+התחלה: %2</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gTTIAChart.cpp" line="71" />
@@ -7704,7 +7890,8 @@ Start: %2</source>
       <location filename="../oscar/Graphs/gTTIAChart.cpp" line="83" />
       <source>
 TTIA: %1</source>
-      <translation type="unfinished">\nTTIA: %1</translation>
+      <translation type="unfinished">
+TTIA: %1</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="852" />
@@ -7841,12 +8028,12 @@ TTIA: %1</source>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="833" />
       <source> m</source>
-      <translation type="unfinished">מ'</translation>
+      <translation type="unfinished"> מ'</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="834" />
       <source> cm</source>
-      <translation type="unfinished">ס"מ</translation>
+      <translation type="unfinished"> ס"מ</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="835" />
@@ -8672,13 +8859,14 @@ https://he.wikipedia.org/wiki/%D7%A4%D7%99%D7%96%D7%99%D7%95%D7%9C%D7%95%D7%92%D
     <message>
       <location filename="../oscar/SleepLib/preferences.cpp" line="237" />
       <source>Using </source>
-      <translation type="unfinished">משתמש ב-</translation>
+      <translation type="unfinished">משתמש ב- </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/preferences.cpp" line="237" />
       <source>, found SleepyHead -
 </source>
-      <translation type="unfinished">, נמצא SleepyHead -\n</translation>
+      <translation type="unfinished">, נמצא SleepyHead -
+</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/preferences.cpp" line="238" />
@@ -8860,17 +9048,18 @@ https://he.wikipedia.org/wiki/%D7%A4%D7%99%D7%96%D7%99%D7%95%D7%9C%D7%95%D7%92%D
       <location filename="../oscar/Graphs/gFlagsLine.cpp" line="267" />
       <source>Database Outdated
 Please Rebuild CPAP Data</source>
-      <translation type="unfinished">מסד הנתונים מיושן\nאנא בנה מחדש את נתוני ה-CPAP</translation>
+      <translation type="unfinished">מסד הנתונים מיושן
+אנא בנה מחדש את נתוני ה-CPAP</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gFlagsLine.cpp" line="454" />
       <source> (%2 min, %3 sec)</source>
-      <translation type="unfinished">(%2 דק', %3 שנ')</translation>
+      <translation type="unfinished"> (%2 דק', %3 שנ')</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gFlagsLine.cpp" line="456" />
       <source> (%3 sec)</source>
-      <translation type="unfinished">(%3 שנ')</translation>
+      <translation type="unfinished"> (%3 שנ')</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gGraph.cpp" line="442" />
@@ -8886,7 +9075,8 @@ Please Rebuild CPAP Data</source>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="640" />
       <source>The popout window is full. You should capture the existing
 popout window, delete it, then pop out this graph again.</source>
-      <translation type="unfinished">חלון הקופץ מלא. עליך ללכוד את חלון הקופץ הקיים,\nלמחוק אותו, ולאחר מכן להקפיץ את הגרף הזה שוב.</translation>
+      <translation type="unfinished">חלון הקופץ מלא. עליך ללכוד את חלון הקופץ הקיים,
+למחוק אותו, ולאחר מכן להקפיץ את הגרף הזה שוב.</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="1663" />
@@ -9963,7 +10153,7 @@ popout window, delete it, then pop out this graph again.</source>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">זמן עלייה</translation>
+      <translation type="unfinished">זמן עלייה </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -11159,7 +11349,7 @@ popout window, delete it, then pop out this graph again.</source>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="184" />
       <source>Vibratory Snore (VS2) </source>
-      <translation type="unfinished">נחירה רטטנית (VS2)</translation>
+      <translation type="unfinished">נחירה רטטנית (VS2) </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="187" />
@@ -11967,7 +12157,10 @@ popout window, delete it, then pop out this graph again.</source>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">מעביר פרופיל: %1\n(%2 מתוך %3)\n\nמתחיל ייבוא...</translation>
+      <translation type="unfinished">מעביר פרופיל: %1
+(%2 מתוך %3)
+
+מתחיל ייבוא...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -11975,7 +12168,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">מבטל: %1\n(%2 מתוך %3)\n\nמנקה, אנא המתן...</translation>
+      <translation type="unfinished">מבטל: %1
+(%2 מתוך %3)
+
+מנקה, אנא המתן...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -11983,7 +12179,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">מעביר פרופיל: %1\n(%2 מתוך %3)\n\n%4</translation>
+      <translation type="unfinished">מעביר פרופיל: %1
+(%2 מתוך %3)
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -12054,7 +12253,7 @@ Cleaning up, please wait...</source>
     <message>
       <location filename="../oscar/main.cpp" line="735" />
       <source>We suggest you use this folder: </source>
-      <translation type="unfinished">אנו מציעים להשתמש בתיקייה זו:</translation>
+      <translation type="unfinished">אנו מציעים להשתמש בתיקייה זו: </translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="736" />
@@ -12175,7 +12374,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">OSCAR זיהה שהסשן הקודם הסתיים באופן בלתי צפוי, ובדיקת שלמות מסד הנתונים מצאה בעיות.\n\nייתכן שחלק מהנתונים חסרים או פגומים.\n\nפעולות מומלצות:\n  • שחזר את מסד הנתונים כולו מגיבוי מערכת אחרון\n  • שחזר כל פרופיל מגיבוי אחרון (קובץ ← שחזר פרופיל)\n  • ייבא מחדש נתונים מכרטיס/י SD של ה-CPAP שלך\n\nלאפשרויות שחזור מתקדמות, עיין בתיעוד של OSCAR.\n\nתוכל להמשיך, אך ייתכן שחלק מהנתונים יהיו חלקיים או שגויים.</translation>
+      <translation type="unfinished">OSCAR זיהה שהסשן הקודם הסתיים באופן בלתי צפוי, ובדיקת שלמות מסד הנתונים מצאה בעיות.
+
+ייתכן שחלק מהנתונים חסרים או פגומים.
+
+פעולות מומלצות:
+  • שחזר את מסד הנתונים כולו מגיבוי מערכת אחרון
+  • שחזר כל פרופיל מגיבוי אחרון (קובץ ← שחזר פרופיל)
+  • ייבא מחדש נתונים מכרטיס/י SD של ה-CPAP שלך
+
+לאפשרויות שחזור מתקדמות, עיין בתיעוד של OSCAR.
+
+תוכל להמשיך, אך ייתכן שחלק מהנתונים יהיו חלקיים או שגויים.</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -12241,7 +12451,8 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <location filename="../oscar/mainwindow.cpp" line="1238" />
       <source>Chromebook file system detected, but no removable device found
 </source>
-      <translation type="unfinished">זוהה מערכת קבצים של Chromebook, אך לא נמצא התקן נתיק\n</translation>
+      <translation type="unfinished">זוהה מערכת קבצים של Chromebook, אך לא נמצא התקן נתיק
+</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1239" />
@@ -12372,7 +12583,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
     <message>
       <location filename="../oscar/welcome.cpp" line="427" />
       <source>Most recent Oximetry data: &lt;a onclick='alert("daily=%2");'&gt;%1&lt;/a&gt; </source>
-      <translation type="unfinished">נתוני האוקסימטריה האחרונים: &lt;a onclick='alert("daily=%2");'&gt;%1&lt;/a&gt;</translation>
+      <translation type="unfinished">נתוני האוקסימטריה האחרונים: &lt;a onclick='alert("daily=%2");'&gt;%1&lt;/a&gt; </translation>
     </message>
     <message>
       <location filename="../oscar/welcome.cpp" line="428" />
@@ -12631,7 +12842,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR:</translation>
+      <translation type="unfinished">IPR: </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/journal.cpp" line="176" />
@@ -12643,7 +12854,9 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">העברת יומן הושלמה:\n%1 רשומות יומן הועברו למסד הנתונים\n%2 שגיאות</translation>
+      <translation type="unfinished">העברת יומן הושלמה:
+%1 רשומות יומן הועברו למסד הנתונים
+%2 שגיאות</translation>
     </message>
     <message>
       <location filename="../oscar/notifyMessageBox.cpp" line="18" />
@@ -12799,7 +13012,9 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">הקובץ שנבחר אינו נראה כקובץ CSV תקין של Dreem.\n\nנתוני Dreem חייבים להיות מעוצבים כקובץ CSV מופרד בנקודות-פסיק. אנא ודא שהנתונים שלך בפורמט CSV ונסה שוב.</translation>
+      <translation type="unfinished">הקובץ שנבחר אינו נראה כקובץ CSV תקין של Dreem.
+
+נתוני Dreem חייבים להיות מעוצבים כקובץ CSV מופרד בנקודות-פסיק. אנא ודא שהנתונים שלך בפורמט CSV ונסה שוב.</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13167,7 +13382,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">(עותק)</translation>
+      <translation type="unfinished"> (עותק)</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13217,19 +13432,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">ניתוח הקובץ נכשל:\n%1</translation>
+      <translation type="unfinished">ניתוח הקובץ נכשל:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">הייבוא נכשל:\n%1</translation>
+      <translation type="unfinished">הייבוא נכשל:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">יובאו %1 דוח/ות מתוך:\n%2</translation>
+      <translation type="unfinished">יובאו %1 דוח/ות מתוך:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13252,13 +13470,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">כתיבת הקובץ נכשלה:\n%1</translation>
+      <translation type="unfinished">כתיבת הקובץ נכשלה:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">יוצאו %1 דוח/ות אל:\n%2</translation>
+      <translation type="unfinished">יוצאו %1 דוח/ות אל:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13314,19 +13534,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">השאילתה נכשלה:\n%1</translation>
+      <translation type="unfinished">השאילתה נכשלה:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">לא ניתן לכתוב את הקובץ:\n%1</translation>
+      <translation type="unfinished">לא ניתן לכתוב את הקובץ:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">יוצאו %1 שורות אל:\n%2</translation>
+      <translation type="unfinished">יוצאו %1 שורות אל:
+%2</translation>
     </message>
   </context>
   <context>
@@ -13472,7 +13695,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">דוח עם שם זה כבר קיים.\nאנא בחר שם אחר.</translation>
+      <translation type="unfinished">דוח עם שם זה כבר קיים.
+אנא בחר שם אחר.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13488,7 +13712,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">הדוח '%1' נוצר.\nהשתמש ב'העתק וריאציה' כדי להוסיף שאילתות לדוח זה.</translation>
+      <translation type="unfinished">הדוח '%1' נוצר.
+השתמש ב'העתק וריאציה' כדי להוסיף שאילתות לדוח זה.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13498,7 +13723,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">(עותק)</translation>
+      <translation type="unfinished"> (עותק)</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13509,7 +13734,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">הדוח הועתק בהצלחה.\n%1 וריאציות הועתקו.</translation>
+      <translation type="unfinished">הדוח הועתק בהצלחה.
+%1 וריאציות הועתקו.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13526,7 +13752,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\nפעולה זו תמחק גם %1 וריאציות של הדוח.</translation>
+      <translation type="unfinished">
+
+פעולה זו תמחק גם %1 וריאציות של הדוח.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13647,7 +13875,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">הזן שאילתת SQL עם מאקרואים:\n#PROFILE_ID - מזהה פרופיל נוכחי\n#START_DATE - תאריך התחלת הדוח\n#END_DATE - תאריך סיום הדוח</translation>
+      <translation type="unfinished">הזן שאילתת SQL עם מאקרואים:
+#PROFILE_ID - מזהה פרופיל נוכחי
+#START_DATE - תאריך התחלת הדוח
+#END_DATE - תאריך סיום הדוח</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -13700,7 +13931,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">(עותק)</translation>
+      <translation type="unfinished"> (עותק)</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -13717,7 +13948,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">אין דוחות מותאמים אישית זמינים.\nהזן שם דוח חדש כדי ליצור אחד.</translation>
+      <translation type="unfinished">אין דוחות מותאמים אישית זמינים.
+הזן שם דוח חדש כדי ליצור אחד.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -13737,27 +13969,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">השאילתה נכשלה:\n\n%1\n\nשגיאת SQL:\n%2</translation>
+      <translation type="unfinished">השאילתה נכשלה:
+
+%1
+
+שגיאת SQL:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">השאילתה בוצעה בהצלחה.\n\nלא הוחזרו תוצאות (ייתכן שזה תקין אם אין נתונים עבור טווח התאריכים).</translation>
+      <translation type="unfinished">השאילתה בוצעה בהצלחה.
+
+לא הוחזרו תוצאות (ייתכן שזה תקין אם אין נתונים עבור טווח התאריכים).</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">תוצאות בדיקת שאילתה\n</translation>
+      <translation type="unfinished">תוצאות בדיקת שאילתה
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">(מציג %1 שורות ראשונות)\n\n</translation>
+      <translation type="unfinished">(מציג %1 שורות ראשונות)
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -13828,7 +14070,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">ווריאנט בשם '%1' כבר קיים בדוח '%2'.\n\nאנא בחר שם ווריאנט אחר.</translation>
+      <translation type="unfinished">ווריאנט בשם '%1' כבר קיים בדוח '%2'.
+
+אנא בחר שם ווריאנט אחר.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -13844,14 +14088,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">השאילתה אינה מכילה את כל המאקרואים הנדרשים:\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\nייתכן שהשאילתה לא תפעל כראוי.\n\nלהמשיך בכל זאת?</translation>
+      <translation type="unfinished">השאילתה אינה מכילה את כל המאקרואים הנדרשים:
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+ייתכן שהשאילתה לא תפעל כראוי.
+
+להמשיך בכל זאת?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">לא ניתן להוסיף ווריאנטים לדוח המערכת '%1'.\n\nאנא בחר שם דוח אחר.</translation>
+      <translation type="unfinished">לא ניתן להוסיף ווריאנטים לדוח המערכת '%1'.
+
+אנא בחר שם דוח אחר.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -13864,7 +14116,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">הדוח '%1' אינו קיים.\n\nליצור אותו?</translation>
+      <translation type="unfinished">הדוח '%1' אינו קיים.
+
+ליצור אותו?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14161,7 +14415,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">הקובץ שנבחר אינו חבילת גיבוי תקינה.\n\n%1</translation>
+      <translation type="unfinished">הקובץ שנבחר אינו חבילת גיבוי תקינה.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14173,7 +14429,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">לא ניתן לשחזר גיבוי זה.\n\n%1</translation>
+      <translation type="unfinished">לא ניתן לשחזר גיבוי זה.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14182,7 +14440,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">גיבוי זה נוצר עם סכמת מסד נתונים ישנה יותר (v%1; הנוכחית היא v%2).\n\nנתוני שינה שלך ישוחזרו במלואם. ייתכן שחלק מההגדרות או תצורות הדוחות לא ישוחזרו וייווצרו מחדש על ידי OSCAR בשימוש הראשון.\n\nלחץ על אמת כדי להמשיך.</translation>
+      <translation type="unfinished">גיבוי זה נוצר עם סכמת מסד נתונים ישנה יותר (v%1; הנוכחית היא v%2).
+
+נתוני שינה שלך ישוחזרו במלואם. ייתכן שחלק מההגדרות או תצורות הדוחות לא ישוחזרו וייווצרו מחדש על ידי OSCAR בשימוש הראשון.
+
+לחץ על אמת כדי להמשיך.</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14196,7 +14458,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">אזהרה: הפרופיל הקיים "%1" מכיל תיקיית גיבוי המכילה נתוני גיבוי של CPAP.\n\nמכיוון שחבילת השחזור הזו כוללת נתוני כרטיס SD, תיקיית הפרופיל כולה — כולל כל נתוני גיבוי CPAP — תימחק לצמיתות ותוחלף.\n\nלא ניתן לבטל פעולה זו. האם אתה בטוח שברצונך להמשיך?</translation>
+      <translation type="unfinished">אזהרה: הפרופיל הקיים "%1" מכיל תיקיית גיבוי המכילה נתוני גיבוי של CPAP.
+
+מכיוון שחבילת השחזור הזו כוללת נתוני כרטיס SD, תיקיית הפרופיל כולה — כולל כל נתוני גיבוי CPAP — תימחק לצמיתות ותוחלף.
+
+לא ניתן לבטל פעולה זו. האם אתה בטוח שברצונך להמשיך?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14208,7 +14474,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">פעולה זו תמחק לצמיתות את הפרופיל הקיים ואת כל הנתונים שלו.\n\nהאם אתה בטוח שברצונך להחליפו?</translation>
+      <translation type="unfinished">פעולה זו תמחק לצמיתות את הפרופיל הקיים ואת כל הנתונים שלו.
+
+האם אתה בטוח שברצונך להחליפו?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14250,7 +14518,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">לא ניתן היה להשלים את השחזור. מסד הנתונים לא שונה.\n\n%1</translation>
+      <translation type="unfinished">לא ניתן היה להשלים את השחזור. מסד הנתונים לא שונה.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14264,13 +14534,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">ערוך את שאילתת ה-SQL למטה. השאילתה תבוצע על מסד הנתונים של OSCAR.\nמאקרואים זמינים: #PROFILE_ID, #START_DATE, #END_DATE</translation>
+      <translation type="unfinished">ערוך את שאילתת ה-SQL למטה. השאילתה תבוצע על מסד הנתונים של OSCAR.
+מאקרואים זמינים: #PROFILE_ID, #START_DATE, #END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">הערה: היזהר בעת שינוי שאילתות. SQL לא חוקי יגרום לכישלון הייצוא.\nטבלאות נפוצות: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
+      <translation type="unfinished">הערה: היזהר בעת שינוי שאילתות. SQL לא חוקי יגרום לכישלון הייצוא.
+טבלאות נפוצות: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -14459,7 +14731,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="240" />
       <source> (right/left)MouseClick</source>
-      <translation type="unfinished">לחיצת עכבר (ימני/שמאלי)</translation>
+      <translation type="unfinished"> לחיצת עכבר (ימני/שמאלי)</translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="242" />
@@ -14624,7 +14896,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
       <source>Daily: Event (bottom left corner) </source>
-      <translation type="unfinished">יומי: אירוע (פינה שמאלית תחתונה)</translation>
+      <translation type="unfinished">יומי: אירוע (פינה שמאלית תחתונה) </translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
@@ -15127,7 +15399,13 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">אתה עומד לשתף קובץ המכיל את נתוני טיפול השינה שלך.\n\n• הקובץ מכיל נתוני סשן, אירועים והגדרות מכשיר\n  עבור טווח התאריכים שנבחר\n• מידע אישי (שם, תאריך לידה, פרטי קשר) יוסר\n\nוודא שאתה סומך על הנמען לפני שיתוף נתונים אלה.</translation>
+      <translation type="unfinished">אתה עומד לשתף קובץ המכיל את נתוני טיפול השינה שלך.
+
+• הקובץ מכיל נתוני סשן, אירועים והגדרות מכשיר
+  עבור טווח התאריכים שנבחר
+• מידע אישי (שם, תאריך לידה, פרטי קשר) יוסר
+
+וודא שאתה סומך על הנמען לפני שיתוף נתונים אלה.</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15214,7 +15492,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">לא ניתן ליצור את קובץ השיתוף.\n\n%1</translation>
+      <translation type="unfinished">לא ניתן ליצור את קובץ השיתוף.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />
@@ -16180,7 +16460,8 @@ Make sure you trust the recipient before sharing this data.</source>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="2067" />
       <source>Double click title to pin / unpin
 Click and drag to reorder graphs</source>
-      <translation type="unfinished">לחץ לחיצה כפולה על הכותרת כדי לנעוץ / לבטל נעיצה\nלחץ וגרור כדי לסדר מחדש את הגרפים</translation>
+      <translation type="unfinished">לחץ לחיצה כפולה על הכותרת כדי לנעוץ / לבטל נעיצה
+לחץ וגרור כדי לסדר מחדש את הגרפים</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="2313" />

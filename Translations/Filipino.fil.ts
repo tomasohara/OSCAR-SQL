@@ -246,7 +246,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">Ang iyong .oscar backup ay naglalaman ng sensitibong medikal na datos:\n• Data ng sleep therapy session at event waveforms\n• Personal na impormasyon (pangalan, petsa ng kapanganakan, atbp.)\n  (maliban kung naka-enable ang privacy mode)\n\nMga rekomendasyon sa pag-iimbak:\n• Iimbak ang mga backup sa naka-encrypt na storage\n• Panatilihin ang mga backup sa ligtas na lokasyon na may kontroladong access\n• Huwag ibahagi ang mga backup na file sa mga hindi awtorisadong partido</translation>
+      <translation type="unfinished">Ang iyong .oscar backup ay naglalaman ng sensitibong medikal na datos:
+• Data ng sleep therapy session at event waveforms
+• Personal na impormasyon (pangalan, petsa ng kapanganakan, atbp.)
+  (maliban kung naka-enable ang privacy mode)
+
+Mga rekomendasyon sa pag-iimbak:
+• Iimbak ang mga backup sa naka-encrypt na storage
+• Panatilihin ang mga backup sa ligtas na lokasyon na may kontroladong access
+• Huwag ibahagi ang mga backup na file sa mga hindi awtorisadong partido</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -294,7 +302,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">Matagumpay na nagawa ang backup.\n\nFile: %1\nLaki: %2</translation>
+      <translation type="unfinished">Matagumpay na nagawa ang backup.
+
+File: %1
+Laki: %2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -316,7 +327,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">Hindi nakumpleto ang backup.\n\n%1</translation>
+      <translation type="unfinished">Hindi nakumpleto ang backup.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -380,7 +393,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">Ang mga share link ng Proton Drive ay hindi maaaring i-download nang direkta dahil ang mga file ay end-to-end encrypted at nangangailangan ng decryption sa browser.\n\nPaki-download ang file sa iyong browser at gamitin ang opsyong Local File.</translation>
+      <translation type="unfinished">Ang mga share link ng Proton Drive ay hindi maaaring i-download nang direkta dahil ang mga file ay end-to-end encrypted at nangangailangan ng decryption sa browser.
+
+Paki-download ang file sa iyong browser at gamitin ang opsyong Local File.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -389,7 +404,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">Hindi kinikilala ng OSCAR ang URL na ito bilang isang sinusuportahang serbisyo sa cloud.\n\nPaki-download ang file sa iyong browser at gamitin ang opsyong Local File.\n\nMga sinusuportahang serbisyo: Dropbox, Google Drive, OneDrive, Box, 0x0.st, o anumang direktang link sa isang .oscar file.</translation>
+      <translation type="unfinished">Hindi kinikilala ng OSCAR ang URL na ito bilang isang sinusuportahang serbisyo sa cloud.
+
+Paki-download ang file sa iyong browser at gamitin ang opsyong Local File.
+
+Mga sinusuportahang serbisyo: Dropbox, Google Drive, OneDrive, Box, 0x0.st, o anumang direktang link sa isang .oscar file.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -400,7 +419,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">Hindi makalikha ng pansamantalang file:\n%1</translation>
+      <translation type="unfinished">Hindi makalikha ng pansamantalang file:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -444,7 +464,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Hindi mabuksan ang file para sa pagbabasa:\n%1</translation>
+      <translation type="unfinished">Hindi mabuksan ang file para sa pagbabasa:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -533,7 +554,7 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
     <message>
       <location filename="../oscar/daily.ui" line="1075" />
       <source> i </source>
-      <translation type="unfinished">i</translation>
+      <translation type="unfinished"> i </translation>
     </message>
     <message>
       <location filename="../oscar/daily.ui" line="1087" />
@@ -870,7 +891,7 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
     <message>
       <location filename="../oscar/daily.cpp" line="662" />
       <source> Disabling Sessions requires Permissive Mode be set in OSCAR Preferences in the Clinical tab.</source>
-      <translation type="unfinished">Ang pag-disable ng Sessions ay nangangailangan na ang Permissive Mode ay itakda sa OSCAR Preferences sa Clinical tab.</translation>
+      <translation type="unfinished"> Ang pag-disable ng Sessions ay nangangailangan na ang Permissive Mode ay itakda sa OSCAR Preferences sa Clinical tab.</translation>
     </message>
     <message>
       <location filename="../oscar/daily.cpp" line="1295" />
@@ -1015,7 +1036,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/dailySearchTab.cpp" line="1275" />
       <source>Bookmark
 Jumps to Date's Bookmark</source>
-      <translation type="unfinished">Bookmark\nLumaktaw sa Bookmark ng Petsa</translation>
+      <translation type="unfinished">Bookmark
+Lumaktaw sa Bookmark ng Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1516" />
@@ -1027,7 +1049,8 @@ Jumps to Date's Bookmark</source>
       <location filename="../oscar/dailySearchTab.cpp" line="328" />
       <source>DATE
 Jumps to Date</source>
-      <translation type="unfinished">DATE\nLumaktaw sa Petsa</translation>
+      <translation type="unfinished">DATE
+Lumaktaw sa Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="273" />
@@ -1057,7 +1080,7 @@ Jumps to Date</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="513" />
       <source>AHI </source>
-      <translation type="unfinished">AHI</translation>
+      <translation type="unfinished">AHI </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="514" />
@@ -1103,83 +1126,91 @@ Jumps to Date</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1254" />
       <source>Number Disabled Session
 Jumps to Date's Details </source>
-      <translation type="unfinished">Bilang ng Naka-disable na Sesyon\nLumukso sa mga Detalye ng Petsa</translation>
+      <translation type="unfinished">Bilang ng Naka-disable na Sesyon
+Lumukso sa mga Detalye ng Petsa </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1265" />
       <location filename="../oscar/dailySearchTab.cpp" line="1281" />
       <source>Note
 Jumps to Date's Notes</source>
-      <translation type="unfinished">Tala\nLumukso sa mga Tala ng Petsa</translation>
+      <translation type="unfinished">Tala
+Lumukso sa mga Tala ng Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1287" />
       <source>AHI
 Jumps to Date's Details</source>
-      <translation type="unfinished">AHI\nLumukso sa mga Detalye ng Petsa</translation>
+      <translation type="unfinished">AHI
+Lumukso sa mga Detalye ng Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1290" />
       <source> EventsPerHour</source>
-      <translation type="unfinished">EventsPerHour</translation>
+      <translation type="unfinished"> EventsPerHour</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1300" />
       <source>Set of Apnea:Length
 Jumps to Date's Events</source>
-      <translation type="unfinished">Hanay ng Apnea:Haba\nLumukso sa mga Kaganapan ng Petsa</translation>
+      <translation type="unfinished">Hanay ng Apnea:Haba
+Lumukso sa mga Kaganapan ng Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1306" />
       <location filename="../oscar/dailySearchTab.cpp" line="1456" />
       <source> Seconds</source>
-      <translation type="unfinished">Segundo</translation>
+      <translation type="unfinished"> Segundo</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1309" />
       <source>Session Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">Tagal ng Sesyon\nLumukso sa mga Detalye ng Petsa</translation>
+      <translation type="unfinished">Tagal ng Sesyon
+Lumukso sa mga Detalye ng Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1313" />
       <location filename="../oscar/dailySearchTab.cpp" line="1461" />
       <source> Minutes</source>
-      <translation type="unfinished">Minuto</translation>
+      <translation type="unfinished"> Minuto</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1318" />
       <source>Number of Sessions
 Jumps to Date's Details</source>
-      <translation type="unfinished">Bilang ng mga Sesyon\nLumukso sa mga Detalye ng Petsa</translation>
+      <translation type="unfinished">Bilang ng mga Sesyon
+Lumukso sa mga Detalye ng Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1323" />
       <source> Sessions</source>
-      <translation type="unfinished">Mga Sesyon</translation>
+      <translation type="unfinished"> Mga Sesyon</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1326" />
       <source>Daily Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">Pang-araw-araw na Tagal\nLumukso sa mga Detalye ng Petsa</translation>
+      <translation type="unfinished">Pang-araw-araw na Tagal
+Lumukso sa mga Detalye ng Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1332" />
       <location filename="../oscar/dailySearchTab.cpp" line="1451" />
       <source> Hours</source>
-      <translation type="unfinished">Oras</translation>
+      <translation type="unfinished"> Oras</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1336" />
       <source>Number of events
 Jumps to Date's Events</source>
-      <translation type="unfinished">Bilang ng mga Kaganapan\nLumukso sa mga Kaganapan ng Petsa</translation>
+      <translation type="unfinished">Bilang ng mga Kaganapan
+Lumukso sa mga Kaganapan ng Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1340" />
       <source> Events</source>
-      <translation type="unfinished">Mga Kaganapan</translation>
+      <translation type="unfinished"> Mga Kaganapan</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="602" />
@@ -1215,7 +1246,8 @@ Jumps to Date's Events</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">JUmps\nLumundag sa mga Tala ng Petsa</translation>
+      <translation type="unfinished">JUmps
+Lumundag sa mga Tala ng Petsa</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1225,7 +1257,7 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1666" />
       <source> Skip:%1</source>
-      <translation type="unfinished">Laktawan:%1</translation>
+      <translation type="unfinished"> Laktawan:%1</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1667" />
@@ -1235,7 +1267,7 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1670" />
       <source>Found %1 </source>
-      <translation type="unfinished">Natagpuan %1</translation>
+      <translation type="unfinished">Natagpuan %1 </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1688" />
@@ -1250,12 +1282,12 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1778" />
       <source>  Searches from last day to first day.</source>
-      <translation type="unfinished">Naghahanap mula sa huling araw hanggang sa unang araw.</translation>
+      <translation type="unfinished">  Naghahanap mula sa huling araw hanggang sa unang araw.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1779" />
       <source>  Skips Days with no graphing data.</source>
-      <translation type="unfinished">Nilalaktawan ang mga Araw na walang datos sa grapiko.</translation>
+      <translation type="unfinished">  Nilalaktawan ang mga Araw na walang datos sa grapiko.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1781" />
@@ -1265,12 +1297,12 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1782" />
       <source>  Then click on the operation to modify it.</source>
-      <translation type="unfinished">Pagkatapos ay i-click ang operasyon upang baguhin ito.</translation>
+      <translation type="unfinished">  Pagkatapos ay i-click ang operasyon upang baguhin ito.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1783" />
       <source>  or update the value</source>
-      <translation type="unfinished">o i-update ang halaga</translation>
+      <translation type="unfinished">  o i-update ang halaga</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1785" />
@@ -1280,17 +1312,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1787" />
       <source>Compare Operations: numberic or character. </source>
-      <translation type="unfinished">Mga Operasyon sa Paghahambing: numeriko o karakter.</translation>
+      <translation type="unfinished">Mga Operasyon sa Paghahambing: numeriko o karakter. </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1788" />
       <source>  Numberic  Operations: </source>
-      <translation type="unfinished">Mga Operasyong Numeriko:</translation>
+      <translation type="unfinished">  Mga Operasyong Numeriko: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1789" />
       <source>  Character Operations: </source>
-      <translation type="unfinished">Mga Operasyong Karakter:</translation>
+      <translation type="unfinished">  Mga Operasyong Karakter: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1791" />
@@ -1300,17 +1332,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1792" />
       <source>  Left:Summary - Number of Day searched</source>
-      <translation type="unfinished">Kaliwa: Buod - Bilang ng Araw na Hinanap</translation>
+      <translation type="unfinished">  Kaliwa: Buod - Bilang ng Araw na Hinanap</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1793" />
       <source>  Center:Number of Items Found</source>
-      <translation type="unfinished">Gitna: Bilang ng mga Item na Natagpuan</translation>
+      <translation type="unfinished">  Gitna: Bilang ng mga Item na Natagpuan</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1794" />
       <source>  Right:Minimum/Maximum for item searched</source>
-      <translation type="unfinished">Kanan: Pinakamababa/Pinakamataas para sa item na hinanap</translation>
+      <translation type="unfinished">  Kanan: Pinakamababa/Pinakamataas para sa item na hinanap</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1796" />
@@ -1320,17 +1352,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1797" />
       <source>  Column One: Date of match. Click selects date.</source>
-      <translation type="unfinished">Unang Kolum: Petsa ng tugma. I-click upang piliin ang petsa.</translation>
+      <translation type="unfinished">  Unang Kolum: Petsa ng tugma. I-click upang piliin ang petsa.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1798" />
       <source>  Column two: Information. Click selects date.</source>
-      <translation type="unfinished">Ikalawang Kolum: Impormasyon. I-click upang piliin ang petsa.</translation>
+      <translation type="unfinished">  Ikalawang Kolum: Impormasyon. I-click upang piliin ang petsa.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1799" />
       <source>    Then Jumps the appropiate tab.</source>
-      <translation type="unfinished">Pagkatapos ay Lulukso sa naaangkop na tab.</translation>
+      <translation type="unfinished">    Pagkatapos ay Lulukso sa naaangkop na tab.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1801" />
@@ -1340,37 +1372,37 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1802" />
       <source>  Wildcards use 3 characters:</source>
-      <translation type="unfinished">Gumagamit ang mga Wildcard ng 3 karakter:</translation>
+      <translation type="unfinished">  Gumagamit ang mga Wildcard ng 3 karakter:</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1803" />
       <source>  Asterisk</source>
-      <translation type="unfinished">Asterisk</translation>
+      <translation type="unfinished">  Asterisk</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1804" />
       <source>  Question Mark</source>
-      <translation type="unfinished">Tandang Pananong</translation>
+      <translation type="unfinished">  Tandang Pananong</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1805" />
       <source>  Backslash.</source>
-      <translation type="unfinished">Backslash.</translation>
+      <translation type="unfinished">  Backslash.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1806" />
       <source>  Asterisk matches any number of characters.</source>
-      <translation type="unfinished">Ang Asterisk ay tumutugma sa anumang bilang ng mga karakter.</translation>
+      <translation type="unfinished">  Ang Asterisk ay tumutugma sa anumang bilang ng mga karakter.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1807" />
       <source>  Question Mark matches a single character.</source>
-      <translation type="unfinished">Ang Tandang Pananong ay tumutugma sa isang karakter.</translation>
+      <translation type="unfinished">  Ang Tandang Pananong ay tumutugma sa isang karakter.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1808" />
       <source>  Backslash matches next character.</source>
-      <translation type="unfinished">Ang Backslash ay tumutugma sa susunod na karakter.</translation>
+      <translation type="unfinished">  Ang Backslash ay tumutugma sa susunod na karakter.</translation>
     </message>
   </context>
   <context>
@@ -1417,7 +1449,10 @@ Jumps to Date's Notes</source>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">Landas: %1\nLaki: %2\nMga Profile: %3\nTala: lahat ng data ng session at anumang backup na data ng SD card sa folder na ito ay permanenteng mabubura.</translation>
+      <translation type="unfinished">Landas: %1
+Laki: %2
+Mga Profile: %3
+Tala: lahat ng data ng session at anumang backup na data ng SD card sa folder na ito ay permanenteng mabubura.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1435,7 +1470,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">Ang database sa\n%1\nay hindi mabuksang eksklusibo. Maaaring may ibang instance ng OSCAR na may bukas nito.</translation>
+      <translation type="unfinished">Ang database sa
+%1
+ay hindi mabuksang eksklusibo. Maaaring may ibang instance ng OSCAR na may bukas nito.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1447,7 +1484,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">I-type ang "%1" upang permanenteng burahin ang database na ito.\n\nLahat ng data ng session at backup na data ng SD card sa folder ay mabubura. Hindi ito maaaring ibalik.</translation>
+      <translation type="unfinished">I-type ang "%1" upang permanenteng burahin ang database na ito.
+
+Lahat ng data ng session at backup na data ng SD card sa folder ay mabubura. Hindi ito maaaring ibalik.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1469,7 +1508,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">Hindi mabura ang\n%1\nAng database file ay nandoon pa rin. Suriin ang mga bukas na file lock at subukang muli.</translation>
+      <translation type="unfinished">Hindi mabura ang
+%1
+Ang database file ay nandoon pa rin. Suriin ang mga bukas na file lock at subukang muli.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1481,7 +1522,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">Nabura ang database ngunit hindi maalis ang lahat ng file mula sa\n%1\nMaaaring mayroon pa ring mga file na nandoon.</translation>
+      <translation type="unfinished">Nabura ang database ngunit hindi maalis ang lahat ng file mula sa
+%1
+Maaaring mayroon pa ring mga file na nandoon.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1505,7 +1548,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">Isang database corruption o I/O error ang natukoy sa %1.\n\nError: %2\n\nMga inirerekomendang aksyon:\n  • Patakbuhin ang Help → Troubleshooting → Check Database Integrity\n  • Ibalik mula sa kamakailang backup kung may mga problemang natagpuan</translation>
+      <translation type="unfinished">Isang database corruption o I/O error ang natukoy sa %1.
+
+Error: %2
+
+Mga inirerekomendang aksyon:
+  • Patakbuhin ang Help → Troubleshooting → Check Database Integrity
+  • Ibalik mula sa kamakailang backup kung may mga problemang natagpuan</translation>
     </message>
   </context>
   <context>
@@ -1514,7 +1563,8 @@ Recommended actions:
       <location filename="../oscar/overview.cpp" line="832" />
       <source>ERROR
 The start date MUST be before the end date</source>
-      <translation type="unfinished">ERROR\nAng petsa ng pagsisimula ay DAPAT na bago ang petsa ng pagtatapos</translation>
+      <translation type="unfinished">ERROR
+Ang petsa ng pagsisimula ay DAPAT na bago ang petsa ng pagtatapos</translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="835" />
@@ -1525,12 +1575,13 @@ The start date MUST be before the end date</source>
       <location filename="../oscar/overview.cpp" line="836" />
       <source>
 Hint: Change the end date first</source>
-      <translation type="unfinished">\nHint: Baguhin muna ang petsa ng pagtatapos</translation>
+      <translation type="unfinished">
+Hint: Baguhin muna ang petsa ng pagtatapos</translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="838" />
       <source>The entered end date %1 </source>
-      <translation type="unfinished">Ang ipinasok na petsa ng pagtatapos na %1</translation>
+      <translation type="unfinished">Ang ipinasok na petsa ng pagtatapos na %1 </translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="839" />
@@ -1541,7 +1592,8 @@ Hint: Change the end date first</source>
       <location filename="../oscar/overview.cpp" line="840" />
       <source>
 Hint: Change the start date first</source>
-      <translation type="unfinished">\nHint: Baguhin muna ang petsa ng pagsisimula</translation>
+      <translation type="unfinished">
+Hint: Baguhin muna ang petsa ng pagsisimula</translation>
     </message>
   </context>
   <context>
@@ -1936,17 +1988,17 @@ Hint: Change the start date first</source>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— mahinang fit, naka-disable ang Use Model</translation>
+      <translation type="unfinished"> — mahinang fit, naka-disable ang Use Model</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— katamtamang fit</translation>
+      <translation type="unfinished"> — katamtamang fit</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— papalitan ang modelo na aktibo mula %1</translation>
+      <translation type="unfinished"> — papalitan ang modelo na aktibo mula %1</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2008,7 +2060,8 @@ Hint: Change the start date first</source>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Hindi mabuksan ang file para sa pagbabasa:\n%1</translation>
+      <translation type="unfinished">Hindi mabuksan ang file para sa pagbabasa:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2391,7 +2444,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Hindi mabuksan ang file para sa pagbabasa:\n%1</translation>
+      <translation type="unfinished">Hindi mabuksan ang file para sa pagbabasa:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2549,7 +2603,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">Sinusuri ang %1...\n\nMangyaring maghintay...</translation>
+      <translation type="unfinished">Sinusuri ang %1...
+
+Mangyaring maghintay...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2560,7 +2616,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">Ang napiling folder ay mukhang hindi isang wastong OSCAR profile.\nMangyaring pumili ng folder na naglalaman ng machines.xml</translation>
+      <translation type="unfinished">Ang napiling folder ay mukhang hindi isang wastong OSCAR profile.
+Mangyaring pumili ng folder na naglalaman ng machines.xml</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2573,7 +2630,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">Ang profile na ito ay may sukat na %1 GB.\nMaaaring tumagal ng mahabang panahon ang pag-import.\n\nNais mo bang ituloy?</translation>
+      <translation type="unfinished">Ang profile na ito ay may sukat na %1 GB.
+Maaaring tumagal ng mahabang panahon ang pag-import.
+
+Nais mo bang ituloy?</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2743,7 +2803,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">Hindi maisulat ang file:\n%1</translation>
+      <translation type="unfinished">Hindi maisulat ang file:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -3488,14 +3549,20 @@ Do you want to continue?</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Hindi ma-import ang data: ang OSCAR database ay naka-lock ng ibang aplikasyon.\n\nKung ang database ay bukas sa isang SQLite viewer o editor, mangyaring isara ito at subukang muli.\n\nError: %1</translation>
+      <translation type="unfinished">Hindi ma-import ang data: ang OSCAR database ay naka-lock ng ibang aplikasyon.
+
+Kung ang database ay bukas sa isang SQLite viewer o editor, mangyaring isara ito at subukang muli.
+
+Error: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1017" />
       <source>Couldn't find any valid Device Data at
 
 %1</source>
-      <translation type="unfinished">Hindi mahanap ang anumang wastong Data ng Device sa\n\n%1</translation>
+      <translation type="unfinished">Hindi mahanap ang anumang wastong Data ng Device sa
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1029" />
@@ -3505,7 +3572,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Hindi ma-save ang na-import na data sa database. Walang data ang naimbak.\n\nKung ang OSCAR database ay bukas sa ibang aplikasyon (hal., isang SQLite viewer o editor), mangyaring isara ito at subukang muli.\n\nError: %1</translation>
+      <translation type="unfinished">Hindi ma-save ang na-import na data sa database. Walang data ang naimbak.
+
+Kung ang OSCAR database ay bukas sa ibang aplikasyon (hal., isang SQLite viewer o editor), mangyaring isara ito at subukang muli.
+
+Error: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1201" />
@@ -3545,7 +3616,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">Ang SD card na ito ay mula sa ibang machine kaysa sa huling na-import sa profile na ito.\n\nHuling na-import: %1\nAng card na ito: %2\n\nSigurado ka bang gusto mong mag-import mula sa card na ito sa profile na ito?</translation>
+      <translation type="unfinished">Ang SD card na ito ay mula sa ibang machine kaysa sa huling na-import sa profile na ito.
+
+Huling na-import: %1
+Ang card na ito: %2
+
+Sigurado ka bang gusto mong mag-import mula sa card na ito sa profile na ito?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3599,7 +3675,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">Permanenteng matatanggal ang lahat ng mga time correction para sa bawat device sa profile na ito.\n\nSigurado ka ba?</translation>
+      <translation type="unfinished">Permanenteng matatanggal ang lahat ng mga time correction para sa bawat device sa profile na ito.
+
+Sigurado ka ba?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1978" />
@@ -3675,7 +3753,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">(aktibo)</translation>
+      <translation type="unfinished"> (aktibo)</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3696,7 +3774,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">Ang napiling folder ay naglalaman na ng OSCAR database.\nGamitin ang File ▸ Database ▸ Open para buksan ang isang kasalukuyang database.</translation>
+      <translation type="unfinished">Ang napiling folder ay naglalaman na ng OSCAR database.
+Gamitin ang File ▸ Database ▸ Open para buksan ang isang kasalukuyang database.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3712,7 +3791,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">Ang napiling folder ay hindi naglalaman ng OSCAR database.\nMangyaring pumili ng folder na naglalaman ng oscar.db file.</translation>
+      <translation type="unfinished">Ang napiling folder ay hindi naglalaman ng OSCAR database.
+Mangyaring pumili ng folder na naglalaman ng oscar.db file.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3724,7 +3804,9 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">Walang mga hindi aktibong database sa kamakailang listahan na maaaring tanggalin.\n\nBuksan ang mga database gamit ang File ▸ Database ▸ Open muna upang idagdag ang mga ito sa kamakailang listahan.</translation>
+      <translation type="unfinished">Walang mga hindi aktibong database sa kamakailang listahan na maaaring tanggalin.
+
+Buksan ang mga database gamit ang File ▸ Database ▸ Open muna upang idagdag ang mga ito sa kamakailang listahan.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3536" />
@@ -3761,7 +3843,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">Iko-compact nito ang database upang mabawi ang hindi nagamit na espasyo sa disk. Pinaka-kapaki-pakinabang ito pagkatapos magtanggal ng mga profile.\n\nKasalukuyang laki ng database: %1\n\nMaaaring tumagal ito ng ilang minuto para sa malalaking database. Awtomatikong mag-rerestsart ang OSCAR kapag tapos na.\n\nMagpatuloy?</translation>
+      <translation type="unfinished">Iko-compact nito ang database upang mabawi ang hindi nagamit na espasyo sa disk. Pinaka-kapaki-pakinabang ito pagkatapos magtanggal ng mga profile.
+
+Kasalukuyang laki ng database: %1
+
+Maaaring tumagal ito ng ilang minuto para sa malalaking database. Awtomatikong mag-rerestsart ang OSCAR kapag tapos na.
+
+Magpatuloy?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -3773,28 +3861,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Nabigo ang pagsusuri ng integridad ng database. Hindi maaaring magpatuloy ang compression sa isang sirang database.\n\nMga inirerekomendang aksyon:\n  • Ibalik ang buong database mula sa kamakailang system backup\n  • Ibalik ang bawat profile mula sa kamakailang backup (File → Restore Profile)\n  • Mag-import muli ng data mula sa iyong CPAP SD card(s)\n\nPara sa mga advanced na opsyon sa pagbawi, tingnan ang dokumentasyon ng OSCAR.</translation>
+      <translation type="unfinished">Nabigo ang pagsusuri ng integridad ng database. Hindi maaaring magpatuloy ang compression sa isang sirang database.
+
+Mga inirerekomendang aksyon:
+  • Ibalik ang buong database mula sa kamakailang system backup
+  • Ibalik ang bawat profile mula sa kamakailang backup (File → Restore Profile)
+  • Mag-import muli ng data mula sa iyong CPAP SD card(s)
+
+Para sa mga advanced na opsyon sa pagbawi, tingnan ang dokumentasyon ng OSCAR.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">Kino-compress ang database, mangyaring maghintay...\n\nMaaaring tumagal ito ng ilang minuto para sa malalaking database.</translation>
+      <translation type="unfinished">Kino-compress ang database, mangyaring maghintay...
+
+Maaaring tumagal ito ng ilang minuto para sa malalaking database.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">Matagumpay ang compression ngunit hindi mapapalitan ang database file.\n\nWalang pagbabago ang orihinal na database.</translation>
+      <translation type="unfinished">Matagumpay ang compression ngunit hindi mapapalitan ang database file.
+
+Walang pagbabago ang orihinal na database.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">Matagumpay ang compression ngunit hindi maiwaksi ang bagong file sa tamang lugar.\n\nNaibalik ang orihinal na database.</translation>
+      <translation type="unfinished">Matagumpay ang compression ngunit hindi maiwaksi ang bagong file sa tamang lugar.
+
+Naibalik ang orihinal na database.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -3805,7 +3906,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Matagumpay na na-compress ang database.\n\nBago:      %1\nPagkatapos: %2\nNabawi:    %3\n\nMag-rerestsart ang OSCAR kapag pinindot mo ang OK.</translation>
+      <translation type="unfinished">Matagumpay na na-compress ang database.
+
+Bago:      %1
+Pagkatapos: %2
+Nabawi:    %3
+
+Mag-rerestsart ang OSCAR kapag pinindot mo ang OK.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -3816,7 +3923,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Matagumpay na na-compress ang database.\n\nLaki: %1\n\nWalang espasyong nabawi — compact na ang database.\n\nMag-rerestsart ang OSCAR kapag pinindot mo ang OK.</translation>
+      <translation type="unfinished">Matagumpay na na-compress ang database.
+
+Laki: %1
+
+Walang espasyong nabawi — compact na ang database.
+
+Mag-rerestsart ang OSCAR kapag pinindot mo ang OK.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3543" />
@@ -3889,7 +4002,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Nakatagpo ng mga problema ang pagsusuri ng integridad ng database. Maaaring may nawawala o nasirang data.\n\nSasaklawin ng pagsusuri ng integridad ang buong database, na maaaring naglalaman ng maraming profile.\n\nMga inirerekomendang aksyon:\n  • Ibalik ang buong database mula sa kamakailang system backup\n  • Ibalik ang bawat profile mula sa kamakailang backup (File → Restore Profile)\n  • Mag-import muli ng data mula sa iyong CPAP SD card(s)\n\nPara sa mga advanced na opsyon sa pagbawi, tingnan ang dokumentasyon ng OSCAR.</translation>
+      <translation type="unfinished">Nakatagpo ng mga problema ang pagsusuri ng integridad ng database. Maaaring may nawawala o nasirang data.
+
+Sasaklawin ng pagsusuri ng integridad ang buong database, na maaaring naglalaman ng maraming profile.
+
+Mga inirerekomendang aksyon:
+  • Ibalik ang buong database mula sa kamakailang system backup
+  • Ibalik ang bawat profile mula sa kamakailang backup (File → Restore Profile)
+  • Mag-import muli ng data mula sa iyong CPAP SD card(s)
+
+Para sa mga advanced na opsyon sa pagbawi, tingnan ang dokumentasyon ng OSCAR.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -3914,7 +4036,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">Nabigo ang pag-compress ng database:\n%1</translation>
+      <translation type="unfinished">Nabigo ang pag-compress ng database:
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -3975,7 +4098,7 @@ No space was reclaimed — the database was already compact.</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">Ini-import ang Profile</translation>
+      <translation type="unfinished">Ini-import ang Profile </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -3987,7 +4110,9 @@ No space was reclaimed — the database was already compact.</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">Matagumpay na na-import ang profile na '%1'.\n\nMaaari mo na itong piliin mula sa tagapili ng profile.</translation>
+      <translation type="unfinished">Matagumpay na na-import ang profile na '%1'.
+
+Maaari mo na itong piliin mula sa tagapili ng profile.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -4000,7 +4125,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">Nabigo ang pag-import ng profile:\n%1</translation>
+      <translation type="unfinished">Nabigo ang pag-import ng profile:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1507" />
@@ -4055,7 +4181,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">May naganap na problema sa pag-parse ng %1 \nData File: %2</translation>
+      <translation type="unfinished">May naganap na problema sa pag-parse ng %1 
+Data File: %2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3224" />
@@ -4184,7 +4311,9 @@ Data File: %2</source>
       <source>Are you sure you want to rebuild all CPAP data for the following device:
 
 </source>
-      <translation type="unfinished">Sigurado ka bang gusto mong i-rebuild ang lahat ng CPAP data para sa sumusunod na device:\n\n</translation>
+      <translation type="unfinished">Sigurado ka bang gusto mong i-rebuild ang lahat ng CPAP data para sa sumusunod na device:
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2500" />
@@ -4747,7 +4876,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Hindi mabuksan ang file para sa pagbabasa:\n%1</translation>
+      <translation type="unfinished">Hindi mabuksan ang file para sa pagbabasa:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4768,7 +4898,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">Na-upload ang file sa OneDrive ngunit hindi makalikha ng share link (HTTP %1).\nTandaan: maaaring naka-disable ang anonymous sharing sa iyong mga setting ng Microsoft account.</translation>
+      <translation type="unfinished">Na-upload ang file sa OneDrive ngunit hindi makalikha ng share link (HTTP %1).
+Tandaan: maaaring naka-disable ang anonymous sharing sa iyong mga setting ng Microsoft account.</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -5502,7 +5633,7 @@ Index</source>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="178" />
       <source>Combine Close Sessions </source>
-      <translation type="unfinished">Pagsamahin ang mga Malapit na Sesyon</translation>
+      <translation type="unfinished">Pagsamahin ang mga Malapit na Sesyon </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="188" />
@@ -5514,7 +5645,8 @@ Index</source>
       <location filename="../oscar/preferencesdialog.ui" line="208" />
       <source>Multiple sessions closer together than this value will be kept on the same day.
 </source>
-      <translation type="unfinished">Ang maraming sesyon na mas malapit sa isa't isa kaysa sa halagang ito ay mananatili sa parehong araw.\n</translation>
+      <translation type="unfinished">Ang maraming sesyon na mas malapit sa isa't isa kaysa sa halagang ito ay mananatili sa parehong araw.
+</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="263" />
@@ -5555,7 +5687,8 @@ Index</source>
       <location filename="../oscar/preferencesdialog.ui" line="1026" />
       <source>Percentage of restriction in airflow from the median value. 
 A value of 20% works well for detecting apneas. </source>
-      <translation type="unfinished">Porsyento ng paghihigpit sa daloy ng hangin mula sa median na halaga. \nAng halagang 20% ay epektibo para sa pag-detect ng mga apnea.</translation>
+      <translation type="unfinished">Porsyento ng paghihigpit sa daloy ng hangin mula sa median na halaga. 
+Ang halagang 20% ay epektibo para sa pag-detect ng mga apnea. </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1047" />
@@ -5580,12 +5713,13 @@ A value of 20% works well for detecting apneas. </source>
       <location filename="../oscar/preferencesdialog.ui" line="1144" />
       <source>Adjusts the amount of data considered for each point in the AHI/Hour graph.
 Defaults to 60 minutes.. Highly recommend it's left at this value.</source>
-      <translation type="unfinished">Inaayos ang dami ng data na isinasaalang-alang para sa bawat punto sa AHI/Hour na graph.\nNaka-default sa 60 minuto. Lubos na inirerekomenda na iwanang ganito ang halagang ito.</translation>
+      <translation type="unfinished">Inaayos ang dami ng data na isinasaalang-alang para sa bawat punto sa AHI/Hour na graph.
+Naka-default sa 60 minuto. Lubos na inirerekomenda na iwanang ganito ang halagang ito.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1148" />
       <source> minutes</source>
-      <translation type="unfinished">minuto</translation>
+      <translation type="unfinished"> minuto</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1187" />
@@ -5648,7 +5782,7 @@ Defaults to 60 minutes.. Highly recommend it's left at this value.</source>
       <location filename="../oscar/preferencesdialog.ui" line="1851" />
       <location filename="../oscar/preferencesdialog.ui" line="1961" />
       <source> bpm</source>
-      <translation type="unfinished">bpm</translation>
+      <translation type="unfinished"> bpm</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1906" />
@@ -5776,7 +5910,8 @@ Defaults to 60 minutes.. Highly recommend it's left at this value.</source>
       <location filename="../oscar/preferencesdialog.ui" line="1254" />
       <source>For consistancy, ResMed users should use 95% here,
 as this is the only value available on summary-only days.</source>
-      <translation type="unfinished">Para sa pagkakapare-pareho, ang mga gumagamit ng ResMed ay dapat gumamit ng 95% dito,\ndahil ito ang tanging halaga na available sa mga araw na may buod lamang.</translation>
+      <translation type="unfinished">Para sa pagkakapare-pareho, ang mga gumagamit ng ResMed ay dapat gumamit ng 95% dito,
+dahil ito ang tanging halaga na available sa mga araw na may buod lamang.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1305" />
@@ -5833,7 +5968,8 @@ as this is the only value available on summary-only days.</source>
       <location filename="../oscar/preferencesdialog.ui" line="2244" />
       <source>Allow use of multiple CPU cores where available to improve performance. 
 Mainly affects the importer.</source>
-      <translation type="unfinished">Payagan ang paggamit ng maraming CPU core kung available upang mapabuti ang pagganap. \nPangunahing nakakaapekto sa importer.</translation>
+      <translation type="unfinished">Payagan ang paggamit ng maraming CPU core kung available upang mapabuti ang pagganap. 
+Pangunahing nakakaapekto sa importer.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2248" />
@@ -5931,7 +6067,9 @@ Mainly affects the importer.</source>
       <source>This makes OSCAR's data take around half as much space.
 But it makes import and day changing take longer.. 
 If you've got a new computer with a small solid state disk, this is a good option.</source>
-      <translation type="unfinished">Ginagawa nitong halos kalahati ng espasyo ang datos ng OSCAR.\nNgunit nagpapahaba nito ng pag-import at pagpapalit ng araw.. \nKung mayroon kang bagong computer na may maliit na solid state disk, ito ay isang magandang opsyon.</translation>
+      <translation type="unfinished">Ginagawa nitong halos kalahati ng espasyo ang datos ng OSCAR.
+Ngunit nagpapahaba nito ng pag-import at pagpapalit ng araw.. 
+Kung mayroon kang bagong computer na may maliit na solid state disk, ito ay isang magandang opsyon.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="486" />
@@ -5981,7 +6119,7 @@ If you've got a new computer with a small solid state disk, this is a good optio
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2435" />
       <source>Last Checked For Updates: </source>
-      <translation type="unfinished">Huling Sinuri para sa mga Update:</translation>
+      <translation type="unfinished">Huling Sinuri para sa mga Update: </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2448" />
@@ -6062,7 +6200,8 @@ If you've got a new computer with a small solid state disk, this is a good optio
       <location filename="../oscar/preferencesdialog.ui" line="2687" />
       <source>The visual method of displaying waveform overlay flags.
 </source>
-      <translation type="unfinished">Ang visual na paraan ng pagpapakita ng mga waveform overlay flag.\n</translation>
+      <translation type="unfinished">Ang visual na paraan ng pagpapakita ng mga waveform overlay flag.
+</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2692" />
@@ -6127,7 +6266,7 @@ If you've got a new computer with a small solid state disk, this is a good optio
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1206" />
       <source> l/min</source>
-      <translation type="unfinished">l/min</translation>
+      <translation type="unfinished"> l/min</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1298" />
@@ -6137,7 +6276,7 @@ If you've got a new computer with a small solid state disk, this is a good optio
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">Dapat na naka-enable ang Permissive Mode. Tingnan ang Clinical Tab</translation>
+      <translation type="unfinished">Dapat na naka-enable ang Permissive Mode. Tingnan ang Clinical Tab </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6154,7 +6293,9 @@ If you've got a new computer with a small solid state disk, this is a good optio
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">Ang Steady Breathing (SB) ay batay sa Flow Rate.\nLumilikha ng waveform at mga SPAN event gamit ang CPAP flow rate.\nGumagana lamang kapag naka-enable ang Steady Breathing at ang CPAP data ay (muling) na-import.</translation>
+      <translation type="unfinished">Ang Steady Breathing (SB) ay batay sa Flow Rate.
+Lumilikha ng waveform at mga SPAN event gamit ang CPAP flow rate.
+Gumagana lamang kapag naka-enable ang Steady Breathing at ang CPAP data ay (muling) na-import.  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6174,7 +6315,7 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1484" />
       <source> Seconds</source>
-      <translation type="unfinished">Segundo</translation>
+      <translation type="unfinished"> Segundo</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1503" />
@@ -6190,13 +6331,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">Ang Clinical Mode ay hindi nagpapahintulot ng mga hindi pinaganang session.\nAng mga hindi pinaganang Session ay hindi ginagamit para sa graphing o Statistics.</translation>
+      <translation type="unfinished">Ang Clinical Mode ay hindi nagpapahintulot ng mga hindi pinaganang session.
+Ang mga hindi pinaganang Session ay hindi ginagamit para sa graphing o Statistics.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">Ang Permissive Mode ay nagpapahintulot ng mga hindi pinaganang session.\nAng mga hindi pinaganang Session ay ginagamit para sa graphing at Statistics.</translation>
+      <translation type="unfinished">Ang Permissive Mode ay nagpapahintulot ng mga hindi pinaganang session.
+Ang mga hindi pinaganang Session ay ginagamit para sa graphing at Statistics.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6209,7 +6352,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">Bilang default, gumagamit ang OSCAR ng kalkulasyon mula sa unang oras ng datos ng oximetry bilang baseline.\nAng setting na ito ay nagbibigay-daan sa iyo na i-override iyon gamit ang isang static na halaga.\nMaaari itong maging kapaki-pakinabang kapag ang unang oras ay hindi katypical ng buong dataset.\nMaaari rin itong maging kapaki-pakinabang upang magbigay ng mas madaling paghahambing sa pagitan ng mga araw.</translation>
+      <translation type="unfinished">Bilang default, gumagamit ang OSCAR ng kalkulasyon mula sa unang oras ng datos ng oximetry bilang baseline.
+Ang setting na ito ay nagbibigay-daan sa iyo na i-override iyon gamit ang isang static na halaga.
+Maaari itong maging kapaki-pakinabang kapag ang unang oras ay hindi katypical ng buong dataset.
+Maaari rin itong maging kapaki-pakinabang upang magbigay ng mas madaling paghahambing sa pagitan ng mga araw.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1861" />
@@ -6228,7 +6374,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Pag-sync ng Oximetry at CPAP Data&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Ang CMS50 data na ini-import mula sa SpO2Review (mula sa mga .spoR file) o ang paraan ng serial import ay &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;hindi&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; nagtataglay ng tamang timestamp na kailangan para sa pag-sync.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Ang live view mode (gamit ang serial cable) ay isang paraan upang makamit ang tumpak na sync sa mga CMS50 oximeter, ngunit hindi nito isinasaalang-alang ang pagbabago ng orasan ng CPAP.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Kung sisimulan mo ang recording mode ng iyong Oximeter sa &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;eksaktong &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;parehong oras na sisimulan mo ang iyong CPAP device, maaari ka na ring makamit ang sync. &lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Ang proseso ng serial import ay kumukuha ng oras ng pagsisimula mula sa unang CPAP session ng nakaraang gabi. (Huwag kalimutang i-import muna ang iyong CPAP data!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Pag-sync ng Oximetry at CPAP Data&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Ang CMS50 data na ini-import mula sa SpO2Review (mula sa mga .spoR file) o ang paraan ng serial import ay &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;hindi&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; nagtataglay ng tamang timestamp na kailangan para sa pag-sync.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Ang live view mode (gamit ang serial cable) ay isang paraan upang makamit ang tumpak na sync sa mga CMS50 oximeter, ngunit hindi nito isinasaalang-alang ang pagbabago ng orasan ng CPAP.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Kung sisimulan mo ang recording mode ng iyong Oximeter sa &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;eksaktong &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;parehong oras na sisimulan mo ang iyong CPAP device, maaari ka na ring makamit ang sync. &lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Ang proseso ng serial import ay kumukuha ng oras ng pagsisimula mula sa unang CPAP session ng nakaraang gabi. (Huwag kalimutang i-import muna ang iyong CPAP data!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2262" />
@@ -6244,7 +6399,8 @@ p, li { white-space: pre-wrap; }
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">Nagdaragdag ng mga item na Bago, Buksan, Kamakailang, at Tanggalin sa File &gt; Database.\nNilayong para sa mga tauhan ng suporta at mga developer.</translation>
+      <translation type="unfinished">Nagdaragdag ng mga item na Bago, Buksan, Kamakailang, at Tanggalin sa File &gt; Database.
+Nilayong para sa mga tauhan ng suporta at mga developer.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6363,7 +6519,11 @@ Certain plots look more attractive with this on.
 This also affects printed reports.
 
 Try it and see if you like it.</source>
-      <translation type="unfinished">Ang Anti-Aliasing ay nag-aaplay ng pagpapadali sa mga graph plot.. \nAng ilang mga plot ay mas maganda kung ito ay naka-on. \nNakakaapekto rin ito sa mga naka-print na ulat.\n\nSubukan at tingnan kung gusto mo ito.</translation>
+      <translation type="unfinished">Ang Anti-Aliasing ay nag-aaplay ng pagpapadali sa mga graph plot.. 
+Ang ilang mga plot ay mas maganda kung ito ay naka-on. 
+Nakakaapekto rin ito sa mga naka-print na ulat.
+
+Subukan at tingnan kung gusto mo ito.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3010" />
@@ -6425,7 +6585,9 @@ Try it and see if you like it.</source>
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">Gamitin ang Qt's Fusion theme sa halip na ang platform-native theme.\nNagbibigay ng pare-parehong hitsura sa lahat ng platform.\nMag-re-restart ang OSCAR kapag na-click mo ang OK.</translation>
+      <translation type="unfinished">Gamitin ang Qt's Fusion theme sa halip na ang platform-native theme.
+Nagbibigay ng pare-parehong hitsura sa lahat ng platform.
+Mag-re-restart ang OSCAR kapag na-click mo ang OK.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -6450,7 +6612,12 @@ which is common on Mac  Linux platforms..
 
 OSCAR can import from this compressed backup directory natively.. 
 To use it with ResScan will require the .gz files to be uncompressed first..</source>
-      <translation type="unfinished">I-compress ang mga backup ng ResMed (EDF) upang makatipid ng espasyo sa disk.\nAng mga naka-backup na EDF file ay naka-imbak sa .gz na format, \nna karaniwan sa Mac at Linux na mga platform..\n\nMaaaring mag-import ang OSCAR mula sa compressed backup directory na ito nang direkta.. \nUpang gamitin ito sa ResScan, kakailanganin munang i-decompress ang mga .gz file..</translation>
+      <translation type="unfinished">I-compress ang mga backup ng ResMed (EDF) upang makatipid ng espasyo sa disk.
+Ang mga naka-backup na EDF file ay naka-imbak sa .gz na format, 
+na karaniwan sa Mac at Linux na mga platform..
+
+Maaaring mag-import ang OSCAR mula sa compressed backup directory na ito nang direkta.. 
+Upang gamitin ito sa ResScan, kakailanganin munang i-decompress ang mga .gz file..</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="493" />
@@ -6461,7 +6628,13 @@ and graph data older than 30 days..
 
 OSCAR can keep a copy of this data if you ever need to reinstall. 
 (Highly recomended, unless your short on disk space or don't care about the graph data)</source>
-      <translation type="unfinished">Pinapanatili nito ang isang backup ng datos mula sa SD-card para sa mga ResMed device, \n\nAng mga ResMed S9 series device ay nagtatanggal ng mataas na resolusyong datos na mas matanda sa 7 araw, \nat graph na datos na mas matanda sa 30 araw..\n\nMaaaring magtago ang OSCAR ng kopya ng datos na ito kung kailangan mong muling i-install. \n(Lubos na inirerekomenda, maliban kung kulang ang espasyo sa disk o hindi ka nagmamalasakit sa graph na datos)</translation>
+      <translation type="unfinished">Pinapanatili nito ang isang backup ng datos mula sa SD-card para sa mga ResMed device, 
+
+Ang mga ResMed S9 series device ay nagtatanggal ng mataas na resolusyong datos na mas matanda sa 7 araw, 
+at graph na datos na mas matanda sa 30 araw..
+
+Maaaring magtago ang OSCAR ng kopya ng datos na ito kung kailangan mong muling i-install. 
+(Lubos na inirerekomenda, maliban kung kulang ang espasyo sa disk o hindi ka nagmamalasakit sa graph na datos)</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="653" />
@@ -6485,14 +6658,20 @@ OSCAR can keep a copy of this data if you ever need to reinstall.
 The Unintentional Leak calculations used here are linear, they don't model the mask vent curve.
 
 If you use a few different masks, pick average values instead. It should still be close enough.</source>
-      <translation type="unfinished">Ang kalkulasyong ito ay nangangailangan ng datos ng Kabuuang Tagas na ibinibigay ng CPAP device. (Hal., PRS1, ngunit hindi ResMed, na mayroon na nito)\n\nAng mga kalkulasyon ng Hindi Sinasadyang Tagas na ginagamit dito ay linear, hindi nila kino-modelo ang kurba ng bentilasyon ng maskara.\n\nKung gumagamit ka ng ilang iba't ibang maskara, pumili ng mga average na halaga. Dapat ay sapat na ito.</translation>
+      <translation type="unfinished">Ang kalkulasyong ito ay nangangailangan ng datos ng Kabuuang Tagas na ibinibigay ng CPAP device. (Hal., PRS1, ngunit hindi ResMed, na mayroon na nito)
+
+Ang mga kalkulasyon ng Hindi Sinasadyang Tagas na ginagamit dito ay linear, hindi nila kino-modelo ang kurba ng bentilasyon ng maskara.
+
+Kung gumagamit ka ng ilang iba't ibang maskara, pumili ng mga average na halaga. Dapat ay sapat na ito.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="898" />
       <source>Enable/disable experimental event flagging enhancements. 
 It allows detecting borderline events, and some the device missed.
 This option must be enabled before import, otherwise a purge is required.</source>
-      <translation type="unfinished">I-enable/disable ang mga eksperimental na pagpapahusay sa pagmamarka ng kaganapan. \nPinapayagan nitong matukoy ang mga borderline na kaganapan, at ang ilan na napalampas ng device.\nKailangang i-enable ang opsyong ito bago mag-import, kung hindi ay kailangan ng purge.</translation>
+      <translation type="unfinished">I-enable/disable ang mga eksperimental na pagpapahusay sa pagmamarka ng kaganapan. 
+Pinapayagan nitong matukoy ang mga borderline na kaganapan, at ang ilan na napalampas ng device.
+Kailangang i-enable ang opsyong ito bago mag-import, kung hindi ay kailangan ng purge.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="950" />
@@ -6545,7 +6724,7 @@ This option must be enabled before import, otherwise a purge is required.</sourc
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1628" />
       <source>Select  Oscar Operating Mode </source>
-      <translation type="unfinished">Piliin ang Operating Mode ng Oscar</translation>
+      <translation type="unfinished">Piliin ang Operating Mode ng Oscar </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1638" />
@@ -6560,7 +6739,7 @@ This option must be enabled before import, otherwise a purge is required.</sourc
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1665" />
       <source> Hours</source>
-      <translation type="unfinished">Oras</translation>
+      <translation type="unfinished"> Oras</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1692" />
@@ -6635,7 +6814,7 @@ This option must be enabled before import, otherwise a purge is required.</sourc
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">Paghalit-halit na Pagitan ng Kulay</translation>
+      <translation type="unfinished"> Paghalit-halit na Pagitan ng Kulay</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3227" />
@@ -6655,7 +6834,7 @@ This option must be enabled before import, otherwise a purge is required.</sourc
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3300" />
       <source>Bold  </source>
-      <translation type="unfinished">Naka-bold</translation>
+      <translation type="unfinished">Naka-bold  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3322" />
@@ -6878,7 +7057,9 @@ This option must be enabled before import, otherwise a purge is required.</sourc
       <source>A data re/decompression proceedure is required to apply these changes. This operation may take a couple of minutes to complete.
 
 Are you sure you want to make these changes?</source>
-      <translation type="unfinished">Isang pamamaraan ng muling pag-compress/pag-decompress ng data ang kinakailangan upang mailapat ang mga pagbabagong ito. Ang operasyong ito ay maaaring tumagal ng ilang minuto upang makumpleto.\n\nNasisiguro ka bang gusto mong gawin ang mga pagbabagong ito?</translation>
+      <translation type="unfinished">Isang pamamaraan ng muling pag-compress/pag-decompress ng data ang kinakailangan upang mailapat ang mga pagbabagong ito. Ang operasyong ito ay maaaring tumagal ng ilang minuto upang makumpleto.
+
+Nasisiguro ka bang gusto mong gawin ang mga pagbabagong ito?</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="886" />
@@ -6890,7 +7071,9 @@ Are you sure you want to make these changes?</source>
       <source>A data reindexing proceedure is required to apply these changes. This operation may take a couple of minutes to complete.
 
 Are you sure you want to make these changes?</source>
-      <translation type="unfinished">Isang pamamaraan ng muling pag-index ng data ang kinakailangan upang mailapat ang mga pagbabagong ito. Ang operasyong ito ay maaaring tumagal ng ilang minuto upang makumpleto.\n\nNasisiguro ka bang gusto mong gawin ang mga pagbabagong ito?</translation>
+      <translation type="unfinished">Isang pamamaraan ng muling pag-index ng data ang kinakailangan upang mailapat ang mga pagbabagong ito. Ang operasyong ito ay maaaring tumagal ng ilang minuto upang makumpleto.
+
+Nasisiguro ka bang gusto mong gawin ang mga pagbabagong ito?</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="893" />
@@ -6902,7 +7085,9 @@ Are you sure you want to make these changes?</source>
       <source>One or more of the changes you have made will require this application to be restarted, in order for these changes to come into effect.
 
 Would you like do this now?</source>
-      <translation type="unfinished">Ang isa o higit pa sa mga pagbabagong ginawa mo ay mangangailangan ng pag-restart ng application, upang magkabisa ang mga pagbabagong ito.\n\nGusto mo bang gawin ito ngayon?</translation>
+      <translation type="unfinished">Ang isa o higit pa sa mga pagbabagong ginawa mo ay mangangailangan ng pag-restart ng application, upang magkabisa ang mga pagbabagong ito.
+
+Gusto mo bang gawin ito ngayon?</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1313" />
@@ -6912,24 +7097,26 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1314" />
       <source> If you ever need to reimport this data again (whether in OSCAR or ResScan) this data won't come back.</source>
-      <translation type="unfinished">Kung kailangan mong muling i-import ang data na ito (maging sa OSCAR o ResScan) ang data na ito ay hindi na maibabalik.</translation>
+      <translation type="unfinished"> Kung kailangan mong muling i-import ang data na ito (maging sa OSCAR o ResScan) ang data na ito ay hindi na maibabalik.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1315" />
       <source> If you need to conserve disk space, please remember to carry out manual backups.</source>
-      <translation type="unfinished">Kung kailangan mong makatipid ng espasyo sa disk, mangyaring tandaang magsagawa ng mga manu-manong backup.</translation>
+      <translation type="unfinished"> Kung kailangan mong makatipid ng espasyo sa disk, mangyaring tandaang magsagawa ng mga manu-manong backup.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1316" />
       <source> Are you sure you want to disable these backups?</source>
-      <translation type="unfinished">Sigurado ka bang nais mong i-disable ang mga backup na ito?</translation>
+      <translation type="unfinished"> Sigurado ka bang nais mong i-disable ang mga backup na ito?</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1412" />
       <source>Switching off backups is not a good idea, because OSCAR needs these to rebuild the database if errors are found.
 
 </source>
-      <translation type="unfinished">Ang pag-off ng mga backup ay hindi isang magandang ideya, dahil kailangan ng OSCAR ang mga ito upang muling buuin ang database kung may mga error na natuklasan.\n\n</translation>
+      <translation type="unfinished">Ang pag-off ng mga backup ay hindi isang magandang ideya, dahil kailangan ng OSCAR ang mga ito upang muling buuin ang database kung may mga error na natuklasan.
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="1413" />
@@ -7185,7 +7372,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(unang kabiguan: %1</translation>
+      <translation type="unfinished"> (unang kabiguan: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7273,7 +7460,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">Id:</translation>
+      <translation type="unfinished">Id: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="295" />
@@ -7338,7 +7525,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">Tinatanggal ang profile</translation>
+      <translation type="unfinished">Tinatanggal ang profile </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7420,7 +7607,7 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">Pangalan:</translation>
+      <translation type="unfinished">Pangalan: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -7649,13 +7836,13 @@ Would you like do this now?</source>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="273" />
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="283" />
       <source>Min: </source>
-      <translation type="unfinished">Min:</translation>
+      <translation type="unfinished">Min: </translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="278" />
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="288" />
       <source>Max: </source>
-      <translation type="unfinished">Max:</translation>
+      <translation type="unfinished">Max: </translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="307" />
@@ -7665,12 +7852,12 @@ Would you like do this now?</source>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="313" />
       <source>%1 (%2 days): </source>
-      <translation type="unfinished">%1 (%2 araw):</translation>
+      <translation type="unfinished">%1 (%2 araw): </translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="315" />
       <source>%1 (%2 day): </source>
-      <translation type="unfinished">%1 (%2 araw):</translation>
+      <translation type="unfinished">%1 (%2 araw): </translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSummaryChart.cpp" line="375" />
@@ -7693,7 +7880,8 @@ Would you like do this now?</source>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="30" />
       <source>
 Length: %1</source>
-      <translation type="unfinished">\nHaba: %1</translation>
+      <translation type="unfinished">
+Haba: %1</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="96" />
@@ -7711,7 +7899,10 @@ Length: %1</source>
 Length: %3
 Start: %2
 </source>
-      <translation type="unfinished">%1\nHaba: %3\nSimula: %2\n</translation>
+      <translation type="unfinished">%1
+Haba: %3
+Simula: %2
+</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gSessionTimesChart.cpp" line="225" />
@@ -7728,7 +7919,9 @@ Start: %2
       <source>%1
 Length: %3
 Start: %2</source>
-      <translation type="unfinished">%1\nHaba: %3\nSimula: %2</translation>
+      <translation type="unfinished">%1
+Haba: %3
+Simula: %2</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gTTIAChart.cpp" line="71" />
@@ -7739,7 +7932,8 @@ Start: %2</source>
       <location filename="../oscar/Graphs/gTTIAChart.cpp" line="83" />
       <source>
 TTIA: %1</source>
-      <translation type="unfinished">\nTTIA: %1</translation>
+      <translation type="unfinished">
+TTIA: %1</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="842" />
@@ -8403,12 +8597,12 @@ TTIA: %1</source>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="833" />
       <source> m</source>
-      <translation type="unfinished">m</translation>
+      <translation type="unfinished"> m</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="834" />
       <source> cm</source>
-      <translation type="unfinished">cm</translation>
+      <translation type="unfinished"> cm</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="835" />
@@ -9291,7 +9485,7 @@ TTIA: %1</source>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">Oras ng Ramp</translation>
+      <translation type="unfinished">Oras ng Ramp </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -9934,13 +10128,14 @@ TTIA: %1</source>
     <message>
       <location filename="../oscar/SleepLib/preferences.cpp" line="237" />
       <source>Using </source>
-      <translation type="unfinished">Gumagamit ng</translation>
+      <translation type="unfinished">Gumagamit ng </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/preferences.cpp" line="237" />
       <source>, found SleepyHead -
 </source>
-      <translation type="unfinished">, nahanap ang SleepyHead -\n</translation>
+      <translation type="unfinished">, nahanap ang SleepyHead -
+</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/preferences.cpp" line="238" />
@@ -10232,7 +10427,7 @@ TTIA: %1</source>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="184" />
       <source>Vibratory Snore (VS2) </source>
-      <translation type="unfinished">Vibratory Snore (VS2)</translation>
+      <translation type="unfinished">Vibratory Snore (VS2) </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="272" />
@@ -11125,7 +11320,10 @@ TTIA: %1</source>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">Inililipat ang profile: %1\n(%2 ng %3)\n\nSinasimulan ang pag-import...</translation>
+      <translation type="unfinished">Inililipat ang profile: %1
+(%2 ng %3)
+
+Sinasimulan ang pag-import...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -11133,7 +11331,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">Kinakansela: %1\n(%2 ng %3)\n\nNaglilinis, mangyaring maghintay...</translation>
+      <translation type="unfinished">Kinakansela: %1
+(%2 ng %3)
+
+Naglilinis, mangyaring maghintay...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -11141,7 +11342,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">Inililipat ang profile: %1\n(%2 ng %3)\n\n%4</translation>
+      <translation type="unfinished">Inililipat ang profile: %1
+(%2 ng %3)
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -11212,7 +11416,7 @@ Cleaning up, please wait...</source>
     <message>
       <location filename="../oscar/main.cpp" line="735" />
       <source>We suggest you use this folder: </source>
-      <translation type="unfinished">Iminumungkahi namin na gamitin mo ang folder na ito:</translation>
+      <translation type="unfinished">Iminumungkahi namin na gamitin mo ang folder na ito: </translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="736" />
@@ -11328,7 +11532,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">Natukoy ng OSCAR na hindi natapos nang maayos ang nakaraang sesyon, at nakatagpo ng mga problema ang pagsusuri ng integridad ng database.\n\nMaaaring may nawawala o nasirang data.\n\nMga inirerekomendang aksyon:\n  • Ibalik ang buong database mula sa kamakailang system backup\n  • Ibalik ang bawat profile mula sa kamakailang backup (File → Restore Profile)\n  • Mag-import muli ng data mula sa iyong CPAP SD card(s)\n\nPara sa mga advanced na opsyon sa pagbawi, tingnan ang dokumentasyon ng OSCAR.\n\nMaaari kang magpatuloy, ngunit maaaring hindi kumpleto o tama ang ilang data.</translation>
+      <translation type="unfinished">Natukoy ng OSCAR na hindi natapos nang maayos ang nakaraang sesyon, at nakatagpo ng mga problema ang pagsusuri ng integridad ng database.
+
+Maaaring may nawawala o nasirang data.
+
+Mga inirerekomendang aksyon:
+  • Ibalik ang buong database mula sa kamakailang system backup
+  • Ibalik ang bawat profile mula sa kamakailang backup (File → Restore Profile)
+  • Mag-import muli ng data mula sa iyong CPAP SD card(s)
+
+Para sa mga advanced na opsyon sa pagbawi, tingnan ang dokumentasyon ng OSCAR.
+
+Maaari kang magpatuloy, ngunit maaaring hindi kumpleto o tama ang ilang data.</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -11406,7 +11621,8 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <location filename="../oscar/mainwindow.cpp" line="1238" />
       <source>Chromebook file system detected, but no removable device found
 </source>
-      <translation type="unfinished">Natukoy ang Chromebook file system, ngunit walang nahanap na removable device\n</translation>
+      <translation type="unfinished">Natukoy ang Chromebook file system, ngunit walang nahanap na removable device
+</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1239" />
@@ -11469,24 +11685,27 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <location filename="../oscar/reports.cpp" line="195" />
       <source>: %1 hours, %2 minutes, %3 seconds
 </source>
-      <translation type="unfinished">: %1 oras, %2 minuto, %3 segundo\n</translation>
+      <translation type="unfinished">: %1 oras, %2 minuto, %3 segundo
+</translation>
     </message>
     <message>
       <location filename="../oscar/reports.cpp" line="248" />
       <source>RDI	%1
 </source>
-      <translation type="unfinished">RDI	%1\n</translation>
+      <translation type="unfinished">RDI	%1
+</translation>
     </message>
     <message>
       <location filename="../oscar/reports.cpp" line="250" />
       <source>AHI	%1
 </source>
-      <translation type="unfinished">AHI	%1\n</translation>
+      <translation type="unfinished">AHI	%1
+</translation>
     </message>
     <message>
       <location filename="../oscar/reports.cpp" line="283" />
       <source>AI=%1 HI=%2 CAI=%3 </source>
-      <translation type="unfinished">AI=%1 HI=%2 CAI=%3</translation>
+      <translation type="unfinished">AI=%1 HI=%2 CAI=%3 </translation>
     </message>
     <message>
       <location filename="../oscar/reports.cpp" line="289" />
@@ -11496,7 +11715,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
     <message>
       <location filename="../oscar/reports.cpp" line="293" />
       <source>UAI=%1 </source>
-      <translation type="unfinished">UAI=%1</translation>
+      <translation type="unfinished">UAI=%1 </translation>
     </message>
     <message>
       <location filename="../oscar/reports.cpp" line="295" />
@@ -11506,7 +11725,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
     <message>
       <location filename="../oscar/reports.cpp" line="298" />
       <source>AI=%1 </source>
-      <translation type="unfinished">AI=%1</translation>
+      <translation type="unfinished">AI=%1 </translation>
     </message>
     <message>
       <location filename="../oscar/reports.cpp" line="374" />
@@ -11643,7 +11862,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
     <message>
       <location filename="../oscar/welcome.cpp" line="427" />
       <source>Most recent Oximetry data: &lt;a onclick='alert("daily=%2");'&gt;%1&lt;/a&gt; </source>
-      <translation type="unfinished">Pinakabagong datos ng Oximetry: &lt;a onclick='alert("daily=%2");'&gt;%1&lt;/a&gt;</translation>
+      <translation type="unfinished">Pinakabagong datos ng Oximetry: &lt;a onclick='alert("daily=%2");'&gt;%1&lt;/a&gt; </translation>
     </message>
     <message>
       <location filename="../oscar/welcome.cpp" line="428" />
@@ -11760,7 +11979,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.h" line="134" />
       <location filename="../oscar/SleepLib/loader_plugins/sleepstyle_loader.h" line="98" />
       <source>EPR: </source>
-      <translation type="unfinished">EPR:</translation>
+      <translation type="unfinished">EPR: </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/somnopose_loader.h" line="39" />
@@ -11797,17 +12016,18 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <location filename="../oscar/Graphs/gFlagsLine.cpp" line="267" />
       <source>Database Outdated
 Please Rebuild CPAP Data</source>
-      <translation type="unfinished">Lipas na ang Database\nMangyaring I-rebuild ang CPAP Data</translation>
+      <translation type="unfinished">Lipas na ang Database
+Mangyaring I-rebuild ang CPAP Data</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gFlagsLine.cpp" line="454" />
       <source> (%2 min, %3 sec)</source>
-      <translation type="unfinished">(%2 min, %3 sec)</translation>
+      <translation type="unfinished"> (%2 min, %3 sec)</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gFlagsLine.cpp" line="456" />
       <source> (%3 sec)</source>
-      <translation type="unfinished">(%3 sec)</translation>
+      <translation type="unfinished"> (%3 sec)</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="559" />
@@ -11818,7 +12038,8 @@ Please Rebuild CPAP Data</source>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="640" />
       <source>The popout window is full. You should capture the existing
 popout window, delete it, then pop out this graph again.</source>
-      <translation type="unfinished">Ang popout window ay puno. Dapat mong i-capture ang kasalukuyang\npopout window, burahin ito, pagkatapos ay i-pop out muli ang graph na ito.</translation>
+      <translation type="unfinished">Ang popout window ay puno. Dapat mong i-capture ang kasalukuyang
+popout window, burahin ito, pagkatapos ay i-pop out muli ang graph na ito.</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="1663" />
@@ -12588,7 +12809,7 @@ popout window, delete it, then pop out this graph again.</source>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR:</translation>
+      <translation type="unfinished">IPR: </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/journal.cpp" line="176" />
@@ -12600,7 +12821,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">Kumpleto na ang Journal Migration:\n%1 na journal entries ang na-migrate sa database\n%2 na mga error</translation>
+      <translation type="unfinished">Kumpleto na ang Journal Migration:
+%1 na journal entries ang na-migrate sa database
+%2 na mga error</translation>
     </message>
     <message>
       <location filename="../oscar/notifyMessageBox.cpp" line="18" />
@@ -12756,7 +12979,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">Ang napiling file ay hindi mukhang isang wastong Dreem CSV file.\n\nAng datos ng Dreem ay dapat na naka-format bilang isang semicolon-delimited na CSV file. Pakitiyak na ang iyong datos ay nasa CSV format at subukang muli.</translation>
+      <translation type="unfinished">Ang napiling file ay hindi mukhang isang wastong Dreem CSV file.
+
+Ang datos ng Dreem ay dapat na naka-format bilang isang semicolon-delimited na CSV file. Pakitiyak na ang iyong datos ay nasa CSV format at subukang muli.</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13124,7 +13349,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopya)</translation>
+      <translation type="unfinished"> (Kopya)</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13174,19 +13399,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">Nabigo ang pag-parse ng file:\n%1</translation>
+      <translation type="unfinished">Nabigo ang pag-parse ng file:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">Nabigo ang pag-import:\n%1</translation>
+      <translation type="unfinished">Nabigo ang pag-import:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">Na-import ang %1 ulat mula sa:\n%2</translation>
+      <translation type="unfinished">Na-import ang %1 ulat mula sa:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13209,13 +13437,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">Nabigo ang pagsulat ng file:\n%1</translation>
+      <translation type="unfinished">Nabigo ang pagsulat ng file:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">Na-export ang %1 ulat patungo sa:\n%2</translation>
+      <translation type="unfinished">Na-export ang %1 ulat patungo sa:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13271,19 +13501,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">Nabigo ang query:\n%1</translation>
+      <translation type="unfinished">Nabigo ang query:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">Hindi maisulat ang file:\n%1</translation>
+      <translation type="unfinished">Hindi maisulat ang file:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">Na-export ang %1 row patungo sa:\n%2</translation>
+      <translation type="unfinished">Na-export ang %1 row patungo sa:
+%2</translation>
     </message>
   </context>
   <context>
@@ -13429,7 +13662,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">Mayroon nang ulat na may ganitong pangalan.\nMangyaring pumili ng ibang pangalan.</translation>
+      <translation type="unfinished">Mayroon nang ulat na may ganitong pangalan.
+Mangyaring pumili ng ibang pangalan.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13445,7 +13679,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">Ang ulat na '%1' ay nalikhain.\nGamitin ang 'Copy Variety' upang magdagdag ng mga query sa ulat na ito.</translation>
+      <translation type="unfinished">Ang ulat na '%1' ay nalikhain.
+Gamitin ang 'Copy Variety' upang magdagdag ng mga query sa ulat na ito.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13455,7 +13690,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopya)</translation>
+      <translation type="unfinished"> (Kopya)</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13466,7 +13701,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">Matagumpay na nakopya ang ulat.\n%1 varieties ang nakopya.</translation>
+      <translation type="unfinished">Matagumpay na nakopya ang ulat.
+%1 varieties ang nakopya.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13483,7 +13719,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\nMatatanggal din nito ang %1 report varieties.</translation>
+      <translation type="unfinished">
+
+Matatanggal din nito ang %1 report varieties.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13604,7 +13842,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">Ilagay ang SQL query na may mga macro:\n#PROFILE_ID - Kasalukuyang profile ID\n#START_DATE - Petsa ng simula ng ulat\n#END_DATE - Petsa ng katapusan ng ulat</translation>
+      <translation type="unfinished">Ilagay ang SQL query na may mga macro:
+#PROFILE_ID - Kasalukuyang profile ID
+#START_DATE - Petsa ng simula ng ulat
+#END_DATE - Petsa ng katapusan ng ulat</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -13657,7 +13898,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Kopya)</translation>
+      <translation type="unfinished"> (Kopya)</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -13674,7 +13915,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">Walang mga custom na ulat na available.\nMagpasok ng bagong pangalan ng ulat para gumawa ng isa.</translation>
+      <translation type="unfinished">Walang mga custom na ulat na available.
+Magpasok ng bagong pangalan ng ulat para gumawa ng isa.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -13694,27 +13936,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">Nabigo ang query:\n\n%1\n\nSQL Error:\n%2</translation>
+      <translation type="unfinished">Nabigo ang query:
+
+%1
+
+SQL Error:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">Matagumpay na naisagawa ang query.\n\nWalang mga resultang ibinalik (maaaring normal ito kung walang data para sa hanay ng petsa).</translation>
+      <translation type="unfinished">Matagumpay na naisagawa ang query.
+
+Walang mga resultang ibinalik (maaaring normal ito kung walang data para sa hanay ng petsa).</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">Mga Resulta ng Pagsubok sa Query\n</translation>
+      <translation type="unfinished">Mga Resulta ng Pagsubok sa Query
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">(Ipinapakita ang unang %1 na mga hilera)\n\n</translation>
+      <translation type="unfinished">(Ipinapakita ang unang %1 na mga hilera)
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -13785,7 +14037,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">May variety na na ang pangalang '%1' sa ulat na '%2'.\n\nMangyaring pumili ng ibang pangalan ng variety.</translation>
+      <translation type="unfinished">May variety na na ang pangalang '%1' sa ulat na '%2'.
+
+Mangyaring pumili ng ibang pangalan ng variety.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -13801,14 +14055,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">Ang query ay hindi naglalaman ng lahat ng kinakailangang macros:\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\nMaaaring hindi gumana nang tama ang query.\n\nMagpatuloy pa rin?</translation>
+      <translation type="unfinished">Ang query ay hindi naglalaman ng lahat ng kinakailangang macros:
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+Maaaring hindi gumana nang tama ang query.
+
+Magpatuloy pa rin?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">Hindi maaaring magdagdag ng mga variety sa system report na '%1'.\n\nMangyaring pumili ng ibang pangalan ng ulat.</translation>
+      <translation type="unfinished">Hindi maaaring magdagdag ng mga variety sa system report na '%1'.
+
+Mangyaring pumili ng ibang pangalan ng ulat.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -13821,7 +14083,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">Ang ulat na '%1' ay hindi umiiral.\n\nLikhain ito?</translation>
+      <translation type="unfinished">Ang ulat na '%1' ay hindi umiiral.
+
+Likhain ito?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14122,7 +14386,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">Ang napiling file ay hindi isang valid na backup package.\n\n%1</translation>
+      <translation type="unfinished">Ang napiling file ay hindi isang valid na backup package.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14134,7 +14400,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">Hindi maaaring i-restore ang backup na ito.\n\n%1</translation>
+      <translation type="unfinished">Hindi maaaring i-restore ang backup na ito.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14143,7 +14411,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">Ang backup na ito ay nilikha gamit ang mas lumang database schema (v%1; kasalukuyan ay v%2).\n\nAng iyong data ng sleep session ay ganap na maibabalik. Ang ilang mga setting o configuration ng ulat ay maaaring hindi maibalik at muling irerehistro ng OSCAR sa unang paggamit.\n\nI-click ang Validate upang magpatuloy.</translation>
+      <translation type="unfinished">Ang backup na ito ay nilikha gamit ang mas lumang database schema (v%1; kasalukuyan ay v%2).
+
+Ang iyong data ng sleep session ay ganap na maibabalik. Ang ilang mga setting o configuration ng ulat ay maaaring hindi maibalik at muling irerehistro ng OSCAR sa unang paggamit.
+
+I-click ang Validate upang magpatuloy.</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14157,7 +14429,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">BABALA: Ang kasalukuyang profile na "%1" ay naglalaman ng isang Backup na direktoryo na may hawak na CPAP backup data.\n\nDahil ang restore package na ito ay may kasamang SD card data, ang buong direktoryo ng profile — kasama ang lahat ng CPAP backup data — ay permanenteng mabubura at papalitan.\n\nHindi ito maaaring ibalik. Sigurado ka bang nais mong magpatuloy?</translation>
+      <translation type="unfinished">BABALA: Ang kasalukuyang profile na "%1" ay naglalaman ng isang Backup na direktoryo na may hawak na CPAP backup data.
+
+Dahil ang restore package na ito ay may kasamang SD card data, ang buong direktoryo ng profile — kasama ang lahat ng CPAP backup data — ay permanenteng mabubura at papalitan.
+
+Hindi ito maaaring ibalik. Sigurado ka bang nais mong magpatuloy?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14169,7 +14445,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">Permanenteng mabubura ang kasalukuyang profile at lahat ng datos nito.\n\nSigurado ka bang nais mo itong palitan?</translation>
+      <translation type="unfinished">Permanenteng mabubura ang kasalukuyang profile at lahat ng datos nito.
+
+Sigurado ka bang nais mo itong palitan?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14211,7 +14489,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">Hindi nakumpleto ang restore. Hindi nabago ang database.\n\n%1</translation>
+      <translation type="unfinished">Hindi nakumpleto ang restore. Hindi nabago ang database.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14225,13 +14505,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">I-edit ang SQL query sa ibaba. Ang query ay isasagawa laban sa OSCAR database.\nMga Available na Macro: #PROFILE_ID, #START_DATE, #END_DATE</translation>
+      <translation type="unfinished">I-edit ang SQL query sa ibaba. Ang query ay isasagawa laban sa OSCAR database.
+Mga Available na Macro: #PROFILE_ID, #START_DATE, #END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">Tandaan: Mag-ingat sa pagbabago ng mga query. Ang hindi wastong SQL ay magiging sanhi ng pagkabigo ng pag-export.\nMga karaniwang talahanayan: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
+      <translation type="unfinished">Tandaan: Mag-ingat sa pagbabago ng mga query. Ang hindi wastong SQL ay magiging sanhi ng pagkabigo ng pag-export.
+Mga karaniwang talahanayan: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -14420,7 +14702,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="240" />
       <source> (right/left)MouseClick</source>
-      <translation type="unfinished">(right/left)MouseClick</translation>
+      <translation type="unfinished"> (right/left)MouseClick</translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="242" />
@@ -14585,7 +14867,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
       <source>Daily: Event (bottom left corner) </source>
-      <translation type="unfinished">Daily: Kaganapan (ibabang kaliwang sulok)</translation>
+      <translation type="unfinished">Daily: Kaganapan (ibabang kaliwang sulok) </translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
@@ -15088,7 +15370,13 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">Malapit kang magbahagi ng file na naglalaman ng iyong datos sa sleep therapy.\n\n• Ang file ay naglalaman ng datos ng session, mga kaganapan, at mga setting ng makina\n  para sa napiling hanay ng petsa\n• Ang personal na impormasyon (pangalan, petsa ng kapanganakan, mga detalye ng pakikipag-ugnayan) ay aalisin\n\nTiyaking pinagkakatiwalaan mo ang tatanggap bago ibahagi ang datos na ito.</translation>
+      <translation type="unfinished">Malapit kang magbahagi ng file na naglalaman ng iyong datos sa sleep therapy.
+
+• Ang file ay naglalaman ng datos ng session, mga kaganapan, at mga setting ng makina
+  para sa napiling hanay ng petsa
+• Ang personal na impormasyon (pangalan, petsa ng kapanganakan, mga detalye ng pakikipag-ugnayan) ay aalisin
+
+Tiyaking pinagkakatiwalaan mo ang tatanggap bago ibahagi ang datos na ito.</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15175,7 +15463,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">Hindi malikha ang file para sa pagbabahagi.\n\n%1</translation>
+      <translation type="unfinished">Hindi malikha ang file para sa pagbabahagi.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />
@@ -16145,7 +16435,8 @@ Make sure you trust the recipient before sharing this data.</source>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="2067" />
       <source>Double click title to pin / unpin
 Click and drag to reorder graphs</source>
-      <translation type="unfinished">I-double click ang pamagat upang i-pin / i-unpin\nI-click at i-drag upang muling ayusin ang mga graph</translation>
+      <translation type="unfinished">I-double click ang pamagat upang i-pin / i-unpin
+I-click at i-drag upang muling ayusin ang mga graph</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="2313" />

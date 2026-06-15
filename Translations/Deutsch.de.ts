@@ -1587,7 +1587,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">Eine Datenbankbeschädigung oder ein E/A-Fehler wurde in %1 festgestellt.\n\nFehler: %2\n\nEmpfohlene Maßnahmen:\n  • Führen Sie Hilfe → Fehlerbehebung → Datenbankintegrität prüfen aus\n  • Stellen Sie bei gefundenen Problemen eine aktuelle Sicherungskopie wieder her</translation>
+      <translation type="unfinished">Eine Datenbankbeschädigung oder ein E/A-Fehler wurde in %1 festgestellt.
+
+Fehler: %2
+
+Empfohlene Maßnahmen:
+  • Führen Sie Hilfe → Fehlerbehebung → Datenbankintegrität prüfen aus
+  • Stellen Sie bei gefundenen Problemen eine aktuelle Sicherungskopie wieder her</translation>
     </message>
   </context>
   <context>
@@ -3704,7 +3710,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Die Überprüfung der Datenbankintegrität hat Probleme festgestellt. Einige Daten könnten fehlen oder beschädigt sein.\n\nDie Integritätsprüfung umfasst die gesamte Datenbank, die möglicherweise mehrere Profile enthält.\n\nEmpfohlene Maßnahmen:\n  • Gesamte Datenbank aus einer aktuellen Systemsicherung wiederherstellen\n  • Jedes Profil aus einer aktuellen Sicherung wiederherstellen (Datei → Profil wiederherstellen)\n  • Daten von Ihrer CPAP SD-Karte(n) erneut importieren\n\nFür erweiterte Wiederherstellungsoptionen siehe die OSCAR-Dokumentation.</translation>
+      <translation type="unfinished">Die Überprüfung der Datenbankintegrität hat Probleme festgestellt. Einige Daten könnten fehlen oder beschädigt sein.
+
+Die Integritätsprüfung umfasst die gesamte Datenbank, die möglicherweise mehrere Profile enthält.
+
+Empfohlene Maßnahmen:
+  • Gesamte Datenbank aus einer aktuellen Systemsicherung wiederherstellen
+  • Jedes Profil aus einer aktuellen Sicherung wiederherstellen (Datei → Profil wiederherstellen)
+  • Daten von Ihrer CPAP SD-Karte(n) erneut importieren
+
+Für erweiterte Wiederherstellungsoptionen siehe die OSCAR-Dokumentation.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -4375,7 +4390,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">Dies komprimiert die Datenbank, um ungenutzten Speicherplatz freizugeben. Es ist am nützlichsten nach dem Löschen von Profilen.\n\nAktuelle Datenbankgröße: %1\n\nDies kann bei großen Datenbanken mehrere Minuten dauern. OSCAR wird nach Abschluss automatisch neu gestartet.\n\nFortfahren?</translation>
+      <translation type="unfinished">Dies komprimiert die Datenbank, um ungenutzten Speicherplatz freizugeben. Es ist am nützlichsten nach dem Löschen von Profilen.
+
+Aktuelle Datenbankgröße: %1
+
+Dies kann bei großen Datenbanken mehrere Minuten dauern. OSCAR wird nach Abschluss automatisch neu gestartet.
+
+Fortfahren?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -4387,28 +4408,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Die Überprüfung der Datenbankintegrität ist fehlgeschlagen. Die Komprimierung kann bei einer beschädigten Datenbank nicht durchgeführt werden.\n\nEmpfohlene Maßnahmen:\n  • Gesamte Datenbank aus einer aktuellen Systemsicherung wiederherstellen\n  • Jedes Profil aus einer aktuellen Sicherung wiederherstellen (Datei → Profil wiederherstellen)\n  • Daten von Ihrer CPAP SD-Karte(n) erneut importieren\n\nFür erweiterte Wiederherstellungsoptionen siehe die OSCAR-Dokumentation.</translation>
+      <translation type="unfinished">Die Überprüfung der Datenbankintegrität ist fehlgeschlagen. Die Komprimierung kann bei einer beschädigten Datenbank nicht durchgeführt werden.
+
+Empfohlene Maßnahmen:
+  • Gesamte Datenbank aus einer aktuellen Systemsicherung wiederherstellen
+  • Jedes Profil aus einer aktuellen Sicherung wiederherstellen (Datei → Profil wiederherstellen)
+  • Daten von Ihrer CPAP SD-Karte(n) erneut importieren
+
+Für erweiterte Wiederherstellungsoptionen siehe die OSCAR-Dokumentation.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">Datenbank wird komprimiert, bitte warten...\n\nDies kann bei großen Datenbanken mehrere Minuten dauern.</translation>
+      <translation type="unfinished">Datenbank wird komprimiert, bitte warten...
+
+Dies kann bei großen Datenbanken mehrere Minuten dauern.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">Die Komprimierung war erfolgreich, aber die Datenbankdatei konnte nicht ersetzt werden.\n\nDie ursprüngliche Datenbank ist unverändert.</translation>
+      <translation type="unfinished">Die Komprimierung war erfolgreich, aber die Datenbankdatei konnte nicht ersetzt werden.
+
+Die ursprüngliche Datenbank ist unverändert.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">Die Komprimierung war erfolgreich, aber die neue Datei konnte nicht an die richtige Stelle gebracht werden.\n\nDie ursprüngliche Datenbank wurde wiederhergestellt.</translation>
+      <translation type="unfinished">Die Komprimierung war erfolgreich, aber die neue Datei konnte nicht an die richtige Stelle gebracht werden.
+
+Die ursprüngliche Datenbank wurde wiederhergestellt.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -4419,7 +4453,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Datenbank erfolgreich komprimiert.\n\nVorher:        %1\nNachher:       %2\nFreigegeben:   %3\n\nOSCAR wird neu gestartet, wenn Sie OK drücken.</translation>
+      <translation type="unfinished">Datenbank erfolgreich komprimiert.
+
+Vorher:        %1
+Nachher:       %2
+Freigegeben:   %3
+
+OSCAR wird neu gestartet, wenn Sie OK drücken.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -4430,7 +4470,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Datenbank erfolgreich komprimiert.\n\nGröße: %1\n\nKein Speicherplatz wurde freigegeben — die Datenbank war bereits kompakt.\n\nOSCAR wird neu gestartet, wenn Sie OK drücken.</translation>
+      <translation type="unfinished">Datenbank erfolgreich komprimiert.
+
+Größe: %1
+
+Kein Speicherplatz wurde freigegeben — die Datenbank war bereits kompakt.
+
+OSCAR wird neu gestartet, wenn Sie OK drücken.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3712" />
@@ -7715,7 +7761,7 @@ Sind Sie sicher, dass Sie diese Änderungen vornehmen wollen?</translation>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(erster Fehler: %1</translation>
+      <translation type="unfinished"> (erster Fehler: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -12000,7 +12046,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">OSCAR hat festgestellt, dass die vorherige Sitzung unerwartet beendet wurde, und die Datenbankintegritätsprüfung hat Probleme gefunden.\n\nEinige Daten fehlen möglicherweise oder sind beschädigt.\n\nEmpfohlene Maßnahmen:\n  • Gesamte Datenbank aus einem aktuellen System-Backup wiederherstellen\n  • Jedes Profil aus einem aktuellen Backup wiederherstellen (Datei → Profil wiederherstellen)\n  • Daten von Ihrer CPAP SD-Karte(n) erneut importieren\n\nFür erweiterte Wiederherstellungsoptionen siehe die OSCAR-Dokumentation.\n\nSie können fortfahren, aber einige Daten sind möglicherweise unvollständig oder fehlerhaft.</translation>
+      <translation type="unfinished">OSCAR hat festgestellt, dass die vorherige Sitzung unerwartet beendet wurde, und die Datenbankintegritätsprüfung hat Probleme gefunden.
+
+Einige Daten fehlen möglicherweise oder sind beschädigt.
+
+Empfohlene Maßnahmen:
+  • Gesamte Datenbank aus einem aktuellen System-Backup wiederherstellen
+  • Jedes Profil aus einem aktuellen Backup wiederherstellen (Datei → Profil wiederherstellen)
+  • Daten von Ihrer CPAP SD-Karte(n) erneut importieren
+
+Für erweiterte Wiederherstellungsoptionen siehe die OSCAR-Dokumentation.
+
+Sie können fortfahren, aber einige Daten sind möglicherweise unvollständig oder fehlerhaft.</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />

@@ -250,7 +250,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">您的 .oscar 备份包含敏感医疗数据：\n• 睡眠治疗会话数据和事件波形\n• 个人信息（姓名、出生日期等）\n  （除非已启用隐私模式）\n\n存储建议：\n• 将备份存储在加密存储设备上\n• 将备份保存在安全、有访问控制的位置\n• 请勿与未经授权的人员共享备份文件</translation>
+      <translation type="unfinished">您的 .oscar 备份包含敏感医疗数据：
+• 睡眠治疗会话数据和事件波形
+• 个人信息（姓名、出生日期等）
+  （除非已启用隐私模式）
+
+存储建议：
+• 将备份存储在加密存储设备上
+• 将备份保存在安全、有访问控制的位置
+• 请勿与未经授权的人员共享备份文件</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -298,7 +306,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">备份已成功创建。\n\n文件：%1\n大小：%2</translation>
+      <translation type="unfinished">备份已成功创建。
+
+文件：%1
+大小：%2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -320,7 +331,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">备份无法完成。\n\n%1</translation>
+      <translation type="unfinished">备份无法完成。
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -384,7 +397,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">Proton Drive 分享链接无法直接下载，因为文件经过端到端加密，需要通过浏览器进行解密。\n\n请在浏览器中下载文件，然后使用本地文件选项。</translation>
+      <translation type="unfinished">Proton Drive 分享链接无法直接下载，因为文件经过端到端加密，需要通过浏览器进行解密。
+
+请在浏览器中下载文件，然后使用本地文件选项。</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -393,7 +408,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">OSCAR 无法将此 URL 识别为受支持的云服务。\n\n请在浏览器中下载文件，然后使用本地文件选项。\n\n支持的服务：Dropbox、Google Drive、OneDrive、Box、0x0.st，或任何指向 .oscar 文件的直接链接。</translation>
+      <translation type="unfinished">OSCAR 无法将此 URL 识别为受支持的云服务。
+
+请在浏览器中下载文件，然后使用本地文件选项。
+
+支持的服务：Dropbox、Google Drive、OneDrive、Box、0x0.st，或任何指向 .oscar 文件的直接链接。</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -404,7 +423,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">无法创建临时文件：\n%1</translation>
+      <translation type="unfinished">无法创建临时文件：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -448,7 +468,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">无法打开文件进行读取：\n%1</translation>
+      <translation type="unfinished">无法打开文件进行读取：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -522,7 +543,7 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
     <message>
       <location filename="../oscar/daily.ui" line="1075" />
       <source> i </source>
-      <translation type="unfinished">i</translation>
+      <translation type="unfinished"> i </translation>
     </message>
     <message>
       <location filename="../oscar/daily.ui" line="1131" />
@@ -878,7 +899,7 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
     <message>
       <location filename="../oscar/daily.cpp" line="662" />
       <source> Disabling Sessions requires Permissive Mode be set in OSCAR Preferences in the Clinical tab.</source>
-      <translation type="unfinished">禁用疗程需要在OSCAR首选项的临床选项卡中设置宽松模式。</translation>
+      <translation type="unfinished"> 禁用疗程需要在OSCAR首选项的临床选项卡中设置宽松模式。</translation>
     </message>
     <message>
       <location filename="../oscar/daily.cpp" line="989" />
@@ -1019,7 +1040,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/dailySearchTab.cpp" line="1275" />
       <source>Bookmark
 Jumps to Date's Bookmark</source>
-      <translation type="unfinished">书签\n跳转到日期的书签</translation>
+      <translation type="unfinished">书签
+跳转到日期的书签</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1516" />
@@ -1031,7 +1053,8 @@ Jumps to Date's Bookmark</source>
       <location filename="../oscar/dailySearchTab.cpp" line="328" />
       <source>DATE
 Jumps to Date</source>
-      <translation type="unfinished">日期\n跳转到日期</translation>
+      <translation type="unfinished">日期
+跳转到日期</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="273" />
@@ -1061,7 +1084,7 @@ Jumps to Date</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="513" />
       <source>AHI </source>
-      <translation type="unfinished">AHI</translation>
+      <translation type="unfinished">AHI </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="514" />
@@ -1107,83 +1130,91 @@ Jumps to Date</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1254" />
       <source>Number Disabled Session
 Jumps to Date's Details </source>
-      <translation type="unfinished">已禁用疗程数\n跳转至该日期详情</translation>
+      <translation type="unfinished">已禁用疗程数
+跳转至该日期详情 </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1265" />
       <location filename="../oscar/dailySearchTab.cpp" line="1281" />
       <source>Note
 Jumps to Date's Notes</source>
-      <translation type="unfinished">备注\n跳转至该日期备注</translation>
+      <translation type="unfinished">备注
+跳转至该日期备注</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1287" />
       <source>AHI
 Jumps to Date's Details</source>
-      <translation type="unfinished">AHI\n跳转至该日期详情</translation>
+      <translation type="unfinished">AHI
+跳转至该日期详情</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1290" />
       <source> EventsPerHour</source>
-      <translation type="unfinished">次/小时</translation>
+      <translation type="unfinished"> 次/小时</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1300" />
       <source>Set of Apnea:Length
 Jumps to Date's Events</source>
-      <translation type="unfinished">呼吸暂停组合：时长\n跳转至该日期事件</translation>
+      <translation type="unfinished">呼吸暂停组合：时长
+跳转至该日期事件</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1306" />
       <location filename="../oscar/dailySearchTab.cpp" line="1456" />
       <source> Seconds</source>
-      <translation type="unfinished">秒</translation>
+      <translation type="unfinished"> 秒</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1309" />
       <source>Session Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">疗程时长\n跳转至该日期详情</translation>
+      <translation type="unfinished">疗程时长
+跳转至该日期详情</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1313" />
       <location filename="../oscar/dailySearchTab.cpp" line="1461" />
       <source> Minutes</source>
-      <translation type="unfinished">分钟</translation>
+      <translation type="unfinished"> 分钟</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1318" />
       <source>Number of Sessions
 Jumps to Date's Details</source>
-      <translation type="unfinished">疗程次数\n跳转至该日期详情</translation>
+      <translation type="unfinished">疗程次数
+跳转至该日期详情</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1323" />
       <source> Sessions</source>
-      <translation type="unfinished">次疗程</translation>
+      <translation type="unfinished"> 次疗程</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1326" />
       <source>Daily Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">每日时长\n跳转至该日期详情</translation>
+      <translation type="unfinished">每日时长
+跳转至该日期详情</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1332" />
       <location filename="../oscar/dailySearchTab.cpp" line="1451" />
       <source> Hours</source>
-      <translation type="unfinished">小时</translation>
+      <translation type="unfinished"> 小时</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1336" />
       <source>Number of events
 Jumps to Date's Events</source>
-      <translation type="unfinished">事件数量\n跳转至该日期事件</translation>
+      <translation type="unfinished">事件数量
+跳转至该日期事件</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1340" />
       <source> Events</source>
-      <translation type="unfinished">次事件</translation>
+      <translation type="unfinished"> 次事件</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="602" />
@@ -1219,7 +1250,8 @@ Jumps to Date's Events</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">跳转\n跳转到日期备注</translation>
+      <translation type="unfinished">跳转
+跳转到日期备注</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1229,7 +1261,7 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1666" />
       <source> Skip:%1</source>
-      <translation type="unfinished">跳过：%1</translation>
+      <translation type="unfinished"> 跳过：%1</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1667" />
@@ -1239,7 +1271,7 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1670" />
       <source>Found %1 </source>
-      <translation type="unfinished">已找到 %1</translation>
+      <translation type="unfinished">已找到 %1 </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1688" />
@@ -1254,12 +1286,12 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1778" />
       <source>  Searches from last day to first day.</source>
-      <translation type="unfinished">从最后一天到第一天搜索。</translation>
+      <translation type="unfinished">  从最后一天到第一天搜索。</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1779" />
       <source>  Skips Days with no graphing data.</source>
-      <translation type="unfinished">跳过没有图形数据的天数。</translation>
+      <translation type="unfinished">  跳过没有图形数据的天数。</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1781" />
@@ -1269,12 +1301,12 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1782" />
       <source>  Then click on the operation to modify it.</source>
-      <translation type="unfinished">然后点击操作以修改它。</translation>
+      <translation type="unfinished">  然后点击操作以修改它。</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1783" />
       <source>  or update the value</source>
-      <translation type="unfinished">或更新值</translation>
+      <translation type="unfinished">  或更新值</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1785" />
@@ -1284,17 +1316,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1787" />
       <source>Compare Operations: numberic or character. </source>
-      <translation type="unfinished">比较操作：数字或字符。</translation>
+      <translation type="unfinished">比较操作：数字或字符。 </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1788" />
       <source>  Numberic  Operations: </source>
-      <translation type="unfinished">数字操作：</translation>
+      <translation type="unfinished">  数字操作： </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1789" />
       <source>  Character Operations: </source>
-      <translation type="unfinished">字符操作：</translation>
+      <translation type="unfinished">  字符操作： </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1791" />
@@ -1304,17 +1336,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1792" />
       <source>  Left:Summary - Number of Day searched</source>
-      <translation type="unfinished">左：摘要 - 搜索的天数</translation>
+      <translation type="unfinished">  左：摘要 - 搜索的天数</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1793" />
       <source>  Center:Number of Items Found</source>
-      <translation type="unfinished">中：找到的项目数</translation>
+      <translation type="unfinished">  中：找到的项目数</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1794" />
       <source>  Right:Minimum/Maximum for item searched</source>
-      <translation type="unfinished">右：所搜索项目的最小值/最大值</translation>
+      <translation type="unfinished">  右：所搜索项目的最小值/最大值</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1796" />
@@ -1324,17 +1356,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1797" />
       <source>  Column One: Date of match. Click selects date.</source>
-      <translation type="unfinished">第一列：匹配日期。点击选择日期。</translation>
+      <translation type="unfinished">  第一列：匹配日期。点击选择日期。</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1798" />
       <source>  Column two: Information. Click selects date.</source>
-      <translation type="unfinished">第二列：信息。点击选择日期。</translation>
+      <translation type="unfinished">  第二列：信息。点击选择日期。</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1799" />
       <source>    Then Jumps the appropiate tab.</source>
-      <translation type="unfinished">然后跳转到相应的选项卡。</translation>
+      <translation type="unfinished">    然后跳转到相应的选项卡。</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1801" />
@@ -1344,37 +1376,37 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1802" />
       <source>  Wildcards use 3 characters:</source>
-      <translation type="unfinished">通配符使用3个字符：</translation>
+      <translation type="unfinished">  通配符使用3个字符：</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1803" />
       <source>  Asterisk</source>
-      <translation type="unfinished">星号</translation>
+      <translation type="unfinished">  星号</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1804" />
       <source>  Question Mark</source>
-      <translation type="unfinished">问号</translation>
+      <translation type="unfinished">  问号</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1805" />
       <source>  Backslash.</source>
-      <translation type="unfinished">反斜杠。</translation>
+      <translation type="unfinished">  反斜杠。</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1806" />
       <source>  Asterisk matches any number of characters.</source>
-      <translation type="unfinished">星号匹配任意数量的字符。</translation>
+      <translation type="unfinished">  星号匹配任意数量的字符。</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1807" />
       <source>  Question Mark matches a single character.</source>
-      <translation type="unfinished">问号匹配单个字符。</translation>
+      <translation type="unfinished">  问号匹配单个字符。</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1808" />
       <source>  Backslash matches next character.</source>
-      <translation type="unfinished">反斜杠匹配下一个字符。</translation>
+      <translation type="unfinished">  反斜杠匹配下一个字符。</translation>
     </message>
   </context>
   <context>
@@ -1421,7 +1453,10 @@ Jumps to Date's Notes</source>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">路径：%1\n大小：%2\n配置文件：%3\n注意：此文件夹中的所有会话数据和任何SD卡备份数据将被永久删除。</translation>
+      <translation type="unfinished">路径：%1
+大小：%2
+配置文件：%3
+注意：此文件夹中的所有会话数据和任何SD卡备份数据将被永久删除。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1439,7 +1474,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">位于\n%1\n的数据库无法独占打开。OSCAR的另一个实例可能已将其打开。</translation>
+      <translation type="unfinished">位于
+%1
+的数据库无法独占打开。OSCAR的另一个实例可能已将其打开。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1451,7 +1488,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">输入"%1"以永久删除此数据库。\n\n文件夹中的所有会话数据和SD卡备份数据将被删除。此操作无法撤销。</translation>
+      <translation type="unfinished">输入"%1"以永久删除此数据库。
+
+文件夹中的所有会话数据和SD卡备份数据将被删除。此操作无法撤销。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1473,7 +1512,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">无法删除\n%1\n数据库文件仍然存在。请检查是否有文件被占用，然后重试。</translation>
+      <translation type="unfinished">无法删除
+%1
+数据库文件仍然存在。请检查是否有文件被占用，然后重试。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1485,7 +1526,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">已删除数据库，但无法从\n%1\n中删除所有文件。部分文件可能仍然存在。</translation>
+      <translation type="unfinished">已删除数据库，但无法从
+%1
+中删除所有文件。部分文件可能仍然存在。</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1509,7 +1552,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">在 %1 中检测到数据库损坏或 I/O 错误。\n\n错误：%2\n\n建议操作：\n  • 运行 帮助 → 故障排除 → 检查数据库完整性\n  • 如果发现问题，请从最近的备份中恢复</translation>
+      <translation type="unfinished">在 %1 中检测到数据库损坏或 I/O 错误。
+
+错误：%2
+
+建议操作：
+  • 运行 帮助 → 故障排除 → 检查数据库完整性
+  • 如果发现问题，请从最近的备份中恢复</translation>
     </message>
   </context>
   <context>
@@ -1518,7 +1567,8 @@ Recommended actions:
       <location filename="../oscar/overview.cpp" line="832" />
       <source>ERROR
 The start date MUST be before the end date</source>
-      <translation type="unfinished">错误\n开始日期必须早于结束日期</translation>
+      <translation type="unfinished">错误
+开始日期必须早于结束日期</translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="835" />
@@ -1529,12 +1579,13 @@ The start date MUST be before the end date</source>
       <location filename="../oscar/overview.cpp" line="836" />
       <source>
 Hint: Change the end date first</source>
-      <translation type="unfinished">\n提示：请先更改结束日期</translation>
+      <translation type="unfinished">
+提示：请先更改结束日期</translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="838" />
       <source>The entered end date %1 </source>
-      <translation type="unfinished">输入的结束日期 %1</translation>
+      <translation type="unfinished">输入的结束日期 %1 </translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="839" />
@@ -1545,7 +1596,8 @@ Hint: Change the end date first</source>
       <location filename="../oscar/overview.cpp" line="840" />
       <source>
 Hint: Change the start date first</source>
-      <translation type="unfinished">\n提示：请先更改开始日期</translation>
+      <translation type="unfinished">
+提示：请先更改开始日期</translation>
     </message>
   </context>
   <context>
@@ -1940,17 +1992,17 @@ Hint: Change the start date first</source>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— 拟合效果差，"使用模型"已禁用</translation>
+      <translation type="unfinished"> — 拟合效果差，"使用模型"已禁用</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— 拟合效果一般</translation>
+      <translation type="unfinished"> — 拟合效果一般</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— 将替换自 %1 起生效的模型</translation>
+      <translation type="unfinished"> — 将替换自 %1 起生效的模型</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2012,7 +2064,8 @@ Hint: Change the start date first</source>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">无法打开文件进行读取：\n%1</translation>
+      <translation type="unfinished">无法打开文件进行读取：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2395,7 +2448,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">无法打开文件进行读取：\n%1</translation>
+      <translation type="unfinished">无法打开文件进行读取：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2553,7 +2607,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">正在检查 %1...\n\n请稍候...</translation>
+      <translation type="unfinished">正在检查 %1...
+
+请稍候...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2564,7 +2620,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">所选文件夹似乎不是有效的 OSCAR 配置文件夹。\n请选择包含 machines.xml 的文件夹。</translation>
+      <translation type="unfinished">所选文件夹似乎不是有效的 OSCAR 配置文件夹。
+请选择包含 machines.xml 的文件夹。</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2577,7 +2634,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">此配置文件大小为 %1 GB。\n导入可能需要较长时间。\n\n是否要继续？</translation>
+      <translation type="unfinished">此配置文件大小为 %1 GB。
+导入可能需要较长时间。
+
+是否要继续？</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2747,7 +2807,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">无法写入文件：\n%1</translation>
+      <translation type="unfinished">无法写入文件：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -2951,7 +3012,9 @@ Do you want to continue?</source>
       <source>Couldn't find any valid Device Data at
 
 %1</source>
-      <translation type="unfinished">在以下位置未找到任何有效的设备数据\n\n%1</translation>
+      <translation type="unfinished">在以下位置未找到任何有效的设备数据
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1208" />
@@ -2961,7 +3024,7 @@ Do you want to continue?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">正在导入配置文件</translation>
+      <translation type="unfinished">正在导入配置文件 </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -2973,7 +3036,9 @@ Do you want to continue?</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">配置文件 '%1' 已成功导入。\n\n您现在可以从配置文件选择器中选择它。</translation>
+      <translation type="unfinished">配置文件 '%1' 已成功导入。
+
+您现在可以从配置文件选择器中选择它。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -3006,7 +3071,11 @@ You can now select it from the profile selector.</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">无法导入数据：OSCAR 数据库已被另一个应用程序锁定。\n\n如果您在 SQLite 查看器或编辑器中打开了该数据库，请将其关闭后重试。\n\n错误：%1</translation>
+      <translation type="unfinished">无法导入数据：OSCAR 数据库已被另一个应用程序锁定。
+
+如果您在 SQLite 查看器或编辑器中打开了该数据库，请将其关闭后重试。
+
+错误：%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1029" />
@@ -3016,7 +3085,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">导入的数据无法保存到数据库，未存储任何数据。\n\n如果您在另一个应用程序（例如 SQLite 查看器或编辑器）中打开了 OSCAR 数据库，请将其关闭后重试。\n\n错误：%1</translation>
+      <translation type="unfinished">导入的数据无法保存到数据库，未存储任何数据。
+
+如果您在另一个应用程序（例如 SQLite 查看器或编辑器）中打开了 OSCAR 数据库，请将其关闭后重试。
+
+错误：%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1290" />
@@ -3037,7 +3110,8 @@ Error: %1</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">导入配置文件失败：\n%1</translation>
+      <translation type="unfinished">导入配置文件失败：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1449" />
@@ -3052,7 +3126,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">此SD卡来自与上次导入此配置文件不同的设备。\n\n上次导入：%1\n此卡：%2\n\n您确定要将此卡的数据导入到此配置文件吗？</translation>
+      <translation type="unfinished">此SD卡来自与上次导入此配置文件不同的设备。
+
+上次导入：%1
+此卡：%2
+
+您确定要将此卡的数据导入到此配置文件吗？</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3086,7 +3165,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">这将永久删除此配置文件中所有设备的时间校正记录。\n\n您确定吗？</translation>
+      <translation type="unfinished">这将永久删除此配置文件中所有设备的时间校正记录。
+
+您确定吗？</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2396" />
@@ -3128,7 +3209,9 @@ Are you sure?</source>
       <source>Are you sure you want to rebuild all CPAP data for the following device:
 
 </source>
-      <translation type="unfinished">您确定要重建以下设备的所有 CPAP 数据吗：\n\n</translation>
+      <translation type="unfinished">您确定要重建以下设备的所有 CPAP 数据吗：
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2507" />
@@ -3173,7 +3256,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">（活动中）</translation>
+      <translation type="unfinished"> （活动中）</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3194,7 +3277,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">所选文件夹已包含OSCAR数据库。\n请使用 文件 ▸ 数据库 ▸ 打开 来打开现有数据库。</translation>
+      <translation type="unfinished">所选文件夹已包含OSCAR数据库。
+请使用 文件 ▸ 数据库 ▸ 打开 来打开现有数据库。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3210,7 +3294,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">所选文件夹不包含OSCAR数据库。\n请选择一个包含oscar.db文件的文件夹。</translation>
+      <translation type="unfinished">所选文件夹不包含OSCAR数据库。
+请选择一个包含oscar.db文件的文件夹。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3222,13 +3307,16 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">最近列表中没有可删除的非活动数据库。\n\n请先通过 文件 ▸ 数据库 ▸ 打开 打开数据库，将其添加到最近列表。</translation>
+      <translation type="unfinished">最近列表中没有可删除的非活动数据库。
+
+请先通过 文件 ▸ 数据库 ▸ 打开 打开数据库，将其添加到最近列表。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">解析 %1 时出现问题\n数据文件：%2</translation>
+      <translation type="unfinished">解析 %1 时出现问题
+数据文件：%2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3429" />
@@ -3254,7 +3342,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">这将压缩数据库以回收未使用的磁盘空间，在删除配置文件后最为有用。\n\n当前数据库大小：%1\n\n对于大型数据库，此操作可能需要几分钟时间。完成后 OSCAR 将自动重启。\n\n是否继续？</translation>
+      <translation type="unfinished">这将压缩数据库以回收未使用的磁盘空间，在删除配置文件后最为有用。
+
+当前数据库大小：%1
+
+对于大型数据库，此操作可能需要几分钟时间。完成后 OSCAR 将自动重启。
+
+是否继续？</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -3266,28 +3360,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">数据库完整性检查失败。无法对已损坏的数据库进行压缩。\n\n建议操作：\n  • 从最近的系统备份中恢复整个数据库\n  • 从最近的备份中恢复每个配置文件（文件 → 恢复配置文件）\n  • 从您的 CPAP SD 卡重新导入数据\n\n有关高级恢复选项，请参阅 OSCAR 文档。</translation>
+      <translation type="unfinished">数据库完整性检查失败。无法对已损坏的数据库进行压缩。
+
+建议操作：
+  • 从最近的系统备份中恢复整个数据库
+  • 从最近的备份中恢复每个配置文件（文件 → 恢复配置文件）
+  • 从您的 CPAP SD 卡重新导入数据
+
+有关高级恢复选项，请参阅 OSCAR 文档。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">正在压缩数据库，请稍候...\n\n对于大型数据库，此操作可能需要几分钟时间。</translation>
+      <translation type="unfinished">正在压缩数据库，请稍候...
+
+对于大型数据库，此操作可能需要几分钟时间。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">压缩成功，但无法替换数据库文件。\n\n原始数据库未发生更改。</translation>
+      <translation type="unfinished">压缩成功，但无法替换数据库文件。
+
+原始数据库未发生更改。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">压缩成功，但无法将新文件放置到位。\n\n原始数据库已恢复。</translation>
+      <translation type="unfinished">压缩成功，但无法将新文件放置到位。
+
+原始数据库已恢复。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -3298,7 +3405,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">数据库压缩成功。\n\n压缩前：%1\n压缩后：%2\n已回收：%3\n\n按下确定后 OSCAR 将重启。</translation>
+      <translation type="unfinished">数据库压缩成功。
+
+压缩前：%1
+压缩后：%2
+已回收：%3
+
+按下确定后 OSCAR 将重启。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -3309,7 +3422,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">数据库压缩成功。\n\n大小：%1\n\n未回收任何空间——数据库已经是紧凑状态。\n\n按下确定后 OSCAR 将重启。</translation>
+      <translation type="unfinished">数据库压缩成功。
+
+大小：%1
+
+未回收任何空间——数据库已经是紧凑状态。
+
+按下确定后 OSCAR 将重启。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.ui" line="2233" />
@@ -3901,7 +4020,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">数据库完整性检查发现问题，部分数据可能丢失或已损坏。\n\n完整性检查覆盖整个数据库，其中可能包含多个配置文件。\n\n建议操作：\n  • 从最近的系统备份中恢复整个数据库\n  • 从最近的备份中恢复每个配置文件（文件 → 恢复配置文件）\n  • 从您的 CPAP SD 卡重新导入数据\n\n有关高级恢复选项，请参阅 OSCAR 文档。</translation>
+      <translation type="unfinished">数据库完整性检查发现问题，部分数据可能丢失或已损坏。
+
+完整性检查覆盖整个数据库，其中可能包含多个配置文件。
+
+建议操作：
+  • 从最近的系统备份中恢复整个数据库
+  • 从最近的备份中恢复每个配置文件（文件 → 恢复配置文件）
+  • 从您的 CPAP SD 卡重新导入数据
+
+有关高级恢复选项，请参阅 OSCAR 文档。</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -3926,7 +4054,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">数据库压缩失败：\n%1</translation>
+      <translation type="unfinished">数据库压缩失败：
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -4747,7 +4876,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">无法打开文件进行读取：\n%1</translation>
+      <translation type="unfinished">无法打开文件进行读取：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4768,7 +4898,8 @@ No space was reclaimed — the database was already compact.</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">文件已上传到 OneDrive，但无法创建共享链接（HTTP %1）。\n注意：您的 Microsoft 帐户设置中可能已禁用匿名共享。</translation>
+      <translation type="unfinished">文件已上传到 OneDrive，但无法创建共享链接（HTTP %1）。
+注意：您的 Microsoft 帐户设置中可能已禁用匿名共享。</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -6326,7 +6457,13 @@ and graph data older than 30 days..
 
 OSCAR can keep a copy of this data if you ever need to reinstall. 
 (Highly recomended, unless your short on disk space or don't care about the graph data)</source>
-      <translation type="unfinished">这为 ResMed 设备维护 SD 卡数据的备份，\n\nResMed S9 系列设备会删除超过 7 天的高分辨率数据，\n以及超过 30 天的图表数据。\n\nOSCAR 可以保存这些数据的副本，以便您在需要重新安装时使用。\n（强烈推荐，除非您磁盘空间不足或不关心图表数据）</translation>
+      <translation type="unfinished">这为 ResMed 设备维护 SD 卡数据的备份，
+
+ResMed S9 系列设备会删除超过 7 天的高分辨率数据，
+以及超过 30 天的图表数据。
+
+OSCAR 可以保存这些数据的副本，以便您在需要重新安装时使用。
+（强烈推荐，除非您磁盘空间不足或不关心图表数据）</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="619" />
@@ -6360,14 +6497,20 @@ OSCAR can keep a copy of this data if you ever need to reinstall.
 The Unintentional Leak calculations used here are linear, they don't model the mask vent curve.
 
 If you use a few different masks, pick average values instead. It should still be close enough.</source>
-      <translation type="unfinished">此计算需要CPAP设备提供总漏气量数据。（例如PRS1，但不包括ResMed，因为ResMed已有这些数据）\n\n此处使用的非故意漏气计算是线性的，不模拟面罩排气曲线。\n\n如果您使用几种不同的面罩，请选择平均值。结果应该仍然足够接近。</translation>
+      <translation type="unfinished">此计算需要CPAP设备提供总漏气量数据。（例如PRS1，但不包括ResMed，因为ResMed已有这些数据）
+
+此处使用的非故意漏气计算是线性的，不模拟面罩排气曲线。
+
+如果您使用几种不同的面罩，请选择平均值。结果应该仍然足够接近。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="898" />
       <source>Enable/disable experimental event flagging enhancements. 
 It allows detecting borderline events, and some the device missed.
 This option must be enabled before import, otherwise a purge is required.</source>
-      <translation type="unfinished">启用/禁用实验性事件标记增强功能。\n它可以检测临界事件，以及一些设备遗漏的事件。\n此选项必须在导入前启用，否则需要清除数据。</translation>
+      <translation type="unfinished">启用/禁用实验性事件标记增强功能。
+它可以检测临界事件，以及一些设备遗漏的事件。
+此选项必须在导入前启用，否则需要清除数据。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="950" />
@@ -6541,7 +6684,12 @@ which is common on Mac  Linux platforms..
 
 OSCAR can import from this compressed backup directory natively.. 
 To use it with ResScan will require the .gz files to be uncompressed first..</source>
-      <translation type="unfinished">压缩ResMed（EDF）备份以节省磁盘空间。\n备份的EDF文件以.gz格式存储，\n这在Mac和Linux平台上很常见。\n\nOSCAR可以原生从此压缩备份目录导入。\n若要与ResScan一起使用，需要先解压缩.gz文件。</translation>
+      <translation type="unfinished">压缩ResMed（EDF）备份以节省磁盘空间。
+备份的EDF文件以.gz格式存储，
+这在Mac和Linux平台上很常见。
+
+OSCAR可以原生从此压缩备份目录导入。
+若要与ResScan一起使用，需要先解压缩.gz文件。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="636" />
@@ -6566,7 +6714,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1206" />
       <source> l/min</source>
-      <translation type="unfinished">升/分钟</translation>
+      <translation type="unfinished"> 升/分钟</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1298" />
@@ -6594,7 +6742,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1628" />
       <source>Select  Oscar Operating Mode </source>
-      <translation type="unfinished">选择Oscar运行模式</translation>
+      <translation type="unfinished">选择Oscar运行模式 </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1638" />
@@ -6609,7 +6757,7 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1665" />
       <source> Hours</source>
-      <translation type="unfinished">小时</translation>
+      <translation type="unfinished"> 小时</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1692" />
@@ -6635,7 +6783,8 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">在文件 &gt; 数据库中添加新建、打开、最近和删除选项。\n适用于技术支持人员和开发者。</translation>
+      <translation type="unfinished">在文件 &gt; 数据库中添加新建、打开、最近和删除选项。
+适用于技术支持人员和开发者。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6742,7 +6891,9 @@ Intended for support staff and developers.</source>
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">使用 Qt 的 Fusion 主题代替平台原生主题。\n提供跨平台一致的外观。\n点击确定后 OSCAR 将重新启动。</translation>
+      <translation type="unfinished">使用 Qt 的 Fusion 主题代替平台原生主题。
+提供跨平台一致的外观。
+点击确定后 OSCAR 将重新启动。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -6767,7 +6918,7 @@ OSCAR will restart when you click OK.</source>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">交替颜色间距</translation>
+      <translation type="unfinished"> 交替颜色间距</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3620" />
@@ -6918,7 +7069,7 @@ If you've got a new computer with a small solid state disk, this is a good optio
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">必须启用宽松模式。请参阅临床选项卡</translation>
+      <translation type="unfinished">必须启用宽松模式。请参阅临床选项卡 </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6935,7 +7086,9 @@ If you've got a new computer with a small solid state disk, this is a good optio
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">稳定呼吸（SB）基于流量。\n使用CPAP流量创建波形和SPAN事件。\n仅在启用稳定呼吸且CPAP数据（重新）导入时有效。</translation>
+      <translation type="unfinished">稳定呼吸（SB）基于流量。
+使用CPAP流量创建波形和SPAN事件。
+仅在启用稳定呼吸且CPAP数据（重新）导入时有效。  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6955,7 +7108,7 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1484" />
       <source> Seconds</source>
-      <translation type="unfinished">秒</translation>
+      <translation type="unfinished"> 秒</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1503" />
@@ -6971,13 +7124,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">临床模式不允许禁用的疗程。\n禁用的疗程不用于图表绘制或统计。</translation>
+      <translation type="unfinished">临床模式不允许禁用的疗程。
+禁用的疗程不用于图表绘制或统计。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">宽松模式允许禁用的疗程。\n禁用的疗程用于图表绘制和统计。</translation>
+      <translation type="unfinished">宽松模式允许禁用的疗程。
+禁用的疗程用于图表绘制和统计。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6990,7 +7145,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">默认情况下，OSCAR使用血氧数据第一小时的计算结果作为基准值。\n此设置允许您用静态值覆盖该基准值。\n当第一小时的数据不能代表整个数据集时，此功能可能会很有用。\n它也有助于更方便地对不同日期的数据进行比较。</translation>
+      <translation type="unfinished">默认情况下，OSCAR使用血氧数据第一小时的计算结果作为基准值。
+此设置允许您用静态值覆盖该基准值。
+当第一小时的数据不能代表整个数据集时，此功能可能会很有用。
+它也有助于更方便地对不同日期的数据进行比较。</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2034" />
@@ -7004,7 +7162,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;同步血氧仪与CPAP数据&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;从SpO2Review导入的CMS50数据（来自.spoR文件）或通过串口导入方式导入的数据&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;没有&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;同步所需的正确时间戳。&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;实时查看模式（使用串口线）是实现CMS50血氧仪精确同步的一种方式，但无法补偿CPAP时钟漂移。&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;如果您在启动CPAP设备的&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;同一时刻&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;启动血氧仪的记录模式，现在也可以实现同步。&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;串口导入过程将以昨晚第一个CPAP疗程的开始时间为准。（请记得先导入您的CPAP数据！）&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;同步血氧仪与CPAP数据&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;从SpO2Review导入的CMS50数据（来自.spoR文件）或通过串口导入方式导入的数据&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;没有&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;同步所需的正确时间戳。&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;实时查看模式（使用串口线）是实现CMS50血氧仪精确同步的一种方式，但无法补偿CPAP时钟漂移。&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;如果您在启动CPAP设备的&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;同一时刻&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;启动血氧仪的记录模式，现在也可以实现同步。&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;串口导入过程将以昨晚第一个CPAP疗程的开始时间为准。（请记得先导入您的CPAP数据！）&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2269" />
@@ -7235,7 +7402,7 @@ p, li { white-space: pre-wrap; }
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">（首次失败：%1</translation>
+      <translation type="unfinished"> （首次失败：%1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7318,7 +7485,7 @@ p, li { white-space: pre-wrap; }
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">编号：</translation>
+      <translation type="unfinished">编号： </translation>
     </message>
     <message>
       <source>Enter Password for %1</source>
@@ -7392,7 +7559,7 @@ p, li { white-space: pre-wrap; }
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">正在删除配置文件</translation>
+      <translation type="unfinished">正在删除配置文件 </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7422,7 +7589,7 @@ p, li { white-space: pre-wrap; }
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">姓名：</translation>
+      <translation type="unfinished">姓名： </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -9809,7 +9976,7 @@ Please Rebuild CPAP Data</source>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">爬升时间</translation>
+      <translation type="unfinished">爬升时间 </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -10333,7 +10500,8 @@ Please Rebuild CPAP Data</source>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="30" />
       <source>
 Length: %1</source>
-      <translation type="unfinished">\n长度：%1</translation>
+      <translation type="unfinished">
+长度：%1</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="96" />
@@ -11507,13 +11675,14 @@ TTIA: %1</source>
     <message>
       <location filename="../oscar/SleepLib/preferences.cpp" line="237" />
       <source>Using </source>
-      <translation type="unfinished">正在使用</translation>
+      <translation type="unfinished">正在使用 </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/preferences.cpp" line="237" />
       <source>, found SleepyHead -
 </source>
-      <translation type="unfinished">，找到SleepyHead -\n</translation>
+      <translation type="unfinished">，找到SleepyHead -
+</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="174" />
@@ -11567,7 +11736,10 @@ TTIA: %1</source>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">正在迁移配置文件：%1\n（%2，共 %3）\n\n正在开始导入...</translation>
+      <translation type="unfinished">正在迁移配置文件：%1
+（%2，共 %3）
+
+正在开始导入...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -11575,7 +11747,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">正在取消：%1\n（%2，共 %3）\n\n正在清理，请稍候...</translation>
+      <translation type="unfinished">正在取消：%1
+（%2，共 %3）
+
+正在清理，请稍候...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -11583,7 +11758,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">正在迁移配置文件：%1\n（%2，共 %3）\n\n%4</translation>
+      <translation type="unfinished">正在迁移配置文件：%1
+（%2，共 %3）
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -11659,7 +11837,7 @@ Cleaning up, please wait...</source>
     <message>
       <location filename="../oscar/main.cpp" line="735" />
       <source>We suggest you use this folder: </source>
-      <translation type="unfinished">我们建议您使用此文件夹：</translation>
+      <translation type="unfinished">我们建议您使用此文件夹： </translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="736" />
@@ -11735,7 +11913,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">OSCAR 检测到上一次会话意外结束，且数据库完整性检查发现了问题。\n\n部分数据可能丢失或已损坏。\n\n建议操作：\n  • 从最近的系统备份中恢复整个数据库\n  • 从最近的备份中恢复每个配置文件（文件 → 恢复配置文件）\n  • 从您的 CPAP SD 卡重新导入数据\n\n有关高级恢复选项，请参阅 OSCAR 文档。\n\n您可以继续使用，但部分数据可能不完整或不正确。</translation>
+      <translation type="unfinished">OSCAR 检测到上一次会话意外结束，且数据库完整性检查发现了问题。
+
+部分数据可能丢失或已损坏。
+
+建议操作：
+  • 从最近的系统备份中恢复整个数据库
+  • 从最近的备份中恢复每个配置文件（文件 → 恢复配置文件）
+  • 从您的 CPAP SD 卡重新导入数据
+
+有关高级恢复选项，请参阅 OSCAR 文档。
+
+您可以继续使用，但部分数据可能不完整或不正确。</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -12439,7 +12628,8 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="640" />
       <source>The popout window is full. You should capture the existing
 popout window, delete it, then pop out this graph again.</source>
-      <translation type="unfinished">弹出窗口已满。请先捕获现有的\n弹出窗口，删除它，然后再次弹出此图表。</translation>
+      <translation type="unfinished">弹出窗口已满。请先捕获现有的
+弹出窗口，删除它，然后再次弹出此图表。</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resmed_loader.cpp" line="212" />
@@ -12486,7 +12676,8 @@ popout window, delete it, then pop out this graph again.</source>
       <location filename="../oscar/mainwindow.cpp" line="1238" />
       <source>Chromebook file system detected, but no removable device found
 </source>
-      <translation type="unfinished">检测到 Chromebook 文件系统，但未找到可移动设备\n</translation>
+      <translation type="unfinished">检测到 Chromebook 文件系统，但未找到可移动设备
+</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1239" />
@@ -12621,7 +12812,7 @@ popout window, delete it, then pop out this graph again.</source>
     <message>
       <location filename="../oscar/reports.cpp" line="298" />
       <source>AI=%1 </source>
-      <translation type="unfinished">AI=%1</translation>
+      <translation type="unfinished">AI=%1 </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/sleepstyle_loader.cpp" line="1027" />
@@ -12714,7 +12905,7 @@ popout window, delete it, then pop out this graph again.</source>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR：</translation>
+      <translation type="unfinished">IPR： </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/journal.cpp" line="176" />
@@ -12726,7 +12917,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">日志迁移完成：\n%1 条日志已迁移至数据库\n%2 个错误</translation>
+      <translation type="unfinished">日志迁移完成：
+%1 条日志已迁移至数据库
+%2 个错误</translation>
     </message>
     <message>
       <location filename="../oscar/notifyMessageBox.cpp" line="18" />
@@ -12882,7 +13075,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">所选文件似乎不是有效的 Dreem CSV 文件。\n\nDreem 数据必须格式化为分号分隔的 CSV 文件。请确保您的数据为 CSV 格式，然后重试。</translation>
+      <translation type="unfinished">所选文件似乎不是有效的 Dreem CSV 文件。
+
+Dreem 数据必须格式化为分号分隔的 CSV 文件。请确保您的数据为 CSV 格式，然后重试。</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13250,7 +13445,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">（副本）</translation>
+      <translation type="unfinished"> （副本）</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13300,19 +13495,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">无法解析文件：\n%1</translation>
+      <translation type="unfinished">无法解析文件：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">导入失败：\n%1</translation>
+      <translation type="unfinished">导入失败：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">已从以下位置导入 %1 个报告：\n%2</translation>
+      <translation type="unfinished">已从以下位置导入 %1 个报告：
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13335,13 +13533,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">无法写入文件：\n%1</translation>
+      <translation type="unfinished">无法写入文件：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">已将 %1 个报告导出到：\n%2</translation>
+      <translation type="unfinished">已将 %1 个报告导出到：
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13397,19 +13597,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">查询失败：\n%1</translation>
+      <translation type="unfinished">查询失败：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">无法写入文件：\n%1</translation>
+      <translation type="unfinished">无法写入文件：
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">已将 %1 行导出至：\n%2</translation>
+      <translation type="unfinished">已将 %1 行导出至：
+%2</translation>
     </message>
   </context>
   <context>
@@ -13555,7 +13758,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">已存在同名报告。\n请选择其他名称。</translation>
+      <translation type="unfinished">已存在同名报告。
+请选择其他名称。</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13571,7 +13775,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">报告"%1"已创建。\n请使用"复制变体"向此报告添加查询。</translation>
+      <translation type="unfinished">报告"%1"已创建。
+请使用"复制变体"向此报告添加查询。</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13581,7 +13786,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">（副本）</translation>
+      <translation type="unfinished"> （副本）</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13592,7 +13797,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">报告复制成功。\n已复制%1个变体。</translation>
+      <translation type="unfinished">报告复制成功。
+已复制%1个变体。</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13609,7 +13815,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\n此操作还将删除%1个报告变体。</translation>
+      <translation type="unfinished">
+
+此操作还将删除%1个报告变体。</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13730,7 +13938,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">输入带有宏的 SQL 查询：\n#PROFILE_ID - 当前配置文件 ID\n#START_DATE - 报告开始日期\n#END_DATE - 报告结束日期</translation>
+      <translation type="unfinished">输入带有宏的 SQL 查询：
+#PROFILE_ID - 当前配置文件 ID
+#START_DATE - 报告开始日期
+#END_DATE - 报告结束日期</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -13783,7 +13994,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">（副本）</translation>
+      <translation type="unfinished"> （副本）</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -13800,7 +14011,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">没有可用的自定义报告。\n输入新的报告名称以创建一个。</translation>
+      <translation type="unfinished">没有可用的自定义报告。
+输入新的报告名称以创建一个。</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -13820,27 +14032,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">查询失败：\n\n%1\n\nSQL 错误：\n%2</translation>
+      <translation type="unfinished">查询失败：
+
+%1
+
+SQL 错误：
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">查询执行成功。\n\n未返回任何结果（如果所选日期范围内没有数据，这可能是正常现象）。</translation>
+      <translation type="unfinished">查询执行成功。
+
+未返回任何结果（如果所选日期范围内没有数据，这可能是正常现象）。</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">查询测试结果\n</translation>
+      <translation type="unfinished">查询测试结果
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">（显示前 %1 行）\n\n</translation>
+      <translation type="unfinished">（显示前 %1 行）
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -13911,7 +14133,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">报告"%2"中已存在名为"%1"的变体。\n\n请选择其他变体名称。</translation>
+      <translation type="unfinished">报告"%2"中已存在名为"%1"的变体。
+
+请选择其他变体名称。</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -13927,14 +14151,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">查询未包含所有必需的宏：\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\n查询可能无法正常运行。\n\n是否仍要继续？</translation>
+      <translation type="unfinished">查询未包含所有必需的宏：
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+查询可能无法正常运行。
+
+是否仍要继续？</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">无法将变体添加到系统报告"%1"。\n\n请选择其他报告名称。</translation>
+      <translation type="unfinished">无法将变体添加到系统报告"%1"。
+
+请选择其他报告名称。</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -13947,7 +14179,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">报告"%1"不存在。\n\n是否创建？</translation>
+      <translation type="unfinished">报告"%1"不存在。
+
+是否创建？</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14248,7 +14482,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">所选文件不是有效的备份包。\n\n%1</translation>
+      <translation type="unfinished">所选文件不是有效的备份包。
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14260,7 +14496,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">此备份无法恢复。\n\n%1</translation>
+      <translation type="unfinished">此备份无法恢复。
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14269,7 +14507,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">此备份是使用较旧的数据库架构（v%1；当前为 v%2）创建的。\n\n您的睡眠会话数据将被完整恢复。部分设置或报告配置可能无法恢复，OSCAR 将在首次使用时重新生成。\n\n点击"验证"以继续。</translation>
+      <translation type="unfinished">此备份是使用较旧的数据库架构（v%1；当前为 v%2）创建的。
+
+您的睡眠会话数据将被完整恢复。部分设置或报告配置可能无法恢复，OSCAR 将在首次使用时重新生成。
+
+点击"验证"以继续。</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14283,7 +14525,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">警告：现有配置文件"%1"包含一个存储 CPAP 备份数据的备份目录。\n\n由于此恢复包含 SD 卡数据，整个配置文件目录（包括所有 CPAP 备份数据）将被永久删除并替换。\n\n此操作无法撤销。您确定要继续吗？</translation>
+      <translation type="unfinished">警告：现有配置文件"%1"包含一个存储 CPAP 备份数据的备份目录。
+
+由于此恢复包含 SD 卡数据，整个配置文件目录（包括所有 CPAP 备份数据）将被永久删除并替换。
+
+此操作无法撤销。您确定要继续吗？</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14295,7 +14541,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">此操作将永久删除现有配置文件及其所有数据。\n\n您确定要替换它吗？</translation>
+      <translation type="unfinished">此操作将永久删除现有配置文件及其所有数据。
+
+您确定要替换它吗？</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14337,7 +14585,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">恢复无法完成。数据库未被修改。\n\n%1</translation>
+      <translation type="unfinished">恢复无法完成。数据库未被修改。
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14351,13 +14601,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">编辑下方的 SQL 查询。该查询将在 OSCAR 数据库上执行。\n可用宏：#PROFILE_ID、#START_DATE、#END_DATE</translation>
+      <translation type="unfinished">编辑下方的 SQL 查询。该查询将在 OSCAR 数据库上执行。
+可用宏：#PROFILE_ID、#START_DATE、#END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">注意：修改查询时请谨慎。无效的 SQL 将导致导出失败。\n常用表：daily_summaries、session_summaries、sessions、machines、session_settings、channels</translation>
+      <translation type="unfinished">注意：修改查询时请谨慎。无效的 SQL 将导致导出失败。
+常用表：daily_summaries、session_summaries、sessions、machines、session_settings、channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -14546,7 +14798,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="240" />
       <source> (right/left)MouseClick</source>
-      <translation type="unfinished">（右/左）鼠标点击</translation>
+      <translation type="unfinished"> （右/左）鼠标点击</translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="242" />
@@ -14711,7 +14963,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
       <source>Daily: Event (bottom left corner) </source>
-      <translation type="unfinished">日常视图：事件（左下角）</translation>
+      <translation type="unfinished">日常视图：事件（左下角） </translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
@@ -15214,7 +15466,13 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">您即将共享一个包含您的睡眠治疗数据的文件。\n\n• 该文件包含所选日期范围内的治疗记录、\n  事件及设备设置\n• 个人信息（姓名、出生日期、联系方式）将被删除\n\n在共享此数据之前，请确保您信任接收方。</translation>
+      <translation type="unfinished">您即将共享一个包含您的睡眠治疗数据的文件。
+
+• 该文件包含所选日期范围内的治疗记录、
+  事件及设备设置
+• 个人信息（姓名、出生日期、联系方式）将被删除
+
+在共享此数据之前，请确保您信任接收方。</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15301,7 +15559,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">无法创建共享文件。\n\n%1</translation>
+      <translation type="unfinished">无法创建共享文件。
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />
@@ -16287,7 +16547,8 @@ Make sure you trust the recipient before sharing this data.</source>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="2067" />
       <source>Double click title to pin / unpin
 Click and drag to reorder graphs</source>
-      <translation type="unfinished">双击标题以固定/取消固定\n单击并拖动以重新排列图表</translation>
+      <translation type="unfinished">双击标题以固定/取消固定
+单击并拖动以重新排列图表</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="566" />

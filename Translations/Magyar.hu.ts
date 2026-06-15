@@ -250,7 +250,15 @@ Storage recommendations:
 • Store backups on encrypted storage
 • Keep backups in a secure, access-controlled location
 • Do not share backup files with unauthorised parties</source>
-      <translation type="unfinished">Az .oscar biztonsági mentés érzékeny orvosi adatokat tartalmaz:\n• Alvásterápiás munkamenet adatok és eseményhullámformák\n• Személyes adatok (név, születési dátum stb.)\n  (kivéve, ha az adatvédelmi mód engedélyezve van)\n\nTárolási ajánlások:\n• Tároljon biztonsági mentéseket titkosított adathordozón\n• Tartsa a biztonsági mentéseket biztonságos, hozzáférés-ellenőrzött helyen\n• Ne osszon meg biztonsági mentési fájlokat jogosulatlan személyekkel</translation>
+      <translation type="unfinished">Az .oscar biztonsági mentés érzékeny orvosi adatokat tartalmaz:
+• Alvásterápiás munkamenet adatok és eseményhullámformák
+• Személyes adatok (név, születési dátum stb.)
+  (kivéve, ha az adatvédelmi mód engedélyezve van)
+
+Tárolási ajánlások:
+• Tároljon biztonsági mentéseket titkosított adathordozón
+• Tartsa a biztonsági mentéseket biztonságos, hozzáférés-ellenőrzött helyen
+• Ne osszon meg biztonsági mentési fájlokat jogosulatlan személyekkel</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="290" />
@@ -298,7 +306,10 @@ Storage recommendations:
 
 File: %1
 Size: %2</source>
-      <translation type="unfinished">A biztonsági mentés sikeresen létrejött.\n\nFájl: %1\nMéret: %2</translation>
+      <translation type="unfinished">A biztonsági mentés sikeresen létrejött.
+
+Fájl: %1
+Méret: %2</translation>
     </message>
     <message>
       <location filename="../oscar/backupdialog.cpp" line="502" />
@@ -320,7 +331,9 @@ Size: %2</source>
       <source>The backup could not be completed.
 
 %1</source>
-      <translation type="unfinished">A biztonsági mentés nem fejezhető be.\n\n%1</translation>
+      <translation type="unfinished">A biztonsági mentés nem fejezhető be.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -384,7 +397,9 @@ Size: %2</source>
       <source>Proton Drive share links cannot be downloaded directly because files are end-to-end encrypted and require browser-based decryption.
 
 Please download the file in your browser and use the Local File option.</source>
-      <translation type="unfinished">A Proton Drive megosztási hivatkozásokról a fájlok nem tölthetők le közvetlenül, mert a fájlok végponttól végpontig titkosítottak, és böngészőalapú visszafejtést igényelnek.\n\nKérjük, töltse le a fájlt a böngészőjében, és használja a Helyi fájl lehetőséget.</translation>
+      <translation type="unfinished">A Proton Drive megosztási hivatkozásokról a fájlok nem tölthetők le közvetlenül, mert a fájlok végponttól végpontig titkosítottak, és böngészőalapú visszafejtést igényelnek.
+
+Kérjük, töltse le a fájlt a böngészőjében, és használja a Helyi fájl lehetőséget.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="81" />
@@ -393,7 +408,11 @@ Please download the file in your browser and use the Local File option.</source>
 Please download the file in your browser and use the Local File option.
 
 Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct link to a .oscar file.</source>
-      <translation type="unfinished">Az OSCAR nem ismeri fel ezt az URL-t támogatott felhőszolgáltatásként.\n\nKérjük, töltse le a fájlt a böngészőjében, és használja a Helyi fájl opciót.\n\nTámogatott szolgáltatások: Dropbox, Google Drive, OneDrive, Box, 0x0.st, vagy bármely közvetlen hivatkozás egy .oscar fájlra.</translation>
+      <translation type="unfinished">Az OSCAR nem ismeri fel ezt az URL-t támogatott felhőszolgáltatásként.
+
+Kérjük, töltse le a fájlt a böngészőjében, és használja a Helyi fájl opciót.
+
+Támogatott szolgáltatások: Dropbox, Google Drive, OneDrive, Box, 0x0.st, vagy bármely közvetlen hivatkozás egy .oscar fájlra.</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="92" />
@@ -404,7 +423,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_downloader.cpp" line="105" />
       <source>Could not create temporary file:
 %1</source>
-      <translation type="unfinished">Nem sikerült ideiglenes fájlt létrehozni:\n%1</translation>
+      <translation type="unfinished">Nem sikerült ideiglenes fájlt létrehozni:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_downloader.cpp" line="374" />
@@ -448,7 +468,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/network/cloud_uploader.cpp" line="89" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Nem sikerült megnyitni a fájlt olvasásra:\n%1</translation>
+      <translation type="unfinished">Nem sikerült megnyitni a fájlt olvasásra:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/cloud_uploader.cpp" line="152" />
@@ -1031,7 +1052,8 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
       <location filename="../oscar/dailySearchTab.cpp" line="1275" />
       <source>Bookmark
 Jumps to Date's Bookmark</source>
-      <translation type="unfinished">Könyvjelző\nUgrás a dátum könyvjelzőjéhez</translation>
+      <translation type="unfinished">Könyvjelző
+Ugrás a dátum könyvjelzőjéhez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1516" />
@@ -1043,7 +1065,8 @@ Jumps to Date's Bookmark</source>
       <location filename="../oscar/dailySearchTab.cpp" line="328" />
       <source>DATE
 Jumps to Date</source>
-      <translation type="unfinished">DÁTUM\nUgrás a dátumhoz</translation>
+      <translation type="unfinished">DÁTUM
+Ugrás a dátumhoz</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="273" />
@@ -1119,66 +1142,73 @@ Jumps to Date</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1254" />
       <source>Number Disabled Session
 Jumps to Date's Details </source>
-      <translation type="unfinished">Letiltott munkamenetek száma\nUgrás a dátum részleteihez</translation>
+      <translation type="unfinished">Letiltott munkamenetek száma
+Ugrás a dátum részleteihez </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1265" />
       <location filename="../oscar/dailySearchTab.cpp" line="1281" />
       <source>Note
 Jumps to Date's Notes</source>
-      <translation type="unfinished">Megjegyzés\nUgrás a dátum megjegyzéseihez</translation>
+      <translation type="unfinished">Megjegyzés
+Ugrás a dátum megjegyzéseihez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1287" />
       <source>AHI
 Jumps to Date's Details</source>
-      <translation type="unfinished">AHI\nUgrás a dátum részleteihez</translation>
+      <translation type="unfinished">AHI
+Ugrás a dátum részleteihez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1290" />
       <source> EventsPerHour</source>
-      <translation type="unfinished">EseményekÓránként</translation>
+      <translation type="unfinished"> EseményekÓránként</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1300" />
       <source>Set of Apnea:Length
 Jumps to Date's Events</source>
-      <translation type="unfinished">Apnoe készlet:Hossz\nUgrás a dátum eseményeihez</translation>
+      <translation type="unfinished">Apnoe készlet:Hossz
+Ugrás a dátum eseményeihez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1306" />
       <location filename="../oscar/dailySearchTab.cpp" line="1456" />
       <source> Seconds</source>
-      <translation type="unfinished">Másodperc</translation>
+      <translation type="unfinished"> Másodperc</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1309" />
       <source>Session Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">Munkamenet időtartama\nUgrás a dátum részleteihez</translation>
+      <translation type="unfinished">Munkamenet időtartama
+Ugrás a dátum részleteihez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1313" />
       <location filename="../oscar/dailySearchTab.cpp" line="1461" />
       <source> Minutes</source>
-      <translation type="unfinished">Perc</translation>
+      <translation type="unfinished"> Perc</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1318" />
       <source>Number of Sessions
 Jumps to Date's Details</source>
-      <translation type="unfinished">Munkamenetek száma\nUgrás a dátum részleteihez</translation>
+      <translation type="unfinished">Munkamenetek száma
+Ugrás a dátum részleteihez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1323" />
       <source> Sessions</source>
-      <translation type="unfinished">Munkamenetek</translation>
+      <translation type="unfinished"> Munkamenetek</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1326" />
       <source>Daily Duration
 Jumps to Date's Details</source>
-      <translation type="unfinished">Napi időtartam\nUgrás a dátum részleteihez</translation>
+      <translation type="unfinished">Napi időtartam
+Ugrás a dátum részleteihez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1332" />
@@ -1190,7 +1220,8 @@ Jumps to Date's Details</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1336" />
       <source>Number of events
 Jumps to Date's Events</source>
-      <translation type="unfinished">Események száma\nUgrás a dátum eseményeihez</translation>
+      <translation type="unfinished">Események száma
+Ugrás a dátum eseményeihez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1340" />
@@ -1231,7 +1262,8 @@ Jumps to Date's Events</source>
       <location filename="../oscar/dailySearchTab.cpp" line="1260" />
       <source>JUmps
 Jumps to Date's Notes</source>
-      <translation type="unfinished">Ugrás\nUgrás a dátum megjegyzéseihez</translation>
+      <translation type="unfinished">Ugrás
+Ugrás a dátum megjegyzéseihez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1348" />
@@ -1241,7 +1273,7 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1666" />
       <source> Skip:%1</source>
-      <translation type="unfinished">Kihagyás:%1</translation>
+      <translation type="unfinished"> Kihagyás:%1</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1667" />
@@ -1251,7 +1283,7 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1670" />
       <source>Found %1 </source>
-      <translation type="unfinished">Találat: %1</translation>
+      <translation type="unfinished">Találat: %1 </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1688" />
@@ -1266,12 +1298,12 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1778" />
       <source>  Searches from last day to first day.</source>
-      <translation type="unfinished">Keresés az utolsó naptól az első napig.</translation>
+      <translation type="unfinished">  Keresés az utolsó naptól az első napig.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1779" />
       <source>  Skips Days with no graphing data.</source>
-      <translation type="unfinished">Kihagyja a grafikus adatok nélküli napokat.</translation>
+      <translation type="unfinished">  Kihagyja a grafikus adatok nélküli napokat.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1781" />
@@ -1281,12 +1313,12 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1782" />
       <source>  Then click on the operation to modify it.</source>
-      <translation type="unfinished">Ezután kattintson a módosítani kívánt műveletre.</translation>
+      <translation type="unfinished">  Ezután kattintson a módosítani kívánt műveletre.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1783" />
       <source>  or update the value</source>
-      <translation type="unfinished">vagy frissítse az értéket</translation>
+      <translation type="unfinished">  vagy frissítse az értéket</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1785" />
@@ -1296,17 +1328,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1787" />
       <source>Compare Operations: numberic or character. </source>
-      <translation type="unfinished">Műveletek összehasonlítása: numerikus vagy karakter.</translation>
+      <translation type="unfinished">Műveletek összehasonlítása: numerikus vagy karakter. </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1788" />
       <source>  Numberic  Operations: </source>
-      <translation type="unfinished">Numerikus műveletek:</translation>
+      <translation type="unfinished">  Numerikus műveletek: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1789" />
       <source>  Character Operations: </source>
-      <translation type="unfinished">Karakter műveletek:</translation>
+      <translation type="unfinished">  Karakter műveletek: </translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1791" />
@@ -1316,17 +1348,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1792" />
       <source>  Left:Summary - Number of Day searched</source>
-      <translation type="unfinished">Bal: Összefoglaló – Keresett napok száma</translation>
+      <translation type="unfinished">  Bal: Összefoglaló – Keresett napok száma</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1793" />
       <source>  Center:Number of Items Found</source>
-      <translation type="unfinished">Közép: Talált elemek száma</translation>
+      <translation type="unfinished">  Közép: Talált elemek száma</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1794" />
       <source>  Right:Minimum/Maximum for item searched</source>
-      <translation type="unfinished">Jobb: Minimum/Maximum a keresett elemhez</translation>
+      <translation type="unfinished">  Jobb: Minimum/Maximum a keresett elemhez</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1796" />
@@ -1336,17 +1368,17 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1797" />
       <source>  Column One: Date of match. Click selects date.</source>
-      <translation type="unfinished">Első oszlop: Egyezés dátuma. Kattintással kiválasztja a dátumot.</translation>
+      <translation type="unfinished">  Első oszlop: Egyezés dátuma. Kattintással kiválasztja a dátumot.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1798" />
       <source>  Column two: Information. Click selects date.</source>
-      <translation type="unfinished">Második oszlop: Információ. Kattintással kiválasztja a dátumot.</translation>
+      <translation type="unfinished">  Második oszlop: Információ. Kattintással kiválasztja a dátumot.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1799" />
       <source>    Then Jumps the appropiate tab.</source>
-      <translation type="unfinished">Majd a megfelelő lapra ugrik.</translation>
+      <translation type="unfinished">    Majd a megfelelő lapra ugrik.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1801" />
@@ -1356,37 +1388,37 @@ Jumps to Date's Notes</source>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1802" />
       <source>  Wildcards use 3 characters:</source>
-      <translation type="unfinished">A helyettesítő karakterek 3 karaktert használnak:</translation>
+      <translation type="unfinished">  A helyettesítő karakterek 3 karaktert használnak:</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1803" />
       <source>  Asterisk</source>
-      <translation type="unfinished">Csillag</translation>
+      <translation type="unfinished">  Csillag</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1804" />
       <source>  Question Mark</source>
-      <translation type="unfinished">Kérdőjel</translation>
+      <translation type="unfinished">  Kérdőjel</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1805" />
       <source>  Backslash.</source>
-      <translation type="unfinished">Fordított perjel.</translation>
+      <translation type="unfinished">  Fordított perjel.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1806" />
       <source>  Asterisk matches any number of characters.</source>
-      <translation type="unfinished">A csillag tetszőleges számú karaktert helyettesít.</translation>
+      <translation type="unfinished">  A csillag tetszőleges számú karaktert helyettesít.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1807" />
       <source>  Question Mark matches a single character.</source>
-      <translation type="unfinished">A kérdőjel egyetlen karaktert helyettesít.</translation>
+      <translation type="unfinished">  A kérdőjel egyetlen karaktert helyettesít.</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="1808" />
       <source>  Backslash matches next character.</source>
-      <translation type="unfinished">A fordított perjel a következő karaktert helyettesíti.</translation>
+      <translation type="unfinished">  A fordított perjel a következő karaktert helyettesíti.</translation>
     </message>
   </context>
   <context>
@@ -1433,7 +1465,10 @@ Jumps to Date's Notes</source>
 Size: %2
 Profiles: %3
 Note: all session data and any SD card backup data in this folder will be permanently deleted.</source>
-      <translation type="unfinished">Útvonal: %1\nMéret: %2\nProfilok: %3\nMegjegyzés: a mappában lévő összes munkamenet-adat és SD kártya biztonsági mentési adat véglegesen törlődik.</translation>
+      <translation type="unfinished">Útvonal: %1
+Méret: %2
+Profilok: %3
+Megjegyzés: a mappában lévő összes munkamenet-adat és SD kártya biztonsági mentési adat véglegesen törlődik.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="115" />
@@ -1451,7 +1486,9 @@ Note: all session data and any SD card backup data in this folder will be perman
       <source>The database at
 %1
 cannot be opened exclusively. Another instance of OSCAR may have it open.</source>
-      <translation type="unfinished">A következő helyen lévő adatbázis:\n%1\nnem nyitható meg kizárólagosan. Lehetséges, hogy az OSCAR egy másik példánya már megnyitotta.</translation>
+      <translation type="unfinished">A következő helyen lévő adatbázis:
+%1
+nem nyitható meg kizárólagosan. Lehetséges, hogy az OSCAR egy másik példánya már megnyitotta.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="134" />
@@ -1463,7 +1500,9 @@ cannot be opened exclusively. Another instance of OSCAR may have it open.</sourc
       <source>Type "%1" to permanently delete this database.
 
 All session data and SD card backup data in the folder will be deleted. This cannot be undone.</source>
-      <translation type="unfinished">A(z) „%1" adatbázis végleges törléséhez írja be a nevét.\n\nA mappában lévő összes munkamenet-adat és SD kártya biztonsági mentési adat törlődik. Ez a művelet nem vonható vissza.</translation>
+      <translation type="unfinished">A(z) „%1" adatbázis végleges törléséhez írja be a nevét.
+
+A mappában lévő összes munkamenet-adat és SD kártya biztonsági mentési adat törlődik. Ez a művelet nem vonható vissza.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="154" />
@@ -1485,7 +1524,9 @@ All session data and SD card backup data in the folder will be deleted. This can
       <source>Could not delete
 %1
 The database file is still present. Check for open file locks and try again.</source>
-      <translation type="unfinished">Nem sikerült törölni:\n%1\nAz adatbázisfájl még mindig jelen van. Ellenőrizze a megnyitott fájlzárakat, majd próbálja újra.</translation>
+      <translation type="unfinished">Nem sikerült törölni:
+%1
+Az adatbázisfájl még mindig jelen van. Ellenőrizze a megnyitott fájlzárakat, majd próbálja újra.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="197" />
@@ -1497,7 +1538,9 @@ The database file is still present. Check for open file locks and try again.</so
       <source>Deleted the database but could not remove all files from
 %1
 Some files may still be present.</source>
-      <translation type="unfinished">Az adatbázis törölve lett, de nem sikerült az összes fájlt eltávolítani a következő helyről:\n%1\nNéhány fájl még jelen lehet.</translation>
+      <translation type="unfinished">Az adatbázis törölve lett, de nem sikerült az összes fájlt eltávolítani a következő helyről:
+%1
+Néhány fájl még jelen lehet.</translation>
     </message>
     <message>
       <location filename="../oscar/database/database_delete_dialog.cpp" line="223" />
@@ -1521,7 +1564,13 @@ Error: %2
 Recommended actions:
   • Run Help → Troubleshooting → Check Database Integrity
   • Restore from a recent backup if problems are found</source>
-      <translation type="unfinished">Adatbázis-sérülés vagy I/O hiba észlelve: %1.\n\nHiba: %2\n\nJavasolt műveletek:\n  • Futtassa a Súgó → Hibaelhárítás → Adatbázis integritásának ellenőrzése funkciót\n  • Állítsa vissza a legutóbbi biztonsági mentésből, ha problémákat talál</translation>
+      <translation type="unfinished">Adatbázis-sérülés vagy I/O hiba észlelve: %1.
+
+Hiba: %2
+
+Javasolt műveletek:
+  • Futtassa a Súgó → Hibaelhárítás → Adatbázis integritásának ellenőrzése funkciót
+  • Állítsa vissza a legutóbbi biztonsági mentésből, ha problémákat talál</translation>
     </message>
   </context>
   <context>
@@ -1955,17 +2004,17 @@ Javaslat: Előbb a kezdő dátumot válassza ki</translation>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="322" />
       <source> — poor fit, Use Model disabled</source>
-      <translation type="unfinished">— gyenge illesztés, a Modell használata le van tiltva</translation>
+      <translation type="unfinished"> — gyenge illesztés, a Modell használata le van tiltva</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="324" />
       <source> — moderate fit</source>
-      <translation type="unfinished">— közepes illesztés</translation>
+      <translation type="unfinished"> — közepes illesztés</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="326" />
       <source> — will replace model active since %1</source>
-      <translation type="unfinished">— felváltja a %1 óta aktív modellt</translation>
+      <translation type="unfinished"> — felváltja a %1 óta aktív modellt</translation>
     </message>
     <message>
       <location filename="../oscar/driftanalysisdialog.cpp" line="366" />
@@ -2027,7 +2076,8 @@ Javaslat: Előbb a kezdő dátumot válassza ki</translation>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="176" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Nem sikerült megnyitni a fájlt olvasásra:\n%1</translation>
+      <translation type="unfinished">Nem sikerült megnyitni a fájlt olvasásra:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/dropbox_uploader.cpp" line="226" />
@@ -2410,7 +2460,8 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <location filename="../oscar/network/googledrive_uploader.cpp" line="381" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Nem sikerült megnyitni a fájlt olvasásra:\n%1</translation>
+      <translation type="unfinished">Nem sikerült megnyitni a fájlt olvasásra:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/googledrive_uploader.cpp" line="420" />
@@ -2568,7 +2619,9 @@ Note: Macro substitution (#PROFILE_ID, #START_DATE, #END_DATE) has already been 
       <source>Examining %1...
 
 Please wait...</source>
-      <translation type="unfinished">%1 vizsgálata...\n\nKérjük, várjon...</translation>
+      <translation type="unfinished">%1 vizsgálata...
+
+Kérjük, várjon...</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="108" />
@@ -2579,7 +2632,8 @@ Please wait...</source>
       <location filename="../oscar/importprofile.cpp" line="109" />
       <source>The selected folder does not appear to be a valid OSCAR profile.
 Please select a folder that contains machines.xml</source>
-      <translation type="unfinished">A kiválasztott mappa nem tűnik érvényes OSCAR profilnak.\nKérjük, válasszon olyan mappát, amely tartalmaz machines.xml fájlt</translation>
+      <translation type="unfinished">A kiválasztott mappa nem tűnik érvényes OSCAR profilnak.
+Kérjük, válasszon olyan mappát, amely tartalmaz machines.xml fájlt</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="122" />
@@ -2592,7 +2646,10 @@ Please select a folder that contains machines.xml</source>
 Import may take a significant amount of time.
 
 Do you want to continue?</source>
-      <translation type="unfinished">Ez a profil %1 GB méretű.\nAz importálás jelentős időt vehet igénybe.\n\nFolytatni szeretné?</translation>
+      <translation type="unfinished">Ez a profil %1 GB méretű.
+Az importálás jelentős időt vehet igénybe.
+
+Folytatni szeretné?</translation>
     </message>
     <message>
       <location filename="../oscar/importprofile.cpp" line="137" />
@@ -2762,7 +2819,8 @@ Do you want to continue?</source>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="115" />
       <source>Could not write file:
 %1</source>
-      <translation type="unfinished">A fájl nem írható:\n%1</translation>
+      <translation type="unfinished">A fájl nem írható:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/journalnotesdialog.cpp" line="121" />
@@ -3519,7 +3577,11 @@ Do you want to continue?</source>
 If you have the database open in a SQLite viewer or editor, please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Nem lehet importálni az adatokat: az OSCAR adatbázist egy másik alkalmazás zárolta.\n\nHa az adatbázis meg van nyitva egy SQLite megjelenítőben vagy szerkesztőben, kérjük zárja be, és próbálja újra.\n\nHiba: %1</translation>
+      <translation type="unfinished">Nem lehet importálni az adatokat: az OSCAR adatbázist egy másik alkalmazás zárolta.
+
+Ha az adatbázis meg van nyitva egy SQLite megjelenítőben vagy szerkesztőben, kérjük zárja be, és próbálja újra.
+
+Hiba: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1017" />
@@ -3538,7 +3600,11 @@ Error: %1</source>
 If you have the OSCAR database open in another application (e.g., a SQLite viewer or editor), please close it and try again.
 
 Error: %1</source>
-      <translation type="unfinished">Az importált adatokat nem sikerült menteni az adatbázisba. Nem lett tárolva adat.\n\nHa az OSCAR adatbázis meg van nyitva egy másik alkalmazásban (pl. SQLite megjelenítő vagy szerkesztő), kérjük zárja be, és próbálja újra.\n\nHiba: %1</translation>
+      <translation type="unfinished">Az importált adatokat nem sikerült menteni az adatbázisba. Nem lett tárolva adat.
+
+Ha az OSCAR adatbázis meg van nyitva egy másik alkalmazásban (pl. SQLite megjelenítő vagy szerkesztő), kérjük zárja be, és próbálja újra.
+
+Hiba: %1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1201" />
@@ -3578,7 +3644,12 @@ Last imported: %1
 This card: %2
 
 Are you sure you want to import from this card into this profile?</source>
-      <translation type="unfinished">Ez az SD kártya egy másik készülékből származik, mint amelyikből utoljára importált ebbe a profilba.\n\nUtoljára importált: %1\nEz a kártya: %2\n\nBiztosan importálni szeretné ennek a kártyának az adatait ebbe a profilba?</translation>
+      <translation type="unfinished">Ez az SD kártya egy másik készülékből származik, mint amelyikből utoljára importált ebbe a profilba.
+
+Utoljára importált: %1
+Ez a kártya: %2
+
+Biztosan importálni szeretné ennek a kártyának az adatait ebbe a profilba?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1455" />
@@ -3627,7 +3698,9 @@ Are you sure you want to import from this card into this profile?</source>
       <source>This will permanently delete all time corrections for every device in this profile.
 
 Are you sure?</source>
-      <translation type="unfinished">Ez véglegesen törli az összes időkorrekciót a profilban lévő minden eszközre vonatkozóan.\n\nBiztos benne?</translation>
+      <translation type="unfinished">Ez véglegesen törli az összes időkorrekciót a profilban lévő minden eszközre vonatkozóan.
+
+Biztos benne?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1978" />
@@ -3703,7 +3776,7 @@ Are you sure?</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2982" />
       <source> (active)</source>
-      <translation type="unfinished">(aktív)</translation>
+      <translation type="unfinished"> (aktív)</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="2992" />
@@ -3724,7 +3797,8 @@ Are you sure?</source>
       <location filename="../oscar/mainwindow.cpp" line="3009" />
       <source>The selected folder already contains an OSCAR database.
 Use File ▸ Database ▸ Open to open an existing database.</source>
-      <translation type="unfinished">A kiválasztott mappa már tartalmaz egy OSCAR adatbázist.\nHasználja a Fájl ▸ Adatbázis ▸ Megnyitás menüpontot egy meglévő adatbázis megnyitásához.</translation>
+      <translation type="unfinished">A kiválasztott mappa már tartalmaz egy OSCAR adatbázist.
+Használja a Fájl ▸ Adatbázis ▸ Megnyitás menüpontot egy meglévő adatbázis megnyitásához.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3020" />
@@ -3740,7 +3814,8 @@ Use File ▸ Database ▸ Open to open an existing database.</source>
       <location filename="../oscar/mainwindow.cpp" line="3028" />
       <source>The selected folder does not contain an OSCAR database.
 Please select a folder that contains an oscar.db file.</source>
-      <translation type="unfinished">A kiválasztott mappa nem tartalmaz OSCAR adatbázist.\nKérjük, válasszon olyan mappát, amely tartalmaz egy oscar.db fájlt.</translation>
+      <translation type="unfinished">A kiválasztott mappa nem tartalmaz OSCAR adatbázist.
+Kérjük, válasszon olyan mappát, amely tartalmaz egy oscar.db fájlt.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3051" />
@@ -3752,7 +3827,9 @@ Please select a folder that contains an oscar.db file.</source>
       <source>There are no inactive databases in the recent list to delete.
 
 Open databases with File ▸ Database ▸ Open first to add them to the recent list.</source>
-      <translation type="unfinished">Nincsenek inaktív adatbázisok a legutóbbi listában, amelyeket törölni lehetne.\n\nElőször nyisson meg adatbázisokat a Fájl ▸ Adatbázis ▸ Megnyitás menüponttal, hogy hozzáadja őket a legutóbbi listához.</translation>
+      <translation type="unfinished">Nincsenek inaktív adatbázisok a legutóbbi listában, amelyeket törölni lehetne.
+
+Először nyisson meg adatbázisokat a Fájl ▸ Adatbázis ▸ Megnyitás menüponttal, hogy hozzáadja őket a legutóbbi listához.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3527" />
@@ -3794,7 +3871,13 @@ Current database size: %1
 This may take several minutes for large databases. OSCAR will restart automatically when complete.
 
 Continue?</source>
-      <translation type="unfinished">Ez tömöríti az adatbázist a fel nem használt lemezterület visszanyerése érdekében. Leginkább profilok törlése után hasznos.\n\nJelenlegi adatbázis mérete: %1\n\nNagy adatbázisok esetén ez több percig is eltarthat. Az OSCAR automatikusan újraindul, amikor befejezte.\n\nFolytatja?</translation>
+      <translation type="unfinished">Ez tömöríti az adatbázist a fel nem használt lemezterület visszanyerése érdekében. Leginkább profilok törlése után hasznos.
+
+Jelenlegi adatbázis mérete: %1
+
+Nagy adatbázisok esetén ez több percig is eltarthat. Az OSCAR automatikusan újraindul, amikor befejezte.
+
+Folytatja?</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3902" />
@@ -3806,28 +3889,41 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Az adatbázis integritásának ellenőrzése sikertelen. A tömörítés nem folytatható egy sérült adatbázison.\n\nJavasolt műveletek:\n  • Állítsa vissza a teljes adatbázist egy közelmúltbeli rendszer-biztonsági mentésből\n  • Állítsa vissza az egyes profilokat egy közelmúltbeli biztonsági mentésből (Fájl → Profil visszaállítása)\n  • Importálja újra az adatokat a CPAP SD kártyájáról\n\nA speciális helyreállítási lehetőségekért tekintse meg az OSCAR dokumentációját.</translation>
+      <translation type="unfinished">Az adatbázis integritásának ellenőrzése sikertelen. A tömörítés nem folytatható egy sérült adatbázison.
+
+Javasolt műveletek:
+  • Állítsa vissza a teljes adatbázist egy közelmúltbeli rendszer-biztonsági mentésből
+  • Állítsa vissza az egyes profilokat egy közelmúltbeli biztonsági mentésből (Fájl → Profil visszaállítása)
+  • Importálja újra az adatokat a CPAP SD kártyájáról
+
+A speciális helyreállítási lehetőségekért tekintse meg az OSCAR dokumentációját.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3922" />
       <source>Compressing database, please wait...
 
 This may take several minutes for large databases.</source>
-      <translation type="unfinished">Adatbázis tömörítése folyamatban, kérjük várjon...\n\nNagy adatbázisok esetén ez több percig is eltarthat.</translation>
+      <translation type="unfinished">Adatbázis tömörítése folyamatban, kérjük várjon...
+
+Nagy adatbázisok esetén ez több percig is eltarthat.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3983" />
       <source>Compression succeeded but the database file could not be replaced.
 
 The original database is unchanged.</source>
-      <translation type="unfinished">A tömörítés sikerült, de az adatbázisfájlt nem sikerült felváltani.\n\nAz eredeti adatbázis változatlan maradt.</translation>
+      <translation type="unfinished">A tömörítés sikerült, de az adatbázisfájlt nem sikerült felváltani.
+
+Az eredeti adatbázis változatlan maradt.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3993" />
       <source>Compression succeeded but the new file could not be put in place.
 
 The original database has been restored.</source>
-      <translation type="unfinished">A tömörítés sikerült, de az új fájlt nem sikerült a helyére tenni.\n\nAz eredeti adatbázis visszaállítva.</translation>
+      <translation type="unfinished">A tömörítés sikerült, de az új fájlt nem sikerült a helyére tenni.
+
+Az eredeti adatbázis visszaállítva.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4005" />
@@ -3838,7 +3934,13 @@ After:     %2
 Reclaimed: %3
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Az adatbázis sikeresen tömörítve.\n\nElőtte:        %1\nUtána:         %2\nVisszanyerve: %3\n\nAz OSCAR újraindul, amikor megnyomja az OK gombot.</translation>
+      <translation type="unfinished">Az adatbázis sikeresen tömörítve.
+
+Előtte:        %1
+Utána:         %2
+Visszanyerve: %3
+
+Az OSCAR újraindul, amikor megnyomja az OK gombot.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="4014" />
@@ -3849,7 +3951,13 @@ Size: %1
 No space was reclaimed — the database was already compact.
 
 OSCAR will restart when you press OK.</source>
-      <translation type="unfinished">Az adatbázis sikeresen tömörítve.\n\nMéret: %1\n\nNem nyert vissza területet — az adatbázis már tömör volt.\n\nAz OSCAR újraindul, amikor megnyomja az OK gombot.</translation>
+      <translation type="unfinished">Az adatbázis sikeresen tömörítve.
+
+Méret: %1
+
+Nem nyert vissza területet — az adatbázis már tömör volt.
+
+Az OSCAR újraindul, amikor megnyomja az OK gombot.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3543" />
@@ -3922,7 +4030,16 @@ Recommended actions:
   • Re-import data from your CPAP SD card(s)
 
 For advanced recovery options, see the OSCAR documentation.</source>
-      <translation type="unfinished">Az adatbázis integritásának ellenőrzése problémákat talált. Előfordulhat, hogy egyes adatok hiányoznak vagy sérültek.\n\nAz integritásellenőrzés a teljes adatbázisra kiterjed, amely több profilt is tartalmazhat.\n\nJavasolt műveletek:\n  • Állítsa vissza a teljes adatbázist egy közelmúltbeli rendszer-biztonsági mentésből\n  • Állítsa vissza az egyes profilokat egy közelmúltbeli biztonsági mentésből (Fájl → Profil visszaállítása)\n  • Importálja újra az adatokat a CPAP SD kártyájáról\n\nA speciális helyreállítási lehetőségekért tekintse meg az OSCAR dokumentációját.</translation>
+      <translation type="unfinished">Az adatbázis integritásának ellenőrzése problémákat talált. Előfordulhat, hogy egyes adatok hiányoznak vagy sérültek.
+
+Az integritásellenőrzés a teljes adatbázisra kiterjed, amely több profilt is tartalmazhat.
+
+Javasolt műveletek:
+  • Állítsa vissza a teljes adatbázist egy közelmúltbeli rendszer-biztonsági mentésből
+  • Állítsa vissza az egyes profilokat egy közelmúltbeli biztonsági mentésből (Fájl → Profil visszaállítása)
+  • Importálja újra az adatokat a CPAP SD kártyájáról
+
+A speciális helyreállítási lehetőségekért tekintse meg az OSCAR dokumentációját.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3855" />
@@ -3947,7 +4064,8 @@ This may take several minutes. Continue?</source>
       <location filename="../oscar/mainwindow.cpp" line="3948" />
       <source>Database compression failed:
 %1</source>
-      <translation type="unfinished">Az adatbázis tömörítése sikertelen:\n%1</translation>
+      <translation type="unfinished">Az adatbázis tömörítése sikertelen:
+%1</translation>
     </message>
     <message>
       <source>Database compressed successfully.
@@ -4018,7 +4136,7 @@ No space was reclaimed — the database was already compact.</source>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1328" />
       <source>Importing Profile </source>
-      <translation type="unfinished">Profil importálása</translation>
+      <translation type="unfinished">Profil importálása </translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1365" />
@@ -4030,7 +4148,9 @@ No space was reclaimed — the database was already compact.</source>
       <source>Profile '%1' has been successfully imported.
 
 You can now select it from the profile selector.</source>
-      <translation type="unfinished">A(z) '%1' profil sikeresen importálva.\n\nMost már kiválaszthatja a profilválasztóból.</translation>
+      <translation type="unfinished">A(z) '%1' profil sikeresen importálva.
+
+Most már kiválaszthatja a profilválasztóból.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1028" />
@@ -4043,7 +4163,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="1380" />
       <source>Failed to import profile:
 %1</source>
-      <translation type="unfinished">A profil importálása sikertelen:\n%1</translation>
+      <translation type="unfinished">A profil importálása sikertelen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1507" />
@@ -4137,7 +4258,8 @@ You can now select it from the profile selector.</source>
       <location filename="../oscar/mainwindow.cpp" line="3218" />
       <source>There was a problem parsing %1 
 Data File: %2</source>
-      <translation type="unfinished">Hiba történt a(z) %1 elemzése során \nAdatfájl: %2</translation>
+      <translation type="unfinished">Hiba történt a(z) %1 elemzése során 
+Adatfájl: %2</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3224" />
@@ -4806,7 +4928,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="262" />
       <source>Could not open file for reading:
 %1</source>
-      <translation type="unfinished">Nem sikerült megnyitni a fájlt olvasásra:\n%1</translation>
+      <translation type="unfinished">Nem sikerült megnyitni a fájlt olvasásra:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="305" />
@@ -4827,7 +4950,8 @@ Data File: %2</source>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="369" />
       <source>File uploaded to OneDrive but could not create a share link (HTTP %1).
 Note: anonymous sharing may be disabled in your Microsoft account settings.</source>
-      <translation type="unfinished">A fájl feltöltve a OneDrive-ra, de nem sikerült megosztási hivatkozást létrehozni (HTTP %1).\nMegjegyzés: a névtelen megosztás lehet, hogy le van tiltva a Microsoft-fiók beállításaiban.</translation>
+      <translation type="unfinished">A fájl feltöltve a OneDrive-ra, de nem sikerült megosztási hivatkozást létrehozni (HTTP %1).
+Megjegyzés: a névtelen megosztás lehet, hogy le van tiltva a Microsoft-fiók beállításaiban.</translation>
     </message>
     <message>
       <location filename="../oscar/network/onedrive_uploader.cpp" line="383" />
@@ -6263,7 +6387,11 @@ which is common on Mac  Linux platforms..
 
 OSCAR can import from this compressed backup directory natively.. 
 To use it with ResScan will require the .gz files to be uncompressed first..</source>
-      <translation type="unfinished">ResMed (EDF) biztonsági mentések tömörítése a lemezterület megtakarítása érdekében.\nA mentett EDF fájlok .gz formátumban tárolódnak, \amely általános Mac és Linux platformokon..\n\nAz OSCAR natívan tud importálni ebből a tömörített mentési könyvtárból.. \nA ResScan-nel való használathoz a .gz fájlokat először ki kell tömöríteni..</translation>
+      <translation type="unfinished">ResMed (EDF) biztonsági mentések tömörítése a lemezterület megtakarítása érdekében.
+A mentett EDF fájlok .gz formátumban tárolódnak, \amely általános Mac és Linux platformokon..
+
+Az OSCAR natívan tud importálni ebből a tömörített mentési könyvtárból.. 
+A ResScan-nel való használathoz a .gz fájlokat először ki kell tömöríteni..</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="596" />
@@ -6372,7 +6500,8 @@ To use it with ResScan will require the .gz files to be uncompressed first..</so
       <location filename="../oscar/preferencesdialog.ui" line="2276" />
       <source>Adds New, Open, Recent, and Delete items to File &gt; Database.
 Intended for support staff and developers.</source>
-      <translation type="unfinished">Új, Megnyitás, Legutóbbi és Törlés elemeket ad hozzá a Fájl &gt; Adatbázis menühöz.\nTámogatási munkatársak és fejlesztők számára készült.</translation>
+      <translation type="unfinished">Új, Megnyitás, Legutóbbi és Törlés elemeket ad hozzá a Fájl &gt; Adatbázis menühöz.
+Támogatási munkatársak és fejlesztők számára készült.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2280" />
@@ -6567,7 +6696,9 @@ Próbálja ki és döntse el, hogy tetszik-e.</translation>
       <source>Use Qt's Fusion theme instead of the platform-native theme.
 Provides a consistent look across platforms.
 OSCAR will restart when you click OK.</source>
-      <translation type="unfinished">A Qt Fusion témájának használata a platform natív témája helyett.\nEgységes megjelenést biztosít a platformok között.\nAz OSCAR újraindul, amikor az OK gombra kattint.</translation>
+      <translation type="unfinished">A Qt Fusion témájának használata a platform natív témája helyett.
+Egységes megjelenést biztosít a platformok között.
+Az OSCAR újraindul, amikor az OK gombra kattint.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3126" />
@@ -6592,7 +6723,7 @@ OSCAR will restart when you click OK.</source>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3205" />
       <source> Alternating Color Spacing</source>
-      <translation type="unfinished">Váltakozó színközök</translation>
+      <translation type="unfinished"> Váltakozó színközök</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3620" />
@@ -6652,7 +6783,7 @@ OSCAR will restart when you click OK.</source>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1405" />
       <source>Permissive Mode MUST be enabled.  See Clinical Tab </source>
-      <translation type="unfinished">Az engedékeny módot BE KELL kapcsolni. Lásd a Klinikai lapot</translation>
+      <translation type="unfinished">Az engedékeny módot BE KELL kapcsolni. Lásd a Klinikai lapot </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1408" />
@@ -6669,7 +6800,9 @@ OSCAR will restart when you click OK.</source>
       <source>Steady Breathing (SB) is based on Flow Rate.
 Creates a waveform and SPAN events using CPAP flow rate.
 Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </source>
-      <translation type="unfinished">Az egyenletes légzés (SB) az áramlási sebességen alapul.\nHullámformát és SPAN eseményeket hoz létre a CPAP áramlási sebesség alapján.\nCsak akkor működik, ha az egyenletes légzés engedélyezve van, és a CPAP adatok (újra)importálva vannak.</translation>
+      <translation type="unfinished">Az egyenletes légzés (SB) az áramlási sebességen alapul.
+Hullámformát és SPAN eseményeket hoz létre a CPAP áramlási sebesség alapján.
+Csak akkor működik, ha az egyenletes légzés engedélyezve van, és a CPAP adatok (újra)importálva vannak.  </translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1468" />
@@ -6689,7 +6822,7 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1484" />
       <source> Seconds</source>
-      <translation type="unfinished">Másodperc</translation>
+      <translation type="unfinished"> Másodperc</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1503" />
@@ -6705,13 +6838,15 @@ Works only when Steady Breathing is enabled and CPAP data is (re)imported.  </so
       <location filename="../oscar/preferencesdialog.ui" line="1634" />
       <source>Clinical Mode does not allow disabled sessions.
 Disabled Session are not used for graphing or Statistics.</source>
-      <translation type="unfinished">A klinikai mód nem engedélyezi a letiltott munkameneteket.\nA letiltott munkamenetek nem kerülnek felhasználásra grafikonok készítéséhez vagy statisztikákhoz.</translation>
+      <translation type="unfinished">A klinikai mód nem engedélyezi a letiltott munkameneteket.
+A letiltott munkamenetek nem kerülnek felhasználásra grafikonok készítéséhez vagy statisztikákhoz.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1651" />
       <source>Permissive Mode allows disabled sessions.
 Disabled Sessions are used for graphing and Statistics.</source>
-      <translation type="unfinished">Az engedékeny mód lehetővé teszi a letiltott munkameneteket.\nA letiltott munkamenetek felhasználásra kerülnek grafikonok készítéséhez és statisztikákhoz.</translation>
+      <translation type="unfinished">Az engedékeny mód lehetővé teszi a letiltott munkameneteket.
+A letiltott munkamenetek felhasználásra kerülnek grafikonok készítéséhez és statisztikákhoz.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1737" />
@@ -6724,7 +6859,10 @@ Disabled Sessions are used for graphing and Statistics.</source>
 This setting allows you to override that with a static value.
 This may be useful when the first hour is not typical of the whole dataset.
 It may also be useful to provide easier comparison between days.</source>
-      <translation type="unfinished">Alapértelmezés szerint az OSCAR az oximetria adatok első órájából számított értéket használja alapvonalként.\nEz a beállítás lehetővé teszi, hogy ezt egy statikus értékkel felülbírálja.\nEz hasznos lehet, ha az első óra nem jellemző az egész adatkészletre.\nSzintén hasznos lehet a napok közötti egyszerűbb összehasonlítás érdekében.</translation>
+      <translation type="unfinished">Alapértelmezés szerint az OSCAR az oximetria adatok első órájából számított értéket használja alapvonalként.
+Ez a beállítás lehetővé teszi, hogy ezt egy statikus értékkel felülbírálja.
+Ez hasznos lehet, ha az első óra nem jellemző az egész adatkészletre.
+Szintén hasznos lehet a napok közötti egyszerűbb összehasonlítás érdekében.</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="1861" />
@@ -6743,7 +6881,16 @@ p, li { white-space: pre-wrap; }
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Live view mode (using a serial cable) is one way to acheive an accurate sync on CMS50 oximeters, but does not counter for CPAP clock drift.&lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;If you start your Oximeters recording mode at &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;exactly &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;the same time you start your CPAP device, you can now also achieve sync. &lt;/span&gt;&lt;/p&gt;
 &lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;The serial import process takes the starting time from last nights first CPAP session. (Remember to import your CPAP data first!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;\n&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;\np, li { white-space: pre-wrap; }\n&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;\n&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;\n&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Oximetria és CPAP adatok szinkronizálása&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;A SpO2Review-ból (.spoR fájlokból) vagy a soros importálási módszerrel importált CMS50 adatok &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;nem&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; rendelkeznek a szinkronizáláshoz szükséges helyes időbélyeggel.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Az élő nézet mód (soros kábel használatával) az egyik módja a pontos szinkronizálás elérésének CMS50 oximétereken, de nem ellensúlyozza a CPAP óra eltolódását.&lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Ha az oximéter rögzítési módját &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;pontosan &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;ugyanakkor indítja el, mint a CPAP készüléket, most már szinkronizálást is elérhet. &lt;/span&gt;&lt;/p&gt;\n&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;A soros importálási folyamat az előző éjszaka első CPAP-munkamenetének kezdési idejét veszi alapul. (Ne felejtse el először importálni a CPAP-adatokat!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+      <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Ubuntu'; font-size:11pt;"&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600;"&gt;Oximetria és CPAP adatok szinkronizálása&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;A SpO2Review-ból (.spoR fájlokból) vagy a soros importálási módszerrel importált CMS50 adatok &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-weight:600; text-decoration: underline;"&gt;nem&lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt; rendelkeznek a szinkronizáláshoz szükséges helyes időbélyeggel.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Az élő nézet mód (soros kábel használatával) az egyik módja a pontos szinkronizálás elérésének CMS50 oximétereken, de nem ellensúlyozza a CPAP óra eltolódását.&lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;Ha az oximéter rögzítési módját &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt; font-style:italic;"&gt;pontosan &lt;/span&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;ugyanakkor indítja el, mint a CPAP készüléket, most már szinkronizálást is elérhet. &lt;/span&gt;&lt;/p&gt;
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans'; font-size:10pt;"&gt;A soros importálási folyamat az előző éjszaka első CPAP-munkamenetének kezdési idejét veszi alapul. (Ne felejtse el először importálni a CPAP-adatokat!)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="3090" />
@@ -7301,7 +7448,7 @@ Szeretné újraindítani most?</translation>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="970" />
       <source> (first failure: %1</source>
-      <translation type="unfinished">(első hiba: %1</translation>
+      <translation type="unfinished"> (első hiba: %1</translation>
     </message>
     <message>
       <location filename="../oscar/profileimporter.cpp" line="972" />
@@ -7389,7 +7536,7 @@ Szeretné újraindítani most?</translation>
     <message>
       <location filename="../oscar/profileselector.cpp" line="200" />
       <source>Id: </source>
-      <translation type="unfinished">Azonosító:</translation>
+      <translation type="unfinished">Azonosító: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="295" />
@@ -7478,7 +7625,7 @@ Szeretné újraindítani most?</translation>
     <message>
       <location filename="../oscar/profileselector.cpp" line="549" />
       <source>Deleting profile </source>
-      <translation type="unfinished">Profil törlése</translation>
+      <translation type="unfinished">Profil törlése </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="574" />
@@ -7509,7 +7656,7 @@ Szeretné újraindítani most?</translation>
     <message>
       <location filename="../oscar/profileselector.cpp" line="723" />
       <source>Name: </source>
-      <translation type="unfinished">Név:</translation>
+      <translation type="unfinished">Név: </translation>
     </message>
     <message>
       <location filename="../oscar/profileselector.cpp" line="745" />
@@ -7849,7 +7996,8 @@ Szeretné újraindítani most?</translation>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="30" />
       <source>
 Length: %1</source>
-      <translation type="unfinished">\nHossz: %1</translation>
+      <translation type="unfinished">
+Hossz: %1</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gUsageChart.cpp" line="96" />
@@ -9546,7 +9694,7 @@ TTIA: %1</translation>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="752" />
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
       <source>Ramp Time </source>
-      <translation type="unfinished">Rámpaidő</translation>
+      <translation type="unfinished">Rámpaidő </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/bmc_loader.cpp" line="755" />
@@ -11328,7 +11476,10 @@ TTIA: %1</translation>
 (%2 of %3)
 
 Starting import...</source>
-      <translation type="unfinished">Profil migrálása: %1\n(%2 / %3)\n\nImportálás indítása...</translation>
+      <translation type="unfinished">Profil migrálása: %1
+(%2 / %3)
+
+Importálás indítása...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="225" />
@@ -11336,7 +11487,10 @@ Starting import...</source>
 (%2 of %3)
 
 Cleaning up, please wait...</source>
-      <translation type="unfinished">Megszakítás: %1\n(%2 / %3)\n\nTakarítás, kérjük várjon...</translation>
+      <translation type="unfinished">Megszakítás: %1
+(%2 / %3)
+
+Takarítás, kérjük várjon...</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="241" />
@@ -11344,7 +11498,10 @@ Cleaning up, please wait...</source>
 (%2 of %3)
 
 %4</source>
-      <translation type="unfinished">Profil migrálása: %1\n(%2 / %3)\n\n%4</translation>
+      <translation type="unfinished">Profil migrálása: %1
+(%2 / %3)
+
+%4</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="282" />
@@ -11415,7 +11572,7 @@ Cleaning up, please wait...</source>
     <message>
       <location filename="../oscar/main.cpp" line="735" />
       <source>We suggest you use this folder: </source>
-      <translation type="unfinished">Javasoljuk ezt a mappát:</translation>
+      <translation type="unfinished">Javasoljuk ezt a mappát: </translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="736" />
@@ -11531,7 +11688,18 @@ Recommended actions:
 For advanced recovery options, see the OSCAR documentation.
 
 You may continue, but some data may be incomplete or incorrect.</source>
-      <translation type="unfinished">Az OSCAR észlelte, hogy az előző munkamenet váratlanul ért véget, és az adatbázis integritásának ellenőrzése problémákat talált.\n\nElőfordulhat, hogy egyes adatok hiányoznak vagy sérültek.\n\nJavasolt műveletek:\n  • Állítsa vissza a teljes adatbázist egy közelmúltbeli rendszer-biztonsági mentésből\n  • Állítsa vissza az egyes profilokat egy közelmúltbeli biztonsági mentésből (Fájl → Profil visszaállítása)\n  • Importálja újra az adatokat a CPAP SD kártyájáról\n\nA speciális helyreállítási lehetőségekért tekintse meg az OSCAR dokumentációját.\n\nFolythatja a munkát, de egyes adatok hiányosak vagy helytelenek lehetnek.</translation>
+      <translation type="unfinished">Az OSCAR észlelte, hogy az előző munkamenet váratlanul ért véget, és az adatbázis integritásának ellenőrzése problémákat talált.
+
+Előfordulhat, hogy egyes adatok hiányoznak vagy sérültek.
+
+Javasolt műveletek:
+  • Állítsa vissza a teljes adatbázist egy közelmúltbeli rendszer-biztonsági mentésből
+  • Állítsa vissza az egyes profilokat egy közelmúltbeli biztonsági mentésből (Fájl → Profil visszaállítása)
+  • Importálja újra az adatokat a CPAP SD kártyájáról
+
+A speciális helyreállítási lehetőségekért tekintse meg az OSCAR dokumentációját.
+
+Folythatja a munkát, de egyes adatok hiányosak vagy helytelenek lehetnek.</translation>
     </message>
     <message>
       <location filename="../oscar/main.cpp" line="982" />
@@ -11609,7 +11777,8 @@ You may continue, but some data may be incomplete or incorrect.</source>
       <location filename="../oscar/mainwindow.cpp" line="1238" />
       <source>Chromebook file system detected, but no removable device found
 </source>
-      <translation type="unfinished">Chromebook fájlrendszer észlelve, de nem található cserélhető eszköz\n</translation>
+      <translation type="unfinished">Chromebook fájlrendszer észlelve, de nem található cserélhető eszköz
+</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="1239" />
@@ -11712,7 +11881,7 @@ You may continue, but some data may be incomplete or incorrect.</source>
     <message>
       <location filename="../oscar/reports.cpp" line="298" />
       <source>AI=%1 </source>
-      <translation type="unfinished">AI=%1</translation>
+      <translation type="unfinished">AI=%1 </translation>
     </message>
     <message>
       <location filename="../oscar/reports.cpp" line="374" />
@@ -12025,7 +12194,8 @@ Kérem építtesse újra a CPAP adatokat</translation>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="640" />
       <source>The popout window is full. You should capture the existing
 popout window, delete it, then pop out this graph again.</source>
-      <translation type="unfinished">A kiemelési ablak megtelt. Mentse el a meglévő\nkiemelési ablakot, törölje azt, majd emelje ki újra ezt a grafikont.</translation>
+      <translation type="unfinished">A kiemelési ablak megtelt. Mentse el a meglévő
+kiemelési ablakot, törölje azt, majd emelje ki újra ezt a grafikont.</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gGraphView.cpp" line="1663" />
@@ -12799,7 +12969,7 @@ popout window, delete it, then pop out this graph again.</source>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/resvent_loader.h" line="129" />
       <source>IPR: </source>
-      <translation type="unfinished">IPR:</translation>
+      <translation type="unfinished">IPR: </translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/journal.cpp" line="176" />
@@ -12811,7 +12981,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>Journal Migration Complete:
 %1 journal entries migrated to database
 %2 errors</source>
-      <translation type="unfinished">Napló-migráció kész:\n%1 naplóbejegyzés migrálva az adatbázisba\n%2 hiba</translation>
+      <translation type="unfinished">Napló-migráció kész:
+%1 naplóbejegyzés migrálva az adatbázisba
+%2 hiba</translation>
     </message>
     <message>
       <location filename="../oscar/notifyMessageBox.cpp" line="18" />
@@ -12967,7 +13139,9 @@ popout window, delete it, then pop out this graph again.</source>
       <source>The selected file does not appear to be a valid Dreem CSV file.
 
 Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure your data is in CSV format and try again.</source>
-      <translation type="unfinished">A kiválasztott fájl nem tűnik érvényes Dreem CSV fájlnak.\n\nA Dreem adatokat pontosvesszővel elválasztott CSV fájlként kell formázni. Kérjük, győződjön meg arról, hogy az adatok CSV formátumban vannak, és próbálja újra.</translation>
+      <translation type="unfinished">A kiválasztott fájl nem tűnik érvényes Dreem CSV fájlnak.
+
+A Dreem adatokat pontosvesszővel elválasztott CSV fájlként kell formázni. Kérjük, győződjön meg arról, hogy az adatok CSV formátumban vannak, és próbálja újra.</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/loader_plugins/yuwell_loader.cpp" line="376" />
@@ -13335,7 +13509,7 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="617" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Másolat)</translation>
+      <translation type="unfinished"> (Másolat)</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="625" />
@@ -13385,19 +13559,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="690" />
       <source>Failed to parse file:
 %1</source>
-      <translation type="unfinished">A fájl feldolgozása sikertelen:\n%1</translation>
+      <translation type="unfinished">A fájl feldolgozása sikertelen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="698" />
       <source>Import failed:
 %1</source>
-      <translation type="unfinished">Az importálás sikertelen:\n%1</translation>
+      <translation type="unfinished">Az importálás sikertelen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="707" />
       <source>Imported %1 report(s) from:
 %2</source>
-      <translation type="unfinished">%1 jelentés importálva innen:\n%2</translation>
+      <translation type="unfinished">%1 jelentés importálva innen:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="716" />
@@ -13420,13 +13597,15 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="734" />
       <source>Failed to write file:
 %1</source>
-      <translation type="unfinished">A fájl írása sikertelen:\n%1</translation>
+      <translation type="unfinished">A fájl írása sikertelen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="739" />
       <source>Exported %1 report(s) to:
 %2</source>
-      <translation type="unfinished">%1 jelentés exportálva ide:\n%2</translation>
+      <translation type="unfinished">%1 jelentés exportálva ide:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="786" />
@@ -13482,19 +13661,22 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/exports/report_exporter.cpp" line="1171" />
       <source>Query failed:
 %1</source>
-      <translation type="unfinished">A lekérdezés sikertelen:\n%1</translation>
+      <translation type="unfinished">A lekérdezés sikertelen:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1177" />
       <source>Cannot write file:
 %1</source>
-      <translation type="unfinished">Nem sikerült írni a fájlt:\n%1</translation>
+      <translation type="unfinished">Nem sikerült írni a fájlt:
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/exports/report_exporter.cpp" line="1205" />
       <source>Exported %1 rows to:
 %2</source>
-      <translation type="unfinished">%1 sor exportálva ide:\n%2</translation>
+      <translation type="unfinished">%1 sor exportálva ide:
+%2</translation>
     </message>
   </context>
   <context>
@@ -13640,7 +13822,8 @@ Dreem data must be formatted as a semicolon-delimited CSV file. Please ensure yo
       <location filename="../oscar/reportmanager.cpp" line="346" />
       <source>A report with this name already exists.
 Please choose a different name.</source>
-      <translation type="unfinished">Már létezik ilyen nevű jelentés.\nKérjük, válasszon másik nevet.</translation>
+      <translation type="unfinished">Már létezik ilyen nevű jelentés.
+Kérjük, válasszon másik nevet.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="290" />
@@ -13656,7 +13839,8 @@ Please choose a different name.</source>
       <location filename="../oscar/reportmanager.cpp" line="319" />
       <source>Report '%1' created.
 Use 'Copy Variety' to add queries to this report.</source>
-      <translation type="unfinished">A(z) '%1' jelentés létrehozva.\nA lekérdezések hozzáadásához használja a „Változat másolása" funkciót.</translation>
+      <translation type="unfinished">A(z) '%1' jelentés létrehozva.
+A lekérdezések hozzáadásához használja a „Változat másolása" funkciót.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="334" />
@@ -13666,7 +13850,7 @@ Use 'Copy Variety' to add queries to this report.</source>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="336" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Másolat)</translation>
+      <translation type="unfinished"> (Másolat)</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="358" />
@@ -13677,7 +13861,8 @@ Use 'Copy Variety' to add queries to this report.</source>
       <location filename="../oscar/reportmanager.cpp" line="393" />
       <source>Report copied successfully.
 %1 varieties copied.</source>
-      <translation type="unfinished">A jelentés sikeresen másolva.\n%1 változat másolva.</translation>
+      <translation type="unfinished">A jelentés sikeresen másolva.
+%1 változat másolva.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="405" />
@@ -13694,7 +13879,9 @@ Use 'Copy Variety' to add queries to this report.</source>
       <source>
 
 This will also delete %1 report varieties.</source>
-      <translation type="unfinished">\n\nEzzel %1 jelentésváltozat is törlődik.</translation>
+      <translation type="unfinished">
+
+Ezzel %1 jelentésváltozat is törlődik.</translation>
     </message>
     <message>
       <location filename="../oscar/reportmanager.cpp" line="433" />
@@ -13815,7 +14002,10 @@ This will also delete %1 report varieties.</source>
 #PROFILE_ID - Current profile ID
 #START_DATE - Report start date
 #END_DATE - Report end date</source>
-      <translation type="unfinished">Adja meg az SQL-lekérdezést makrókkal:\n#PROFILE_ID - Jelenlegi profil azonosítója\n#START_DATE - Jelentés kezdő dátuma\n#END_DATE - Jelentés záró dátuma</translation>
+      <translation type="unfinished">Adja meg az SQL-lekérdezést makrókkal:
+#PROFILE_ID - Jelenlegi profil azonosítója
+#START_DATE - Jelentés kezdő dátuma
+#END_DATE - Jelentés záró dátuma</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.ui" line="115" />
@@ -13868,7 +14058,7 @@ This will also delete %1 report varieties.</source>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="88" />
       <source> (Copy)</source>
-      <translation type="unfinished">(Másolat)</translation>
+      <translation type="unfinished"> (Másolat)</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="94" />
@@ -13885,7 +14075,8 @@ This will also delete %1 report varieties.</source>
       <location filename="../oscar/reportvarietyeditor.cpp" line="115" />
       <source>No custom reports available.
 Enter a new report name to create one.</source>
-      <translation type="unfinished">Nincs elérhető egyéni jelentés.\nÚj jelentés létrehozásához adjon meg egy jelentésnevet.</translation>
+      <translation type="unfinished">Nincs elérhető egyéni jelentés.
+Új jelentés létrehozásához adjon meg egy jelentésnevet.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="122" />
@@ -13905,27 +14096,37 @@ Enter a new report name to create one.</source>
 
 SQL Error:
 %2</source>
-      <translation type="unfinished">A lekérdezés sikertelen:\n\n%1\n\nSQL-hiba:\n%2</translation>
+      <translation type="unfinished">A lekérdezés sikertelen:
+
+%1
+
+SQL-hiba:
+%2</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="192" />
       <source>Query executed successfully.
 
 No results returned (this may be normal if no data exists for the date range).</source>
-      <translation type="unfinished">A lekérdezés sikeresen végrehajtva.\n\nNem érkezett eredmény (ez normális lehet, ha nem létezik adat a megadott dátumtartományra).</translation>
+      <translation type="unfinished">A lekérdezés sikeresen végrehajtva.
+
+Nem érkezett eredmény (ez normális lehet, ha nem létezik adat a megadott dátumtartományra).</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="200" />
       <source>Query Test Results
 </source>
-      <translation type="unfinished">Lekérdezés teszteredményei\n</translation>
+      <translation type="unfinished">Lekérdezés teszteredményei
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="201" />
       <source>(Showing first %1 rows)
 
 </source>
-      <translation type="unfinished">(Az első %1 sor megjelenítése)\n\n</translation>
+      <translation type="unfinished">(Az első %1 sor megjelenítése)
+
+</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="213" />
@@ -13996,7 +14197,9 @@ No results returned (this may be normal if no data exists for the date range).</
       <source>A variety named '%1' already exists in report '%2'.
 
 Please choose a different variety name.</source>
-      <translation type="unfinished">A(z) '%1' nevű változat már létezik a(z) '%2' jelentésben.\n\nKérjük, válasszon másik változatnevet.</translation>
+      <translation type="unfinished">A(z) '%1' nevű változat már létezik a(z) '%2' jelentésben.
+
+Kérjük, válasszon másik változatnevet.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="354" />
@@ -14012,14 +14215,22 @@ Please choose a different variety name.</source>
 The query may not work correctly.
 
 Continue anyway?</source>
-      <translation type="unfinished">A lekérdezés nem tartalmazza az összes szükséges makrót:\n\n#PROFILE_ID, #START_DATE, #END_DATE\n\nElőfordulhat, hogy a lekérdezés nem fog megfelelően működni.\n\nFolytatja?</translation>
+      <translation type="unfinished">A lekérdezés nem tartalmazza az összes szükséges makrót:
+
+#PROFILE_ID, #START_DATE, #END_DATE
+
+Előfordulhat, hogy a lekérdezés nem fog megfelelően működni.
+
+Folytatja?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="387" />
       <source>Cannot add varieties to system report '%1'.
 
 Please choose a different report name.</source>
-      <translation type="unfinished">Nem lehet változatokat hozzáadni a(z) '%1' rendszerjelentéshez.\n\nKérjük, válasszon másik jelentésnevet.</translation>
+      <translation type="unfinished">Nem lehet változatokat hozzáadni a(z) '%1' rendszerjelentéshez.
+
+Kérjük, válasszon másik jelentésnevet.</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="396" />
@@ -14032,7 +14243,9 @@ Please choose a different report name.</source>
       <source>Report '%1' does not exist.
 
 Create it?</source>
-      <translation type="unfinished">A(z) '%1' jelentés nem létezik.\n\nLétrehozza?</translation>
+      <translation type="unfinished">A(z) '%1' jelentés nem létezik.
+
+Létrehozza?</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="409" />
@@ -14333,7 +14546,9 @@ Create it?</source>
       <source>The selected file is not a valid backup package.
 
 %1</source>
-      <translation type="unfinished">A kiválasztott fájl nem érvényes biztonsági mentési csomag.\n\n%1</translation>
+      <translation type="unfinished">A kiválasztott fájl nem érvényes biztonsági mentési csomag.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="597" />
@@ -14345,7 +14560,9 @@ Create it?</source>
       <source>This backup cannot be restored.
 
 %1</source>
-      <translation type="unfinished">Ez a biztonsági mentés nem állítható vissza.\n\n%1</translation>
+      <translation type="unfinished">Ez a biztonsági mentés nem állítható vissza.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="614" />
@@ -14354,7 +14571,11 @@ Create it?</source>
 Your sleep session data will be fully restored. Some settings or report configurations may not be restored and will be regenerated by OSCAR on first use.
 
 Click Validate to continue.</source>
-      <translation type="unfinished">Ez a biztonsági mentés egy régebbi adatbázis-sémával készült (v%1; a jelenlegi v%2).\n\nAz alvási munkamenet adatai teljes mértékben visszaállításra kerülnek. Előfordulhat, hogy egyes beállítások vagy jelentéskonfigurációk nem kerülnek visszaállításra, és az OSCAR az első használatkor újra létrehozza azokat.\n\nA folytatáshoz kattintson az Ellenőrzés gombra.</translation>
+      <translation type="unfinished">Ez a biztonsági mentés egy régebbi adatbázis-sémával készült (v%1; a jelenlegi v%2).
+
+Az alvási munkamenet adatai teljes mértékben visszaállításra kerülnek. Előfordulhat, hogy egyes beállítások vagy jelentéskonfigurációk nem kerülnek visszaállításra, és az OSCAR az első használatkor újra létrehozza azokat.
+
+A folytatáshoz kattintson az Ellenőrzés gombra.</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="709" />
@@ -14368,7 +14589,11 @@ Click Validate to continue.</source>
 Because this restore package includes SD card data, the entire profile directory — including all CPAP backup data — will be permanently deleted and replaced.
 
 This cannot be undone. Are you sure you want to continue?</source>
-      <translation type="unfinished">FIGYELMEZTETÉS: A meglévő „%1" profil tartalmaz egy Backup könyvtárat, amely CPAP biztonsági mentési adatokat tárol.\n\nMivel ez a visszaállítási csomag SD-kártya adatokat is tartalmaz, a teljes profilkönyvtár — beleértve az összes CPAP biztonsági mentési adatot — véglegesen törlésre és felváltásra kerül.\n\nEz a művelet nem vonható vissza. Biztosan folytatni szeretné?</translation>
+      <translation type="unfinished">FIGYELMEZTETÉS: A meglévő „%1" profil tartalmaz egy Backup könyvtárat, amely CPAP biztonsági mentési adatokat tárol.
+
+Mivel ez a visszaállítási csomag SD-kártya adatokat is tartalmaz, a teljes profilkönyvtár — beleértve az összes CPAP biztonsági mentési adatot — véglegesen törlésre és felváltásra kerül.
+
+Ez a művelet nem vonható vissza. Biztosan folytatni szeretné?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="719" />
@@ -14380,7 +14605,9 @@ This cannot be undone. Are you sure you want to continue?</source>
       <source>This will permanently delete the existing profile and all its data.
 
 Are you sure you want to replace it?</source>
-      <translation type="unfinished">Ez véglegesen törli a meglévő profilt és az összes adatát.\n\nBiztosan le szeretné cserélni?</translation>
+      <translation type="unfinished">Ez véglegesen törli a meglévő profilt és az összes adatát.
+
+Biztosan le szeretné cserélni?</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.cpp" line="752" />
@@ -14422,7 +14649,9 @@ Are you sure you want to replace it?</source>
       <source>The restore could not be completed. The database was not modified.
 
 %1</source>
-      <translation type="unfinished">A visszaállítás nem fejezhető be. Az adatbázis nem lett módosítva.\n\n%1</translation>
+      <translation type="unfinished">A visszaállítás nem fejezhető be. Az adatbázis nem lett módosítva.
+
+%1</translation>
     </message>
   </context>
   <context>
@@ -14436,13 +14665,15 @@ Are you sure you want to replace it?</source>
       <location filename="../oscar/sqleditor.ui" line="20" />
       <source>Edit the SQL query below. The query will be executed against the OSCAR database.
 Available Macros: #PROFILE_ID, #START_DATE, #END_DATE</source>
-      <translation type="unfinished">Szerkessze az alábbi SQL lekérdezést. A lekérdezés az OSCAR adatbázison kerül végrehajtásra.\nElérhető makrók: #PROFILE_ID, #START_DATE, #END_DATE</translation>
+      <translation type="unfinished">Szerkessze az alábbi SQL lekérdezést. A lekérdezés az OSCAR adatbázison kerül végrehajtásra.
+Elérhető makrók: #PROFILE_ID, #START_DATE, #END_DATE</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="44" />
       <source>Note: Be careful when modifying queries. Invalid SQL will cause the export to fail.
 Common tables: daily_summaries, session_summaries, sessions, machines, session_settings, channels</source>
-      <translation type="unfinished">Megjegyzés: Legyen óvatos a lekérdezések módosításakor. Érvénytelen SQL esetén az exportálás sikertelen lesz.\nGyakori táblák: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
+      <translation type="unfinished">Megjegyzés: Legyen óvatos a lekérdezések módosításakor. Érvénytelen SQL esetén az exportálás sikertelen lesz.
+Gyakori táblák: daily_summaries, session_summaries, sessions, machines, session_settings, channels</translation>
     </message>
     <message>
       <location filename="../oscar/sqleditor.ui" line="73" />
@@ -14631,7 +14862,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="240" />
       <source> (right/left)MouseClick</source>
-      <translation type="unfinished">(jobb/bal) egérgombkattintás</translation>
+      <translation type="unfinished"> (jobb/bal) egérgombkattintás</translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="242" />
@@ -14796,7 +15027,7 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
       <source>Daily: Event (bottom left corner) </source>
-      <translation type="unfinished">Napi: Esemény (bal alsó sarok)</translation>
+      <translation type="unfinished">Napi: Esemény (bal alsó sarok) </translation>
     </message>
     <message>
       <location filename="../oscar/saveGraphLayoutSettings.cpp" line="272" />
@@ -15299,7 +15530,13 @@ Common tables: daily_summaries, session_summaries, sessions, machines, session_s
 • Personal information (name, DOB, contact details) will be removed
 
 Make sure you trust the recipient before sharing this data.</source>
-      <translation type="unfinished">Egy alvásterápiás adatokat tartalmazó fájlt készül megosztani.\n\n• A fájl munkamenet-adatokat, eseményeket és gépbeállításokat tartalmaz\n  a kiválasztott dátumtartományra vonatkozóan\n• A személyes adatok (név, születési dátum, elérhetőségek) eltávolításra kerülnek\n\nGyőződjön meg arról, hogy megbízik a címzettben, mielőtt megosztja ezeket az adatokat.</translation>
+      <translation type="unfinished">Egy alvásterápiás adatokat tartalmazó fájlt készül megosztani.
+
+• A fájl munkamenet-adatokat, eseményeket és gépbeállításokat tartalmaz
+  a kiválasztott dátumtartományra vonatkozóan
+• A személyes adatok (név, születési dátum, elérhetőségek) eltávolításra kerülnek
+
+Győződjön meg arról, hogy megbízik a címzettben, mielőtt megosztja ezeket az adatokat.</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="450" />
@@ -15386,7 +15623,9 @@ Make sure you trust the recipient before sharing this data.</source>
       <source>Could not create the sharing file.
 
 %1</source>
-      <translation type="unfinished">Nem sikerült létrehozni a megosztási fájlt.\n\n%1</translation>
+      <translation type="unfinished">Nem sikerült létrehozni a megosztási fájlt.
+
+%1</translation>
     </message>
     <message>
       <location filename="../oscar/sharedialog.cpp" line="782" />
