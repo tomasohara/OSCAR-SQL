@@ -82,6 +82,7 @@ IMPORTANT RULES:
 - Keep format variables (%1, %2, %3, etc.) exactly as they are
 - Keep HTML tags (<b>, </b>, <i>, </i>, etc.) exactly as they are
 - Keep all newlines and whitespace exactly as they are
+- Preserve any leading or trailing spaces in the source string exactly
 - Device names and abbreviations (CPAP, BiPAP, ResMed, etc.) stay in English
 - Return ONLY the translations, one per line, numbered to match
 
@@ -110,14 +111,16 @@ Sources to translate:
         translations = {}
 
         for line in response_text.strip().split('\n'):
-            line = line.strip()
+            line = line.rstrip('\r\n')  # Strip only newline chars; preserve spaces
             if not line or not line[0].isdigit():
                 continue
             dot_idx = line.find('.')
             if dot_idx > 0:
                 try:
                     num = int(line[:dot_idx])
-                    trans = line[dot_idx + 1:].strip()
+                    rest = line[dot_idx + 1:]
+                    # Remove exactly the one separator space after "N. "; preserve the rest
+                    trans = rest[1:] if rest.startswith(' ') else rest
                     if trans:
                         translations[num] = trans
                 except ValueError:
@@ -138,7 +141,7 @@ def apply_translations(messages, translations):
         if i not in translations:
             continue
 
-        trans_text = translations[i]
+        trans_text = translations[i].replace('\\n', '\n')
         trans_elem = msg_data['element']
 
         if msg_data.get('is_variant'):
