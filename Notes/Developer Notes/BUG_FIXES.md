@@ -4,6 +4,23 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-14 — Integrity check on restart after declining loader data rebuild
+
+**File:** `oscar/SleepLib/profiles.cpp` — `Profile::DataFormatError()`
+
+**Symptom:** If the user clicked "No" when prompted to rebuild a machine's data after a loader
+version change, OSCAR called `QApplication::exit(-1)`. This bypassed `closeEvent()` and
+`DatabaseManager::markCleanShutdown()`, leaving the dirty-shutdown flag set. On the next
+startup, OSCAR ran a full database integrity check unnecessarily.
+
+**Root cause:** The `exit(-1)` path skipped the normal shutdown sequence. The "file manager
+launch" secondary dialog that preceded it was also unhelpful boilerplate.
+
+**Fix:** Removed the secondary info dialog and `showInGraphicalShell()` call. Call
+`DatabaseManager::markCleanShutdown()` explicitly before `QApplication::exit(0)`.
+
+---
+
 ## 2026-06-13 — Daily page: right-click menu checkboxes invisible when checked
 
 **File:** `oscar/Graphs/gGraphView.cpp` — `gGraphView::populateMenu()`

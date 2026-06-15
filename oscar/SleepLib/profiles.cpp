@@ -931,14 +931,9 @@ void Profile::DataFormatError(Machine *m)
 
     } else {
         delete question;
-        QMessageBox::information(nullptr, STR_MessageBox_Information,
-            QObject::tr("OSCAR will now exit, then (attempt to) launch your computers file manager so you can manually back your profile up:")+"\n\n"+
-            QDir::toNativeSeparators(Get(p_preferences[STR_GEN_DataFolder].toString()))+"\n\n"+
-            QObject::tr("Use your file manager to make a copy of your profile directory, then afterwards, restart OSCAR and complete the upgrade process.")
-                , QMessageBox::Ok, QMessageBox::Ok);
-
-        showInGraphicalShell(Get(p_preferences[STR_GEN_DataFolder].toString()));
-        QApplication::exit(-1);
+        // User chose not to upgrade now — exit cleanly so no integrity check on restart.
+        DatabaseManager::markCleanShutdown(DatabaseManager::instance().databasePath());
+        QApplication::exit(0);
     }
 
 
