@@ -501,6 +501,9 @@ void Overview::setGraphText () {
         }
     }
     ui->graphCombo->setItemText(0, graphText);
+    ui->graphCombo->model()->setData(
+        ui->graphCombo->model()->index(lastIndex, 0),
+        numOff == 0 ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
 }
 
 void Overview::updateGraphCombo()

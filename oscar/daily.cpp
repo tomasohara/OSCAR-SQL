@@ -3164,6 +3164,9 @@ void Daily::setGraphText () {
         }
     }
     ui->graphCombo->setItemText(0, graphText);
+    ui->graphCombo->model()->setData(
+        ui->graphCombo->model()->index(lastIndex, 0),
+        numOff == 0 ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
 }
 
 void Daily::setFlagText () {
@@ -3200,6 +3203,9 @@ void Daily::setFlagText () {
     }
 
     ui->eventsCombo->setItemText(0, flagsText);
+    ui->eventsCombo->model()->setData(
+        ui->eventsCombo->model()->index(lastIndex, 0),
+        numOff == 0 ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
     sleepFlagsGroup->refreshConfiguration(sleepFlags); // need to know display changes before painting.
 }
 
