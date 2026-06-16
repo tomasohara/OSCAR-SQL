@@ -672,307 +672,307 @@ Supported services: Dropbox, Google Drive, OneDrive, Box, 0x0.st, or any direct 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="228"/>
+        <location filename="../oscar/daily.cpp" line="230"/>
         <source>Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="364"/>
+        <location filename="../oscar/daily.cpp" line="366"/>
         <source>Breakdown</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="364"/>
+        <location filename="../oscar/daily.cpp" line="366"/>
         <source>events</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="376"/>
+        <location filename="../oscar/daily.cpp" line="378"/>
         <source>UF1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="377"/>
+        <location filename="../oscar/daily.cpp" line="379"/>
         <source>UF2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="437"/>
+        <location filename="../oscar/daily.cpp" line="439"/>
         <source>Time at Pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="662"/>
+        <location filename="../oscar/daily.cpp" line="668"/>
         <source>Clinical Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="662"/>
+        <location filename="../oscar/daily.cpp" line="668"/>
         <source> Disabling Sessions requires Permissive Mode be set in OSCAR Preferences in the Clinical tab.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="747"/>
+        <location filename="../oscar/daily.cpp" line="753"/>
         <source>No %1 events are recorded this day</source>
         <translation>No %1 events are recorded on this day</translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="890"/>
+        <location filename="../oscar/daily.cpp" line="896"/>
         <source>%1 event</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="891"/>
+        <location filename="../oscar/daily.cpp" line="897"/>
         <source>%1 events</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="957"/>
+        <location filename="../oscar/daily.cpp" line="963"/>
         <source>Session Start Times</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="958"/>
+        <location filename="../oscar/daily.cpp" line="964"/>
         <source>Session End Times</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="989"/>
+        <location filename="../oscar/daily.cpp" line="995"/>
         <source>All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1230"/>
+        <location filename="../oscar/daily.cpp" line="1236"/>
         <source>Session Information</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1255"/>
+        <location filename="../oscar/daily.cpp" line="1261"/>
         <source>Oximetry Sessions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1275"/>
+        <location filename="../oscar/daily.cpp" line="1281"/>
         <source>Duration</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1295"/>
+        <location filename="../oscar/daily.cpp" line="1301"/>
         <source>Click to %1 this session.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1295"/>
+        <location filename="../oscar/daily.cpp" line="1301"/>
         <source>disable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1295"/>
+        <location filename="../oscar/daily.cpp" line="1301"/>
         <source>enable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1311"/>
+        <location filename="../oscar/daily.cpp" line="1317"/>
         <source>%1 Session #%2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1312"/>
+        <location filename="../oscar/daily.cpp" line="1318"/>
         <source>%1h %2m %3s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1345"/>
+        <location filename="../oscar/daily.cpp" line="1351"/>
         <source>DEVICE SETTINGS ERROR</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1348"/>
+        <location filename="../oscar/daily.cpp" line="1354"/>
         <source>Device Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1354"/>
+        <location filename="../oscar/daily.cpp" line="1360"/>
         <source>&lt;b&gt;Please Note:&lt;/b&gt; All settings shown below are based on assumptions that nothing has changed since previous days.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1480"/>
+        <location filename="../oscar/daily.cpp" line="1486"/>
         <source>Model %1 - %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1485"/>
+        <location filename="../oscar/daily.cpp" line="1491"/>
         <source>PAP Mode: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1489"/>
+        <location filename="../oscar/daily.cpp" line="1495"/>
         <source>(Mode and Pressure settings missing; yesterday&apos;s shown.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1612"/>
+        <location filename="../oscar/daily.cpp" line="1618"/>
         <source>This day just contains summary data, only limited information is available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2876"/>
+        <location filename="../oscar/daily.cpp" line="2882"/>
         <source>This bookmark is in a currently disabled area..</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1252"/>
+        <location filename="../oscar/daily.cpp" line="1258"/>
         <source>CPAP Sessions</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1258"/>
+        <location filename="../oscar/daily.cpp" line="1264"/>
         <source>Sleep Stage Sessions</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1261"/>
+        <location filename="../oscar/daily.cpp" line="1267"/>
         <source>Position Sensor Sessions</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1266"/>
+        <location filename="../oscar/daily.cpp" line="1272"/>
         <source>Unknown Session</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1638"/>
+        <location filename="../oscar/daily.cpp" line="1644"/>
         <source>Total ramp time</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1642"/>
+        <location filename="../oscar/daily.cpp" line="1648"/>
         <source>Time outside of ramp</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1683"/>
+        <location filename="../oscar/daily.cpp" line="1689"/>
         <source>General</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1692"/>
+        <location filename="../oscar/daily.cpp" line="1698"/>
         <source>Start</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1692"/>
+        <location filename="../oscar/daily.cpp" line="1698"/>
         <source>End</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1738"/>
+        <location filename="../oscar/daily.cpp" line="1744"/>
         <source>This CPAP device does NOT record detailed data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1887"/>
+        <location filename="../oscar/daily.cpp" line="1893"/>
         <source>Unable to display Pie Chart on this system</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2101"/>
+        <location filename="../oscar/daily.cpp" line="2107"/>
         <source>no data :(</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2102"/>
+        <location filename="../oscar/daily.cpp" line="2108"/>
         <source>Sorry, this device only provides compliance data.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2124"/>
+        <location filename="../oscar/daily.cpp" line="2130"/>
         <source>No CPAP data is available for this day</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2140"/>
+        <location filename="../oscar/daily.cpp" line="2146"/>
         <source>&quot;Nothing&apos;s here!&quot;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1447"/>
+        <location filename="../oscar/daily.cpp" line="1453"/>
         <source>Oximeter Information</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1456"/>
+        <location filename="../oscar/daily.cpp" line="1462"/>
         <source>SpO2 Desaturations</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1457"/>
+        <location filename="../oscar/daily.cpp" line="1463"/>
         <source>Pulse Change events</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1458"/>
+        <location filename="../oscar/daily.cpp" line="1464"/>
         <source>SpO2 Baseline Used</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1525"/>
+        <location filename="../oscar/daily.cpp" line="1531"/>
         <source>Statistics</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1622"/>
+        <location filename="../oscar/daily.cpp" line="1628"/>
         <source>Total time in apnea</source>
         <translation>Total time in apnoea</translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1632"/>
+        <location filename="../oscar/daily.cpp" line="1638"/>
         <source>Time over leak redline</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="1861"/>
+        <location filename="../oscar/daily.cpp" line="1867"/>
         <source>Event Breakdown</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2092"/>
+        <location filename="../oscar/daily.cpp" line="2098"/>
         <source>Sessions all off!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2094"/>
+        <location filename="../oscar/daily.cpp" line="2100"/>
         <source>Sessions exist for this day but are switched off.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2097"/>
+        <location filename="../oscar/daily.cpp" line="2103"/>
         <source>Impossibly short session</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2098"/>
+        <location filename="../oscar/daily.cpp" line="2104"/>
         <source>Zero hours??</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2103"/>
+        <location filename="../oscar/daily.cpp" line="2109"/>
         <source>Complain to your Equipment Provider!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2143"/>
+        <location filename="../oscar/daily.cpp" line="2149"/>
         <source>No data is available for this day.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2497"/>
+        <location filename="../oscar/daily.cpp" line="2503"/>
         <source>Pick a Colour</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="2827"/>
+        <location filename="../oscar/daily.cpp" line="2833"/>
         <source>Bookmark at %1</source>
         <translation></translation>
     </message>
@@ -1491,7 +1491,7 @@ Some files may still be present.</source>
 <context>
     <name>DatabaseManager</name>
     <message>
-        <location filename="../oscar/database/database_manager.cpp" line="403"/>
+        <location filename="../oscar/database/database_manager.cpp" line="411"/>
         <source>A database corruption or I/O error was detected in %1.
 
 Error: %2
@@ -1505,34 +1505,34 @@ Recommended actions:
 <context>
     <name>DateErrorDisplay</name>
     <message>
-        <location filename="../oscar/overview.cpp" line="832"/>
+        <location filename="../oscar/overview.cpp" line="839"/>
         <source>ERROR
 The start date MUST be before the end date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="835"/>
+        <location filename="../oscar/overview.cpp" line="842"/>
         <source>The entered start date %1 is after the end date %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="836"/>
+        <location filename="../oscar/overview.cpp" line="843"/>
         <source>
 Hint: Change the end date first</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="838"/>
+        <location filename="../oscar/overview.cpp" line="845"/>
         <source>The entered end date %1 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="839"/>
+        <location filename="../oscar/overview.cpp" line="846"/>
         <source>is before the start date %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="840"/>
+        <location filename="../oscar/overview.cpp" line="847"/>
         <source>
 Hint: Change the start date first</source>
         <translation type="unfinished"></translation>
@@ -4710,19 +4710,19 @@ Note: anonymous sharing may be disabled in your Microsoft account settings.</sou
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="152"/>
+        <location filename="../oscar/overview.cpp" line="153"/>
         <source>[Date Widget]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="276"/>
+        <location filename="../oscar/overview.cpp" line="279"/>
         <source>Respiratory
 Disturbance
 Index</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="278"/>
+        <location filename="../oscar/overview.cpp" line="281"/>
         <source>Apnea
 Hypopnea
 Index</source>
@@ -4731,42 +4731,42 @@ Hypopnea
 Index</translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="285"/>
+        <location filename="../oscar/overview.cpp" line="288"/>
         <source>Usage</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="285"/>
+        <location filename="../oscar/overview.cpp" line="288"/>
         <source>Usage
 (hours)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="290"/>
+        <location filename="../oscar/overview.cpp" line="293"/>
         <source>Session Times</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="299"/>
+        <location filename="../oscar/overview.cpp" line="302"/>
         <source>Total Time in Apnea</source>
         <translation>Total Time in Apnoea</translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="299"/>
+        <location filename="../oscar/overview.cpp" line="302"/>
         <source>Total Time in Apnea
 (Minutes)</source>
         <translation>Total Time in Apnoea
 (Minutes)</translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="364"/>
+        <location filename="../oscar/overview.cpp" line="367"/>
         <source>Body
 Mass
 Index</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="370"/>
+        <location filename="../oscar/overview.cpp" line="373"/>
         <source>How you felt
 (1-10)</source>
         <translation type="unfinished"></translation>
@@ -9769,77 +9769,67 @@ TTIA: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="935"/>
-        <source>OSCAR will now exit, then (attempt to) launch your computers file manager so you can manually back your profile up:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="937"/>
-        <source>Use your file manager to make a copy of your profile directory, then afterwards, restart OSCAR and complete the upgrade process.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1049"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1044"/>
         <source>Loading Channel Information</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1055"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1050"/>
         <source>Migrating Journal Data to Database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1071"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1066"/>
         <source>Calculating Daily Summaries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1479"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1474"/>
         <source>Profile Name Conflict</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1480"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1475"/>
         <source>A profile named &apos;%1&apos; already exists in the database but its directory is missing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1481"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1476"/>
         <source>You cannot create a new profile with this name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1482"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1477"/>
         <source>Options:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1483"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1478"/>
         <source>1. Choose a different profile name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1484"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1479"/>
         <source>2. Restore the missing profile directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1485"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1480"/>
         <source>3. Use OSCAR&apos;s profile management tools to permanently remove the old profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1490"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1485"/>
         <source>Profile Already Exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1491"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1486"/>
         <source>A profile named &apos;%1&apos; already exists and is active.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/SleepLib/profiles.cpp" line="1492"/>
+        <location filename="../oscar/SleepLib/profiles.cpp" line="1487"/>
         <source>Please choose a different name.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -11574,24 +11564,24 @@ You may continue, but some data may be incomplete or incorrect.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="200"/>
-        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="210"/>
+        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="206"/>
+        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="216"/>
         <source>Selection Length</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="267"/>
+        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="273"/>
         <source>Database Outdated
 Please Rebuild CPAP Data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="454"/>
+        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="460"/>
         <source> (%2 min, %3 sec)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="456"/>
+        <location filename="../oscar/Graphs/gFlagsLine.cpp" line="462"/>
         <source> (%3 sec)</source>
         <translation></translation>
     </message>
@@ -11622,28 +11612,28 @@ popout window, delete it, then pop out this graph again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/gGraphView.cpp" line="2489"/>
+        <location filename="../oscar/Graphs/gGraphView.cpp" line="2501"/>
         <source>Hide All Events</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/gGraphView.cpp" line="2490"/>
+        <location filename="../oscar/Graphs/gGraphView.cpp" line="2502"/>
         <source>Show All Events</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/gGraphView.cpp" line="2837"/>
+        <location filename="../oscar/Graphs/gGraphView.cpp" line="2849"/>
         <source>Unpin %1 Graph</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/gGraphView.cpp" line="2839"/>
-        <location filename="../oscar/Graphs/gGraphView.cpp" line="2922"/>
+        <location filename="../oscar/Graphs/gGraphView.cpp" line="2851"/>
+        <location filename="../oscar/Graphs/gGraphView.cpp" line="2934"/>
         <source>Popout %1 Graph</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/Graphs/gGraphView.cpp" line="2924"/>
+        <location filename="../oscar/Graphs/gGraphView.cpp" line="2936"/>
         <source>Pin %1 Graph</source>
         <translation></translation>
     </message>
@@ -12403,24 +12393,24 @@ popout window, delete it, then pop out this graph again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="3150"/>
-        <location filename="../oscar/overview.cpp" line="490"/>
+        <location filename="../oscar/daily.cpp" line="3156"/>
+        <location filename="../oscar/overview.cpp" line="493"/>
         <source>%1 Graphs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="3154"/>
-        <location filename="../oscar/overview.cpp" line="494"/>
+        <location filename="../oscar/daily.cpp" line="3160"/>
+        <location filename="../oscar/overview.cpp" line="497"/>
         <source>%1 of %2 Graphs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="3188"/>
+        <location filename="../oscar/daily.cpp" line="3197"/>
         <source>%1 Event Types</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/daily.cpp" line="3192"/>
+        <location filename="../oscar/daily.cpp" line="3201"/>
         <source>%1 of %2 Event Types</source>
         <translation type="unfinished"></translation>
     </message>
@@ -12430,7 +12420,7 @@ popout window, delete it, then pop out this graph again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../oscar/overview.cpp" line="771"/>
+        <location filename="../oscar/overview.cpp" line="778"/>
         <source>Loading summaries</source>
         <translation type="unfinished"></translation>
     </message>
