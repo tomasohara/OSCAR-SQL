@@ -4,6 +4,40 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-17 — BMC legacy loader: 6/16 session skipped; 6/15 EVT data discarded
+
+**File:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp` — `FindValidSessions()`, `ReadDateSession()`
+
+**Symptom:** On a BMC legacy card where the user fell asleep after noon (session started
+~15:19), the most recent session was silently dropped. Older sessions whose waveform data
+had been overwritten by the circular buffer were also dropped entirely, losing their
+respiratory event records.
+
+**Root cause (6/16 — waveform skipped):** `FindValidSessions()` selects the last waveform
+crumb strictly before the session's `StartTimestamp`. Because `DecodeDate()` always sets the
+session start to noon, any session that actually began after noon has no qualifying crumb
+— even though the waveform data is present on the card. The session was discarded at the
+`if (!chosenCrumb.Timestamp.isValid()) continue;` guard.
+
+**Root cause (6/15 — EVT data lost):** When the circular waveform buffer has overwritten
+older data, no crumb exists at all for those sessions. The same guard caused the session to
+be completely skipped, including its USR summary and respiratory events.
+
+**Root cause (memory leak):** When `dateSession.Waveforms` is empty, the `BmcSession*`
+created before the waveform-splitting loop was never appended and never deleted.
+
+**Fix:**
+- `FindValidSessions()`: After the primary crumb search fails, fall back to the first crumb
+  within the session's OSCAR day (noon → next noon). This handles sessions starting after
+  noon. Sessions still without a crumb continue to be linked (with an invalid crumb) for
+  EVT-only import.
+- `ReadDateSession()`: Added a fallback at the end that creates an EVT-only `BmcSession`
+  from the USR summary when no waveform sessions were produced. Start/end timestamps are
+  derived from the first/last respiratory event (with `DurationMinutes` as minimum width),
+  or from noon if there are no events. Fixed the memory leak with an `else { delete session; }`.
+
+---
+
 ## 2026-06-14 — Integrity check on restart after declining loader data rebuild
 
 **File:** `oscar/SleepLib/profiles.cpp` — `Profile::DataFormatError()`
