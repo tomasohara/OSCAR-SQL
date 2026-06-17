@@ -4,6 +4,24 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-17 — Window clipped off-screen on Windows 11 4K display
+
+**File:** `oscar/mainwindow.cpp` / `oscar/mainwindow.h`
+
+**Symptom:** On Windows 11 with a 3840×2160 display, the OSCAR window opens with content
+clipped at the bottom and blank space at the top. Workaround: maximize then restore.
+
+**Root cause:** The Windows frame-position correction (fixing `restoreGeometry()` frame vs.
+client-area confusion) was queued via `QTimer::singleShot(0)` in the `MainWindow`
+constructor. It fired during `SetupGUI()`'s `QApplication::processEvents()` call — before
+`mainwin->show()`. At that point `screen()` returns null and `frameGeometry()` is
+unreliable, so the correction was a no-op.
+
+**Fix:** Moved the correction into `showEvent()`, guarded by `m_geometryCorrected`, so it
+fires after the window manager has applied the frame. Closes #219.
+
+---
+
 ## 2026-06-17 — BMC legacy loader: 6/16 session skipped; 6/15 EVT data discarded
 
 **File:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp` — `FindValidSessions()`, `ReadDateSession()`
