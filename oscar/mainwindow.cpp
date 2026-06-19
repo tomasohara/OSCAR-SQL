@@ -1525,6 +1525,21 @@ QList<ImportPath> MainWindow::selectCPAPDataCards(const QString & prompt, bool a
         if (nativeDialogOption()) w.setOption(QFileDialog::DontUseNativeDialog);
         w.setWindowTitle(tr("Find your CPAP data card"));
 
+        // Add all drive letters to the sidebar so network drives (e.g. WebDAV) are
+        // visible alongside the default bookmarks.  QDir::drives() calls
+        // GetLogicalDriveStrings() on Windows and reliably includes mapped network
+        // drive letters; setSidebarUrls() maps to IFileDialog::AddPlace() for the
+        // native dialog and directly populates the sidebar for the non-native one.
+        {
+            QList<QUrl> urls = w.sidebarUrls();
+            for (const QFileInfo &drive : QDir::drives()) {
+                QUrl url = QUrl::fromLocalFile(drive.filePath());
+                if (!urls.contains(url))
+                    urls.append(url);
+            }
+            w.setSidebarUrls(urls);
+        }
+
         if (w.exec() != QDialog::Accepted) {
             datacards.clear();
             return datacards;

@@ -4,6 +4,30 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-18 — WebDAV mapped drive not visible in "Find your CPAP data card" dialog
+
+**File:** `oscar/mainwindow.cpp` — `selectCPAPDataCards()`
+
+**Symptom:** On Windows 11 with a network drive (e.g. Z:) mapped via WebDAV, the drive
+appeared in Windows File Explorer but was absent from OSCAR's "Find your CPAP data card"
+`QFileDialog`.
+
+**Root cause:** The `QFileDialog` was opened without a `setSidebarUrls()` call. Qt's
+non-native dialog sidebar (used when the OSCAR UI language differs from the Windows UI
+language) is populated only from default system bookmarks — drive letters are not added
+automatically. The native IFileDialog sidebar is similarly limited to Windows-default
+locations without an explicit `AddPlace()` call, which Qt maps from `setSidebarUrls()`.
+WebDAV drives are also excluded from the FAT32-only auto-scan in `getDriveList()`, so the
+user always reaches the manual dialog when importing from WebDAV.
+
+**Fix:** Added a `setSidebarUrls()` call that merges the dialog's existing sidebar URLs
+with all entries from `QDir::drives()`. On Windows, `QDir::drives()` calls
+`GetLogicalDriveStrings()` which reliably includes all logical drive letters — local,
+removable, and network (WebDAV). For the non-native dialog, this populates the sidebar
+widget directly; for the native dialog, Qt maps each URL to `IFileDialog::AddPlace()`.
+
+---
+
 ## 2026-06-17 — Window clipped off-screen on Windows 11 4K display
 
 **File:** `oscar/mainwindow.cpp` / `oscar/mainwindow.h`
