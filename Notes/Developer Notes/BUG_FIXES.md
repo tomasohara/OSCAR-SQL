@@ -4,6 +4,35 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-20 — Disabled sessions in OSCAR 1.7.1 become enabled after import into 2.0
+
+**Files:** `oscar/profileimporter.h`, `oscar/profileimporter.cpp`
+
+**Symptom:** Any session that was disabled (unchecked) on the Daily page in OSCAR 1.7.1
+appeared enabled after importing the profile into OSCAR 2.0.
+
+**Root cause (two parts):**
+1. OSCAR 1.7.1 stores the per-session enabled/disabled flag in `Sessions.info` (binary
+   file, machine folder), written on every OSCAR exit via `Machine::~Machine()`. The `.000`
+   binary summary files do not store this flag. `Session::LoadSummaryFromFile()` always
+   sets `s_enabled = 1`, so disabled state was lost.
+2. A first fix attempt read `Summaries.xml.gz` / `Summaries.xml` instead. That file is
+   only written during SD card imports (`SaveSummaryCache()`) and can be stale — a session
+   disabled after the last import appears as `enabled="1"` in the XML. `loadSessionInfo()`
+   in 1.7.1 reads `Sessions.info` after `LoadSummary()` and overrides whatever the XML
+   says, making `Sessions.info` the authoritative source.
+
+**Fix:** `ProfileImporter::readSummariesEnabledMap()` now reads `Sessions.info` (binary,
+`magic=0xC73216AB`, `filetype=5`, one `quint32 sid + quint8 enabled` record per session),
+with fallback to `Summaries.xml` / `Summaries.xml.gz` for very old profiles that predate
+`Sessions.info`. `loadMachineSessions()` calls this before the `.000` loop and calls
+`session->setEnabled(false)` after `LoadSummaryFromFile()` for any disabled session.
+`setEnabled()` guards its DB write with `m_sessionrow_id > 0`, so calling it before
+`StoreToDatabase()` is safe — only the in-memory flag is changed, which `StoreToDatabase()`
+then persists.
+
+---
+
 ## 2026-06-18 — WebDAV mapped drive not visible in "Find your CPAP data card" dialog
 
 **File:** `oscar/mainwindow.cpp` — `selectCPAPDataCards()`
