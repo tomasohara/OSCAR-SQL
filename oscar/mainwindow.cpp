@@ -35,6 +35,9 @@
 #include <QCalendarWidget>
 #include <QDialogButtonBox>
 #include <QTextBrowser>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QClipboard>
 #include <QStandardPaths>
 #include <QDesktopServices>
 #include <QLocale>
@@ -4126,16 +4129,47 @@ void MainWindow::on_actionReport_a_Bug_triggered()
 
 void MainWindow::on_actionSystem_Information_triggered()
 {
-    QString text = ""; // tr("OSCAR version:") + "<br/>";
-    QStringList info = getBuildInfo();
-    for (int i = 0; i < info.size(); ++i) {
-        text += info.at(i) + "<br/>";
+    QString html;
+    for (const QString &line : getBuildInfo()) {
+        html += line + "<br/>";
     }
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        // qt 6 vertically truncates last line in messagebox.
-        text += ".<br/>";
-    #endif
-    staticQMessageBox::information(this, tr("OSCAR Information"), text);
+
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("OSCAR Information"));
+
+    QLabel *iconLabel = new QLabel(&dlg);
+    QIcon infoIcon = dlg.style()->standardIcon(QStyle::SP_MessageBoxInformation, nullptr, &dlg);
+    iconLabel->setPixmap(infoIcon.pixmap(32, 32));
+    iconLabel->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
+    QTextBrowser *browser = new QTextBrowser(&dlg);
+    browser->setHtml(html);
+    browser->setFrameShape(QFrame::NoFrame);
+    QPalette pal = browser->palette();
+    pal.setColor(QPalette::Base, dlg.palette().color(QPalette::Window));
+    browser->setPalette(pal);
+
+    QHBoxLayout *topLayout = new QHBoxLayout();
+    topLayout->setSpacing(16);
+    topLayout->addWidget(iconLabel, 0, Qt::AlignTop);
+    topLayout->addWidget(browser, 1);
+
+    QPushButton *copyBtn = new QPushButton(tr("Copy to Clipboard"), &dlg);
+    QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Ok, &dlg);
+    buttons->addButton(copyBtn, QDialogButtonBox::ActionRole);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(copyBtn, &QPushButton::clicked, [browser]() {
+        QApplication::clipboard()->setText(browser->toPlainText());
+    });
+
+    QVBoxLayout *layout = new QVBoxLayout(&dlg);
+    layout->setContentsMargins(24, 20, 24, 16);
+    layout->setSpacing(8);
+    layout->addLayout(topLayout);
+    layout->addWidget(buttons);
+
+    dlg.resize(500, 350);
+    dlg.exec();
 }
 
 void MainWindow::on_profilesButton_clicked()
