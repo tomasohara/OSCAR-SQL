@@ -930,12 +930,22 @@ QHash<quint32, bool> ProfileImporter::readSummariesEnabledMap(const QString& mac
     }
 
     QDomDocument doc;
+#if QT_VERSION < QT_VERSION_CHECK(6, 8, 0)
+    QString errorMsg;
+    int errorLine = 0;
+    if (!doc.setContent(xmlData, false, &errorMsg, &errorLine)) {
+        qWarning() << "ProfileImporter::readSummariesEnabledMap: XML parse error in"
+                   << xmlPath << "line" << errorLine << ":" << errorMsg;
+        return enabledMap;
+    }
+#else
     auto result = doc.setContent(xmlData);
     if (!result) {
         qWarning() << "ProfileImporter::readSummariesEnabledMap: XML parse error in"
                    << xmlPath << "line" << result.errorLine << ":" << result.errorMessage;
         return enabledMap;
     }
+#endif
 
     QDomElement root = doc.documentElement();
     if (root.tagName().compare("sessions", Qt::CaseInsensitive) != 0) {
