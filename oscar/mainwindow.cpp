@@ -23,8 +23,6 @@
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   #include <QDesktopWidget>
 #endif
-#include <QAbstractFileIconProvider>
-#include <QFileSystemModel>
 #include <QListView>
 #include <QPrinter>
 #include <QPrintDialog>
@@ -3138,13 +3136,6 @@ void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
     // Non-native dialog required for translation and for Viatom name filter on Windows.
     w.setOption(QFileDialog::DontUseNativeDialog, true);
     w.setNameFilters(loader.getNameFilter());
-
-    // Qt6's QFileSystemModel resolves per-file shell icons via SHGetFileInfo(), which is
-    // slow for large directories. Swap in the base provider (generic icons, no shell calls).
-    QFileSystemModel* fsModel = w.findChild<QFileSystemModel*>();
-    if (fsModel) {
-        fsModel->setIconProvider(new QAbstractFileIconProvider());
-    }
 
     // Display progress if we have more than 1 file to load...
     ProgressDialog progress(this);
