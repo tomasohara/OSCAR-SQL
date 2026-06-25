@@ -4,6 +4,34 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-24 — CSR shown in Daily left sidebar with no actual CSR events (AirSense 11)
+
+**File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp` — `ResmedLoader::LoadCSL()`
+
+**Symptom:** The Daily page left sidebar listed Cheyne-Stokes Respiration (CSR) for an
+AirSense 11 AutoSet profile even though no CSR ever occurred — nothing in the Statistics
+panel, Overview trend, the CSV respiratory export, or a direct database search. Other
+ResMed devices only showed the CSR sidebar item when at least one real CSR span existed
+in the profile history.
+
+**Root cause:** `LoadCSL()` ran for every session whose day contained a `*_CSL.edf` file
+(`CSLlist`, called per session at the EVE/CSL loop) and unconditionally created an empty
+CSR event list up front ("Always create CSR event list so that overview always finds
+something"). An event list with zero events still registers `CPAP_CSR` in the session's
+`m_availableChannels` (`session.cpp` summary rebuild), and the Daily sidebar unions
+`m_availableChannels` across the whole profile history (`daily.cpp`). The AirSense 11
+emits CSL.edf files even on nights with no "CSR Start"/"CSR End" annotations, so CSR was
+listed permanently. The code path is identical for all ResMed machines; the only variable
+is whether the card contains CSL.edf files.
+
+**Fix:** Create the CSR event list lazily — initialise `EventList *CSR = nullptr` and only
+call `sess->AddEventList(CPAP_CSR, EVL_Event)` when a valid, in-session CSR span is about
+to be added (restoring the original deferred-creation pattern that was present, commented
+out, in the "CSR End" branch). Days/profiles with no real CSR no longer register the
+channel, so the sidebar behaves consistently across all ResMed devices.
+
+---
+
 ## 2026-06-20 — Disabled sessions in OSCAR 1.7.1 become enabled after import into 2.0
 
 **Files:** `oscar/profileimporter.h`, `oscar/profileimporter.cpp`
