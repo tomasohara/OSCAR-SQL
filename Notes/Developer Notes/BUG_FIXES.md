@@ -4,6 +4,48 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-25 — BMC legacy loader: session after circular-buffer boundary fails to import
+
+**File:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp` — `FindValidSessions()`
+
+**Symptom:** When a BMC session follows a region of old circular-buffer data in the waveform
+file (i.e., the previous session ended and the write pointer left stale data at the next
+position), the following session fails to import at all. Reported as 6/23 truncation and
+6/24 showing no data on the Daily page.
+
+**Root cause:** `FindValidSessions()` selected a waveform crumb (a coarse seek position)
+that placed `ReadWaveforms` before the old-data boundary. `ReadWaveforms` hit the stale
+circular-buffer data (backward timestamp jump > 2 hours), correctly stopped, and never
+reached the current session's data which lay just past the boundary.
+
+Specifically: 6/23 ended at .010@pkt54083; .010@pkt54084 contained stale April data from
+the previous cycle; 6/24 data began at .010@pkt54085. The selected crumb was at pkt53248,
+so `ReadWaveforms` hit the old-data at pkt54084 and stopped before pkt54085.
+
+The IDX file already records the exact start packet for each session, but the crumb
+selection was ignoring it and relying on time-based crumb matching instead.
+
+**Fix:** When a valid IDX entry is found for a session and its start timestamp falls within
+the session's OSCAR-day window, construct `chosenCrumb` directly from the IDX entry's
+`StartOffsetPacket` / `StartFileIndex`.  This places `ReadWaveforms` exactly at the
+current cycle's data, bypassing any stale circular-buffer data that precedes it.
+
+A window guard is required because the IDX matching loop may assign the *next* day's IDX
+entry (via the `nextDay` condition) whose start timestamp lies outside the current session's
+window.  Without the guard, using that out-of-window position causes `ReadWaveforms` to
+stop immediately (EndTimestamp exceeded) and return no waveforms.
+
+The crumb-based fallback (including the OSCAR-day fallback added 2026-06-17) is retained
+for sessions where no IDX entry is available or the IDX start falls outside the window.
+
+**Enhancement:** When waveforms are truncated (circular-buffer boundary reached before the
+session ended), OSCAR now extends the session EndTimestamp to the full USR-reported duration
+(`actualStart + DurationMinutes`).  This causes respiratory events recorded throughout the
+night to be distributed to the session and displayed on the Daily page, matching PapLink's
+behaviour of showing the complete session with events even when the waveform graphs end early.
+
+---
+
 ## 2026-06-24 — CSR shown in Daily left sidebar with no actual CSR events (AirSense 11)
 
 **File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp` — `ResmedLoader::LoadCSL()`
