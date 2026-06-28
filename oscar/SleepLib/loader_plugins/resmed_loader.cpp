@@ -49,6 +49,10 @@ ChannelID RMS9_EPR, RMS9_EPRLevel, RMS9_Mode, RMS9_SmartStart, RMS9_HumidStatus,
 
 ChannelID RMAS1x_EasyBreathe, RMAS1x_RiseEnable, RMAS1x_RiseTime, RMAS1x_Cycle, RMAS1x_Trigger, RMAS1x_TiMax, RMAS1x_TiMin;
 
+// ResMed bilevel/iVAPS ventilation waveforms (from PLD). Not Lumis-exclusive: these signals
+// also appear on other ResMed bilevel devices (e.g. model 28509); device-neutral RMVENT_ prefix.
+ChannelID RMVENT_AlvMinVent, RMVENT_SpontCyc, RMVENT_SpontTrig;
+
 const QString STR_ResMed_AirSense10 = "AirSense 10";
 const QString STR_ResMed_AirSense11 = "AirSense 11";
 const QString STR_ResMed_AirCurve10 = "AirCurve 10";
@@ -291,6 +295,19 @@ void ResmedLoader::initChannels()
     channel.add(GRP_CPAP, chan = new Channel(RMAS1x_TiMin = 0xe217, SETTING, MT_CPAP, SESSION,
         "RMAS1x_TiMin", QObject::tr("TiMin"), QObject::tr("TiMin"), QObject::tr("TiMin"), STR_UNIT_Seconds, DOUBLE, Qt::black));
     chan->addOption(0, "0");
+
+    // ResMed bilevel/iVAPS ventilation waveforms (decoded from the PLD file)
+    channel.add(GRP_CPAP, new Channel(RMVENT_AlvMinVent = 0xe218, WAVEFORM, MT_CPAP, SESSION,
+        "RMVENT_AlvMinVent", QObject::tr("Alv. Min. Vent."), QObject::tr("Alveolar Minute Ventilation"),
+        QObject::tr("Alv MV"), "L/min", DOUBLE, Qt::darkGray));
+
+    channel.add(GRP_CPAP, new Channel(RMVENT_SpontCyc = 0xe219, WAVEFORM, MT_CPAP, SESSION,
+        "RMVENT_SpontCyc", QObject::tr("Spont. Cycle%"), QObject::tr("Spontaneous Cycle Percentage"),
+        QObject::tr("Spont Cyc%"), "%", DOUBLE, Qt::blue));
+
+    channel.add(GRP_CPAP, new Channel(RMVENT_SpontTrig = 0xe21a, WAVEFORM, MT_CPAP, SESSION,
+        "RMVENT_SpontTrig", QObject::tr("Spont. Trig%"), QObject::tr("Spontaneous Trigger Percentage"),
+        QObject::tr("Spont Trig%"), "%", DOUBLE, Qt::darkGreen));
 
     // Setup ResMeds signal name translation map
     setupResMedTranslationMap();
@@ -4003,12 +4020,15 @@ bool ResmedLoader::LoadPLD(Session *sess, const QString & path)
             ToTimeDelta(sess,edf,es, code,samples,duration,0,0, square);
         } else if (es.label == "Va") {  // Signal used in 36039... What to do with it???
             a = nullptr;                // We'll skip it for now
-        } else if (es.label == "AlvMinVent.2s") {  // Signal used in 28509... What to do with it???
-            a = nullptr;                // We'll skip it for now
-        } else if (es.label == "CLRatio.2s") {  // Signal used in 28509... What to do with it???
-            a = nullptr;                // We'll skip it for now
-        } else if (es.label == "TRRatio.2s") {  // Signal used in 28509... What to do with it???
-            a = nullptr;                // We'll skip it for now
+        } else if (matchSignal(RMVENT_AlvMinVent, es.label)) {  // AlvMinVent.2s
+            code = RMVENT_AlvMinVent;
+            ToTimeDelta(sess, edf, es, code, samples, duration, 0, 0, square);
+        } else if (matchSignal(RMVENT_SpontCyc, es.label)) {    // CLRatio.2s = spontaneous cycle %
+            code = RMVENT_SpontCyc;
+            ToTimeDelta(sess, edf, es, code, samples, duration, 0, 0, square);
+        } else if (matchSignal(RMVENT_SpontTrig, es.label)) {   // TRRatio.2s = spontaneous trigger %
+            code = RMVENT_SpontTrig;
+            ToTimeDelta(sess, edf, es, code, samples, duration, 0, 0, square);
         } else if (es.label == "") { // What the hell resmed??
         // these empty lables should be changed in resmed_EDFInfo to something unique
             if (emptycnt == 0) {
@@ -4344,6 +4364,11 @@ void setupResMedTranslationMap()
     resmed_codes[CPAP_PressureMin] = QStringList { "Min Pressure", "Min. Druck", "Min druk", "\xE6\x9C\x80\xE5\xB0\x8F\xE5\x8E\x8B\xE5\x8A\x9B", "Pression min.", "Min tryck", "S.AS.MinPress", "S.A.MinPress", "Min Basınç" };
 
     //resmed_codes[RMS9_EPR].push_back("S.EPR.EPRType");
+
+    // ResMed bilevel/iVAPS ventilation waveforms (PLD signal names)
+    resmed_codes[RMVENT_AlvMinVent] = QStringList { "AlvMinVent.2s" };
+    resmed_codes[RMVENT_SpontCyc]   = QStringList { "CLRatio.2s" };
+    resmed_codes[RMVENT_SpontTrig]  = QStringList { "TRRatio.2s" };
 }
 
 
