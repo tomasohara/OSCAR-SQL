@@ -53,6 +53,9 @@ ChannelID RMAS1x_EasyBreathe, RMAS1x_RiseEnable, RMAS1x_RiseTime, RMAS1x_Cycle, 
 // also appear on other ResMed bilevel devices (e.g. model 28509); device-neutral RMVENT_ prefix.
 ChannelID RMVENT_AlvMinVent, RMVENT_SpontCyc, RMVENT_SpontTrig;
 
+// ResMed iVAPS target settings (valid in iVAPS/AVAPS mode only; also on other ResMed iVAPS devices)
+ChannelID RMVENT_iHeight, RMVENT_iAlvMinVent, RMVENT_iRespRate, RMVENT_AutoEPAP, RMVENT_RampDown, RMVENT_StartEPAP;
+
 const QString STR_ResMed_AirSense10 = "AirSense 10";
 const QString STR_ResMed_AirSense11 = "AirSense 11";
 const QString STR_ResMed_AirCurve10 = "AirCurve 10";
@@ -289,11 +292,11 @@ void ResmedLoader::initChannels()
     chan->addOption(4, "Very High");
 
     channel.add(GRP_CPAP, chan = new Channel(RMAS1x_TiMax = 0xe216, SETTING, MT_CPAP, SESSION,
-        "RMAS1x_TiMax", QObject::tr("TiMax"), QObject::tr("TiMax"), QObject::tr("TiMax"), STR_UNIT_Seconds, DOUBLE, Qt::black));
+        "RMAS1x_TiMax", QObject::tr("Ti Max"), QObject::tr("Ti Max"), QObject::tr("Ti Max"), STR_UNIT_Seconds, DOUBLE, Qt::black));
     chan->addOption(0, "0");
 
     channel.add(GRP_CPAP, chan = new Channel(RMAS1x_TiMin = 0xe217, SETTING, MT_CPAP, SESSION,
-        "RMAS1x_TiMin", QObject::tr("TiMin"), QObject::tr("TiMin"), QObject::tr("TiMin"), STR_UNIT_Seconds, DOUBLE, Qt::black));
+        "RMAS1x_TiMin", QObject::tr("Ti Min"), QObject::tr("Ti Min"), QObject::tr("Ti Min"), STR_UNIT_Seconds, DOUBLE, Qt::black));
     chan->addOption(0, "0");
 
     // ResMed bilevel/iVAPS ventilation waveforms (decoded from the PLD file)
@@ -308,6 +311,35 @@ void ResmedLoader::initChannels()
     channel.add(GRP_CPAP, new Channel(RMVENT_SpontTrig = 0xe21a, WAVEFORM, MT_CPAP, SESSION,
         "RMVENT_SpontTrig", QObject::tr("Spont. Trig%"), QObject::tr("Spontaneous Trigger Percentage"),
         QObject::tr("Spont Trig%"), "%", DOUBLE, Qt::darkGreen));
+
+    // ResMed iVAPS target settings (shown in Device Settings; valid in iVAPS/AVAPS mode)
+    channel.add(GRP_CPAP, new Channel(RMVENT_iHeight = 0xe22c, SETTING, MT_CPAP, SESSION,
+        "RMVENT_iHeight", QObject::tr("iVAPS Height"), QObject::tr("Patient Height (iVAPS)"),
+        QObject::tr("Height"), "cm", DOUBLE, Qt::black));
+
+    channel.add(GRP_CPAP, new Channel(RMVENT_iAlvMinVent = 0xe22d, SETTING, MT_CPAP, SESSION,
+        "RMVENT_iAlvMinVent", QObject::tr("iVAPS Target Va"), QObject::tr("Target Alveolar Ventilation (iVAPS)"),
+        QObject::tr("Target Va"), "L/min", DOUBLE, Qt::cyan));
+
+    channel.add(GRP_CPAP, new Channel(RMVENT_iRespRate = 0xe22e, SETTING, MT_CPAP, SESSION,
+        "RMVENT_iRespRate", QObject::tr("iVAPS Target RR"), QObject::tr("Target Patient Rate (iVAPS)"),
+        QObject::tr("Target RR"), "breaths/min", DOUBLE, Qt::green));
+
+    channel.add(GRP_CPAP, chan = new Channel(RMVENT_AutoEPAP = 0xe22f, SETTING, MT_CPAP, SESSION,
+        "RMVENT_AutoEPAP", QObject::tr("Auto EPAP"), QObject::tr("Auto EPAP Enable (iVAPS)"),
+        QObject::tr("AutoEPAP"), "", LOOKUP, Qt::black));
+    chan->addOption(0, QObject::tr("Off"));
+    chan->addOption(1, QObject::tr("On"));
+
+    channel.add(GRP_CPAP, chan = new Channel(RMVENT_RampDown = 0xe230, SETTING, MT_CPAP, SESSION,
+        "RMVENT_RampDown", QObject::tr("Ramp Down"), QObject::tr("Ramp Down Enable"),
+        QObject::tr("Ramp Down"), "", LOOKUP, Qt::black));
+    chan->addOption(0, QObject::tr("Off"));
+    chan->addOption(1, QObject::tr("On"));
+
+    channel.add(GRP_CPAP, new Channel(RMVENT_StartEPAP = 0xe231, SETTING, MT_CPAP, SESSION,
+        "RMVENT_StartEPAP", QObject::tr("Start EPAP"), QObject::tr("Start EPAP (iVAPS)"),
+        QObject::tr("Start EPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::black));
 
     // Setup ResMeds signal name translation map
     setupResMedTranslationMap();
@@ -2016,6 +2048,16 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
                 if ((sig = str.lookupLabel("S.i.MaxPS"))) {
                     R.max_ps = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
                 }
+                // iVAPS target settings (Target Va, Target Patient Rate, Height)
+                if ((sig = str.lookupLabel("S.i.Height"))) {
+                    R.s_iHeight = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+                }
+                if ((sig = str.lookupLabel("S.i.AlvMinVent"))) {
+                    R.s_iAlvMinVent = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+                }
+                if ((sig = str.lookupLabel("S.i.RespRate"))) {
+                    R.s_iRespRate = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+                }
                 if ( (R.epap >= 0) && (R.epapAuto == 0) ) {
                     R.max_ipap = R.epap + R.max_ps;
                     R.min_ipap = R.epap + R.min_ps;
@@ -2204,6 +2246,9 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
                 if ( AS_eleven ) R.s_RampEnable--;
                 if ( R.s_RampEnable == 2 ) R.s_RampTime = -1;
             }
+            if ((sig = str.lookupLabel("S.RampDownEnable"))) {
+                R.s_RampDownEnable = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+            }
             if ((sig = str.lookupLabel("S.EPR.ClinEnable"))) {
                 R.s_EPR_ClinEnable = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
                 if ( AS_eleven ) R.s_EPR_ClinEnable--;
@@ -2316,6 +2361,32 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
                 QString sigprefix("S.") ;
                 if ( AS_eleven ) sigprefix.append("VA.");
                 QString signame =QString("%1%2").arg(sigprefix).arg("Cycle");
+                if ((sig = str.lookupLabel(signame))) {
+                    R.s_Cycle = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+                    if ( AS_eleven ) --R.s_Cycle;
+                }
+                signame =QString("%1%2").arg(sigprefix).arg("Trigger");
+                if ((sig = str.lookupLabel(signame))) {
+                    R.s_Trigger = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+                    if ( AS_eleven ) --R.s_Trigger;
+                }
+                signame =QString("%1%2").arg(sigprefix).arg("TiMax");
+                if ((sig = str.lookupLabel(signame))) {
+                    R.s_TiMax = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+                }
+                signame =QString("%1%2").arg(sigprefix).arg("TiMin");
+                if ((sig = str.lookupLabel(signame))) {
+                    R.s_TiMin = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+                }
+            }
+            if (R.rms9_mode == 9) {     // iVAPS mode — shared "S." comfort/timing settings
+                QString sigprefix("S.") ;
+                if ( AS_eleven ) sigprefix.append("S.");
+                QString signame =QString("%1%2").arg(sigprefix).arg("RiseTime");
+                if ((sig = str.lookupLabel(signame))) {
+                    R.s_RiseTime = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+                }
+                signame =QString("%1%2").arg(sigprefix).arg("Cycle");
                 if ((sig = str.lookupLabel(signame))) {
                     R.s_Cycle = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
                     if ( AS_eleven ) --R.s_Cycle;
@@ -2881,6 +2952,17 @@ void StoreSettings(Session * sess, STRRecord & R)
             if (R.min_ipap >= 0) sess->settings[CPAP_IPAPLo] = R.min_ipap;
             if (R.min_ps >= 0) sess->settings[CPAP_PSMin] = R.min_ps;
             if (R.max_ps >= 0) sess->settings[CPAP_PSMax] = R.max_ps;
+        } else if (R.mode == MODE_AVAPS) {
+            // iVAPS: IPAP is derived (EPAP + pressure support), not a user setting — do not store it
+            if (R.set_pressure > 0) sess->settings[CPAP_Pressure] = R.set_pressure;
+            if (R.min_pressure > 0) sess->settings[CPAP_PressureMin] = R.min_pressure;
+            if (R.max_pressure > 0) sess->settings[CPAP_PressureMax] = R.max_pressure;
+            if (R.max_epap > 0) sess->settings[CPAP_EPAPHi] = R.max_epap;
+            if (R.min_epap > 0) sess->settings[CPAP_EPAPLo] = R.min_epap;
+            if (R.min_ps > 0) sess->settings[CPAP_PSMin] = R.min_ps;
+            if (R.max_ps > 0) sess->settings[CPAP_PSMax] = R.max_ps;
+            if (R.ps > 0) sess->settings[CPAP_PS] = R.ps;
+            if (R.epap > 0) sess->settings[CPAP_EPAP] = R.epap;
         } else {
             qDebug() << "Setting session pressures for R.mode" << R.mode;
             if (R.set_pressure > 0) sess->settings[CPAP_Pressure] = R.set_pressure;
@@ -2896,6 +2978,20 @@ void StoreSettings(Session * sess, STRRecord & R)
             if (R.epap > 0) sess->settings[CPAP_EPAP] = R.epap;
             if (R.ipap > 0) sess->settings[CPAP_IPAP] = R.ipap;
         }
+    }
+
+    // iVAPS target settings (only meaningful in iVAPS/AVAPS mode)
+    if (R.mode == MODE_AVAPS) {
+        if (R.s_iHeight >= 0)     sess->settings[RMVENT_iHeight]     = R.s_iHeight;
+        if (R.s_iAlvMinVent >= 0) sess->settings[RMVENT_iAlvMinVent] = R.s_iAlvMinVent;
+        if (R.s_iRespRate >= 0)   sess->settings[RMVENT_iRespRate]   = R.s_iRespRate;
+        if (R.s_TiMax >= 0)       sess->settings[RMAS1x_TiMax]       = R.s_TiMax;
+        if (R.s_TiMin >= 0)       sess->settings[RMAS1x_TiMin]       = R.s_TiMin;
+        if (R.s_RiseTime >= 0)    sess->settings[RMAS1x_RiseTime]    = R.s_RiseTime;
+        if (R.s_Cycle >= 0)       sess->settings[RMAS1x_Cycle]       = R.s_Cycle;
+        if (R.s_Trigger >= 0)     sess->settings[RMAS1x_Trigger]     = R.s_Trigger;
+        if (R.epapAuto >= 0)      sess->settings[RMVENT_AutoEPAP]    = (R.epapAuto != 0) ? 1 : 0;
+        if (R.s_RampPressure >= 0) sess->settings[RMVENT_StartEPAP]  = R.s_RampPressure;
     }
 
     if (R.epr >= 0) {
@@ -2918,6 +3014,10 @@ void StoreSettings(Session * sess, STRRecord & R)
                 sess->settings[CPAP_RampPressure] = R.s_RampPressure;
             }
         }
+    }
+
+    if (R.s_RampDownEnable >= 0) {
+        sess->settings[RMVENT_RampDown] = R.s_RampDownEnable;
     }
 
     if (R.s_SmartStart >= 0) {
