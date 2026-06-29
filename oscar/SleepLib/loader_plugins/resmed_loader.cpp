@@ -55,6 +55,8 @@ ChannelID RMVENT_AlvMinVent, RMVENT_SpontCyc, RMVENT_SpontTrig;
 
 // ResMed iVAPS target settings (valid in iVAPS/AVAPS mode only; also on other ResMed iVAPS devices)
 ChannelID RMVENT_iHeight, RMVENT_iAlvMinVent, RMVENT_iRespRate, RMVENT_AutoEPAP, RMVENT_RampDown, RMVENT_StartEPAP;
+// ResMed bilevel rate settings (ST/T/PAC modes)
+ChannelID RMVENT_iBR, RMVENT_BackupRate, RMVENT_RespRate;
 
 const QString STR_ResMed_AirSense10 = "AirSense 10";
 const QString STR_ResMed_AirSense11 = "AirSense 11";
@@ -340,6 +342,21 @@ void ResmedLoader::initChannels()
     channel.add(GRP_CPAP, new Channel(RMVENT_StartEPAP = 0xe231, SETTING, MT_CPAP, SESSION,
         "RMVENT_StartEPAP", QObject::tr("Start EPAP"), QObject::tr("Start EPAP (iVAPS)"),
         QObject::tr("Start EPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::black));
+
+    // ResMed bilevel rate settings (ST/T/PAC modes)
+    channel.add(GRP_CPAP, chan = new Channel(RMVENT_iBR = 0xe232, SETTING, MT_CPAP, SESSION,
+        "RMVENT_iBR", QObject::tr("iBR"), QObject::tr("Intelligent Backup Rate"),
+        QObject::tr("iBR"), "", LOOKUP, Qt::black));
+    chan->addOption(0, QObject::tr("Off"));
+    chan->addOption(1, QObject::tr("On"));
+
+    channel.add(GRP_CPAP, new Channel(RMVENT_BackupRate = 0xe233, SETTING, MT_CPAP, SESSION,
+        "RMVENT_BackupRate", QObject::tr("Backup Rate"), QObject::tr("Backup Respiratory Rate"),
+        QObject::tr("Backup Rate"), "breaths/min", DOUBLE, Qt::darkGreen));
+
+    channel.add(GRP_CPAP, new Channel(RMVENT_RespRate = 0xe234, SETTING, MT_CPAP, SESSION,
+        "RMVENT_RespRate", QObject::tr("Resp. Rate"), QObject::tr("Set Respiratory Rate (T mode)"),
+        QObject::tr("Resp Rate"), "breaths/min", DOUBLE, Qt::green));
 
     // Setup ResMeds signal name translation map
     setupResMedTranslationMap();
@@ -2249,6 +2266,15 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
             if ((sig = str.lookupLabel("S.RampDownEnable"))) {
                 R.s_RampDownEnable = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
             }
+            if ((sig = str.lookupLabel("S.BL.IBR"))) {
+                R.s_iBR = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+            }
+            if ((sig = str.lookupLabel("S.BL.BackupRate"))) {
+                R.s_BackupRate = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+            }
+            if ((sig = str.lookupLabel("S.BL.RespRate"))) {
+                R.s_RespRate = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+            }
             if ((sig = str.lookupLabel("S.EPR.ClinEnable"))) {
                 R.s_EPR_ClinEnable = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
                 if ( AS_eleven ) R.s_EPR_ClinEnable--;
@@ -2993,6 +3019,15 @@ void StoreSettings(Session * sess, STRRecord & R)
         if (R.epapAuto >= 0)      sess->settings[RMVENT_AutoEPAP]    = (R.epapAuto != 0) ? 1 : 0;
         if (R.s_RampPressure >= 0) sess->settings[RMVENT_StartEPAP]  = R.s_RampPressure;
     }
+
+    // Bilevel rate settings, gated per device mode (ST=4, T=2, PAC=10). iBR not shown for
+    // iVAPS: S.BL.IBR reads Off there though the guide says it's always enabled in iVAPS.
+    if (R.s_iBR >= 0 && R.rms9_mode == 4)
+        sess->settings[RMVENT_iBR] = R.s_iBR;
+    if (R.s_BackupRate >= 0 && (R.rms9_mode == 4 || R.rms9_mode == 10))
+        sess->settings[RMVENT_BackupRate] = R.s_BackupRate;
+    if (R.s_RespRate >= 0 && R.rms9_mode == 2)
+        sess->settings[RMVENT_RespRate] = R.s_RespRate;
 
     if (R.epr >= 0) {
         sess->settings[RMS9_EPR] = (int)R.epr;
