@@ -340,8 +340,8 @@ void ResmedLoader::initChannels()
     chan->addOption(1, QObject::tr("On"));
 
     channel.add(GRP_CPAP, new Channel(RMVENT_StartEPAP = 0xe231, SETTING, MT_CPAP, SESSION,
-        "RMVENT_StartEPAP", QObject::tr("Start EPAP"), QObject::tr("Start EPAP (iVAPS)"),
-        QObject::tr("Start EPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::black));
+        "RMVENT_StartEPAP", QObject::tr("Ramp Start EPAP"), QObject::tr("Ramp Start EPAP (iVAPS)"),
+        QObject::tr("Ramp Start EPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::black));
 
     // ResMed bilevel rate settings (ST/T/PAC modes)
     channel.add(GRP_CPAP, chan = new Channel(RMVENT_iBR = 0xe232, SETTING, MT_CPAP, SESSION,
@@ -2979,16 +2979,19 @@ void StoreSettings(Session * sess, STRRecord & R)
             if (R.min_ps >= 0) sess->settings[CPAP_PSMin] = R.min_ps;
             if (R.max_ps >= 0) sess->settings[CPAP_PSMax] = R.max_ps;
         } else if (R.mode == MODE_AVAPS) {
-            // iVAPS: IPAP is derived (EPAP + pressure support), not a user setting — do not store it
-            if (R.set_pressure > 0) sess->settings[CPAP_Pressure] = R.set_pressure;
-            if (R.min_pressure > 0) sess->settings[CPAP_PressureMin] = R.min_pressure;
-            if (R.max_pressure > 0) sess->settings[CPAP_PressureMax] = R.max_pressure;
-            if (R.max_epap > 0) sess->settings[CPAP_EPAPHi] = R.max_epap;
-            if (R.min_epap > 0) sess->settings[CPAP_EPAPLo] = R.min_epap;
+            // iVAPS: IPAP is derived (EPAP + pressure support), not a user setting — do not store it.
+            // Pressure / PressureMin / PressureMax are CPAP/APAP concepts and do not apply here.
+            // With AutoEPAP on, EPAP varies between min/max; with it off, EPAP is fixed.
+            // Only show the settings relevant to the active EPAP mode.
+            if (R.epapAuto == 0) {
+                if (R.epap > 0) sess->settings[CPAP_EPAP] = R.epap;
+            } else {
+                if (R.max_epap > 0) sess->settings[CPAP_EPAPHi] = R.max_epap;
+                if (R.min_epap > 0) sess->settings[CPAP_EPAPLo] = R.min_epap;
+            }
             if (R.min_ps > 0) sess->settings[CPAP_PSMin] = R.min_ps;
             if (R.max_ps > 0) sess->settings[CPAP_PSMax] = R.max_ps;
             if (R.ps > 0) sess->settings[CPAP_PS] = R.ps;
-            if (R.epap > 0) sess->settings[CPAP_EPAP] = R.epap;
         } else {
             qDebug() << "Setting session pressures for R.mode" << R.mode;
             if (R.set_pressure > 0) sess->settings[CPAP_Pressure] = R.set_pressure;
