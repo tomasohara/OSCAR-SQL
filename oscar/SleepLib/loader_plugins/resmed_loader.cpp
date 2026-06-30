@@ -4237,6 +4237,15 @@ void ResmedLoader::ToTimeDelta(Session *sess, ResMedEDFInfo &edf, EDFSignal &es,
 
     int startpos = 0;
 
+    // Pressure is never legitimately 0 during a recording. ResMed PLD pressure signals
+    // (Press.2s, EprPress.2s) use a digital_minimum of 0, so the EDF end-of-data sentinel
+    // sample decodes to 0 (rather than the -1 sentinel used by other signals). That stray 0
+    // otherwise lands as a real sample: a vertical drop to zero at the session boundary on
+    // the graph, and a session minimum of 0 (which collapses long-range Min statistics).
+    // Treat a 0 on these channels as a null value, exactly like the -1 handling below.
+    bool isPressure = (code == CPAP_Pressure) || (code == CPAP_IPAP) ||
+                      (code == CPAP_EPAP) || (code == CPAP_MaskPressure);
+
 //  There's no reason to skip the first 40 seconds of slow data
 //  Reduce that to 10 seconds, to allow presssures to stabilise
     if ((code == CPAP_Pressure) || (code == CPAP_IPAP) || (code == CPAP_EPAP)) {
@@ -4268,7 +4277,7 @@ void ResmedLoader::ToTimeDelta(Session *sess, ResMedEDFInfo &edf, EDFSignal &es,
             last = *sptr++;
             sampleCounter++;
             tmp = EventDataType(last) * es.gain;
-            if ((tmp >= t_min) && (tmp <= t_max)) {
+            if ((tmp >= t_min) && (tmp <= t_max) && !(isPressure && last == 0)) {
                 min = tmp;
                 max = tmp;
                 el = sess->AddEventList(code, EVL_Event, es.gain, es.offset, 0, 0);
@@ -4304,8 +4313,9 @@ void ResmedLoader::ToTimeDelta(Session *sess, ResMedEDFInfo &edf, EDFSignal &es,
         for (; sptr < eptr; sptr++) {
             sampleCounter++;
             c = *sptr;
-            if (c == -1  && t_min>=0 ) {
-                // -1 is Null value
+            if ((c == -1 || (isPressure && c == 0)) && t_min>=0 ) {
+                // -1 is the Null value sentinel for most signals; pressure signals use 0
+                // (digital_minimum 0). Either way it is end-of-data padding, not a reading.
                 //DEBUGCI NAME(code) Q(last) Q(c) QQ(cnt,sampleCounter) QQ(max,samples) O((sampleCounter == samples)) DATETIME((qint64)tt);
                 Q_UNUSED(sampleCounter);
                 c=last; //reset the current sample to the last one to skip over using it.

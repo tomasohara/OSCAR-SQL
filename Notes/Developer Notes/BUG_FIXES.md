@@ -4,6 +4,36 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-06-28 — ResMed: session-boundary zero in pressure waveform (#229)
+
+**File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp` — `ResmedLoader::ToTimeDelta()`
+
+**Symptom:** Daily graph showed a vertical line dropping to zero at a session boundary for
+Pressure/EPAP. On the Statistics page, Min Pressure and Min EPAP read correctly for short
+ranges but became 0 over longer ranges (6 months / 1 year).
+
+**Root cause:** ResMed EDF data ends each signal with a digital-minimum *sentinel* sample
+(end-of-data padding). For most signals the digital minimum is -1, which `ToTimeDelta`
+already neutralizes (`if (c == -1 && t_min>=0) c=last;`). But the PLD pressure signals
+`Press.2s` (CPAP_Pressure) and `EprPress.2s` (CPAP_EPAP) declare a digital minimum of 0, so
+their sentinel decodes to 0. That 0 is non-physiological but passes the range filter
+(0 >= physical_minimum 0), so it was stored as a real sample: a boundary drop-to-zero on the
+graph and a session `min_value` of 0. `Profile::calcMin` then propagated the 0 to the
+range minimum (worse over longer ranges, which include more boundary-zero sessions).
+
+Verified against real data: many CPAParazzo Lumis PLD files have exactly one trailing 0 on
+`Press.2s`/`EprPress.2s`; all other signals' trailing sentinel is raw -1 (already handled).
+
+**Fix:** Added `isPressure` (CPAP_Pressure/IPAP/EPAP/MaskPressure) and extended the existing
+null-sentinel handling to treat a raw 0 on these channels as null — both in the priming loop
+(leading 0) and the main loop (trailing/any 0), mirroring the -1 idiom. Pressure is never
+legitimately 0 during a recording, so this is safe.
+
+**Note:** existing imported sessions already have the 0 baked into stored event data; the
+affected ResMed data must be re-imported to clear historical boundary zeros.
+
+---
+
 ## 2026-06-25 — BMC legacy loader: session after circular-buffer boundary fails to import
 
 **File:** `oscar/SleepLib/loader_plugins/bmcDataParsing.cpp` — `FindValidSessions()`
