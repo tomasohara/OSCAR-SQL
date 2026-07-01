@@ -292,6 +292,28 @@ zooms. Flag drawing continues to use the `blockZoom`-aware full-day bounds.
 
 ---
 
+## 2026-07-01 — V1 CSV export: date range ignored, only latest date exported
+
+**Files:** `exports/exportcsv.h`, `exports/exportcsv.cpp`
+
+**Symptom:** Regardless of the selected date range, the exported CSV contained only the
+most recent date.
+
+**Root cause:** The slot `on_quickRangeCombo_activated(const QString &)` relied on Qt's
+auto-connection via `connectSlotsByName`. In Qt 6, `QComboBox::activated(const QString&)`
+was removed (replaced by `textActivated(const QString&)`); only `activated(int)` remains.
+Auto-connection silently failed, so changing the combo never updated the date range.
+The dates remained at the constructor default (both set to "Most Recent Day").
+
+**Fix:** Changed slot signature to `on_quickRangeCombo_activated(int index)`, matching the
+`activated(int)` signal that exists in Qt 6 (consistent with all other combo slots in 2.0).
+Text is retrieved via `ui->quickRangeCombo->itemText(index)`. Constructor call updated
+to `on_quickRangeCombo_activated(0)` (index 0 = "Most Recent Day").
+
+**GitLab:** Closes #214 (original issue updated)
+
+---
+
 ## 2026-06-11 — Add Version 1 CSV export (1.7.x-style) to File > Export Data menu
 
 **Files:** `exports/exportcsv.h`, `exports/exportcsv.cpp`, `exports/exportcsv.ui`,
