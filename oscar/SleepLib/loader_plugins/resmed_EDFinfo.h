@@ -163,6 +163,7 @@ public:
         s_iBR = -1;
         s_BackupRate = -1;
         s_RespRate = -1;
+        s_TgtRR = -1;
 
         date=QDate();
     }
@@ -265,6 +266,7 @@ public:
     EventDataType s_iBR;
     EventDataType s_BackupRate;
     EventDataType s_RespRate;
+    EventDataType s_TgtRR;      // bilevel target respiratory rate (S.BL.TgtRR, ST/iBR)
 
 };
 

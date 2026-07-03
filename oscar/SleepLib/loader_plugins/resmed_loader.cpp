@@ -270,12 +270,12 @@ void ResmedLoader::initChannels()
     chan->addOption(1, STR_TR_On);
 
     channel.add(GRP_CPAP, chan = new Channel(RMAS1x_RiseEnable = 0xe212, SETTING, MT_CPAP, SESSION,
-        "RMAS1x_RiseEnable", QObject::tr("RiseEnable"), QObject::tr("RiseEnable"), QObject::tr("RiseEnable"), "", LOOKUP, Qt::black));
+        "RMAS1x_RiseEnable", QObject::tr("Rise Time Enable"), QObject::tr("Rise Time Enable"), QObject::tr("Rise Time Enable"), "", LOOKUP, Qt::black));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, "Enabled");
 
     channel.add(GRP_CPAP, chan = new Channel(RMAS1x_RiseTime = 0xe213, SETTING, MT_CPAP, SESSION,
-        "RMAS1x_RiseTime", QObject::tr("RiseTime"), QObject::tr("RiseTime"), QObject::tr("RiseTime"), STR_UNIT_milliSeconds, INTEGER, Qt::black));
+        "RMAS1x_RiseTime", QObject::tr("Rise Time"), QObject::tr("Rise Time"), QObject::tr("Rise Time"), STR_UNIT_milliSeconds, INTEGER, Qt::black));
 
     channel.add(GRP_CPAP, chan = new Channel(RMAS1x_Cycle = 0xe214, SETTING, MT_CPAP, SESSION,
         "RMAS1x_Cycle", QObject::tr("Cycle"), QObject::tr("Cycle"), QObject::tr("Cycle"), "", LOOKUP, Qt::black));
@@ -323,9 +323,11 @@ void ResmedLoader::initChannels()
         "RMVENT_iAlvMinVent", QObject::tr("iVAPS Target Va"), QObject::tr("Target Alveolar Ventilation (iVAPS)"),
         QObject::tr("Target Va"), "L/min", DOUBLE, Qt::cyan));
 
+    // Target respiratory rate. Shared across iVAPS (S.i.RespRate, target patient rate)
+    // and bilevel ST (S.BL.TgtRR, iBR target rate) — only one mode applies per session.
     channel.add(GRP_CPAP, new Channel(RMVENT_iRespRate = 0xe22e, SETTING, MT_CPAP, SESSION,
-        "RMVENT_iRespRate", QObject::tr("iVAPS Target RR"), QObject::tr("Target Patient Rate (iVAPS)"),
-        QObject::tr("Target RR"), "breaths/min", DOUBLE, Qt::green));
+        "RMVENT_iRespRate", QObject::tr("Target Rate"), QObject::tr("Target Respiratory Rate"),
+        QObject::tr("Target Rate"), "breaths/min", DOUBLE, Qt::green));
 
     channel.add(GRP_CPAP, chan = new Channel(RMVENT_AutoEPAP = 0xe22f, SETTING, MT_CPAP, SESSION,
         "RMVENT_AutoEPAP", QObject::tr("Auto EPAP"), QObject::tr("Auto EPAP Enable (iVAPS)"),
@@ -2269,6 +2271,9 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
             if ((sig = str.lookupLabel("S.BL.IBR"))) {
                 R.s_iBR = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
             }
+            if ((sig = str.lookupLabel("S.BL.TgtRR"))) {
+                R.s_TgtRR = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+            }
             if ((sig = str.lookupLabel("S.BL.BackupRate"))) {
                 R.s_BackupRate = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
             }
@@ -2408,7 +2413,12 @@ bool ResmedLoader::ProcessSTRfiles(Machine *mach, QMap<QDate, STRFile> & STRmap,
             if (R.rms9_mode == 9) {     // iVAPS mode — shared "S." comfort/timing settings
                 QString sigprefix("S.") ;
                 if ( AS_eleven ) sigprefix.append("S.");
-                QString signame =QString("%1%2").arg(sigprefix).arg("RiseTime");
+                QString signame =QString("%1%2").arg(sigprefix).arg("RiseEnable");
+                if ((sig = str.lookupLabel(signame))) {
+                    R.s_RiseEnable = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
+                    if ( AS_eleven ) --R.s_RiseEnable;
+                }
+                signame =QString("%1%2").arg(sigprefix).arg("RiseTime");
                 if ((sig = str.lookupLabel(signame))) {
                     R.s_RiseTime = EventDataType(sig->dataArray[rec]) * sig->gain + sig->offset;
                 }
@@ -3016,6 +3026,7 @@ void StoreSettings(Session * sess, STRRecord & R)
         if (R.s_iRespRate >= 0)   sess->settings[RMVENT_iRespRate]   = R.s_iRespRate;
         if (R.s_TiMax >= 0)       sess->settings[RMAS1x_TiMax]       = R.s_TiMax;
         if (R.s_TiMin >= 0)       sess->settings[RMAS1x_TiMin]       = R.s_TiMin;
+        if (R.s_RiseEnable >= 0)  sess->settings[RMAS1x_RiseEnable]  = R.s_RiseEnable;
         if (R.s_RiseTime >= 0)    sess->settings[RMAS1x_RiseTime]    = R.s_RiseTime;
         if (R.s_Cycle >= 0)       sess->settings[RMAS1x_Cycle]       = R.s_Cycle;
         if (R.s_Trigger >= 0)     sess->settings[RMAS1x_Trigger]     = R.s_Trigger;
@@ -3025,8 +3036,18 @@ void StoreSettings(Session * sess, STRRecord & R)
 
     // Bilevel rate settings, gated per device mode (ST=4, T=2, PAC=10). iBR not shown for
     // iVAPS: S.BL.IBR reads Off there though the guide says it's always enabled in iVAPS.
+    //
+    // NOTE: S.BL.IBR, S.BL.TgtRR and S.RampDownEnable are recorded only by the ST-A /
+    // iVAPS-class devices (e.g. AirCurve 10 ST-A, Lumis 150; MID 40). The plain bilevel
+    // AirCurve 10 ST (MID 36) has no iVAPS bank and does not write these signals, so iBR,
+    // Target Rate and Ramp Down legitimately never appear for it — the reads above simply
+    // leave the fields at -1. Do not assume these signals exist on every ResMed bilevel card.
     if (R.s_iBR >= 0 && R.rms9_mode == 4)
         sess->settings[RMVENT_iBR] = R.s_iBR;
+    // Bilevel target respiratory rate (paired with iBR); shares the "Target Rate"
+    // channel with the iVAPS target patient rate (only one mode applies per session).
+    if (R.s_TgtRR >= 0 && R.rms9_mode == 4)
+        sess->settings[RMVENT_iRespRate] = R.s_TgtRR;
     if (R.s_BackupRate >= 0 && (R.rms9_mode == 4 || R.rms9_mode == 10))
         sess->settings[RMVENT_BackupRate] = R.s_BackupRate;
     if (R.s_RespRate >= 0 && R.rms9_mode == 2)
@@ -3049,7 +3070,21 @@ void StoreSettings(Session * sess, STRRecord & R)
                 sess->settings[CPAP_RampTime] = R.s_RampTime;
             }
             if (R.s_RampPressure >= 0) {
-                sess->settings[CPAP_RampPressure] = R.s_RampPressure;
+                // In bilevel, ASV and iVAPS therapy the ramp start pressure is applied to
+                // the EPAP baseline, so surface it as "Ramp Start EPAP". CPAP and APAP
+                // keep the generic "Ramp Pressure" field. (iVAPS also sets this above,
+                // unconditionally, so it still appears when ramp is disabled.)
+                bool bilevel = (R.mode == MODE_BILEVEL_FIXED)
+                            || (R.mode == MODE_BILEVEL_AUTO_FIXED_PS)
+                            || (R.mode == MODE_BILEVEL_AUTO_VARIABLE_PS)
+                            || (R.mode == MODE_ASV)
+                            || (R.mode == MODE_ASV_VARIABLE_EPAP)
+                            || (R.mode == MODE_AVAPS);
+                if (bilevel) {
+                    sess->settings[RMVENT_StartEPAP] = R.s_RampPressure;
+                } else {
+                    sess->settings[CPAP_RampPressure] = R.s_RampPressure;
+                }
             }
         }
     }

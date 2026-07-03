@@ -4,6 +4,29 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-02 — ResMed: bilevel ramp start shown as CPAP "Ramp Pressure"
+
+**File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp` — `ResmedLoader::StoreSettings()`
+
+**Symptom:** In bilevel modes (S/ST/T, e.g. AirCurve 10 ST and Lumis in ST mode) the ramp
+start pressure was displayed in the Device Settings report under the CPAP-oriented label
+"Ramp Pressure" (`CPAP_RampPressure`), rather than "Ramp Start EPAP" (`RMVENT_StartEPAP`).
+
+**Root cause:** `R.s_RampPressure` is a single shared record field populated per mode from the
+appropriate `S.xx.StartPress` STR signal (bilevel reads `S.BL.StartPress`). Only iVAPS
+(`MODE_AVAPS`) routed it to `RMVENT_StartEPAP`; all other modes fell through the generic ramp
+block, which stored it unconditionally into `CPAP_RampPressure`. In bilevel therapy the ramp
+start pressure is applied to the EPAP baseline, so the CPAP label was wrong. The generic block
+was also mode-agnostic, so iVAPS (which also sets `RMVENT_StartEPAP` above) could write *both*
+channels when ramp was enabled — a latent double-store.
+
+**Fix:** Made the generic ramp-pressure store mode-aware: all EPAP-baseline modes
+(`MODE_BILEVEL_FIXED`, `MODE_BILEVEL_AUTO_FIXED_PS`, `MODE_BILEVEL_AUTO_VARIABLE_PS`,
+`MODE_ASV`, `MODE_ASV_VARIABLE_EPAP`, `MODE_AVAPS`) now write `RMVENT_StartEPAP`; CPAP/APAP
+keep `CPAP_RampPressure`. This also removes the iVAPS double-store.
+
+---
+
 ## 2026-06-28 — ResMed: session-boundary zero in pressure waveform (#229)
 
 **File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp` — `ResmedLoader::ToTimeDelta()`
