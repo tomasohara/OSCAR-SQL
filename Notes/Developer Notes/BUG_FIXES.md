@@ -4,6 +4,33 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-03 — First-run migration suggests Documents folder instead of OSCAR 1.x's actual data folder (#231)
+
+**Files:** `oscar/SleepLib/common.h`/`.cpp` (new `findLegacyOscarDataFolder()`),
+`oscar/main.cpp` — `migrateFromOSCAR()`, `oscar/importprofile.cpp` — `ImportProfile::getDefaultImportPath()`
+
+**Symptom:** When OSCAR is first run on a computer, it offers to migrate OSCAR 1.x data into
+the new database. The folder browser it opens always started at the Documents folder,
+forcing the user to manually locate their real OSCAR 1.x data folder, even though OSCAR 1.x
+already knows exactly where it is.
+
+**Root cause:** OSCAR 1.x records its active data folder on every launch under key
+`Settings/AppData` in the platform-native settings store (registry on Windows, plist on
+macOS, ini file on Linux), keyed by its own application name ("OSCAR"). OSCAR 2.0 uses the
+same organization name/domain but a distinct application name ("OSCAR 2.0") so the two
+versions' settings don't collide — but neither `migrateFromOSCAR()` (first-run flow) nor
+`ImportProfile::getDefaultImportPath()` (general Import Profile dialog) ever read 1.x's
+value; they only guessed a folder relative to the current OSCAR 2.0 location, or fell back
+to Documents/home.
+
+**Fix:** Added `findLegacyOscarDataFolder()`, which temporarily swaps
+`QCoreApplication::applicationName()` to OSCAR 1.x's name, reads `Settings/AppData` (falling
+back to the older `Settings/AppRoot` key) via `QSettings`, then restores the application
+name. Both call sites now use this as their preferred starting/default folder, falling back
+to their prior heuristics when 1.x has never been run on the machine.
+
+---
+
 ## 2026-07-02 — ResMed: bilevel ramp start shown as CPAP "Ramp Pressure"
 
 **File:** `oscar/SleepLib/loader_plugins/resmed_loader.cpp` — `ResmedLoader::StoreSettings()`
