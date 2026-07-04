@@ -4,6 +4,44 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-03 — machines.data_version never persisted after DataFormatError upgrade/reimport (#232)
+
+**Files:** `oscar/SleepLib/machine.cpp` — `Machine::setInfo()`
+
+**Symptom:** When a loader's data-format version constant is bumped, OSCAR correctly detects
+the mismatch on startup and prompts the user to upgrade (`Profile::DataFormatError()`). The
+user clicks Yes, data is purged and reimported — but the very next launch shows the exact
+same "OSCAR needs to upgrade its database" prompt again, indefinitely. Not loader-specific;
+reproduced with both the PRS1 and ResMed loaders.
+
+**Root cause:** Whichever code path updates an already-tracked `Machine` object's info after
+a version bump, it only ever updates the in-memory `MachineInfo` — nothing writes the new
+version back to the database. Two different idioms hit this, both funneling through
+`Machine::setInfo()`:
+- `Profile::CreateMachine()`'s reuse branches (matching an already-tracked machine by
+  loader+serial, or by machine id after a 1.x serial migration) call `setInfo()` on the
+  existing object (used by PRS1, Prisma, and most other loaders via
+  `ImportContext::CreateMachineFromInfo()`).
+- ResMed, BMC, and BMCG3X loaders instead call `Profile::lookupMachine()` then
+  `mach->setInfo(info)` directly, bypassing `Profile::CreateMachine()` entirely.
+
+In both cases the machine already has a database id, so `ImportContext::CreateMachineFromInfo()`
+and `Profile::storeMachinesToDatabase()` (called from `Profile::Save()`) skip saving it, and
+`Machine::SaveToDatabase()`'s existing-record update path doesn't refresh `dataVersion` either.
+The DB row keeps the pre-upgrade version forever, and the stale value is what gets reloaded on
+the next launch.
+
+An initial fix placed the persistence logic in `Profile::CreateMachine()` only; it did not
+help ResMed (or BMC/BMCG3X) since they never call that function for an already-known machine.
+
+**Fix:** Moved the persistence logic into `Machine::setInfo()` itself — the single function
+every one of these paths calls. It compares `info.version` before and after the merge; if it
+changed and the machine already has a database id (`m_database_id > 0`), it fetches the
+current `MachineData` row and writes the corrected `dataVersion` back via
+`MachineRepository::update()`. This covers every loader regardless of which idiom it uses.
+
+---
+
 ## 2026-07-03 — First-run migration suggests Documents folder instead of OSCAR 1.x's actual data folder (#231)
 
 **Files:** `oscar/SleepLib/common.h`/`.cpp` (new `findLegacyOscarDataFolder()`),
