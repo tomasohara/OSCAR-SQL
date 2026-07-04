@@ -4,6 +4,36 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-03 — SelectProfiles page not cleaned up when last profile is deleted (#233)
+
+**Files:** `oscar/profileselector.cpp` — `ProfileSelector::updateProfileList()`,
+`oscar/mainwindow.cpp` — `MainWindow::CloseProfile()`
+
+**Symptom:** Deleting the last remaining profile from the Select Profile page left stale UI
+state behind: the profile info group box on the right still showed the deleted profile's
+name/details, the main window title bar still showed the deleted profile's name, and the
+Open/Edit Profile buttons remained enabled.
+
+**Root cause:** `updateProfileList()` deletes and recreates the model, proxy, and selection
+model on every call. A brand-new `QItemSelectionModel` starts with no current index, so no
+`currentRowChanged` signal ever fires when the list is rebuilt (there is no prior selection
+within that new object to transition from). Since `ProfileSelector::on_selectionChanged()` is
+the only place that updates the info panel, group box title, disk space info, and Open/Edit
+button enablement, none of those widgets ever got reset — they simply kept whatever they were
+last set to before the rebuild. Separately, `MainWindow::CloseProfile()` never reset the window
+title, so deleting the active profile (which calls `CloseProfile()`) left the old title in
+place; every other `CloseProfile()` call site is immediately followed by `OpenProfile()` (which
+sets the title unconditionally) or an app restart, so this had gone unnoticed.
+
+**Fix:** `updateProfileList()` now explicitly resets the info panel and buttons to their
+no-selection defaults right after rebuilding the model, then — if a profile is still open —
+restores that profile's info via the existing `updateProfileHighlight()` helper (the same
+mechanism `OpenProfile()` uses), so profiles opened independently of the currently rebuilt list
+aren't blanked out. `CloseProfile()` now resets the window title to its no-profile state; it is
+immediately overwritten by `OpenProfile()` when a new profile is opened right after.
+
+---
+
 ## 2026-07-03 — machines.data_version never persisted after DataFormatError upgrade/reimport (#232)
 
 **Files:** `oscar/SleepLib/machine.cpp` — `Machine::setInfo()`
