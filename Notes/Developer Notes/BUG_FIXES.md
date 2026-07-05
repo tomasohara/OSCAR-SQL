@@ -4,6 +4,33 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-05 — macOS: jerky/slow graph scrolling after the first view (#235) — PENDING macOS VERIFICATION
+
+**Files:** `oscar/main.cpp` — graphics-engine setup (`GFX_OpenGL` branch, before `QApplication`)
+
+**Symptom:** On macOS (reported: 14.7.5, Intel/AMD Radeon, 2560×1440, 1× DPI) graph
+scrolling in OSCAR 2.0/2.0.1 is jerky and slow, worst on the Overview page with several
+months of data; OSCAR 1.7 is smooth on the same machine. Tell-tale: whichever graph view
+is opened *first* after launch scrolls smoothly, and every view opened afterwards is laggy
+(Daily first → smooth; then Overview → laggy; back to Daily → now also laggy).
+
+**Root cause:** OSCAR creates several `QOpenGLWidget` (`gGraphView`) instances — Daily's
+`GraphView` + snapshot, Overview's `GraphView`, undocked graphs. In the Qt5 codebase these
+shared one GL context via the `QGLWidget(format, parent, shared)` constructor. The Qt6 port
+dropped that argument: `gGraphView` passes only `parent` to `QOpenGLWidget`
+(`Graphs/gGraphView.cpp:474`), the `shared` pointer is stored but unused for GL, and
+`Qt::AA_ShareOpenGLContexts` is never set. Without a shared context, on macOS every view
+after the first falls onto a slow per-frame texture read-back/compose path → jerky
+scrolling. (High-DPI/Retina was ruled out — reporter is at 1× DPI.)
+
+**Fix (candidate):** Set `Qt::AA_ShareOpenGLContexts` before constructing `QApplication`
+(in the `GFX_OpenGL` branch of `main.cpp`) — the Qt6-native equivalent of the old shared
+context. **Not yet verified:** cannot be reproduced/tested without a Mac; requires an
+x86_64/universal macOS build tested by the reporter (Daily → scroll → Overview → scroll,
+and the reverse). Do not consider closed until confirmed on hardware.
+
+---
+
 ## 2026-07-05 — Crash on restart: double-free of machine loaders (#234)
 
 **Files:** `oscar/main.cpp` — application shutdown path (before `delete mainwin`)

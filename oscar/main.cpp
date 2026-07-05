@@ -603,6 +603,13 @@ int main(int argc, char *argv[]) {
     switch (gfxEngine) {
     case GFX_OpenGL:
         QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+        // Share a single OpenGL context across all QOpenGLWidget instances
+        // (Daily, Overview, snapshot and undocked graph views). Qt5's QGLWidget
+        // shared-context constructor argument was dropped in the Qt6 port, leaving
+        // each gGraphView with its own context; on macOS this forces every view
+        // after the first onto a slow per-frame read-back path, causing jerky
+        // scrolling. This is the Qt6-native equivalent of the old shared context.
+        QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
         break;
     case GFX_Software:
     default:
