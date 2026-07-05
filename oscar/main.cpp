@@ -1119,12 +1119,25 @@ int main(int argc, char *argv[]) {
 
     DeviceConnectionManager::getInstance().record(nullptr);
 
+    // Un-parent the machine loaders from the main window before deleting it.
+    // Loaders are parented to MainWindow in Startup() but are owned by the global
+    // m_loaders list and freed once by Profiles::Done() → DestroyLoaders() below.
+    // closeEvent() normally un-parents them, but RestartApplication() exits via
+    // QApplication::exit() and bypasses closeEvent(); without this, "delete mainwin"
+    // would delete the still-parented loaders as child objects and DestroyLoaders()
+    // would then delete them again — a double-free crashing on shutdown/restart.
+    // Doing it here, at the sole point where MainWindow is destroyed, covers every
+    // exit path.
+    for (auto & loader : GetLoaders()) {
+        loader->setParent(nullptr);
+    }
+
     // Delete the main window explicitly while Qt is still fully alive.
-    // closeEvent() has already run (closing the profile, saving window geometry,
-    // un-parenting loaders, and shutting down the logger) but the widget tree
-    // is still alive. Deleting it here — while globals like AppSetting and the
-    // graph fonts are still valid — ensures widget destructors don't access
-    // freed memory, which would corrupt state and crash QApplication's teardown.
+    // closeEvent() has already run for a normal quit (closing the profile, saving
+    // window geometry, and shutting down the logger) but the widget tree is still
+    // alive. Deleting it here — while globals like AppSetting and the graph fonts
+    // are still valid — ensures widget destructors don't access freed memory, which
+    // would corrupt state and crash QApplication's teardown.
     delete mainwin;
     mainwin = nullptr;
 

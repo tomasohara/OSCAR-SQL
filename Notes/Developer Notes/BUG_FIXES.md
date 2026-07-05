@@ -4,6 +4,33 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-05 — Crash on restart: double-free of machine loaders (#234)
+
+**Files:** `oscar/main.cpp` — application shutdown path (before `delete mainwin`)
+
+**Symptom:** Any in-app restart — switching the graphics engine, changing language,
+creating a profile (all via `RestartApplication()`) — crashed OSCAR on shutdown with
+`EXC_BAD_ACCESS` in `DestroyLoaders()`, reached from `Profiles::Done()` in `main()`.
+Reported on macOS 14.7.5 (Intel); the reporter saw the same crash in OSCAR 1.7. A
+manual quit-and-relaunch did not crash.
+
+**Root cause:** Machine loaders are parented to `MainWindow` in `Startup()`
+(`loader->setParent(this)`) but are owned by the global `m_loaders` list and freed
+once by `Profiles::Done() → DestroyLoaders()`. `closeEvent()` un-parents them to keep
+ownership single, but `RestartApplication()` exits via `QApplication::exit()` and
+never fires `closeEvent()`. On that path `delete mainwin` deletes the still-parented
+loaders as child QObjects, and `DestroyLoaders()` then deletes them again — a
+double-free (the crash is a virtual-destructor call through a freed vtable). The
+non-Mac restart branch calls `QApplication::exit()` too, so the bug is cross-platform.
+
+**Fix:** Un-parent all loaders (`GetLoaders()` → `setParent(nullptr)`) in `main()`
+immediately before `delete mainwin` — the single point where `MainWindow` is
+destroyed — so loaders are detached regardless of how the event loop exited and are
+freed exactly once by `DestroyLoaders()`. The redundant un-parent loop in
+`closeEvent()` is left in place (harmless).
+
+---
+
 ## 2026-07-03 — SelectProfiles page not cleaned up when last profile is deleted (#233)
 
 **Files:** `oscar/profileselector.cpp` — `ProfileSelector::updateProfileList()`,
