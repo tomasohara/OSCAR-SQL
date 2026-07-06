@@ -1140,7 +1140,7 @@ QStringList YuwellFormatD::GetModelSerials() {
                 sessionDir.setSorting(QDir::Name);
 
                 QStringList filters;
-                filters << "*s.BYS";
+                filters << "*s.bys" << "*s.BYS";
                 sessionDir.setNameFilters(filters);
 
                 QFileInfoList flist = sessionDir.entryInfoList();
