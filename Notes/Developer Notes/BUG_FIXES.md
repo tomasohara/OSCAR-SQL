@@ -4,6 +4,40 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-08 — 1.x→2.0 import still drops channel customizations: init ordering (#140, reopened)
+
+**Files:** `oscar/main.cpp` — startup sequence in `main()` (schema/loader registration vs. `migrateFromOSCAR()`)
+
+**Symptom:** Importing/migrating an OSCAR 1.x profile (seen with 1.6.0) does not carry over
+per-channel customizations (enabled state, colors, custom labels, thresholds,
+show-in-overview). The migrated profile silently falls back to schema defaults. Debug log
+shows, during import, a "Looking up channel X by name…" + "loadChannels has no idea about
+channel X" pair for **every** channel in the old `channels.dat` (128/128 in the reported log).
+
+**Root cause:** A second root cause that #140 (commit `c61e025c`, 2026-05-11) did not
+address. #140 correctly rewired the importer to *read* the source `channels.dat`
+(`profileimporter.cpp` → `migrateChannelsToDatabase(sourcePath)` →
+`loadChannelsFromDat()`), but `loadChannelsFromDat()` resolves each stored entry against the
+`schema::channel` registry (`profiles.cpp` ~2958/2962). In `main()`, `migrateFromOSCAR()`
+ran **before** `schema::init()` and the loader `Register()`/`initChannels()` calls, so the
+registry was empty during import and every lookup returned the empty channel and was
+skipped. `saveChannelsToDatabase()` then wrote the (empty) schema, so the
+`initializeChannelsFromSchema()` fallback was also bypassed. #140 only touched
+`profiles.cpp/.h` and `profileimporter.cpp`, never `main.cpp`, and the ordering was already
+inverted at that commit — so the read path #140 added has never actually resolved a channel
+during import. (Matches the CLAUDE.md debugging note: search for ALL root causes.)
+
+**Fix:** Moved the schema + loader registration block (`schema::init()` and all
+`*Loader::Register()` calls) in `main()` to run *before* the OSCAR 1.x migration block, so
+`schema::channel` is fully populated when the importer reads `channels.dat`. `schema::init()`
+(guarded by `schema_initialized`) and each loader `Register()` are idempotent, and `p_pref`/
+`AppSetting` are already initialized earlier, so the move is side-effect free.
+`schema::setOrders()`, device-connection logging, and `Profiles::Scan()` are unchanged.
+The original 1.x `channels.dat` is read (not copied/modified), so previously mis-migrated
+profiles can be re-imported to recover their customizations.
+
+---
+
 ## 2026-07-05 — macOS: jerky/slow graph scrolling after the first view (#235) — PENDING macOS VERIFICATION
 
 **Files:** `oscar/main.cpp` — graphics-engine setup (`GFX_OpenGL` branch, before `QApplication`)

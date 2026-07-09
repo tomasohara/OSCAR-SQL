@@ -991,6 +991,33 @@ int main(int argc, char *argv[]) {
     p_pref->Erase(STR_AppName);
     p_pref->Erase(STR_GEN_SkipLogin);
 
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    // Register Importer Modules for autoscanner
+    //
+    // This MUST run before the OSCAR 1.x migration below. The importer reads the legacy
+    // channels.dat and resolves each entry against schema::channel, which is populated only
+    // here by schema::init() and each loader's initChannels(). When registration ran after
+    // migration the schema was still empty during import, so every channel customization
+    // (colors, labels, thresholds, enabled/overview state) was silently skipped (#140).
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    schema::init();
+    PRS1Loader::Register();
+    ResmedLoader::Register();
+    IntellipapLoader::Register();
+    SleepStyleLoader::Register();
+    FPIconLoader::Register();
+    WeinmannLoader::Register();
+    CMS50Loader::Register();
+    CMS50F37Loader::Register();
+    MD300W1Loader::Register();
+    ViatomLoader::Register();
+    PrismaLoader::Register();
+    ResventLoader::Register();
+    BmcLoader::Register();
+    BmcG3xLoader::Register();
+    VREMLoader::Register();
+    YuwellLoader::Register();
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Migrate from OSCAR 1.x if needed
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1063,27 +1090,6 @@ int main(int argc, char *argv[]) {
     }
 
     AppSetting->setVersionString(getVersion());
-
-    ////////////////////////////////////////////////////////////////////////////////////////////
-    // Register Importer Modules for autoscanner
-    ////////////////////////////////////////////////////////////////////////////////////////////
-    schema::init();
-    PRS1Loader::Register();
-    ResmedLoader::Register();
-    IntellipapLoader::Register();
-    SleepStyleLoader::Register();
-    FPIconLoader::Register();
-    WeinmannLoader::Register();
-    CMS50Loader::Register();
-    CMS50F37Loader::Register();
-    MD300W1Loader::Register();
-    ViatomLoader::Register();
-    PrismaLoader::Register();
-    ResventLoader::Register();
-    BmcLoader::Register();
-    BmcG3xLoader::Register();
-    VREMLoader::Register();
-    YuwellLoader::Register();
 
     // Begin logging device connection activity.
     QString connectionsLogDir = GetLogDir() + "/connections";
