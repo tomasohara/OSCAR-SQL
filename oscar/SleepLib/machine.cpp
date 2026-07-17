@@ -34,10 +34,8 @@
 
 #include "machine.h"
 #include "profiles.h"
-#include <algorithm>
-#include "SleepLib/schema.h"
-//#include "SleepLib/session.h"
-#include "SleepLib/day.h"
+#include "schema.h"
+#include "session.h"
 #include "mainwindow.h"
 #include "../database/machine_repository.h"
 #include "../database/profile_repository.h"

@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QCoreApplication>
 
+#include "SleepLib/day.h"
 #include "SleepLib/loader_plugins/yuwell_loader.h"
 
 /*

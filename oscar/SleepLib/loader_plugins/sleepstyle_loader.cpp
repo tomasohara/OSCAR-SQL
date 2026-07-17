@@ -16,6 +16,7 @@
 #include <QCoreApplication>
 #include <cmath>
 
+#include "SleepLib/day.h"
 #include "sleepstyle_loader.h"
 #include "sleepstyle_EDFinfo.h"
 

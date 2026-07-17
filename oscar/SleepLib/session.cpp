@@ -25,7 +25,6 @@
 #include <QJsonObject>
 
 #include "session.h"
-#include "version.h"
 #include "speedcheck.h"
 #include "SleepLib/machine_common.h"
 #include "SleepLib/calcs.h"

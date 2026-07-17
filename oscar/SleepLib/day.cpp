@@ -18,6 +18,7 @@
 #include <QDebug>
 
 #include "day.h"
+#include "machine.h"
 #include "profiles.h"
 #include "SleepLib/performance_timer.h"
 

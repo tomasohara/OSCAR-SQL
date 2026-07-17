@@ -12,9 +12,7 @@
 #include <QSet>
 #include <cmath>
 #include <QMessageBox>
-#include <limits>
-#include <memory>
-#include <algorithm>
+#include "SleepLib/day.h"
 #include "SleepLib/loader_plugins/bmcDataParsing.h"
 #include "SleepLib/loader_plugins/bmc_loader.h"
 #include "../../database/session_repository.h"

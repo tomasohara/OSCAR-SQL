@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QMessageBox>
 
+#include "session.h"
 #include "SleepLib/importcontext.h"
 #include "database/machine_repository.h"
 #include <QSet>
