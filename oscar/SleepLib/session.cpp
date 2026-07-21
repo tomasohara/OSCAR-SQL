@@ -3757,7 +3757,7 @@ bool Session::LoadEventsFromDatabase()
         // Set metadata
         eventList->setFirst(listData.firstTime);
         eventList->setLast(listData.lastTime);
-        eventList->m_count = listData.count;
+        eventList->setCount(listData.count);
         eventList->setDimension(listData.dimension);
         
         if (listData.hasSecondField) {
@@ -4219,9 +4219,9 @@ bool Session::LoadEventsFromFile(const QString& filename)
             EventList *elist = AddEventList(code, elt, gain, offset, mn, mx, rate, second_field);
             elist->setDimension(dim);
 
-            elist->m_count = evcount;
-            elist->m_first = ts1;
-            elist->m_last = ts2;
+            elist->setCount(evcount);
+            elist->setFirst(ts1);
+            elist->setLast(ts2);
 
             if (second_field) {
                 EventDataType min, max;
@@ -4239,23 +4239,23 @@ bool Session::LoadEventsFromFile(const QString& filename)
 
         for (int j = 0; j < size2; j++) {
             EventList &evec = *eventlist[code][j];
-            evec.m_data.resize(evec.m_count);
-            EventStoreType *ptr = evec.m_data.data();
+            evec.getData().resize(evec.count());
+            EventStoreType *ptr = evec.getData().data();
 
-            in.readRawData((char *)ptr, evec.m_count << 1);
+            in.readRawData((char *)ptr, evec.count() << 1);
 
             if (evec.hasSecondField()) {
-                evec.m_data2.resize(evec.m_count);
-                ptr = evec.m_data2.data();
+                evec.getData2().resize(evec.count());
+                ptr = evec.getData2().data();
 
-                in.readRawData((char *)ptr, evec.m_count << 1);
+                in.readRawData((char *)ptr, evec.count() << 1);
             }
 
             if (evec.type() != EVL_Waveform) {
-                evec.m_time.resize(evec.m_count);
-                quint32 *tptr = evec.m_time.data();
+                evec.getTime().resize(evec.count());
+                quint32 *tptr = evec.getTime().data();
 
-                in.readRawData((char *)tptr, evec.m_count << 2);
+                in.readRawData((char *)tptr, evec.count() << 2);
             }
         }
     }
