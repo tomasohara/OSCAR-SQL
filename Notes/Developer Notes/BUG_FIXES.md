@@ -4,6 +4,77 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-21 — Daily sidebar: zero-AHI "0.0!" image overlays the Event Breakdown title
+
+**File:** `oscar/daily.cpp` — `Daily::getPieChart()`
+
+**Symptom:** On the Daily page left sidebar, a day with zero scored events shows the
+`0.0!` image instead of the pie chart. In 2.0 that image sits ~8px too high and overlaps
+the lower half of the "Event Breakdown" section title. Looks correct in 1.7.1.
+
+**Root cause:** Commit `ebb740e7` (2026-05-14, "tighten spacing in Event Breakdown pie
+chart section") added `style='margin-top:-8px'` to the section's `<table>` and
+`style='margin-top:8px'` to the `<hr/>` below it. That offset was calibrated for the
+`values > 0` branch, which emits an empty spacer row
+(`<tr><td align=center><b></b></td></tr>`) above the chart image; the spacer absorbs the
+pull-up. The zero-AHI branch (`qrc:/docs/0.0.gif`) had no spacer row, so the -8px applied
+to the shared table pulled the image straight up into the title.
+
+**Fix:** Hoisted the empty spacer row out of the `values > 0` branch so it is emitted for
+both branches, immediately after the `<table>` tag. The table and `<hr/>` styling is
+unchanged, so the pie-chart layout is untouched and the `0.0!` image now sits at the same
+vertical offset the pie chart occupies.
+
+**Note:** A first attempt instead made the two margins conditional (dropping the -8px /
++8px for the zero-AHI branch, reproducing 1.7.1's plain markup). That build rendered no
+`0.0!` image at all. The mechanism was not identified — the emission of the `<img>` tag is
+unconditional on the margin change — so the approach was abandoned in favour of the
+minimal-delta spacer-row fix above, which leaves the known-rendering markup intact. The
+"image missing entirely" symptom turned out to be a separate, pre-existing bug (below).
+
+---
+
+## 2026-07-21 — Daily sidebar: zero-AHI "0.0!" image never shown (2.0 regression vs 1.7)
+
+**File:** `oscar/daily.cpp` — `Daily::getPieChart()`, zero-AHI branch
+
+**Symptom:** On a day with zero scored events, OSCAR 1.7 shows the big `0.0!` image in the
+Event Breakdown section; OSCAR 2.0 shows the section title and nothing else. Confirmed by
+the reporter on 2026-03-29 with the same data in both versions.
+
+**Diagnosis (instrumented build, ResMed AirCurve 10 VAuto, profile "Blue Dragon 2025"):**
+all six sessions on the day were enabled, but `Day::channelHasData()` returned false for
+every AHI channel plus RERA/FlowLimit/SensAwake, so `gotsome` was false and the `<img>` tag
+was never emitted. Each session's `m_cnt` held only waveform/data channels — key sets were
+identical in size to `eventlist`, and the database had 100 `session_channels` rows for
+those sessions with **none** for any apnea/RERA/FlowLimit channel.
+
+**Root cause:** Zero-count event channels are not persisted.
+`Session::UpdateSummaries()` (`session.cpp:1350`) clears `m_availableChannels` and rebuilds
+it *only* from `eventlist` keys. `Session::StoreToDatabase()` (`session.cpp:2887`) then
+writes `session_channels` rows only for `m_availableChannels`. A channel that exists in
+`m_cnt` with a count of 0 but has no `EventList` — which is what `Session::count()`'s
+memoisation at `session.cpp:2095` creates — is therefore dropped. On reload,
+`Session::LoadFromDatabase()` (`session.cpp:3138`-`3157`) clears `m_cnt` and repopulates it
+solely from `session_channels`, so the zero entries never come back. OSCAR 1.7 serialised
+the entire hash (`out << m_cnt;`, `session.cpp:379`), so its zero entries survived the
+round trip and `channelHasData()` stayed true.
+
+**Fix:** In the zero-AHI branch, fall back from "did *this day* record the channel" to
+"does this day's device report the channel at all", via
+`Machine::hasChannel()`. `Machine::m_availableChannels` is the union accumulated over every
+session by `Machine::updateChannels()` (called from `AddSession()`, which runs after
+`LoadFromDatabase()` in `Machine::LoadSessionsFromDatabase()`), so a device that scores
+events on other days qualifies, while a device that never reports them still correctly
+shows nothing.
+
+**Not fixed (deliberate):** the underlying persistence gap. Making `StoreToDatabase()` write
+the union of `m_availableChannels` and `m_cnt` keys would restore 1.7 semantics, but it only
+takes effect for sessions saved after the change — existing databases would still need a
+re-import — and it adds rows for every session. Left as a separate decision.
+
+---
+
 ## 2026-07-08 — 1.x→2.0 import still drops channel customizations: init ordering (#140, reopened)
 
 **Files:** `oscar/main.cpp` — startup sequence in `main()` (schema/loader registration vs. `migrateFromOSCAR()`)

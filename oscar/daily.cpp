@@ -1884,9 +1884,13 @@ QString Daily::getPieChart (float values, Day * day) {
     if (!leftSideBarEnable[LSB_PIE_CHART] ) {
         return html;
     }
+    // The table is pulled up 8px to sit snugly under the "Event Breakdown" title, and the
+    // separator below gets 8px back to compensate.  That offset is absorbed by the empty
+    // spacer row emitted below the table tag, so the spacer must be present in *both*
+    // branches -- without it the "0.0!" image is dragged up over the title.
     html += "<table style='margin-top:-8px' cellspacing=0 cellpadding=0 border=0 width='100%'>";
+    html += QString("<tr><td align=center><b>%1</b></td></tr>").arg("");
     if (values > 0) {
-        html += QString("<tr><td align=center><b>%1</b></td></tr>").arg("");
         eventBreakdownPie()->setShowTitle(false);
 
         int w=155;
@@ -1907,20 +1911,30 @@ QString Daily::getPieChart (float values, Day * day) {
             html += "<tr><td align=center>"+tr("Unable to display Pie Chart on this system")+"</td></tr>\n";
         }
     } else {
-        bool gotsome = false;
-        for (int i = 0; i < ahiChannels.size(); i++)
-            gotsome = gotsome || day->channelHasData(ahiChannels.at(i));
+        // Show the "0.0!" image when the device scores these events but recorded none today.
+        //
+        // day->channelHasData() alone is not sufficient: a channel with a zero count and no
+        // event list is never written to session_channels (Session::UpdateSummaries() rebuilds
+        // m_availableChannels from the event lists, and StoreToDatabase() only persists those),
+        // so on an event-free day it reports false for every AHI channel and the image was
+        // silently dropped.  OSCAR 1.7 serialised the whole m_cnt hash, zero entries included,
+        // which is why it still shows "0.0!" here.  Fall back to asking the day's device
+        // whether it reports the channel at all -- Machine::m_availableChannels is the union
+        // over every session, so a device that scores events on other days qualifies, while a
+        // device that never reports them (a brick) still shows nothing.
+        Machine * cpap = day->machine(MT_CPAP);
+        auto reportsChannel = [&](ChannelID id) {
+            return day->channelHasData(id) || (cpap && cpap->hasChannel(id));
+        };
 
-//        if (   day->channelHasData(CPAP_Obstructive)
-//               || day->channelHasData(CPAP_AllApnea)
-//               || day->channelHasData(CPAP_Hypopnea)
-//               || day->channelHasData(CPAP_ClearAirway)
-//               || day->channelHasData(CPAP_Apnea)
+        bool gotsome = false;
+        for (int i = 0; i < ahiChannels.size() && !gotsome; i++)
+            gotsome = reportsChannel(ahiChannels.at(i));
 
         if (   gotsome
-               || day->channelHasData(CPAP_RERA)
-               || day->channelHasData(CPAP_FlowLimit)
-               || day->channelHasData(CPAP_SensAwake)
+               || reportsChannel(CPAP_RERA)
+               || reportsChannel(CPAP_FlowLimit)
+               || reportsChannel(CPAP_SensAwake)
                ) {
             html += "<tr><td align=center><img src=\"qrc:/docs/0.0.gif\"></td></tr>\n";
         }
