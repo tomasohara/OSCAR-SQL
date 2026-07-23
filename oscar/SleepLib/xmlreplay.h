@@ -130,7 +130,11 @@ protected:
     QFile* m_file;        // nullptr for non-file replay
     QHash<QString,QHash<QString,QList<XmlReplayEvent*>>> m_eventIndex;  // type and ID-based index into the events, see discussion of reordering above
     QHash<QString,QHash<QString,int>> m_indexPosition;                  // positions at which to begin searching the index, updated by random-access events
-    QList<XmlReplayEvent*> m_events;                                    // linear list of all events in their original order
+
+    // Keep a handle to the first element (to walk for deletion at destruction) and the last element (to add new ones in order of arrival)
+    XmlReplayEvent* m_firstEvent;
+    XmlReplayEvent* m_lastEvent;
+
     XmlReplayEvent* m_pendingSignal;  // the signal (if any) that should be replayed as soon as the current event has been processed
     QMutex m_lock;                    // prevent signals from being dispatched while an event is being processed, see XmlReplayLock below
     XmlReplay* m_parent;  // parent instance of a substream
@@ -185,6 +189,8 @@ public:
     void setData(const char* data, qint64 length);
     //! \brief Get the value for the given key.
     QString get(const QString & name) const;
+    //! \brief Get the m_next member
+    inline XmlReplayEvent* getNext() const { return m_next; }
     //! \brief Set the m_next member
     inline void setNext(XmlReplayEvent * event) {
         Q_ASSERT(!m_next);

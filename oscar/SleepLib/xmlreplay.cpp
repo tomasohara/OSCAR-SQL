@@ -125,7 +125,7 @@ void XmlRecorder::flush()
 }
 
 XmlReplay::XmlReplay(QFile* file, const QString & tag)
-    : m_tag(tag), m_file(file), m_pendingSignal(nullptr), m_parent(nullptr)
+    : m_tag(tag), m_file(file), m_firstEvent(nullptr), m_lastEvent(nullptr), m_pendingSignal(nullptr), m_parent(nullptr)
 {
     Q_ASSERT(file);
     QFileInfo info(*file);
@@ -136,14 +136,14 @@ XmlReplay::XmlReplay(QFile* file, const QString & tag)
 }
 
 XmlReplay::XmlReplay(QXmlStreamReader & xml, const QString & tag)
-    : m_tag(tag), m_file(nullptr), m_pendingSignal(nullptr), m_parent(nullptr)
+    : m_tag(tag), m_file(nullptr), m_firstEvent(nullptr), m_lastEvent(nullptr), m_pendingSignal(nullptr), m_parent(nullptr)
 {
     deserialize(xml);
 }
 
 // Protected constructor for substreams
 XmlReplay::XmlReplay(XmlReplay* parent, const QString & id, const QString & tag)
-    : m_tag(tag), m_file(nullptr), m_pendingSignal(nullptr), m_parent(parent)
+    : m_tag(tag), m_file(nullptr), m_firstEvent(nullptr), m_lastEvent(nullptr), m_pendingSignal(nullptr), m_parent(parent)
 {
     Q_ASSERT(m_parent);
 
@@ -183,8 +183,12 @@ QXmlStreamReader* XmlReplay::findSubstream(XmlReplay* child, const QString & id)
 
 XmlReplay::~XmlReplay()
 {
-    for (auto event : m_events) {
-        delete event;
+    // Walk the linkedlist and delete each event
+    XmlReplayEvent* toDel = nullptr;
+    while (m_firstEvent) {
+        toDel = m_firstEvent;
+        m_firstEvent = m_firstEvent->getNext();
+        delete toDel;
     }
     // File substreams manage their own file.
     if (m_parent && m_file) {
@@ -220,13 +224,19 @@ void XmlReplay::deserializeEvents(QXmlStreamReader & xml)
         if (event) {
             xml >> *event;
 
-            // Add to list
-            if (m_events.isEmpty() == false) {
-                m_events.last()->setNext(event);
+            // Add this event to the in-order event arrival list
+            event->setNext(nullptr);
+            if (!m_firstEvent) {
+                Q_ASSERT(m_lastEvent == nullptr);
+                m_firstEvent = m_lastEvent = event;
+            } else {
+                Q_ASSERT(m_lastEvent != nullptr);
+                m_lastEvent->setNext(event);
+                m_lastEvent = event;
             }
-            m_events.append(event);
+            Q_ASSERT(event->getNext() == nullptr);
 
-            // Add to index
+            // Add this event to the index
             const QString & id = event->id();
             auto & events = m_eventIndex[type][id];
             events.append(event);
