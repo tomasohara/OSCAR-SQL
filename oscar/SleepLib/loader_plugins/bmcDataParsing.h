@@ -103,12 +103,21 @@ public:
     int IpapHundredths = 0; ///< IPAP in hundredths of cmH2O
 };
 
+/// @brief The longest plausible single BMC recording session, in minutes (48 hours).
+///        Durations beyond this are treated as corrupt and discarded: a bogus value
+///        propagates into Session::really_set_last() and makes calcAHIGraph() iterate
+///        once per minute of the reported span, freezing the UI and exhausting memory.
+constexpr int kBmcMaxSessionDurationMinutes = 48 * 60;
+
 class BmcUsrSession
 {
 public:
     QDateTime StartTimestamp;
     QDateTime EndTimestamp;
-    int DurationMinutes;
+    /// Session length in minutes as reported by the USR record.  Zero when unknown --
+    /// ReadInProgressSession() has no duration field to read, so it must stay 0 rather
+    /// than holding indeterminate stack data.
+    int DurationMinutes = 0;
     QList<BmcRespiratoryEvent> RespiratoryEvents;
 
     BmcUsrSession();
@@ -129,12 +138,12 @@ protected:
 class BmcIdxEntry{
 public:
     QDateTime Timestamp;
-    int Index;
-    quint16 StartOffsetPacket;
-    quint16 StartFileIndex;
-    quint16 NextOffsetPacket;
-    bool HasValidNext;
-    quint8 NextFileIndex;
+    int Index = 0;
+    quint16 StartOffsetPacket = 0;
+    quint16 StartFileIndex = 0;
+    quint16 NextOffsetPacket = 0;
+    bool HasValidNext = false;
+    quint8 NextFileIndex = 0xff;
 
     QDateTime StartWaveformPacketTimestamp;
 
@@ -181,58 +190,61 @@ class BmcMachineSettings
 public:
     QDate Timestamp;
 
-    quint8 Reslex;
-    bool ReslexPatient;
+    // All fields carry default initializers: ReadDateSession() default-constructs a
+    // BmcMachineSettings and uses it as-is when AllMachineSettings is empty, so
+    // indeterminate values would otherwise reach the session's Device Settings.
+    quint8 Reslex = 0;
+    bool ReslexPatient = false;
 
-    quint8 RampTimeMinutes;
+    quint8 RampTimeMinutes = 0;
 
-    quint8 HumidifierLevel;
+    quint8 HumidifierLevel = 0;
 
-    float APAP_IntialP;
-    float APAP_MinAPAP;
-    float APAP_MaxAPAP;
-    quint8 APAP_Sensitivity;
-    bool APAP_SmartA;
-
-
-    float CPAP_InitialP;
-    float CPAP_TreatP;
-    float CPAP_ManualP;
-    bool CPAP_SmartC;
+    float APAP_IntialP = 0.0f;
+    float APAP_MinAPAP = 0.0f;
+    float APAP_MaxAPAP = 0.0f;
+    quint8 APAP_Sensitivity = 0;
+    bool APAP_SmartA = false;
 
 
-    float S_InitialEPAP;
-    float S_EPAP;
-    float S_IPAP;
-    int S_ISENS;
-    float S_ESENS;
-    quint8 S_RiseTime;
-    float S_TiMin;
-    float S_TiMax;
-    bool S_BackupRR;
-
-    float AutoS_InitialEPAP;
-    float AutoS_MinEPAP;
-    float AutoS_MinIPAP;
-    float AutoS_MaxIPAP;
-
-    int AutoS_ISENS;
-    float AutoS_ESENS;
-    quint8 AutoS_RiseTime;
-
-    bool AutoS_SmartB;
+    float CPAP_InitialP = 0.0f;
+    float CPAP_TreatP = 0.0f;
+    float CPAP_ManualP = 0.0f;
+    bool CPAP_SmartC = false;
 
 
+    float S_InitialEPAP = 0.0f;
+    float S_EPAP = 0.0f;
+    float S_IPAP = 0.0f;
+    int S_ISENS = 0;
+    float S_ESENS = 0.0f;
+    quint8 S_RiseTime = 0;
+    float S_TiMin = 0.0f;
+    float S_TiMax = 0.0f;
+    bool S_BackupRR = false;
 
-    bool LeakAlert;
-    bool AutoOn;
-    bool AutoOff;
+    float AutoS_InitialEPAP = 0.0f;
+    float AutoS_MinEPAP = 0.0f;
+    float AutoS_MinIPAP = 0.0f;
+    float AutoS_MaxIPAP = 0.0f;
 
-    BmcMode Mode;
+    int AutoS_ISENS = 0;
+    float AutoS_ESENS = 0.0f;
+    quint8 AutoS_RiseTime = 0;
 
-    BmcMaskType MaskType;
-    BmcAirTubeType AirTubeType;
-    int HeatedTubeLevel;
+    bool AutoS_SmartB = false;
+
+
+
+    bool LeakAlert = false;
+    bool AutoOn = false;
+    bool AutoOff = false;
+
+    BmcMode Mode = BmcMode::CPAP;
+
+    BmcMaskType MaskType = BmcMaskType::Other;
+    BmcAirTubeType AirTubeType = BmcAirTubeType::Unheated22mm;
+    int HeatedTubeLevel = 0;
 
     BmcMachineSettings();
     BmcMachineSettings(QDataStream*);
@@ -242,9 +254,9 @@ class BmcWaveformCrumb
 {
 public:
     QString Filepath;
-    quint16 FileIndex;
-    quint64 ByteOffset;
-    quint16 PacketOffset;
+    quint16 FileIndex = 0;
+    quint64 ByteOffset = 0;
+    quint16 PacketOffset = 0;
     QDateTime Timestamp;
 };
 
@@ -391,7 +403,7 @@ class BmcDateSession
 {
 public:
     QDateTime StartTime;
-    int DurationMinutes;
+    int DurationMinutes = 0;
     BmcMachineInfo MachineInfo;
     BmcMachineSettings MacineSettings;
     QList<BmcRespiratoryEvent> RespiratoryEvents;

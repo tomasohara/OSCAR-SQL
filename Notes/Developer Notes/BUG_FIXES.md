@@ -4,6 +4,61 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-23 — BMC legacy loader: uninitialized session duration freezes import and corrupts the last day
+
+**Files:** `oscar/SleepLib/loader_plugins/bmcDataParsing.h`,
+`oscar/SleepLib/loader_plugins/bmcDataParsing.cpp` — `BmcData::ReadDateSession()`,
+`oscar/SleepLib/calcs.cpp` — `calcAHIGraph()`
+
+**Symptom:** Importing from a legacy BMC device stalls for a minute or more on the final
+day, long enough for the desktop to raise an "application not responding" dialog. The day
+imports with an absurd mask-on time (Welcome page: "Your device was on for 13277569 hours,
+4 minutes and -8 seconds") and the Daily page shows no waveforms or event graphs.
+Re-running the import re-processes the same day and succeeds roughly three times in four.
+The debug log shows:
+
+```
+Session::StoreEventsToDatabase() - Skipping oversized event list channel 4374 index 0
+  count 2080111177 estimated 12480667062 bytes — corrupted source data
+```
+
+**Root cause:** `BmcUsrSession::DurationMinutes` had no default initializer and
+`BmcUsrSession::BmcUsrSession()` is empty. `ReadHistoricSession()` assigns it from USR
+offset `0x0f`, but `ReadInProgressSession()` — which parses the currently-recording night —
+never does, so the field held indeterminate stack data. `ReadAllSessions()` appends the
+in-progress session last, making it the final `SessionLink` and therefore the last day
+imported.
+
+`ReadDateSession()` then extended the session window with
+`StartTimestamp.addSecs(DurationMinutes * 60)` (added in `f1b48793` to recover events when
+the waveform ring buffer wraps), pushing `EndTimestamp` centuries into the future.
+`Session::UpdateSummaries()` calls `calcAHIGraph()`, which walks `first`→`last` in 60 s
+steps (30 s in the `for` increment plus 30 s again in the body), calling `rangeCount()` and
+`AddEvent()` on every pass. One event per minute means the resulting event count equals the
+bogus duration exactly: the logged `count 2080111177` is the garbage `int` itself
+(`0x7BFBFA49`), and `2080111177 × 6 = 12480667062` matches the logged blob estimate to the
+byte. That single loop accounts for the multi-minute stall (the non-threaded import path in
+`machine_loader.cpp:139` runs on the GUI thread), the ~12 GB allocation, the rejected blob,
+the nonsensical mask-on hours, and the empty Daily graphs — the session's real waveforms are
+present but drawn across a 3,955-year x-axis. The intermittency is simply uninitialized
+memory differing between runs.
+
+**Fix:** `DurationMinutes` now defaults to 0, and `BmcData::ReadDateSession()` discards any
+value outside 0–`kBmcMaxSessionDurationMinutes` (48 h) with a warning before it can reach
+`EndTimestamp`. Default initializers were also added to the remaining POD members of
+`BmcUsrSession`, `BmcIdxEntry`, `BmcWaveformCrumb`, `BmcDateSession` and
+`BmcMachineSettings` — the last is default-constructed and used as-is by
+`ReadDateSession()` when `AllMachineSettings` is empty, which would otherwise put
+indeterminate pressures and modes into Device Settings.
+
+As defence in depth, `calcAHIGraph()` now refuses to build the graph for any session
+spanning more than a week, so a corrupt range from any loader can no longer freeze the UI
+or exhaust memory. `BmcG3xData` derives from `BmcDataParser`, not `BmcData`, and has its
+own `ReadDateSession()`, so the G3X loader is unaffected apart from the shared structs now
+being zero-initialized.
+
+---
+
 ## 2026-07-22 — Overview AHI/RDI graph labelled "AHI" when the profile is set to RDI
 
 **File:** `oscar/Graphs/gAHIChart.cpp` — `gAHIChart::afterDraw()`, `gAHIChart::tooltipData()`

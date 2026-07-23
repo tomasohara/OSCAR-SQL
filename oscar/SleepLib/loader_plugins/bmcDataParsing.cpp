@@ -559,9 +559,20 @@ BmcDateSession BmcData::ReadDateSession(QDate aDate)
     if (foundLink == NULL)
         throw std::invalid_argument("No session with that date could be found");
 
+    // Reject an implausible USR duration before it can widen a session window.  The
+    // in-progress session has no duration field, and a corrupt historic record can hold
+    // anything; either way an out-of-range value would stretch EndTimestamp by centuries.
+    int usrDurationMinutes = foundLink->UsrSession.DurationMinutes;
+    if (usrDurationMinutes < 0 || usrDurationMinutes > kBmcMaxSessionDurationMinutes) {
+        qWarning() << "BmcData::ReadDateSession: ignoring implausible USR duration"
+                   << usrDurationMinutes << "minutes for"
+                   << foundLink->UsrSession.StartTimestamp.date().toString(Qt::ISODate);
+        usrDurationMinutes = 0;
+    }
+
     BmcDateSession dateSession;
     dateSession.StartTime = foundLink->UsrSession.StartTimestamp;
-    dateSession.DurationMinutes = foundLink->UsrSession.DurationMinutes;
+    dateSession.DurationMinutes = usrDurationMinutes;
     dateSession.MachineInfo = ReadMachineInfo();
     dateSession.RespiratoryEvents = foundLink->UsrSession.RespiratoryEvents;
     dateSession.Waveforms = ReadWaveforms(*foundLink);
@@ -612,7 +623,7 @@ BmcDateSession BmcData::ReadDateSession(QDate aDate)
         // full USR duration so that respiratory events recorded throughout the night are
         // distributed to this session and visible on the Daily page.
         const QDateTime usrEnd = session->StartTimestamp.addSecs(
-            static_cast<qint64>(foundLink->UsrSession.DurationMinutes) * 60);
+            static_cast<qint64>(usrDurationMinutes) * 60);
         if (usrEnd > session->EndTimestamp)
             session->EndTimestamp = usrEnd;
         dateSession.Sessions.append(session);
@@ -635,20 +646,20 @@ BmcDateSession BmcData::ReadDateSession(QDate aDate)
     // If no waveform data is available, create an EVT-only session from the USR summary.
     // This preserves respiratory event data for nights where the circular waveform buffer
     // has been overwritten.
-    if (dateSession.Sessions.isEmpty() && foundLink->UsrSession.DurationMinutes > 0) {
+    if (dateSession.Sessions.isEmpty() && usrDurationMinutes > 0) {
         BmcSession* evtOnly = new BmcSession();
         if (!dateSession.RespiratoryEvents.isEmpty()) {
             evtOnly->StartTimestamp = dateSession.RespiratoryEvents.first().StartTime;
             evtOnly->EndTimestamp   = dateSession.RespiratoryEvents.last().EndTime;
             const QDateTime minEnd  = evtOnly->StartTimestamp.addSecs(
-                static_cast<qint64>(foundLink->UsrSession.DurationMinutes) * 60);
+                static_cast<qint64>(usrDurationMinutes) * 60);
             if (evtOnly->EndTimestamp < minEnd)
                 evtOnly->EndTimestamp = minEnd;
             evtOnly->RespiratoryEvents = dateSession.RespiratoryEvents;
         } else {
             evtOnly->StartTimestamp = foundLink->UsrSession.StartTimestamp;
             evtOnly->EndTimestamp   = foundLink->UsrSession.StartTimestamp.addSecs(
-                static_cast<qint64>(foundLink->UsrSession.DurationMinutes) * 60);
+                static_cast<qint64>(usrDurationMinutes) * 60);
         }
         dateSession.Sessions.append(evtOnly);
     }
