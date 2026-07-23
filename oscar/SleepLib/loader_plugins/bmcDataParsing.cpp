@@ -388,11 +388,19 @@ BmcWaveformPacket::BmcWaveformPacket(char* buffer)
 {
     BmcWaveformPacketStruct* packetStruct = (BmcWaveformPacketStruct*)buffer;
 
+    // Every sample array must be zeroed here.  Legacy packets carry only
+    // kBmcLegacyWaveformSamples of real data, and G3X fills these from
+    // ApplyFlowWaveformFromG3xPacket() -- which returns early on a short packet and is
+    // not called at all for the synthetic fallback packet -- so anything left out stays
+    // indeterminate.  MaskPressure has no reader today; zero it so it cannot become one
+    // the moment a channel is wired up to it.
     std::fill_n(this->Flow, kBmcExtendedWaveformSamples, 0.0f);
     std::fill_n(this->PressureWave, kBmcExtendedWaveformSamples, 0);
+    std::fill_n(this->MaskPressure, kBmcExtendedWaveformSamples, 0);
     std::fill_n(this->FlowAbnormality, kBmcExtendedWaveformSamples, 0);
     std::fill_n(this->Raw.Flow, kBmcExtendedWaveformSamples, 0);
     std::fill_n(this->Raw.PressureWave, kBmcExtendedWaveformSamples, 0);
+    std::fill_n(this->Raw.MaskPressure, kBmcExtendedWaveformSamples, 0);
     std::fill_n(this->Raw.FlowAbnormality, kBmcExtendedWaveformSamples, 0);
 
     this->EPAP = packetStruct->EPAP / 2.0f;

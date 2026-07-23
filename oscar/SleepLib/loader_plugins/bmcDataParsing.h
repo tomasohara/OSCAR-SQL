@@ -76,10 +76,10 @@ enum class BmcRespiratoryEventType
 class BmcRespiratoryEvent
 {
 public:
-    BmcRespiratoryEventType EventType;
+    BmcRespiratoryEventType EventType = BmcRespiratoryEventType::Unknown;
     QDateTime StartTime;
     QDateTime EndTime;
-    int DurationSeconds;
+    int DurationSeconds = 0;
 };
 
 /// @brief A single flow-limitation point event with a severity grade.
@@ -89,8 +89,8 @@ class BmcFlowLimitEvent
 {
 public:
     QDateTime Timestamp;
-    int Grade;      ///< 1 = Mild, 2 = Moderate, 3 = Severe
-    int DurationMs; ///< Device-reported breath duration in milliseconds (EVT value2)
+    int Grade = 0;      ///< 1 = Mild, 2 = Moderate, 3 = Severe
+    int DurationMs = 0; ///< Device-reported breath duration in milliseconds (EVT value2)
 };
 
 /// @brief A pressure snapshot from an EVT 0x42 record.

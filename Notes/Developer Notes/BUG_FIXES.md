@@ -57,6 +57,32 @@ or exhaust memory. `BmcG3xData` derives from `BmcDataParser`, not `BmcData`, and
 own `ReadDateSession()`, so the G3X loader is unaffected apart from the shared structs now
 being zero-initialized.
 
+**Follow-up audit (same day):** the G3X loader was swept for the same defect class. Its own
+code is clean — `G3xSampleValues`, `G3xTimedSampleUpdate`, `G3xRawRespEvent`, `G3xDiagRow`
+and `G3xDayEntry` all carry full default initializers, `BmcG3xLoader` has no data members,
+and every event/snapshot construction site assigns every field.
+
+One latent gap was found in the shared packet struct that G3X populates:
+`BmcWaveformPacket(char*)` zeroed `Flow`, `PressureWave` and `FlowAbnormality` for both the
+plain and `Raw` copies but not `MaskPressure`, leaving those 50-element arrays indeterminate
+whenever `ApplyFlowWaveformFromG3xPacket()` returns early (null pointer, or a packet shorter
+than `requiredSize`) and for the synthetic fallback packet at `bmcG3xDataParsing.cpp:1624`,
+which never calls it. No reader exists today — `bmc_loader.cpp:498` sources
+`CPAP_MaskPressure` from `Raw.PressureWave` — so this was never a live bug, but both arrays
+are now zeroed in the constructor.
+
+`BmcRespiratoryEvent::{EventType, DurationSeconds}` and `BmcFlowLimitEvent::{Grade,
+DurationMs}` were also given defaults. Both are correctly assigned at every current site, so
+behaviour is unchanged; each is default-constructed and then filled by a `switch` with no
+`default:` arm (`bmcDataParsing.cpp:202`, `bmcG3xDataParsing.cpp:918`), so one added message
+type would have made them indeterminate. `Unknown` is a safe default — `bmc_loader.cpp:379`
+already logs and drops it.
+
+`MessageItem32/24/16` were left alone: each has a value constructor setting every member and
+no default constructor, so they cannot be default-constructed. `BmcWaveformPacketStruct` was
+also left alone — it is a `#pragma pack` overlay only ever reached by casting a raw buffer,
+never instantiated.
+
 ---
 
 ## 2026-07-22 — Overview AHI/RDI graph labelled "AHI" when the profile is set to RDI
