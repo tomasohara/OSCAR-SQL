@@ -4,6 +4,27 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-22 — Overview AHI/RDI graph labelled "AHI" when the profile is set to RDI
+
+**File:** `oscar/Graphs/gAHIChart.cpp` — `gAHIChart::afterDraw()`, `gAHIChart::tooltipData()`
+
+**Symptom:** With Preferences → Event index set to RDI, two labels on the Overview page's
+AHI/RDI graph still read "AHI": the min/mid/max summary line drawn above the graph, and the
+heading of the per-day hover popup. The numbers themselves were correct RDI values.
+
+**Root cause:** Both strings hardcoded `STR_TR_AHI`. The graph's own title is chosen
+correctly in `overview.cpp:277`-`282` (`STR_TR_RDI` vs `STR_TR_AHI`), but the layer that
+draws the contents never consulted `p_profile->general->calculateRDI()`. The data was right
+because `gAHIChart`'s constructor (`gAHIChart.h:33`-`34`) adds `CPAP_RERA` to `calcitems`
+in RDI mode, so both the `afterDraw()` min/med/max and the `tooltipData()` total — each
+summed over all slices — already included RERA.
+
+**Fix:** Both sites now select the label with
+`p_profile->general->calculateRDI() ? STR_TR_RDI : STR_TR_AHI`. No change to any computed
+value.
+
+---
+
 ## 2026-07-21 — Daily sidebar: zero-AHI "0.0!" image overlays the Event Breakdown title
 
 **File:** `oscar/daily.cpp` — `Daily::getPieChart()`
@@ -68,10 +89,12 @@ session by `Machine::updateChannels()` (called from `AddSession()`, which runs a
 events on other days qualifies, while a device that never reports them still correctly
 shows nothing.
 
-**Not fixed (deliberate):** the underlying persistence gap. Making `StoreToDatabase()` write
-the union of `m_availableChannels` and `m_cnt` keys would restore 1.7 semantics, but it only
-takes effect for sessions saved after the change — existing databases would still need a
-re-import — and it adds rows for every session. Left as a separate decision.
+**Not fixed (deliberate):** the underlying persistence gap, tracked as GitLab **#242**
+(label `issue`, no fix planned). Making `StoreToDatabase()` write the union of
+`m_availableChannels` and `m_cnt` keys would restore 1.7 semantics, but it only takes effect
+for sessions saved after the change — existing databases would still need a re-import — and
+it adds rows for every session. See #242 for the diagnostic fingerprint if this shape of bug
+turns up elsewhere.
 
 ---
 
