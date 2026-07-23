@@ -94,9 +94,6 @@ class MachineLoader;    // forward
     */
 class Machine
 {
-    friend class SaveThread;
-//  friend class MachineLaoder;
-
   public:
     /*! \fn Machine(MachineID id=0);
         \brief Constructs a device object with MachineID id

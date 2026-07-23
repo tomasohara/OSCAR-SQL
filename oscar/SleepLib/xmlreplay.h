@@ -185,11 +185,18 @@ public:
     void setData(const char* data, qint64 length);
     //! \brief Get the value for the given key.
     QString get(const QString & name) const;
+    //! \brief Set the m_next member
+    inline void setNext(XmlReplayEvent * event) {
+        Q_ASSERT(!m_next);
+        m_next = event;
+    }
     //! \brief Get the raw data for this event.
     QByteArray getData() const;
     //! \brief True if there are no errors in this event, or false if the "error" attribute is set.
     inline bool ok() const { return m_values.contains("error") == false; }
 
+    //! \brief Return this event's timestamp
+    inline QDateTime & getTime() { return m_time; }
     //! \brief Copy the result from the retrieved replay event (if any) into the current event.
     void copyIf(const XmlReplayEvent* other);
     //! \brief Record this event to the given XML recorder, doing nothing if the recorder is null.
@@ -213,6 +220,14 @@ public:
     //! \brief True if this event represents a "random-access" event that should cause subsequent event searches to start after this event's timestamp. Subclasses that represent such a state change should override this method.
     virtual bool randomAccess() const { return false; }
 
+    //! \brief Send a signal to the target object. Subclasses may override this to send signal arguments.
+    virtual void signal(QObject* target);
+
+    //! \brief Return a pointer to m_next iff it has a signal, nullptr otherwise
+    XmlReplayEvent * nextEventIfSignal() const {
+        return (m_next && m_next->isSignal()) ? m_next : nullptr;
+    }
+
     // Event subclass registration and instance creation
     typedef XmlReplayEvent* (*FactoryMethod)();
     static bool registerClass(const QString & tag, FactoryMethod factory);
@@ -225,8 +240,6 @@ protected:
     virtual bool usesData() const { return false; }
     //! \brief True if this event represents a signal event. Subclasses representing such events must set m_signal.
     inline bool isSignal() const { return m_signal != nullptr; }
-    //! \brief Send a signal to the target object. Subclasses may override this to send signal arguments.
-    virtual void signal(QObject* target);
     //! \brief Write any attributes or content needed specific to event. Subclasses may override this to support complex data types.
     virtual void write(QXmlStreamWriter & xml) const;
     //! \brief Read any attributes or content specific to this event. Subclasses may override this to support complex data types.
@@ -241,8 +254,6 @@ protected:
 
     // Copy the timestamp as well as the attributes. Used when creating substreams.
     void copy(const XmlReplayEvent & other);
-
-    friend class XmlReplay;
 };
 
 // Convenience template for serializing QLists to XML
