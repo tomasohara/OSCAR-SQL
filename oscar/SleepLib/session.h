@@ -215,6 +215,12 @@ class Session
         m_night = night;
     }
 
+    //! \brief Return the OSCAR day (noon-to-noon) this session was assigned to,
+    //!        as set by Day::addSession(); an invalid QDate if not yet assigned.
+    inline QDate night() const {
+        return m_night;
+    }
+
     //! \brief Return Session Length in decimal hours
     double hours() {
         double t;

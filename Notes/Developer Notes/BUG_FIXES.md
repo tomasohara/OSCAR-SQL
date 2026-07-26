@@ -4,6 +4,68 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-25 — CSV Export Wizard: last day too early (ImportContext loaders skip just-imported days in daily_summaries) (#239)
+
+**Files:** `oscar/SleepLib/importcontext.cpp` — `ImportContext::Commit()`;
+`oscar/SleepLib/session.h` — added `Session::night()` getter;
+`oscar/SleepLib/profiles.cpp` — `Profile::LoadMachineData()`
+
+**Symptom:** The CSV Export Wizard's auto-selected date range ends several days before the
+profile's real last day (first report: 7/4 vs 7/8; reproducing database: 7/15 vs 7/22).
+The Daily page, Statistics, Version 1 CSV Reports and Profile backup all show the correct
+last day. Manually widening the range does not help — because the wizard also draws its
+rows from `daily_summaries`, the missing days export nothing.
+
+**Why only the wizard:** it is the only consumer that reads exclusively from the
+`daily_summaries` table (`report_exporter.cpp:1047` for the range, `:513` for the rows);
+everything else reads the in-memory `daylist`/sessions. So a stale `daily_summaries` surfaces
+only there.
+
+**Root cause (import ordering):** `daily_summaries` had a clean *tail gap* — the days added
+by the most recent import had enabled sessions but no summary row. Forensics on the
+reproducing database (`OSCAR20_Data tschalk`, profile "Ton") showed all 1030 summary rows
+stamped with the exact last-import time (`calculated_at = 2026-07-23 09:44:36`) yet none for
+2026-07-16..22: the import's single summary pass ran but recomputed only the *pre-existing*
+days and skipped the ones it had just added.
+
+The DreamStation loader (PRS1) uses the **ImportContext** path: `ctx->AddSession()` only
+stashes sessions in `m_sessions`; `Machine::AddSession()` — which inserts the new days into
+`mach->day`/`daylist` — is deferred to `ctx->Commit()` (`importcontext.cpp`), called from
+`importCPAP()` (`mainwindow.cpp:985`) *after* `loader->Open()` returns. But the only summary
+pass, `calculateDailySummaries()` inside `finishAddingSessions()` (`machine_loader.cpp:87`),
+runs *inside* `Open()` — before those days exist in `mach->day` — and nothing recomputes
+after `Commit()`. So the just-imported days never got a row during import. ResMed adds
+sessions with `mach->AddSession()` *during* parsing, and the legacy `addSession()` loaders
+(icon/intellipap/sleepstyle) add in `finishAddingSessions()`'s own loop before its recompute,
+so both add-before-recompute and are unaffected. Only the two ImportContext loaders — **PRS1
+(Philips) and Prisma (Löwenstein/Weinmann)** — exhibit it.
+
+It never self-heals because the load-time rebuild only fired when the table was *completely
+empty* — `if (existingCount == 0)` (`profiles.cpp:1064`); a partially populated table was
+assumed complete. (This also explains the differing gap sizes: the gap equals the day-span of
+each profile's final import, not a fixed offset.)
+
+**Fix (two parts):**
+
+1. *Import-time (primary):* `ImportContext::Commit()` now collects the OSCAR days that
+   received sessions (via the new `Session::night()`, valid once `AddSession()` has assigned
+   it) and, after the `Machine::AddSession()` loop, calls
+   `DailySummaryRepository::calculateAndStore(profileId, date)` for each. The days are now in
+   `daylist` with valid in-memory summaries (`UpdateSummaries()` already ran in
+   `ctx->AddSession()`; only raw events were trashed), so they compute correctly, within the
+   import transaction. Scoped to the imported dates, so cost is proportional to the import,
+   not the whole history, and only ImportContext loaders (PRS1, Prisma) are touched.
+
+2. *Load-time (safety net):* `Profile::LoadMachineData()` now reconciles instead of only
+   rebuilding an empty table — it counts summary-*eligible* in-memory days (enabled
+   CPAP/oximetry/sleep-stage/position, mirroring `calculateDailySummaries()`'s machine-type
+   filter) and, only if that exceeds the stored row count, reads the existing summary dates
+   once and fills any missing eligible day. Healthy launches stay cheap (an in-memory
+   `daylist` scan, no extra DB work beyond the `countDays()` already done). This self-heals
+   every already-affected database in the field on next launch.
+
+---
+
 ## 2026-07-25 — Prisma Smart: impossible leak redline percentage and invisible pressure trace
 
 **Files:** `oscar/SleepLib/session.cpp` — `Session::timeAboveThreshold()`,
