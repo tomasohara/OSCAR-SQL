@@ -4,6 +4,76 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-25 — Prisma Smart: impossible leak redline percentage and invisible pressure trace
+
+**Files:** `oscar/SleepLib/session.cpp` — `Session::timeAboveThreshold()`,
+`oscar/Graphs/gLineChart.cpp` — accelerated waveform plot
+
+Two unrelated defects, both surfaced by a Prisma Smart import
+(`c:/oscar/Testfiles/shouldercentral`, device 0040151735). Neither is Prisma-specific;
+Prisma just happens to record these channels in the shape that exposes them.
+
+### 1. "Time over leak redline" exceeds 100%
+
+**Symptom:** The Daily page Statistics panel reported values such as 20,764.12% for a
+figure that cannot exceed 100%.
+
+**Root cause:** `Session::updateCountSummary()` builds `m_timesummary` with two different
+units. The `EVL_Event` branch accumulates **seconds** (`len = (time - lasttime) / 1000L`),
+while the `EVL_Waveform` branch accumulates **milliseconds** (`timesum[key] += count *
+rate`, where `EventList::rate()` is ms per sample). Every other consumer — `wavg()`,
+`percentile()`, `calculatePercentiles()` — uses these weights as ratios, so the
+inconsistency cancels and had gone unnoticed.
+
+The fast path added to `Session::timeAboveThreshold()` reads them as absolute seconds and
+divides by 60. Prisma records leak as `AddWaveform(CPAP_Leak, "LeakFlowBreath")`, a 1 Hz
+waveform, so `rate` is 1000 and the result is inflated exactly 1000×. The reported
+20,764.12% is a true 20.764%. Any waveform-backed leak channel is affected, not just
+Prisma; the older `EVL_Event` loaders were correct by accident.
+
+**Fix:** Take the *fraction* of summary weight above the threshold — unit-agnostic, so it
+is right for both branches — and scale it by the channel's recorded span from
+`m_firstchan`/`m_lastchan`. Those endpoints are populated by `UpdateSummaries()` (which
+calls `first(id)`/`last(id)` for every channel) and persisted as
+`session_channels.first_time`/`last_time`, so the disk-avoiding optimisation is retained.
+If a channel has no usable span the code falls through to the exact event-based
+calculation rather than returning a mis-scaled figure. No schema change; existing
+databases give correct numbers without reimport.
+
+### 2. Pressure graph draws only the step transitions
+
+**Symptom:** The Daily pressure graph showed vertical lines at each pressure change with no
+horizontal segments in between.
+
+**Root cause:** Same underlying flaw as the 2026-05-21 DV6 fix below, which was patched in
+the loader rather than the renderer, so it resurfaced. Prisma adds pressure via
+`AddWaveform(CPAP_EPAP, "EPAP")` / `AddWaveform(CPAP_IPAP, "IPAP")`; both are 1 Hz signals
+in the `.wmedf` EDF (confirmed from the sample header). At full-night scale `gLineChart`
+takes the accelerated path, which reduces each pixel column to a min/max Y pair and emits
+one vertical line per column with nothing joining adjacent columns. Where pressure is
+constant, `min_py == max_py`, giving a zero-length line that Qt does not render — so the
+flat runs vanished and only the steps, where min ≠ max, remained visible.
+
+**Fix:** In the accelerated column loop, join each column to the previous one, clamping the
+connector to the nearer end of the current column's range so no spurious spike is drawn.
+Columns that received no samples (still holding the `x = height, y = 0` sentinel) are now
+skipped instead of drawing a bogus full-height line. Dense waveforms such as flow rate are
+visually unchanged, since their min/max bars already overlap; the connector only fills the
+sub-pixel gap along the envelope. Fixing this in the renderer covers every loader and
+every slowly-changing waveform channel, and needs no reimport.
+
+**Do not "fix" the leading zero on Prisma pressure channels.** With the trace rendering
+correctly, each session appears to start at 0 hPa, which looks like the ResMed
+session-boundary zero (#229 below) and invites the same leading-sample trim. It is not the
+same thing. Decoding the `.wmedf` signals directly shows `IPAP`/`EPAP` opening
+`0, 1, 2, 3, 4, 5` hPa and the 2 Hz `Pressure` signal opening `0, 0.5, 1.0, 1.5, 2.0, 2.5`:
+the device records its own blower spin-up, and the zero is the genuine first point of that
+ramp, not end-of-data padding. Zooming in far enough shows a steep slope rather than the
+vertical line it resembles at full-night scale. A trim was written and reverted once this
+was confirmed; the samples are real therapy data and belong in the record.
+
+---
+
 ## 2026-07-23 — BMC legacy loader: uninitialized session duration freezes import and corrupts the last day
 
 **Files:** `oscar/SleepLib/loader_plugins/bmcDataParsing.h`,
@@ -56,6 +126,26 @@ spanning more than a week, so a corrupt range from any loader can no longer free
 or exhaust memory. `BmcG3xData` derives from `BmcDataParser`, not `BmcData`, and has its
 own `ReadDateSession()`, so the G3X loader is unaffected apart from the shared structs now
 being zero-initialized.
+
+**Verifying the fix — the duration warning is not the signal to look for.** The
+`ignoring implausible USR duration` warning will *not* fire on the path that caused this
+bug. `DurationMinutes` now defaults to 0 and `ReadInProgressSession()` still never assigns
+it, so the value stays 0, and 0 passes the clamp cleanly — the default initializer resolves
+the problem upstream of the range check. The clamp is belt-and-braces for a corrupt
+*historic* record, where the field is read as a `quint16` and can therefore arrive anywhere
+in 0–65535; only 2881–65535 trips the 48-hour limit.
+
+The actual confirmation is negative evidence: no `Skipping oversized event list channel
+4374` in the debug log, no multi-minute stall on the final day, sane mask-on hours on the
+Welcome page, and waveforms and event graphs present in Daily view. Because the pre-fix
+behaviour was already correct in roughly three runs out of four, a single clean import
+proves very little — repeat the import several times with OSCAR restarted between runs,
+since restarting is what re-rolls the stack layout that supplied the garbage value.
+
+Days corrupted by earlier imports self-heal without intervention: `Open()` sets
+`firstImportDay = mach->LastDay()` and re-imports from there, so a previously-in-progress
+day is re-read as a historic record with a valid duration on the next import. A purge and
+full re-import clears anything that somehow persists.
 
 **Follow-up audit (same day):** the G3X loader was swept for the same defect class. Its own
 code is clean — `G3xSampleValues`, `G3xTimedSampleUpdate`, `G3xRawRespEvent`, `G3xDiagRow`

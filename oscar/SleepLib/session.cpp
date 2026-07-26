@@ -2220,30 +2220,54 @@ EventDataType Session::timeAboveThreshold(ChannelID id, EventDataType threshold)
     }
     
     // PHASE 1 OPTIMIZATION: Try using m_timesummary if available
-    // This is ~100x faster than loading events from disk
+    // This is ~100x faster than loading events from disk.
+    //
+    // The weights in m_timesummary are NOT in a single unit: updateCountSummary()
+    // accumulates seconds for EVL_Event lists but milliseconds for EVL_Waveform
+    // lists. Every other consumer (wavg, percentiles) uses them as ratios, so the
+    // difference cancels out and was never noticed. Reading them here as absolute
+    // seconds reported waveform-backed channels as 1000x their true duration --
+    // Prisma records leak as a 1 Hz waveform, which put "Time over leak redline"
+    // at figures like 20764% instead of 20.764%.
+    //
+    // So take the fraction of the weight that sits above the threshold, which is
+    // unit-agnostic, and scale it by the channel's actual recorded span. Both
+    // endpoints are cached alongside the summaries and persisted to the database,
+    // so this still avoids touching the event data on disk.
     auto ts = m_timesummary.find(id);
     if (ts != m_timesummary.end() && m_gain.contains(id)) {
         double gain = m_gain[id];
-        qint64 total = 0;
-        
+        double above = 0, total = 0;
+
         // Iterate through time summary hash
         for (auto it = ts.value().begin(); it != ts.value().end(); ++it) {
             EventDataType value = EventDataType(it.key()) * gain;
+            double weight = it.value();
+
+            total += weight;
             if (value >= threshold) {
-                total += it.value();  // time in SECONDS (from updateCountSummary)
+                above += weight;
             }
         }
-        
-        // Convert seconds to minutes
-        EventDataType time = double(total) / 60.0;
-        
-        // Cache the result
-        m_timeAboveTheshold[id] = time;
-        m_upperThreshold[id] = threshold;
-        
-        return time;
+
+        auto fc = m_firstchan.find(id);
+        auto lc = m_lastchan.find(id);
+
+        if ((total > 0) && (fc != m_firstchan.end()) && (lc != m_lastchan.end())
+                && (lc.value() > fc.value())) {
+            // Span is in milliseconds; the result is in decimal minutes.
+            EventDataType time = (above / total) * (double(lc.value() - fc.value()) / 60000.0);
+
+            // Cache the result
+            m_timeAboveTheshold[id] = time;
+            m_upperThreshold[id] = threshold;
+
+            return time;
+        }
+        // No usable span for this channel, so fall through to the exact
+        // event-based calculation rather than return a mis-scaled figure.
     }
-    
+
     // FALLBACK: Load events and calculate (original method)
     bool loaded = s_events_loaded;
 
