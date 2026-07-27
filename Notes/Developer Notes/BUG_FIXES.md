@@ -4,6 +4,52 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-07-26 — Qt file-dialog strings untranslated again (oscar_qt_*.qm never compiled or deployed)
+
+**File:** `oscar/oscar.pro` (translation compile/copy block, lines ~207-235)
+
+**Symptom:** In the "Find your CPAP data card" folder picker shown when importing from an SD
+card, the accept button ("Choose"/"Open"), the Cancel button and the "Files of type:" filter
+field stayed in English while the rest of OSCAR was translated. Reported for French; the same
+applied to every language. This is a regression of the 2026-03-17 fix.
+
+**Root cause:** The supplemental Qt catalogues under `Translations/qt/*.ts` were never
+compiled or deployed by the build.
+
+1. `EXTRA_TRANSLATIONS` (oscar.pro:210) is only acted on by qmake's `lrelease` CONFIG
+   feature, which this project does not enable — so the assignment was inert.
+2. The hand-rolled lrelease loop (oscar.pro:216) iterated `TRANSLATIONS` only, i.e.
+   `Translations/*.ts`, never the `qt/` subdirectory.
+3. `TRANSLATIONS_FILES` — the list copied to `$$OUT_PWD/Translations` on Windows/Linux and
+   into `Contents/Resources/translations` on macOS, and from there picked up by
+   `Building/Windows/deploy.bat` — was accumulated inside that same loop, so even a manually
+   compiled `oscar_qt_*.qm` would not have been deployed.
+
+Because `*.qm` is gitignored, the `oscar_qt_*.qm` files present locally were one-off
+artefacts from a manual lrelease run on 2026-05-30, made *before* the `.ts` sources were
+regenerated on 2026-06-01. Decompiling the deployed `oscar_qt_fr.qm` (2349 bytes) showed it
+held no `QFileDialog`, `QPlatformTheme` or `QDialogButtonBox` context at all — only leftover
+OSCAR widget contexts (`MainWindow`, `NewProfile`, …) from a still earlier workaround. So
+`initTranslations()` loaded a catalogue that could not translate a single Qt-internal string.
+On a clean clone the files would not exist at all and the load would simply fail.
+
+The affected strings are Qt's own: the accept button is `QFileDialog::tr("&Choose")` in
+`Directory` file mode (`qfiledialog.cpp:650`), the filter label is
+`QFileDialog::tr("Files of type:")`, and Cancel comes from
+`QPlatformTheme::defaultStandardButtonText()` via `QDialogButtonBox`. None can be reached by
+OSCAR's own `.ts` files. They matter here because `nativeDialogOption()` deliberately forces
+the Qt-rendered dialog whenever the OS UI language differs from the OSCAR language.
+
+**Fix:** Added `ALL_TRANSLATIONS = $${TRANSLATIONS} $${EXTRA_TRANSLATIONS}` and drove the
+existing lrelease loop from it, so the `qt/` catalogues are compiled to
+`oscar/translations/` and appended to `TRANSLATIONS_FILES` alongside the main catalogues.
+`EXTRA_TRANSLATIONS` remains excluded from lupdate scanning, so lupdate still cannot
+overwrite the pre-translated Qt strings. All 30 catalogues now compile to ~4-6 KB with the
+`QPlatformTheme` and `QFileDialog` contexts present (`oscar_qt_en_UK.qm` is 33 bytes, as
+`-removeidentical` correctly strips English-to-English entries).
+
+---
+
 ## 2026-07-25 — CSV Export Wizard: last day too early (ImportContext loaders skip just-imported days in daily_summaries) (#239)
 
 **Files:** `oscar/SleepLib/importcontext.cpp` — `ImportContext::Commit()`;
