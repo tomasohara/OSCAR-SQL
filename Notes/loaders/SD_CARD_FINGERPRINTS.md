@@ -20,22 +20,22 @@ Convention for each entry:
 ## BMC G3X (G3 A20)
 
 **Sample:** `V:/TestFiles/JCCPAP G3X-2`
-**Device:** BMC G3 A20, serial `A3125636308`, firmware `G3-2.SC.72.01`, part code `110A40113`.
+**Device:** BMC G3 A20, serial `A3123456789`, firmware `G3-2.SC.72.01`, part code `110A40113`.
 **Loader:** `bmcg3x_loader.cpp` + `bmcG3xDataParsing.cpp`.
 
 ### File set
 
 ```
 <basename = serial>
-├── A3125636308.000          67,108,864 bytes  (exactly 64 MiB)  ─┐
-├── A3125636308.001          67,108,864 bytes                     │  63 numbered waveform
-├── A3125636308.002          67,108,864 bytes                     │  data files (.000–.062),
+├── A3123456789.000          67,108,864 bytes  (exactly 64 MiB)  ─┐
+├── A3123456789.001          67,108,864 bytes                     │  63 numbered waveform
+├── A3123456789.002          67,108,864 bytes                     │  data files (.000–.062),
 │   …                                                             │  each exactly 64 MiB
-├── A3125636308.062          67,108,864 bytes                    ─┘
-├── A3125636308.evt          68,897,920 bytes  (~65.7 MiB, event log)
-├── A3125636308.idx             325,632 bytes  (index; carries identity header)
-├── A3125636308.log             609,280 bytes  (firmware/diagnostic log)
-├── A3125636308.set              17,796 bytes  (device settings)
+├── A3123456789.062          67,108,864 bytes                    ─┘
+├── A3123456789.evt          68,897,920 bytes  (~65.7 MiB, event log)
+├── A3123456789.idx             325,632 bytes  (index; carries identity header)
+├── A3123456789.log             609,280 bytes  (firmware/diagnostic log)
+├── A3123456789.set              17,796 bytes  (device settings)
 ├── nP3-35.CHN                  …                                ─┐
 ├── nP3-35.ENG               4,925,496 bytes                      │  9 UI-language
 ├── nP3-35.ESP                  …                                 │  localization files
@@ -57,21 +57,21 @@ language files) is invisible to `Detect()` but consumed by `BmcG3xData::ReadData
 
 ### IDX header — confirmed byte-precise layout
 
-Read from offset 0 of `A3125636308.idx` (matches the comment block at
+Read from offset 0 of `A3123456789.idx` (matches the comment block at
 `bmcG3xDataParsing.cpp:1695`):
 
 | Offset | Length | Field | Value on this sample |
 |---|---|---|---|
 | `0x0000` | 16 | Magic | `"BMC G/E/P INDEX"` + NUL |
 | `0x0020` | 4 | Sub-marker | `"BMC"` + NUL |
-| `0x0030` | 16 | **Serial** | `A3125636308` |
+| `0x0030` | 16 | **Serial** | `A3123456789` |
 | `0x0048` | 16 | **Part / config code** | `110A40113` (not the human model) |
 | `0x0100` | 16 | **Product name** | `G3 A20` (human-readable model) |
 | `0x0120` | 4 | Compatibility code | `A31` ASCII |
 | `0x0140` | 22 | Cloud endpoint | `data2.icodeconnect.com` (BMC upload server) |
 | `0x0162` | 8 | Sibling model code | `G4600` |
 | `0x0200` | 2 | Record marker | `"SF"` (settings frame, 256-byte block follows) |
-| `0x0233` | 16 | Serial (repeat) | `A3125636308` |
+| `0x0233` | 16 | Serial (repeat) | `A3123456789` |
 | `0x0270` | ~26 | Hyphenated hex group ID | `5B2A4236-43373408-54483441` (looks like device-pairing key) |
 | `0x0300` | 2 | Record marker | `"MF"` (machine frame) |
 | `0x0345` | 20 | **Firmware build** | `G3-2.SC.72.01` (internal SC build string) |
@@ -117,7 +117,7 @@ of each block (`0x0?FE..0x0?FF`) carry a non-`FF` checksum-like trailer
 ## BMC Luna G3 (legacy BMC loader)
 
 **Sample:** `V:/TestFiles/BMC Luna`
-**Device:** BMC Luna G3 ("G3 B25A"), serial `B3924B02412`, firmware `G3-2.00.77.01`.
+**Device:** BMC Luna G3 ("G3 B25A"), serial `B3924B12345`, firmware `G3-2.00.77.01`.
 **Loader:** `bmc_loader.cpp` + `bmcDataParsing.cpp` (the "legacy" BMC loader).
 G3X loader explicitly defers when `*.USR` is present (`bmcg3x_loader.cpp:27`).
 
@@ -157,7 +157,7 @@ The legacy IDX file is **structurally different from G3X**:
 |---|---|---|---|
 | `0x0000` | 8 | Filler — eight ASCII spaces (`0x20`×8) | (no "BMC G/E/P INDEX" magic) |
 | `0x0020` | 16 | Header bytes | `01 00 00 08 00 02 c8 00 c8 00 …` |
-| `0x0034` | 16 | **Full device ID** (model+serial concatenated) | `B3924B02412` |
+| `0x0034` | 16 | **Full device ID** (model+serial concatenated) | `B3924B12345` |
 | `0x005C` | 4 | Data-file extension reference | `.bpd` (not present on this card; older format extension?) |
 | `0x006F` | 4 | Data-file extension reference | `.000` (current extension actually used) |
 | ≥ `0x80` | … | `0xFF` padding then sparse fixed-stride records | |
@@ -178,7 +178,7 @@ The `.USR` is the **legacy-only sentinel**, not present on G3X cards. Header:
 | Offset | Length | Field | Value on this sample |
 |---|---|---|---|
 | `0x0000` | 4 | Header magic | `53 01 47 83` (`S.G.` — possibly "Settings" sub-format `01`, version `0x8347`) |
-| `0x0034` | 16 | Full device ID | `B3924B02412` (also in IDX) |
+| `0x0034` | 16 | Full device ID | `B3924B12345` (also in IDX) |
 | `0x004D` | 3+ | Firmware string fragment | `G3-` (truncated in first 0x80 bytes — full string in `.log`) |
 | `0x0050+` | … | Packed binary settings, mostly `0xFF`-padded | |
 
@@ -194,7 +194,7 @@ Strings extracted from full USR:
 
 | String | Meaning |
 |---|---|
-| `B3924B02412` | Device ID (repeated) |
+| `B3924B12345` | Device ID (repeated) |
 | `G3-2.00.77.01` | **Firmware version** (analogous to G3X's `G3-2.SC.72.01`) |
 | `24B02412.idx`, `24B02412.evt` | Self-references — the firmware logs its own filenames |
 | `310170403583672` | 15-digit numeric ID (IMEI-shaped — likely cellular modem ID for cloud uploads) |
@@ -216,7 +216,7 @@ When fingerprinting an unknown BMC card, these distinguish the two generations:
 | Cloud endpoint | `data.icodeconnect.com` | `data2.icodeconnect.com` |
 | Product naming | `G3 B25A` (Luna) | `G3 A20` |
 | Firmware version pattern | `G3-2.00.77.01` | `G3-2.SC.72.01` |
-| Filename basename | Last 8 chars of full ID (`24B02412` from `B3924B02412`) | Full serial (`A3125636308`) |
+| Filename basename | Last 8 chars of full ID (`24B02412` from `B3924B12345`) | Full serial (`A3123456789`) |
 
 ### Observations / open questions
 

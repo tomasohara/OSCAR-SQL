@@ -67,6 +67,16 @@ private:
     QList<G3xDayEntry> dayEntries;
     BmcMachineInfo machineInfo;
 
+    /// Waveform offset the leak channel is read from (0x52A or 0x568).  Which field a
+    /// device populates is a property of its firmware, not of any individual night, so
+    /// this is resolved once per device and reused for every day of the import.
+    /// -1 means "not yet resolved".
+    int leakFieldOffsetCache = -1;
+
+    int ResolveLeakFieldOffset();
+
+    bool ApplySetFileSettings(BmcMachineSettings& settings) const;
+
     bool ResolveIdxFile();
     void ParseMachineInfo(const QByteArray& idxBytes);
     void ParseIdxRecords(const QByteArray& idxBytes);

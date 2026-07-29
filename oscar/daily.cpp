@@ -1399,7 +1399,13 @@ QString Daily::getMachineSettings(Day * day) {
         if (sess) for (; it != it_end; ++it) {
             ChannelID code = it.key();
 
-            if ((code <= 1) || (code == RMS9_MaskOnTime) || (code == CPAP_Mode) || (code == cpapmode) || (code == CPAP_SummaryOnly))
+            // OXI_SPO2Drop is not a device setting: calcSPO2Drop() parks the calculated
+            // SpO2 *baseline percentage* in session settings under that key (calcs.cpp).
+            // Rendered here it picked up the flag channel's label and units and displayed
+            // as "SD  96.00 Events/hr" — a percentage shown as an event rate.  The value is
+            // presented properly as "SpO2 Baseline Used" in the Oximeter Information panel.
+            if ((code <= 1) || (code == RMS9_MaskOnTime) || (code == CPAP_Mode) || (code == cpapmode)
+                || (code == CPAP_SummaryOnly) || (code == OXI_SPO2Drop))
                 continue;
 
             schema::Channel & chan = schema::channel[code];

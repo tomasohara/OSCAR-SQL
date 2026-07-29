@@ -10,6 +10,7 @@
 #include <QStringList>
 #include <QMutexLocker>
 #include <QSet>
+#include <algorithm>
 #include <cmath>
 #include <QMessageBox>
 #include "SleepLib/day.h"
@@ -30,7 +31,6 @@ ChannelID BMC_RESLEX_MODE, BMC_RESLEX_PATIENT;
 
 
 const QDate baseDate(2010 , 1, 1);
-static bool bmc_channels_initialized = false;
 
 
 /*
@@ -319,16 +319,29 @@ void BmcLoader::setSessionMachineSettings(BmcDateSession* bmcSession, Session* o
         oscarSession->settings[CPAP_Mode] = (int)CPAPMode::MODE_BILEVEL_AUTO_FIXED_PS;
         oscarSession->settings[CPAP_EPAPLo] = machineSettings.AutoS_MinEPAP;
         oscarSession->settings[CPAP_IPAPHi] = machineSettings.AutoS_MaxIPAP;
-        oscarSession->settings[CPAP_PS] = 0;
+        // AutoS is a *fixed* pressure-support mode, so report the configured PS rather
+        // than a hard-coded zero.  Parsers that cannot recover PS leave it at 0, which
+        // preserves the previous behaviour for them.
+        oscarSession->settings[CPAP_PS] = machineSettings.AutoS_PS;
 
         oscarSession->settings[BMC_SMARTB] = machineSettings.AutoS_SmartB ? 1 : 0;
         oscarSession->settings[BMC_INITIAL_EPAP] = machineSettings.AutoS_InitialEPAP;
-        oscarSession->settings[BMC_MIN_EPAP] = machineSettings.AutoS_MinEPAP;
+        // BMC_MIN_EPAP and BMC_MAX_IPAP are deliberately NOT written here: they carry the
+        // same values as CPAP_EPAPLo / CPAP_IPAPHi above *and* the same labels ("Min EPAP",
+        // "Max IPAP"), so writing both listed each setting twice in Daily's Device Settings.
+        // BMC_MIN_IPAP has no standard-channel equivalent in use here, so it stays.
         oscarSession->settings[BMC_MIN_IPAP] = machineSettings.AutoS_MinIPAP;
-        oscarSession->settings[BMC_MAX_IPAP] = machineSettings.AutoS_MaxIPAP;
-        oscarSession->settings[BMC_ISENS] = machineSettings.AutoS_ISENS;
-        oscarSession->settings[BMC_ESENS] = machineSettings.AutoS_ESENS;
-        oscarSession->settings[BMC_RISE_TIME] = machineSettings.AutoS_RiseTime;
+        // Publish these only when a value was actually recovered.  Zero is the "not known"
+        // sentinel, and none of them has a meaningful zero setting on a real device — a
+        // 0.00 s rise time is not a thing.  The G3X .set parser decodes only the four
+        // pressure fields above, so without this guard an AutoS session displayed
+        // "Rise Time 0.00 s", "I Sens 0" and "E Sens 0" as though they were real settings.
+        if (machineSettings.AutoS_ISENS > 0)
+            oscarSession->settings[BMC_ISENS] = machineSettings.AutoS_ISENS;
+        if (machineSettings.AutoS_ESENS > 0)
+            oscarSession->settings[BMC_ESENS] = machineSettings.AutoS_ESENS;
+        if (machineSettings.AutoS_RiseTime > 0)
+            oscarSession->settings[BMC_RISE_TIME] = machineSettings.AutoS_RiseTime;
     }
 
     //Comfort settings common to all machines
@@ -458,7 +471,22 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
     // G3X: waveform offset 0x380, 50 samples/packet (confirmed correct; 0x24A was tried but noisy).
     auto wMaskPressure = oscarSession->AddEventList(CPAP_MaskPressure, EVL_Waveform, PressureWaveformGain(), 0.0, 0.0, 0.0, waveformSampleIntervalMs);
 
-    EventList* wLeak = ExportLeakRate() ? oscarSession->AddEventList(CPAP_Leak, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000) : nullptr;
+    // A leak reading of zero is a *valid measurement* — it means the mask is sealing
+    // perfectly — so zero samples must be stored like any other.  Dropping them per-sample
+    // (as this code previously did with a "Raw.Leak > 0" test) censors the channel: on the
+    // E5 B25A Plus reference card 66.9% of samples read zero, so every leak statistic was
+    // computed over only the worst third of the night.  That inflated median leak to
+    // 3.7 L/min against PAP-Link's 0.0, and 95th percentile to 12.5 against 3.0.
+    //
+    // What that test was really guarding against is firmware that never populates the leak
+    // field at all, where an all-zero channel would falsely advertise a perfect seal.  Test
+    // that once per session instead, so a genuinely dead field still yields no channel.
+    const bool hasLeakData = std::any_of(
+        bmcSession->Waveforms.cbegin(), bmcSession->Waveforms.cend(),
+        [](const BmcWaveformPacket& packet) { return packet.Raw.Leak > 0; });
+    EventList* wLeak = (ExportLeakRate() && hasLeakData)
+                           ? oscarSession->AddEventList(CPAP_Leak, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000)
+                           : nullptr;
     auto wTidalVolume = oscarSession->AddEventList(CPAP_TidalVolume, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
     auto wMinuteVentilation = oscarSession->AddEventList(CPAP_MinuteVent, EVL_Event, 0.1, 0.0, 0.0, 0.0, 1000);
     auto wRespiratoryRate = oscarSession->AddEventList(CPAP_RespRate, EVL_Event, 1.0, 0.0, 0.0, 0.0, 1000);
@@ -519,7 +547,7 @@ void BmcLoader::setSessionWaveforms(BmcSession* bmcSession, Session* oscarSessio
         rawRrMin = std::min<quint16>(rawRrMin, bmcWaveform.Raw.RespiratoryRate);
         rawRrMax = std::max<quint16>(rawRrMax, bmcWaveform.Raw.RespiratoryRate);
         ++pressureEventCount;
-        if (wLeak && bmcWaveform.Raw.Leak > 0)
+        if (wLeak)
             wLeak->AddEvent(timestamp, bmcWaveform.Raw.Leak);
         if (bmcWaveform.Raw.TidalVolume > 0)
             wTidalVolume->AddEvent(timestamp, bmcWaveform.Raw.TidalVolume);
@@ -642,12 +670,18 @@ MachineInfo BmcLoader::PeekInfo(const QString & path)
 /*
   Base Class Implementation. Create all the settings that will be displayed to the user in "Device Settings"
 */
+// NOTE: deliberately no run-once guard here.  schema::resetChannels() destroys every
+// registered channel via done() and then re-invokes initChannels() on each loader to
+// rebuild them; that happens whenever a profile is created and when the user clicks
+// "reset channel defaults".  A static "already initialised" flag made this function a
+// no-op on that second call, so the BMC channels were deleted and never recreated: for
+// the rest of the session schema::channel had no entry for 0xe930-0xe951, every BMC
+// setting resolved to a null channel with an empty label, and Daily's Device Settings —
+// which keys its list on the channel label — collapsed all of them onto a single blank
+// row.  The profile then persisted the truncated channel list.  No other loader guards
+// initChannels(), and ChannelList::add() already rejects duplicate ids.
 void BmcLoader::initChannels()
 {
-    if (bmc_channels_initialized) {
-        return;
-    }
-
     using namespace schema;
 
     const int BMC_CHANNEL_IDX = 0xe930;
@@ -815,8 +849,6 @@ void BmcLoader::initChannels()
                                              "ReslexAvailability", QObject::tr("Reslex Availability"), QObject::tr("Reslex setting can be restricted to only clinician menu or may be made available for the user to change"), QObject::tr("Reslex Availability"), "", LOOKUP, Qt::green));
     chan->addOption(0, QObject::tr("Clinician"));
     chan->addOption(1, QObject::tr("Patient"));
-
-    bmc_channels_initialized = true;
 }
 
 /*

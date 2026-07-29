@@ -23,6 +23,7 @@
 #include <QFileInfo>
 #include <QFileInfoList>
 #include <QIODevice>
+#include <QRegularExpression>
 #include <QStandardPaths>
 #include <QTextStream>
 #include <QDebug>
@@ -102,8 +103,9 @@ constexpr int kG3xOffsetInspirationTime = 0x074;
 constexpr int kG3xOffsetExpirationTime  = 0x07E;
 
 /// Leak rate (offset 0x52A). Scale: raw × G3xLeakScaleTenthsPerRawUnit() → tenths of L/min.
-/// Confirmed for firmware G3-2.11.x (e.g. JCCPAP/Luna G3X; internal build G3-2.SC.72.01).
-/// Reports unintentional (mask-fit) leak; ~0 for intentional vent.
+/// Confirmed for firmware G3-2.11.x (Luna G3X; internal build G3-2.SC.72.01).  The scale
+/// is platform-dependent — see G3xLeakScaleTenthsPerRawUnit(), which returns a smaller
+/// factor for E5 firmware.  Reports unintentional (mask-fit) leak; ~0 for intentional vent.
 constexpr int kG3xOffsetLeak = 0x52A;
 
 /// Alternate leak rate (offset 0x568). Present in all known firmware versions.
@@ -308,38 +310,63 @@ bool IsReasonablePressureHundredths(int pressureHundredths)
     return pressureHundredths >= 400 && pressureHundredths <= 3500;
 }
 
-/// @brief Returns the leak scale factor: raw units → tenths of L/min.
+/// @brief Default leak scale, in tenths of L/min per raw unit (raw × 0.16 = L/min).
 ///
-/// Applies to both leak field offsets (0x52A and 0x568): the raw value multiplied
-/// by 0.16 gives leak in L/min.  Since OSCAR's CPAP_Leak EventList stores tenths
-/// of L/min and applies a display gain of 0.1, the tenths-per-raw scale is 1.6.
+/// Calibrated against PAP-Link on a Luna G3X (config `110A40113`, firmware G3-2.SC.72.01)
+/// and applied to the whole G3 platform.  OSCAR's CPAP_Leak EventList stores tenths of
+/// L/min and applies a display gain of 0.1, hence 1.6 rather than 0.16.
+constexpr double kG3xLeakScaleDefaultTenths = 1.6;
+
+/// @brief Leak scale for the E5 platform, in tenths of L/min per raw unit
+///        (raw × 0.10 = L/min).
 ///
-/// Override via the OSCAR_BMC_G3X_LEAK_SCALE environment variable (env value
-/// is interpreted as L/min per raw unit; the code multiplies by 10 internally).
-double G3xLeakScaleTenthsPerRawUnit()
+/// The G3-derived 0.16 overstates leak on the E5 by roughly 60%.  Derived from a PAP-Link
+/// readout of an E5 B25A Plus reference card for one night, using the two measures that do
+/// not depend on how the two programs define percentiles or handle mask-off periods:
+///
+///   - Mean leak: PAP-Link 0.70 L/min against a raw mean of 6.881 units → 0.1017.
+///   - A visually stable stretch of graph read ~2 L/min in PAP-Link where OSCAR (at 0.16)
+///     showed ~3.5, i.e. ~21.9 raw units → ~0.091.
+///
+/// Both land on ~0.10.  The same card's 95th percentile implies 0.12 and its maximum
+/// implies 0.051; those two are not usable for calibration because PAP-Link's tail
+/// statistics are evidently not computed the same way OSCAR's are — its reported maximum
+/// (11.2 L/min) is far below the raw peak under *any* single linear scale, which points to
+/// smoothing or mask-off exclusion on PAP-Link's side rather than to a different scale.
+/// Note that a moving average cannot explain the difference in the mean, so the gap is a
+/// scale difference and not smoothing alone.
+///
+/// **Confidence: medium** — one card, one night, one PAP-Link readout.  A second E5 sample
+/// would settle whether 0.10 is exact or merely close.
+constexpr double kG3xLeakScaleE5Tenths = 1.0;
+
+/// @brief Returns the leak scale factor for @p firmwareVersion: raw → tenths of L/min.
+///
+/// Applies to both leak field offsets (0x52A and 0x568).  Override for any device via the
+/// OSCAR_BMC_G3X_LEAK_SCALE environment variable (env value is in L/min per raw unit; the
+/// code multiplies by 10 internally).
+double G3xLeakScaleTenthsPerRawUnit(const QString& firmwareVersion)
 {
-    static bool   initialized = false;
-    static double scale       = 1.6;   // raw × 1.6 = tenths of L/min (i.e. raw × 0.16 = L/min)
-    if (!initialized) {
-        bool ok = false;
-        const QByteArray envValue = qgetenv("OSCAR_BMC_G3X_LEAK_SCALE");
-        const double envScale = envValue.toDouble(&ok);
-        // env var is in L/min per raw unit (e.g. 0.16); convert to tenths for internal use.
-        if (ok && envScale > 0.0 && envScale < 10.0) {
-            scale = envScale * 10.0;
-        }
-        initialized = true;
+    bool ok = false;
+    const QByteArray envValue = qgetenv("OSCAR_BMC_G3X_LEAK_SCALE");
+    const double envScale = envValue.toDouble(&ok);
+    if (ok && envScale > 0.0 && envScale < 10.0) {
+        return envScale * 10.0;
     }
-    return scale;
+    // Platform is the token before the first '-' in the version string ("E5-1.02.05.02").
+    if (firmwareVersion.startsWith(QLatin1String("E5"), Qt::CaseInsensitive)) {
+        return kG3xLeakScaleE5Tenths;
+    }
+    return kG3xLeakScaleDefaultTenths;
 }
 
-/// @brief Converts the raw uint16 value from waveform offset 0x52A to tenths of L/min.
+/// @brief Converts a raw leak field value to tenths of L/min using @p scaleTenthsPerRaw.
 ///
 /// Clamps the result to [0, 5000] (0–500 L/min), which is well above any
 /// clinically observed leak value.
-int ConvertG3xLeakRawToTenths(int rawLeak)
+int ConvertG3xLeakRawToTenths(int rawLeak, double scaleTenthsPerRaw)
 {
-    const double scaledTenths = static_cast<double>(qMax(0, rawLeak)) * G3xLeakScaleTenthsPerRawUnit();
+    const double scaledTenths = static_cast<double>(qMax(0, rawLeak)) * scaleTenthsPerRaw;
     return qBound(0, qRound(scaledTenths), 5000);
 }
 
@@ -1243,6 +1270,9 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 ? BmcMode::AutoCPAP
                 : BmcMode::CPAP;
 
+        // Real settings from the .set file supersede the inference above where available.
+        ApplySetFileSettings(dateSession.MacineSettings);
+
         return dateSession;
     }
     // ---- End EVT-only path — waveform path continues below ----
@@ -1302,83 +1332,13 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
 
     // ---- Phase 3.5: Select which leak offset to use ----
     //
-    // Firmware SC.72 (user version G3-2.11.x) populates 0x52A with unintentional leak.
-    // Firmware SC.74+ (user version G3-2.12.x+) leaves 0x52A at zero and uses 0x568.
-    // Primary selection is by firmware version string; fall back to a packet-sampling
-    // heuristic when the version string is unavailable or unrecognised.
-    //
-    int leakFieldOffset = kG3xOffsetLeak;   // default: 0x52A
-    {
-        const QString& fwVer = dateSession.MachineInfo.FirmwareVersion;
-        bool leakFieldKnown = false;
-        if (fwVer.contains(QLatin1String("G3-2.11.")) ||
-            fwVer.contains(QLatin1String(".SC.72"))) {
-            // SC.72 / G3-2.11.x: unintentional leak at 0x52A.
-            leakFieldOffset = kG3xOffsetLeak;
-            leakFieldKnown  = true;
-        } else if (fwVer.startsWith(QLatin1String("G3-2."))) {
-            // G3-2.12.x+ / SC.74+: total mask leak at 0x568.
-            leakFieldOffset = kG3xOffsetAlternateLeak;
-            leakFieldKnown  = true;
-        }
-
-        if (!leakFieldKnown) {
-            // Firmware version unknown — sample first 200 packets to detect which
-            // field is populated.  If fewer than 10% of packets have non-zero 0x52A,
-            // assume SC.74+ and use 0x568.
-            const int startFileIndexForProbe = static_cast<int>(dayEntry->WaveStartOffset / kG3xWaveformFileSpan);
-            const QString probeFilepath = QString("%1.%2")
-                .arg(fileBasePath)
-                .arg(startFileIndexForProbe, 3, 10, QLatin1Char('0'));
-            QFile probeFile(probeFilepath);
-            if (probeFile.open(QIODevice::ReadOnly)) {
-                const qint64 probeStartRaw   = dayEntry->WaveStartOffset % kG3xWaveformFileSpan;
-                const qint64 probeStartLocal = (probeStartRaw / kG3xWaveformPacketSize) * kG3xWaveformPacketSize;
-                probeFile.seek(std::max<qint64>(0, probeStartLocal));
-
-                int probeTotal = 0;
-                int probeNonZero52A = 0;
-                while (probeTotal < 200) {
-                    const QByteArray probePkt = probeFile.read(kG3xWaveformPacketSize);
-                    if (probePkt.size() < static_cast<int>(kG3xWaveformPacketSize)) {
-                        break;
-                    }
-                    if (static_cast<unsigned char>(probePkt[0]) != 0xAD ||
-                        static_cast<unsigned char>(probePkt[1]) != 0xAA) {
-                        continue;
-                    }
-                    if (ReadUInt16LEPtr(probePkt.constData(), kG3xOffsetLeak) > 0) {
-                        ++probeNonZero52A;
-                    }
-                    ++probeTotal;
-                }
-                probeFile.close();
-
-                if (probeTotal > 0 && probeNonZero52A < probeTotal / 10) {
-                    leakFieldOffset = kG3xOffsetAlternateLeak;
-                }
-
-#ifdef BMCDEBUG
-                qDebug() << "BmcG3xData leak field day" << aDate.toString(Qt::ISODate)
-                         << "selected by probe (firmware version unknown):"
-                         << (leakFieldOffset == kG3xOffsetLeak
-                                 ? "0x52A (unintentional; fw G3-2.11.x)"
-                                 : "0x568 (total mask leak; fw G3-2.12.x+)")
-                         << "probe:" << probeTotal << "packets,"
-                         << probeNonZero52A << "non-zero at 0x52A";
-#endif // BMCDEBUG
-            }
-        }
-#ifdef BMCDEBUG
-        else {
-            qDebug() << "BmcG3xData leak field day" << aDate.toString(Qt::ISODate)
-                     << "selected by firmware version" << fwVer << ":"
-                     << (leakFieldOffset == kG3xOffsetLeak
-                             ? "0x52A (unintentional; fw G3-2.11.x)"
-                             : "0x568 (total mask leak; fw G3-2.12.x+)");
-        }
-#endif // BMCDEBUG
-    }
+    // Resolved once per device (see ResolveLeakFieldOffset) rather than per day: which
+    // field the firmware populates cannot change from one night to the next.
+    const int leakFieldOffset = ResolveLeakFieldOffset();
+    // The raw→L/min scale is platform-dependent: the G3-calibrated 0.16 overstates leak
+    // on the E5 by roughly 60%.  See G3xLeakScaleTenthsPerRawUnit().
+    const double leakScaleTenthsPerRaw =
+        G3xLeakScaleTenthsPerRawUnit(dateSession.MachineInfo.FirmwareVersion);
 
     // ---- Phase 4: Iterate waveform packets ----
 
@@ -1481,7 +1441,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
 
             // Leak: offset selected in Phase 3.5 (0x52A for fw SC.72, 0x568 for fw SC.74+).
             const int rawLeak     = ReadUInt16LEPtr(packetData, leakFieldOffset);
-            const int leakTenths  = ConvertG3xLeakRawToTenths(rawLeak);
+            const int leakTenths  = ConvertG3xLeakRawToTenths(rawLeak, leakScaleTenthsPerRaw);
 
             // Tidal volume (0x52C): raw stored directly; scale factor TBD.
             const int rawTidalVolume = ReadUInt16LEPtr(packetData, kG3xOffsetTidalVolume);
@@ -1680,6 +1640,9 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             ? BmcMode::AutoCPAP
             : BmcMode::CPAP;
 
+    // Real settings from the .set file supersede the inference above where available.
+    ApplySetFileSettings(dateSession.MacineSettings);
+
     // ---- Summary debug output ----
     const auto idxToDouble = [](int x100) -> double {
         return (x100 >= 0) ? (static_cast<double>(x100) / 100.0) : -1.0;
@@ -1704,7 +1667,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                  << "wave_packets"         << dateSession.Waveforms.size()
                  << "out_of_order_packets" << outOfOrderPacketCount
                  << "evt42_updates"        << evtPressureUpdateCount
-                 << "leak_scale"           << G3xLeakScaleTenthsPerRawUnit()
+                 << "leak_scale"           << leakScaleTenthsPerRaw
                  << "raw_ipap_min_halfcm"  << waveformRawIpapMin
                  << "raw_ipap_max_halfcm"  << waveformRawIpapMax
                  << "mode"                 << static_cast<int>(dateSession.MacineSettings.Mode)
@@ -1812,12 +1775,12 @@ bool BmcG3xData::ResolveIdxFile()
 ///   0x0100 (16 bytes) — product name (e.g. "G3 A20"); the human-readable model
 ///   0x0345 (20 bytes) — internal SC firmware build string (e.g. "G3-2.SC.72.01")
 ///
-/// .log file (first 6 KB scanned for null-terminated ASCII string starting with "G3-2."):
-///   User-facing firmware version, e.g. "G3-2.11.02.33", "G3-2.12.54.13", "G3-2.12.55.05".
+/// .log file (first 64 KB scanned for a "<platform>-<major>.<n>.<n>.<n>" version token):
+///   User-facing firmware version, e.g. "G3-2.11.02.33", "G3-2.12.54.13", "E5-1.02.05.02".
 ///   This matches what PAP-Link and the device display report to the user.
 ///   The byte offset varies by device: ~0x0420 in small log files (G3 A20, SC.72/SC.74),
-///   ~0x1420 in larger ring-buffer log files (G3 B20A, SC.75).
-///   Major version 11 = SC.72; major version 12 = SC.74 / SC.75.
+///   ~0x1420 in larger ring-buffer log files (G3 B20A, SC.75), 0x1620 on the E5 B25A Plus.
+///   For the G3 platform, major version 11 = SC.72; major version 12 = SC.74 / SC.75.
 void BmcG3xData::ParseMachineInfo(const QByteArray& idxBytes)
 {
     machineInfo.SerialNumber = ReadAscii(idxBytes, 0x30, 16);
@@ -1828,23 +1791,34 @@ void BmcG3xData::ParseMachineInfo(const QByteArray& idxBytes)
         machineInfo.Model = ReadAscii(idxBytes, 0x48, 16);
     }
 
-    // User-facing firmware version from the .log file (e.g. "G3-2.11.02.33" or "G3-2.12.55.05").
-    // This matches what PAP-Link and the device display report.
-    // The version string is null-terminated ASCII starting with "G3-2.".  Its byte offset
-    // varies by device and log-file size: small log files (G3 A20) have it near 0x0420;
-    // large ring-buffer log files (G3 B20A) have it near 0x1420.  We scan the first 6 KB.
-    // Fall back to the internal SC build string from IDX 0x0345 if the .log is unavailable.
+    // User-facing firmware version from the .log file.  This matches what PAP-Link and
+    // the device display report to the user.
+    //
+    // The version token is a platform prefix ("G3-2." on Luna G3X, "E5-1." on E5 B25A Plus)
+    // followed by dotted numeric fields, e.g. "G3-2.11.02.33", "G3-2.12.55.05",
+    // "E5-1.02.05.02".  Earlier revisions of this function searched for the literal prefix
+    // "G3-2.", so any non-G3 platform found nothing and silently fell through to the IDX
+    // build string below.  Match the general platform pattern instead so new BMC families
+    // report their real firmware version.
+    //
+    // The byte offset varies by device and log-file size: ~0x0420 in small log files
+    // (G3 A20), ~0x1420 in larger ring-buffer log files (G3 B20A), and 0x1620 on the
+    // E5 B25A Plus sample — close enough to the old 6 KB limit to be fragile, so scan
+    // 64 KB.  Verified on the G3 A20 and E5 B25A Plus reference cards: the version token
+    // is the only text in the entire log matching this pattern, so the wider scan cannot
+    // pick up a false positive.
     const QString logFilePath = fileBasePath + ".log";
     QFile logFile(logFilePath);
     if (logFile.open(QIODevice::ReadOnly)) {
-        const QByteArray logData = logFile.read(6144);
+        const QByteArray logData = logFile.read(65536);
         logFile.close();
-        static const QByteArray kLogVersionPrefix("G3-2.");
-        const int pos = logData.indexOf(kLogVersionPrefix);
-        if (pos >= 0) {
-            const int end = logData.indexOf('\0', pos);
-            machineInfo.FirmwareVersion = QString::fromLatin1(
-                logData.mid(pos, end < 0 ? 20 : qMin(end - pos, 20)));
+        // <letter><alphanumeric> '-' <digits> then at least two dot-separated numeric groups.
+        static const QRegularExpression kLogVersionPattern(
+            QStringLiteral("[A-Za-z][A-Za-z0-9]-[0-9]+(?:\\.[0-9]+){2,}"));
+        const QRegularExpressionMatch match =
+            kLogVersionPattern.match(QString::fromLatin1(logData));
+        if (match.hasMatch()) {
+            machineInfo.FirmwareVersion = match.captured(0);
         }
     }
     if (machineInfo.FirmwareVersion.isEmpty()) {
@@ -2054,6 +2028,220 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
 ///
 /// The virtual byte offset spans the entire .00x file series as if they were
 /// one contiguous file.  Returns an invalid QDateTime on any error.
+/// @brief Overlays real device settings read from the `.set` file onto @p settings.
+///
+/// Without this, G3X sessions report *inferred* settings: the mode is assumed to be CPAP or
+/// AutoCPAP based on whether the observed daily pressure range is wide, and "min/max
+/// pressure" are the pressures actually observed rather than the configured limits.  For a
+/// bilevel device that is simply wrong — it reported an AutoS machine as AutoCPAP with a
+/// max pressure of 10.89 cmH2O (an observed value; real BMC settings are always multiples
+/// of 0.5).
+///
+/// File layout (see Notes/loaders/G3X/BMC_G3X_SET_FORMAT.md for the full decode):
+///   - 256-byte blocks tagged by their first two ASCII bytes: "SH" header, "SS" system
+///     settings, "TS" therapy settings (one block per mode).
+///   - `SS` byte 0x1C holds the active therapy mode, matching the BmcMode enum.
+///   - Each `TS` block holds its mode in byte 0x08.  Pressure fields are u16 LE in
+///     hundredths of cmH2O, at mode-specific offsets.
+///   - The file carries two sections: a stale snapshot followed by the live per-mode table.
+///     The **last** `TS` block for the active mode is the current one — verified against
+///     PAP-Link, which matched the last block and not the first.
+///
+/// Only **AutoS** is decoded here.  Its four pressure fields were confirmed against a
+/// PAP-Link readout of the same card (Min EPAP 7.5, Max IPAP 15.0, Initial EPAP 5.5,
+/// PS 3.5, all exact).  The CPAP/AutoCPAP/S field offsets are known but have no
+/// ground-truth confirmation, so those modes deliberately keep the existing inferred
+/// behaviour rather than risk showing confidently wrong clinical settings.
+///
+/// @param settings Populated in place; left untouched unless AutoS settings were decoded.
+/// @return true if @p settings was updated from the `.set` file.
+bool BmcG3xData::ApplySetFileSettings(BmcMachineSettings& settings) const
+{
+    constexpr int kBlockSize          = 256;
+    constexpr int kSsActiveModeOffset = 0x1C;
+    constexpr int kTsModeOffset       = 0x08;
+    // AutoS (mode 6) field offsets within a TS block.
+    constexpr int kAutoSMinEpapOffset     = 0x0E;
+    constexpr int kAutoSMaxIpapOffset     = 0x16;
+    constexpr int kAutoSInitialEpapOffset = 0x18;
+    constexpr int kAutoSRiseTimeMsOffset  = 0x1A;
+    constexpr int kAutoSPsOffset          = 0x2A;
+
+    QFile setFile(fileBasePath + ".set");
+    if (!setFile.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+    const QByteArray setBytes = setFile.readAll();
+    setFile.close();
+    if (setBytes.size() < 2 * kBlockSize) {
+        return false;
+    }
+
+    // Active mode comes from the SS block; fall back to the last TS block's own mode byte
+    // if no SS block is present.  Both agreed on every reference card.
+    int activeMode = -1;
+    for (int offset = 0; offset + kBlockSize <= setBytes.size(); offset += kBlockSize) {
+        if (setBytes.at(offset) == 'S' && setBytes.at(offset + 1) == 'S') {
+            activeMode = static_cast<unsigned char>(setBytes.at(offset + kSsActiveModeOffset));
+            break;
+        }
+    }
+
+    // Locate the last TS block for the active mode (or, if SS was missing, the last TS
+    // block of any mode).
+    int chosenBlock = -1;
+    for (int offset = 0; offset + kBlockSize <= setBytes.size(); offset += kBlockSize) {
+        if (setBytes.at(offset) != 'T' || setBytes.at(offset + 1) != 'S') {
+            continue;
+        }
+        const int blockMode = static_cast<unsigned char>(setBytes.at(offset + kTsModeOffset));
+        if (activeMode < 0) {
+            chosenBlock = offset;
+            activeMode  = blockMode;
+        } else if (blockMode == activeMode) {
+            chosenBlock = offset;
+        }
+    }
+    if (chosenBlock < 0) {
+        return false;
+    }
+
+    if (activeMode != static_cast<int>(BmcMode::AutoS)) {
+        qDebug() << "BmcG3xData: .set active mode" << activeMode
+                 << "is not AutoS; keeping inferred settings";
+        return false;
+    }
+
+    const float minEpap     = ReadUInt16LE(setBytes, chosenBlock + kAutoSMinEpapOffset)     / 100.0f;
+    const float maxIpap     = ReadUInt16LE(setBytes, chosenBlock + kAutoSMaxIpapOffset)     / 100.0f;
+    const float initialEpap = ReadUInt16LE(setBytes, chosenBlock + kAutoSInitialEpapOffset) / 100.0f;
+    const float pressureSup = ReadUInt16LE(setBytes, chosenBlock + kAutoSPsOffset)          / 100.0f;
+
+    // Sanity-check before overriding anything: a corrupt or misread block must not put
+    // nonsense pressures in front of the user.  Fall back to the inferred settings instead.
+    if (minEpap < 4.0f || minEpap > 25.0f || maxIpap < minEpap || maxIpap > 30.0f) {
+        qWarning() << "BmcG3xData: .set AutoS pressures out of range (minEPAP" << minEpap
+                   << "maxIPAP" << maxIpap << ") - keeping inferred settings";
+        return false;
+    }
+
+    // Rise time is stored in milliseconds and is zero for the single-pressure modes, which
+    // have no IPAP/EPAP transition to ramp: across this card's five TS blocks it reads
+    // 0 (CPAP), 0 (AutoCPAP), 200 (S) and 300 (AutoS) — and 300 matches the PAP-Link
+    // readout exactly, being the only such value anywhere in the file.
+    const int riseTimeMs = ReadUInt16LE(setBytes, chosenBlock + kAutoSRiseTimeMsOffset);
+
+    settings.Mode              = BmcMode::AutoS;
+    settings.AutoS_MinEPAP     = minEpap;
+    settings.AutoS_MaxIPAP     = maxIpap;
+    settings.AutoS_InitialEPAP = initialEpap;
+    settings.AutoS_PS          = pressureSup;
+    if (riseTimeMs > 0 && riseTimeMs <= 2000) {
+        settings.AutoS_RiseTime = riseTimeMs / 1000.0f;   // channel unit is seconds
+    }
+    // AutoS holds PS fixed while EPAP floats, so the minimum IPAP is exactly
+    // min EPAP + PS.  Derived rather than read: no confirmed field carries it.
+    settings.AutoS_MinIPAP     = minEpap + pressureSup;
+
+    qDebug() << "BmcG3xData: .set AutoS settings - minEPAP" << minEpap
+             << "maxIPAP" << maxIpap << "initialEPAP" << initialEpap << "PS" << pressureSup;
+    return true;
+}
+
+/// @brief Decides which waveform offset the leak channel is read from, once per device.
+///
+/// Firmware SC.72 (user version G3-2.11.x) populates 0x52A with unintentional leak.
+/// Firmware SC.74+ (user version G3-2.12.x+) leaves 0x52A at zero and uses 0x568.
+/// Selection is by firmware version string where recognised, otherwise by sampling
+/// packets: if fewer than 10% carry a non-zero 0x52A the field is treated as dead and
+/// 0x568 is used instead.
+///
+/// The sampling is deliberately spread over up to @c kProbeDays days and takes far more
+/// packets than the previous implementation, which probed only the first 200 packets of
+/// the day currently being read.  That was both too small a sample and the wrong scope:
+/// on the E5 B25A Plus reference card the non-zero fraction hovers near the 10% threshold
+/// (11.5%–25% on most nights, but 3%–5% on four of nineteen), so the per-day probe
+/// selected a *different* field on those four nights.  Because 0x568 carries a ~15.7 L/min
+/// pressure-independent baseline while 0x52A sits near zero, the leak graph jumped between
+/// two unrelated signals from one night to the next on the same device and mask.
+///
+/// @return kG3xOffsetLeak (0x52A) or kG3xOffsetAlternateLeak (0x568).
+int BmcG3xData::ResolveLeakFieldOffset()
+{
+    if (leakFieldOffsetCache >= 0) {
+        return leakFieldOffsetCache;
+    }
+
+    const QString fwVer = ReadMachineInfo().FirmwareVersion;
+    if (fwVer.contains(QLatin1String("G3-2.11.")) || fwVer.contains(QLatin1String(".SC.72"))) {
+        leakFieldOffsetCache = kG3xOffsetLeak;          // SC.72 / G3-2.11.x
+        qDebug() << "BmcG3xData: leak field 0x52A selected by firmware version" << fwVer;
+        return leakFieldOffsetCache;
+    }
+    if (fwVer.startsWith(QLatin1String("G3-2."))) {
+        leakFieldOffsetCache = kG3xOffsetAlternateLeak; // G3-2.12.x+ / SC.74+
+        qDebug() << "BmcG3xData: leak field 0x568 selected by firmware version" << fwVer;
+        return leakFieldOffsetCache;
+    }
+
+    // Firmware not recognised (e.g. the E5 platform) — sample the data itself.
+    constexpr int kProbeDays            = 5;
+    constexpr int kProbePacketsPerDay   = 2000;
+    int probeTotal      = 0;
+    int probeNonZero52A = 0;
+    int daysProbed      = 0;
+
+    for (const G3xDayEntry& entry : dayEntries) {
+        if (daysProbed >= kProbeDays) {
+            break;
+        }
+        if (entry.WaveLength == 0) {
+            continue;
+        }
+        const int fileIndex = static_cast<int>(entry.WaveStartOffset / kG3xWaveformFileSpan);
+        QFile probeFile(QString("%1.%2").arg(fileBasePath).arg(fileIndex, 3, 10, QLatin1Char('0')));
+        if (!probeFile.open(QIODevice::ReadOnly)) {
+            continue;
+        }
+        const qint64 startRaw   = entry.WaveStartOffset % kG3xWaveformFileSpan;
+        const qint64 startLocal = (startRaw / kG3xWaveformPacketSize) * kG3xWaveformPacketSize;
+        probeFile.seek(std::max<qint64>(0, startLocal));
+
+        int packetsThisDay = 0;
+        while (packetsThisDay < kProbePacketsPerDay) {
+            const QByteArray probePkt = probeFile.read(kG3xWaveformPacketSize);
+            if (probePkt.size() < static_cast<int>(kG3xWaveformPacketSize)) {
+                break;
+            }
+            if (static_cast<unsigned char>(probePkt[0]) != 0xAD ||
+                static_cast<unsigned char>(probePkt[1]) != 0xAA) {
+                continue;
+            }
+            if (ReadUInt16LEPtr(probePkt.constData(), kG3xOffsetLeak) > 0) {
+                ++probeNonZero52A;
+            }
+            ++packetsThisDay;
+            ++probeTotal;
+        }
+        probeFile.close();
+        if (packetsThisDay > 0) {
+            ++daysProbed;
+        }
+    }
+
+    leakFieldOffsetCache = (probeTotal > 0 && probeNonZero52A < probeTotal / 10)
+                               ? kG3xOffsetAlternateLeak
+                               : kG3xOffsetLeak;
+
+    qDebug() << "BmcG3xData: leak field"
+             << (leakFieldOffsetCache == kG3xOffsetLeak ? "0x52A" : "0x568")
+             << "selected by probe (firmware" << fwVer << "not recognised) -"
+             << probeNonZero52A << "of" << probeTotal << "packets non-zero at 0x52A across"
+             << daysProbed << "day(s)";
+
+    return leakFieldOffsetCache;
+}
+
 QDateTime BmcG3xData::ReadWaveformPacketTimestamp(quint32 virtualByteOffset) const
 {
     const QByteArray header = ReadVirtualWaveformBytes(virtualByteOffset, 10);
@@ -2188,10 +2376,19 @@ QString BmcG3xData::ReadAscii(const QByteArray& bytes, int offset, int length)
     }
     const int safeLength = std::min(length, static_cast<int>(bytes.size() - offset));
     QByteArray str = bytes.mid(offset, safeLength);
-    const int nullIndex = str.indexOf('\0');
-    if (nullIndex >= 0) {
-        str.truncate(nullIndex);
+    // BMC pads these fields with either NUL or 0xFF (erased-flash filler).  Truncate at the
+    // first of either: 0xFF is not valid in any of the ASCII fields we read here, and
+    // QString::fromLatin1 would otherwise render it as U+00FF ("ÿ") and append a run of
+    // them to the value — e.g. the IDX build string appearing as "E5-1.SC.00.22.22ÿÿÿ".
+    int endIndex = str.size();
+    for (int i = 0; i < str.size(); ++i) {
+        const unsigned char ch = static_cast<unsigned char>(str.at(i));
+        if (ch == 0x00 || ch == 0xFF) {
+            endIndex = i;
+            break;
+        }
     }
+    str.truncate(endIndex);
     return QString::fromLatin1(str).trimmed();
 }
 

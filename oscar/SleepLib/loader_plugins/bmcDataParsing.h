@@ -227,10 +227,19 @@ public:
     float AutoS_MinEPAP = 0.0f;
     float AutoS_MinIPAP = 0.0f;
     float AutoS_MaxIPAP = 0.0f;
+    /// Fixed pressure support (IPAP − EPAP) in cmH2O.  AutoS is an auto-EPAP mode with
+    /// *fixed* PS, so this is a single value rather than a range.  Zero means "not known"
+    /// — the legacy BMC parser does not currently populate it.
+    float AutoS_PS = 0.0f;
 
     int AutoS_ISENS = 0;
     float AutoS_ESENS = 0.0f;
-    quint8 AutoS_RiseTime = 0;
+    /// Rise time in **seconds** — the unit BMC_RISE_TIME is declared with.  Float because
+    /// the G3X `.set` file stores it in milliseconds at sub-second resolution (e.g. 300 ms
+    /// → 0.3).  Zero means "not known".  Note the legacy IDX parser puts a 1–4 index here
+    /// rather than a duration; that predates this field being decoded properly and is left
+    /// alone, since no reference readout exists to convert it.
+    float AutoS_RiseTime = 0.0f;
 
     bool AutoS_SmartB = false;
 
