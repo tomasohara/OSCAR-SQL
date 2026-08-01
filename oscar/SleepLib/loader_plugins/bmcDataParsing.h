@@ -216,9 +216,13 @@ public:
     float S_InitialEPAP = 0.0f;
     float S_EPAP = 0.0f;
     float S_IPAP = 0.0f;
-    int S_ISENS = 0;
-    float S_ESENS = 0.0f;
-    quint8 S_RiseTime = 0;
+    /// Trigger sensitivities: -1 = not known (do not display), 0 = Auto, 1–7 = Very Low
+    /// through Very High.  Zero is a real value here, so -1 rather than 0 is the "unset"
+    /// sentinel — see BMC_ISENS / BMC_ESENS channel options.
+    int S_ISENS = -1;
+    int S_ESENS = -1;
+    /// Rise time in seconds.  -1 = not known; 0 is a real setting ("Min").
+    float S_RiseTime = -1.0f;
     float S_TiMin = 0.0f;
     float S_TiMax = 0.0f;
     bool S_BackupRR = false;
@@ -232,14 +236,15 @@ public:
     /// — the legacy BMC parser does not currently populate it.
     float AutoS_PS = 0.0f;
 
-    int AutoS_ISENS = 0;
-    float AutoS_ESENS = 0.0f;
+    /// See S_ISENS / S_ESENS: -1 = not known, 0 = Auto, 1–7 = Very Low … Very High.
+    int AutoS_ISENS = -1;
+    int AutoS_ESENS = -1;
     /// Rise time in **seconds** — the unit BMC_RISE_TIME is declared with.  Float because
-    /// the G3X `.set` file stores it in milliseconds at sub-second resolution (e.g. 300 ms
-    /// → 0.3).  Zero means "not known".  Note the legacy IDX parser puts a 1–4 index here
-    /// rather than a duration; that predates this field being decoded properly and is left
-    /// alone, since no reference readout exists to convert it.
-    float AutoS_RiseTime = 0.0f;
+    /// the G3X TS block stores it in milliseconds at sub-second resolution (e.g. 300 ms
+    /// → 0.3).  -1 = not known; 0 is a real setting ("Min").  Note the legacy IDX parser
+    /// puts a 1–4 index here rather than a duration; that predates this field being
+    /// decoded properly and is left alone, since no reference readout exists to convert it.
+    float AutoS_RiseTime = -1.0f;
 
     bool AutoS_SmartB = false;
 
@@ -249,10 +254,19 @@ public:
     bool AutoOn = false;
     bool AutoOff = false;
 
+    /// Pressure response ramp shape: -1 = not known, 1 = Standard, 2 = Soft, 3 = Fast.
+    /// Applies to the auto modes (AutoCPAP, AutoS).
+    int PresResponse = -1;
+
     BmcMode Mode = BmcMode::CPAP;
 
     BmcMaskType MaskType = BmcMaskType::Other;
     BmcAirTubeType AirTubeType = BmcAirTubeType::Unheated22mm;
+    /// False when no air-tube field has been decoded for this device.  The G3X TS block
+    /// layout has no known air-tube offset, and AirTubeType's zero default ("Normal 22mm")
+    /// is a real option — publishing it unconditionally would present a plausible but
+    /// unverified value as though it were read from the device.
+    bool AirTubeTypeKnown = false;
     int HeatedTubeLevel = 0;
 
     BmcMachineSettings();

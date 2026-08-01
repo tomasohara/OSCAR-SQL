@@ -1,6 +1,7 @@
 #ifndef BMCG3XDATAPARSING_H
 #define BMCG3XDATAPARSING_H
 
+#include <QByteArray>
 #include <QDateTime>
 #include <QFile>
 #include <QString>
@@ -57,6 +58,13 @@ private:
 
         int TsPressureMinHundredths = 0;
         int TsPressureMaxHundredths = 0;
+
+        /// Raw 256-byte TS (therapy settings) block from this day's IDX record, captured
+        /// at parse time.  This is the authoritative per-night settings record — it is
+        /// what PAP-Link reports from, and unlike the `.set` file it reflects the settings
+        /// actually in force on this date rather than the device's current configuration.
+        /// Empty when the record carried no TS block.
+        QByteArray TsBlock;
     };
 
     QString dirPath;
@@ -75,6 +83,7 @@ private:
 
     int ResolveLeakFieldOffset();
 
+    static bool DecodeTsBlock(const QByteArray& ts, BmcMachineSettings& settings);
     bool ApplySetFileSettings(BmcMachineSettings& settings) const;
 
     bool ResolveIdxFile();

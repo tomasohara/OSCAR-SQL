@@ -25,7 +25,8 @@ ChannelID BMC_MODE, BMC_RESLEX, BMC_HUMIDIFIER, BMC_SMARTA, BMC_SMARTC, BMC_SMAR
     BMC_INITIALP, BMC_TREATP, BMC_MANUALP,
     BMC_MIN_APAP, BMC_MAX_APAP, BMC_SENSITIVITY,
     BMC_INITIAL_EPAP, BMC_EPAP, BMC_IPAP, BMC_ISENS, BMC_ESENS, BMC_RISE_TIME, BMC_TI_MIN, BMC_TI_MAX, BMC_BACKUP_RR,
-    BMC_MIN_EPAP, BMC_MIN_IPAP, BMC_MAX_IPAP, BMC_SMART_EPAP, BMC_SMART_MIN_EPAP, BMC_SMART_MIN_IPAP, BMC_SMART_MAX_IPAP;
+    BMC_MIN_EPAP, BMC_MIN_IPAP, BMC_MAX_IPAP, BMC_SMART_EPAP, BMC_SMART_MIN_EPAP, BMC_SMART_MIN_IPAP, BMC_SMART_MAX_IPAP,
+    BMC_PRES_RESPONSE;
 
 ChannelID BMC_RESLEX_MODE, BMC_RESLEX_PATIENT;
 
@@ -293,6 +294,8 @@ void BmcLoader::setSessionMachineSettings(BmcDateSession* bmcSession, Session* o
         oscarSession->settings[BMC_MIN_APAP] = machineSettings.APAP_MinAPAP;
         oscarSession->settings[BMC_MAX_APAP] = machineSettings.APAP_MaxAPAP;
         oscarSession->settings[BMC_SENSITIVITY] = machineSettings.APAP_Sensitivity;
+        if (machineSettings.PresResponse > 0)
+            oscarSession->settings[BMC_PRES_RESPONSE] = machineSettings.PresResponse;
 
     }
 
@@ -306,9 +309,13 @@ void BmcLoader::setSessionMachineSettings(BmcDateSession* bmcSession, Session* o
         oscarSession->settings[BMC_INITIAL_EPAP] = machineSettings.S_InitialEPAP;
         oscarSession->settings[BMC_EPAP] = machineSettings.S_EPAP;
         oscarSession->settings[BMC_IPAP] = machineSettings.S_IPAP;
-        oscarSession->settings[BMC_ISENS] = machineSettings.S_ISENS;
-        oscarSession->settings[BMC_ESENS] = machineSettings.S_ESENS;
-        oscarSession->settings[BMC_RISE_TIME] = machineSettings.S_RiseTime;
+        // -1 means the parser recovered no value; 0 is a real setting (Auto / minimum rise).
+        if (machineSettings.S_ISENS >= 0)
+            oscarSession->settings[BMC_ISENS] = machineSettings.S_ISENS;
+        if (machineSettings.S_ESENS >= 0)
+            oscarSession->settings[BMC_ESENS] = machineSettings.S_ESENS;
+        if (machineSettings.S_RiseTime >= 0.0f)
+            oscarSession->settings[BMC_RISE_TIME] = machineSettings.S_RiseTime;
         oscarSession->settings[BMC_TI_MIN] = machineSettings.S_TiMin;
         oscarSession->settings[BMC_TI_MAX] = machineSettings.S_TiMax;
         oscarSession->settings[BMC_BACKUP_RR] = machineSettings.S_BackupRR ? 1 : 0;
@@ -331,17 +338,17 @@ void BmcLoader::setSessionMachineSettings(BmcDateSession* bmcSession, Session* o
         // "Max IPAP"), so writing both listed each setting twice in Daily's Device Settings.
         // BMC_MIN_IPAP has no standard-channel equivalent in use here, so it stays.
         oscarSession->settings[BMC_MIN_IPAP] = machineSettings.AutoS_MinIPAP;
-        // Publish these only when a value was actually recovered.  Zero is the "not known"
-        // sentinel, and none of them has a meaningful zero setting on a real device — a
-        // 0.00 s rise time is not a thing.  The G3X .set parser decodes only the four
-        // pressure fields above, so without this guard an AutoS session displayed
-        // "Rise Time 0.00 s", "I Sens 0" and "E Sens 0" as though they were real settings.
-        if (machineSettings.AutoS_ISENS > 0)
+        // Publish these only when a value was actually recovered.  -1 is the "not known"
+        // sentinel; 0 is a real value (Auto sensitivity, minimum rise time), so the test is
+        // >= 0 rather than > 0.
+        if (machineSettings.AutoS_ISENS >= 0)
             oscarSession->settings[BMC_ISENS] = machineSettings.AutoS_ISENS;
-        if (machineSettings.AutoS_ESENS > 0)
+        if (machineSettings.AutoS_ESENS >= 0)
             oscarSession->settings[BMC_ESENS] = machineSettings.AutoS_ESENS;
-        if (machineSettings.AutoS_RiseTime > 0)
+        if (machineSettings.AutoS_RiseTime >= 0.0f)
             oscarSession->settings[BMC_RISE_TIME] = machineSettings.AutoS_RiseTime;
+        if (machineSettings.PresResponse > 0)
+            oscarSession->settings[BMC_PRES_RESPONSE] = machineSettings.PresResponse;
     }
 
     //Comfort settings common to all machines
@@ -356,11 +363,18 @@ void BmcLoader::setSessionMachineSettings(BmcDateSession* bmcSession, Session* o
     oscarSession->settings[BMC_AUTO_OFF] = machineSettings.AutoOff;
     oscarSession->settings[BMC_HUMIDIFIER] = machineSettings.HumidifierLevel;
     oscarSession->settings[BMC_MASKTYPE] = (int)machineSettings.MaskType;
-    oscarSession->settings[BMC_AIRTUBE_TYPE] = (int)machineSettings.AirTubeType;
     oscarSession->settings[BMC_LEAK_ALERT] = machineSettings.LeakAlert;
 
-    if (machineSettings.AirTubeType == BmcAirTubeType::Heated15mm || machineSettings.AirTubeType == BmcAirTubeType::Heated22mm){
-        oscarSession->settings[BMC_HEATEDTUBE_LEVEL] = machineSettings.HeatedTubeLevel;
+    // Air tube type is only published when the parser actually read one.  No offset for it
+    // is known in the G3X TS block, and the field's default is itself a valid option
+    // ("Normal 22mm") — publishing it regardless showed a guess as though it were a reading
+    // (a device set to 15mm was reported as 22mm).
+    if (machineSettings.AirTubeTypeKnown) {
+        oscarSession->settings[BMC_AIRTUBE_TYPE] = (int)machineSettings.AirTubeType;
+
+        if (machineSettings.AirTubeType == BmcAirTubeType::Heated15mm || machineSettings.AirTubeType == BmcAirTubeType::Heated22mm){
+            oscarSession->settings[BMC_HEATEDTUBE_LEVEL] = machineSettings.HeatedTubeLevel;
+        }
     }
 
     oscarSession->settings[BMC_RESLEX_MODE] = 0;
@@ -815,11 +829,31 @@ void BmcLoader::initChannels()
     channel.add(GRP_CPAP, chan = new Channel(BMC_IPAP = BMC_CHANNEL_IDX + 23, SETTING, MT_CPAP,   SESSION,
                                              "BmcIPAP", QObject::tr("IPAP"), QObject::tr("IPAP"), QObject::tr("IPAP"), STR_UNIT_CMH2O, DOUBLE, Qt::green));
 
+    // Trigger sensitivities are LOOKUP rather than INTEGER so the named levels and the
+    // "Auto" state can be shown.  The legacy IDX parser stores a 1-8 index whose labels are
+    // not confirmed; values with no option registered still render as a bare number, so
+    // legacy devices are unaffected.
     channel.add(GRP_CPAP, chan = new Channel(BMC_ISENS = BMC_CHANNEL_IDX + 24, SETTING, MT_CPAP,   SESSION,
-                                             "ISens", QObject::tr("ISens"), QObject::tr("I Sens"), QObject::tr("I Sens"), "", INTEGER, Qt::green));
+                                             "ISens", QObject::tr("ISens"), QObject::tr("I Sens"), QObject::tr("I Sens"), "", LOOKUP, Qt::green));
+    chan->addOption(0, STR_TR_Auto);
+    chan->addOption(1, QObject::tr("Very Low"));
+    chan->addOption(2, QObject::tr("Low"));
+    chan->addOption(3, QObject::tr("Medium Low"));
+    chan->addOption(4, QObject::tr("Medium"));
+    chan->addOption(5, QObject::tr("Medium High"));
+    chan->addOption(6, QObject::tr("High"));
+    chan->addOption(7, QObject::tr("Very High"));
 
     channel.add(GRP_CPAP, chan = new Channel(BMC_ESENS = BMC_CHANNEL_IDX + 25, SETTING, MT_CPAP,   SESSION,
-                                             "ESens", QObject::tr("ESens"), QObject::tr("E Sens"), QObject::tr("E Sens"), "", INTEGER, Qt::green));
+                                             "ESens", QObject::tr("ESens"), QObject::tr("E Sens"), QObject::tr("E Sens"), "", LOOKUP, Qt::green));
+    chan->addOption(0, STR_TR_Auto);
+    chan->addOption(1, QObject::tr("Very Low"));
+    chan->addOption(2, QObject::tr("Low"));
+    chan->addOption(3, QObject::tr("Medium Low"));
+    chan->addOption(4, QObject::tr("Medium"));
+    chan->addOption(5, QObject::tr("Medium High"));
+    chan->addOption(6, QObject::tr("High"));
+    chan->addOption(7, QObject::tr("Very High"));
 
     channel.add(GRP_CPAP, chan = new Channel(BMC_RISE_TIME = BMC_CHANNEL_IDX + 26, SETTING, MT_CPAP,   SESSION,
                                              "RiseTime", QObject::tr("RiseTime"), QObject::tr("Rise Time"), QObject::tr("Rise Time"), STR_UNIT_Seconds, DOUBLE, Qt::green));
@@ -849,6 +883,12 @@ void BmcLoader::initChannels()
                                              "ReslexAvailability", QObject::tr("Reslex Availability"), QObject::tr("Reslex setting can be restricted to only clinician menu or may be made available for the user to change"), QObject::tr("Reslex Availability"), "", LOOKUP, Qt::green));
     chan->addOption(0, QObject::tr("Clinician"));
     chan->addOption(1, QObject::tr("Patient"));
+
+    channel.add(GRP_CPAP, chan = new Channel(BMC_PRES_RESPONSE = BMC_CHANNEL_IDX + 34, SETTING, MT_CPAP,   SESSION,
+                                             "PresResponse", QObject::tr("Pres. Response"), QObject::tr("Shape of the pressure change the device applies as it adjusts"), QObject::tr("Pres. Response"), "", LOOKUP, Qt::green));
+    chan->addOption(1, QObject::tr("Standard"));
+    chan->addOption(2, QObject::tr("Soft"));
+    chan->addOption(3, QObject::tr("Fast"));
 }
 
 /*

@@ -1270,8 +1270,12 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 ? BmcMode::AutoCPAP
                 : BmcMode::CPAP;
 
-        // Real settings from the .set file supersede the inference above where available.
-        ApplySetFileSettings(dateSession.MacineSettings);
+        // Real settings supersede the inference above.  Prefer this day's own TS block from
+        // the IDX — it records what was in force that night — and fall back to the .set
+        // file (the device's *current* config) only when the record carried no TS block.
+        if (!DecodeTsBlock(dayEntry->TsBlock, dateSession.MacineSettings)) {
+            ApplySetFileSettings(dateSession.MacineSettings);
+        }
 
         return dateSession;
     }
@@ -1640,8 +1644,12 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             ? BmcMode::AutoCPAP
             : BmcMode::CPAP;
 
-    // Real settings from the .set file supersede the inference above where available.
-    ApplySetFileSettings(dateSession.MacineSettings);
+    // Real settings supersede the inference above.  Prefer this day's own TS block from the
+    // IDX — it records what was in force that night — and fall back to the .set file (the
+    // device's *current* config) only when the record carried no TS block.
+    if (!DecodeTsBlock(dayEntry->TsBlock, dateSession.MacineSettings)) {
+        ApplySetFileSettings(dateSession.MacineSettings);
+    }
 
     // ---- Summary debug output ----
     const auto idxToDouble = [](int x100) -> double {
@@ -1985,6 +1993,8 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
             idxBytes.at(tsOffset + 1) == 'S') {
             dayEntry.TsPressureMinHundredths = decodePressureField(ReadUInt16LE(idxBytes, tsOffset + 0x0E));
             dayEntry.TsPressureMaxHundredths = decodePressureField(ReadUInt16LE(idxBytes, tsOffset + 0x10));
+            // Keep the whole block: it is this night's complete settings record.
+            dayEntry.TsBlock = idxBytes.mid(tsOffset, 0x100);
         }
 
         ++idxAccepted;
@@ -2028,44 +2038,161 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
 ///
 /// The virtual byte offset spans the entire .00x file series as if they were
 /// one contiguous file.  Returns an invalid QDateTime on any error.
-/// @brief Overlays real device settings read from the `.set` file onto @p settings.
+/// @brief Decodes a 256-byte BMC "TS" (therapy settings) block into @p settings.
 ///
-/// Without this, G3X sessions report *inferred* settings: the mode is assumed to be CPAP or
-/// AutoCPAP based on whether the observed daily pressure range is wide, and "min/max
-/// pressure" are the pressures actually observed rather than the configured limits.  For a
-/// bilevel device that is simply wrong — it reported an AutoS machine as AutoCPAP with a
-/// max pressure of 10.89 cmH2O (an observed value; real BMC settings are always multiples
-/// of 0.5).
+/// The same block layout appears in two places and this decoder serves both:
+///   - `IDX record + 0x280` — the settings actually in force on that night.  This is what
+///     PAP-Link reports from, and what OSCAR prefers.
+///   - a block in the `.set` file — the device's *current* configuration, used only as a
+///     fallback for days whose IDX record carried no TS block.
 ///
-/// File layout (see Notes/loaders/G3X/BMC_G3X_SET_FORMAT.md for the full decode):
-///   - 256-byte blocks tagged by their first two ASCII bytes: "SH" header, "SS" system
-///     settings, "TS" therapy settings (one block per mode).
-///   - `SS` byte 0x1C holds the active therapy mode, matching the BmcMode enum.
-///   - Each `TS` block holds its mode in byte 0x08.  Pressure fields are u16 LE in
-///     hundredths of cmH2O, at mode-specific offsets.
-///   - The file carries two sections: a stale snapshot followed by the live per-mode table.
-///     The **last** `TS` block for the active mode is the current one — verified against
-///     PAP-Link, which matched the last block and not the first.
+/// Preferring the per-day copy matters as soon as a setting is ever changed: `.set` holds
+/// only today's values, so relying on it relabels every historical night with them.  One
+/// reference card has Min EPAP at 8.5 on its early nights and 7.5 now.
 ///
-/// Only **AutoS** is decoded here.  Its four pressure fields were confirmed against a
-/// PAP-Link readout of the same card (Min EPAP 7.5, Max IPAP 15.0, Initial EPAP 5.5,
-/// PS 3.5, all exact).  The CPAP/AutoCPAP/S field offsets are known but have no
-/// ground-truth confirmation, so those modes deliberately keep the existing inferred
-/// behaviour rather than risk showing confidently wrong clinical settings.
+/// Field map (see Notes/loaders/G3X/BMC_G3X_SET_FORMAT.md).  Contributed by an external
+/// reverse engineer and validated 15/15 against a PAP-Link readout, then re-checked here
+/// against a second card in a different mode.  Pressures are u16 LE, hundredths of cmH2O.
 ///
-/// @param settings Populated in place; left untouched unless AutoS settings were decoded.
-/// @return true if @p settings was updated from the `.set` file.
+///   0x08 mode (0 CPAP, 1 AutoCPAP, 2 S, 6 AutoS)
+///   0x0A Treat P / EPAP        0x0E Min APAP / Min EPAP    0x10 Max APAP
+///   0x12 IPAP                  0x16 Max IPAP               0x18 Initial P / Initial EPAP
+///   0x1A rise time (ms)        0x1E Ti Min (x0.1s)         0x20 Ti Max (x0.1s)
+///   0x2A pressure support      0x30 I Sens                 0x31 E Sens
+///   0x32 pressure response     0x34 backup RR              0x36 Smart C/A/B
+///   0x82 ramp minutes          0x86 Reslex                 0x87 humidifier
+///   0x8A auto flags            0x8C auto on                0x8D auto off
+///   0x8E mask type             0xB3 leak alert
+///
+/// The 0x8A flags byte carries the "Auto" states that have no numeric encoding:
+/// bit0 ramp, bit2 humidifier, bit5 I Sens, bit6 E Sens.
+///
+/// Air tube type is deliberately **not** set: no offset for it is known in this layout, and
+/// BmcMachineSettings::AirTubeType defaults to a value that is itself a real option
+/// ("Normal 22mm"), so publishing it would present a guess as though it were a reading.
+///
+/// @param ts       The 256-byte block; must start with the ASCII tag "TS".
+/// @param settings Populated in place; untouched if the block is rejected.
+/// @return true if @p settings was updated.
+bool BmcG3xData::DecodeTsBlock(const QByteArray& ts, BmcMachineSettings& settings)
+{
+    if (ts.size() < 0x100 || ts.at(0) != 'T' || ts.at(1) != 'S') {
+        return false;
+    }
+
+    const auto u8 = [&ts](int o) {
+        return static_cast<int>(static_cast<unsigned char>(ts.at(o)));
+    };
+    const auto u16 = [&ts](int o) {
+        const unsigned char* p = reinterpret_cast<const unsigned char*>(ts.constData() + o);
+        return static_cast<int>(p[0] | (p[1] << 8));
+    };
+    // Accept a pressure only if it is physiologically plausible; anything else means the
+    // block is not what we think it is, and the inferred values are the safer choice.
+    const auto pressureOk = [](int h) { return h >= 300 && h <= 3500; };
+
+    const int mode  = u8(0x08);
+    const int flags = u8(0x8A);
+    const auto sens = [](int raw, bool isAuto) {
+        return isAuto ? 0 : ((raw >= 1 && raw <= 7) ? raw : -1);
+    };
+    const auto presResp = [&u8]() {
+        return (u8(0x32) >= 1 && u8(0x32) <= 3) ? u8(0x32) : -1;
+    };
+    const auto riseSecs = [&u16]() {
+        return (u16(0x1A) <= 2000) ? u16(0x1A) / 1000.0f : -1.0f;
+    };
+
+    switch (mode) {
+    case static_cast<int>(BmcMode::CPAP):
+        if (!pressureOk(u16(0x0A))) return false;
+        settings.Mode         = BmcMode::CPAP;
+        settings.CPAP_TreatP  = u16(0x0A) / 100.0f;
+        settings.CPAP_ManualP = u16(0x0A) / 100.0f;
+        if (pressureOk(u16(0x18))) settings.CPAP_InitialP = u16(0x18) / 100.0f;
+        settings.CPAP_SmartC  = u8(0x36) != 0;
+        break;
+
+    case static_cast<int>(BmcMode::AutoCPAP):
+        if (!pressureOk(u16(0x0E)) || !pressureOk(u16(0x10)) || u16(0x10) < u16(0x0E)) return false;
+        settings.Mode         = BmcMode::AutoCPAP;
+        settings.APAP_MinAPAP = u16(0x0E) / 100.0f;
+        settings.APAP_MaxAPAP = u16(0x10) / 100.0f;
+        if (pressureOk(u16(0x18))) settings.APAP_IntialP = u16(0x18) / 100.0f;
+        settings.APAP_SmartA  = u8(0x36) != 0;
+        settings.PresResponse = presResp();
+        break;
+
+    case static_cast<int>(BmcMode::S):
+        if (!pressureOk(u16(0x0A)) || !pressureOk(u16(0x12)) || u16(0x12) < u16(0x0A)) return false;
+        settings.Mode       = BmcMode::S;
+        settings.S_EPAP     = u16(0x0A) / 100.0f;
+        settings.S_IPAP     = u16(0x12) / 100.0f;
+        if (pressureOk(u16(0x18))) settings.S_InitialEPAP = u16(0x18) / 100.0f;
+        settings.S_RiseTime = riseSecs();
+        settings.S_ISENS    = sens(u8(0x30), (flags & 0x20) != 0);
+        settings.S_ESENS    = sens(u8(0x31), (flags & 0x40) != 0);
+        settings.S_TiMin    = u8(0x1E) / 10.0f;
+        settings.S_TiMax    = u8(0x20) / 10.0f;
+        settings.S_BackupRR = u8(0x34) != 0;
+        break;
+
+    case static_cast<int>(BmcMode::AutoS):
+        if (!pressureOk(u16(0x0E)) || !pressureOk(u16(0x16)) || u16(0x16) < u16(0x0E)) return false;
+        settings.Mode              = BmcMode::AutoS;
+        settings.AutoS_MinEPAP     = u16(0x0E) / 100.0f;
+        settings.AutoS_MaxIPAP     = u16(0x16) / 100.0f;
+        if (pressureOk(u16(0x18))) settings.AutoS_InitialEPAP = u16(0x18) / 100.0f;
+        settings.AutoS_PS          = u16(0x2A) / 100.0f;
+        // AutoS holds PS fixed while EPAP floats, so minimum IPAP is exactly
+        // min EPAP + PS.  Derived: no confirmed field carries it.
+        settings.AutoS_MinIPAP     = settings.AutoS_MinEPAP + settings.AutoS_PS;
+        settings.AutoS_RiseTime    = riseSecs();
+        settings.AutoS_ISENS       = sens(u8(0x30), (flags & 0x20) != 0);
+        settings.AutoS_ESENS       = sens(u8(0x31), (flags & 0x40) != 0);
+        settings.AutoS_SmartB      = u8(0x36) != 0;
+        settings.PresResponse      = presResp();
+        break;
+
+    default:
+        // ST / T / Titration are not in the confirmed map; leave inferred settings alone.
+        return false;
+    }
+
+    // ---- Comfort settings, common to every mode ----
+    // Ramp: 0xFF is the sentinel bmc_loader.cpp tests for to display "Auto".
+    settings.RampTimeMinutes = (flags & 0x01) ? 0xFF : static_cast<quint8>(u8(0x82));
+    settings.Reslex          = static_cast<quint8>(u8(0x86));
+    // Humidifier option 6 is registered as "Auto" on the BMC_HUMIDIFIER channel.
+    settings.HumidifierLevel = (flags & 0x04) ? 6 : static_cast<quint8>(u8(0x87));
+    settings.AutoOn          = u8(0x8C) != 0;
+    settings.AutoOff         = u8(0x8D) != 0;
+    settings.MaskType        = static_cast<BmcMaskType>(u8(0x8E) <= 3 ? u8(0x8E) : 3);
+    settings.LeakAlert       = u8(0xB3) != 0;
+
+    return true;
+}
+
+/// @brief Overlays device settings from the `.set` file onto @p settings.
+///
+/// Fallback only — ReadDateSession prefers this day's own TS block from the IDX, and uses
+/// this when the IDX record carried no TS block.  The `.set` file holds the device's
+/// *current* configuration, so on a device whose settings have been changed it is wrong for
+/// historical nights; that is why it is second choice.
+///
+/// Layout: 256-byte blocks tagged by their first two ASCII bytes ("SH" header, "SS" system
+/// settings, "TS" therapy settings, one per mode).  `SS` byte 0x1C holds the active mode.
+/// The file carries a stale snapshot followed by the live per-mode table, so the **last**
+/// `TS` block for the active mode is the current one — verified against PAP-Link, which
+/// matched the last block and not the first.
+///
+/// @param settings Populated in place; untouched unless a block was decoded.
+/// @return true if @p settings was updated.
 bool BmcG3xData::ApplySetFileSettings(BmcMachineSettings& settings) const
 {
     constexpr int kBlockSize          = 256;
     constexpr int kSsActiveModeOffset = 0x1C;
     constexpr int kTsModeOffset       = 0x08;
-    // AutoS (mode 6) field offsets within a TS block.
-    constexpr int kAutoSMinEpapOffset     = 0x0E;
-    constexpr int kAutoSMaxIpapOffset     = 0x16;
-    constexpr int kAutoSInitialEpapOffset = 0x18;
-    constexpr int kAutoSRiseTimeMsOffset  = 0x1A;
-    constexpr int kAutoSPsOffset          = 0x2A;
 
     QFile setFile(fileBasePath + ".set");
     if (!setFile.open(QIODevice::ReadOnly)) {
@@ -2106,46 +2233,10 @@ bool BmcG3xData::ApplySetFileSettings(BmcMachineSettings& settings) const
         return false;
     }
 
-    if (activeMode != static_cast<int>(BmcMode::AutoS)) {
-        qDebug() << "BmcG3xData: .set active mode" << activeMode
-                 << "is not AutoS; keeping inferred settings";
-        return false;
-    }
-
-    const float minEpap     = ReadUInt16LE(setBytes, chosenBlock + kAutoSMinEpapOffset)     / 100.0f;
-    const float maxIpap     = ReadUInt16LE(setBytes, chosenBlock + kAutoSMaxIpapOffset)     / 100.0f;
-    const float initialEpap = ReadUInt16LE(setBytes, chosenBlock + kAutoSInitialEpapOffset) / 100.0f;
-    const float pressureSup = ReadUInt16LE(setBytes, chosenBlock + kAutoSPsOffset)          / 100.0f;
-
-    // Sanity-check before overriding anything: a corrupt or misread block must not put
-    // nonsense pressures in front of the user.  Fall back to the inferred settings instead.
-    if (minEpap < 4.0f || minEpap > 25.0f || maxIpap < minEpap || maxIpap > 30.0f) {
-        qWarning() << "BmcG3xData: .set AutoS pressures out of range (minEPAP" << minEpap
-                   << "maxIPAP" << maxIpap << ") - keeping inferred settings";
-        return false;
-    }
-
-    // Rise time is stored in milliseconds and is zero for the single-pressure modes, which
-    // have no IPAP/EPAP transition to ramp: across this card's five TS blocks it reads
-    // 0 (CPAP), 0 (AutoCPAP), 200 (S) and 300 (AutoS) — and 300 matches the PAP-Link
-    // readout exactly, being the only such value anywhere in the file.
-    const int riseTimeMs = ReadUInt16LE(setBytes, chosenBlock + kAutoSRiseTimeMsOffset);
-
-    settings.Mode              = BmcMode::AutoS;
-    settings.AutoS_MinEPAP     = minEpap;
-    settings.AutoS_MaxIPAP     = maxIpap;
-    settings.AutoS_InitialEPAP = initialEpap;
-    settings.AutoS_PS          = pressureSup;
-    if (riseTimeMs > 0 && riseTimeMs <= 2000) {
-        settings.AutoS_RiseTime = riseTimeMs / 1000.0f;   // channel unit is seconds
-    }
-    // AutoS holds PS fixed while EPAP floats, so the minimum IPAP is exactly
-    // min EPAP + PS.  Derived rather than read: no confirmed field carries it.
-    settings.AutoS_MinIPAP     = minEpap + pressureSup;
-
-    qDebug() << "BmcG3xData: .set AutoS settings - minEPAP" << minEpap
-             << "maxIPAP" << maxIpap << "initialEPAP" << initialEpap << "PS" << pressureSup;
-    return true;
+    const bool decoded = DecodeTsBlock(setBytes.mid(chosenBlock, kBlockSize), settings);
+    qDebug() << "BmcG3xData: .set fallback settings, active mode" << activeMode
+             << (decoded ? "- decoded" : "- rejected, keeping inferred settings");
+    return decoded;
 }
 
 /// @brief Decides which waveform offset the leak channel is read from, once per device.

@@ -371,6 +371,7 @@ BmcMachineSettings::BmcMachineSettings(QDataStream* strm) : BmcMachineSettings()
 
     *strm >> b; //162
     this->AirTubeType = (BmcAirTubeType)b;
+    this->AirTubeTypeKnown = true;   // legacy IDX carries a real air-tube field here
 
     *strm >> b; //163
 

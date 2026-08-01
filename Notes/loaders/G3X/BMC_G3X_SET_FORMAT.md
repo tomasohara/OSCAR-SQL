@@ -1,15 +1,54 @@
 # BMC G3X `.set` File Format — Device Settings
 
 **Date:** 2026-07-28
-**Status:** Decoded and cross-validated. **AutoS is implemented** in
-`BmcG3xData::ApplySetFileSettings()` (2026-07-29). CPAP / AutoCPAP / S remain decoded but
-unimplemented — they have no ground-truth confirmation, so those modes keep the existing
-inferred behaviour.
+**Status:** Decoded, cross-validated, and **fully implemented** (2026-08-01) in
+`BmcG3xData::DecodeTsBlock()` for all four modes plus the comfort settings, reading the
+**per-day TS block from the IDX** in preference to `.set`. Air tube type remains the only
+undecoded field and is suppressed rather than guessed.
 **Reference cards:**
 - **E5 B25A Plus** reference card — firmware `E5-1.02.05.02`, `.set` is 2048 B
 - **G3 A20** reference card — firmware `G3-2.12.54.13`, `.set` is 1536 B
 
 ---
+
+## The settings are duplicated per-night inside the IDX
+
+**The `.set` file is not the only copy.** Every populated IDX day record (0x800 bytes,
+starting at IDX offset 0x800) contains five tagged 256-byte sub-blocks:
+
+| Record offset | Tag | Content |
+|---|---|---|
+| 0x080 | `IT` | daily statistics (AHI, event counts, pressures) |
+| **0x180** | **`SS`** | **system settings — byte-identical to the `.set` SS block** |
+| 0x280 | `TS` | per-day therapy values |
+| 0x380 | `UH` | not decoded |
+| 0x480 | `UP` | not decoded |
+
+On the reference card the IDX `SS` block matches the `.set` `SS` block **256 bytes out of
+256, on all 19 nights**. The same additive checksum applies (95 of 95 sub-blocks verified).
+
+Two consequences:
+
+1. **Any write-back experiment must patch both files.** Editing only `.set` leaves an
+   untouched copy of the same settings in the IDX — which is why a first round of
+   single-byte `.set` probes produced no change in PAP-Link on any of seven bytes.
+2. **The per-day copy is the more correct source for OSCAR.** `.set` holds the device's
+   *current* configuration, so applying it to historical nights is wrong the moment a
+   setting is changed — every past night would be relabelled with today's values. The IDX
+   carries what was actually in effect each night. `ApplySetFileSettings()` currently reads
+   `.set`; switching it to the per-day IDX `SS`/`TS` blocks (falling back to `.set`) would
+   fix that. Not yet done — no card in hand has a mid-history settings change to verify
+   against, and on this card the two agree exactly.
+
+The IDX `TS` block uses the **same field layout** as the `.set` `TS` block. Its values vary
+night to night (e.g. offset 0x0E takes 750/800/850 across this card's nights where `.set`
+holds a single 750) simply because the settings were genuinely changed over time — `.set`
+holds only the current values, the IDX holds what was in force on each night.
+
+> An earlier revision of this note claimed the IDX `TS` block was "not simply a copy" and
+> that the `.set` field map should not be assumed to apply. That was wrong, and was based
+> only on seeing the values differ. Corrected 2026-08-01 against an external decode
+> validated 15/15 against PAP-Link.
 
 ## Why this matters
 
@@ -50,6 +89,28 @@ by their first two ASCII bytes.
 | `SH` | Settings header — timestamp of last change + change counter |
 | `SS` | System settings (non-therapy: mask, tube, ramp, auto on/off, …) |
 | `TS` | Therapy settings for **one** mode |
+
+### Block checksum (offset 0xFE, u16 LE)
+
+The last two bytes of every block are a **little-endian uint16 sum of bytes 0x00–0xFD**
+of that block — a plain additive checksum, not a CRC.
+
+```python
+checksum = sum(block[0:254]) & 0xFFFF      # stored LE at block[254:256]
+```
+
+Confirmed on **all 14 blocks across both reference cards**, with no exceptions, and by a
+round-trip test: recomputing every checksum over unmodified data reproduces the original
+file byte-for-byte.
+
+This is what makes controlled write-back experiments possible — a byte can be changed and
+the block re-checksummed so the file stays internally consistent (see "What would settle
+it" below).
+
+It also explains an oddity noted earlier: the stale and live AutoS blocks differ in content
+yet carry the same trailer. Their byte sums simply happen to be equal, which an additive
+checksum cannot distinguish. Treat the trailer as an integrity check only — never as a
+block identity.
 
 Observed block sequences:
 
@@ -164,6 +225,74 @@ milliseconds. Two independent checks:
 
 ---
 
+## CONFIRMED FIELD MAP — supersedes the speculation further down
+
+Contributed by an external reverse engineer (2026-08-01) with a Python reference decoder,
+and **validated 15/15 against a PAP-Link readout** of the reference card, including every
+field this note previously listed as unidentified. Independently re-validated here against
+a second card (G3 A20, AutoCPAP) where it also produces self-consistent values matching
+that card's own `.set` block.
+
+All offsets are within a `TS` block — either the per-day copy at IDX `record+0x280` or a
+block in `.set`. Both use this same layout.
+
+### Comfort — present in every mode
+
+| Offset | Size | Field | Encoding |
+|---|---|---|---|
+| 0x82 | u8 | Ramp Time | minutes; `0`=Off; **Auto if `flags & 0x01`** |
+| 0x86 | u8 | Reslex | `0`=Off, else 1–3 |
+| 0x87 | u8 | Humidifier | `0`=Off, else 1–5; **Auto if `flags & 0x04`** |
+| **0x8A** | u8 | **Flags** | bit0 Ramp=Auto, bit2 Humidifier=Auto, bit5 I Sens=Auto, bit6 E Sens=Auto |
+| 0x8C | u8 | Auto On | `0`=Off, `1`=On |
+| 0x8D | u8 | Auto Off | `0`=Off, `1`=On |
+| 0x8E | u8 | Mask Type | `0`=Full Face, `1`=Nasal, `2`=Nasal Pillows, `3`=Other |
+| 0xB3 | u8 | Leak Alert | `0`=Off, `1`=On |
+
+### Mode (0x08)
+
+`0`=CPAP, `1`=AutoCPAP, `2`=S, `6`=AutoS. Matches OSCAR's existing `BmcMode` enum.
+
+### Per-mode therapy fields
+
+All pressures are u16 LE in hundredths of cmH₂O.
+
+| Field | Offset | CPAP | AutoCPAP | S | AutoS |
+|---|---|:-:|:-:|:-:|:-:|
+| Treat P / EPAP | 0x0A | ✓ | | ✓ | |
+| Min APAP / Min EPAP | 0x0E | | ✓ | | ✓ |
+| Max APAP | 0x10 | | ✓ | | |
+| IPAP | 0x12 | | | ✓ | |
+| Max IPAP | 0x16 | | | | ✓ |
+| Initial P / Initial EPAP | 0x18 | ✓ | ✓ | ✓ | ✓ |
+| Rise Time (u16, **ms**) | 0x1A | | | ✓ | ✓ |
+| Ti Min (u8, ×0.1 s) | 0x1E | | | ✓ | |
+| Ti Max (u8, ×0.1 s) | 0x20 | | | ✓ | |
+| Pressure Support | 0x2A | | | | ✓ |
+| I Sens (u8) | 0x30 | | | ✓ | ✓ |
+| E Sens (u8) | 0x31 | | | ✓ | ✓ |
+| Pres. Response (u8) | 0x32 | | ✓ | | ✓ |
+| Backup RR (u8) | 0x34 | | | ✓ | |
+| Smart C/A/B (u8) | 0x36 | ✓ | ✓ | | ✓ |
+
+- **I Sens / E Sens:** `7`=Very High, `6`=High, `5`=Medium High, `4`=Medium,
+  `3`=Medium Low, `2`=Low, `1`=Very Low. Auto per the flags byte.
+- **Pres. Response:** `1`=Standard, `2`=Soft, `3`=Fast.
+- **Smart:** `0`=Off, `1`=On — same offset, named per mode (SmartC / SmartA / SmartB).
+
+### Still unknown
+
+**Air Tube Type.** PAP-Link reports 15 mm for the reference card; no offset for it appears
+in the contributed decode, and OSCAR currently shows the zero-default "Normal 22mm", which
+is wrong. Better to suppress the channel than publish a wrong default until it is found.
+
+### What this corrects
+
+The `SS`-block candidate hunt recorded below was a dead end — Auto On, Auto Off, Ramp and
+Mask all live in the **`TS`** block, not `SS`. That is why a round of single-byte `SS`
+probes produced no change in PAP-Link on any of seven bytes. The `0x30`–`0x32` triple was
+correctly located but mis-assigned: the correct order is I Sens, E Sens, Pres. Response.
+
 ## `SS` block — system settings
 
 Only one field is confidently identified:
@@ -251,11 +380,33 @@ mapping is **not** established. Recorded as a lead, not a decode.
 
 ### What would settle it
 
-Two captures of the **same** card with exactly **one** setting changed between them. Each
-such pair pins one byte outright. The card already contains a natural before/after pair for
-the `TS` block — the stale AutoS snapshot at 0x200 versus the live one at 0x700 — which is
-how the 0x30–0x32 triple was spotted; but both `SS` copies are byte-identical, so `SS`
-needs a fresh capture.
+Two readings of the **same** card differing in exactly **one** setting. Each such pair pins
+one byte outright.
+
+The obvious route — ask the device owner to change a setting and re-export — is slow and
+depends on someone else. **The faster route is to run the experiment backwards:** edit a
+byte in a copy of the `.set` file, fix that block's checksum (above), open the result in
+PAP-Link, and see which displayed setting moved. That makes the byte the independent
+variable and needs no device access at all.
+
+For this to be sound, each probe file must change exactly one candidate byte and leave
+every already-decoded field intact, so any observed change is unambiguously attributable.
+Worth checking per probe: the active-mode byte still selects the same `TS` block, and the
+five confirmed AutoS values are unchanged.
+
+Two practical points:
+
+- The two `SS` copies (0x100 and 0x300) are byte-identical and it is not known which one is
+  authoritative, so a probe should change **both** — otherwise a null result is ambiguous
+  between "wrong byte" and "wrong copy".
+- For `TS`, change only the **live** block for the active mode. The stale snapshot is a
+  useful control: if editing it changed the display, the block-selection rule would be
+  wrong.
+
+Note that four of the target settings (Auto On, Auto Off, air tube 15 mm, mask Nasal) all
+encode to `1` on the reference card, which is exactly why passive comparison stalled — but
+they map to four *differently named* fields in PAP-Link, so a one-byte-at-a-time probe
+attributes them cleanly.
 
 ---
 

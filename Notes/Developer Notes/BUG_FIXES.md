@@ -4,6 +4,66 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-01 — BMC G3X device settings now read per-night from the IDX, all modes decoded
+
+**Files:** `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp` / `.h`
+(new `BmcG3xData::DecodeTsBlock()`), `oscar/SleepLib/loader_plugins/bmcDataParsing.h` / `.cpp`,
+`oscar/SleepLib/loader_plugins/bmc_loader.cpp`
+
+**Background:** the 2026-07-29 work decoded four AutoS pressure fields from the `.set` file.
+An external contributor then supplied a complete field map with a reference decoder,
+**validated 15/15 against a PAP-Link readout** — including every field previously listed as
+unidentified. Re-validated here against a second card in a different mode.
+
+### Two corrections to the previous understanding
+
+1. **The comfort settings are in the `TS` block, not `SS`.** Ramp Time (0x82), Reslex (0x86),
+   Humidifier (0x87), Auto On (0x8C), Auto Off (0x8D), Mask Type (0x8E) and Leak Alert
+   (0xB3) all live in `TS`. A flags byte at **0x8A** carries the "Auto" states that have no
+   numeric encoding (bit0 ramp, bit2 humidifier, bit5 I Sens, bit6 E Sens) — which is why
+   Ramp reads "Auto" and no `0xFF` sentinel could be found. An earlier round of single-byte
+   `SS` probes therefore produced no change on any of seven bytes; those candidates were all
+   red herrings.
+2. **The IDX per-day `TS` block uses the same layout as the `.set` `TS` block.** A previous
+   note claimed otherwise, inferring a different format purely from the values differing
+   night to night. They differ because the settings genuinely changed over time.
+
+Also corrected: the `0x30`–`0x32` triple was correctly located but mis-assigned. The order
+is I Sens (0x30), E Sens (0x31), Pres. Response (0x32).
+
+### Change
+
+Settings now come from **this night's own `TS` block at IDX `record+0x280`**, with `.set` as
+a fallback for days whose record carries no such block. `.set` holds only the device's
+*current* configuration, so using it relabels every historical night with today's values.
+That is not hypothetical: the bilevel reference card records **13 settings changes across 19
+nights**, and a G3 A20 card changed *mode* (AutoCPAP → CPAP → AutoCPAP) mid-history — which
+`.set` alone would have hidden entirely.
+
+All four modes are decoded (CPAP, AutoCPAP, S, AutoS) plus the shared comfort settings.
+A single `DecodeTsBlock()` serves both sources since the layout is identical. Each mode
+range-checks its pressures and falls back to the previous inferred behaviour on rejection;
+verified that all 19 and all 172 nights of the two reference cards decode without rejection.
+
+**Applies to all G3X devices**, not just the E5 — the format is shared, confirmed on both
+reference cards.
+
+**Supporting changes:**
+
+- New `Pres. Response` channel (`BMC_CHANNEL_IDX + 34`): Standard / Soft / Fast.
+- `BMC_ISENS` / `BMC_ESENS` converted from INTEGER to LOOKUP so the named levels
+  (Very Low … Very High) and "Auto" display properly. Values with no registered option
+  still render as a bare number, so the legacy loader's 1–8 index is unaffected.
+- Sensitivity and rise-time fields now use **-1** as the "not known" sentinel rather than 0,
+  because 0 is a real value for both (Auto sensitivity, minimum rise time). Guards changed
+  from `> 0` to `>= 0` accordingly.
+- **Air tube type is now suppressed unless actually decoded** (new `AirTubeTypeKnown` flag,
+  set by the legacy IDX parser only). No offset for it is known in the G3X `TS` layout, and
+  the field's zero default is itself a valid option ("Normal 22mm") — so it was reporting a
+  device set to 15 mm as 22 mm. The legacy BMC loader still publishes it as before.
+
+---
+
 ## 2026-07-29 — BMC E5 B25A Plus registered as a tested device (no longer warns on import)
 
 **File:** `oscar/SleepLib/loader_plugins/bmcg3x_loader.cpp` (`Open()`)
