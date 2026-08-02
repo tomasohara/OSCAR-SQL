@@ -14,13 +14,23 @@ A contributor located it at **TS offset 0x8F** by changing the setting on the de
 powering it off and capturing the IDX.
 
 The byte uses the same encoding as `BmcAirTubeType` and as the legacy BMC IDX field
-(`0` = Unheated 22mm, `1` = Unheated 15mm, `2` = Heated 22mm, `3` = Heated 15mm), so it maps
+(`0` = Unheated 19mm, `1` = Unheated 15mm, `2` = Heated 19mm, `3` = Heated 15mm), so it maps
 across directly and the channel needs no new options.
 
-**Value 1 is confirmed** — the reference card carries it on all 19 nights and PAP-Link
-reports "15mm normal" for every one. This is also the direct cause of the original defect:
-the field was never read, so `AirTubeType` kept its zero default and a 15 mm card was
-reported as 22 mm.
+**Values 1 and 2 are confirmed** — a bilevel reference card carries `1` on all 19 nights and
+PAP-Link reports "15mm normal" for every one, and the heated label for `2` was checked
+against a heated G3. Value 1 is also the direct cause of the original defect: the field was
+never read, so `AirTubeType` kept its zero default and a slim-hose card was reported as the
+standard one. Value `0` is the only remaining unheated option (a G3 A20 card carries it on
+12 of its 172 nights); value `3` has not been seen on any card yet.
+
+**Follow-up the same day (commit 5d0ac0a3):** the sizes were relabelled from 22mm to 19mm.
+BMC states 19mm — inner diameter — in its settings screen and manuals; 22mm describes the
+end connector, which nearly all CPAP tubing shares. OSCAR's rule is to report what the
+device reports, so only the BMC channel changed: `PRS1_HoseDiam` keeps its 22mm labels
+because that is what Philips reports, and ResMed ignores the field entirely. The
+`BmcAirTubeType` enumerators were renamed to match. See GitLab #256, and #257 for why a
+code-side option relabel only reaches existing databases once a new profile is created.
 
 *Caution recorded for future work:* the BMC device UI labels the 22 mm tube "19 mm" — inner
 diameter rather than outer, for the same physical tube. A contributor note taken from the

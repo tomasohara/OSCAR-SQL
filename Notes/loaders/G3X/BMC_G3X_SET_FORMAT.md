@@ -298,14 +298,16 @@ settings screen and in its manuals; other vendors call the same physical tube 22
 its end connectors. OSCAR's rule is to report what the device reports, so BMC channels say
 19 mm while e.g. `PRS1_HoseDiam` says 22 mm — see GitLab #256.
 
-**Value 1 is confirmed:** the reference card carries it on every one of its 19 nights and
-PAP-Link reports "15mm normal" for all of them. That also explains the original defect —
-the field was not being read at all, so `AirTubeType` kept its zero default and the card was
-reported as 22 mm.
+**Values 1 and 2 are confirmed.** A bilevel reference card carries `1` on every one of its
+19 nights and PAP-Link reports "15mm normal" for all of them; the heated label for `2` was
+checked against a heated G3. Value 1 also explains the original defect — the field was not
+being read at all, so `AirTubeType` kept its zero default and a slim-hose card was reported
+as the standard one.
 
-Values 2 and 3 are inherited from the legacy encoding rather than confirmed here. A G3 A20
-reference card reports `2` on 160 of its 172 nights, consistent with the heated tubing that
-model supports, and `0` on the other 12.
+Value `0` is not directly confirmed but is the only remaining unheated option, and a G3 A20
+reference card carries it on 12 of its 172 nights (`2` on the other 160).
+
+Value `3` has not been observed on any card yet; it is inherited from the legacy encoding.
 
 > **Watch the device's own labels.** The BMC UI calls the 22 mm tube "19 mm" — inner
 > diameter rather than outer — for what is the same physical tube. A contributor note

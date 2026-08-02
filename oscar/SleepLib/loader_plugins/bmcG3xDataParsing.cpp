@@ -2175,10 +2175,11 @@ bool BmcG3xData::DecodeTsBlock(const QByteArray& ts, BmcMachineSettings& setting
     //
     //   0 = Unheated 19mm   1 = Unheated 15mm   2 = Heated 19mm   3 = Heated 15mm
     //
-    // Value 1 is confirmed: the reference card carries it on every night and PAP-Link
-    // reports "15mm normal" for all of them.  That also accounts for the original defect —
-    // this field was not being read at all, so AirTubeType kept its zero default and the
-    // card was reported as the standard hose rather than the slim one.
+    // Values 1 and 2 are confirmed: a bilevel reference card carries 1 on every night and
+    // PAP-Link reports "15mm normal" for all of them, and the heated label for 2 was checked
+    // against a heated G3.  Value 1 also accounts for the original defect — this field was
+    // not being read at all, so AirTubeType kept its zero default and a slim-hose card was
+    // reported as the standard one.  Value 3 has not been seen on any card yet.
     //
     // Sizes are BMC's own: it calls the standard hose 19mm (inner diameter) where other
     // vendors call the same physical tube 22mm (its end connectors).  OSCAR reports what
@@ -2186,9 +2187,8 @@ bool BmcG3xData::DecodeTsBlock(const QByteArray& ts, BmcMachineSettings& setting
     // lists 15mm as 0 and 19mm as 1, the opposite of what the data shows, so the two values
     // appear transposed there; PAP-Link agreeing with the card on all 19 nights settles it.
     //
-    // Values 2 and 3 are inherited from the legacy encoding rather than confirmed here; a
-    // G3 A20 reference card reports 2 on most of its nights, which is consistent with the
-    // heated tubing that model supports.
+    // Value 0 is not directly confirmed but is the only remaining unheated option, and a
+    // G3 A20 reference card carries it on 12 of its 172 nights (2 on the other 160).
     const int rawTube = u8(0x8F);
     if (rawTube >= 0 && rawTube <= 3) {
         settings.AirTubeType      = static_cast<BmcAirTubeType>(rawTube);
