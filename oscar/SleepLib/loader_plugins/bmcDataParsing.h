@@ -177,11 +177,15 @@ enum class BmcMaskType
     Other
 };
 
+/// Air tube sizes as BMC names them: the standard hose is "19mm" on the device's own
+/// settings screen and in its manuals (inner diameter), even though it carries the same
+/// 22mm end connectors as everyone else's and other vendors call it 22mm.  OSCAR reports
+/// what the device reports — see GitLab #256.
 enum class BmcAirTubeType
 {
-    Unheated22mm = 0,
+    Unheated19mm = 0,
     Unheated15mm,
-    Heated22mm,
+    Heated19mm,
     Heated15mm
 };
 
@@ -261,9 +265,9 @@ public:
     BmcMode Mode = BmcMode::CPAP;
 
     BmcMaskType MaskType = BmcMaskType::Other;
-    BmcAirTubeType AirTubeType = BmcAirTubeType::Unheated22mm;
+    BmcAirTubeType AirTubeType = BmcAirTubeType::Unheated19mm;
     /// False when no air-tube field has been decoded for this device.  The G3X TS block
-    /// layout has no known air-tube offset, and AirTubeType's zero default ("Normal 22mm")
+    /// layout has no known air-tube offset, and AirTubeType's zero default ("Normal 19mm")
     /// is a real option — publishing it unconditionally would present a plausible but
     /// unverified value as though it were read from the device.
     bool AirTubeTypeKnown = false;

@@ -2069,7 +2069,7 @@ void BmcG3xData::ParseIdxRecords(const QByteArray& idxBytes)
 ///
 /// Air tube type is deliberately **not** set: no offset for it is known in this layout, and
 /// BmcMachineSettings::AirTubeType defaults to a value that is itself a real option
-/// ("Normal 22mm"), so publishing it would present a guess as though it were a reading.
+/// ("Normal 19mm"), so publishing it would present a guess as though it were a reading.
 ///
 /// @param ts       The 256-byte block; must start with the ASCII tag "TS".
 /// @param settings Populated in place; untouched if the block is rejected.
@@ -2173,18 +2173,18 @@ bool BmcG3xData::DecodeTsBlock(const QByteArray& ts, BmcMachineSettings& setting
     // Air tube type (0x8F).  The byte uses the same encoding as BmcAirTubeType and as the
     // legacy BMC IDX field, so it maps across directly:
     //
-    //   0 = Unheated 22mm   1 = Unheated 15mm   2 = Heated 22mm   3 = Heated 15mm
+    //   0 = Unheated 19mm   1 = Unheated 15mm   2 = Heated 19mm   3 = Heated 15mm
     //
     // Value 1 is confirmed: the reference card carries it on every night and PAP-Link
     // reports "15mm normal" for all of them.  That also accounts for the original defect —
     // this field was not being read at all, so AirTubeType kept its zero default and the
-    // card was reported as 22mm.
+    // card was reported as the standard hose rather than the slim one.
     //
-    // Beware the device's own UI labels the 22mm tube "19mm" (inner diameter rather than
-    // outer), which is the same physical tube.  A contributor's note derived from changing
-    // the setting on the device lists 15mm as 0 and 19mm as 1 — the opposite of what the
-    // data shows, so the two values appear to be transposed there.  PAP-Link agreeing with
-    // the card on all 19 nights is the stronger evidence.
+    // Sizes are BMC's own: it calls the standard hose 19mm (inner diameter) where other
+    // vendors call the same physical tube 22mm (its end connectors).  OSCAR reports what
+    // the device reports — see GitLab #256.  A contributor's note taken from the device UI
+    // lists 15mm as 0 and 19mm as 1, the opposite of what the data shows, so the two values
+    // appear transposed there; PAP-Link agreeing with the card on all 19 nights settles it.
     //
     // Values 2 and 3 are inherited from the legacy encoding rather than confirmed here; a
     // G3 A20 reference card reports 2 on most of its nights, which is consistent with the

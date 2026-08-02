@@ -367,12 +367,12 @@ void BmcLoader::setSessionMachineSettings(BmcDateSession* bmcSession, Session* o
 
     // Air tube type is only published when the parser actually read one.  No offset for it
     // is known in the G3X TS block, and the field's default is itself a valid option
-    // ("Normal 22mm") — publishing it regardless showed a guess as though it were a reading
-    // (a device set to 15mm was reported as 22mm).
+    // ("Normal 19mm") — publishing it regardless showed a guess as though it were a reading
+    // (a device set to 15mm was reported as the standard hose).
     if (machineSettings.AirTubeTypeKnown) {
         oscarSession->settings[BMC_AIRTUBE_TYPE] = (int)machineSettings.AirTubeType;
 
-        if (machineSettings.AirTubeType == BmcAirTubeType::Heated15mm || machineSettings.AirTubeType == BmcAirTubeType::Heated22mm){
+        if (machineSettings.AirTubeType == BmcAirTubeType::Heated15mm || machineSettings.AirTubeType == BmcAirTubeType::Heated19mm){
             oscarSession->settings[BMC_HEATEDTUBE_LEVEL] = machineSettings.HeatedTubeLevel;
         }
     }
@@ -770,11 +770,15 @@ void BmcLoader::initChannels()
 
     channel.add(GRP_CPAP, chan = new Channel(BMC_AIRTUBE_TYPE = BMC_CHANNEL_IDX + 10, SETTING, MT_CPAP,   SESSION,
                                              "AirTubeType", QObject::tr("Air Tube Type"), QObject::tr("Air Tube Type"), QObject::tr("Air Tube Type"), "", LOOKUP, Qt::green));
-    chan->addOption(0, QObject::tr("Normal 22mm"));
+    // Sizes follow what the device itself reports.  BMC states 19mm in its settings screen
+    // and manuals, so that is what OSCAR shows, even though the tube carries 22mm end
+    // connectors and other vendors label the same physical hose 22mm (Philips reports 22mm,
+    // and PRS1_HoseDiam is labelled to match).  See GitLab #256.
+    chan->addOption(0, QObject::tr("Normal 19mm"));
     chan->addOption(1, QObject::tr("Normal 15mm"));
-    chan->addOption(2, QObject::tr("Heated 22mm"));
+    chan->addOption(2, QObject::tr("Heated 19mm"));
     chan->addOption(3, QObject::tr("Heated 15mm"));   // was a duplicate of option 2; the
-                                                      // BmcAirTubeType enum says Heated15mm
+                                                      // BmcAirTubeType enum agrees it is 15mm
 
     channel.add(GRP_CPAP, chan = new Channel(BMC_MASKTYPE = BMC_CHANNEL_IDX + 11, SETTING, MT_CPAP,   SESSION,
                                              "MaskType", QObject::tr("Mask"), QObject::tr("Mask"), QObject::tr("Mask"), "", LOOKUP, Qt::green));

@@ -288,10 +288,15 @@ legacy BMC IDX field**, so it maps across directly:
 
 | Raw | Meaning |
 |---|---|
-| `0` | Unheated 22 mm |
+| `0` | Unheated 19 mm |
 | `1` | Unheated 15 mm |
-| `2` | Heated 22 mm |
+| `2` | Heated 19 mm |
 | `3` | Heated 15 mm |
+
+Sizes are BMC's own naming. BMC calls the standard hose **19 mm** (inner diameter) on its
+settings screen and in its manuals; other vendors call the same physical tube 22 mm, after
+its end connectors. OSCAR's rule is to report what the device reports, so BMC channels say
+19 mm while e.g. `PRS1_HoseDiam` says 22 mm — see GitLab #256.
 
 **Value 1 is confirmed:** the reference card carries it on every one of its 19 nights and
 PAP-Link reports "15mm normal" for all of them. That also explains the original defect —
