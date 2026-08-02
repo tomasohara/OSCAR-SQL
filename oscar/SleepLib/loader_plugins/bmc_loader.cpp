@@ -773,7 +773,8 @@ void BmcLoader::initChannels()
     chan->addOption(0, QObject::tr("Normal 22mm"));
     chan->addOption(1, QObject::tr("Normal 15mm"));
     chan->addOption(2, QObject::tr("Heated 22mm"));
-    chan->addOption(3, QObject::tr("Heated 22mm"));
+    chan->addOption(3, QObject::tr("Heated 15mm"));   // was a duplicate of option 2; the
+                                                      // BmcAirTubeType enum says Heated15mm
 
     channel.add(GRP_CPAP, chan = new Channel(BMC_MASKTYPE = BMC_CHANNEL_IDX + 11, SETTING, MT_CPAP,   SESSION,
                                              "MaskType", QObject::tr("Mask"), QObject::tr("Mask"), QObject::tr("Mask"), "", LOOKUP, Qt::green));

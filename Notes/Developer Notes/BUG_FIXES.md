@@ -4,6 +4,34 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-02 — BMC G3X air tube type located and decoded
+
+**Files:** `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp` (`DecodeTsBlock()`),
+`oscar/SleepLib/loader_plugins/bmc_loader.cpp` (channel option label)
+
+Air tube type was the last undecoded field, suppressed since 2026-08-01 rather than guessed.
+A contributor located it at **TS offset 0x8F** by changing the setting on the device,
+powering it off and capturing the IDX.
+
+The byte uses the same encoding as `BmcAirTubeType` and as the legacy BMC IDX field
+(`0` = Unheated 22mm, `1` = Unheated 15mm, `2` = Heated 22mm, `3` = Heated 15mm), so it maps
+across directly and the channel needs no new options.
+
+**Value 1 is confirmed** — the reference card carries it on all 19 nights and PAP-Link
+reports "15mm normal" for every one. This is also the direct cause of the original defect:
+the field was never read, so `AirTubeType` kept its zero default and a 15 mm card was
+reported as 22 mm.
+
+*Caution recorded for future work:* the BMC device UI labels the 22 mm tube "19 mm" — inner
+diameter rather than outer, for the same physical tube. A contributor note taken from the
+device UI listed the two values transposed relative to what the data shows. The card and
+PAP-Link agreeing on all 19 nights settled it.
+
+**Also fixed:** `BMC_AIRTUBE_TYPE` option 3 was a duplicate `"Heated 22mm"`; the
+`BmcAirTubeType` enum says it should be `Heated 15mm`.
+
+---
+
 ## 2026-08-01 — BMC G3X device settings now read per-night from the IDX, all modes decoded
 
 **Files:** `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp` / `.h`

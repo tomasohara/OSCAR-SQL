@@ -280,11 +280,34 @@ All pressures are u16 LE in hundredths of cmH₂O.
 - **Pres. Response:** `1`=Standard, `2`=Soft, `3`=Fast.
 - **Smart:** `0`=Off, `1`=On — same offset, named per mode (SmartC / SmartA / SmartB).
 
-### Still unknown
+### Air tube type — 0x8F
 
-**Air Tube Type.** PAP-Link reports 15 mm for the reference card; no offset for it appears
-in the contributed decode, and OSCAR currently shows the zero-default "Normal 22mm", which
-is wrong. Better to suppress the channel than publish a wrong default until it is found.
+Offset located 2026-08-02 by a contributor who changed the setting on the device, powered it
+off and captured the IDX. The byte uses the **same encoding as `BmcAirTubeType` and as the
+legacy BMC IDX field**, so it maps across directly:
+
+| Raw | Meaning |
+|---|---|
+| `0` | Unheated 22 mm |
+| `1` | Unheated 15 mm |
+| `2` | Heated 22 mm |
+| `3` | Heated 15 mm |
+
+**Value 1 is confirmed:** the reference card carries it on every one of its 19 nights and
+PAP-Link reports "15mm normal" for all of them. That also explains the original defect —
+the field was not being read at all, so `AirTubeType` kept its zero default and the card was
+reported as 22 mm.
+
+Values 2 and 3 are inherited from the legacy encoding rather than confirmed here. A G3 A20
+reference card reports `2` on 160 of its 172 nights, consistent with the heated tubing that
+model supports, and `0` on the other 12.
+
+> **Watch the device's own labels.** The BMC UI calls the 22 mm tube "19 mm" — inner
+> diameter rather than outer — for what is the same physical tube. A contributor note
+> derived from the device UI lists 15 mm as `0` and 19 mm as `1`, which is the opposite of
+> what the data shows; the two values appear to be transposed there. The card and PAP-Link
+> agree with each other on all 19 nights, so that is what is implemented. Worth keeping in
+> mind for any future field located the same way.
 
 ### What this corrects
 

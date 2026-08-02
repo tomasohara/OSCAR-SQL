@@ -2170,6 +2170,31 @@ bool BmcG3xData::DecodeTsBlock(const QByteArray& ts, BmcMachineSettings& setting
     settings.MaskType        = static_cast<BmcMaskType>(u8(0x8E) <= 3 ? u8(0x8E) : 3);
     settings.LeakAlert       = u8(0xB3) != 0;
 
+    // Air tube type (0x8F).  The byte uses the same encoding as BmcAirTubeType and as the
+    // legacy BMC IDX field, so it maps across directly:
+    //
+    //   0 = Unheated 22mm   1 = Unheated 15mm   2 = Heated 22mm   3 = Heated 15mm
+    //
+    // Value 1 is confirmed: the reference card carries it on every night and PAP-Link
+    // reports "15mm normal" for all of them.  That also accounts for the original defect —
+    // this field was not being read at all, so AirTubeType kept its zero default and the
+    // card was reported as 22mm.
+    //
+    // Beware the device's own UI labels the 22mm tube "19mm" (inner diameter rather than
+    // outer), which is the same physical tube.  A contributor's note derived from changing
+    // the setting on the device lists 15mm as 0 and 19mm as 1 — the opposite of what the
+    // data shows, so the two values appear to be transposed there.  PAP-Link agreeing with
+    // the card on all 19 nights is the stronger evidence.
+    //
+    // Values 2 and 3 are inherited from the legacy encoding rather than confirmed here; a
+    // G3 A20 reference card reports 2 on most of its nights, which is consistent with the
+    // heated tubing that model supports.
+    const int rawTube = u8(0x8F);
+    if (rawTube >= 0 && rawTube <= 3) {
+        settings.AirTubeType      = static_cast<BmcAirTubeType>(rawTube);
+        settings.AirTubeTypeKnown = true;
+    }
+
     return true;
 }
 
