@@ -4622,10 +4622,12 @@ FLW: 9c 8f 8d 90 8e 8d 89 8c ed 8d 8b 8b 89 8d 8a 8b
 
 > **Resolved on a later sample.** The guess recorded here originally — that the
 > key was `0x9F` — was **wrong**. The key is a constant **`0xBF`**, applied to
-> every byte of every `.LOG` and channel file on the card (the `.INI` is
-> cleartext, and `.RAM`/`.BKP` are separately encrypted). Confirmed by
-> known-plaintext: the file header is text containing the device serial, which
-> also appears in cleartext in the `.INI`.
+> the fixed-length text **header** of every `.LOG` and channel file. The sample
+> body after the header is stored in the clear, and its record checksums only
+> validate against undescrambled bytes. (The `.INI` is cleartext throughout, and
+> `.RAM`/`.BKP` are separately encrypted.) Confirmed by known-plaintext: the file
+> header is text containing the device serial, which also appears in cleartext in
+> the `.INI`.
 >
 > ```
 > '0'(0x30)^0xBF = 0x8F    ' '(0x20)^0xBF = 0x9F    'R'(0x52)^0xBF = 0xED
@@ -5044,7 +5046,7 @@ addition.
 | Format | Sample reference | Notable structural traits |
 |---|---|---|
 | Löwenstein Prisma VENT V50-C | "AKLERK Lowenstein Prisma Vent V50C" | `P34A11` firmware platform; `prismaVENT.sdpvdat` sentinel; per-day ZIPs |
-| SEFAM (S.Box AUTO `1263R`, Rêve Auto `1279R`) | see `SEFAM_REVE_CARD_ANALYSIS.md` | Self-describing INI manifest; whole-card XOR `0xBF` (**solved**); 10-second records with checksum + sequence. Container decoded and waveform scalings confirmed; **event taxonomy and therapy settings still unresolved** |
+| SEFAM (S.Box AUTO `1263R`, Rêve Auto `1279R`) | see `SEFAM_REVE_CARD_ANALYSIS.md` | Self-describing INI manifest; XOR `0xBF` on the file header only, plaintext body (**solved**); 10-second records with checksum + sequence. Container decoded and waveform scalings confirmed; **event taxonomy and therapy settings still unresolved** |
 | VentMed DreamSleep DS6 | "Jonathan Cameron - VentMed-DreamSleep-DS6" | Per-day `.ds1` files; 4-byte fixed TLV records starting `80 16` |
 | Philips BiPAP A40 (`BIPAP-A/` tree) | "AKLERK 20240205_Philips_BiPAP_A40" | Standard EDF+D in `BIPAP-A/A*.EDF`/`D*.EDF`/`W*.EDF`; parallel `P-SERIES/` stub triggers PRS1 detect but `(F3,V4)` is unsupported. Hospital NIV family (A-Series — Trilogy/A30/A40 adjacency) |
 

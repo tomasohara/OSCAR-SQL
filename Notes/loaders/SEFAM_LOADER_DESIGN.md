@@ -77,7 +77,7 @@ struct SessionData {
     Settings                        settings;
 };
 
-void descramble(QByteArray &);                    // XOR 0xBF in place
+void descramble(QByteArray &);                    // XOR 0xBF in place — HEADER ONLY
 bool parseHeader(const QByteArray &decoded, FileHeader &out);
 bool parseIni(const QString &path, QHash<QString,ChannelSpec> &, QDateTime &start);
 bool readChannel(const QString &path, const ChannelSpec &,

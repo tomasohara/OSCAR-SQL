@@ -185,7 +185,34 @@ int SefamLoader::Open(const QString &path)
              << "serial" << info.serial
              << "modelcode" << info.properties.value(QStringLiteral("ModelCode"))
              << "firmware" << info.properties.value(QStringLiteral("Firmware"));
-    return 0;
+
+    const QString serialDir = findSerialDir(path);
+    QDir dir(serialDir);
+    const QStringList dirs =
+        dir.entryList(QStringList("DATA_*"), QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+
+    int ok = 0, skipped = 0, records = 0;
+    for (const QString &d : dirs) {
+        SefamParsing::SessionData data;
+        QString error;
+        if (!SefamParsing::readSession(dir.absoluteFilePath(d), data, error)) {
+            qWarning() << "Sefam:" << d << "skipped —" << error;
+            ++skipped;
+            continue;
+        }
+        ++ok;
+        records += data.recordCount;
+
+        QStringList populated = data.samples.keys();
+        populated.sort();
+        qDebug() << "Sefam" << data.dirName
+                 << "records" << data.recordCount
+                 << "channels" << populated
+                 << "start" << data.header.localStart.toString("yyyy-MM-dd HH:mm:ss");
+    }
+    qDebug() << "Sefam TOTAL sessions" << ok << "skipped" << skipped
+             << "hours" << (records * 10.0 / 3600.0);
+    return ok;
 }
 
 bool SefamLoader::backupData(Machine *mach, const QString &path)

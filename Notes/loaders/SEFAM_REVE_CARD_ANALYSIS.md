@@ -69,16 +69,34 @@ declares the full schema regardless.
 
 ---
 
-## Whole-file obfuscation: XOR 0xBF
+## Header obfuscation: XOR 0xBF — header only
 
-Every byte of every `.LOG` and channel data file is XORed with the constant
-`0xBF`. Confirmed by known-plaintext: the header contains the device serial,
-which also appears in cleartext in the `.INI`.
+The fixed-length text header of every `.LOG` and channel data file is XORed with
+the constant `0xBF`. Confirmed by known-plaintext: the header contains the device
+serial, which also appears in cleartext in the `.INI`.
 
 ```
 '0'(0x30)^0xBF = 0x8F     '9'(0x39)^0xBF = 0x86
 ' '(0x20)^0xBF = 0x9F     'R'(0x52)^0xBF = 0xED
 ```
+
+> **The obfuscation stops at the end of the header.** The sample and log bodies
+> that follow are stored in the clear. An earlier revision of this document said
+> the whole file was XORed; that was wrong. Every measurement in this document
+> was computed on raw bodies and is unaffected — only the description was wrong —
+> but a loader that descrambles the body will corrupt every sample and fail
+> every checksum.
+>
+> Demonstrated on one 8.5 h session's `PRE` channel:
+>
+> | Body treated as | checksum + sequence | mean pressure |
+> |---|---|---|
+> | plaintext (correct) | **3075 / 3075** | **5.25 cmH₂O** |
+> | XORed with 0xBF | 0 / 3075 | 15.39 cmH₂O |
+>
+> The manufacturer's report gives 5.2 cmH₂O for that session. Note also that the
+> record checksums are computed over the bytes **as stored**, so they only
+> validate against an undescrambled body.
 
 This is obfuscation, not encryption — a single constant across the whole card.
 The `.INI` is **not** obfuscated (plain text). The `.RAM`/`.BKP` are **not**

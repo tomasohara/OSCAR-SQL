@@ -24,6 +24,14 @@
 - No unit tests — the QtTest harness is not used in this workflow. Each task ends with a manual verification step run in QtCreator.
 - Log non-trivial fixes to `Notes/Developer Notes/BUG_FIXES.md` (applies to defects found during implementation, not to the initial feature work).
 
+## Build note
+
+QtCreator's incremental build was observed **silently going stale** during this
+work — new `qDebug` output from an edited `.cpp` simply did not appear, with no
+error. If a verification step shows output from the *previous* task but not the
+current one, do a clean rebuild before investigating the code. This cost one
+debugging cycle on Task 2.
+
 ## Verification data
 
 The sample card and its manufacturer report live outside the repo:
@@ -87,9 +95,13 @@ Gets a compiling, registered loader that recognises a SEFAM card. Everything aft
 ```cpp
 /* SEFAM SD Card Data Parsing Header
  *
- * Decodes the SEFAM CPAP SD card container: whole-file XOR-0xBF obfuscation,
- * fixed-length text headers, 10-second sample records carrying a checksum and
- * sequence number, and 49-byte .LOG event records.
+ * Decodes the SEFAM CPAP SD card container: an XOR-0xBF obfuscated fixed-length
+ * text header followed by a plaintext body of 10-second sample records, each
+ * carrying a checksum and sequence number, plus 49-byte .LOG event records.
+ *
+ * Note that the obfuscation covers the HEADER ONLY. Sample and log bodies are
+ * stored in the clear and their checksums are computed over the bytes as
+ * stored, so descrambling a body corrupts it and fails every checksum.
  *
  * This module deliberately contains no OSCAR types. The card format is fully
  * specified in Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md and validated against
@@ -700,12 +712,17 @@ bool readChannel(const QString &path, const ChannelSpec &spec,
         error = QString("cannot open %1").arg(path);
         return false;
     }
-    QByteArray raw = f.readAll();
+    const QByteArray raw = f.readAll();
     f.close();
-    descramble(raw);
+
+    // Only the header is obfuscated. The sample body is plaintext, and its
+    // checksums are computed over the bytes exactly as stored — descrambling it
+    // would both corrupt the samples and fail every checksum.
+    QByteArray head = raw.left(kChannelHeaderLength);
+    descramble(head);
 
     FileHeader hdr;
-    if (!parseHeader(raw, hdr)) {
+    if (!parseHeader(head, hdr)) {
         error = "bad or missing #03/ header";
         return false;
     }
@@ -1142,12 +1159,15 @@ bool readLog(const QString &path, QVector<LogRecord> &out)
 
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly)) { return false; }
-    QByteArray raw = f.readAll();
+    const QByteArray raw = f.readAll();
     f.close();
-    descramble(raw);
+
+    // Header only — the log records that follow are plaintext.
+    QByteArray head = raw.left(kChannelHeaderLength);
+    descramble(head);
 
     FileHeader hdr;
-    if (!parseHeader(raw, hdr)) { return false; }
+    if (!parseHeader(head, hdr)) { return false; }
 
     const char *p = raw.constData();
     for (int off = hdr.length; off + kLogRecordLength <= raw.size(); off += kLogRecordLength) {

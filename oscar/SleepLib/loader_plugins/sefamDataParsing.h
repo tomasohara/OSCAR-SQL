@@ -1,8 +1,12 @@
 /* SEFAM SD Card Data Parsing Header
  *
- * Decodes the SEFAM CPAP SD card container: whole-file XOR-0xBF obfuscation,
- * fixed-length text headers, 10-second sample records carrying a checksum and
- * sequence number, and 49-byte .LOG event records.
+ * Decodes the SEFAM CPAP SD card container: an XOR-0xBF obfuscated fixed-length
+ * text header followed by a plaintext body of 10-second sample records, each
+ * carrying a checksum and sequence number, plus 49-byte .LOG event records.
+ *
+ * Note that the obfuscation covers the HEADER ONLY. Sample and log bodies are
+ * stored in the clear and their checksums are computed over the bytes as
+ * stored, so descrambling a body corrupts it and fails every checksum.
  *
  * This module deliberately contains no OSCAR types. The card format is fully
  * specified in Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md and validated against
@@ -28,7 +32,8 @@
     \brief Pure decoding of the SEFAM SD card format, free of OSCAR types. */
 namespace SefamParsing {
 
-//! Every .LOG and channel data file on the card is XORed with this constant.
+//! The text header of every .LOG and channel file is XORed with this constant.
+//! The body that follows the header is NOT obfuscated.
 constexpr quint8 kObfuscationKey = 0xBF;
 
 //! Header length for channel data files: "#03/" + 20 serial + "/" + 12 date + "/" + 32 hex + "/".
@@ -56,7 +61,11 @@ struct FileHeader
     int       length   = 0;            //!< 71 or 38, whichever variant was detected.
 };
 
-/*! \brief XOR every byte with kObfuscationKey, in place. Self-inverse. */
+/*! \brief XOR every byte with kObfuscationKey, in place. Self-inverse.
+
+    Pass only the header region. Applying this to a sample or log body corrupts
+    the data and invalidates the record checksums, which are computed over the
+    bytes as stored on the card. */
 void descramble(QByteArray &data);
 
 /*! \brief Parse a descrambled file header.
@@ -70,6 +79,63 @@ void descramble(QByteArray &data);
     Do not locate the end of the header by scanning for the fourth '/' — a
     payload byte can descramble to '/' and shift the parse. */
 bool parseHeader(const QByteArray &decoded, FileHeader &out);
+
+/*! \struct ChannelSpec
+    \brief One [ChanN] block from a session's .INI manifest. */
+struct ChannelSpec
+{
+    QString name;             //!< FLW, PRE, LK, DET, NSD, SPO, ...
+    int     freq = 0;         //!< Samples per second.
+    int     bits = 8;         //!< Bits per sample; .PLS declares 16.
+    int     min  = 0;         //!< Declared physical minimum.
+    int     max  = 0;         //!< Declared physical maximum.
+
+    //! Bytes per 10-second record, including the 3-byte trailer.
+    int recordBytes() const {
+        return freq * kRecordSeconds * (bits / 8) + kRecordTrailerBytes;
+    }
+};
+
+/*! \struct SessionData
+    \brief Everything decoded from one DATA_nnn directory. */
+struct SessionData
+{
+    QString                          dirName;        //!< e.g. "DATA_000"
+    FileHeader                       header;
+    int                              recordCount = 0;
+    QHash<QString, ChannelSpec>      channels;       //!< Declared schema.
+    QHash<QString, QVector<quint8>>  samples;        //!< Raw bytes per populated channel.
+};
+
+/*! \brief Parse a session's .INI manifest.
+    \param path  Absolute path to DATA_nnn.INI.
+    \param specs Populated with one entry per declared [ChanN] block.
+    \param start Populated from [Start Record] (device local time).
+    \return false if the file cannot be read or declares no channels.
+
+    The .INI is plain text and is NOT obfuscated. It is the device's schema, so
+    channel names not mapped by this loader are expected, not erroneous. */
+bool parseIni(const QString &path, QHash<QString, ChannelSpec> &specs, QDateTime &start);
+
+/*! \brief Read one channel data file, verifying every record.
+    \param path     Absolute path to DATA_nnn.<EXT>.
+    \param spec     Declared rate and width for this channel.
+    \param out      Concatenated sample bytes (8-bit channels only).
+    \param records  Number of records accepted.
+    \param error    Human-readable reason on failure.
+    \return false if the file is unreadable, the header is bad, or the payload
+            size is not a whole number of records.
+
+    A record is [samples][1-byte 8-bit sum checksum][2-byte big-endian sequence].
+    On a checksum or sequence mismatch the channel is truncated at the last good
+    record and true is returned — a card unplugged mid-write leaves a torn final
+    record and everything before it is valid. */
+bool readChannel(const QString &path, const ChannelSpec &spec,
+                 QVector<quint8> &out, int &records, QString &error);
+
+/*! \brief Read one DATA_nnn directory into a SessionData.
+    \return false if the .INI is missing or no channel could be read. */
+bool readSession(const QString &dirPath, SessionData &out, QString &error);
 
 }  // namespace SefamParsing
 

@@ -11,7 +11,11 @@
 
 #include "sefamDataParsing.h"
 
+#include <QDebug>
+#include <QDir>
+#include <QFile>
 #include <QRegularExpression>
+#include <QSettings>
 
 namespace SefamParsing {
 
@@ -65,6 +69,163 @@ bool parseHeader(const QByteArray &decoded, FileHeader &out)
             }
         }
     }
+    return true;
+}
+
+bool parseIni(const QString &path, QHash<QString, ChannelSpec> &specs, QDateTime &start)
+{
+    if (!QFile::exists(path)) { return false; }
+
+    QSettings ini(path, QSettings::IniFormat);
+
+    const int year  = ini.value("Start Record/Year").toInt();
+    const int month = ini.value("Start Record/Month").toInt();
+    const int day   = ini.value("Start Record/Day").toInt();
+    const int hour  = ini.value("Start Record/Hour").toInt();
+    const int min   = ini.value("Start Record/Min").toInt();
+    const int sec   = ini.value("Start Record/Sec").toInt();
+    start = QDateTime(QDate(year, month, day), QTime(hour, min, sec));
+
+    // Channels are declared as [Chan0]..[ChanN] with no count field; walk until
+    // a group is missing rather than assuming how many a firmware declares.
+    for (int i = 0; ; ++i) {
+        const QString group = QString("Chan%1").arg(i);
+        const QString name  = ini.value(group + "/Name").toString().trimmed();
+        if (name.isEmpty()) { break; }
+
+        ChannelSpec spec;
+        spec.name = name;
+        spec.freq = ini.value(group + "/Freq").toInt();
+        spec.bits = ini.value(group + "/Bit").toInt();
+        spec.min  = ini.value(group + "/Min").toInt();
+        spec.max  = ini.value(group + "/Max").toInt();
+
+        if (spec.freq <= 0 || (spec.bits != 8 && spec.bits != 16)) {
+            qWarning() << "Sefam: ignoring channel" << name
+                       << "with freq" << spec.freq << "bits" << spec.bits;
+            continue;
+        }
+        specs.insert(spec.name, spec);
+    }
+    return !specs.isEmpty();
+}
+
+bool readChannel(const QString &path, const ChannelSpec &spec,
+                 QVector<quint8> &out, int &records, QString &error)
+{
+    records = 0;
+    out.clear();
+
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) {
+        error = QString("cannot open %1").arg(path);
+        return false;
+    }
+    const QByteArray raw = f.readAll();
+    f.close();
+
+    // Only the header is obfuscated. The sample body is plaintext, and its
+    // checksums are computed over the bytes exactly as stored — descrambling it
+    // would both corrupt the samples and fail every checksum.
+    QByteArray head = raw.left(kChannelHeaderLength);
+    descramble(head);
+
+    FileHeader hdr;
+    if (!parseHeader(head, hdr)) {
+        error = "bad or missing #03/ header";
+        return false;
+    }
+
+    const int payload = raw.size() - hdr.length;
+    if (payload < 0) { error = "file shorter than its header"; return false; }
+    if (payload == 0) { return true; }        // header-only stub: channel not recorded
+
+    const int recLen = spec.recordBytes();
+    if (recLen <= kRecordTrailerBytes) { error = "invalid record length"; return false; }
+    if (payload % recLen != 0) {
+        // Catches a wrong assumed sample rate. Must not be silently tolerated.
+        error = QString("payload %1 is not a multiple of record size %2")
+                    .arg(payload).arg(recLen);
+        return false;
+    }
+
+    const int total       = payload / recLen;
+    const int sampleBytes = recLen - kRecordTrailerBytes;
+
+    // 16-bit channels are sized correctly above so the file is not wrongly
+    // rejected, but this loader maps no 16-bit channel to OSCAR.
+    if (spec.bits != 8) { records = total; return true; }
+
+    out.reserve(total * sampleBytes);
+    for (int i = 0; i < total; ++i) {
+        const char *rec = raw.constData() + hdr.length + i * recLen;
+
+        quint32 sum = 0;
+        for (int b = 0; b < sampleBytes; ++b) {
+            sum += static_cast<quint8>(rec[b]);
+        }
+        const quint8  checksum = static_cast<quint8>(rec[sampleBytes]);
+        const quint16 sequence = static_cast<quint16>(
+                                   (static_cast<quint8>(rec[sampleBytes + 1]) << 8)
+                                 |  static_cast<quint8>(rec[sampleBytes + 2]));
+
+        if (checksum != static_cast<quint8>(sum & 0xFF)
+            || sequence != static_cast<quint16>((i + 1) & 0xFFFF)) {
+            qWarning() << "Sefam: truncating" << path << "at record" << i
+                       << "of" << total << "(checksum or sequence mismatch)";
+            break;
+        }
+        for (int b = 0; b < sampleBytes; ++b) {
+            out.append(static_cast<quint8>(rec[b]));
+        }
+        ++records;
+    }
+    return true;
+}
+
+bool readSession(const QString &dirPath, SessionData &out, QString &error)
+{
+    QDir dir(dirPath);
+    out.dirName = dir.dirName();
+
+    const QString iniPath = dir.absoluteFilePath(out.dirName + ".INI");
+    QDateTime iniStart;
+    if (!parseIni(iniPath, out.channels, iniStart)) {
+        error = "missing or empty .INI";
+        return false;
+    }
+
+    bool haveHeader = false;
+    for (auto it = out.channels.constBegin(); it != out.channels.constEnd(); ++it) {
+        const ChannelSpec &spec = it.value();
+        const QString path = dir.absoluteFilePath(out.dirName + "." + spec.name);
+        if (!QFile::exists(path)) { continue; }
+
+        if (!haveHeader) {
+            QFile f(path);
+            if (f.open(QIODevice::ReadOnly)) {
+                QByteArray head = f.read(kChannelHeaderLength);
+                f.close();
+                descramble(head);
+                if (parseHeader(head, out.header)) { haveHeader = true; }
+            }
+        }
+
+        QVector<quint8> samples;
+        int records = 0;
+        QString chanError;
+        if (!readChannel(path, spec, samples, records, chanError)) {
+            qWarning() << "Sefam:" << out.dirName << spec.name << "skipped —" << chanError;
+            continue;
+        }
+        if (samples.isEmpty()) { continue; }     // stub file: channel not recorded
+
+        out.samples.insert(spec.name, samples);
+        out.recordCount = qMax(out.recordCount, records);
+    }
+
+    if (!haveHeader) { error = "no readable channel header"; return false; }
+    if (out.samples.isEmpty()) { error = "no populated channels"; return false; }
     return true;
 }
 
