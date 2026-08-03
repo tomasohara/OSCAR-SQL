@@ -532,12 +532,22 @@ Expected in the debug log:
 ```
 Registering SefamLoader
 SefamLoader::Detect matched .../1279R/<serial> serial "1279R<serial>"
-SefamLoader::Open stub — detection succeeded for ...
+SefamLoader::Open stub — brand "Sefam" model "Rêve Auto" serial "1279R<serial>"
+                          modelcode "1279R" firmware "VER :A010500"
 ```
 
-The import dialog should offer a device whose brand is **Sefam** and whose model
-reads **Rêve Auto** (from the `.INI` `Created By` field), not the raw `REVE_AUTO`.
-A garbled `ê` means the source file was not saved as UTF-8.
+Model must read **Rêve Auto** (translated from the `.INI` `Created By` value), not
+the raw `REVE_AUTO`. A garbled `ê` means the source file was not saved as UTF-8.
+
+> **Do not expect a machine record in the database yet.** `Open()` is a stub that
+> creates nothing; machines and sessions arrive in Task 3. A database containing
+> only the `journal` machine is the correct result here.
+>
+> **Do not expect the model name in the import dialog either.** `PeekInfo()` feeds
+> that dialog only on the auto-scan path (`mainwindow.cpp:1415`); browsing to a
+> folder manually goes `Detect()` → `Open()` and never calls it. The other call
+> site (`mainwindow.cpp:1604`) is gated on the path being a removable drive. That
+> is why `Open()` logs the identity itself.
 
 Also confirm no other loader's behaviour changed: import a card for any loader you already have data for and confirm it still imports.
 

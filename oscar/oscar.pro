@@ -398,6 +398,8 @@ SOURCES += \
     SleepLib/loader_plugins/resmed_EDFinfo.cpp \
     SleepLib/loader_plugins/resmed_loader.cpp \
     SleepLib/loader_plugins/resvent_loader.cpp \
+    SleepLib/loader_plugins/sefamDataParsing.cpp \
+    SleepLib/loader_plugins/sefam_loader.cpp \
     SleepLib/loader_plugins/sleepstyle_EDFinfo.cpp \
     SleepLib/loader_plugins/sleepstyle_loader.cpp \
     SleepLib/loader_plugins/somnopose_loader.cpp \
@@ -569,6 +571,8 @@ HEADERS  += \
     SleepLib/loader_plugins/yuwell_loader.h \
     SleepLib/loader_plugins/zeo_loader.h \
     SleepLib/loader_plugins/resvent_loader.h \
+    SleepLib/loader_plugins/sefamDataParsing.h \
+    SleepLib/loader_plugins/sefam_loader.h \
     SleepLib/thirdparty/botan_all.h \
     SleepLib/thirdparty/botan_windows.h \
     SleepLib/thirdparty/botan_linux.h \
