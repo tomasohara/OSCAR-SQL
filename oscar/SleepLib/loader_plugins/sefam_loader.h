@@ -61,6 +61,30 @@ class SefamLoader : public CPAPLoader
     /*! \brief Locate the <modelcode>/<serial> directory beneath a card root.
         \return Absolute path, or an empty string if the tree does not match. */
     QString findSerialDir(const QString &path);
+
+    /*! \brief Add one channel to a session as one or more waveform EventLists.
+        \param session OSCAR session to populate.
+        \param values  Pre-scaled sample values; multiplied by \a gain for display.
+        \param valid   Per-sample validity, same length as \a values.
+        \param chan    Target OSCAR channel.
+        \param gain    Multiplier OSCAR applies to each stored value.
+        \param rateMs  Milliseconds per sample.
+        \param startMs Session start, milliseconds since epoch.
+
+        Invalid samples are excluded and each contiguous run of valid samples
+        becomes its own EventList, because one EventList holds one contiguous
+        span. Imported naively the 0xFF sentinel would read as 153 L/min leak or
+        25.5 cmH2O and corrupt the session statistics.
+
+        Values are pre-scaled rather than passed as raw bytes with an offset
+        because OSCAR applies EventList offsets inconsistently: gLineChart
+        renders (raw + offset) * gain, while EventList::data() and
+        FlowParser::openFlow() apply gain alone and ignore the offset entirely.
+        Baking any offset into the stored value keeps graphs and statistics
+        in agreement. */
+    void importWaveform(Session *session, const QVector<qint16> &values,
+                        const QVector<bool> &valid, ChannelID chan,
+                        EventDataType gain, int rateMs, qint64 startMs);
 };
 
 #endif  // SEFAM_LOADER_H

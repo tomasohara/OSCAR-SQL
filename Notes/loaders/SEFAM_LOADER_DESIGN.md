@@ -167,19 +167,54 @@ has had its event codes validated.
 
 ## 6. Waveforms
 
-| `.INI` name | OSCAR channel | gain | offset | rate |
+| `.INI` name | OSCAR channel | stored value | gain | rate |
 |---|---|---|---|---|
-| `FLW` | `CPAP_FlowRate` | 460/255 | −180 | 100 ms (10 Hz) |
-| `PRE` | `CPAP_Pressure` | 0.1 | 0 | 200 ms (5 Hz) |
-| `LK` | `CPAP_LeakTotal` | 0.6 | 0 | 1000 ms (1 Hz) |
+| `FLW` − `LK` | `CPAP_FlowRate` | patient flow × 10 | 0.1 | 100 ms (10 Hz) |
+| `PRE` | `CPAP_Pressure` | raw byte | 0.1 | 200 ms (5 Hz) |
+| `LK` | `CPAP_LeakTotal` | raw byte | 0.6 | 1000 ms (1 Hz) |
 
 Rates come from the `.INI`, not the table; the table records what the validated
-model declares. Raw bytes are passed to the `unsigned char *` overload of
-`EventList::AddWaveform`, with gain and offset doing the conversion — no
-per-sample float loop.
+model declares. Values are stored as `qint16` via the `qint16 *` overload of
+`EventList::AddWaveform`.
 
 `LK` is **total** leak including the intentional mask vent, hence
 `CPAP_LeakTotal` rather than `CPAP_Leak`.
+
+### Flow must be converted to patient flow
+
+The card's `FLW` channel is **total** flow — it includes the intentional mask
+vent, so it oscillates around roughly +22 L/min rather than zero. OSCAR cannot
+use that directly: `FlowParser::calcPeaks()` detects breaths by crossings of a
+hard-coded `zeroline = 0`. Measured over one 8.5 h session:
+
+| signal | mean | zero crossings/min |
+|---|---|---|
+| total flow (`FLW`) | 26.70 | 7.0 |
+| patient flow (`FLW − LK`) | **0.17** | **33.6** |
+
+33.6 crossings/min is ~16.8 breaths/min, a normal respiratory rate. Imported as
+total flow, breath detection fails outright and OSCAR produces **no** respiratory
+rate, tidal volume, minute ventilation or Ti/Te — all of which it otherwise
+derives for free.
+
+So the loader subtracts the device's own leak estimate, sampled at `LK`'s rate
+and held across each flow sample. This is principled rather than a fudge: total
+flow = patient flow + leak, and the two channels were independently confirmed to
+agree at the baseline (23.8 vs 22.8 L/min).
+
+### Offsets must be baked into the stored value
+
+`EventList` has an `offset` field, but OSCAR applies it **inconsistently**:
+
+- `gLineChart.cpp` renders `(raw + offset) * gain` — offset applied *before* gain
+- `EventList::data()` returns `raw * gain` — offset ignored
+- `FlowParser::openFlow()` likewise applies gain alone
+
+A channel needing an offset would therefore graph differently from how it is
+summarised, and would break breath detection. The loader passes `offset = 0`
+everywhere and pre-scales the stored value instead. This is why flow is stored
+in tenths of a L/min with gain 0.1 rather than as raw bytes with gain 460/255 and
+offset −180.
 
 Channels not imported:
 

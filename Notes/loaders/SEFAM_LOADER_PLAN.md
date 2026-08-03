@@ -891,6 +891,24 @@ git commit -m "Read SEFAM .INI schema and verify channel records"
 
 First task producing visible data in OSCAR.
 
+> **This task's code below was superseded during execution.** Two problems only
+> surfaced once data reached the screen, and the shipped implementation in
+> `sefam_loader.cpp` differs from the listing here. Both are explained in
+> `SEFAM_LOADER_DESIGN.md` §6:
+>
+> 1. **`EventList` offsets are applied inconsistently by OSCAR** — `gLineChart`
+>    renders `(raw + offset) * gain`, while `EventList::data()` and
+>    `FlowParser::openFlow()` ignore the offset. Passing `offset = -180` was
+>    silently discarded and flow read ~204 L/min. Values are now pre-scaled and
+>    `offset` is always 0.
+> 2. **`FLW` is total flow, not patient flow.** It sits ~22 L/min above zero, and
+>    `FlowParser::calcPeaks()` detects breaths by crossings of a hard-coded zero
+>    line, so nothing was detected and OSCAR produced no respiratory rate, tidal
+>    volume, minute ventilation or Ti/Te. The loader now imports `FLW − LK`.
+>
+> The `importWaveform` helper consequently takes `QVector<qint16>` values plus a
+> validity mask rather than raw bytes. Read the implementation, not this listing.
+
 **Files:**
 - Modify: `oscar/SleepLib/loader_plugins/sefam_loader.cpp`
 
