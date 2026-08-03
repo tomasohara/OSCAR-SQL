@@ -4612,7 +4612,7 @@ This makes sense for the S.Box AUTO's dual role: when used as a CPAP autotitrati
 device, only FLW/PRE/LK/DET/NSD/Y17 are populated; when used as a Type-3 polygraph,
 the effort belts and oximetry channels would have full data.
 
-### Data appears XOR-scrambled
+### Data is XOR-scrambled — key is `0xBF` (SOLVED)
 
 Raw bytes in the data files are biased toward the high half of the byte range:
 ```
@@ -4620,24 +4620,29 @@ FLW: 9c 8f 8d 90 8e 8d 89 8c ed 8d 8b 8b 89 8d 8a 8b
      8c 9f 9f 9f 9f 9f 9f 9f 90 8d 8a 8e 8d 8e 8c 8d
 ```
 
-Plain 8-bit signed flow data should cluster near zero (most samples = 0x00 or ±small
-values). The bytes here cluster around `0x8C…0x9F`, with `0x9F` appearing repeatedly
-in sequence. The strong bias toward high-bit values, combined with the run of
-identical `0x9F 0x9F 0x9F 0x9F 0x9F 0x9F 0x9F` (suggesting a zero region XORed with
-`0x9F`), points to a simple repeating-key XOR cipher.
-
-The first 16 bytes of `FLW`, `DET`, and `upload.dat` share the same lead-in `0x9C 0x8F
-0x8D 0x90 0x8E 0x8D 0x89 0x8C` — strongly implying a **common XOR pattern is applied
-to every file on the card**, not separate per-file keys. The high-bit-cleared form
-(`0x9C XOR 0x80 = 0x1C`) is approximately ASCII-control-character range, but `0x9F
-XOR ?? = 0x00` for what should be the empty trailing region: `?? = 0x9F` directly.
-This suggests **the XOR key is just `0x9F`** (so the key reveals 0x00 in empty
-regions), but the bytes that look meaningful (`0x8F` ↔ `0x9F XOR 0x8F = 0x10`?) need
-test-decryption to confirm.
-
-A future SEFAM loader will need a small experiment to confirm the XOR scheme. Once
-known, the data is presumably plain signed 8-bit samples per channel (16-bit for
-`.PLS`).
+> **Resolved on a later sample.** The guess recorded here originally — that the
+> key was `0x9F` — was **wrong**. The key is a constant **`0xBF`**, applied to
+> every byte of every `.LOG` and channel file on the card (the `.INI` is
+> cleartext, and `.RAM`/`.BKP` are separately encrypted). Confirmed by
+> known-plaintext: the file header is text containing the device serial, which
+> also appears in cleartext in the `.INI`.
+>
+> ```
+> '0'(0x30)^0xBF = 0x8F    ' '(0x20)^0xBF = 0x9F    'R'(0x52)^0xBF = 0xED
+> ```
+>
+> The run of `0x9F` above is not a zero region — it is the **run of trailing
+> spaces** in the 20-character serial-number field of the header.
+>
+> The header is a fixed-length text record, not ~100 bytes as estimated in the
+> section above: **71 bytes** for channel files, **38 bytes** for `.LOG`. The
+> body is not a flat sample array either — it is fixed records of 10 seconds of
+> samples plus a checksum and sequence number.
+>
+> Full decode of the container, the header fields, the record framing, the
+> confirmed flow/pressure/leak scalings, and the open questions on events and
+> settings: **`Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md`** (SEFAM Rêve Auto,
+> model code `1279R` — same firmware platform as the S.Box AUTO documented here).
 
 ### `BKP` and `RAM` files at serial level
 
@@ -5039,7 +5044,7 @@ addition.
 | Format | Sample reference | Notable structural traits |
 |---|---|---|
 | Löwenstein Prisma VENT V50-C | "AKLERK Lowenstein Prisma Vent V50C" | `P34A11` firmware platform; `prismaVENT.sdpvdat` sentinel; per-day ZIPs |
-| SEFAM S.Box AUTO | "SEFAM-2 Wagmar Barbosa de Souza" | Self-describing INI manifest; XOR-scrambled binary data |
+| SEFAM (S.Box AUTO `1263R`, Rêve Auto `1279R`) | see `SEFAM_REVE_CARD_ANALYSIS.md` | Self-describing INI manifest; whole-card XOR `0xBF` (**solved**); 10-second records with checksum + sequence. Container decoded and waveform scalings confirmed; **event taxonomy and therapy settings still unresolved** |
 | VentMed DreamSleep DS6 | "Jonathan Cameron - VentMed-DreamSleep-DS6" | Per-day `.ds1` files; 4-byte fixed TLV records starting `80 16` |
 | Philips BiPAP A40 (`BIPAP-A/` tree) | "AKLERK 20240205_Philips_BiPAP_A40" | Standard EDF+D in `BIPAP-A/A*.EDF`/`D*.EDF`/`W*.EDF`; parallel `P-SERIES/` stub triggers PRS1 detect but `(F3,V4)` is unsupported. Hospital NIV family (A-Series — Trilogy/A30/A40 adjacency) |
 
