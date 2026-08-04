@@ -183,6 +183,40 @@ bool readChannel(const QString &path, const ChannelSpec &spec,
     return true;
 }
 
+bool readLog(const QString &path, QVector<LogRecord> &out)
+{
+    out.clear();
+
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) { return false; }
+    const QByteArray raw = f.readAll();
+    f.close();
+
+    // Header only — the log records that follow are plaintext.
+    QByteArray head = raw.left(kChannelHeaderLength);
+    descramble(head);
+
+    FileHeader hdr;
+    if (!parseHeader(head, hdr)) { return false; }
+
+    const char *p = raw.constData();
+    for (int off = hdr.length; off + kLogRecordLength <= raw.size(); off += kLogRecordLength) {
+        const char *r = p + off;
+
+        LogRecord rec;
+        rec.utcSeconds =  static_cast<qint64>(static_cast<quint8>(r[0]))
+                       | (static_cast<qint64>(static_cast<quint8>(r[1])) << 8)
+                       | (static_cast<qint64>(static_cast<quint8>(r[2])) << 16)
+                       | (static_cast<qint64>(static_cast<quint8>(r[3])) << 24);
+        rec.code = static_cast<quint8>(r[8]);
+        rec.arg  = static_cast<quint16>((static_cast<quint8>(r[9]) << 8)
+                                       | static_cast<quint8>(r[10]));
+        rec.payload = QByteArray(r + 11, kLogRecordLength - 11);
+        out.append(rec);
+    }
+    return true;
+}
+
 bool readSession(const QString &dirPath, SessionData &out, QString &error)
 {
     QDir dir(dirPath);
@@ -226,6 +260,11 @@ bool readSession(const QString &dirPath, SessionData &out, QString &error)
 
     if (!haveHeader) { error = "no readable channel header"; return false; }
     if (out.samples.isEmpty()) { error = "no populated channels"; return false; }
+
+    const QString logPath = dir.absoluteFilePath(out.dirName + ".LOG");
+    if (QFile::exists(logPath) && !readLog(logPath, out.log)) {
+        qWarning() << "Sefam:" << out.dirName << "log unreadable — events skipped";
+    }
     return true;
 }
 

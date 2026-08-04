@@ -270,11 +270,41 @@ records. The vendor reports 15–16 s averages, so the duration exists somewhere
 most likely `Y17` — but it is not in the log, and storing a nominal value would
 put a fabricated number in the database as though it had been measured.
 
-**Timestamps are treated as the event end**, matching BMC's convention. The
-evidence is suggestive but not conclusive: treating them as ends produces zero
-impossible overlaps across 362 consecutive event pairs, while treating them as
-starts produces five. This must be confirmed visually (§11); if wrong, events
-render shifted by their own duration and the fix is a one-line change.
+### Event placement — direction established, exact alignment unverified
+
+**The log timestamp is the event END.** Two independent lines of evidence agree:
+reading it as a start produces impossible overlaps across 362 consecutive event
+pairs (zero overlaps when read as an end), and apnea flags placed at the raw
+timestamp render visibly late against the manufacturer's own waveform report,
+by an amount that varies with each event's duration.
+
+**But flags are placed at the event START.** OSCAR draws a `FLAG` channel as a
+bare vertical line at the event timestamp — `gFlagsLine`'s FLAG branch ignores
+the stored duration entirely, surfacing it only in the tooltip. ResMed, the
+reference loader, passes the EDF+ annotation *onset*, so OSCAR's convention is
+flag-at-start. (`bmc_loader` passes `EndTime` and is the outlier here.) The
+loader therefore subtracts the duration before adding the event.
+
+Hypopneas have no duration to subtract. Left at the raw timestamp they would sit
+about 15 s late on this patient's most frequent event type, so their flags are
+shifted by the manufacturer's published mean durations — 16 s for OH, 15 s for
+CH. This is a **display-placement heuristic, not measured data**; real durations
+vary, so individual events are approximate in both directions rather than
+uniformly late. The stored duration remains zero. Both constants should be
+removed once per-event extent is recovered (open problem 1).
+
+> **Not verified to the sample.** The correction's *direction* is well founded —
+> apnea flags at the raw timestamp were observed rendering late by an amount that
+> varied with each event's duration, which is exactly the signature of a
+> flag-at-end placement. Whether they now land precisely right is unconfirmed:
+> the manufacturer's waveform PDFs lack the resolution to compare against, and
+> they cannot be zoomed.
+>
+> This is a general limitation rather than a SEFAM quirk. Devices commonly record
+> event timestamps at a coarser resolution than the flow waveform, so a flag can
+> only ever be placed to within that quantisation regardless of how the loader
+> interprets the field. Treat exact flag alignment as an open item across
+> loaders, not something this one can settle.
 
 Codes 9–13 and the administrative codes are parsed but not imported. The loader
 computes no AHI; `calcAHIGraph()` derives it from the flag channels.

@@ -27,6 +27,27 @@
 
 using SefamParsing::ChannelSpec;
 
+/*! \name Hypopnea flag placement
+    The card records no duration for hypopneas — the log argument is zero in
+    about 97% of code 5 and 6 records — so their flags cannot be placed at the
+    event start the way apneas can. Left at the log timestamp they render at the
+    event end, roughly 15 seconds later than the manufacturer's own report shows
+    them, on this patient's most frequent event type.
+
+    These constants shift the flag back by the manufacturer's published mean
+    durations for the validated card so most hypopneas land near their true
+    start. This is a **display-placement heuristic, not measured data**: real
+    durations vary, so individual events are approximate in either direction.
+    The stored event duration remains zero, which is why no duration appears in
+    the tooltip.
+
+    Remove these once the per-event extent is recovered — Y17 is the suspected
+    source. See Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md, open problem 1.
+    @{ */
+constexpr qint64 kObstructiveHypopneaPlacementMs = 16000;   //!< Vendor mean, 16 s
+constexpr qint64 kCentralHypopneaPlacementMs     = 15000;   //!< Vendor mean, 15 s
+/*! @} */
+
 static bool sefam_initialised = false;
 
 SefamLoader::SefamLoader()  { m_type = MT_CPAP; }
@@ -322,6 +343,60 @@ int SefamLoader::Open(const QString &path)
                            1000 / flwSpec.freq, startMs);
         }
         // DET, NSD and Y17 are deliberately not imported — see the design spec.
+
+        // Events are placed relative to the session start so no timezone
+        // arithmetic is needed. This requires the UTC epoch, which the short
+        // header variant does not carry.
+        if (!data.log.isEmpty() && data.header.utcEpoch != 0) {
+            EventList *oa    = session->AddEventList(CPAP_Obstructive, EVL_Event);
+            EventList *ca    = session->AddEventList(CPAP_ClearAirway, EVL_Event);
+            EventList *hyp   = session->AddEventList(CPAP_Hypopnea,    EVL_Event);
+            EventList *snore = session->AddEventList(CPAP_VSnore,      EVL_Event);
+            EventList *fl    = session->AddEventList(CPAP_FlowLimit,   EVL_Event);
+
+            for (const SefamParsing::LogRecord &rec : data.log) {
+                const qint64 offsetMs = (rec.utcSeconds - data.header.utcEpoch) * 1000LL;
+                if (offsetMs < 0 || offsetMs > (endMs - startMs)) { continue; }
+                const qint64 when = startMs + offsetMs;
+
+                // The log timestamp is the event END: reading it as a start
+                // produces impossible overlaps between consecutive events, and
+                // apnea flags placed there render visibly late against the
+                // manufacturer's own waveform report.
+                //
+                // OSCAR flags are drawn as a bare vertical line at the event
+                // timestamp — gFlagsLine's FLAG branch ignores the duration
+                // entirely (it surfaces only in the tooltip). ResMed, the
+                // reference loader, passes the EDF+ annotation *onset*, so the
+                // convention is flag-at-start. Subtract the duration to match.
+                const qint64 durMs = static_cast<qint64>(rec.arg) * 100;   // arg is 0.1 s
+
+                switch (rec.code) {
+                case SefamParsing::kLogObstructiveApnea:
+                    oa->AddEvent(when - durMs, rec.arg / 10.0f); break;
+                case SefamParsing::kLogCentralApnea:
+                    ca->AddEvent(when - durMs, rec.arg / 10.0f); break;
+                // OSCAR has no central hypopnea channel; bmcG3xDataParsing and
+                // prisma_loader both fold both kinds into CPAP_Hypopnea. The
+                // stored duration stays zero because the card does not report
+                // one; only the flag placement is corrected, using the vendor's
+                // published mean durations (see the constants above).
+                case SefamParsing::kLogObstructiveHypop:
+                    hyp->AddEvent(when - kObstructiveHypopneaPlacementMs, 0); break;
+                case SefamParsing::kLogCentralHypopnea:
+                    hyp->AddEvent(when - kCentralHypopneaPlacementMs, 0); break;
+                case SefamParsing::kLogSnore:
+                    snore->AddEvent(when, 0); break;
+                case SefamParsing::kLogFlowLimitation:
+                    fl->AddEvent(when, 0); break;
+                default:
+                    break;      // administrative codes are parsed but not imported
+                }
+            }
+        } else if (!data.log.isEmpty()) {
+            qWarning() << "Sefam:" << d
+                       << "has no UTC epoch in its header — events skipped";
+        }
 
         if (session->eventlist.isEmpty()) {
             qWarning() << "Sefam:" << d << "skipped — no valid samples";

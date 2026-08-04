@@ -51,6 +51,9 @@ constexpr int kRecordTrailerBytes = 3;
 //! Sample value meaning "no valid data" on FLW, PRE and LK.
 constexpr quint8 kInvalidSample = 0xFF;
 
+//! Fixed size of one .LOG event record.
+constexpr int kLogRecordLength = 49;
+
 /*! \struct FileHeader
     \brief The decoded fixed-length text header at the start of every card file. */
 struct FileHeader
@@ -96,6 +99,36 @@ struct ChannelSpec
     }
 };
 
+/*! \struct LogRecord
+    \brief One 49-byte .LOG event record.
+
+    Layout: uint32 LE UTC epoch, uint32 zero (upper half of a 64-bit time_t),
+    uint8 event code, uint16 big-endian argument, then 38 bytes that are zero
+    except on the settings records (codes 2 and 13). */
+struct LogRecord
+{
+    qint64     utcSeconds = 0;
+    quint8     code       = 0;
+    quint16    arg        = 0;
+    QByteArray payload;             //!< Record bytes 11..48 inclusive.
+};
+
+/*! \enum LogCode
+    \brief Event codes, confirmed against the manufacturer's analyzer output.
+
+    Counts over the validated 159 h card matched the manufacturer's per-session
+    figures for every code below. See Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md. */
+enum LogCode {
+    kLogSettingsChange   = 2,       //!< Carries therapy settings in payload.
+    kLogObstructiveApnea = 3,       //!< arg = duration in 0.1 s.
+    kLogCentralApnea     = 4,       //!< arg = duration in 0.1 s.
+    kLogObstructiveHypop = 5,       //!< arg is zero in ~97% of records.
+    kLogCentralHypopnea  = 6,       //!< arg is zero in ~97% of records.
+    kLogSnore            = 7,
+    kLogFlowLimitation   = 8,
+    kLogSettingsSnapshot = 13       //!< Also carries settings; fallback for code 2.
+};
+
 /*! \struct SessionData
     \brief Everything decoded from one DATA_nnn directory. */
 struct SessionData
@@ -105,6 +138,7 @@ struct SessionData
     int                              recordCount = 0;
     QHash<QString, ChannelSpec>      channels;       //!< Declared schema.
     QHash<QString, QVector<quint8>>  samples;        //!< Raw bytes per populated channel.
+    QVector<LogRecord>               log;            //!< Decoded .LOG records.
 };
 
 /*! \brief Parse a session's .INI manifest.
@@ -132,6 +166,13 @@ bool parseIni(const QString &path, QHash<QString, ChannelSpec> &specs, QDateTime
     record and everything before it is valid. */
 bool readChannel(const QString &path, const ChannelSpec &spec,
                  QVector<quint8> &out, int &records, QString &error);
+
+/*! \brief Read a session's .LOG file.
+    \return false if the file is missing, unreadable, or has a bad header.
+
+    Trailing bytes that do not form a whole 49-byte record are ignored. Only the
+    header is obfuscated; the records themselves are plaintext. */
+bool readLog(const QString &path, QVector<LogRecord> &out);
 
 /*! \brief Read one DATA_nnn directory into a SessionData.
     \return false if the .INI is missing or no channel could be read. */

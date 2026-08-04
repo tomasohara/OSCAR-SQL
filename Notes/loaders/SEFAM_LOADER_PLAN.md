@@ -47,8 +47,8 @@ Golden numbers, already confirmed against the manufacturer's analyzer:
 | `DATA_001` records | 3075 |
 | Checksum failures | 0 |
 | Total recorded time | 159.0 h |
-| Events | OA 248, CA 191, Hypopnea 309, Snore 1408, FL 961 |
-| Apnea mean duration | OA 16.5 s, CA 12.8 s |
+| Events (as imported) | OA 243, CA 190, Hypopnea 306, Snore 1402, FL 955 |
+| Apnea mean duration | OA 16.6 s, CA 12.8 s |
 | Settings | min 4.0, max 20.0, ramp 45 min, ramp pressure 4.0 |
 | AHI for the period | ≈ 4.7 |
 
@@ -1269,14 +1269,20 @@ Insert into `Open`, after the waveform loop and before the `session->eventlist.i
 
 Import the sample card into a **fresh profile** (so counts aren't doubled), then check the Statistics page over 2026-07-10 to 2026-07-30:
 
-| Channel | Expected total |
-|---|---|
-| Obstructive Apnea | 248 |
-| Clear Airway | 191 |
-| Hypopnea | 309 |
-| Vibratory Snore | 1408 |
-| Flow Limitation | 961 |
-| **AHI** | **≈ 4.7** |
+| Channel | Expected | Vendor CSV | Note |
+|---|---|---|---|
+| Obstructive Apnea | 243 | 242 | |
+| Clear Airway | 190 | 190 | exact |
+| Hypopnea | 306 | 307 | OH 74 + CH 232 |
+| Vibratory Snore | 1402 | 1399 | |
+| Flow Limitation | 955 | — | vendor CSV column is internally inconsistent; its synthesis index agrees |
+| **AHI** | **≈ 4.7** | 4.7 | |
+
+These are **windowed** counts. The loader discards log records whose timestamp
+falls outside their own session's recording span — 114 across this card, which
+belong to adjacent sessions. Filtering moves every count *closer* to the
+manufacturer's per-session figures, so the window test is doing real work rather
+than merely trimming.
 
 Then confirm event placement against the manufacturer's rendering: open
 `Reports/Waveforms/2026-July-10_21H44_8h52min.pdf` from the report folder and compare
