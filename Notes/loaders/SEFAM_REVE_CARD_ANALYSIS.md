@@ -23,7 +23,10 @@ is `REVE_AUTO`, the model code `1279R`, and the serial. Detection is unaffected
 (the model code and `#03/` header are a solid fingerprint), but whatever brand
 OSCAR displays is a naming choice rather than something read from the data, and
 users will report this machine under either name.
-**Loader:** none. No SEFAM support exists anywhere in `oscar/SleepLib/`.
+**Loader:** `sefam_loader.cpp` / `sefamDataParsing.cpp`, added 2026-08-03 from
+this analysis. Design: `Notes/loaders/SEFAM_LOADER_DESIGN.md`. **Awaiting testing
+by a real user** — everything below was verified against this one card and the
+manufacturer's report for it.
 
 Related: `SD_CARD_FINGERPRINTS.md` has an earlier entry for the **SEFAM S.Box
 AUTO** (model code `1263R`, firmware `VER :A020400`) — same firmware platform,

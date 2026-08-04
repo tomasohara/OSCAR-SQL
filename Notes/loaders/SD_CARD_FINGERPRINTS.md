@@ -4467,13 +4467,20 @@ the firmware platforms below are what the loader actually has to dispatch on.)
 
 ---
 
-## SEFAM S.Box AUTO (no existing loader)
+## SEFAM S.Box AUTO (loader now exists — see note below)
 
 **Sample:** `C:/Users/Guy/Downloads/SEFAM-2 Wagmar Barbosa de Souza` (SD card root —
 the user's reference path `…/1263R/24462543` is two levels into the card).
 **Device:** SEFAM S.Box AUTO (sleep diagnostic / autotitration device), model code `1263R`, serial `24462543`, firmware `VER :A020400`.
-**Loader:** **None — no SEFAM loader exists in OSCAR.** No code references `Sefam`,
-`SEFAM`, `S.Box`, or related strings anywhere in `oscar/SleepLib/`.
+**Loader:** `sefam_loader.cpp` / `sefamDataParsing.cpp` (added 2026-08-03).
+The loader accepts **any** SEFAM card matching `<digits><letter>/<digits>/DATA_nnn/`,
+reading sample rates and channel names from each session's `.INI` and detecting
+header length rather than assuming it. Only the **Rêve Auto (`1279R`)** has been
+validated end to end against a manufacturer report, so any other model code —
+including this S.Box AUTO `1263R` — imports on a best-effort basis and raises
+`deviceIsUntested()`. This S.Box sample has **not** been re-tested since the
+loader was written; its 25 Hz flow rate and shorter header are handled in
+principle but unverified in practice.
 **Device class:** **Sleep diagnostic / polygraph**, not a CPAP. Channel set includes
 abdominal-effort and thoracic-effort belts, SpO2, pulse rate, body position, heart
 rate — Type-3 PSG-class channels in addition to flow/pressure/leak.
@@ -4676,6 +4683,14 @@ flagging early in any new loader's verification: never assume `Real Record Durat
 matches sample count.
 
 ### What a future SEFAM loader would need
+
+> **Superseded — the loader was built on 2026-08-03.** The list below was the
+> pre-implementation estimate and is kept only to show what the analysis
+> anticipated. For what was actually built, read
+> `Notes/loaders/SEFAM_LOADER_DESIGN.md`. Two items below turned out wrong: the
+> XOR covers the header only (not the whole file), and `.Y17`/`.NSD` are not
+> merely "ignorable" — `Y17` is the suspected home of the hypopnea durations the
+> log omits.
 
 1. **New Detect path**: walk into `<digits>+R/<digits>/DATA_<N>/` and check for
    `DATA_<N>.INI`. Or anchor on the SD-root combination of `<modelcode>/<serial>/`
@@ -4986,9 +5001,10 @@ main hurdle.
   4. Channel decoder: identify which `0x90` sub-IDs correspond to flow / pressure
      / leak / event channels; correlate with the Report.ini summary values.
   5. Skip `Report/` and treat it as opaque.
-- **Multi-week effort** for a new loader — falls in the same bucket as SEFAM and
-  Prisma VENT as "new format, no existing loader candidate." Distinct task from
-  the Prisma LINE table-entry additions.
+- **Multi-week effort** for a new loader — falls in the same bucket as Prisma
+  VENT as "new format, no existing loader candidate." Distinct task from the
+  Prisma LINE table-entry additions. (SEFAM was formerly in this bucket; its
+  loader was built on 2026-08-03.)
 
 ---
 
@@ -5008,6 +5024,7 @@ the known gaps where future samples would round it out.
 | `prs1_loader.cpp` | Philips Respironics System One / DreamStation | DreamStation 2 (encrypted), DreamStation Go Auto + DreamStation Go (cleartext, two-device card), **DreamStation CPAP 200X110** (brick — 4-year card, 5 Px partitions, 3083 sessions), **BiPAP A40** (PRS1-detected but unsupported — `(F3,V4)` not in tested-model table; real data lives in parallel `BIPAP-A/` EDF+D tree no loader reads) |
 | `resmed_loader.cpp` | ResMed S9 / AirSense / AirCurve (S9/AS10/AS11) | S9 AutoSet (S9 — flat DATALOG), AirCurve 10 VAuto (AS10), AirSense 10 CPAP basic (AS10, summary-only), AirSense 11 AutoSet (AS11) |
 | `resvent_loader.cpp` | Resvent platform (Resvent / BMC iBreeze / Hoffrichter) | BMC iBreeze 20A, Hoffrichter Point 3 AutoCPAP |
+| `sefam_loader.cpp` | SEFAM (also sold as Sanrai in some markets) | **Rêve Auto `1279R`** — validated end to end against a manufacturer *Sefam Analyze* report for the same 31 sessions. S.Box AUTO `1263R` documented above but **not** re-tested since the loader was written. Added 2026-08-03; **awaiting real-user testing** |
 | `yuwell_loader.cpp` | Yuwell YH-series | YH-550A (Format A), YH-580C (Format B — single 64 KB ring-buffer file at root), **YH-825A** (Format C, BiPAP S/T — IPAP/EPAP decode added 2026-05-21; LE u16×10 at record offsets `0x02`/`0x04`), YH-680B (Format D summary-only), YH690F (Format D full) |
 
 ## CPAP loaders with no sample yet (would round out the catalogue)
@@ -5046,7 +5063,6 @@ addition.
 | Format | Sample reference | Notable structural traits |
 |---|---|---|
 | Löwenstein Prisma VENT V50-C | "AKLERK Lowenstein Prisma Vent V50C" | `P34A11` firmware platform; `prismaVENT.sdpvdat` sentinel; per-day ZIPs |
-| SEFAM (S.Box AUTO `1263R`, Rêve Auto `1279R`) | see `SEFAM_REVE_CARD_ANALYSIS.md` | Self-describing INI manifest; XOR `0xBF` on the file header only, plaintext body (**solved**); 10-second records with checksum + sequence. Container decoded and waveform scalings confirmed; **event taxonomy and therapy settings still unresolved** |
 | VentMed DreamSleep DS6 | "Jonathan Cameron - VentMed-DreamSleep-DS6" | Per-day `.ds1` files; 4-byte fixed TLV records starting `80 16` |
 | Philips BiPAP A40 (`BIPAP-A/` tree) | "AKLERK 20240205_Philips_BiPAP_A40" | Standard EDF+D in `BIPAP-A/A*.EDF`/`D*.EDF`/`W*.EDF`; parallel `P-SERIES/` stub triggers PRS1 detect but `(F3,V4)` is unsupported. Hospital NIV family (A-Series — Trilogy/A30/A40 adjacency) |
 
