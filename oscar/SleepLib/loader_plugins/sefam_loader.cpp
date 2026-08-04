@@ -13,6 +13,7 @@
 #include "sefam_loader.h"
 #include "sefamDataParsing.h"
 
+#include "SleepLib/common.h"
 #include "SleepLib/importcontext.h"
 #include "SleepLib/profiles.h"
 #include "SleepLib/session.h"
@@ -443,6 +444,54 @@ int SefamLoader::Open(const QString &path)
 
 bool SefamLoader::backupData(Machine *mach, const QString &path)
 {
-    Q_UNUSED(mach); Q_UNUSED(path);
+    const QString serialDir = findSerialDir(path);
+    if (serialDir.isEmpty()) { return false; }
+
+    // Reconstruct the card's <modelcode>/<serial>/ layout under the backup root
+    // rather than copying whatever the user happened to select. Import accepts
+    // the card root, the model directory or the serial directory, so copying the
+    // selection verbatim would produce a backup whose shape depends on how the
+    // user navigated — and PeekInfo reads the model code from the serial
+    // directory's parent, which would then be "Backup".
+    const QDir    src(serialDir);
+    const QString serialName = src.dirName();
+    const QString modelCode  = QFileInfo(src.absolutePath()).dir().dirName();
+
+    QDir backupRoot(mach->getBackupPath());
+    const QDir dst(backupRoot.absoluteFilePath(modelCode + "/" + serialName));
+
+    // Compare QDir objects rather than strings: separators differ on Windows.
+    // This must compare the real source and destination, not just the selected
+    // path against the backup root — importing from a path nested inside the
+    // backup folder would otherwise pass the check, and copyPath() with
+    // overwrite removes each destination file before copying, which for a
+    // self-copy destroys the backup.
+    if (src == dst) {
+        rebuild_from_backups = true;
+        create_backups = false;
+    } else {
+        rebuild_from_backups = false;
+        create_backups = p_profile->session->backupCardData();
+    }
+
+    if (rebuild_from_backups || !create_backups) { return true; }
+
+    QDir dir;
+    if (!dir.exists(dst.absolutePath()) && !dir.mkpath(dst.absolutePath())) {
+        qWarning() << "Sefam: could not create backup directory" << dst.absolutePath();
+        return false;
+    }
+
+    emit updateMessage(QObject::tr("Creating data backup..."));
+    QCoreApplication::processEvents();
+
+    // The whole card is copied, including the encrypted .RAM/.BKP images. They
+    // are not read by this loader, but they are the only place the format's
+    // remaining unknowns could ever be answered from, so a backup that dropped
+    // them would destroy the one artefact a future investigation would need.
+    // A SEFAM card is around 31 MB, of which the images are about 3 MB.
+    copyPath(src.absolutePath(), dst.absolutePath(), true);
+
+    qDebug() << "Sefam: backed up card to" << dst.absolutePath();
     return true;
 }

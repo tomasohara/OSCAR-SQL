@@ -400,8 +400,20 @@ if (rebuild_from_backups || !create_backups) return true;
 copyPath(ipath.absolutePath(), bpath.absolutePath(), true);
 ```
 
-Compare `QDir` objects, not strings — separators differ on Windows, and getting
-this wrong backs a folder up onto itself.
+Compare `QDir` objects, not strings — separators differ on Windows.
+
+**Compare the real source and destination, not the selected path against the
+backup root.** `Detect()` accepts the card root, the model directory or the
+serial directory, so a user can import from a path *nested inside* the backup
+folder. A root-level comparison passes in that case, and `copyPath()` with
+`overwrite = true` removes each destination file before copying — for a
+self-copy that destroys the backup. The loader compares the resolved serial
+directory against the computed destination instead.
+
+**The backup reconstructs the card's `<modelcode>/<serial>/` layout** rather than
+copying whatever the user selected, so the backup's shape does not depend on how
+they navigated. This also keeps re-import working: `PeekInfo()` reads the model
+code from the serial directory's parent, which would otherwise be `Backup`.
 
 **The whole card is copied, including `.RAM`/`.BKP`.** ResMed backs up
 selectively because its cards carry irrelevant bulk; a Sefam card is ~31 MB and
