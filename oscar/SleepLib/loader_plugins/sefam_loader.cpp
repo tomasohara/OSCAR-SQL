@@ -255,6 +255,15 @@ int SefamLoader::Open(const QString &path)
 
     int imported = 0, skipped = 0, progress = 0;
 
+    // The device writes a settings record only occasionally — 4 of the 31
+    // sessions on the validated card carry one. Settings are therefore carried
+    // forward from the most recent record at or before each session, which is
+    // what the manufacturer's own software does (its report lists identical
+    // settings on every session row). Directory names sort chronologically, so
+    // iterating in order makes this safe even if settings change mid-card:
+    // a session never inherits settings recorded after it.
+    SefamParsing::Settings lastKnown;
+
     for (const QString &d : dirs) {
         if (isAborted()) { break; }
         emit setProgressValue(++progress);
@@ -282,6 +291,21 @@ int SefamLoader::Open(const QString &path)
         session->SetChanged(true);
         session->really_set_first(startMs);
         session->really_set_last(endMs);
+
+        if (data.settings.valid) { lastKnown = data.settings; }
+
+        if (lastKnown.valid) {
+            // A-PAP is the only mode observed on any SEFAM card examined.
+            session->settings[CPAP_Mode]        = MODE_APAP;
+            session->settings[CPAP_PressureMin] = lastKnown.minPressure;
+            session->settings[CPAP_PressureMax] = lastKnown.maxPressure;
+            if (lastKnown.rampMinutes > 0) {
+                session->settings[CPAP_RampTime]     = lastKnown.rampMinutes;
+                session->settings[CPAP_RampPressure] = lastKnown.rampPressure;
+            }
+        }
+        // Sessions before the first settings record on a card carry no settings
+        // rather than inheriting from the future.
 
         const ChannelSpec flwSpec = data.channels.value("FLW");
         const ChannelSpec preSpec = data.channels.value("PRE");

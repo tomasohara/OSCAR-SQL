@@ -217,6 +217,31 @@ bool readLog(const QString &path, QVector<LogRecord> &out)
     return true;
 }
 
+bool parseSettings(const LogRecord &rec, Settings &out)
+{
+    const auto byteAt = [&rec](int index) -> int {
+        return static_cast<quint8>(rec.payload.at(index));
+    };
+
+    if (rec.code == kLogSettingsChange) {
+        if (rec.payload.size() < 6) { return false; }
+        out.minPressure  = byteAt(0) / 10.0f;
+        out.rampMinutes  = byteAt(1);
+        out.maxPressure  = byteAt(4) / 10.0f;
+        out.rampPressure = byteAt(5) / 10.0f;
+        out.valid = true;
+        return true;
+    }
+    if (rec.code == kLogSettingsSnapshot) {
+        if (rec.payload.size() < 6) { return false; }
+        out.minPressure = byteAt(3) / 10.0f;
+        out.maxPressure = byteAt(5) / 10.0f;
+        out.valid = true;
+        return true;
+    }
+    return false;
+}
+
 bool readSession(const QString &dirPath, SessionData &out, QString &error)
 {
     QDir dir(dirPath);
@@ -264,6 +289,17 @@ bool readSession(const QString &dirPath, SessionData &out, QString &error)
     const QString logPath = dir.absoluteFilePath(out.dirName + ".LOG");
     if (QFile::exists(logPath) && !readLog(logPath, out.log)) {
         qWarning() << "Sefam:" << out.dirName << "log unreadable — events skipped";
+    }
+
+    // Prefer a full settings-change record; fall back to a snapshot, which
+    // carries pressures but no ramp fields.
+    for (const LogRecord &rec : out.log) {
+        if (rec.code == kLogSettingsChange && parseSettings(rec, out.settings)) { break; }
+    }
+    if (!out.settings.valid) {
+        for (const LogRecord &rec : out.log) {
+            if (rec.code == kLogSettingsSnapshot && parseSettings(rec, out.settings)) { break; }
+        }
     }
     return true;
 }

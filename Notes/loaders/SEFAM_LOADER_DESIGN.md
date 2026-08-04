@@ -326,8 +326,26 @@ identified in the format notes are **not** written: they are positional guesses
 that a single card cannot vary, and an unverified byte displayed as a therapy
 setting is worse than showing nothing.
 
-Mode is set to APAP because A-PAP is the only mode observed. A session with no
-settings record carries no settings rather than inheriting a neighbour's.
+Mode is set to APAP because A-PAP is the only mode observed.
+
+**Settings are carried forward.** This reverses an earlier decision in this
+document ("a session with no settings record carries no settings rather than
+inheriting a neighbour's"), which was made before measuring how often the device
+writes the record. On the validated card only **4 of 31 sessions carry a code-2
+record**, and the code-13 fallback never fires because both sessions containing
+code 13 also contain code 2. The original rule would therefore have left 27 of
+31 sessions with no settings displayed at all.
+
+The settings did not change over the period — the manufacturer's report lists
+identical values on every session row — so the device simply writes the record
+occasionally rather than per session. The loader keeps the most recent settings
+seen and applies them to subsequent sessions.
+
+Directory names sort chronologically, so iteration order makes this safe even if
+settings change mid-card: a session inherits only from a record written at or
+before it, never from a later one. Sessions preceding the first settings record
+still carry nothing. On the validated card the first session carries a code-2
+record, so all 31 are covered.
 
 ## 9. Error handling
 

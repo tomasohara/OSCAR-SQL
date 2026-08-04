@@ -129,6 +129,23 @@ enum LogCode {
     kLogSettingsSnapshot = 13       //!< Also carries settings; fallback for code 2.
 };
 
+/*! \struct Settings
+    \brief Therapy settings decoded from a log settings record.
+
+    Only fields confirmed against the manufacturer's printed settings are
+    represented. The humidifier and comfort-level bytes are positional guesses
+    that a single card cannot vary, so they are deliberately absent — an
+    unverified byte displayed as a therapy setting is worse than showing
+    nothing. */
+struct Settings
+{
+    bool  valid        = false;
+    float minPressure  = 0.0f;      //!< cmH2O
+    float maxPressure  = 0.0f;      //!< cmH2O
+    float rampPressure = 0.0f;      //!< cmH2O
+    int   rampMinutes  = 0;
+};
+
 /*! \struct SessionData
     \brief Everything decoded from one DATA_nnn directory. */
 struct SessionData
@@ -139,6 +156,7 @@ struct SessionData
     QHash<QString, ChannelSpec>      channels;       //!< Declared schema.
     QHash<QString, QVector<quint8>>  samples;        //!< Raw bytes per populated channel.
     QVector<LogRecord>               log;            //!< Decoded .LOG records.
+    Settings                         settings;       //!< From a log settings record.
 };
 
 /*! \brief Parse a session's .INI manifest.
@@ -173,6 +191,18 @@ bool readChannel(const QString &path, const ChannelSpec &spec,
     Trailing bytes that do not form a whole 49-byte record are ignored. Only the
     header is obfuscated; the records themselves are plaintext. */
 bool readLog(const QString &path, QVector<LogRecord> &out);
+
+/*! \brief Decode therapy settings from a log record.
+    \param rec A record with code kLogSettingsChange or kLogSettingsSnapshot.
+    \param out Populated and marked valid on success.
+    \return false if the record is not a settings record or the payload is short.
+
+    Payload offsets are relative to record byte 11, which is payload index 0.
+    Code 2:  index 0 = min pressure, 1 = ramp minutes, 4 = max pressure,
+             5 = ramp pressure. Pressures are tenths of a cmH2O.
+    Code 13: index 3 = min pressure, index 5 = max pressure; it carries no ramp
+             fields, so those stay zero. */
+bool parseSettings(const LogRecord &rec, Settings &out);
 
 /*! \brief Read one DATA_nnn directory into a SessionData.
     \return false if the .INI is missing or no channel could be read. */
