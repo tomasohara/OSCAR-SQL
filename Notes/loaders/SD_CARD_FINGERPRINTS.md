@@ -4478,9 +4478,23 @@ reading sample rates and channel names from each session's `.INI` and detecting
 header length rather than assuming it. Only the **Rêve Auto (`1279R`)** has been
 validated end to end against a manufacturer report, so any other model code —
 including this S.Box AUTO `1263R` — imports on a best-effort basis and raises
-`deviceIsUntested()`. This S.Box sample has **not** been re-tested since the
-loader was written; its 25 Hz flow rate and shorter header are handled in
-principle but unverified in practice.
+`deviceIsUntested()`.
+
+**Re-tested against the finished loader on 2026-08-03.** Parsing this sample
+required three fixes, all now in the loader:
+
+1. **Format tag is `#02/`, not `#03/`.** The tag is a version field. Matching
+   `#03/` literally rejected the card outright.
+2. **`Created By=S.Box_AUTO`** — punctuation differs from the Rêve's
+   `REVE_AUTO`, so model-name matching normalises out `.`, `_` and spaces.
+3. **Session directories are `DATA_0`, not `DATA_000`.** Unpadded names sort
+   `DATA_10` before `DATA_2`, which would carry therapy settings backwards in
+   time on a card with ten or more sessions. Sorting is now numeric.
+
+What this card yields: **3 sessions, 13.44 h**, flow / pressure / total leak, all
+record checksums passing. It carries **no `.LOG` files at all**, so it has no
+events and no therapy settings — the loader's no-log path, previously untested.
+Model code `1263R` correctly raises `deviceIsUntested()`.
 **Device class:** **Sleep diagnostic / polygraph**, not a CPAP. Channel set includes
 abdominal-effort and thoracic-effort belts, SpO2, pulse rate, body position, heart
 rate — Type-3 PSG-class channels in addition to flow/pressure/leak.

@@ -112,8 +112,16 @@ Channel files — **71 bytes, fixed**:
 ```
 #03/<serial padded to 20 chars>/<YYMMDDhhmmss>/<32 hex chars>/
  │           20 bytes                12 bytes        32 bytes
- └─ format tag
+ └─ format version
 ```
+
+> **The leading tag is a format version, not a constant.** The Rêve Auto writes
+> `#03/`; the **S.Box AUTO writes `#02/`**. A loader that matches `#03/`
+> literally will reject S.Box cards outright. Accept any `#NN/`.
+>
+> Both observed versions share the same field layout, and header length is
+> detected independently of the version, so the number is useful for diagnostics
+> but should not gate parsing.
 
 - `<YYMMDDhhmmss>` is **local** time and matches the `.INI` `[Start Record]`
   exactly.

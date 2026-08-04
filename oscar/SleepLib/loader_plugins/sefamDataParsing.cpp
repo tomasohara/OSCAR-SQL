@@ -17,6 +17,8 @@
 #include <QRegularExpression>
 #include <QSettings>
 
+#include <cctype>
+
 namespace SefamParsing {
 
 void descramble(QByteArray &data)
@@ -28,9 +30,15 @@ void descramble(QByteArray &data)
 
 bool parseHeader(const QByteArray &decoded, FileHeader &out)
 {
-    // Minimum viable header: "#03/" + 20 serial + "/" + 12 timestamp + "/"
+    // Minimum viable header: "#NN/" + 20 serial + "/" + 12 timestamp + "/"
     if (decoded.size() < kLogHeaderLength) { return false; }
-    if (!decoded.startsWith("#03/")) { return false; }
+
+    // The tag is a format version, not a constant — "#03/" on the Rêve Auto,
+    // "#02/" on the S.Box AUTO. Accept any two-digit version.
+    if (decoded.at(0) != '#' || decoded.at(3) != '/') { return false; }
+    if (!isdigit(static_cast<unsigned char>(decoded.at(1)))
+        || !isdigit(static_cast<unsigned char>(decoded.at(2)))) { return false; }
+    out.formatVersion = decoded.mid(1, 2).toInt();
 
     const int serialStart = 4;
     const int serialLen   = 20;

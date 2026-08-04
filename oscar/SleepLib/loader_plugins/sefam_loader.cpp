@@ -54,6 +54,23 @@ static bool sefam_initialised = false;
 SefamLoader::SefamLoader()  { m_type = MT_CPAP; }
 SefamLoader::~SefamLoader() = default;
 
+/*! \brief Sort DATA_nnn directory names into chronological order.
+
+    Session directories are not consistently zero-padded across models: the Rêve
+    Auto writes DATA_000, the S.Box AUTO writes DATA_0. Plain name sorting puts
+    DATA_10 before DATA_2, which would carry therapy settings backwards in time.
+    Sort on the numeric suffix, falling back to name order if it is missing. */
+static void sortSessionDirs(QStringList &dirs)
+{
+    std::sort(dirs.begin(), dirs.end(), [](const QString &a, const QString &b) {
+        bool aok = false, bok = false;
+        const int an = a.section('_', -1).toInt(&aok);
+        const int bn = b.section('_', -1).toInt(&bok);
+        if (aok && bok && an != bn) { return an < bn; }
+        return a < b;
+    });
+}
+
 void SefamLoader::Register()
 {
     if (sefam_initialised) { return; }
@@ -144,10 +161,14 @@ bool SefamLoader::Detect(const QString &path)
     meaningful rather than a blank. */
 static QString sefamModelName(const QString &createdBy)
 {
-    const QString key = createdBy.trimmed().toUpper();
-    if (key.isEmpty())      { return QString(); }
-    if (key == "REVE_AUTO") { return QString::fromUtf8("Rêve Auto"); }
-    if (key == "SBOX_AUTO") { return QStringLiteral("S.Box Auto"); }
+    // Normalise: the S.Box writes "S.Box_AUTO", so strip punctuation before
+    // matching rather than listing every spelling.
+    QString key = createdBy.trimmed().toUpper();
+    if (key.isEmpty()) { return QString(); }
+    key.remove('.').remove('_').remove(' ');
+
+    if (key == "REVEAUTO") { return QString::fromUtf8("Rêve Auto"); }
+    if (key == "SBOXAUTO") { return QStringLiteral("S.Box Auto"); }
     return createdBy.trimmed();
 }
 
@@ -247,8 +268,9 @@ int SefamLoader::Open(const QString &path)
 
     const QString serialDir = findSerialDir(path);
     QDir dir(serialDir);
-    const QStringList dirs =
+    QStringList dirs =
         dir.entryList(QStringList("DATA_*"), QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+    sortSessionDirs(dirs);   // chronological, not lexical — see above
 
     emit updateMessage(QObject::tr("Reading SEFAM card..."));
     emit setProgressMax(dirs.size());

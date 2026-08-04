@@ -62,6 +62,7 @@ struct FileHeader
     QDateTime localStart;              //!< Device local wall-clock start time.
     qint64    utcEpoch = 0;            //!< UTC epoch seconds; 0 when the short header is used.
     int       length   = 0;            //!< 71 or 38, whichever variant was detected.
+    int       formatVersion = 0;       //!< The NN from the "#NN/" tag. 3 = Rêve, 2 = S.Box.
 };
 
 /*! \brief XOR every byte with kObfuscationKey, in place. Self-inverse.
@@ -74,7 +75,13 @@ void descramble(QByteArray &data);
 /*! \brief Parse a descrambled file header.
     \param decoded Descrambled bytes; at least kChannelHeaderLength are examined.
     \param out     Populated on success.
-    \return true if the header carries the "#03/" tag and a parseable timestamp.
+    \return true if the header carries a "#NN/" tag and a parseable timestamp.
+
+    The leading tag is a two-digit format version, not a constant: the Rêve Auto
+    writes "#03/" and the S.Box AUTO "#02/". Any two-digit version is accepted —
+    the field is recorded in FileHeader::formatVersion for diagnostics but does
+    not gate parsing, since both observed versions share the same layout and the
+    header length is detected independently.
 
     The header length is detected, never assumed: after the 12-character
     timestamp and its delimiter, 32 hex digits followed by '/' indicate the
