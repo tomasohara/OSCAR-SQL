@@ -23,6 +23,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QPair>
 #include <QRegularExpression>
 #include <QSettings>
 
@@ -47,6 +48,41 @@ using SefamParsing::ChannelSpec;
     @{ */
 constexpr qint64 kObstructiveHypopneaPlacementMs = 16000;   //!< Vendor mean, 16 s
 constexpr qint64 kCentralHypopneaPlacementMs     = 15000;   //!< Vendor mean, 15 s
+/*! @} */
+
+/*! \brief Width of the therapy-pressure smoothing window, in seconds.
+
+    Ten seconds spans roughly two and a half breaths at the validated card's
+    respiratory rate. That reduces the mask-pressure ripple from about
+    1.0 cmH2O peak to peak down to about 0.1 — the channel's own quantisation
+    step — while staying short enough to follow the device's pressure responses:
+    the validated card slews up to 2.7 cmH2O in ten seconds, and doubling the
+    window to twenty seconds more than doubles the tracking error across those
+    ramps. See the CPAP_Pressure import in Open(). */
+constexpr int kPressureSmoothingSeconds = 10;
+
+/*! \name Blower-off detection
+    The card keeps writing 10-second records while the blower is stopped, so a
+    session's files span the whole time the machine was powered on, not the time
+    therapy was delivered. Those stretches must be excluded or they are counted
+    as usage and averaged into the pressure statistics: on the validated card
+    one 19:40 session contains 269 s of blower-off, which pulled its mean
+    pressure to 3.22 cmH2O against the manufacturer's reported 4.3.
+
+    While stopped the card records a spread of near-zero pressures — 0.0 to 0.4
+    cmH2O, not a single sentinel value — and therapy never goes below the
+    device's 4.0 cmH2O minimum setting, leaving a wide empty band between the
+    two. 2.0 cmH2O sits in that band.
+
+    **This threshold is an assumption, not a value read from the card.** It has
+    margin only because these devices bottom out at 4.0 cmH2O; a model whose
+    minimum pressure could be set lower would narrow it.
+
+    The minimum duration suppresses the brief dips seen during ramp-down and
+    ramp-up transitions, which would otherwise punch spurious holes.
+    @{ */
+constexpr float kBlowerOffPressure       = 2.0f;   //!< cmH2O; below this = stopped
+constexpr int   kBlowerOffMinimumSeconds = 10;     //!< Ignore shorter excursions
 /*! @} */
 
 static bool sefam_initialised = false;
@@ -218,6 +254,171 @@ MachineInfo SefamLoader::PeekInfo(const QString &path)
     return info;
 }
 
+/*! \brief Centred moving average over the valid samples of a waveform.
+
+    Invalid samples are excluded from every window rather than counted as zero,
+    which would drag the average down around a drop-out. The output keeps the
+    input's validity exactly — a smoothed sample is produced only where the
+    source has one — so the smoothed channel covers the same span as its source
+    and importWaveform() splits both at the same gaps. Letting the window bridge
+    a gap instead would extend the smoothed channel half a window past each end
+    of every drop-out, and the two graphs would no longer line up.
+
+    Near the ends of the signal, and either side of a gap, the window is clipped
+    to the available valid samples, so those outputs average over fewer inputs.
+
+    \param values     Input samples in the channel's storage units.
+    \param valid      Per-sample validity, parallel to \a values.
+    \param window     Window width in samples; rounded up to odd so it centres.
+    \param[out] out       Smoothed samples, same length as \a values.
+    \param[out] outValid  Validity of \a out, same length as \a values. */
+static void movingAverage(const QVector<qint16> &values, const QVector<bool> &valid,
+                          int window, QVector<qint16> &out, QVector<bool> &outValid)
+{
+    const int n = qMin(values.size(), valid.size());
+    out.resize(n);
+    outValid.resize(n);
+    if (n == 0) { return; }
+
+    if (window < 1)     { window = 1; }
+    if (window % 2 == 0) { ++window; }
+    const int half = window / 2;
+
+    // Running sum, so the cost per sample does not grow with the window width.
+    qint64 sum   = 0;
+    int    count = 0;
+    auto include = [&](int i) {
+        if (i >= 0 && i < n && valid.at(i)) { sum += values.at(i); ++count; }
+    };
+    auto exclude = [&](int i) {
+        if (i >= 0 && i < n && valid.at(i)) { sum -= values.at(i); --count; }
+    };
+
+    for (int i = 0; i <= half && i < n; ++i) { include(i); }
+
+    for (int i = 0; i < n; ++i) {
+        if (i > 0) {
+            exclude(i - half - 1);      // sample that just left the window
+            include(i + half);          // sample that just entered it
+        }
+        // count is necessarily non-zero wherever the source sample is valid,
+        // because that sample is itself inside the window.
+        outValid[i] = valid.at(i);
+        out[i] = outValid[i]
+               ? static_cast<qint16>(qRound(static_cast<double>(sum) / count))
+               : 0;
+    }
+}
+
+/*! \brief Find the stretches of a session where the blower was not running.
+
+    Detected from the pressure channel, which is the only direct evidence the
+    card gives: see the kBlowerOffPressure notes for the threshold's basis and
+    its limits. Samples with no data at all count as stopped too, which also
+    picks up the 10-second sentinel every session opens with.
+
+    \param pre   Raw `PRE` samples, in tenths of a cmH2O.
+    \param freq  `PRE` sample rate in Hz, from the .INI.
+    \returns Sorted, non-overlapping `[start, end)` spans in milliseconds from
+             the session start. Empty if the blower ran throughout. */
+static QVector<QPair<qint64, qint64>> findBlowerOffSpans(const QVector<quint8> &pre, int freq)
+{
+    QVector<QPair<qint64, qint64>> spans;
+    if (freq <= 0 || pre.isEmpty()) { return spans; }
+
+    const int    threshold   = static_cast<int>(kBlowerOffPressure * 10.0f);   // raw tenths
+    const int    minSamples  = kBlowerOffMinimumSeconds * freq;
+    const qint64 msPerSample = 1000 / freq;
+
+    int i = 0;
+    const auto stopped = [&](int k) {
+        const quint8 v = pre.at(k);
+        return v == SefamParsing::kInvalidSample || v < threshold;
+    };
+
+    while (i < pre.size()) {
+        if (!stopped(i)) { ++i; continue; }
+        int j = i;
+        while (j < pre.size() && stopped(j)) { ++j; }
+        if (j - i >= minSamples) {
+            spans.append(qMakePair(static_cast<qint64>(i) * msPerSample,
+                                   static_cast<qint64>(j) * msPerSample));
+        }
+        i = j;
+    }
+    return spans;
+}
+
+/*! \brief Mark samples invalid wherever they fall inside one of \a spans.
+
+    Applied to every waveform so the blower-off stretches leave a genuine gap in
+    all channels at once, instead of a flat near-zero line that gets averaged
+    into the statistics. Spans are in milliseconds from the session start, so
+    one set works for channels of differing rates.
+
+    \param valid   Validity flags to clear, modified in place.
+    \param spans   Blower-off spans from findBlowerOffSpans().
+    \param rateMs  Sample interval of this channel, in milliseconds. */
+static void clearSpans(QVector<bool> &valid,
+                       const QVector<QPair<qint64, qint64>> &spans, int rateMs)
+{
+    if (rateMs <= 0) { return; }
+    for (const QPair<qint64, qint64> &span : spans) {
+        const int from = static_cast<int>(span.first / rateMs);
+        // Round the end up so a span never leaves a partly-covered sample behind.
+        const int to   = static_cast<int>((span.second + rateMs - 1) / rateMs);
+        for (int i = qMax(0, from); i < qMin(to, static_cast<int>(valid.size())); ++i) {
+            valid[i] = false;
+        }
+    }
+}
+
+/*! \brief Record mask-on and mask-off spans so usage time excludes blower-off.
+
+    `Session::hours()` sums only the MaskOn slices when any slice is present,
+    and falls back to the whole session span when none is. Without this the
+    session reports the time the machine was powered on rather than the time it
+    was treating — 19:40 instead of about 15:10 for the worst session on the
+    validated card. `bmc_loader.cpp` does the same thing for the same reason.
+
+    Both statuses are recorded, as prs1_loader does: `Day` counts only MaskOn,
+    while gSessionTimesChart draws every slice and renders the off ones black.
+
+    \param session   Session to append slices to.
+    \param startMs   Session start.
+    \param endMs     Session end.
+    \param offSpans  Blower-off spans, in milliseconds from \a startMs. */
+static void addMaskSlices(Session *session, qint64 startMs, qint64 endMs,
+                          const QVector<QPair<qint64, qint64>> &offSpans)
+{
+    if (offSpans.isEmpty()) { return; }      // ran throughout: the fallback is correct
+
+    QVector<SessionSlice> slices;
+    qint64 cursor = startMs;
+    for (const QPair<qint64, qint64> &span : offSpans) {
+        const qint64 offStart = qBound(startMs, startMs + span.first,  endMs);
+        const qint64 offEnd   = qBound(startMs, startMs + span.second, endMs);
+        if (offStart > cursor) { slices.append(SessionSlice(cursor, offStart, MaskOn)); }
+        if (offEnd   > offStart) { slices.append(SessionSlice(offStart, offEnd, MaskOff)); }
+        cursor = qMax(cursor, offEnd);
+    }
+    if (cursor < endMs) { slices.append(SessionSlice(cursor, endMs, MaskOn)); }
+
+    // An all-off session would leave hours() with nothing to sum, and an empty
+    // slice list silently means "no slice information" — which would report the
+    // full span, the opposite of the intent. Leave the slices off and say so.
+    bool anyOn = false;
+    for (const SessionSlice &s : slices) {
+        if (s.status == MaskOn) { anyOn = true; break; }
+    }
+    if (!anyOn) {
+        qWarning() << "Sefam: session" << session->session()
+                   << "is entirely blower-off; usage time will be its full span";
+        return;
+    }
+    session->m_slices = slices;
+}
+
 void SefamLoader::importWaveform(Session *session, const QVector<qint16> &values,
                                  const QVector<bool> &valid, ChannelID chan,
                                  EventDataType gain, int rateMs, qint64 startMs)
@@ -277,6 +478,7 @@ int SefamLoader::Open(const QString &path)
     emit setProgressValue(0);
 
     int imported = 0, skipped = 0, progress = 0;
+    qint64 totalSpanMs = 0, totalUsageMs = 0;
 
     // The device writes a settings record only occasionally — 4 of the 31
     // sessions on the validated card carry one. Settings are therefore carried
@@ -337,7 +539,38 @@ int SefamLoader::Open(const QString &path)
         const QVector<quint8> &pre = data.samples.value("PRE");
         const QVector<quint8> &lk  = data.samples.value("LK");
 
+        // The card records through blower-off stretches, so find them once from
+        // the pressure channel and exclude them from every waveform and from
+        // usage time. Left in, they are counted as therapy: they drag the mean
+        // pressure down and inflate the session length.
+        const QVector<QPair<qint64, qint64>> offSpans =
+            findBlowerOffSpans(pre, preSpec.freq);
+        addMaskSlices(session, startMs, endMs, offSpans);
+
+        // Scored events are deliberately left alone. Only 7 of 1568 on the
+        // validated card fall inside a blower-off span, and they sit at the
+        // detection boundaries; dropping them would disturb event counts that
+        // were validated against the manufacturer's report to within one event.
+
         // Pressure: raw byte is tenths of a cmH2O, so store it as-is with gain 0.1.
+        //
+        // PRE is a MASK pressure — it carries the breathing ripple, about
+        // 1.0 cmH2O peak to peak on the validated card — so it is imported as
+        // CPAP_MaskPressure. The card carries no separate therapy-pressure
+        // signal: PRE is the only channel declared in cmH2O, every other
+        // populated channel (DET, NSD, Y17) is a bit field, and no log record
+        // reports a pressure. CPAP_Pressure is therefore derived here by
+        // averaging the ripple away, which OSCAR needs because that channel —
+        // not CPAP_MaskPressure — drives the Pressure graph, the overview trend
+        // and the pressure statistics.
+        //
+        // A moving average is used rather than a median because it is unbiased.
+        // Measured against a breath-synchronous reference over 24 sessions, a
+        // 10 s average leaves the session average pressure unchanged, so the
+        // figures still match the manufacturer's report; a median of the same
+        // width tracks the device's pressure ramps slightly better but shifts
+        // every session average up by about 0.03 cmH2O, which nearly doubles
+        // its overall error.
         if (!pre.isEmpty() && preSpec.freq > 0) {
             QVector<qint16> v(pre.size());
             QVector<bool>   ok(pre.size());
@@ -345,8 +578,16 @@ int SefamLoader::Open(const QString &path)
                 ok[k] = (pre.at(k) != SefamParsing::kInvalidSample);
                 v[k]  = static_cast<qint16>(pre.at(k));
             }
-            importWaveform(session, v, ok, CPAP_Pressure, 0.1f,
-                           1000 / preSpec.freq, startMs);
+            const int rateMs = 1000 / preSpec.freq;
+            clearSpans(ok, offSpans, rateMs);
+            importWaveform(session, v, ok, CPAP_MaskPressure, 0.1f, rateMs, startMs);
+
+            QVector<qint16> smoothed;
+            QVector<bool>   smoothedOk;
+            movingAverage(v, ok, preSpec.freq * kPressureSmoothingSeconds,
+                          smoothed, smoothedOk);
+            importWaveform(session, smoothed, smoothedOk, CPAP_Pressure, 0.1f,
+                           rateMs, startMs);
         }
 
         // Total leak: the device reports leak including the intentional mask vent.
@@ -357,8 +598,9 @@ int SefamLoader::Open(const QString &path)
                 ok[k] = (lk.at(k) != SefamParsing::kInvalidSample);
                 v[k]  = static_cast<qint16>(lk.at(k));
             }
-            importWaveform(session, v, ok, CPAP_LeakTotal, 0.6f,
-                           1000 / lkSpec.freq, startMs);
+            const int rateMs = 1000 / lkSpec.freq;
+            clearSpans(ok, offSpans, rateMs);
+            importWaveform(session, v, ok, CPAP_LeakTotal, 0.6f, rateMs, startMs);
         }
 
         // Flow: the card reports TOTAL flow, which sits about 22 L/min above zero
@@ -386,8 +628,9 @@ int SefamLoader::Open(const QString &path)
                 const float leakFlow   = lk.at(lkIndex) * 0.6f;
                 v[k] = static_cast<qint16>(qRound((totalFlow - leakFlow) * 10.0f));
             }
-            importWaveform(session, v, ok, CPAP_FlowRate, 0.1f,
-                           1000 / flwSpec.freq, startMs);
+            const int rateMs = 1000 / flwSpec.freq;
+            clearSpans(ok, offSpans, rateMs);
+            importWaveform(session, v, ok, CPAP_FlowRate, 0.1f, rateMs, startMs);
         }
         // DET, NSD and Y17 are deliberately not imported — see the design spec.
 
@@ -453,6 +696,8 @@ int SefamLoader::Open(const QString &path)
         }
 
         session->UpdateSummaries();
+        totalSpanMs  += endMs - startMs;
+        totalUsageMs += static_cast<qint64>(session->hours() * 3600000.0);
         mach->AddSession(session);
         ++imported;
     }
@@ -460,7 +705,12 @@ int SefamLoader::Open(const QString &path)
     mach->Save();
     finishAddingSessions();
 
-    qDebug() << "Sefam TOTAL sessions imported" << imported << "skipped" << skipped;
+    // Span is the time the machine was powered on, usage the time it was
+    // treating; the difference is the blower-off total. Logged separately
+    // because the manufacturer's report distinguishes them the same way.
+    qDebug() << "Sefam TOTAL sessions imported" << imported << "skipped" << skipped
+             << "span hours" << totalSpanMs / 3600000.0
+             << "usage hours" << totalUsageMs / 3600000.0;
     return imported;
 }
 

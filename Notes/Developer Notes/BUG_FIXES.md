@@ -4917,3 +4917,98 @@ ever loading it all into RAM. The `QFile m_file` member (replacing `QByteArray m
 stays open from `Open()` to `Close()`. This allows OSCAR to restore backups of any size,
 including existing archives with the miniz Zip64 writing bug (miniz's reader is lenient about
 local-header Zip64 extras; it skips them by stated length without validation).
+
+## 2026-08-04 - SEFAM: Pressure graph showed mask pressure, including breathing ripple
+
+**Symptom:** Zooming into the Pressure graph on a SEFAM import showed the
+inspiration/expiration ripple — roughly 1.0 cmH2O peak to peak. That is OSCAR's
+Mask Pressure graph, not the plain Pressure graph, which is expected to show the
+therapy pressure without breathing variation.
+
+**Root cause:** The card's `PRE` channel is a mask pressure, and the loader
+mapped it straight to `CPAP_Pressure`. Re-examining the card confirmed there is
+no plain-pressure signal to map instead: `PRE` is the only channel declared with
+`Unit=cmH20`; the other populated channels are bit fields (`NSD` has 4 distinct
+values card-wide, `Y17` has 11, `DET` has 93 but they are bit-structured); no
+`.LOG` record reports a pressure; and the manufacturer's own report publishes
+only an average pressure per session.
+
+**Fix (`sefam_loader.cpp`):** Import `PRE` twice. The raw samples now go to
+`CPAP_MaskPressure`, which is what they are. `CPAP_Pressure` is derived from
+them with a centred 10-second moving average, added as a new static
+`movingAverage()` helper. `CPAP_Pressure` has to keep existing as its own
+channel because it, not `CPAP_MaskPressure`, drives the Pressure graph, the
+overview trend and the pressure statistics.
+
+A moving average was chosen over a median. Measured against a breath-synchronous
+reference across 24 sessions, the 10 s average has mean error 0.053 cmH2O and
+zero bias, where a 10 s median has 0.092 and a systematic +0.031 — the median
+tracks the device's pressure ramps better (0.149 vs 0.222 during slews) but its
+bias would shift every reported session average away from the manufacturer's
+figure. The measured shift from the average is -0.0008 cmH2O mean, 0.0066 worst
+case, so the previously validated pressure statistics are unchanged. Window
+width is 10 s because the device slews up to 2.7 cmH2O in ten seconds and a 20 s
+window more than doubles the tracking error across those ramps.
+
+The smoothed channel keeps its source's validity mask exactly, so both pressure
+channels cover the same span and split at the same gaps; letting the window
+bridge a drop-out would have extended `CPAP_Pressure` half a window past each end
+of every gap in `CPAP_MaskPressure`.
+
+**Known-and-accepted:** the graph still looks slightly coarse when zoomed. The
+cause is quantisation, not leftover ripple — the derived channel is stored at
+gain 0.1, the same step the card uses, so sub-0.1 detail recovered by averaging
+is rounded away and the value toggles between adjacent tenths. A smoother
+variant (three cascaded 6 s boxcars, gain 0.01) was built and measured, but the
+visible gain was slight against a 7.1x increase in `session_channel_values`
+rows, so it was not kept. See `Notes/loaders/SEFAM_LOADER_DESIGN.md` §6 for the
+measurements, so they need not be re-derived.
+
+## 2026-08-04 - SEFAM: blower-off periods counted as therapy (usage time and average pressure)
+
+**Symptom:** On 7/10 the first session reported 19:40 of usage and ended at 22:03,
+while the manufacturer's report gave 16 minutes; the flow graph visibly ended earlier
+than the pressure graph. The same session's average pressure read 3.22 cmH2O against
+the vendor's 4.3 - the only one of 31 sessions that disagreed.
+
+**Root cause:** The card keeps writing 10-second records while the blower is stopped,
+so its files span the time the machine was powered on, not the time it was treating.
+That session contains 269 s of blower-off at ~0.1 cmH2O. Three consequences:
+
+1. `Session::hours()` (`session.h:225`) falls back to `s_last - s_first` when
+   `m_slices` is empty, which the loader never populated - so usage was session span.
+2. The near-zero samples were averaged into the pressure statistics.
+3. Flow alone showed the gap, because flow is computed as `FLW - LK` and only `LK`
+   goes to its 255 sentinel during the outage; `PRE` and `FLW` keep recording. So the
+   pressure graphs spanned the outage while flow did not.
+
+**Fix (`sefam_loader.cpp`):** New `findBlowerOffSpans()` detects stopped stretches from
+the pressure channel - below 2.0 cmH2O (or no data) for at least 10 s. `clearSpans()`
+marks those samples invalid on pressure, leak and flow so all three gap out together,
+and `addMaskSlices()` records MaskOn/MaskOff slices so `hours()` reports usage.
+`bmc_loader.cpp:200` sets a MaskOn slice for the same reason; `prs1_loader.cpp:2684`
+records both statuses, which `gSessionTimesChart` draws and `Day` filters to MaskOn.
+
+Detection cannot use a single value: while stopped the card writes a spread of 0.0-0.4
+cmH2O (1694 s card-wide). Therapy never drops below the device's 4.0 cmH2O minimum, so
+2.0 sits in a wide empty band. **The threshold is an assumption, not read from the
+card** - it has margin only because these devices bottom out at 4.0.
+
+Measured over the whole card: worst session 19:40 -> 15:01 (vendor 16 min) and its mean
+pressure 3.22 -> 4.15 (vendor 4.3); card total 159.003 h span vs 158.557 h usage, a
+26.8 min difference against the vendor's own 28 min between operating and usage time.
+The import debug line now logs span and usage separately.
+
+Side effect: this also removes the ramp artefact at blower transitions. The raw steps
+in 0.6 s, but the centred 10 s average spread that over 7 s and began 4 s early; those
+transitions are now gap edges.
+
+Deliberately not changed: scored events. Only 7 of 1568 fall inside an off-span and
+they sit at the detection boundaries; dropping them would disturb counts validated
+against the vendor to within one event.
+
+Known limitation: a session that is entirely blower-off gets no slices and a warning,
+so its usage falls back to full span (7 min out of 158 h on the validated card). An
+empty slice list means "no slice information", and the alternative is worse -
+`Day::cph()` divides by `hours()` unguarded (`day.cpp:1109`, and `sph()` likewise), so
+a zero-usage day would yield inf/nan.

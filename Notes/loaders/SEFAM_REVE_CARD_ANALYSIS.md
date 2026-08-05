@@ -51,7 +51,7 @@ different device class. That entry's guess that the obfuscation key is `0x9F` is
             ├── DATA_nnn.PRE    pressure               5 Hz
             ├── DATA_nnn.LK     leak                   1 Hz
             ├── DATA_nnn.DET    breath-phase bitfield 10 Hz
-            ├── DATA_nnn.NSD    (unused here)         10 Hz
+            ├── DATA_nnn.NSD    near-constant bitfield 10 Hz
             ├── DATA_nnn.Y17    event bitfield        10 Hz   ← not in the INI
             └── .ABD .HRT .PLS .POS .SPO .STS .THO    header-only stubs
 ```
@@ -188,6 +188,25 @@ records of `0xFF` appear when the blower is off).
 p90 = 7.5, p99 = 11.8 cmH₂O — a patient sitting near the 4 cmH₂O APAP floor
 most of the night.
 
+**`PRE` is a MASK pressure, and the card has no plain therapy pressure.** The
+trace carries the breathing ripple — about 1.0 cmH₂O peak to peak, on a setpoint
+that walks slowly (4.1 → 9.2 cmH₂O over one session). Nothing else on the card
+carries a pressure:
+
+- `PRE` is the only channel declared with `Unit=cmH20`.
+- `DET`, `NSD` and `Y17` are bit fields, not analogue signals — see their
+  sections below for the value histograms.
+- No `.LOG` record reports a pressure. Of the 17 codes present, only 2 and 13
+  have non-zero payloads, and both are settings records.
+- The manufacturer's own report publishes only an **average** pressure per
+  session, and shows `Prescribed pressure` as `-` because the mode is A-PAP.
+
+A therapy-pressure trace must therefore be *derived*. The ripple separates
+cleanly: a 10-second moving average cuts it to roughly 0.1 cmH₂O — the channel's
+own quantisation step — while shifting the session average by under 0.007 cmH₂O.
+See `SEFAM_LOADER_DESIGN.md` §6 for the filter choice and the measurements
+behind it.
+
 **Two independent cross-checks confirm the flow and leak scales simultaneously:**
 
 1. At the same instant, the `FLW` baseline and `LK` agree. `FLW` raw ≈ 113 →
@@ -239,7 +258,15 @@ needed for AHI. Its most likely role is per-sample event **extent** — which
 would also supply the hypopnea durations the log omits (open problem 1). A
 loader can ignore it for now.
 
-`NSD` is 99.96 % zero in this sample — nothing to decode from it here.
+`NSD` is a near-constant bit field. Counted over all 5,724,100 samples on the
+card: `0` 99.636 %, `1` 17,610 samples (0.308 %), `4` 120 samples (0.002 %),
+`255` sentinel 3,100 (0.054 %) — four distinct values in total. Not literally
+empty, but there is nothing to decode from it here.
+
+For comparison, `Y17` takes 11 distinct values card-wide (0, 1, 4, 8, 16, 32,
+33, 36, 40, 128, 255) and `DET` takes 93, structured as
+{low 2 bits} × {`0x00`, `0x10`, `0x20` … `0xF0`} with `0x02` alone accounting
+for 55 % of samples. All three are bit fields; none can carry a pressure.
 
 ## `.LOG` — 49-byte event records
 
@@ -388,7 +415,8 @@ time from the average, so the disagreement is expected and explains itself.
    of 23–45 L/min, so the analyzer reports *unintentional* leak in some other
    unit. A loader must decide which it presents; the card gives total.
 6. The 8-byte header signature is unidentified (not needed to read data).
-7. `NSD` is empty in this sample; purpose unknown.
+7. `NSD` is 99.64 % zero in this sample, with only four distinct values;
+   purpose unknown.
 8. `.RAM`/`.BKP` remain encrypted — but this no longer matters, since the
    settings turned out to be in the `.LOG`.
 

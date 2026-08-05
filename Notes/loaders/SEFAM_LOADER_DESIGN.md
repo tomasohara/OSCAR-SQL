@@ -170,7 +170,8 @@ has had its event codes validated.
 | `.INI` name | OSCAR channel | stored value | gain | rate |
 |---|---|---|---|---|
 | `FLW` − `LK` | `CPAP_FlowRate` | patient flow × 10 | 0.1 | 100 ms (10 Hz) |
-| `PRE` | `CPAP_Pressure` | raw byte | 0.1 | 200 ms (5 Hz) |
+| `PRE` | `CPAP_MaskPressure` | raw byte | 0.1 | 200 ms (5 Hz) |
+| `PRE` smoothed | `CPAP_Pressure` | 10 s moving average | 0.1 | 200 ms (5 Hz) |
 | `LK` | `CPAP_LeakTotal` | raw byte | 0.6 | 1000 ms (1 Hz) |
 
 Rates come from the `.INI`, not the table; the table records what the validated
@@ -179,6 +180,148 @@ model declares. Values are stored as `qint16` via the `qint16 *` overload of
 
 `LK` is **total** leak including the intentional mask vent, hence
 `CPAP_LeakTotal` rather than `CPAP_Leak`.
+
+### Therapy pressure is derived, because the card carries only mask pressure
+
+`PRE` is a **mask** pressure: it carries the breathing ripple, about 1.0 cmH₂O
+peak to peak. The card has no separate therapy-pressure signal anywhere:
+
+- `PRE` is the only channel declared with `Unit=cmH20`.
+- The other populated channels are bit fields, not analogue signals. Across all
+  5.72 M samples per channel on the validated card, `NSD` takes **4** distinct
+  values (0, 1, 4, 255) and `Y17` takes **11** (0, 1, 4, 8, 16, 32, 33, 36, 40,
+  128, 255). `DET` takes 93, but they are plainly bit-structured — `0x02` alone
+  is 55% of samples, `0x22` 19%, `0x62` 11%, and the whole set is
+  {low 2 bits} × {`0x00`, `0x10`, `0x20` … `0xF0`}.
+- No `.LOG` record reports a pressure. Of the 17 record codes present, only
+  codes 2 and 13 carry non-zero payloads, and both are settings records.
+- The manufacturer's own report agrees: it publishes only an **average**
+  pressure per session, with `Prescribed pressure` shown as `-` in A-PAP.
+
+So `CPAP_Pressure` is derived from `PRE` by averaging the ripple away. It has to
+exist as its own channel: `CPAP_Pressure`, not `CPAP_MaskPressure`, is what
+drives the Pressure graph (`daily.cpp`), the overview trend (`overview.cpp`) and
+the pressure statistics. Mapping `PRE` to `CPAP_MaskPressure` alone would cost
+all three — the state `prisma_loader.cpp` is currently in, with its
+`AddWaveform(CPAP_Pressure, "CPAPPressure")` commented out.
+
+**A moving average, not a median.** A median preserves edges better, which
+matters because the device slews up to 2.7 cmH₂O in ten seconds. But it is
+biased. Measured against a breath-synchronous reference (a boxcar exactly one
+ripple period wide, which is unbiased and local) over 24 sessions:
+
+| filter | mean error | bias | error during slews |
+|---|---|---|---|
+| **mean, 10 s** | **0.053** | **+0.000** | 0.222 |
+| mean, 20 s | 0.050 | +0.000 | 0.534 |
+| median, 10 s | 0.092 | +0.031 | 0.149 |
+| median, 20 s | 0.090 | +0.033 | 0.227 |
+
+The median's systematic +0.03 cmH₂O bias nearly doubles its overall error and
+would shift the reported session average away from the manufacturer's figure.
+The 10 s average leaves it untouched — measured shift raw → smoothed is
+−0.0008 cmH₂O mean, 0.0066 worst case, far below the 0.1 cmH₂O display step.
+
+Ten seconds is about two and a half breaths, which cuts the ripple to roughly
+0.1 cmH₂O peak to peak — the channel's own quantisation step. Twenty seconds
+halves the residual ripple again but more than doubles the error across pressure
+ramps, which is exactly when a user is reading the graph.
+
+#### A finer, smoother variant was built, measured and rejected
+
+The graph still looks slightly coarse, and the cause is understood. Zoomed in it
+draws a small square wave — that is **quantisation, not leftover ripple**. The
+derived channel is stored at gain 0.1, the same step the card itself uses, so
+the sub-0.1 detail that averaging genuinely recovers is rounded away and the
+value toggles between two adjacent tenths.
+
+A version fixing both halves of that was implemented and measured:
+
+- **Kernel:** three passes of a 6 s boxcar instead of one 10 s pass. Cascading
+  approximates a Gaussian, whose stopband rejection is far better, so unlike
+  widening a single boxcar it improves *both* axes at once — residual ripple
+  0.026 vs 0.099, ramp error 0.089 vs 0.098. Cascading must be done in floating
+  point; rounding between passes undoes most of the benefit.
+- **Gain:** 0.01 on the derived channel, which removes the square wave entirely.
+
+**Rejected on cost/benefit.** The visible improvement was slight, while the
+finer gain took `Session::m_timesummary` — one entry per distinct stored value,
+persisted to `session_channel_values` — from ~56 to ~396 rows per session, 7.1×
+on the validated card. Revisit only if a user complains about the pressure graph
+specifically; the measurements above are the whole argument, so there is no need
+to re-derive them.
+
+Two facts about this card worth keeping either way. Ripple **grows with
+pressure** — measured peak-to-peak 0.69 cmH₂O at 4.0 but 2.17 at 7.5 — so
+high-pressure stretches of a night are always the roughest, whatever the filter.
+And sharp downward notches that survive even heavy smoothing are **real**: they
+are single deep inspirations pulling mask pressure down by 2-3 cmH₂O, and the
+manufacturer's own graph shows them too.
+
+The smoothed channel **keeps its source's validity mask exactly**, so both
+pressure channels cover the same span and split at the same gaps. Letting the
+window bridge a drop-out would extend `CPAP_Pressure` half a window past each
+end of every gap in `CPAP_MaskPressure`, and the two graphs would not line up.
+
+### Blower-off stretches are excluded from waveforms and from usage time
+
+The card keeps writing 10-second records while the blower is stopped, so a
+session's files span the time the machine was **powered on**, not the time it
+was treating. Left in, those stretches are counted as therapy twice over: they
+are averaged into the pressure statistics and they inflate the session length.
+
+On the validated card one 19:40 session contains 269 s of blower-off. That
+pulled its mean pressure to 3.22 cmH₂O against the manufacturer's 4.3 — the only
+session of 31 whose average did not agree.
+
+**Detection.** While stopped the card records a spread of near-zero pressures —
+0.0 to 0.4 cmH₂O across 1,694 s card-wide, not one sentinel value — so a
+single-value test does not work. Therapy never goes below the device's 4.0 cmH₂O
+minimum setting, leaving a wide empty band (0.5–1.9 totals ~43 s card-wide), and
+the threshold sits in it at **2.0 cmH₂O**, sustained for at least 10 s. Samples
+with no data at all count as stopped too, which also catches the 10-second
+sentinel every session opens with. The minimum duration suppresses the brief
+sub-threshold dips seen during ramp-down and ramp-up.
+
+> **The threshold is an assumption, not a value read from the card.** It has
+> margin only because these devices bottom out at 4.0 cmH₂O. A model whose
+> minimum pressure could be set lower would narrow it.
+
+**Effect.** Pressure, leak and flow all gap out together, and `MaskOn`/`MaskOff`
+slices are recorded so `Session::hours()` reports usage instead of span —
+`bmc_loader.cpp` does the same, and `prs1_loader.cpp` likewise records both
+statuses, which lets `gSessionTimesChart` draw the off periods in black while
+`Day` counts only `MaskOn`. Measured over the whole card:
+
+| | before | after | vendor |
+|---|---|---|---|
+| worst session | 19:40 | **15:01** | 16 min |
+| card total | 159.003 h span | **158.557 h usage** | 158 h 50 usage |
+| span − usage | — | **26.8 min** | 28 min |
+| worst session mean pressure | 3.22 | **4.15** | 4.3 |
+
+It also removes the artefact where the smoothing turned each blower transition
+into a ramp: the raw steps in 0.6 s but a centred 10 s average spread that over
+7 s *and started 4 s early*. Those transitions are now gap edges instead.
+
+**Scored events are deliberately left alone.** Only 7 of 1568 fall inside a
+detected off-span (2 OA, 1 CA, 4 snore) and they sit at the detection
+boundaries; dropping them would disturb event counts validated against the
+manufacturer's report to within one event.
+
+**A session that is entirely blower-off gets no slices at all**, and a warning.
+An empty slice list silently means "no slice information", so `hours()` falls
+back to the full span — the opposite of the intent — but the alternative is
+worse: `Day::cph()` divides by `hours()` with no guard (`day.cpp:1109`, and
+`sph()` likewise), so a zero-usage day would produce inf/nan. One session on the
+validated card is in this state and overstates usage by 7 minutes out of 158 h.
+
+Two things this does **not** fix. The vendor's `Mask disconnected` column is a
+different measurement — it is non-zero on sessions where the blower never
+stopped, and where both are non-zero ours runs 8–18 s shorter — so it is
+probably leak-threshold based rather than blower-based. And the vendor appears
+to **truncate** its averages to one decimal rather than round, which accounts
+for most of the residual 0.03–0.06 offsets across the remaining sessions.
 
 ### Flow must be converted to patient flow
 
@@ -222,8 +365,10 @@ Channels not imported:
   `calcRespRate()`, which derives respiratory rate, tidal volume, minute
   ventilation, Ti and Te from the flow waveform. Importing `DET` would duplicate
   that and diverge from every other loader.
-- `Y17` — undecoded.
-- `NSD` — empty on the sample card.
+- `Y17` — undecoded bit field. Not declared in the `.INI` at all, yet written on
+  every session. 11 distinct values card-wide.
+- `NSD` — near-constant bit field: 99.64% zero, with 17,610 samples of `1` and
+  120 of `4` across the card. Not empty, but nothing is decoded from it yet.
 - `ABD`, `HRT`, `PLS`, `POS`, `SPO`, `STS`, `THO` — header-only stubs. Skipped by
   the size test: file size equal to header size means the channel was not
   recorded.
