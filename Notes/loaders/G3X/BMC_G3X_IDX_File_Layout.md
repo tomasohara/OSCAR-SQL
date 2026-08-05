@@ -196,7 +196,7 @@ Records without magic `0xAE, 0xAA` at bytes 0–1 are skipped.
 | 0x10 | 1 | uint8 | MessageType | See table below |
 | 0x11 | 3 B | — | *unknown* | Not parsed |
 | 0x14 | 6 B | uint8[6] | Timestamp | year-1900, month, day, hour, minute, second |
-| 0x1A | 2 | uint16 LE | Value1 | Meaning depends on MessageType |
+| 0x1A | 2 | uint16 LE | Timestamp ms | Sub-second part of the timestamp at 0x14 (0–999); same for every MessageType. Confirmed 2026-08-05 |
 | 0x1C | 2 | uint16 LE | Value2 | Meaning depends on MessageType |
 | 0x1E | 2 | — | *unknown* | Not parsed |
 
@@ -204,9 +204,11 @@ Records without magic `0xAE, 0xAA` at bytes 0–1 are skipped.
 
 See `Notes/G3X/BMC_G3X_EVT_FORMAT.md` for full details and confidence levels.
 
-For respiratory events (0x01–0x0A), **value1** is a wrapping counter (0–999; not used) and
-**value2** is duration in **milliseconds** (confirmed 2026-03-25). Duration is clamped to
-10–180 seconds for all types except 0x09 (PB, unclamped). Timestamp marks the **START**.
+For respiratory events (0x01–0x0A), **value2** is duration in **milliseconds**
+(confirmed 2026-03-25). Duration is clamped to 10–180 seconds for all types except 0x09
+(PB, unclamped). Timestamp marks the **START**. The field at 0x1A, formerly recorded here
+as an unused "value1" counter, is the timestamp's millisecond part (confirmed 2026-08-05;
+see `BMC_G3X_EVT_FORMAT.md` §2a).
 
 | Type | Interpretation | value2 / unk1e (0x1E) |
 |------|---------------|----------------------|

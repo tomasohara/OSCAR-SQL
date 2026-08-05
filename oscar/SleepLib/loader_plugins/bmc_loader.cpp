@@ -801,6 +801,11 @@ void BmcLoader::initChannels()
 
     channel.add(GRP_CPAP, chan = new Channel(BMC_RAMPTIME = BMC_CHANNEL_IDX + 13, SETTING, MT_CPAP,   SESSION,
                                              "BmcRampTime", QObject::tr("BmcRampTime"), QObject::tr("Ramp Time "), QObject::tr("Ramp Time "), STR_UNIT_Minutes, INTEGER, Qt::green));
+    // A ramp of zero minutes means ramp is disabled; PAP-Link reports it as "Off" and
+    // "0 Minutes" reads as though a ramp were configured.  Other values fall through to
+    // the normal "<n> Minutes" rendering.  The 0xFF (Auto) case is carried separately by
+    // BMC_RAMPTIME_AUTO, which shares this label.
+    chan->addOption(0, STR_TR_Off);
 
     channel.add(GRP_CPAP, chan = new Channel(BMC_RAMPTIME_AUTO = BMC_CHANNEL_IDX + 14, SETTING, MT_CPAP,   SESSION,
                                              "BmcRampAuto", QObject::tr("BmcRampAuto"), QObject::tr("Ramp Time "), QObject::tr("Ramp Time "), "", LOOKUP, Qt::green));

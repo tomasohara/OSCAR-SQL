@@ -5043,3 +5043,78 @@ and `Session::Min()` all accumulate across lists properly.
 
 **Note:** `m_avg` is cached and persisted, so sessions already imported keep the wrong
 value until re-imported. No migration is provided.
+
+## 2026-08-05 - BMC G3X event times truncated to the second; ramp time of 0 shown as "0 Minutes"
+
+Two items from an end-user report against the BMC beta build.
+
+### 1. EVT offset 0x1A is the timestamp's millisecond part
+
+**Symptom:** OSCAR placed every BMC G3X event up to 999 ms earlier than the device
+recorded it, so event flags could sit a full second away from the matching feature in
+the flow waveform. Reported by a contributor comparing OSCAR against PAP-Link charts.
+
+**Root cause (`SleepLib/loader_plugins/bmcG3xDataParsing.cpp`):** the EVT record
+timestamp was read as the 6-byte whole-second value at 0x14 only. The little-endian
+uint16 immediately after it, at 0x1A, holds the milliseconds within that second. Earlier
+analysis had catalogued it as an unused "value1" wrapping counter, because a millisecond
+field sampled at a fixed record cadence looks like a counter that wraps near 1000.
+
+**Confirmed** against a full card (246,260 records) before changing anything:
+
+- The field never exceeds 999 in any record of any type, and is spread evenly over
+  0-999. A 16-bit payload would not be capped at exactly 999.
+- Within a run of records sharing one whole second it is non-decreasing in file order
+  for 99.7% of pairs; every exception is a transition between two different record
+  types, which are not strictly interleaved in the stream.
+- Decisive: 0x42 pressure records are emitted on a 30 s timer. Including the field
+  resolves that interval to 30,031 ms with an interquartile range of 32 ms. A value
+  unrelated to time could not hold a 30-second interval to +/-32 ms.
+- Inspiration-to-expiration intervals (0x0C -> 0x0D) change from a comb at 0 s / 1 s
+  into a smooth distribution with a median of 842 ms - a plausible inspiratory time.
+
+**Fix:** new `DecodeG3xEvtTimestamp()` folds 0x1A into the QDateTime; both EVT scan
+loops use it. Everything downstream already used `toMSecsSinceEpoch()`, so the
+precision carries through to the event lists unchanged.
+
+One knock-on needed guarding: events are assigned to the session whose window contains
+them, and the window bounds come from waveform packet times, which are whole seconds.
+An event in the closing second of a session would have been dropped as soon as its
+millisecond part became non-zero. Both assignment loops now run the window to the end of
+`EndTimestamp`'s second, preserving the previous boundary behaviour.
+
+Deliberately scoped to EVT records. `DecodeG3xTimestamp()` is also used for waveform
+packet headers at offset 0x04, which have no such field, and is left alone. Session IDs
+are computed with `toSecsSinceEpoch()` and so are unaffected - re-importing does not
+duplicate sessions.
+
+PAP-Link rounds this field to the nearest second for display, so OSCAR and PAP-Link can
+still differ by up to a second on the same event, with OSCAR now the more precise.
+
+### 2. A ramp time of 0 displayed as "0 Minutes"
+
+**Symptom:** where PAP-Link reports ramp "Off", OSCAR's Device Settings read
+"Ramp Time 0 Minutes", which reads as though a ramp were configured.
+
+**Root cause (`daily.cpp`, `getDeviceSettings()`):** the LOOKUP and DEFAULT branches
+consult `chan.option(value)` before falling back to a numeric rendering, but the branch
+that handles INTEGER never did. An INTEGER setting therefore had no way to name a
+special value.
+
+**Fix:** the INTEGER/else branch now checks for a registered option first, mirroring the
+DEFAULT branch, and `BMC_RAMPTIME` registers option 0 = "Off". Channels with no
+registered options are unaffected.
+
+Two other channels change with this: `SS_EPRLevel` and `SS_Humidity` in
+`sleepstyle_loader.cpp` both already declare `addOption(0, STR_TR_Off)` and both already
+have that option persisted in `channel_options`, but the renderer never consulted it.
+They now show "Off" instead of "0 cmH2O" / "0" as their author intended. These are the
+only three INTEGER channels in the codebase that register options - checked exhaustively
+against every `new Channel(...)` site and `docs/channels.xml`.
+
+`BMC_RAMPTIME` was chosen over adding an option to `BMC_RAMPTIME_AUTO` (which carries
+the 0xFF "Auto" state under the same label) because `BMC_RAMPTIME_AUTO` already has
+option 0 stored in the global `channel_options` table. Per #257, a stored option set
+replaces the code's on load, so a newly added option 1 would have been dropped for every
+existing profile and rendered as a bare "1". `BMC_RAMPTIME` has no stored rows -
+verified against a live database - so its new option takes effect everywhere.

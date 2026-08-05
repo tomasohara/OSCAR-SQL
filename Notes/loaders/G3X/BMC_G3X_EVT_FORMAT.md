@@ -35,7 +35,7 @@ Confidence legend:
 | `0x11` | 1 | `uint8` | Sub-byte; varies with message type; sometimes non-zero for respiratory events | Low |
 | `0x12` | 2 | bytes | Unknown; varies | Low |
 | `0x14` | 6 | bytes | **Timestamp**: `year-1900, month, day, hour, minute, second` | High |
-| `0x1A` | 2 | `uint16 LE` | **value1** — for respiratory events: wrapping counter (0–999), not used | High |
+| `0x1A` | 2 | `uint16 LE` | **Timestamp milliseconds** (0–999) — the sub-second part of the timestamp at `0x14`, so the full record time is 8 bytes spanning `0x14`–`0x1B` (confirmed 2026-08-05; see §2a). Formerly described here as an unused "value1" wrapping counter. | High |
 | `0x1C` | 2 | `uint16 LE` | **value2** — for respiratory events: duration low 16 bits, milliseconds (confirmed 2026-03-25). For `0x09` only: low 16 bits of a uint32 spanning `0x1C`–`0x1F` (see §3). | High |
 | `0x1E` | 2 | `uint16 LE` | **unk1e** — type-specific: `0x42` = IPAP hundredths cmH2O; `0x09` = high 16 bits of uint32 duration; `0x43` = unknown discrete value; **zero for all other observed types** (confirmed: respiratory events 0x01–0x08, 0x0A always have unk1e=0). | High/Low |
 
@@ -43,30 +43,62 @@ Records with invalid timestamp bytes are skipped.
 
 ---
 
+## 2a) Timestamp Milliseconds (offset `0x1A`)
+
+Reported by a contributor and confirmed 2026-08-05 against a full card
+(246,260 records, firmware E5 platform). Earlier revisions of this document
+called the field "value1" and described it as a wrapping counter that happened
+to stay under 1000 — which is what a millisecond field looks like when it is
+sampled at a fixed cadence. It is not a counter.
+
+Evidence:
+
+| Test | Result |
+|------|--------|
+| Range | Never exceeds 999 in any record of any type. Values spread evenly over 0–999 (~24,600 per 100 ms decile) — a 16-bit payload field would not be capped at exactly 999. |
+| Ordering | Within a run of records sharing the same whole second, the field is non-decreasing in file order for 99.7% of pairs. Every exception is a transition between two *different* record types, which are not strictly interleaved in the stream. |
+| `0x42` cadence | Pressure records are emitted on a 30 s timer. Including this field resolves the interval to 30,031 ms with an interquartile range of **32 ms**. Seconds-only quantises it to a flat 30,000 ms; an unrelated value would have scattered it across a full second. |
+| Ti distribution | Inspiration→expiration intervals (`0x0C` → `0x0D`) go from a comb at 0 s / 1 s to a smooth unimodal distribution, median 842 ms, p05 442 ms, p95 1273 ms — a physically plausible inspiratory time. |
+
+The `0x42` cadence test is the decisive one: a field unrelated to time could not
+hold a 30-second interval to ±32 ms.
+
+PAP-Link rounds the millisecond part to the nearest second for display
+(≥500 rounds up). OSCAR event lists store milliseconds natively, so the loader
+carries the value through unrounded rather than reproducing PAP-Link's rounding.
+This means OSCAR and PAP-Link can legitimately differ by up to one second in the
+displayed time of the same event, with OSCAR the more precise of the two.
+
+Applies to every record type, not only respiratory events. Decoded by
+`DecodeG3xEvtTimestamp()` in `bmcG3xDataParsing.cpp`; before 2026-08-05 the
+loader truncated to the whole second, placing every event up to 999 ms early.
+
+---
+
 ## 3) Message Types
 
 The table below reflects analysis of two nights of G3X data (file `A3112345678` and `B33BF123456`). Record counts in [brackets] are from night `B33BF123456` (2026-03-16), which is the primary reference night.
 
-| Type | Status | OSCAR mapping | value1 | value2 / unk1e | Notes |
+| Type | Status | OSCAR mapping | `0x1A` | value2 / unk1e | Notes |
 |------|--------|---------------|--------|--------|-------|
-| `0x01` | Confirmed | `CPAP_Hypopnea` (UH) | Wrapping counter (0–999); not used | **Duration, ms** (confirmed 2026-03-25) | **Unclassified hypopnea.** Confirmed 2026-03-25 (Patient 2, B33BF123456). Duration = value2/1000 s, clamped to 10–180 s. 58 records across all Patient 2 nights; absent from JCCPAP. |
-| `0x02` | Confirmed | `CPAP_Apnea` (UA) | Wrapping counter (0–999); not used | **Duration, ms** (confirmed 2026-03-25) | Unclassified apnea. Duration clamped to 10–180 s. |
-| `0x03` | Confirmed | `CPAP_Obstructive` (OSA) | Wrapping counter (0–999); not used | **Duration, ms** (confirmed 2026-03-25) | Obstructive sleep apnea. [30] |
-| `0x04` | Confirmed | `CPAP_ClearAirway` (CSA) | Wrapping counter (0–999); not used | **Duration, ms** (confirmed 2026-03-25) | Central sleep apnea. [20] |
-| `0x07` | Confirmed | `CPAP_Hypopnea` (OH) | Wrapping counter (0–999); not used | **Duration, ms** (confirmed 2026-03-25) | Obstructive hypopnea subtype. PAP-Link displays OH and CH as distinct event types; OSCAR maps both to `CPAP_Hypopnea`. |
-| `0x08` | Confirmed | `CPAP_Hypopnea` (CH) | Wrapping counter (0–999); not used | **Duration, ms** (confirmed 2026-03-25) | Central hypopnea subtype. PAP-Link displays OH and CH as distinct event types; OSCAR maps both to `CPAP_Hypopnea`. |
-| `0x09` | Confirmed | `CPAP_PB` | Wrapping counter (0–999); not used | **uint32 LE duration, ms** — `value2` (0x1C) = low 16 bits, `unk1e` (0x1E) = high 16 bits (confirmed 2026-03-30 via Lijunjun and Kavolodin data) | **Periodic breathing episode start marker.** Timestamp marks the **START** of the episode, consistent with all other respiratory event types. Duration is a uint32 spanning offsets 0x1C–0x1F (reading only the low 16 bits gives wrong durations ~28s/23s; uint32 gives correct ~159s/154s matching PAP-Link on Lijunjun 2026-03-16). Primary PB source in OSCAR. Confirmed on Lijunjun (B20A SC.75) and Kavolodin (A20) data. |
-| `0x0A` | Confirmed | `CPAP_RERA` | Wrapping counter (0–999); not used | **Duration, ms** (confirmed 2026-03-25; ~11 000 ms observed, ≈10 s per PAP-Link) | **Respiratory Effort Related Arousal.** Confirmed 2026-03-24: present in all five independently identified RERA windows from PAP-Link (JCCPAP data, 2026-02-12 through 2026-02-24). Two records at 02:59 and 03:10 on OSCAR day 2/22 match two PAP-Link RERAs on the same night. Duration confirmed ~10 seconds (PAP-Link). ~1–3 records/night on well-treated nights; up to ~200+ on nights with heavy FL. |
-| `0x0B` | Unknown | Not decoded | Wrapping counter (0–999); not used | Multiples of 20, range 400–1060; **not** duration | Frequency varies dramatically night to night (1–1,439/night in JCCPAP; only 3 in G3X-2 on 2026-02-20). On high-FL nights fires once per breath alongside `0x0E` (mild FL), sharing the same sub-byte run-tag. Not a RERA marker (absent from confirmed RERA windows). value2/1000 = 0.4–1.1 s — sub-second, consistent with per-breath timing (breath period), not event duration. Not observed in B33BF123456 reference file. |
+| `0x01` | Confirmed | `CPAP_Hypopnea` (UH) | Timestamp ms (§2a) | **Duration, ms** (confirmed 2026-03-25) | **Unclassified hypopnea.** Confirmed 2026-03-25 (Patient 2, B33BF123456). Duration = value2/1000 s, clamped to 10–180 s. 58 records across all Patient 2 nights; absent from JCCPAP. |
+| `0x02` | Confirmed | `CPAP_Apnea` (UA) | Timestamp ms (§2a) | **Duration, ms** (confirmed 2026-03-25) | Unclassified apnea. Duration clamped to 10–180 s. |
+| `0x03` | Confirmed | `CPAP_Obstructive` (OSA) | Timestamp ms (§2a) | **Duration, ms** (confirmed 2026-03-25) | Obstructive sleep apnea. [30] |
+| `0x04` | Confirmed | `CPAP_ClearAirway` (CSA) | Timestamp ms (§2a) | **Duration, ms** (confirmed 2026-03-25) | Central sleep apnea. [20] |
+| `0x07` | Confirmed | `CPAP_Hypopnea` (OH) | Timestamp ms (§2a) | **Duration, ms** (confirmed 2026-03-25) | Obstructive hypopnea subtype. PAP-Link displays OH and CH as distinct event types; OSCAR maps both to `CPAP_Hypopnea`. |
+| `0x08` | Confirmed | `CPAP_Hypopnea` (CH) | Timestamp ms (§2a) | **Duration, ms** (confirmed 2026-03-25) | Central hypopnea subtype. PAP-Link displays OH and CH as distinct event types; OSCAR maps both to `CPAP_Hypopnea`. |
+| `0x09` | Confirmed | `CPAP_PB` | Timestamp ms (§2a) | **uint32 LE duration, ms** — `value2` (0x1C) = low 16 bits, `unk1e` (0x1E) = high 16 bits (confirmed 2026-03-30 via Lijunjun and Kavolodin data) | **Periodic breathing episode start marker.** Timestamp marks the **START** of the episode, consistent with all other respiratory event types. Duration is a uint32 spanning offsets 0x1C–0x1F (reading only the low 16 bits gives wrong durations ~28s/23s; uint32 gives correct ~159s/154s matching PAP-Link on Lijunjun 2026-03-16). Primary PB source in OSCAR. Confirmed on Lijunjun (B20A SC.75) and Kavolodin (A20) data. |
+| `0x0A` | Confirmed | `CPAP_RERA` | Timestamp ms (§2a) | **Duration, ms** (confirmed 2026-03-25; ~11 000 ms observed, ≈10 s per PAP-Link) | **Respiratory Effort Related Arousal.** Confirmed 2026-03-24: present in all five independently identified RERA windows from PAP-Link (JCCPAP data, 2026-02-12 through 2026-02-24). Two records at 02:59 and 03:10 on OSCAR day 2/22 match two PAP-Link RERAs on the same night. Duration confirmed ~10 seconds (PAP-Link). ~1–3 records/night on well-treated nights; up to ~200+ on nights with heavy FL. |
+| `0x0B` | Unknown | Not decoded | Timestamp ms (§2a) | Multiples of 20, range 400–1060; **not** duration | Frequency varies dramatically night to night (1–1,439/night in JCCPAP; only 3 in G3X-2 on 2026-02-20). On high-FL nights fires once per breath alongside `0x0E` (mild FL), sharing the same sub-byte run-tag. Not a RERA marker (absent from confirmed RERA windows). value2/1000 = 0.4–1.1 s — sub-second, consistent with per-breath timing (breath period), not event duration. Not observed in B33BF123456 reference file. |
 | `0x0C` | Per-breath inspiration | Timestamps collected; not decoded to channels | — | varies | [8308]; mirrors `0x0D` count. **Not a leak source.** Timestamp collected into `rawInspirationTimestamps` for potential future AASM-based PB detection but not currently used. Sub-byte `0x11` is non-zero and consistent across consecutive breaths during FL episodes (run tag). |
 | `0x0D` | Unknown | Not decoded | — | — | [8308]; mirrors `0x0C`. Per-breath expiration event; same sub-byte run-tag behaviour as `0x0C`. |
-| `0x0E` | Confirmed | `CPAP_FLG` (Mild) | Wrapping counter (0–999); not used | **Inspiration duration (Ti), ms** — multiples of 20 ms; median 1.62 s; decreases with FL severity (confirmed 2026-03-26). **Used** as bar width in OSCAR. | **Mild flow limitation.** Confirmed by PAP-Link alignment on two sessions (G3X-2 2026-02-20: 376 events matching PAP-Link mild pattern; JCCPAP 2025-12-20: 181 events). Timestamp = end-of-expiration trough; bar plots forward by value2 ms to cover the inspiratory peak. |
-| `0x0F` | Confirmed | `CPAP_FLG` (Moderate) | Wrapping counter (0–999); not used | **Ti, ms** — multiples of 20 ms; median 1.42 s. **Used** as bar width. | **Moderate flow limitation.** Confirmed: G3X-2 2026-02-20 yielded 22 events vs PAP-Link 21; JCCPAP 2025-12-20 yielded 11 events. |
-| `0x10` | Confirmed | `CPAP_FLG` (Severe) | Wrapping counter (0–999); not used | **Ti, ms** — multiples of 20 ms; median 1.18 s; wider spread than mild/moderate. **Used** as bar width. | **Severe flow limitation.** Confirmed: G3X-2 2026-02-20 yielded 6 events vs PAP-Link 5; JCCPAP 2025-12-20 yielded 5 events. |
+| `0x0E` | Confirmed | `CPAP_FLG` (Mild) | Timestamp ms (§2a) | **Inspiration duration (Ti), ms** — multiples of 20 ms; median 1.62 s; decreases with FL severity (confirmed 2026-03-26). **Used** as bar width in OSCAR. | **Mild flow limitation.** Confirmed by PAP-Link alignment on two sessions (G3X-2 2026-02-20: 376 events matching PAP-Link mild pattern; JCCPAP 2025-12-20: 181 events). Timestamp = end-of-expiration trough; bar plots forward by value2 ms to cover the inspiratory peak. |
+| `0x0F` | Confirmed | `CPAP_FLG` (Moderate) | Timestamp ms (§2a) | **Ti, ms** — multiples of 20 ms; median 1.42 s. **Used** as bar width. | **Moderate flow limitation.** Confirmed: G3X-2 2026-02-20 yielded 22 events vs PAP-Link 21; JCCPAP 2025-12-20 yielded 11 events. |
+| `0x10` | Confirmed | `CPAP_FLG` (Severe) | Timestamp ms (§2a) | **Ti, ms** — multiples of 20 ms; median 1.18 s; wider spread than mild/moderate. **Used** as bar width. | **Severe flow limitation.** Confirmed: G3X-2 2026-02-20 yielded 6 events vs PAP-Link 5; JCCPAP 2025-12-20 yielded 5 events. |
 | `0x40` | Confirmed | Not used | — | — | Session start marker. [1] Ref: `2026-03-16T00:27:53`. See §6. |
 | `0x41` | Confirmed | Not used | — | — | Session end marker. [1] Ref: `2026-03-16T09:04:22`. See §6. |
 | `0x42` | Confirmed | Fallback pressure | — | **value2** = EPAP hundredths cmH2O; **unk1e** (0x1E) = IPAP hundredths cmH2O | [470] Fallback pressure; overridden by PressureTrend (0x76C/0x76E). See §6. Confirmed 2026-03-25: PS = (unk1e − value2) / 100 cmH2O. |
-| `0x43` | Unknown | Not decoded | wrapping counter | discrete (multiples of ~5536) | [43–50]; ~10-min cadence. value1 is a session-elapsed counter wrapping at ~1000 (increments ~26–28 per record). value2 takes ~12 distinct values differing by ~5536. Not flow limitations. Function unknown. |
+| `0x43` | Unknown | Not decoded | Timestamp ms (§2a) | discrete (multiples of ~5536) | [43–50]; ~10-min cadence. value2 takes ~12 distinct values differing by ~5536. Not flow limitations. Function unknown. (The "session-elapsed counter incrementing ~26–28 per record and wrapping at ~1000" previously recorded here was the millisecond field drifting against the record cadence, not a counter.) |
 | `0x44` | Confirmed | `CPAP_PB` (secondary) | 0 | 0 | Periodic Breathing marker. Present on SC.74+/SC.75; absent on SC.72. Used only when `0x09` records are absent. See §4. |
 
 **Not observed** in reference night (`B33BF123456`): `0x05`, `0x06`, `0x0B`, `0x0E`, `0x0F`, `0x10`. The flow-limitation types (`0x0E`/`0x0F`/`0x10`) and `0x0B` are absent from that file; PAP-Link shows no flow limitations for that patient — consistent with `0x0B` being related to mild FL activity.
@@ -99,7 +131,7 @@ Reference night pattern (2026-03-16): 26 total `0x44` records; 2 genuine episode
 ## 5) Respiratory Event Decode Rules
 
 For message types `0x01`–`0x08`, `0x0A` (RERA), and `0x09` (PB):
-- `value1` = wrapping counter (0–999); not used for duration.
+- `0x1A` = the timestamp's millisecond part (§2a), not a payload field.
 - `value2` = duration in **milliseconds** (confirmed 2026-03-25 by comparing value2/1000 against OSCAR waveform graphs).
 - Duration = `round(value2 / 1000)` seconds, clamped to `[10, 180]` seconds.
 - `StartTime` = record timestamp; `EndTime` = `StartTime + duration`.
@@ -176,7 +208,7 @@ For message types `0x01`–`0x08`, `0x0A` (RERA), and `0x09` (PB):
 ## 9) Known Open Questions
 
 1. Exact function of `0x0C` and `0x0D` — the 1:1 mirrored count and regular cadence (~1/sec) suggests they may encode per-breath or per-second status, but the values do not map to the BMC leak display.
-2. Function of `0x43` — value1 is a wrapping session-elapsed counter (~26–28 counts per record, wraps ~1000); value2 takes ~12 distinct values differing by ~5536; ~10-minute cadence. Not flow limitations. Meaning entirely unknown.
+2. Function of `0x43` — value2 takes ~12 distinct values differing by ~5536; ~10-minute cadence. Not flow limitations. Meaning entirely unknown. (Resolved in part 2026-08-05: the "wrapping session-elapsed counter" at `0x1A` was the timestamp's millisecond field, see §2a. That removes one of the two unknown fields; `value2` remains unexplained.)
 3. Whether the duration field semantics (`value2` in milliseconds) hold consistently across all firmware versions.
 4. Whether `0x40` / `0x41` appear more than once per file on devices that record multiple nights before card removal.
 5. Meaning of the sub-byte (offset `0x11`) run tag in `0x0C`/`0x0D` per-breath events — non-zero during FL episodes, same value held across consecutive breaths; relationship to the `0x0E`/`0x0F`/`0x10` FL event types not yet established.

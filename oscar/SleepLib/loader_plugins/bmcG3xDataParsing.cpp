@@ -548,6 +548,44 @@ qint16 ReadInt16LEPtr(const char* p, int offset)
     return static_cast<qint16>(ReadUInt16LEPtr(p, offset));
 }
 
+/// @brief Decodes the full timestamp of a 32-byte EVT record, including milliseconds.
+///
+/// The whole-second part is the standard 6-byte G3X timestamp at 0x14.  The
+/// little-endian uint16 immediately after it, at 0x1A, carries the milliseconds
+/// within that second (confirmed 2026-08-05):
+///
+///   - Across 246,260 records of one card the field never exceeded 999, and its
+///     values were spread evenly over 0-999 (about 24,600 per 100 ms decile).
+///   - Within a run of records sharing the same whole second it is non-decreasing
+///     in file order for 99.7% of pairs; every exception is a transition between
+///     two different record types, which are not strictly interleaved.
+///   - The 0x42 pressure records are emitted on a 30 s timer.  Including this field
+///     resolves that interval to 30031 ms with an interquartile range of 32 ms;
+///     an unrelated value would have scattered it across a full second.
+///   - Inspiration-to-expiration intervals (0x0C -> 0x0D) change from a comb at
+///     0 s / 1 s into a smooth distribution with a median of 842 ms.
+///
+/// PAP-Link rounds this to the nearest second for display; OSCAR event lists store
+/// milliseconds natively, so the value is carried through unrounded.
+///
+/// @param rec Pointer to the start of a 32-byte EVT record.
+/// @param out Receives the decoded timestamp.
+/// @return false if the whole-second part is not a valid date/time.
+bool DecodeG3xEvtTimestamp(const char* rec, QDateTime* out)
+{
+    if (!DecodeG3xTimestamp(rec, 0x14, out)) {
+        return false;
+    }
+
+    // Guard against a corrupt record: only a value the field is known to take is
+    // applied, so a bad read leaves the whole-second timestamp intact.
+    const qint32 millis = ReadUInt16LEPtr(rec, 0x1A);
+    if (millis >= 0 && millis <= 999) {
+        *out = out->addMSecs(millis);
+    }
+    return true;
+}
+
 // ============================================================
 // Pressure accumulation helpers
 // ============================================================
@@ -854,13 +892,14 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     continue;
                 }
 
+                // 0x1A is the millisecond part of the timestamp and is folded in by
+                // DecodeG3xEvtTimestamp(); it is not a separate payload field.
                 QDateTime evtTime;
-                if (!DecodeG3xTimestamp(rec, 0x14, &evtTime)) {
+                if (!DecodeG3xEvtTimestamp(rec, &evtTime)) {
                     continue;
                 }
 
                 const int messageType = static_cast<unsigned char>(rec[0x10]);
-                const int value1      = ReadUInt16LEPtr(rec, 0x1A);
                 const int value2      = ReadUInt16LEPtr(rec, 0x1C);
 
                 switch (messageType) {
@@ -1006,7 +1045,7 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                 ++scanned42;
 
                 QDateTime evtTime;
-                if (!DecodeG3xTimestamp(rec, 0x14, &evtTime)) {
+                if (!DecodeG3xEvtTimestamp(rec, &evtTime)) {
                     continue;
                 }
 
@@ -1225,14 +1264,19 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         }
 
         // Assign respiratory and FL events to the session whose window contains them.
+        // Event timestamps carry milliseconds (EVT offset 0x1A) but session boundaries
+        // are whole seconds, so the window runs to the end of EndTimestamp's second.
+        // Without that an event in the closing second is dropped whenever its
+        // millisecond part is non-zero.
         for (BmcSession* s : dateSession.Sessions) {
+            const QDateTime windowEnd = s->EndTimestamp.addMSecs(999);
             for (const BmcRespiratoryEvent& evt : dateSession.RespiratoryEvents) {
-                if (evt.StartTime >= s->StartTimestamp && evt.StartTime <= s->EndTimestamp) {
+                if (evt.StartTime >= s->StartTimestamp && evt.StartTime <= windowEnd) {
                     s->RespiratoryEvents.append(evt);
                 }
             }
             for (const BmcFlowLimitEvent& evt : dateSession.FlowLimitEvents) {
-                if (evt.Timestamp >= s->StartTimestamp && evt.Timestamp <= s->EndTimestamp) {
+                if (evt.Timestamp >= s->StartTimestamp && evt.Timestamp <= windowEnd) {
                     s->FlowLimitEvents.append(evt);
                 }
             }
@@ -1712,14 +1756,19 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
     }
 
     // Assign respiratory events to the session whose time window contains them.
+    // Event timestamps carry milliseconds (EVT offset 0x1A) but session boundaries are
+    // whole seconds taken from waveform packet times, so the window runs to the end of
+    // EndTimestamp's second.  Without that an event in the closing second is dropped
+    // whenever its millisecond part is non-zero.
     for (BmcSession* s : dateSession.Sessions) {
+        const QDateTime windowEnd = s->EndTimestamp.addMSecs(999);
         for (const BmcRespiratoryEvent& evt : dateSession.RespiratoryEvents) {
-            if (evt.StartTime >= s->StartTimestamp && evt.StartTime <= s->EndTimestamp) {
+            if (evt.StartTime >= s->StartTimestamp && evt.StartTime <= windowEnd) {
                 s->RespiratoryEvents.append(evt);
             }
         }
         for (const BmcFlowLimitEvent& evt : dateSession.FlowLimitEvents) {
-            if (evt.Timestamp >= s->StartTimestamp && evt.Timestamp <= s->EndTimestamp) {
+            if (evt.Timestamp >= s->StartTimestamp && evt.Timestamp <= windowEnd) {
                 s->FlowLimitEvents.append(evt);
             }
         }

@@ -1430,8 +1430,15 @@ QString Daily::getMachineSettings(Day * day) {
                     data = QString().number(it.value().toDouble(),'f',2) + " "+chan.units();
                 }
             } else {
-
-                data = it.value().toString() + " "+ chan.units();
+                // INTEGER and anything else.  A registered option overrides the numeric
+                // rendering, matching the DEFAULT branch above: an integer setting whose
+                // zero means "disabled" (BMC ramp time, SleepStyle EPR level and humidity)
+                // registers an option for it so it reads "Off" rather than "0 Minutes".
+                // Channels with no options behave exactly as before.
+                data = chan.option(it.value().toInt());
+                if (data.isEmpty()) {
+                    data = it.value().toString() + " "+ chan.units();
+                }
             }
             if (code ==0xe202)      // Format EPR relief correctly
                 data = formatRelief(data);
