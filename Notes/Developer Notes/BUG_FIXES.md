@@ -5012,3 +5012,34 @@ so its usage falls back to full span (7 min out of 158 h on the validated card).
 empty slice list means "no slice information", and the alternative is worse -
 `Day::cph()` divides by `hours()` unguarded (`day.cpp:1109`, and `sph()` likewise), so
 a zero-usage day would yield inf/nan.
+
+## 2026-08-04 - Session::avg() divides by only the last EventList's count (#260)
+
+**Symptom:** Channels split across more than one `EventList` stored a wildly inflated
+average. Read back from `session_channels` on a SEFAM import, one session showed
+Pressure `avg=50.625` against `wavg=4.147`, and LeakTotal `avg=288.329` against
+`wavg=23.387`. Sessions whose channels were contiguous showed `avg == wavg` exactly.
+
+**Root cause (`SleepLib/session.cpp`, `Session::avg()`):** `cnt` was used for two
+different things - the per-list loop bound and the final divisor - and was **assigned**
+`ev.count()` on each iteration rather than accumulated. `val` summed every sample across
+every list, but the division used only the last list's count, inflating the result by
+roughly (total samples / last list's samples). The affected session had 4505 pressure
+samples with a final run of 365, giving 4505/365 = 12.34, and 4.147 x 12.34 = 51.2,
+matching the stored 50.625.
+
+**Fix:** Keep a separate per-list bound (`listCount`) and accumulate `cnt` across all
+lists.
+
+Not loader-specific: any loader calling `AddEventList()` more than once for a channel is
+affected - waveform gaps, mask-off splits, per-chunk imports - which includes ResMed and
+PRS1. It surfaced now because the SEFAM loader began splitting channels at blower-off
+gaps. Largely latent in the UI, which uses `wavg()`, and `session_summaries.pressure_avg`
+also stores `wavg`; but `session_channels.avg` was persisted wrong and `Day::avg()`
+aggregates it.
+
+Neighbouring accessors were checked and are correct: `Session::count()`, `Session::sum()`
+and `Session::Min()` all accumulate across lists properly.
+
+**Note:** `m_avg` is cached and persisted, so sessions already imported keep the wrong
+value until re-imported. No migration is provided.

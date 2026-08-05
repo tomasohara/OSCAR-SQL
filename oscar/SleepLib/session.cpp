@@ -2163,8 +2163,14 @@ EventDataType Session::avg(ChannelID id)
         EventList &ev = *(evec[i]);
         dptr = ev.rawData();
         gain = ev.gain();
-        cnt = ev.count();
-        eptr = dptr + cnt;
+        // The per-list bound and the final divisor are different quantities:
+        // val accumulates over every list, so cnt must be the total. Assigning
+        // ev.count() here instead of adding it divided the sum of all lists by
+        // the length of the last one, inflating the average of any channel
+        // split across multiple EventLists by roughly (total / last).
+        const int listCount = ev.count();
+        cnt += listCount;
+        eptr = dptr + listCount;
 
         for (; dptr < eptr; dptr++) {
             val += double(*dptr) * gain;
