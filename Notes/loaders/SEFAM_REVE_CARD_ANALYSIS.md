@@ -415,6 +415,61 @@ The cheapest resolution is not a whole second card: one night from the *same*
 device with a **single** setting changed — humidifier level is the obvious pick —
 pins byte 22 outright and would confirm or kill it immediately.
 
+### Settings menu structure, from a vendor manual
+
+A user manual for the SEFAM **Nea** documents the full settings menu. Whether
+the Nea shares this platform is **not verified**, but its documented ranges are
+consistent with everything observed here, so they are recorded as constraints on
+the code 2 byte map.
+
+**User menu:** treatment parameters (pressure, usually clinician-locked);
+comfort (ramp time, Comfort Control Plus level); humidification, **OFF to 10**.
+
+**Clinical menu:**
+
+| Setting | Documented range |
+|---|---|
+| Mode | CPAP (fixed) or APAP |
+| Min pressure | 4–20 cmH₂O |
+| Max pressure | up to 20 cmH₂O (APAP) |
+| Fixed pressure level | 4–20 cmH₂O (CPAP) |
+| Ramp type | I RAMP, T RAMP or OFF |
+| Ramp time | 5–45 min |
+| Ramp pressure | start pressure |
+| CC+ (Comfort Control Plus) | toggle |
+| IS (Intelligent Start) | toggle |
+| Circuit select | 15 mm or 22 mm |
+| Mask select theoretical leak | 20–60 lpm |
+| Patient access lock | Ramp, CC+, IS |
+
+What this does and does not settle:
+
+1. **It corroborates the confirmed bytes.** Min 4.0 is the bottom of the 4–20
+   range, max 20.0 the top, and ramp 45 the top of 5–45. Consistent with this
+   card running the same firmware family — supporting evidence, not proof.
+2. **Humidification runs 0–10**, so byte 22 = 4 is dimensionally plausible as
+   "Level 4". Still a single value match; not confirmation.
+3. **Circuit select is a two-way choice (15 or 22 mm)**, so it can only be an
+   enum or a single bit. That explains why no byte holds 15 or 22, and rules out
+   any further search for a literal diameter.
+4. **Mask leak is configured over 20–60 lpm, and bytes 17 and 18 both hold
+   exactly 60** — the top of that documented range. Notable, but the analyzer
+   prints **36 lpm** for this card, so either those bytes are not the mask-leak
+   setting, or the printed figure is derived rather than the stored one.
+   Unresolved, and a good reason not to guess.
+5. **Byte 21 = 121 → 12.1 cmH₂O** falls inside the documented 4–20 fixed-pressure
+   range, making it a candidate for the CPAP **Pressure Level** — a setting that
+   is inactive in A-PAP, which is consistent with the analyzer printing
+   `Prescribed pressure = -` on every session. Untested.
+6. **Ramp type has three states and mode two**, so both are small enums. Byte 24
+   = 3 and code 13 byte 13 = 3 are the candidates, though neither is a natural
+   index for "I RAMP".
+7. **Patient access lock covers three toggles**, so a small bitmask exists
+   somewhere. Byte 14 = 31 (`0x1F`, five low bits set) is the most flags-like
+   byte in the record.
+8. **Two documented features have never been seen in any card data:** Intelligent
+   Start and the patient access lock.
+
 ## `.RAM` / `.BKP` — encrypted, not readable
 
 Both 1,633,228 bytes. The first 74 bytes are structured cleartext (`4c 00 00 01`,
@@ -486,6 +541,12 @@ time from the average, so the disagreement is expected and explains itself.
   humidifier level pins byte 22 outright; changing *only* Comfort Control Plus
   locates that field. Changing several at once is much less informative,
   because several unassigned bytes hold plausible values.
+  Humidification is the best probe of the lot: it is reachable from the **user**
+  menu without clinician access, and it has **11 positions (OFF to 10)**, so a
+  change of a known size should move exactly one byte by exactly that amount.
+- **Circuit select switched between 15 mm and 22 mm** would locate a two-state
+  field that cannot be found by value matching, since neither diameter is stored
+  literally.
 - **A card in fixed-CPAP mode** — would confirm the mode encoding (only `A-PAP`
   has ever been seen) and show which log codes change.
 - A card whose report shows **non-zero "No breath"** events, to identify code 10.
