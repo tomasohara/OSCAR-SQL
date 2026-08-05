@@ -351,6 +351,11 @@ exactly the two sessions carrying multiple code-2 records (counts 1 and 2,
 matching), and **byte 23 is the only byte that differs** between the pair on the
 session reporting two changes — so byte 23 is the field that was edited.
 
+**Byte 23 is therefore ruled out as any of the reported settings.** It changes
+6 → 5 → 6 within one session across 60 seconds, while the analyzer reports the
+comfort, humidifier and heated-tube settings as *identical on every session*.
+Whatever byte 23 holds, the analyzer does not print it.
+
 **Code 13** payload `[0/1] 0 3 40 100 200 0 [5–10] [0/1] 51 55 50 57 55 52`
 repeats min (40 → 4.0) and max (200 → 20.0) pressure and adds a mode-like `3`
 at byte 13 and a varying 5–10 counter at byte 18. Bytes 20–25 are a constant
@@ -360,6 +365,55 @@ This **overturns the earlier conclusion that settings were unrecoverable** — t
 are in the `.LOG`, not the encrypted `.RAM`. Enough is confirmed for a loader to
 report mode, pressure range and ramp; the comfort/humidifier fields are
 candidates pending a second card with different settings to vary them against.
+
+### Why the comfort and accessory settings cannot be decoded from this card
+
+The analyzer's full device-settings panel for this card reads:
+
+| Setting | Value |
+|---|---|
+| Comfort Control Plus | Level 2 |
+| Patient Circuit | 15 mm |
+| Theoretical mask leak | 36 lpm |
+| Humidifier | Level 4 |
+| Heated tube | Present |
+
+**Every one of these is constant wherever a settings record exists**, so there is
+nothing to correlate against. Three consequences worth recording so they are not
+re-derived:
+
+1. **No byte in code 2 holds 2, 15, 36 or 1.** The values present are 40, 45, 45,
+   31, 200, 40, 60, 60, 130, 200, 121, 4, 6, 3. So Comfort Control Plus level,
+   circuit diameter, mask leak and heated-tube presence are enum-coded,
+   bit-packed, scaled, or simply not in this record. Byte 22 = 4 is the *only*
+   byte matching any of the five, which is the whole basis for the humidifier
+   candidacy — it is a value coincidence, not a confirmation.
+
+2. **The one discriminating session is unusable.** The analyzer reports
+   `Heated tube = Missing` on exactly one session of 31 — and that session's
+   `.LOG` contains **no code 2 and no code 13 record at all**. Its whole log is
+   codes 28, 9, 10 and 7, every one of them zero-payload, and those codes also
+   appear in 8–22 other sessions where the tube reads `Present`. So the single
+   place where a setting differs carries no settings record to compare.
+
+3. **Two of the five are probably not stored.** `Patient Circuit` and
+   `Theoretical mask leak` do not appear in the analyzer's CSV export at all —
+   only CC+, humidifier and heated tube do. The leak figure looks *computed*:
+   the orifice fit measured from this card's own data (§ Channel scaling) gives
+   ≈11.7·√P L/min, which is ~37 L/min at 10 cmH₂O against the printed 36, and
+   code 13 byte 15 is 100 (= 10.0). Suggestive of a reference pressure, but
+   untestable here.
+
+Tempting bit-level readings exist — byte 19 is `0x82`, which would decompose as
+`0x80` (tube present) `| 0x02` (CC+ level 2) — but with a single settings
+combination on the card any such reading is unfalsifiable. **Nothing here should
+be written into the loader until a second card varies one of these fields.**
+Importing a humidifier level off a lone byte-value match risks showing a user a
+setting their device does not have.
+
+The cheapest resolution is not a whole second card: one night from the *same*
+device with a **single** setting changed — humidifier level is the obvious pick —
+pins byte 22 outright and would confirm or kill it immediately.
 
 ## `.RAM` / `.BKP` — encrypted, not readable
 
@@ -408,12 +462,17 @@ time from the average, so the disagreement is expected and explains itself.
    problem 1.
 3. **Log code 10** (260 records, 1.64/h) is unidentified and matches no report
    column.
-4. **Comfort/humidifier setting bytes** in code 2 are candidates only; byte 23 is
-   known to be the field edited on a settings change, but its encoding is not
-   established. Varying them needs a second card.
-5. **Report "Average leaks"** is 0.01–0.06 — nowhere near the decoded total leak
-   of 23–45 L/min, so the analyzer reports *unintentional* leak in some other
-   unit. A loader must decide which it presents; the card gives total.
+4. **Comfort/humidifier setting bytes** in code 2 are candidates only. Byte 22
+   (= 4) is the sole byte matching any reported value, and byte 23 is ruled out
+   entirely. No byte holds 2, 15, 36 or 1, so the remaining fields are enum,
+   bit-packed, scaled or absent. See "Why the comfort and accessory settings
+   cannot be decoded from this card" — this needs one night with a single
+   setting changed, not a whole second card.
+5. ~~**Report "Average leaks"**~~ **RESOLVED.** The analyzer reports
+   *unintentional* leak in **L/s**: its 0.06 / 0.05 / 0.03 for three sample
+   sessions are 3.6 / 3.0 / 1.8 L/min, against OSCAR's derived `CPAP_Leak` of
+   2.77 / 3.73 / 1.73 for the same sessions. The card itself gives **total**
+   leak, which OSCAR imports as `CPAP_LeakTotal` and converts.
 6. The 8-byte header signature is unidentified (not needed to read data).
 7. `NSD` is 99.64 % zero in this sample, with only four distinct values;
    purpose unknown.
@@ -422,10 +481,13 @@ time from the average, so the disagreement is expected and explains itself.
 
 ## What would still help
 
-- **A second card with different therapy settings** — the single most useful
-  next artefact. It would pin down the comfort/humidifier bytes, confirm the
-  mode encoding (only `A-PAP` has been seen), and show which log codes change
-  in fixed-CPAP mode.
+- **One night with a single setting changed** — the cheapest and most useful
+  next artefact, and it does not need a different device. Changing *only* the
+  humidifier level pins byte 22 outright; changing *only* Comfort Control Plus
+  locates that field. Changing several at once is much less informative,
+  because several unassigned bytes hold plausible values.
+- **A card in fixed-CPAP mode** — would confirm the mode encoding (only `A-PAP`
+  has ever been seen) and show which log codes change.
 - A card whose report shows **non-zero "No breath"** events, to identify code 10.
 
 ## Loader viability
