@@ -16,6 +16,7 @@
 #include "SleepLib/common.h"
 #include "SleepLib/importcontext.h"
 #include "SleepLib/profiles.h"
+#include "SleepLib/schema.h"
 #include "SleepLib/session.h"
 
 #include <QCoreApplication>
@@ -113,6 +114,40 @@ void SefamLoader::Register()
     qDebug() << "Registering SefamLoader";
     RegisterLoader(new SefamLoader());
     sefam_initialised = true;
+}
+
+ChannelID SEFAM_HumidLevel = 0;
+
+/*! \brief Register the SEFAM-specific settings channels.
+
+    No run-once guard here, deliberately. schema::resetChannels() destroys every
+    registered channel and then re-invokes initChannels() on each loader, which
+    happens when a profile is created and when the user resets channel defaults;
+    a guard would make the second call a no-op and leave the channel missing for
+    the rest of the session. ChannelList::add() already rejects duplicate ids.
+
+    There is no generic humidifier channel to reuse: CPAP_HumidSetting resolves
+    through schema::channel["HumidSet"], and nothing ever registers a channel of
+    that name, so it is an empty channel. Hence the per-manufacturer channel,
+    the same pattern the ResMed and PRS1 loaders use. */
+void SefamLoader::initChannels()
+{
+    using namespace schema;
+
+    // 0xe5xx is unused by every other loader — see the "Ensure your channel ID
+    // is unique" note in schema.cpp.
+    // The displayed label is deliberately the same string every other loader
+    // uses for this setting — see GitLab #263.
+    Channel *chan = new Channel(SEFAM_HumidLevel = 0xe500, SETTING, MT_CPAP, SESSION,
+                                "SEFAM_HumidLevel", QObject::tr("Humidifier"),
+                                QObject::tr("Humidifier level"),
+                                QObject::tr("Humidity Level"), "", LOOKUP, Qt::black);
+    channel.add(GRP_CPAP, chan);
+
+    // Only the off position is named. Daily prints the raw number for any value
+    // with no option, so the numbered levels need no entries and a level beyond
+    // the vendor manual's range of 10 would still display honestly.
+    chan->addOption(0, STR_TR_Off);
 }
 
 QString SefamLoader::findSerialDir(const QString &path)
@@ -527,6 +562,12 @@ int SefamLoader::Open(const QString &path)
             if (lastKnown.rampMinutes > 0) {
                 session->settings[CPAP_RampTime]     = lastKnown.rampMinutes;
                 session->settings[CPAP_RampPressure] = lastKnown.rampPressure;
+            }
+            // Only the settings-change record carries this; a snapshot record
+            // leaves it at -1 and the session then shows no humidifier level
+            // rather than an inherited one.
+            if (lastKnown.humidifierLevel >= 0) {
+                session->settings[SEFAM_HumidLevel] = lastKnown.humidifierLevel;
             }
         }
         // Sessions before the first settings record on a card carry no settings

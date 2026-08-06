@@ -5118,3 +5118,58 @@ option 0 stored in the global `channel_options` table. Per #257, a stored option
 replaces the code's on load, so a newly added option 1 would have been dropped for every
 existing profile and rendered as a bare "1". `BMC_RAMPTIME` has no stored rows -
 verified against a live database - so its new option takes effect everywhere.
+
+## 2026-08-06 - SEFAM humidifier level decoded; humidifier label inconsistent across loaders (#263)
+
+### 1. SEFAM: humidifier level now imported (card byte 22)
+
+**Background:** the SEFAM card's log code-2 settings record was decoded down to four
+confirmed fields (min/max pressure, ramp time, ramp pressure). Byte 22 held the value 4
+on a card whose vendor report said "Humidifier Level 4", but that was a single value
+match on a card where every setting was constant - a coincidence, not a confirmation -
+so it was deliberately left out of the loader.
+
+**Resolution:** a second card was obtained from the same device with *only* the
+humidifier level changed, 4 to 5. The two cards share 468 files, 465 of them
+byte-identical; the only differences are the two encrypted state blobs and the one
+session directory still being written when the first card was copied. Across the second
+card's settings records, byte 22 reads 4 through 07-31 and 5 on 08-05, and **no other
+settings byte changes**. Two points that both map to themselves pin any affine reading
+to identity, so the byte is the level, unscaled.
+
+**Change:** `SefamParsing::Settings` gains `humidifierLevel`, read from code 2 only
+(a code 13 snapshot has a different payload shape and no such field, and leaves it at
+-1 so the session reports no level rather than an inherited one). The loader registers
+`SEFAM_HumidLevel` (`0xe500`) in a new `SefamLoader::initChannels()`.
+
+`CPAP_HumidSetting` was **not** reused: `schema.cpp:397` assigns it
+`schema::channel["HumidSet"].id()`, no channel of that name is ever registered, and a
+name miss returns `EmptyChannel`, which has id 0. It is an empty channel. Filed
+separately as #264 because `icon_loader.cpp:859` writes to it.
+
+Byte 14 was also found to vary - 31 (`0x1F`) everywhere except one night, where it is
+29 (`0x1D`). That night is four before the humidifier record, so it is not the
+humidifier. It remains the best candidate for the patient access lock. Unresolved.
+
+### 2. The same device setting displayed under five different names (#263)
+
+**Symptom:** Daily's Device Settings panel labelled the humidifier level differently
+depending on the machine - "Humidity Level" (ResMed), "Humid. Level" (PRS1),
+"Humidifier level" (Prisma), "Humidity" (SleepStyle), "Humidifier" (BMC).
+
+**Root cause:** there is no shared humidifier channel. Every loader registers its own
+`SETTING` channel and each chose its own label text. The commented-out
+`HumidifierLevel()` / `HumidifierConnected()` accessors in `machine_loader.h:152-153`
+are what remains of an attempt to generalise this.
+
+**Fix:** all six now pass `Humidity Level` as the `label` argument - the field
+`daily.cpp:1447` displays. Channel ids, code names, descriptions and options are
+untouched: ids and code names are persisted identifiers, and descriptions are the
+right place for vendor-specific wording.
+
+**Existing profiles keep their old labels.** Labels are persisted per profile in the
+`channels` table and applied back over the code defaults at load
+(`profiles.cpp:2800-2804`), the same mechanism that bit the option table in #257. The
+new labels take effect for new profiles, after a language change, or after "reset
+channel defaults". Making them visible to existing profiles needs a migration, which
+is not included here.

@@ -729,7 +729,8 @@ void BmcLoader::initChannels()
     chan->addOption(0, "Full Time");
 
     channel.add(GRP_CPAP, chan = new Channel(BMC_HUMIDIFIER = BMC_CHANNEL_IDX + 3, SETTING, MT_CPAP,   SESSION,
-                                             "Humidifier", QObject::tr("Humidifier"), QObject::tr("Humidifier"), QObject::tr("Humidifier"), "", LOOKUP, Qt::green));
+                                             // Displayed label standardised across loaders — see GitLab #263.
+                                             "Humidifier", QObject::tr("Humidifier"), QObject::tr("Humidifier"), QObject::tr("Humidity Level"), "", LOOKUP, Qt::green));
     chan->addOption(0, STR_TR_Off);
     chan->addOption(1, QObject::tr("1"));
     chan->addOption(2, QObject::tr("2"));

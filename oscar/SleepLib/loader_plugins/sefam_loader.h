@@ -23,6 +23,9 @@ const QString sefam_class_name = "SefamLoader";
 //! The one model validated end-to-end against a manufacturer report.
 const QString sefam_validated_model = "1279R";
 
+//! Humidifier level, the one accessory setting decoded from the card.
+extern ChannelID SEFAM_HumidLevel;
+
 /*! \class SefamLoader
     \brief Imports SEFAM CPAP SD cards.
 
@@ -41,6 +44,7 @@ class SefamLoader : public CPAPLoader
 
     virtual bool Detect(const QString &path) override;
     virtual int  Open(const QString &path) override;
+    virtual void initChannels() override;
     virtual int  Version() override { return sefam_data_version; }
     virtual const QString &loaderName() override { return sefam_class_name; }
     virtual MachineInfo PeekInfo(const QString &path) override;

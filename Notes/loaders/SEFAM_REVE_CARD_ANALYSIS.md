@@ -343,7 +343,7 @@ settings. Decoded against the report's printed settings (`Mode=A-PAP`,
 | 12 | 45 | **Ramp 45 min** |
 | 15 | 200 | **Max pressure 20.0** (×0.1 cmH₂O) |
 | 16 | 40 | **Ramp pressure 4.0** (×0.1 cmH₂O) |
-| 22 | 4 | candidate: humidifier level (report says Level 4) |
+| 22 | 4 | **Humidifier level** — confirmed by a controlled change, see below |
 | 13, 14, 17–21, 23–25 | 45, 31, 60, 60, 130, 200, 121, 6, 3, 0 | unassigned |
 
 Code 2 occurs 5 times. The report's `setting change` column is non-zero on
@@ -366,7 +366,66 @@ are in the `.LOG`, not the encrypted `.RAM`. Enough is confirmed for a loader to
 report mode, pressure range and ramp; the comfort/humidifier fields are
 candidates pending a second card with different settings to vary them against.
 
-### Why the comfort and accessory settings cannot be decoded from this card
+### Humidifier level — byte 22, CONFIRMED by a controlled change
+
+A second card was pulled from the same device after the humidifier level was
+changed from 4 to 5 and nothing else was touched. This is the controlled
+experiment the section below asks for, and it settles byte 22 outright.
+
+The second card is a strict superset of the first: same serial directory, and
+of the 468 files the two have in common, **465 are byte-identical**. The three
+that differ are the two encrypted state blobs (`.RAM`, `.BKP`, expected) and the
+one session directory that was still being written when the first card was
+copied. The device accumulates rather than rotating, so the earlier sessions
+carry over untouched and act as their own control.
+
+Across every settings record on the second card:
+
+| Record | Date | Byte 22 | Rest of the payload |
+|---|---|---|---|
+| code 2 | 07-10 | 4 | `40 45 45 31 200 40 60 60 130 200 121 · 6 3 0` |
+| code 2 | 07-12 | 4 | identical |
+| code 2 | 07-26 (×2) | 4 | identical but for byte 23, already ruled out |
+| code 2 | 07-27 | 4 | identical |
+| code 2 | 07-31 | 4 | identical but for byte 14, see below |
+| code 2 | 08-05 | **5** | **identical** |
+
+**One setting changed by one step; exactly one byte changed, by exactly one
+step.** With two points that both map to themselves, any affine reading is
+pinned to identity — the byte is the level, unscaled and unbiased. Together with
+the vendor manual's documented range of OFF to 10, which fits a raw byte
+directly, that is enough to import.
+
+The loader therefore reports it, as a SEFAM-specific `SETTING` channel rather
+than through `CPAP_HumidSetting` — that generic id resolves through
+`schema::channel["HumidSet"]`, and nothing in OSCAR ever registers a channel of
+that name, so it is an empty channel and anything written to it is invisible.
+
+Two limits worth keeping in view:
+
+- **Only code 2 carries it.** A code 13 snapshot has a different payload shape
+  and no humidifier field, so a session whose only settings record is a snapshot
+  reports no humidifier level rather than an inherited one.
+- **The change is bracketed, not timed.** Byte 22 reads 4 on 07-31 and 5 on
+  08-05, with no settings record on the four nights between. Those nights
+  inherit 4 by carry-forward. Whether code 2 is emitted *at* a change or as
+  routine session bookkeeping is still unsettled — the vendor's own
+  "setting change" column was non-zero only on sessions carrying *more than one*
+  code 2 record, which argues for the routine reading and means the four
+  intervening nights may have run at level 5.
+
+**Byte 14 moved too, but on a different night.** It reads 31 (`0x1F`) on every
+record except 07-31, where it is 29 (`0x1D`) — bit `0x02` cleared, four nights
+before the humidifier record and back to 31 afterwards. It is therefore *not*
+the humidifier. It remains the most flags-like byte in the record and is now
+also known to be the only other one that ever varies, which makes it the best
+candidate for the patient access lock or a tube/circuit state. No vendor report
+exists for the second card, so what was different that night is unknown.
+
+### Why the remaining comfort and accessory settings cannot be decoded
+
+*(Written against the first card, before the humidifier was pinned. Everything
+below still holds for the four settings other than the humidifier.)*
 
 The analyzer's full device-settings panel for this card reads:
 
@@ -385,9 +444,9 @@ re-derived:
 1. **No byte in code 2 holds 2, 15, 36 or 1.** The values present are 40, 45, 45,
    31, 200, 40, 60, 60, 130, 200, 121, 4, 6, 3. So Comfort Control Plus level,
    circuit diameter, mask leak and heated-tube presence are enum-coded,
-   bit-packed, scaled, or simply not in this record. Byte 22 = 4 is the *only*
-   byte matching any of the five, which is the whole basis for the humidifier
-   candidacy — it is a value coincidence, not a confirmation.
+   bit-packed, scaled, or simply not in this record. Byte 22 = 4 was the *only*
+   byte matching any of the five, which was the whole basis for the humidifier
+   candidacy — a value coincidence at the time, since confirmed independently.
 
 2. **The one discriminating session is unusable.** The analyzer reports
    `Heated tube = Missing` on exactly one session of 31 — and that session's
@@ -407,13 +466,15 @@ re-derived:
 Tempting bit-level readings exist — byte 19 is `0x82`, which would decompose as
 `0x80` (tube present) `| 0x02` (CC+ level 2) — but with a single settings
 combination on the card any such reading is unfalsifiable. **Nothing here should
-be written into the loader until a second card varies one of these fields.**
-Importing a humidifier level off a lone byte-value match risks showing a user a
-setting their device does not have.
+be written into the loader until a card varies one of these fields.** Importing a
+setting off a lone byte-value match risks showing a user a setting their device
+does not have.
 
-The cheapest resolution is not a whole second card: one night from the *same*
-device with a **single** setting changed — humidifier level is the obvious pick —
-pins byte 22 outright and would confirm or kill it immediately.
+The prescribed resolution — one night from the *same* device with a **single**
+setting changed, rather than a whole second card — was carried out for the
+humidifier and worked exactly as predicted. The same method is the way to settle
+the other four: see "Humidifier level — byte 22" above for what a clean result
+looks like.
 
 ### Settings menu structure, from a vendor manual
 
@@ -448,7 +509,8 @@ What this does and does not settle:
    range, max 20.0 the top, and ramp 45 the top of 5–45. Consistent with this
    card running the same firmware family — supporting evidence, not proof.
 2. **Humidification runs 0–10**, so byte 22 = 4 is dimensionally plausible as
-   "Level 4". Still a single value match; not confirmation.
+   "Level 4". This was later **confirmed** by a controlled 4 → 5 change; the
+   documented range is what says a raw byte needs no scaling.
 3. **Circuit select is a two-way choice (15 or 22 mm)**, so it can only be an
    enum or a single bit. That explains why no byte holds 15 or 22, and rules out
    any further search for a literal diameter.
@@ -466,7 +528,8 @@ What this does and does not settle:
    index for "I RAMP".
 7. **Patient access lock covers three toggles**, so a small bitmask exists
    somewhere. Byte 14 = 31 (`0x1F`, five low bits set) is the most flags-like
-   byte in the record.
+   byte in the record, and the second card shows it is also the only byte other
+   than 22 and 23 that ever varies — it drops to 29 (`0x1D`) on one night.
 8. **Two documented features have never been seen in any card data:** Intelligent
    Start and the patient access lock.
 
@@ -506,6 +569,11 @@ The one session where mean pressure differs (−1.08 cmH₂O) is the 20-minute
 session that was 23 % mask-disconnected — the analyzer excludes disconnected
 time from the average, so the disagreement is expected and explains itself.
 
+One further field, **humidifier level**, was confirmed by a different method: a
+second card from the same device with only that setting changed. No analyzer
+output exists for the second card, so the confirmation rests on the controlled
+change rather than on a printed report — see "Humidifier level — byte 22".
+
 ## Open problems
 
 1. **Hypopnea durations** are not in the log argument (codes 5/6 carry 0), yet
@@ -517,12 +585,13 @@ time from the average, so the disagreement is expected and explains itself.
    problem 1.
 3. **Log code 10** (260 records, 1.64/h) is unidentified and matches no report
    column.
-4. **Comfort/humidifier setting bytes** in code 2 are candidates only. Byte 22
-   (= 4) is the sole byte matching any reported value, and byte 23 is ruled out
-   entirely. No byte holds 2, 15, 36 or 1, so the remaining fields are enum,
-   bit-packed, scaled or absent. See "Why the comfort and accessory settings
-   cannot be decoded from this card" — this needs one night with a single
-   setting changed, not a whole second card.
+4. **Comfort and accessory setting bytes** in code 2 are candidates only —
+   Comfort Control Plus level, patient circuit, theoretical mask leak and heated
+   tube. No byte holds 2, 15, 36 or 1, so they are enum, bit-packed, scaled or
+   absent. Byte 23 is ruled out entirely. ~~Humidifier level~~ **RESOLVED:
+   byte 22**, confirmed by a controlled single-setting change. The same method
+   settles the rest; see "Why the remaining comfort and accessory settings
+   cannot be decoded".
 5. ~~**Report "Average leaks"**~~ **RESOLVED.** The analyzer reports
    *unintentional* leak in **L/s**: its 0.06 / 0.05 / 0.03 for three sample
    sessions are 3.6 / 3.0 / 1.8 L/min, against OSCAR's derived `CPAP_Leak` of
@@ -536,14 +605,16 @@ time from the average, so the disagreement is expected and explains itself.
 
 ## What would still help
 
-- **One night with a single setting changed** — the cheapest and most useful
-  next artefact, and it does not need a different device. Changing *only* the
-  humidifier level pins byte 22 outright; changing *only* Comfort Control Plus
-  locates that field. Changing several at once is much less informative,
-  because several unassigned bytes hold plausible values.
-  Humidification is the best probe of the lot: it is reachable from the **user**
-  menu without clinician access, and it has **11 positions (OFF to 10)**, so a
-  change of a known size should move exactly one byte by exactly that amount.
+- **One night with a single setting changed** — still the cheapest and most
+  useful next artefact, and it does not need a different device. This is how
+  byte 22 was settled: the humidifier moved 4 → 5 and exactly one byte moved
+  4 → 5. Changing several settings at once is much less informative, because
+  several unassigned bytes hold plausible values.
+  **Comfort Control Plus is now the best remaining probe**, since like the
+  humidifier it is reachable from the user menu without clinician access.
+  Note that a settings record has to actually appear afterwards — four nights
+  on the second card carry none at all — so the card should be pulled a night
+  or two after the change, not the same morning.
 - **Circuit select switched between 15 mm and 22 mm** would locate a two-state
   field that cannot be found by value matching, since neither diameter is stored
   literally.

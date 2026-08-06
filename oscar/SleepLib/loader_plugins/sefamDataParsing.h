@@ -140,17 +140,23 @@ enum LogCode {
     \brief Therapy settings decoded from a log settings record.
 
     Only fields confirmed against the manufacturer's printed settings are
-    represented. The humidifier and comfort-level bytes are positional guesses
-    that a single card cannot vary, so they are deliberately absent — an
-    unverified byte displayed as a therapy setting is worse than showing
-    nothing. */
+    represented. The comfort-level, patient-circuit and mask-leak bytes are
+    still positional guesses that no card examined so far can vary, so they are
+    deliberately absent — an unverified byte displayed as a therapy setting is
+    worse than showing nothing.
+
+    The humidifier level is the exception: a second card from the same device,
+    with only that one setting changed, moved exactly one settings byte by
+    exactly the amount the setting moved. See Notes/loaders/
+    SEFAM_REVE_CARD_ANALYSIS.md, "Humidifier level — byte 22". */
 struct Settings
 {
-    bool  valid        = false;
-    float minPressure  = 0.0f;      //!< cmH2O
-    float maxPressure  = 0.0f;      //!< cmH2O
-    float rampPressure = 0.0f;      //!< cmH2O
-    int   rampMinutes  = 0;
+    bool  valid           = false;
+    float minPressure     = 0.0f;   //!< cmH2O
+    float maxPressure     = 0.0f;   //!< cmH2O
+    float rampPressure    = 0.0f;   //!< cmH2O
+    int   rampMinutes     = 0;
+    int   humidifierLevel = -1;     //!< 0 = off; -1 when the record omits it.
 };
 
 /*! \struct SessionData

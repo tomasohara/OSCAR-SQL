@@ -237,6 +237,9 @@ bool parseSettings(const LogRecord &rec, Settings &out)
         out.rampMinutes  = byteAt(1);
         out.maxPressure  = byteAt(4) / 10.0f;
         out.rampPressure = byteAt(5) / 10.0f;
+        // Record byte 22. Two cards from the same device, differing only in the
+        // humidifier level, differ in this byte and no other settings byte.
+        if (rec.payload.size() > 11) { out.humidifierLevel = byteAt(11); }
         out.valid = true;
         return true;
     }

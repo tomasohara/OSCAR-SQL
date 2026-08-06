@@ -464,12 +464,26 @@ CPAP_PressureMin  = payload byte 11 × 0.1
 CPAP_PressureMax  = payload byte 15 × 0.1
 CPAP_RampTime     = payload byte 12
 CPAP_RampPressure = payload byte 16 × 0.1
+SEFAM_HumidLevel  = payload byte 22          (code 2 only)
 ```
 
-Only these four are written. The humidifier and comfort-level candidates
-identified in the format notes are **not** written: they are positional guesses
-that a single card cannot vary, and an unverified byte displayed as a therapy
-setting is worse than showing nothing.
+The comfort-level, patient-circuit and mask-leak candidates identified in the
+format notes are **not** written: they are positional guesses that no card so
+far can vary, and an unverified byte displayed as a therapy setting is worse
+than showing nothing.
+
+The humidifier level is written because it is no longer a guess — a second card
+from the same device with only that setting changed moved byte 22 by exactly
+the amount the setting moved, and nothing else. It goes to a SEFAM-specific
+`SETTING` channel (`0xe500`) rather than `CPAP_HumidSetting`, because that
+generic id resolves through `schema::channel["HumidSet"]` and no channel of that
+name is ever registered — it is an empty channel, so anything written to it is
+silently invisible. Registered `LOOKUP` with only `0 = Off` named; Daily prints
+the raw number for any value with no option, so the numbered levels need no
+entries and an out-of-range level still displays honestly.
+
+Only code 2 carries it. A code 13 snapshot leaves the field at −1 and the
+session then shows no humidifier level rather than an inherited one.
 
 Mode is set to APAP because A-PAP is the only mode observed.
 
