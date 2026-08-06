@@ -1876,14 +1876,17 @@ bool YuwellFormatE::OpenSession(Machine *mach, const QString & sessionDirPath)
         return false;
     }
 
-    // The 98-byte s.bys header. Only the first 0x3C (60) bytes carry per-session data -
-    // the remainder (up to 0x62) repeats the start date and some fixed, non-session
-    // device configuration bytes that are identical across every session seen so far,
-    // so they're not read here.
-    QByteArray header = sFile.read(0x3C);
+    // The 98-byte s.bys header. The first 0x3C (60) bytes carry per-session data. Bytes
+    // 0x3C-0x47 just repeat the start date and an unconfirmed byte pair, but 0x48-0x53
+    // hold the device's configured Auto-S pressure limits and pressure support (see
+    // below) - identical across every session on a given device (they're settings, not
+    // per-session data), but still needed since nothing in the first 0x3C carries them.
+    // The remainder up to 0x62 is other fixed, non-session device configuration and
+    // isn't read here.
+    QByteArray header = sFile.read(0x54);
     sFile.close();
 
-    if (header.size() != 0x3C) {
+    if (header.size() != 0x54) {
         qWarning() << "Yuwell Session Short file " << slist.at(0).absoluteFilePath();
         return false;
     }
@@ -1918,7 +1921,7 @@ bool YuwellFormatE::OpenSession(Machine *mach, const QString & sessionDirPath)
     // level and a mode code). humidity/ramp below are the best-guess picks - the ones
     // that vary between sessions on the same device the way a user setting would.
     unsigned short int unknown_0e, unknown_10, unknown_12, humidity_guess;
-    unsigned short int ramp_guess, maximum_pressure, minimum_pressure;
+    unsigned short int ramp_guess;
 
     in >> unknown_0e;
     in >> unknown_10;
@@ -1926,8 +1929,12 @@ bool YuwellFormatE::OpenSession(Machine *mach, const QString & sessionDirPath)
     in >> humidity_guess;
     in.skipRawData(8); // Always zero in the data seen so far
     in >> ramp_guess;
-    in >> maximum_pressure;
-    in >> minimum_pressure;
+    // Bytes 0x20-0x23: this session's AVERAGE IPAP/EPAP (confirmed against the official
+    // app's "Average IPAP"/"Average EPAP"). Despite looking like a min/max pressure pair,
+    // these are per-session statistics, not the configured pressure limits - IPAP here
+    // minus EPAP here is always exactly the pressure support read at 0x53 below. The
+    // real configured Auto-S limits are read separately further down (0x48/0x4A).
+    in.skipRawData(4);
     in.skipRawData(4); // Unknown, not consistently zero
     in.skipRawData(4); // Two more duration-like u16 fields, redundant with finish above
 
@@ -1935,6 +1942,32 @@ bool YuwellFormatE::OpenSession(Machine *mach, const QString & sessionDirPath)
     in.readRawData(raw_model_serial.data(), 16);
     QString model_serial(raw_model_serial);
     mach->setModel(model_serial);
+
+    in.skipRawData(2); // 0x3C-0x3D: unknown
+    in.skipRawData(6); // 0x3E-0x43: repeats the start datetime, already known above
+
+    unsigned char mode_code;
+    in >> mode_code;   // 0x44: device mode code. The only value seen so far is 6, on every
+                       // session from this YH-920E (a BiPAP-only device) - always "Auto S".
+                       // No sample data with a different code has been seen for Format E,
+                       // so only mode 6 is handled below.
+    in.skipRawData(3); // 0x45-0x47: unknown
+
+    // 0x48-0x4B: the device's CONFIGURED Auto-S pressure limits, confirmed against the
+    // official app's "Maximum IPAP"/"Minimum EPAP". Unlike every other multi-byte field
+    // in this header, these two are big-endian.
+    in.setByteOrder(QDataStream::BigEndian);
+    unsigned short int max_ipap_setting, min_epap_setting;
+    in >> max_ipap_setting;
+    in >> min_epap_setting;
+    in.setByteOrder(QDataStream::LittleEndian);
+
+    in.skipRawData(4); // 0x4C-0x4F: unknown, not consistently zero
+    in.skipRawData(3); // 0x50-0x52: unknown
+
+    unsigned char pressure_support;
+    in >> pressure_support; // 0x53: configured Pressure Support * 10, confirmed against
+                             // the official app's "Pressure Support".
 
     quint32 ts;
     ts = start.toSecsSinceEpoch();
@@ -1946,22 +1979,29 @@ bool YuwellFormatE::OpenSession(Machine *mach, const QString & sessionDirPath)
     sess->really_set_first(qint64(ts) * 1000L);
     sess->really_set_last(qint64(finish.toSecsSinceEpoch()) * 1000L);
 
-    if (minimum_pressure == maximum_pressure) {
-        sess->settings[CPAP_Mode] = (int)MODE_CPAP;
-        sess->settings[CPAP_Pressure] = minimum_pressure / 10.0;
-    } else {
-        sess->settings[CPAP_Mode] = (int)MODE_APAP;
-        sess->settings[CPAP_PressureMin] = minimum_pressure / 10.0;
-        sess->settings[CPAP_PressureMax] = maximum_pressure / 10.0;
-    }
+    // Every session seen so far is bilevel Auto-S: EPAP auto-titrates down to
+    // min_epap_setting while IPAP tracks EPAP plus the fixed pressure_support, up to
+    // max_ipap_setting. This mirrors how OSCAR's BMC loader reports the same mode
+    // (MODE_BILEVEL_AUTO_FIXED_PS, CPAP_EPAPLo/CPAP_IPAPHi for the auto range, CPAP_PS
+    // for the fixed support) - previously this was misdetected as plain CPAP/APAP using
+    // the session's average IPAP/EPAP (0x20-0x23 above) in place of real settings.
+    sess->settings[CPAP_Mode] = (int)MODE_BILEVEL_AUTO_FIXED_PS;
+    sess->settings[CPAP_EPAPLo] = min_epap_setting / 10.0;
+    sess->settings[CPAP_IPAPHi] = max_ipap_setting / 10.0;
+    sess->settings[CPAP_PS] = pressure_support / 10.0;
+    Q_UNUSED(mode_code)
+
     sess->settings[Yuwell_Humidity] = humidity_guess;
     sess->settings[Yuwell_Ramp] = ramp_guess;
     Q_UNUSED(unknown_0e)
     Q_UNUSED(unknown_10)
     Q_UNUSED(unknown_12)
 
-    EventList *LK = sess->AddEventList(CPAP_LeakTotal, EVL_Event, 1);
-    EventList *PR = sess->AddEventList(CPAP_Pressure, EVL_Event, 0.1F);
+    EventList *LK = sess->AddEventList(CPAP_LeakTotal, EVL_Event, 0.1F);
+    EventList *IPAP = sess->AddEventList(CPAP_IPAP, EVL_Event, 0.1F);
+    EventList *EPAP = sess->AddEventList(CPAP_EPAP, EVL_Event, 0.1F);
+    EventList *MV = sess->AddEventList(CPAP_MinuteVent, EVL_Event, 1);
+    EventList *IE = sess->AddEventList(CPAP_IE, EVL_Event, 1);
     EventList *OA = sess->AddEventList(CPAP_Obstructive, EVL_Event);
     EventList *CA = sess->AddEventList(CPAP_ClearAirway, EVL_Event);
     EventList *H =  sess->AddEventList(CPAP_Hypopnea, EVL_Event);
@@ -1993,6 +2033,13 @@ bool YuwellFormatE::OpenSession(Machine *mach, const QString & sessionDirPath)
                 short int record_count;
                 min >> record_count;
 
+                // A real apnea/hypopnea event commonly spans more than one logged minute,
+                // and every minute it covers carries the same flag. Track the previous
+                // minute's flag per event type so only the rising edge of a run adds an
+                // OSCAR event, matching the official app's per-night OAI/HI/CAI counts
+                // instead of over-counting one event per flagged minute.
+                bool oai_prev = false, hi_prev = false, cai_prev = false;
+
                 for (int i = 0; i < record_count; i++) {
                     QCoreApplication::processEvents();
                     QByteArray record = mFile.read(22);
@@ -2006,21 +2053,27 @@ bool YuwellFormatE::OpenSession(Machine *mach, const QString & sessionDirPath)
                     rin.setVersion(QDataStream::Qt_4_8);
                     rin.setByteOrder(QDataStream::LittleEndian);
 
-                    unsigned short int pressure;
-                    unsigned char oai, hi, cai, tidal_volume_lo, tidal_volume_hi, leak, resp_rate, spo2, pulse;
+                    unsigned short int ipap, epap, leak;
+                    unsigned char oai, cai, hi, tidal_volume_lo, tidal_volume_hi, minute_vent, ie_ratio, resp_rate, spo2, pulse;
 
-                    rin >> pressure;         // bytes 0-1: pressure * 10 (auto-titrates within min/max)
-                    rin.skipRawData(2);      // bytes 2-3: tracks pressure minus a constant 3.0 cmH2O, purpose unconfirmed
+                    rin >> ipap;             // bytes 0-1: IPAP * 10 (auto-titrates within the Auto-S range)
+                    rin >> epap;             // bytes 2-3: EPAP * 10 (IPAP minus the fixed pressure support)
                     rin.skipRawData(1);      // byte 4: unconfirmed, not SpO2 (goes above 100)
-                    rin >> oai;              // byte 5: rare 0/1 flag, order vs hi/cai not confirmed against the app
-                    rin >> hi;               // byte 6
-                    rin >> cai;              // byte 7
+                    rin >> oai;              // byte 5: obstructive apnea flag
+                    rin >> cai;              // byte 6: clear airway (central) apnea flag - confirmed against
+                                             // the app's per-night CAI count; previously read (and labelled) as HI
+                    rin >> hi;               // byte 7: hypopnea flag - confirmed against the app's per-night HI
+                                             // count; previously read (and labelled) as CAI
                     rin.skipRawData(4);      // bytes 8-11: always zero in data seen so far
-                    rin.skipRawData(2);      // bytes 12-13: unconfirmed, sparse small values
+                    rin >> leak;             // bytes 12-13: leak * 10, L/min - confirmed against the app's
+                                             // "Leak" average/max; previously skipped as unconfirmed
                     rin >> tidal_volume_lo;  // bytes 14-15: tidal volume in mL
                     rin >> tidal_volume_hi;
-                    rin >> leak;             // byte 16: leak, L/min
-                    rin.skipRawData(1);      // byte 17: unconfirmed
+                    rin >> minute_vent;      // byte 16: minute ventilation, L - confirmed against the app's
+                                             // "Volume per Minute"; previously misread as leak with the wrong
+                                             // gain, which is what made OSCAR's Leak stats disagree with the app
+                    rin >> ie_ratio;         // byte 17: I/E ratio, % - confirmed against the app's "I/E (%)";
+                                             // previously skipped as unconfirmed
                     rin >> resp_rate;        // byte 18: respiratory rate, breaths/min
                     rin >> spo2;             // byte 19
                     rin >> pulse;            // byte 20
@@ -2028,9 +2081,12 @@ bool YuwellFormatE::OpenSession(Machine *mach, const QString & sessionDirPath)
 
                     unsigned short int tidal_volume = tidal_volume_lo + (tidal_volume_hi << 8);
 
-                    PR->AddEvent(ti + (i * 60000), pressure);
+                    IPAP->AddEvent(ti + (i * 60000), ipap);
+                    EPAP->AddEvent(ti + (i * 60000), epap);
                     TV->AddEvent(ti + (i * 60000), tidal_volume);
                     RR->AddEvent(ti + (i * 60000), resp_rate);
+                    MV->AddEvent(ti + (i * 60000), minute_vent);
+                    IE->AddEvent(ti + (i * 60000), ie_ratio);
 
                     if (pulse > 0 && pulse < 249) {
                         P->AddEvent(ti + (i * 60000), pulse);
@@ -2038,15 +2094,18 @@ bool YuwellFormatE::OpenSession(Machine *mach, const QString & sessionDirPath)
                     if (spo2 > 0) {
                         O->AddEvent(ti + (i * 60000), spo2);
                     }
-                    if (oai > 0) {
+                    if (oai > 0 && !oai_prev) {
                         OA->AddEvent(ti + (i * 60000), 0);
                     }
-                    if (hi > 0) {
+                    if (hi > 0 && !hi_prev) {
                         H->AddEvent(ti + (i * 60000), 0);
                     }
-                    if (cai > 0) {
+                    if (cai > 0 && !cai_prev) {
                         CA->AddEvent(ti + (i * 60000), 0);
                     }
+                    oai_prev = oai > 0;
+                    hi_prev = hi > 0;
+                    cai_prev = cai > 0;
                     if (leak > 0) {
                         LK->AddEvent(ti + (i * 60000), leak);
                     }
