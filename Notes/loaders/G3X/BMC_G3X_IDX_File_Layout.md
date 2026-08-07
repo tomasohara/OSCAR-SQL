@@ -95,6 +95,56 @@ Offsets below are relative to the start of the IT sub-record (i.e., record + 0x8
 | 0xD2 | 2 | int16 LE | EventOtherCount | Interpreted as signed |
 | 0xD4 | — | — | End of IT sub-record | Total IT sub-record: at least 0xD4 bytes |
 
+> **Caution (2026-08-07): the index fields at IT `0xBC`–`0xD2` do not hold on the E5
+> platform.** On a 19-day E5 card, IT `0xBC` ("AHI x100") is 999–1000 on every single
+> day and IT `0xBE` ("AI x100") stays within 957–969, neither of which tracks therapy.
+> An exhaustive scan of all 2048 bytes of the day record found **no** offset whose value
+> matches AHI, AI or HI computed from that day's `.evt` events and session hours
+> (AHI ranged 0.95–14.05 across the 19 days, so the dynamic range is ample). The
+> documented offsets may still be correct for the G3 devices they were derived from;
+> they are not correct for E5.
+>
+> Nothing user-facing depends on this: `ItAhiX100` and its siblings are parsed in
+> `bmcG3xDataParsing.cpp` but only ever printed inside a `BMCDEBUG` block. OSCAR
+> derives the indices it displays from the imported events, not from these fields.
+
+---
+
+### Candidate distribution-summary block at record `0x140`–`0x147`
+
+Reported by a contributor as PAP-Link's **I/E Ratio** panel — average at record
+`0x142`, median at `0x146`, P95 at `0x144`, maximum at `0x140` (record-absolute,
+i.e. IT `0xC2` / `0xC6` / `0xC4` / `0xC0`).
+
+**Confirmed:** the four values behave as a distribution summary of one quantity. On all
+19 days of the E5 card, `0x146` <= `0x144` <= `0x140`, and `0x146` is within 15% of
+`0x142` — exactly the median <= P95 <= max ordering with median close to mean that a
+summary of a right-skewed quantity produces. The field-role assignment is well
+supported.
+
+**Not confirmed: what the quantity is.** No independent source on the card reproduces
+the values.
+
+| Cross-check attempted | Result |
+|---|---|
+| E:I derived from `.evt` breath markers (`0x0C` -> `0x0D` -> `0x0C`) | Per-day median 2.00–3.30 against `0x146`/100 of 3.26–5.00, Pearson r = **-0.590**. Inverting to I:E gives r = +0.608. Neither is a match. The proxy itself rests on `0x0C`/`0x0D` being inspiration/expiration onsets, which is not confirmed. |
+| Waveform tidal volume (packet `0x52C`) | Daily means are in the same band (IDX 328–504 vs waveform 300–400) but the maxima are out by a factor of two (IDX 625–1066 vs waveform 1582–1838). Not tidal volume. |
+
+Scale is likewise open. `/100` reads as an E:I ratio of 3.2–5.0 (high but possible);
+per-mille reads as an inspiratory fraction of 32–50% with a P95 of 47–88% (also
+possible). The neighbouring `0x13C` is a near-constant 1000, which would suit a
+per-mille denominator, but that is a guess.
+
+**The decisive test is a PAP-Link readout**: the four displayed I/E Ratio figures for
+one night, against the four values in that day's record. That settles both the quantity
+and the scale in one step, and only someone with the vendor software can run it.
+
+**Why this is worth pursuing** — see open question 9 in `BMC_G3X_EVT_FORMAT.md`. The G3X
+path currently produces no I:E, Ti or Te at all. If these four values are I:E, they are
+an oracle for locating the *per-sample* field in the waveform packet: the right offset
+is the one whose per-day median, P95 and maximum reproduce them. A per-sample channel
+charts and trends; four static daily numbers would only ever be settings rows.
+
 ---
 
 ### Section 3: TS Sub-record (at record offset + 0x280)
