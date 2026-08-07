@@ -254,9 +254,36 @@ real respiratory-event channel — but **which** events is not established.
 ±3 s of any log entry), so the two are independent views, not duplicates.
 
 Since the `.LOG` is now confirmed as the scored-event source, `Y17` is *not*
-needed for AHI. Its most likely role is per-sample event **extent** — which
-would also supply the hypopnea durations the log omits (open problem 1). A
-loader can ignore it for now.
+needed for AHI.
+
+### `Y17` does NOT carry event extents — tested and excluded
+
+It was long assumed here that `Y17`'s most likely role was per-sample event
+**extent**, which would have supplied the hypopnea durations the log omits.
+**That was tested directly and it fails.**
+
+`Y17` is undeclared in the `.INI`, so its geometry was inferred from a channel
+that is declared: 103 bytes per 10 s record against `PRE`'s 53, i.e. 100 samples
+plus the usual 3-byte trailer — **10 Hz, 8-bit**, identical in every session on
+the card. Every apnea and hypopnea in the log was then mapped onto it through
+the session's UTC epoch, and the non-zero run containing each event measured:
+
+| | OA | CA | OH | CH |
+|---|---|---|---|---|
+| Events with any `Y17` activity within ±2 s | 15/290 | 22/252 | 4/90 | 16/304 |
+| Mean length of the run that is present | 0.77 s | 0.76 s | 0.70 s | 0.76 s |
+
+Two independent reasons this cannot be an event extent:
+
+1. **It is absent for ~93 % of events.** An extent channel would mark all of
+   them.
+2. **Where present the runs are ~0.75 s, and the same length for all four event
+   types.** `Y17` marks brief instants, not spans. Nothing 16 seconds long is
+   being recorded there.
+
+Whatever `Y17` is — its per-hour run rates are stable across sessions, which
+still looks like a real respiratory signal — it is not the hypopnea duration
+source, and a loader can continue to ignore it.
 
 `NSD` is a near-constant bit field. Counted over all 5,724,100 samples on the
 card: `0` 99.636 %, `1` 17,610 samples (0.308 %), `4` 120 samples (0.002 %),
@@ -316,9 +343,30 @@ AHI central        1.20 + 1.46                      = 2.66   report 2.7
 for code 4, against a reported average apnoea duration of **17 s (OA) | 13 s
 (CA)**. The hard floor at exactly 100 is the ≥10 s scoring rule.
 
-**Hypopnea duration is *not* in the argument** — codes 5 and 6 carry 0 in 97 % of
-records, yet the report gives average hypopnoea durations of 16 s (OH) and 15 s
-(CH). Where the analyzer gets them is unresolved; `Y17` is the obvious suspect.
+**Hypopnea duration is *not* in the argument, and is not anywhere else on the
+card either.** Measured over all 39 sessions of the second card:
+
+| Code | Event | Records | Argument = 0 | Non-zero values |
+|---|---|---|---|---|
+| 3 | OA | 290 | **0** | mean 16.08 s, floor exactly 10.0, max 110.0 |
+| 4 | CA | 252 | **0** | mean 12.59 s, floor exactly 10.0, max 49.0 |
+| 5 | OH | 90 | **88** | 30.7 and 38.0 s only |
+| 6 | CH | 304 | **299** | 24.0 – 30.1 s, five values |
+
+Apneas carry a duration on *every* record. Hypopneas carry zero on 98 %, and the
+seven that do not are **longer** than the 16 s / 15 s averages the report prints,
+so they cannot be the source of those figures either. The 38-byte payload is all
+zeros on every event code — only codes 2 and 13 use it.
+
+So the analyzer computes hypopnea durations rather than reading them. The likely
+route is re-scoring `FLW`: it takes counts from the `.LOG` (they match per
+session) and apnea durations from the log argument (16.5 / 12.8 decoded against
+17 / 13 reported), and hypopnea extent is precisely the quantity the device does
+not store but a PC re-reading the waveform recovers easily. That is inference,
+not proof, and confirming it would mean replicating their scoring — no payoff
+for OSCAR, which renders events itself.
+
+**`Y17` is positively excluded as the source — see its section below.**
 
 > **One vendor inconsistency, not a decode error.** The report's per-session
 > `FL Runs` column sums to 352 (2.22/h) while its own synthesis index for the
@@ -723,13 +771,18 @@ change rather than on a printed report — see "Humidifier level — byte 22".
 
 ## Open problems
 
-1. **Hypopnea durations** are not in the log argument (codes 5/6 carry 0), yet
-   the analyzer reports 16 s / 15 s averages. Source unknown — `Y17` is the
-   likely candidate.
-2. **`Y17` bit meanings** still unknown. It is *not* the apnea source (the
-   `.LOG` is), and its runs do not line up with log records, so it is an
-   independent signal — possibly the per-sample event *extent* that would answer
-   problem 1.
+1. **Hypopnea durations** are not on the card. Codes 5/6 carry a zero argument on
+   98 % of records, the payload is zero on every event code, and ~~`Y17`~~ is now
+   **positively excluded** (absent for ~93 % of events; runs of ~0.75 s where
+   present). The analyzer must compute them, most plausibly by re-scoring `FLW`.
+   Not worth chasing further: OSCAR renders events itself, so replicating a
+   vendor scoring algorithm buys nothing. What *is* worth remembering is that the
+   loader's 16 s / 15 s flag-placement constants came from this one patient's
+   report and are not device constants — see "Loader viability".
+2. **`Y17` bit meanings** still unknown, and it is now known *not* to be an event
+   extent channel (see its section). It is not the apnea source either — the
+   `.LOG` is — and its runs do not line up with log records, so it remains an
+   independent signal of unknown purpose. Nothing depends on it.
 3. **Log code 10** (260 records, 1.64/h) is unidentified and matches no report
    column.
 4. **Comfort and accessory setting bytes** in code 2. Byte 23 is ruled out
@@ -793,8 +846,20 @@ limitation, AHI, and the pressure/ramp settings, with every one of those
 validated against the manufacturer's own analysis of the same nights.
 
 Two caveats for implementation. Apnea durations come from the log argument but
-**hypopnea durations do not** — either leave them as zero-duration flags or
-resolve open problem 1 first. And the analyzer applies inclusion filtering
+**hypopnea durations do not, and cannot be recovered** — they are not on the
+card in any form (open problem 1), so they stay zero-duration flags.
+
+> **A live wart, worth knowing about.** Because the hypopnea log timestamp sits
+> at the event *end*, the loader shifts those flags back for display by
+> `kObstructiveHypopneaPlacementMs` = 16 s and `kCentralHypopneaPlacementMs` =
+> 15 s. **Those two numbers are one patient's 21-day averages from one vendor
+> report** — not device constants. For any other user they will be wrong by
+> however much that person's hypopneas differ, in whichever direction. The
+> stored duration stays zero so nothing false appears in a tooltip, but the flag
+> position is a guess calibrated on a single dataset. Revisit it the first time
+> a second real user's data can be compared.
+
+And the analyzer applies inclusion filtering
 (ramp, leak) that the raw log does not, so OSCAR's counts will run a few events
 higher across a 3-week period; that is a scoring-policy difference, not a bug,
 and it should not be "fixed" by inventing filters to match.
