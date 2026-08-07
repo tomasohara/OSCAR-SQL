@@ -343,8 +343,9 @@ settings. Decoded against the report's printed settings (`Mode=A-PAP`,
 | 12 | 45 | **Ramp 45 min** |
 | 15 | 200 | **Max pressure 20.0** (×0.1 cmH₂O) |
 | 16 | 40 | **Ramp pressure 4.0** (×0.1 cmH₂O) |
+| 17, 18 | 60, 60 | candidate: **theoretical mask leak**, 60 × 0.6 lpm = 36.0, see below |
 | 22 | 4 | **Humidifier level** — confirmed by a controlled change, see below |
-| 13, 14, 17–21, 23–25 | 45, 31, 60, 60, 130, 200, 121, 6, 3, 0 | unassigned |
+| 13, 14, 19–21, 23–25 | 45, 31, 130, 200, 121, 6, 3, 0 | unassigned |
 
 Code 2 occurs 5 times. The report's `setting change` column is non-zero on
 exactly the two sessions carrying multiple code-2 records (counts 1 and 2,
@@ -422,6 +423,139 @@ also known to be the only other one that ever varies, which makes it the best
 candidate for the patient access lock or a tube/circuit state. No vendor report
 exists for the second card, so what was different that night is unknown.
 
+### Theoretical mask leak — bytes 17/18, strong candidate, not confirmed
+
+The analyzer prints **36 lpm**, and **no byte anywhere on either card holds 36**.
+That was checked exhaustively, not spot-checked: every distinct value at every
+settings-record offset on both cards, the `.INI` text, and the cleartext head of
+`.RAM`/`.BKP`. The only 36s in the logs are timestamp bytes and event-duration
+arguments. So the figure is either derived, or it lives in the encrypted `.RAM`
+where the analyzer can read it and we cannot.
+
+The likely answer is that it *is* stored, in the leak channel's own units rather
+than in lpm. The `.INI` declares `LK` as `Min=0 Max=153 Bit=8` — identical in all
+39 sessions — which is exactly **0.6 lpm per count**, the same 0.6 the loader
+already uses as the `CPAP_LeakTotal` gain. Then:
+
+```
+byte 17 = 60 counts x 0.6 lpm/count = 36.0 lpm
+byte 18 = 60 counts x 0.6 lpm/count = 36.0 lpm
+```
+
+Exact, with no fitted constant, on a scale the card publishes about itself. The
+two bytes cannot be told apart: both read 60 on every settings record on both
+cards.
+
+**This supersedes an earlier reading that treated byte 17/18 = 60 as "60 lpm",
+the top of the documented 20–60 lpm range, and recorded the clash with the
+printed 36 as unresolved.** There is no clash — 60 is not 60 lpm. The setting
+range 20–60 lpm spans 33–100 counts, and 60 counts sits inside it.
+
+The vendor's clinical manual for the Nea defines the setting as *"the
+theoretical leak value of the mask at 12 cmH₂O, given in the corresponding
+instructions for use of the mask"*, range 20 to 60 lpm. That fixes the reference
+pressure as a constant, which makes an independent check possible. Fitting the
+mask's vent curve from this card's own data — 749,448 paired leak/pressure
+samples, taking the 5th-percentile leak in each 0.5 cmH₂O bin, since
+unintentional leak only ever adds to the vent floor — gives leak ≈ 9.94·√P lpm,
+so:
+
+| | |
+|---|---|
+| Predicted at the manual's 12 cmH₂O | **34.4 lpm** |
+| Mask nameplate, as printed by the analyzer | **36 lpm** |
+
+4.5 % under: a real mask, measured through the device's own leak channel,
+sitting just below its published figure. Supporting evidence, not proof.
+
+**This does not contradict the k ≈ 11.7 lpm·√P⁻¹ quoted under § Channel
+scaling** — the two fit different things. That one bins the *mean* of `LK`,
+which is total leak, vent plus unintentional. This one takes the 5th percentile,
+which isolates the vent. The mean necessarily runs higher, and using it here
+would predict 11.7·√12 = 40.5 lpm against a 36 lpm nameplate — overshooting by
+as much as the floor undershoots. The floor is the correct estimator for
+comparison with a mask datasheet, precisely because unintentional leak is
+strictly additive.
+
+**A rejected alternative, recorded so it is not retried.** Byte 19 = 130 could
+read as 13.0 cmH₂O, and the fitted curve gives 35.85 lpm there — but that
+reference pressure was chosen *because* it matched, out of five candidates
+spanning 4–20 on a monotone curve, so it was post-hoc. The manual then killed it
+outright: the reference pressure is a fixed 12 cmH₂O from the mask datasheet, so
+the device has no reason to store one. Byte 19 reverts to being a bit-field
+candidate (`0x82`).
+
+**The setting steps in 2 lpm increments**, per the Nea user manual — so the menu
+offers 20, 22, … 60, twenty-one values in all. That is mildly awkward for the
+0.6 lpm/count reading: only 24, 30, 36, 42, 48, 54 and 60 divide evenly into
+0.6, so two thirds of the menu would have to be stored rounded. The observed
+value happens to be one of the seven clean ones, which is either luck or a hint
+that the reading is wrong.
+
+It also admits a competing encoding that the even steps fit *better*:
+
+| Encoding | byte at 36 lpm | Motivation |
+|---|---|---|
+| `round(lpm / 0.6)` | 60 ✓ | the `LK` channel's own declared scale |
+| `lpm + 24` | 60 ✓ | preserves the 2 lpm step exactly as a step of 2 |
+| `2·lpm − 12` | 60 ✓ | also integral on every menu value |
+
+All three explain the observed 60. They diverge on any other value, which is
+what makes a controlled change decisive — see the pre-registered predictions
+below.
+
+### Pre-registered predictions for a third card (recorded 2026-08-06)
+
+A third card has been requested with **two** settings changed: mask leak
+36 → 34 lpm, and Comfort Control Plus 2 → 3 if the device allows it.
+
+These predictions are written down *before* the card exists, deliberately. The
+byte 19 reference-pressure story above was arrived at by trying five candidates
+and keeping the one that fitted, and it was wrong. Committing to the expected
+values in advance means the next reading can only be a hit or a miss.
+
+**Two settings changed at once is against the advice in this note**, and the
+risk is real: if a byte moves that is not predicted here, it cannot be
+attributed to one change or the other. The mitigation is that the two expected
+bytes are far apart in value space — a mask-leak byte should land in the
+mid-50s, a CC+ byte near 128 — so a moved byte's value should identify its
+owner.
+
+**Mask leak, 36 → 34 lpm.** The primary question is only whether bytes 17/18
+move at all; if they do, they are the field. The exact value then picks the
+encoding:
+
+| Byte 17/18 reads | Conclusion |
+|---|---|
+| **57** | `round(lpm / 0.6)` — the `LK` count scale, rounding half up |
+| **56** | same scale, truncating; or `2·lpm − 12` |
+| **58** | `lpm + 24` |
+| **34** | literal lpm — and bytes 17/18 were never the mask leak, since they would have had to read 36 before, not 60 |
+| **unchanged at 60** | not the field |
+
+If only *one* of the two bytes moves, that settles which is which. They have
+been indistinguishable on every settings record on both cards so far.
+
+**Comfort Control Plus, 2 → 3.** CC+ currently reads Level 2 and byte 19 is
+`0x82`.
+
+| Byte 19 reads | Conclusion |
+|---|---|
+| **131** (`0x83`) | low nibble is the CC+ level, `0x80` is something else — most likely the heated tube |
+| **unchanged at 130** | the bit-field reading dies; byte 24 (= 3) is the next candidate |
+
+**On "Level 2" versus an on/off toggle.** The manual describes CC+ in two
+places — a *level* in the user menu and a *toggle* in the clinical menu — and
+those are not in conflict. The natural reading is a clinician enable plus a
+patient-selectable strength, which is exactly how ResMed EPR and Philips Flex
+are structured: an on/off and a 1–3 level, reported together. That would also
+explain a single byte carrying an enable bit and a small level field, which is
+what `0x82` looks like.
+
+If the device turns out to offer only on/off and the tester cannot set 3, that
+is still a result worth recording: it would mean SA's "Level 2" is not a CC+
+strength at all, and the whole byte 19 line of reasoning needs rethinking.
+
 ### Why the remaining comfort and accessory settings cannot be decoded
 
 *(Written against the first card, before the humidifier was pinned. Everything
@@ -448,6 +582,13 @@ re-derived:
    byte matching any of the five, which was the whole basis for the humidifier
    candidacy — a value coincidence at the time, since confirmed independently.
 
+   **Searching for the printed value was the wrong instinct**, and it cost time
+   on the mask leak. The humidifier does store its level literally, but the mask
+   leak looks to be stored on the leak channel's own scale, so the question to
+   ask of a byte is not "does it equal the printed number" but "is there a scale
+   the card itself declares on which it would". For the mask leak that scale was
+   sitting in the `.INI` all along.
+
 2. **The one discriminating session is unusable.** The analyzer reports
    `Heated tube = Missing` on exactly one session of 31 — and that session's
    `.LOG` contains **no code 2 and no code 13 record at all**. Its whole log is
@@ -455,13 +596,13 @@ re-derived:
    appear in 8–22 other sessions where the tube reads `Present`. So the single
    place where a setting differs carries no settings record to compare.
 
-3. **Two of the five are probably not stored.** `Patient Circuit` and
-   `Theoretical mask leak` do not appear in the analyzer's CSV export at all —
-   only CC+, humidifier and heated tube do. The leak figure looks *computed*:
-   the orifice fit measured from this card's own data (§ Channel scaling) gives
-   ≈11.7·√P L/min, which is ~37 L/min at 10 cmH₂O against the printed 36, and
-   code 13 byte 15 is 100 (= 10.0). Suggestive of a reference pressure, but
-   untestable here.
+3. **`Patient Circuit` and `Theoretical mask leak` do not appear in the
+   analyzer's CSV export at all** — only CC+, humidifier and heated tube do.
+   That was once read as evidence they are not stored on the card. It is not:
+   the mask leak almost certainly *is* stored, as bytes 17/18 in the leak
+   channel's own 0.6 lpm counts — see "Theoretical mask leak — bytes 17/18"
+   above. Absence from the CSV says something about the analyzer's export, not
+   about the card.
 
 Tempting bit-level readings exist — byte 19 is `0x82`, which would decompose as
 `0x80` (tube present) `| 0x02` (CC+ level 2) — but with a single settings
@@ -497,10 +638,10 @@ comfort (ramp time, Comfort Control Plus level); humidification, **OFF to 10**.
 | Ramp type | I RAMP, T RAMP or OFF |
 | Ramp time | 5–45 min |
 | Ramp pressure | start pressure |
-| CC+ (Comfort Control Plus) | toggle |
+| CC+ (Comfort Control Plus) | toggle in the clinical menu, *level* in the user menu — see below |
 | IS (Intelligent Start) | toggle |
 | Circuit select | 15 mm or 22 mm |
-| Mask select theoretical leak | 20–60 lpm |
+| Mask select theoretical leak | 20–60 lpm **in steps of 2**, being the mask's leak **at 12 cmH₂O** taken from its datasheet |
 | Patient access lock | Ramp, CC+, IS |
 
 What this does and does not settle:
@@ -514,11 +655,11 @@ What this does and does not settle:
 3. **Circuit select is a two-way choice (15 or 22 mm)**, so it can only be an
    enum or a single bit. That explains why no byte holds 15 or 22, and rules out
    any further search for a literal diameter.
-4. **Mask leak is configured over 20–60 lpm, and bytes 17 and 18 both hold
-   exactly 60** — the top of that documented range. Notable, but the analyzer
-   prints **36 lpm** for this card, so either those bytes are not the mask-leak
-   setting, or the printed figure is derived rather than the stored one.
-   Unresolved, and a good reason not to guess.
+4. ~~**Mask leak is configured over 20–60 lpm, and bytes 17 and 18 both hold
+   exactly 60**, the top of that range, yet the analyzer prints 36 — unresolved.~~
+   **Superseded.** The clash was an artefact of assuming the byte was in lpm.
+   Read in the leak channel's own 0.6 lpm counts, 60 counts *is* 36.0 lpm.
+   See "Theoretical mask leak — bytes 17/18".
 5. **Byte 21 = 121 → 12.1 cmH₂O** falls inside the documented 4–20 fixed-pressure
    range, making it a candidate for the CPAP **Pressure Level** — a setting that
    is inactive in A-PAP, which is consistent with the analyzer printing
@@ -532,6 +673,12 @@ What this does and does not settle:
    than 22 and 23 that ever varies — it drops to 29 (`0x1D`) on one night.
 8. **Two documented features have never been seen in any card data:** Intelligent
    Start and the patient access lock.
+9. **CC+ appears as a toggle in the clinical menu and as a level in the user
+   menu**, which reads at first like a contradiction with the analyzer's
+   "Level 2". It is not. A clinician enable plus a patient-selectable strength
+   is the same structure as ResMed EPR and Philips Flex, and it is what a byte
+   like `0x82` — one high bit set, a small value in the low bits — would look
+   like. Unconfirmed, but it is the reading to test first.
 
 ## `.RAM` / `.BKP` — encrypted, not readable
 
@@ -585,13 +732,19 @@ change rather than on a printed report — see "Humidifier level — byte 22".
    problem 1.
 3. **Log code 10** (260 records, 1.64/h) is unidentified and matches no report
    column.
-4. **Comfort and accessory setting bytes** in code 2 are candidates only —
-   Comfort Control Plus level, patient circuit, theoretical mask leak and heated
-   tube. No byte holds 2, 15, 36 or 1, so they are enum, bit-packed, scaled or
-   absent. Byte 23 is ruled out entirely. ~~Humidifier level~~ **RESOLVED:
-   byte 22**, confirmed by a controlled single-setting change. The same method
-   settles the rest; see "Why the remaining comfort and accessory settings
-   cannot be decoded".
+4. **Comfort and accessory setting bytes** in code 2. Byte 23 is ruled out
+   entirely. Status of the five:
+   - ~~Humidifier level~~ **RESOLVED: byte 22**, confirmed by a controlled
+     single-setting change.
+   - **Theoretical mask leak: bytes 17/18**, strong candidate — 60 counts on the
+     leak channel's declared 0.6 lpm scale is exactly the printed 36.0 lpm.
+     Predicts byte 17/18 = 50 if the setting is changed to 30 lpm.
+   - **Comfort Control Plus level, patient circuit, heated tube** remain
+     unassigned. No byte holds 2, 15 or 1, so they are enum, bit-packed, scaled
+     or absent.
+
+   A controlled single-setting change settles each of these; see "Why the
+   remaining comfort and accessory settings cannot be decoded".
 5. ~~**Report "Average leaks"**~~ **RESOLVED.** The analyzer reports
    *unintentional* leak in **L/s**: its 0.06 / 0.05 / 0.03 for three sample
    sessions are 3.6 / 3.0 / 1.8 L/min, against OSCAR's derived `CPAP_Leak` of
@@ -610,11 +763,19 @@ change rather than on a printed report — see "Humidifier level — byte 22".
   byte 22 was settled: the humidifier moved 4 → 5 and exactly one byte moved
   4 → 5. Changing several settings at once is much less informative, because
   several unassigned bytes hold plausible values.
-  **Comfort Control Plus is now the best remaining probe**, since like the
-  humidifier it is reachable from the user menu without clinician access.
+  **Comfort Control Plus is the best probe reachable without clinician access**,
+  and it comes with a prediction: CC+ is at Level 2 and byte 19 is `0x82`, so if
+  the low nibble is the level, byte 19 should read 129 (`0x81`) at Level 1 or
+  131 (`0x83`) at Level 3. If it does not move, that bit-field reading dies and
+  byte 24 (= 3) is next. Ask for a one-step change, 1 or 3, to keep it
+  unambiguous.
   Note that a settings record has to actually appear afterwards — four nights
   on the second card carry none at all — so the card should be pulled a night
   or two after the change, not the same morning.
+- **Requested 2026-08-06 and pending:** a card with mask leak changed 36 → 34 lpm
+  and CC+ changed 2 → 3. Expected byte values are written down in advance under
+  "Pre-registered predictions for a third card" — read that *before* looking at
+  the card.
 - **Circuit select switched between 15 mm and 22 mm** would locate a two-state
   field that cannot be found by value matching, since neither diameter is stored
   literally.
