@@ -33,6 +33,13 @@ AUTO** (model code `1263R`, firmware `VER :A020400`) — same firmware platform,
 different device class. That entry's guess that the obfuscation key is `0x9F` is
 **wrong**; see below. Its "~100 byte header" estimate is also wrong (it is 71).
 
+The S.Box is now documented in its own right in
+`Notes/loaders/SEFAM_SBOX_CARD_ANALYSIS.md`. It differs from this device more
+than the shared platform suggests: no `.LOG` at all, the short 38-byte header
+with no UTC epoch, 25 Hz instead of 10 Hz on four channels, and an unencrypted
+memory image. **Do not carry a conclusion from one model to the other without
+re-testing it.**
+
 ---
 
 ## Card layout
@@ -252,6 +259,16 @@ real respiratory-event channel — but **which** events is not established.
 
 **`Y17` runs do not line up with `.LOG` records** (only ~4 % of runs fall within
 ±3 s of any log entry), so the two are independent views, not duplicates.
+
+> **This is measured correctly but reasoned from too narrowly.** A ±3 s window
+> cannot see a constant offset larger than itself, and there is one: widening the
+> search to ±60 s puts bit 3 at a sharp −28 s from every snore record (the modal
+> offset in 28 of 30 sessions) and bit 0 at the implied start of 88 % of
+> flow-limitation records. So `Y17` and the `.LOG` are *not* independent for at
+> least two event types. The conclusion that `Y17` cannot supply events still
+> holds — it over-counts both by 1.5–2× and tracks apnoeas and hypopnoeas poorly
+> — but "does not line up" is the wrong reason. See the `Y17` section of
+> `SEFAM_SBOX_CARD_ANALYSIS.md`.
 
 Since the `.LOG` is now confirmed as the scored-event source, `Y17` is *not*
 needed for AHI.
@@ -728,7 +745,15 @@ What this does and does not settle:
    like `0x82` — one high bit set, a small value in the low bits — would look
    like. Unconfirmed, but it is the reading to test first.
 
-## `.RAM` / `.BKP` — encrypted, not readable
+## `.RAM` / `.BKP` — encrypted, not readable **on this model**
+
+The S.Box writes the same two files **unencrypted**, and its therapy settings
+turned out to live in them as a 12-slot table of 24-byte records — see
+`SEFAM_SBOX_CARD_ANALYSIS.md`. That table is not present in the Rêve's images
+(searched for its known minimum/maximum pressure pair in every plausible width
+and order), which is consistent with the encryption below rather than with the
+structure being absent. Nothing here contradicts what follows; it just means the
+files are worth attacking, not ignoring.
 
 Both 1,633,228 bytes. The first 74 bytes are structured cleartext (`4c 00 00 01`,
 then a uint32 LE timestamp at offset 4, then a fixed block); everything after is
