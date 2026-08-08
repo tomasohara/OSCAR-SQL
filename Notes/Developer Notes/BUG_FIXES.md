@@ -5214,3 +5214,26 @@ changes the manufacturer's report lists for the `1200R`.
 **Resolution limit:** events are placed within the minute they occurred, spread evenly
 across it, because that is the resolution the card stores. The card records no event
 durations.
+
+## 2026-08-08 - SEFAM S.Box still reported "device has not been tested yet"
+
+**Symptom:** after S.Box event and settings import was added, importing an S.Box card
+still raised the "Your ... CPAP Device (Model ...) has not been tested yet" dialog.
+
+**Root cause:** `sefam_loader.h` held a single validated model code,
+`sefam_validated_model = "1279R"` (the Rêve Auto), and `SefamLoader::Open()` warned on
+anything else. Both S.Box hardware codes seen - `1200R` and `1263R` - therefore warned,
+regardless of how well the format was understood.
+
+**Fix:** replaced the single constant with `sefamModelIsValidated()`, listing the codes
+that have been checked and recording in the comment what each one rests on. `1279R` and
+`1200R` are each reconciled against a manufacturer report; `1263R` rides on `1200R`,
+being the same product name, firmware version and card layout, with its decoded
+pressure settings separately checked against the pressure the device delivered. Every
+other SEFAM model code still warns, which is the point - the loader accepts any card
+matching the directory pattern, so an unrecognised code means a device nobody has seen.
+
+**Note on repeat warnings:** the dialog is suppressed per machine by
+`Machine::suppressWarnOnUntested()` (`importcontext.cpp:237`), so a warning that
+reappears for a device already acknowledged points at a duplicate machine record
+rather than at this check.

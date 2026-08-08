@@ -62,9 +62,12 @@ unless stated otherwise.
 header obfuscation, 10-second record framing, checksum/sequence trailer, `.INI`
 semantics). This note records only what is **different or new** on the S.Box.
 
-**Loader:** `sefam_loader.cpp` / `sefamDataParsing.cpp`. The S.Box is explicitly
-*not* the validated model — `sefam_validated_model` is `"1279R"`, so opening an
-S.Box card raises the "untested device" warning.
+**Loader:** `sefam_loader.cpp` / `sefamDataParsing.cpp`. Both S.Box model codes
+are now on the validated list in `sefamModelIsValidated()`, so an S.Box card no
+longer raises the "untested device" warning. `1200R` earns that from its
+manufacturer report; `1263R` rides on it, having the same product name, firmware
+and card layout but no report of its own. Any other SEFAM model code still
+warns.
 
 ---
 

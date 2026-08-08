@@ -535,9 +535,10 @@ int SefamLoader::Open(const QString &path)
     m_ctx->CreateMachineFromInfo(info);
     Machine *mach = p_profile->CreateMachine(info);
 
-    // Only one model has been validated end-to-end against a manufacturer report.
-    // Others import on a best-effort basis but must announce themselves.
-    if (info.properties.value(QStringLiteral("ModelCode")) != sefam_validated_model) {
+    // Model codes not on the validated list import on a best-effort basis and
+    // must announce themselves. See sefamModelIsValidated() for what each entry
+    // rests on.
+    if (!sefamModelIsValidated(info.properties.value(QStringLiteral("ModelCode")))) {
         MachineInfo untested = info;      // the signal takes a non-const reference
         emit deviceIsUntested(untested);
     }
