@@ -14,9 +14,13 @@ and the absence of event durations.
 place this device keeps its events and settings, so the alternative is importing
 waveforms and nothing else. **Implemented 2026-08-08** in
 `SefamParsing::readMemoryImage()` and `SefamLoader::Open()`, gated on the session
-having no `.LOG`, so the Rêve path is untouched. Not yet built or run against a
-device — verified by simulating the loader's exact matching and decoding logic
-over both sample cards.
+having no `.LOG`, so the Rêve path is untouched. **Built and imported from a real
+S.Box card the same day**, with waveforms, settings and events all rendering
+sensibly — which rules out the structural failure modes: a block matched to the
+wrong session, events placed outside the session span, settings taken from the
+wrong slot. The counts themselves were checked separately against the
+manufacturer's report, and the matching and decoding logic was simulated over
+both sample cards before it was built.
 
 ### Matching sessions to archive blocks
 

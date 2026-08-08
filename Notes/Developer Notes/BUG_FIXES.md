@@ -5206,10 +5206,12 @@ about a fifth of sessions; and the apnoea/hypopnoea byte is four two-bit counter
 four presence flags, so reading it as flags silently undercounts any minute holding two
 events of one kind.
 
-**Not yet built or run against a device.** Verified by simulating the matching and
-decoding logic over both sample cards: every matched block's per-minute sums agree with
-its own header totals, and the recovered settings reproduce the three mid-history
-changes the manufacturer's report lists for the `1200R`.
+**Verified.** Before building, by simulating the matching and decoding logic over both
+sample cards: every matched block's per-minute sums agree with its own header totals,
+and the recovered settings reproduce the three mid-history changes the manufacturer's
+report lists for the `1200R`. After building, by importing a real S.Box card - waveforms,
+settings and events all render sensibly, which rules out a block matched to the wrong
+session, events outside the session span, or settings taken from the wrong slot.
 
 **Resolution limit:** events are placed within the minute they occurred, spread evenly
 across it, because that is the resolution the card stores. The card records no event
