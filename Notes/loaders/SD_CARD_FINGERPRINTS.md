@@ -4467,7 +4467,7 @@ the firmware platforms below are what the loader actually has to dispatch on.)
 
 ---
 
-## SEFAM S.Box AUTO (loader now exists — see note below)
+## SEFAM S.Box AUTO — model codes `1263R` and `1200R` (loader exists)
 
 **Sample:** `C:/Users/Guy/Downloads/SEFAM-2 Wagmar Barbosa de Souza` (SD card root —
 the user's reference path `…/1263R/24462543` is two levels into the card).
@@ -4749,6 +4749,40 @@ matches sample count.
 - **No OSCAR loader candidate exists** — this is a request for a new loader, not
   a model-table addition. Implementation would be a multi-week effort starting with
   XOR-key reverse engineering, then channel-by-channel decoder.
+
+> Several guesses above were settled by later work and are **wrong**: the XOR key
+> is `0xBF`, not `0x9F`, and it covers the header only; the header is 71 or 38
+> bytes, not "~100"; and the loader exists. See
+> `Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md` and
+> `Notes/loaders/SEFAM_SBOX_CARD_ANALYSIS.md`.
+
+### Second S.Box model seen — `1200R`
+
+| | model code | `Created By` | OSCAR model name | firmware |
+|---|---|---|---|---|
+| S.Box AUTO | `1263R` | `S.Box_AUTO` | S.Box Auto | `VER :A020400` |
+| S.Box AUTO | **`1200R`** | `S.Box_AUTO` | S.Box Auto | `VER :A020400` |
+
+Same firmware version and same card layout as `1263R`, so both are covered by the
+existing detection (digits-then-letter model directory, `#02/` header tag). The
+`1200R` is the first S.Box sample from a real user rather than a bench card, and
+it is the one that showed where this device keeps its events: **not on the card's
+session directories at all**, but in the `<serial>.RAM` memory image. It also
+carries a manufacturer report, which made the decode checkable.
+
+Both S.Box cards confirm the family trait that distinguishes them from the Rêve:
+
+- **no `.LOG` file anywhere**, so events and settings are absent from the session
+  directories;
+- **short 38-byte channel headers** with no UTC epoch field;
+- **`FLW`/`DET`/`NSD`/`Y17` at 25 Hz**, against the Rêve's 10 Hz;
+- **`.RAM`/`.BKP` unencrypted**, against the Rêve's, which are opaque.
+
+The `1200R` card also carries an `upload.dat` at the card root — small, XOR-0xBF,
+and containing a **patient-identification field**. Nothing in OSCAR should read
+it, but be aware it exists before archiving or sharing a card image.
+
+Full format and evidence: `Notes/loaders/SEFAM_SBOX_CARD_ANALYSIS.md`.
 
 ---
 

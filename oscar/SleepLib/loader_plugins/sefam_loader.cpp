@@ -478,6 +478,48 @@ void SefamLoader::importWaveform(Session *session, const QVector<qint16> &values
     }
 }
 
+/*! \brief Number of archive minutes a session directory should occupy.
+    \return -1 when the directory holds no recorded data, or cannot be read.
+
+    The device counts the minute slots a session touches rather than its length,
+    so a session of an exact whole number of minutes still occupies one more:
+    the rule is floor(seconds / 60) + 1, which holds on every session of both
+    cards examined. This reads only the .INI and one file header, because it runs
+    over every directory before the import proper begins. */
+static int archiveMinutesFor(const QString &dirPath)
+{
+    QDir dir(dirPath);
+    const QString name = dir.dirName();
+
+    QHash<QString, SefamParsing::ChannelSpec> specs;
+    QDateTime iniStart;
+    if (!SefamParsing::parseIni(dir.absoluteFilePath(name + ".INI"), specs, iniStart)) {
+        return -1;
+    }
+    if (!specs.contains("FLW")) { return -1; }
+    const SefamParsing::ChannelSpec spec = specs.value("FLW");
+    const int recLen = spec.recordBytes();
+    if (recLen <= SefamParsing::kRecordTrailerBytes) { return -1; }
+
+    const QString flwPath = dir.absoluteFilePath(name + ".FLW");
+    QFile f(flwPath);
+    if (!f.open(QIODevice::ReadOnly)) { return -1; }
+    QByteArray head = f.read(SefamParsing::kChannelHeaderLength);
+    const qint64 size = f.size();
+    f.close();
+
+    SefamParsing::descramble(head);
+    SefamParsing::FileHeader hdr;
+    if (!SefamParsing::parseHeader(head, hdr)) { return -1; }
+
+    const qint64 payload = size - hdr.length;
+    if (payload <= 0) { return -1; }              // header-only stub: no session
+    const qint64 records = payload / recLen;
+    if (records <= 0) { return -1; }
+
+    return static_cast<int>(records * SefamParsing::kRecordSeconds / 60) + 1;
+}
+
 int SefamLoader::Open(const QString &path)
 {
     Q_ASSERT(m_ctx);
@@ -524,6 +566,64 @@ int SefamLoader::Open(const QString &path)
     // a session never inherits settings recorded after it.
     SefamParsing::Settings lastKnown;
 
+    // The S.Box AUTO writes no .LOG at all: its events and its settings exist
+    // only inside the device memory image. Read that archive and line its tail
+    // up with the session directories, matching on the minute count, newest
+    // first. The archive normally holds MORE sessions than the card does — one
+    // card carried three archived sessions with no directory — so the match
+    // must skip forward through unmatched blocks rather than assume a
+    // one-to-one tail. This does nothing on a Reve card, which always has a
+    // .LOG and never consults the result.
+    QVector<SefamParsing::SessionSummary> archive;
+    QHash<QString, int> archiveForDir;
+    {
+        QString imagePath = dir.absoluteFilePath(dir.dirName() + ".RAM");
+        if (!QFile::exists(imagePath)) {
+            imagePath = dir.absoluteFilePath(dir.dirName() + ".BKP");
+        }
+        if (QFile::exists(imagePath)
+            && SefamParsing::readMemoryImage(imagePath, archive)) {
+            // Bounded so that a single unreadable or unarchived session ends the
+            // matching instead of silently sliding every older session onto the
+            // wrong block. Mismatched settings and events are worse than none.
+            constexpr int kMaxSkip = 16;
+
+            // The derived minute count matched the archive exactly on 23 of the
+            // 24 sessions across both sample cards. The exception was a short
+            // session written seven weeks before the next one, where the card
+            // holds half a minute more than the device counted — a torn or
+            // abandoned write. So an exact match is tried first and a
+            // one-minute discrepancy is accepted only when nothing fits exactly.
+            const auto findBlock = [&](int from, int want, int tolerance) {
+                for (int scan = from; scan >= 0 && from - scan < kMaxSkip; --scan) {
+                    if (qAbs(archive.at(scan).minutes - want) <= tolerance) {
+                        return scan;
+                    }
+                }
+                return -1;
+            };
+
+            int b = archive.size() - 1;
+            for (int i = dirs.size() - 1; i >= 0 && b >= 0; --i) {
+                const int want = archiveMinutesFor(dir.absoluteFilePath(dirs.at(i)));
+                if (want < 0) { continue; }        // stub directory: no block exists
+
+                int scan = findBlock(b, want, 0);
+                if (scan < 0) { scan = findBlock(b, want, 1); }
+                if (scan < 0) {
+                    qWarning() << "Sefam: session archive alignment lost at"
+                               << dirs.at(i) << "— older sessions get no events";
+                    break;
+                }
+                archiveForDir.insert(dirs.at(i), scan);
+                b = scan - 1;
+            }
+            qDebug() << "Sefam: session archive holds" << archive.size()
+                     << "sessions;" << archiveForDir.size() << "matched to"
+                     << dirs.size() << "directories";
+        }
+    }
+
     for (const QString &d : dirs) {
         if (isAborted()) { break; }
         emit setProgressValue(++progress);
@@ -554,7 +654,27 @@ int SefamLoader::Open(const QString &path)
 
         if (data.settings.valid) { lastKnown = data.settings; }
 
-        if (lastKnown.valid) {
+        // Only consulted when the session has no log of its own, which on every
+        // card seen means an S.Box. A Reve session always has one, so this stays
+        // null there and nothing below changes for it.
+        const SefamParsing::SessionSummary *summary = nullptr;
+        if (data.log.isEmpty() && archiveForDir.contains(d)) {
+            summary = &archive.at(archiveForDir.value(d));
+        }
+
+        if (summary && summary->settingsValid) {
+            // Per-session settings, not carried forward: each archive block
+            // records the settings that were in force for its own session, so
+            // a card whose settings changed mid-history reports each session
+            // correctly. The log-based path below cannot do that.
+            session->settings[CPAP_Mode]        = MODE_APAP;
+            session->settings[CPAP_PressureMin] = summary->minPressure;
+            session->settings[CPAP_PressureMax] = summary->maxPressure;
+            if (summary->rampMinutes > 0) {
+                session->settings[CPAP_RampTime]     = summary->rampMinutes;
+                session->settings[CPAP_RampPressure] = summary->rampPressure;
+            }
+        } else if (lastKnown.valid) {
             // A-PAP is the only mode observed on any SEFAM card examined.
             session->settings[CPAP_Mode]        = MODE_APAP;
             session->settings[CPAP_PressureMin] = lastKnown.minPressure;
@@ -727,6 +847,69 @@ int SefamLoader::Open(const QString &path)
         } else if (!data.log.isEmpty()) {
             qWarning() << "Sefam:" << d
                        << "has no UTC epoch in its header — events skipped";
+        }
+
+        // Events from the memory-image archive, for cards that carry no log.
+        if (summary) {
+            EventList *oa    = session->AddEventList(CPAP_Obstructive, EVL_Event);
+            EventList *ca    = session->AddEventList(CPAP_ClearAirway, EVL_Event);
+            EventList *hyp   = session->AddEventList(CPAP_Hypopnea,    EVL_Event);
+            EventList *snore = session->AddEventList(CPAP_VSnore,      EVL_Event);
+            EventList *fl    = session->AddEventList(CPAP_FlowLimit,   EVL_Event);
+
+            // Resolution is one minute and the card records no durations, so
+            // events are spread evenly across the minute they fall in. A lone
+            // event therefore lands at its midpoint, which is where the
+            // manufacturer's own waveform display draws it; two land on the
+            // quarters. Spreading rather than stacking keeps events of the same
+            // kind in one minute from sharing a timestamp and drawing as one.
+            const auto place = [](EventList *list, qint64 minuteStartMs,
+                                  int count) {
+                for (int k = 0; k < count; ++k) {
+                    const qint64 when = minuteStartMs
+                                      + (60000LL * (2 * k + 1)) / (2 * count);
+                    list->AddEvent(when, 0);
+                }
+            };
+
+            int oaTotal = 0, caTotal = 0, hypTotal = 0, snoreTotal = 0, flTotal = 0;
+            for (int m = 0; m < summary->minuteData.size(); ++m) {
+                const qint64 minuteMs = startMs + static_cast<qint64>(m) * 60000LL;
+                if (minuteMs >= endMs) { break; }
+                const SefamParsing::MinuteRecord &r = summary->minuteData.at(m);
+
+                place(oa,    minuteMs, r.obstructiveApnea);
+                place(ca,    minuteMs, r.centralApnea);
+                // OSCAR has no central hypopnea channel, so both kinds fold into
+                // CPAP_Hypopnea — the same choice the log-based path above makes.
+                place(hyp,   minuteMs, r.obstructiveHypopnea + r.centralHypopnea);
+                place(snore, minuteMs, r.snore);
+                place(fl,    minuteMs, r.flowLimitation);
+
+                oaTotal    += r.obstructiveApnea;
+                caTotal    += r.centralApnea;
+                hypTotal   += r.obstructiveHypopnea + r.centralHypopnea;
+                snoreTotal += r.snore;
+                flTotal    += r.flowLimitation;
+            }
+
+            // The block header states the same totals independently. They agreed
+            // on every block of both sample cards, so a disagreement means the
+            // block was matched to the wrong session or decoded wrongly, and it
+            // should be visible rather than quietly imported.
+            if (oaTotal != summary->obstructiveApneas
+                || caTotal != summary->centralApneas
+                || hypTotal != summary->obstructiveHypopneas + summary->centralHypopneas
+                || snoreTotal != summary->snores
+                || flTotal != summary->flowLimitations) {
+                qWarning() << "Sefam:" << d << "archive minutes disagree with the"
+                           << "block totals — OA" << oaTotal
+                           << summary->obstructiveApneas << "CA" << caTotal
+                           << summary->centralApneas << "hyp" << hypTotal
+                           << summary->obstructiveHypopneas + summary->centralHypopneas
+                           << "snore" << snoreTotal << summary->snores
+                           << "FL" << flTotal << summary->flowLimitations;
+            }
         }
 
         if (session->eventlist.isEmpty()) {

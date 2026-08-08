@@ -6,8 +6,41 @@ anywhere the loader currently looks — both are in the device memory image
 (`<serial>.RAM`), which holds a settings history table and a lifetime
 per-session archive with event counts and minute-by-minute trend data. Both
 structures are decoded below and confirmed against a vendor report on one card
-and against the card's own waveforms on a second. What is still missing is the
-time of each individual apnoea and hypopnoea.
+and against the card's own waveforms on a second. Every event of every type can
+be placed to the minute it occurred; the remaining limits are that resolution
+and the absence of event durations.
+
+**Design decision, 2026-08-08:** the loader reads `<serial>.RAM`. It is the only
+place this device keeps its events and settings, so the alternative is importing
+waveforms and nothing else. **Implemented 2026-08-08** in
+`SefamParsing::readMemoryImage()` and `SefamLoader::Open()`, gated on the session
+having no `.LOG`, so the Rêve path is untouched. Not yet built or run against a
+device — verified by simulating the loader's exact matching and decoding logic
+over both sample cards.
+
+### Matching sessions to archive blocks
+
+A block carries no timestamp, so it is matched to a directory by minute count,
+walking both lists newest-first. The count a directory should have is
+
+```
+minutes = floor(recordCount * 10 / 60) + 1
+```
+
+which holds on **23 of the 24 sessions** across both cards. The exception is a
+3.5-minute session written seven weeks before the next one, where the card holds
+half a minute more than the device counted — a torn or abandoned write. The
+loader therefore tries an exact match first and accepts a one-minute discrepancy
+only when nothing fits exactly; with that, both cards match completely (21 of 22
+directories on card A, the 22nd being the data-less stub, and 3 of 3 on card B).
+
+The scan skips backwards over unmatched blocks — necessary, since card A has
+three archived sessions with no directory — but is bounded, and gives up rather
+than sliding every older session onto the wrong block. Settings recovered this
+way track card A's real history exactly: 8.0–15.0 through the June sessions,
+8.5–15.0 from the session after the 04/07 23:46 change, 10.0–17.0 from the one
+starting 15:54:55 against a 15:55 change, and 12.0–19.0 from the one starting
+01:33:36 against a 01:34 change.
 
 **Device:** SEFAM S.Box AUTO (APAP). `Created By=S.Box_AUTO`, firmware
 `VER :A020400`. Same manufacturer and same firmware *platform* as the Rêve Auto,
@@ -407,27 +440,54 @@ which is workable but is the weakest link in the whole decode.
 
 ### Per-minute records — 6 bytes
 
-| byte | meaning | evidence |
-|---|---|---|
-| 0 | mean mask pressure ×10 for that minute | **r = 0.9996** (card A) and **0.9988** (card B) against the minute means of `PRE`; mean absolute error 0.05 cmH₂O |
-| 1 | continuous, present every minute | unidentified; leak-like |
-| 2 | apnoea/hypopnoea field | sparse — nonzero in about as many minutes as the header's apnoea + hypopnoea total. Bits 1 and 3 are never set. **No simple bit or nibble reading reproduces the four header counts consistently across blocks**, so this is located but not decoded |
-| 3 | flow-limitation runs that minute | sums **exactly** to header word 18 on 6 of 6 blocks across both cards |
-| 4 | snores that minute (low 6 bits) | sums **exactly** to header word 17 on 6 of 6 blocks across both cards |
-| 5 | continuous, present every minute | unidentified |
+**Every event type is placed to the minute.** Byte 2 is four independent 2-bit
+counters, one per event type; bytes 3 and 4 are 7-bit counters with a separate
+flag in bit 7.
 
-The pressure correlation is the load-bearing check here: it confirms
-independently of any vendor report that a given block belongs to a given
+| byte | bits | meaning |
+|---|---|---|
+| 0 | all | mean mask pressure ×10 for that minute |
+| 1 | all | continuous, present every minute — unidentified, leak-like |
+| 2 | 0–1 | obstructive apnoeas this minute (0–3) |
+| 2 | 2–3 | central apnoeas this minute |
+| 2 | 4–5 | obstructive hypopnoeas this minute |
+| 2 | 6–7 | central hypopnoeas this minute |
+| 3 | 0–6 | flow-limitation runs this minute; **bit 7 is a separate flag** |
+| 4 | 0–6 | snores this minute; **bit 7 is a separate flag** |
+| 5 | all | continuous, present every minute — unidentified |
+
+Evidence, over **every block on both cards — 470 in total, zero mismatches**:
+
+| column | test | result |
+|---|---|---|
+| byte 2, four 2-bit fields | sums vs header words 13–16 | 297 blocks exact, 173 both-zero, **0 wrong** |
+| byte 3 & 0x0f | sum vs header word 18 | **470/470 exact** |
+| byte 4 & 0x7f | sum vs header word 17 | **470/470 exact** |
+| byte 0 | vs minute means of `PRE` | r = 0.9996 and 0.9988, mean error 0.05 cmH₂O |
+
+Mask bit 7 off byte 3 before summing: reading it raw fails on 105 of 467 blocks
+on card A, which is exactly how this was nearly missed — the first six blocks
+examined happened to have no minute with that flag set.
+
+The pressure correlation is the load-bearing check on the *mapping*: it confirms,
+independently of any vendor report, that a given block belongs to a given
 session, minute for minute.
 
 ### What a loader could do with this
 
-Per-session and per-day **event counts and AHI become available for the S.Box** —
-the single largest gap — together with minute-resolution snoring, flow
-limitation and mean pressure. What is *not* available is the time of an
-individual apnoea or hypopnoea, so flags cannot be drawn on the flow chart from
-this source. Byte 2 is where that information lives and decoding it is the
-obvious next step.
+Everything except sub-minute placement. Event **counts, AHI, per-day indices and
+flags on the charts** are all available, since each event can be emitted at the
+minute it occurred; so are minute-resolution snoring, flow limitation and mean
+pressure. The one limit is resolution: a flag can be placed within the correct
+minute but not at the correct second, and the card carries no event duration.
+
+Because events can be given times, they can go into ordinary `EventList`s and no
+special summary-only handling is needed — which matters, since
+`Session::UpdateSummaries()` clears `m_availableChannels` and rebuilds it **only
+from `eventlist`**, so a channel carrying a count with no events would be dropped
+before it was ever saved. (`Session::setCount()` does add to
+`m_availableChannels`, so the counts-only route is possible, but it would have to
+run *after* `UpdateSummaries()`. Avoid needing it.)
 
 ---
 
@@ -474,14 +534,14 @@ behave as the Rêve note describes and neither resembles an event marker.
 
 ## Open problems
 
-1. **Individual event times are still unrecovered.** Counts are solved — see the
-   session archive above — but the per-minute apnoea/hypopnoea field (byte 2)
-   resists a simple decode, and there is no list of event timestamps anywhere on
-   the card. Whether the analyzer places individual flags from byte 2 or scores
-   them from the flow signal is not settled.
-   *(An earlier revision of this note said no event source existed at all. That
-   was wrong: it searched the memory image for the Rêve's 49-byte log-record
-   shape, which the S.Box does not use.)*
+1. **Event resolution is one minute, and there are no durations.** Every event of
+   every type can be placed in the minute it occurred, but not at a second, and
+   the card records no event length. Whether the analyzer's own waveform pages
+   place flags more precisely than this — and if so from what — is not settled.
+   *(Two earlier revisions of this note were wrong here: the first said no event
+   source existed at all, because it searched the memory image for the Rêve's
+   49-byte log-record shape; the second said byte 2 could not be decoded, on the
+   strength of six blocks rather than all 470.)*
 2. **Humidifier, Comfort Control Plus, patient circuit and heated tube** are
    unassigned. Words 9 and 10 are the place to look; assigning them needs a card
    whose accessory settings are independently known.

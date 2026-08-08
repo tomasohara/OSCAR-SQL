@@ -5173,3 +5173,44 @@ right place for vendor-specific wording.
 new labels take effect for new profiles, after a language change, or after "reset
 channel defaults". Making them visible to existing profiles needs a migration, which
 is not included here.
+
+## 2026-08-08 - SEFAM S.Box AUTO imported waveforms only, with no events and no settings
+
+**Symptom:** an S.Box card imported plausible flow, pressure and leak graphs, but the
+daily view showed no events at all and no therapy settings - no mode, pressures or
+ramp. Reported against real user data from a `1200R`; a `1263R` sample behaves the
+same way.
+
+**Root cause:** the S.Box writes **no `.LOG` file anywhere on the card**, and the
+loader took every event and every setting from that file alone. A second, independent
+blocker sat behind it: S.Box channel files carry the short 38-byte header with no UTC
+epoch, and the event loop is gated on that epoch being non-zero, so events would have
+been skipped even had a log been present.
+
+**Where the data actually is:** the device memory image, `<serial>.RAM`, which the
+loader never opened. It holds a lifetime per-session archive - a contiguous chain of
+blocks, one per session, each an 88-byte big-endian header followed by one 6-byte
+record per minute. The header carries per-type event counts and the settings in force
+for that session; the per-minute record carries mean pressure, four two-bit event
+counters, and snore and flow-limitation counts. Format and evidence are in
+`Notes/loaders/SEFAM_SBOX_CARD_ANALYSIS.md`.
+
+**Fix:** `SefamParsing::readMemoryImage()` decodes the archive, and `SefamLoader::Open()`
+matches its tail to the session directories by minute count and applies the result -
+but **only when a session has no `.LOG`**. A Rêve session always has one, so that path
+is untouched, which was the agreed scope.
+
+**Two traps worth keeping:** bit 7 of the per-minute snore and flow-limitation bytes is
+a separate flag and must be masked off, or the totals disagree with the block header on
+about a fifth of sessions; and the apnoea/hypopnoea byte is four two-bit counters, not
+four presence flags, so reading it as flags silently undercounts any minute holding two
+events of one kind.
+
+**Not yet built or run against a device.** Verified by simulating the matching and
+decoding logic over both sample cards: every matched block's per-minute sums agree with
+its own header totals, and the recovered settings reproduce the three mid-history
+changes the manufacturer's report lists for the `1200R`.
+
+**Resolution limit:** events are placed within the minute they occurred, spread evenly
+across it, because that is the resolution the card stores. The card records no event
+durations.

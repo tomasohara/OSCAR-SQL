@@ -253,6 +253,88 @@ bool parseSettings(const LogRecord &rec, Settings &out)
     return false;
 }
 
+bool readMemoryImage(const QString &path, QVector<SessionSummary> &out)
+{
+    out.clear();
+
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) { return false; }
+    const QByteArray raw = f.readAll();
+    f.close();
+
+    // The image is stored in the clear: unlike the Reve's, it is neither
+    // obfuscated nor encrypted, so nothing is descrambled here.
+    const auto be16 = [&raw](int offset) -> quint16 {
+        return static_cast<quint16>((static_cast<quint8>(raw.at(offset)) << 8)
+                                   | static_cast<quint8>(raw.at(offset + 1)));
+    };
+
+    int off = kArchiveOffset;
+    while (off + kArchiveHeaderLength <= raw.size()) {
+        if (be16(off) != kArchiveMarker) { break; }
+
+        const int minutes = be16(off + 24 * 2);
+        // One block per session, so a minute count beyond a couple of days means
+        // the chain has been lost rather than that a session ran that long.
+        if (minutes <= 0 || minutes > 4320) { break; }
+
+        const int blockLen = kArchiveHeaderLength + minutes * kArchiveMinuteLength;
+        if (off + blockLen > raw.size()) { break; }
+
+        SessionSummary s;
+        s.minutes              = minutes;
+        s.obstructiveApneas    = be16(off + 13 * 2);
+        s.centralApneas        = be16(off + 14 * 2);
+        s.obstructiveHypopneas = be16(off + 15 * 2);
+        s.centralHypopneas     = be16(off + 16 * 2);
+        s.snores               = be16(off + 17 * 2);
+        s.flowLimitations      = be16(off + 18 * 2);
+
+        // Words 29..40 repeat the settings record that the separate settings
+        // table holds, rotated so that its last two words come first. Taking
+        // them from here rather than from that table gives the settings in force
+        // for THIS session, which matters: settings changed three times inside
+        // six days on one card examined.
+        const int   rampPressure = be16(off + 31 * 2);
+        const int   rampMinutes  = be16(off + 33 * 2);
+        const int   maxPressure  = be16(off + 35 * 2);
+        const int   minPressure  = be16(off + 36 * 2);
+        if (minPressure > 0 && maxPressure >= minPressure && maxPressure <= 400) {
+            s.settingsValid = true;
+            s.minPressure   = minPressure / 10.0f;
+            s.maxPressure   = maxPressure / 10.0f;
+            s.rampMinutes   = rampMinutes;
+            s.rampPressure  = rampPressure / 10.0f;
+        }
+
+        s.minuteData.resize(minutes);
+        const char *rec = raw.constData() + off + kArchiveHeaderLength;
+        for (int m = 0; m < minutes; ++m, rec += kArchiveMinuteLength) {
+            MinuteRecord &r = s.minuteData[m];
+            r.meanPressure = static_cast<quint8>(rec[0]);
+
+            // Byte 2 is four independent two-bit counters, one per event type,
+            // so a minute holding two of the same kind is not lost. Reading the
+            // bits as mere presence flags undercounts and looks almost right.
+            const quint8 events = static_cast<quint8>(rec[2]);
+            r.obstructiveApnea     =  events       & 0x03;
+            r.centralApnea         = (events >> 2) & 0x03;
+            r.obstructiveHypopnea  = (events >> 4) & 0x03;
+            r.centralHypopnea      = (events >> 6) & 0x03;
+
+            // Bit 7 of both of these is a flag of some other kind, not part of
+            // the count. Left in, the totals disagree with the block header on
+            // roughly a fifth of sessions.
+            r.flowLimitation = static_cast<quint8>(rec[3]) & 0x0F;
+            r.snore          = static_cast<quint8>(rec[4]) & 0x7F;
+        }
+
+        out.append(s);
+        off += blockLen;
+    }
+    return !out.isEmpty();
+}
+
 bool readSession(const QString &dirPath, SessionData &out, QString &error)
 {
     QDir dir(dirPath);
