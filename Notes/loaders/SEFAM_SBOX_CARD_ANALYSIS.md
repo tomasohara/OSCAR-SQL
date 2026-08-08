@@ -1,10 +1,13 @@
 # SEFAM S.Box AUTO — SD card format analysis
 
-**Status:** container and waveforms decode with the existing loader; **these
-cards carry no event log at all**, and therapy settings live somewhere the
-loader does not look. The settings store has now been located and decoded — read
-out of the device memory image, confirmed against a vendor report on one card
-and against the delivered pressure on a second. Events remain unrecovered.
+**Status:** container and waveforms decode with the existing loader. **These
+cards carry no event log**, and neither events nor therapy settings live
+anywhere the loader currently looks — both are in the device memory image
+(`<serial>.RAM`), which holds a settings history table and a lifetime
+per-session archive with event counts and minute-by-minute trend data. Both
+structures are decoded below and confirmed against a vendor report on one card
+and against the card's own waveforms on a second. What is still missing is the
+time of each individual apnoea and hypopnoea.
 
 **Device:** SEFAM S.Box AUTO (APAP). `Created By=S.Box_AUTO`, firmware
 `VER :A020400`. Same manufacturer and same firmware *platform* as the Rêve Auto,
@@ -145,7 +148,8 @@ Two independent blockers, both in the current loader:
    event list from `data.log`, and the whole therapy-settings block is inside
    `if (lastKnown.valid)`, which is only ever set by `parseSettings()` on a log
    record of code 2 or code 13. No log ⇒ no mode, no pressures, no ramp, no
-   humidifier, and no events.
+   humidifier, and no events. The loader never opens `<serial>.RAM`, which is
+   where this device keeps all of it.
 2. **Event placement needs a UTC epoch the S.Box does not write.** The event loop
    is gated on `data.header.utcEpoch != 0`, because events are positioned
    relative to the session start using the epoch from the long header. On this
@@ -332,6 +336,101 @@ but consistency is not confirmation.
 
 ---
 
+## Events: a per-session archive inside `.RAM` / `.BKP`
+
+**The events are on the card.** They are not an event log — there is no list of
+individual event times anywhere — but a **per-session summary archive**, one
+block per session for the whole life of the device, in the same memory image as
+the settings.
+
+### Structure
+
+The archive begins at relative offset **0x10000** (file offset 0x1009b, since the
+155-byte header precedes the image) and is a **contiguous chain**: each block is
+88 bytes of header followed by one 6-byte record per minute of the session, and
+the next block starts immediately after. Every block opens with the marker
+**0xFEA1**. Walking the chain gives **467 blocks on card A** — exactly the "Total
+number of sessions: 467" its vendor report prints — and 3 on card B.
+
+Walk the chain; do not scan for the marker. 0xFEA1 also occurs inside the
+per-minute data, and a scan produces false blocks.
+
+### Block header — 44 uint16, big-endian
+
+Note the endianness: the settings table earlier in the image is little-endian,
+this header is big-endian.
+
+| word | meaning |
+|---|---|
+| 0 | 0xFEA1 marker |
+| 13 | obstructive apnoeas |
+| 14 | central apnoeas |
+| 15 | obstructive hypopnoeas |
+| 16 | central hypopnoeas |
+| 17 | snores |
+| 18 | flow-limitation runs |
+| 24 | session duration in **minutes** |
+| 29–40 | the 12-word settings record, in the order `w10 w11 w0…w9` of the settings table, with the ramp-mode word one higher |
+| others | unidentified |
+
+Words 13–18 are six **contiguous columns in the same order the vendor report
+prints its six indices**. Summed over the fifteen blocks the report covers:
+
+| word | sum | report index × usage | type |
+|---|---|---|---|
+| 13 | 58 | 59 | AI obstructive 1.7/h |
+| 14 | 26 | 28 | AI central 0.8/h |
+| 15 | 199 | 201 | HI obstructive 5.8/h |
+| 16 | 228 | 226 | HI central 6.5/h |
+| 17 | 3059 | 3067 | snoring 88.4/h |
+| 18 | 381 | 385 | FL runs 11.1/h |
+
+The 1–2 % residual is a denominator question, not an identification one: the
+report's indices are printed to one decimal, and no single usage figure
+reproduces all six exactly — the report itself prints AHI-including-CH as both
+14.7 and 14.8 on different pages.
+
+Two further cross-checks on the same fifteen blocks: their minute counts sum to
+**2147 min = 35 h 47**, exactly the report's operating time, and there are
+exactly **fifteen** of them against the report's "15 Sessions" — three more than
+the card has session directories, which is why the directory count never
+matched.
+
+### Matching blocks to sessions
+
+Card A's last 22 blocks correspond one-to-one, in order, to its 22 session
+directories, with every minute count matching the directory's record count.
+**Word 19 is monotonic but is not a timestamp** in any unit tried — the ratio
+between block deltas and elapsed time varies by more than an order of magnitude
+between consecutive pairs. Matching therefore rests on order plus duration,
+which is workable but is the weakest link in the whole decode.
+
+### Per-minute records — 6 bytes
+
+| byte | meaning | evidence |
+|---|---|---|
+| 0 | mean mask pressure ×10 for that minute | **r = 0.9996** (card A) and **0.9988** (card B) against the minute means of `PRE`; mean absolute error 0.05 cmH₂O |
+| 1 | continuous, present every minute | unidentified; leak-like |
+| 2 | apnoea/hypopnoea field | sparse — nonzero in about as many minutes as the header's apnoea + hypopnoea total. Bits 1 and 3 are never set. **No simple bit or nibble reading reproduces the four header counts consistently across blocks**, so this is located but not decoded |
+| 3 | flow-limitation runs that minute | sums **exactly** to header word 18 on 6 of 6 blocks across both cards |
+| 4 | snores that minute (low 6 bits) | sums **exactly** to header word 17 on 6 of 6 blocks across both cards |
+| 5 | continuous, present every minute | unidentified |
+
+The pressure correlation is the load-bearing check here: it confirms
+independently of any vendor report that a given block belongs to a given
+session, minute for minute.
+
+### What a loader could do with this
+
+Per-session and per-day **event counts and AHI become available for the S.Box** —
+the single largest gap — together with minute-resolution snoring, flow
+limitation and mean pressure. What is *not* available is the time of an
+individual apnoea or hypopnoea, so flags cannot be drawn on the flow chart from
+this source. Byte 2 is where that information lives and decoding it is the
+obvious next step.
+
+---
+
 ## `Y17` on the S.Box — tested as an event source, rejected
 
 With no `.LOG`, `Y17` is the only per-sample channel that could plausibly carry
@@ -375,12 +474,14 @@ behave as the Rêve note describes and neither resembles an event marker.
 
 ## Open problems
 
-1. **No event source has been found on this card.** Not in the session files, not
-   in the memory image — the image contains no 49-byte log records and nothing
-   with the shape of an event list. Yet the analyzer reports a full event set for
-   these same days. Either the analyzer scores events itself from the flow signal
-   (it does compute hypopnoea durations, which the Rêve's log does not carry), or
-   there is a store in the memory image that has not been recognised.
+1. **Individual event times are still unrecovered.** Counts are solved — see the
+   session archive above — but the per-minute apnoea/hypopnoea field (byte 2)
+   resists a simple decode, and there is no list of event timestamps anywhere on
+   the card. Whether the analyzer places individual flags from byte 2 or scores
+   them from the flow signal is not settled.
+   *(An earlier revision of this note said no event source existed at all. That
+   was wrong: it searched the memory image for the Rêve's 49-byte log-record
+   shape, which the S.Box does not use.)*
 2. **Humidifier, Comfort Control Plus, patient circuit and heated tube** are
    unassigned. Words 9 and 10 are the place to look; assigning them needs a card
    whose accessory settings are independently known.
