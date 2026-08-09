@@ -8,6 +8,7 @@
 
 #include <QFile>
 #include "sessiontests.h"
+#include "SleepLib/day.h"
 
 static QString ts(qint64 msecs)
 {
