@@ -12,6 +12,11 @@ was available. Every finding below was traced through the OSCAR code it depends
 on (`Day`, `Session`, `EventList`, `Machine`, `gLineChart`); line references are
 to the reviewed commit.
 
+> **Follow-up:** the response to this review is reviewed in
+> [Follow-up review](#follow-up-review--commit-785f8606) at the end of this
+> document. Twelve of the fourteen findings below are resolved; finding 13 is
+> outstanding, and the fix for finding 3 introduced a regression.
+
 ---
 
 ## Summary
@@ -377,3 +382,152 @@ Recorded so a later reader does not re-derive it:
   blocks of `oscar.pro`, the icon is in `Resources.qrc`, and `main.cpp`
   registers the loader alongside the others. Object files for both new
   translation units are present in the MinGW build tree, so it compiles.
+
+---
+---
+
+# Follow-up review — commit `785f8606`
+
+**Reviewed:** commit `785f8606` "Address Apex loader code review", the response
+to everything above. Reached this project as a merge request; the branch is two
+commits on top of master, the second being this one.
+**Date:** 2026-08-09
+**Method:** as before — static review, no Apex sample data. Line references in
+this section are to `785f8606`.
+
+## Disposition of the original findings
+
+| # | Severity | Status |
+|---|---|---|
+| 1 | High | **Fixed.** Extracted into `importSettings()`; covered by a new test |
+| 2 | Medium | **Fixed.** The first of the two suggested options — `.APE` is now genuinely optional |
+| 3 | Medium | **Fixed**, but the fix introduced a regression — see F1 |
+| 4 | Low | **Fixed.** The per-miss `qDebug()` is gone |
+| 5 | Low | **Fixed.** `findDataDir()` now runs once per `Open()` |
+| 6 | Low | **Fixed.** The ambiguity is documented at the decode site |
+| 7 | Low | **Fixed.** Now `ringAdvance(cursorRaw, 2)` |
+| 8 | Low | **Fixed.** `qWarning()` on a duplicate key |
+| 9 | Low | **Fixed** in the loader and at all seven test sites |
+| 10 | Low | **Fixed** |
+| 11 | Low | **Fixed** |
+| 12 | Docs | **Fixed.** Status re-labelled contributor-validated, §9 rewritten to match the code, and an explicit not-reproduced-in-project paragraph added |
+| 13 | Docs | **Outstanding.** `Htmldocs/release_notes.html` still has no Apex entry. Author-written, so this is a reminder, not a defect |
+| 14 | Docs | **Fixed.** The wall-clock-hours limitation is now in §12 |
+
+The supporting refactor is sound. `validateDataDir()` and `backupDataDir()`
+correctly separate "resolve the path" from "work on the resolved path", which is
+what removes the repeated directory walks, and `Open()` no longer re-reads the
+`.APF` it already validated.
+
+---
+
+## F1. (Medium) Derived unintentional leak collapses to a single point
+
+The finding 3 fix passes the honest `sampleDuration` to `AddWaveform()`
+(`apex_loader.cpp:269`), so the pressure waveform's `last()` is
+`startMs + n * 60000`. The total-leak trace is still built across the full
+session span (`apex_loader.cpp:254`):
+
+```cpp
+importLeakChannel(session, rec, startMs, rec.end.toMSecsSinceEpoch());
+```
+
+`calcLeaks()` (`calcs.cpp:1334`) resolves a pressure value for each
+`CPAP_LeakTotal` sample through `TimeSeries::valueAt()`, and
+`TimeSeries::findEventListContaining()` (`calcs.cpp:1256-1264`) accepts a
+timestamp only when `eventlist->first() <= time && time <= eventlist->last()`.
+A leak sample beyond the final minute sample produces no derived event at all.
+
+Sessions rarely end on a whole-minute boundary. An 8 h 13 m 20 s session
+decodes 493 minute records covering 8 h 13 m exactly, leaving the trailing leak
+sample 20 seconds outside pressure coverage. So for any profile with
+*calculate unintentional leaks* enabled, `CPAP_Leak` becomes a one-point event
+list on essentially every session that has `.APE` detail — where before this
+commit the `qMax()` kept both points. `CPAP_LeakTotal` itself is unaffected.
+
+This did not go unnoticed: `apextests.cpp:492` was changed from
+`QCOMPARE(detailedDerivedCount, 2)` to `1`. The expectation was updated rather
+than the behaviour, and without a comment recording the coupling.
+
+Nothing is gained by the loss. `TimeSeries::findValueAtOrBefore()` would have
+held the last sample's value over that final partial minute, which is the
+normal convention.
+
+**Suggested fix** — end both synthetic traces together. Hoist `sampleDuration`
+above the leak call in `importMinuteDetail()` and clamp:
+
+```cpp
+importLeakChannel(session, rec, startMs,
+                  qMin(rec.end.toMSecsSinceEpoch(), startMs + sampleDuration));
+```
+
+`qMin` is correct in both directions: when the decoded minutes outrun the APF
+span, `rec.end` is already the smaller value and nothing changes. The cost is
+at most the final partial minute of the leak trace. The alternative — padding
+the waveform out to `rec.end` — invents a sample and should be avoided.
+
+Whichever way it goes, `apextests.cpp:492` deserves a comment stating that the
+derived-leak count is a function of the pressure waveform's extent, so the
+number is not silently adjusted again later.
+
+---
+
+## F2. (Docs) Two header comments were not updated with the code
+
+The design note was revised for both of these changes; the Doxygen was not.
+
+* `apexDataParsing.h:155-158` — `decodeApeSessionRun()`'s `\return` still
+  documents the failure mode removed by the finding 7 fix ("the cursor+2
+  position falls outside `[kApeRingStart, kApeRingEnd)`") and still says "All
+  three conditions mean the table entry is stale". There are two conditions now:
+  no `FE FE FE` marker at the wrapped position, and no terminator within
+  `kApeMaxMinutes`.
+* `apex_loader.h:55` — `findDataDir()` is still described as locating "the
+  directory containing 00000000.APF and .APE". After the finding 2 fix it keys
+  on `.APF` alone.
+
+---
+
+## F3. (Trivial) Stray blank line
+
+`apex_loader.cpp:172` — a blank line immediately after `backupDataDir()`'s
+opening brace, left behind when the body was extracted from `backupData()`.
+
+---
+
+## Notes, not defects
+
+* **The staleness check changed identity, not strength.** Dropping the cursor
+  range check means a stale entry's out-of-range cursor is now wrapped into the
+  ring and rejected by the `FE FE FE` check instead of by an explicit bounds
+  test. A false accept needs three specific bytes at the wrapped position —
+  roughly 1 in 16 million — and both paths end in `parseApe()` skipping the
+  entry, so behaviour is equivalent. Recorded so the changed error text is not
+  later mistaken for a different problem.
+* **Detection is deliberately weaker.** The gate is now a file named
+  `00000000.APF`, exactly 21,250 bytes, whose first record decodes. The
+  filename carries most of the specificity, and §9 of the design note argues the
+  trade-off correctly: refusing an otherwise-good card because its rolling
+  detail file is absent or stale costs more than the residual false-positive
+  risk.
+
+## Verified sound in this commit
+
+* **Session extent ordering.** `Open()` sets `really_set_last()` from `rec.end`
+  before calling `importMinuteDetail()`, which then widens it via `qMax()`
+  (`apex_loader.cpp:271`). The per-minute event timestamps are
+  `startMs + i * 60000` for `i < n`, so they always fall inside the widened
+  extent.
+* **The `.APE`-optional fallback is now genuinely reachable.** A missing or
+  unreadable file fails `readFile()`, and a wrong-size file fails `parseApe()`;
+  both route to the summary-only path with one warning. That is what §9 of the
+  design note has always claimed.
+* **The new tests are safe.** `QVector<ApeMinuteRecord> minutes(3)` relies on
+  the struct's default member initialisers, which are present
+  (`apexDataParsing.h:116-122`), so the values are zeroed rather than
+  indeterminate.
+* **Removing `setSummaryOnly(false)` is safe.** `Session`'s constructor sets it
+  (`session.cpp:73`), and nothing between construction and import changes it.
+* **`Q_OBJECT` placement.** Moving it above the `UNITTEST_MODE` `friend` leaves
+  the class in `private:` access for that declaration, which is where it was
+  before.
