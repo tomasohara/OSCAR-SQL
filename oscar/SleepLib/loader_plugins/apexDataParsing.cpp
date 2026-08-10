@@ -13,7 +13,6 @@
 #include "apexDataParsing.h"
 
 #include <QDebug>
-#include <QTimeZone>
 
 namespace ApexParsing {
 
@@ -30,7 +29,7 @@ QDateTime decodeTimestamp5(const quint8 *bytes)
     if (!date.isValid() || !time.isValid()) {
         return QDateTime();
     }
-    return QDateTime(date, time, QTimeZone::LocalTime);
+    return QDateTime(date, time, Qt::LocalTime);
 }
 
 bool decodeApfRecord(const quint8 *record, ApfRecord &out)
