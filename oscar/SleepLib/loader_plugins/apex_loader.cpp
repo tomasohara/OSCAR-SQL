@@ -169,7 +169,6 @@ bool ApexLoader::backupData(Machine *mach, const QString &path)
 
 bool ApexLoader::backupDataDir(Machine *mach, const QString &dataPath)
 {
-
     const QDir src(dataPath);
     const QDir backupRoot(mach->getBackupPath());
     const QDir dst(backupRoot.absoluteFilePath(QStringLiteral("APAPDATA/00000000")));
@@ -251,7 +250,20 @@ void ApexLoader::importMinuteDetail(
     Session *session, const ApexParsing::ApfRecord &rec,
     const QVector<ApexParsing::ApeMinuteRecord> &minutes, qint64 startMs)
 {
-    importLeakChannel(session, rec, startMs, rec.end.toMSecsSinceEpoch());
+    constexpr qint64 kMinuteMs = 60000;
+    const qint64 sampleDuration = static_cast<qint64>(minutes.size()) * kMinuteMs;
+
+    // The device writes fewer minute records than the session's wall-clock
+    // span - typically one to three short - so the pressure waveform below ends
+    // before rec.end. calcLeaks() derives CPAP_Leak only at timestamps where it
+    // can look up a pressure, so a leak sample past the last minute sample is
+    // silently discarded, leaving a one-sample list that gLineChart refuses to
+    // draw at all. Ending both synthetic traces together costs at most the
+    // final partial minute and keeps the derived leak graph intact.
+    importLeakChannel(session, rec, startMs,
+                      minutes.isEmpty() ? rec.end.toMSecsSinceEpoch()
+                                        : qMin(rec.end.toMSecsSinceEpoch(),
+                                               startMs + sampleDuration));
 
     QVector<qint16> pressure;
     pressure.reserve(minutes.size());
@@ -261,11 +273,9 @@ void ApexLoader::importMinuteDetail(
         pressure.append(static_cast<qint16>(qRound(minute.pressure * 10.0f)));
     }
 
-    constexpr qint64 kMinuteMs = 60000;
     if (!pressure.isEmpty()) {
         EventList *pressureEvents = session->AddEventList(
             CPAP_Pressure, EVL_Waveform, 0.1f, 0.0f, 0.0f, 0.0f, kMinuteMs);
-        const qint64 sampleDuration = static_cast<qint64>(pressure.size()) * kMinuteMs;
         pressureEvents->AddWaveform(startMs, pressure.data(), pressure.size(),
                                     sampleDuration);
         session->really_set_last(qMax(rec.end.toMSecsSinceEpoch(),

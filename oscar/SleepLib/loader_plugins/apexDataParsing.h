@@ -149,13 +149,14 @@ QByteArray ringBytes(const QByteArray &apeData, int offset, int count);
     payload, given that session's table-entry cursor.
     \param apeData   Full .APE file contents (must be exactly kApeSize bytes).
     \param cursorRaw The little-endian u16 from the session-table entry
-                      (ApeTableEntry::cursor).
+                      (ApeTableEntry::cursor). Any value is accepted; cursor+2
+                      is wrapped into [kApeRingStart, kApeRingEnd) rather than
+                      range-checked.
     \param out       Populated with one ApeMinuteRecord per decoded minute.
     \param error     Human-readable reason on failure.
-    \return false if: the cursor+2 position falls outside
-            [kApeRingStart, kApeRingEnd); no FE FE FE marker is found there;
-            or no FF FF FF terminator is found within kApeMaxMinutes minute
-            records. All three conditions mean the table entry is stale (its
+    \return false if: no FE FE FE marker is found at the wrapped cursor+2
+            position; or no FF FF FF terminator is found within kApeMaxMinutes
+            minute records. Both conditions mean the table entry is stale (its
             payload has since been overwritten by a newer session) - this is
             normal and expected, not corruption. The caller should silently
             treat that session as having no per-minute detail, not as an

@@ -52,8 +52,10 @@ class ApexLoader : public CPAPLoader
     bool rebuild_from_backups = false;
     bool create_backups = true;
 
-    /*! \brief Locate the directory containing 00000000.APF and .APE.
+    /*! \brief Locate the directory containing 00000000.APF.
 
+        The optional 00000000.APE minute-detail file is not required to be
+        present, and is not looked for here.
         Accepts the card root, APAPDATA directory, or 00000000 directory. */
     QString findDataDir(const QString &path);
 

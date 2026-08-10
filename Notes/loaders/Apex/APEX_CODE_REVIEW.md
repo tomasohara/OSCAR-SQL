@@ -14,8 +14,9 @@ to the reviewed commit.
 
 > **Follow-up:** the response to this review is reviewed in
 > [Follow-up review](#follow-up-review--commit-785f8606) at the end of this
-> document. Twelve of the fourteen findings below are resolved; finding 13 is
-> outstanding, and the fix for finding 3 introduced a regression.
+> document. Twelve of the fourteen findings below were resolved there; the fix
+> for finding 3 introduced a regression (F1), since fixed. Finding 13, the
+> release-notes entry, has since been written.
 
 ---
 
@@ -411,7 +412,7 @@ this section are to `785f8606`.
 | 10 | Low | **Fixed** |
 | 11 | Low | **Fixed** |
 | 12 | Docs | **Fixed.** Status re-labelled contributor-validated, §9 rewritten to match the code, and an explicit not-reproduced-in-project paragraph added |
-| 13 | Docs | **Outstanding.** `Htmldocs/release_notes.html` still has no Apex entry. Author-written, so this is a reminder, not a defect |
+| 13 | Docs | **Done since.** The Apex entry was added to `Htmldocs/release_notes.html` for the v2.0.2 draft |
 | 14 | Docs | **Fixed.** The wall-clock-hours limitation is now in §12 |
 
 The supporting refactor is sound. `validateDataDir()` and `backupDataDir()`
@@ -438,12 +439,24 @@ importLeakChannel(session, rec, startMs, rec.end.toMSecsSinceEpoch());
 timestamp only when `eventlist->first() <= time && time <= eventlist->last()`.
 A leak sample beyond the final minute sample produces no derived event at all.
 
-Sessions rarely end on a whole-minute boundary. An 8 h 13 m 20 s session
-decodes 493 minute records covering 8 h 13 m exactly, leaving the trailing leak
-sample 20 seconds outside pressure coverage. So for any profile with
-*calculate unintentional leaks* enabled, `CPAP_Leak` becomes a one-point event
-list on essentially every session that has `.APE` detail — where before this
-commit the `qMax()` kept both points. `CPAP_LeakTotal` itself is unaffected.
+The `.APF` timestamps carry no seconds field — `decodeTimestamp5()` builds
+`QTime(hour, minute, 0)` (`apexDataParsing.cpp:29`) — so a session span is
+always a whole number of minutes, and the shortfall is not a rounding effect.
+The device simply writes fewer minute records than the span it reports. Decoded
+across a real XT Auto card, eight of nine sessions were one to three records
+short and the ninth was exactly equal.
+
+So for any profile with *calculate unintentional leaks* enabled — which is the
+default (`profiles.h:653`) — `CPAP_Leak` becomes a one-point event list on
+almost every session carrying `.APE` detail, where the `qMax()` before this
+commit kept both points. `CPAP_LeakTotal` itself is unaffected, which is why
+Total Leak still draws its flat line.
+
+The user-visible result is that **no Leak Rate graph is drawn at all**:
+`gLineChart.cpp:664` skips any event list of one sample or fewer
+(`if (siz <= 1) { continue; }`). The single session whose minute count matched
+its span did render, because the bound in `findEventListContaining()` is
+inclusive.
 
 This did not go unnoticed: `apextests.cpp:492` was changed from
 `QCOMPARE(detailedDerivedCount, 2)` to `1`. The expectation was updated rather
@@ -470,6 +483,14 @@ Whichever way it goes, `apextests.cpp:492` deserves a comment stating that the
 derived-leak count is a function of the pressure waveform's extent, so the
 number is not silently adjusted again later.
 
+**Resolved.** Applied as described, with the clamp guarded against an empty
+`minutes` vector. The test now holds the derived count at 2 and carries a
+comment explaining that a relaxed count means an invisible graph — which is how
+this got through the first time. Confirmed against a real card: before the
+change the Leak Rate graph appeared on exactly one of nine sessions, the one
+with no shortfall; after it, on all nine. Logged in
+`Notes/Developer Notes/BUG_FIXES.md`.
+
 ---
 
 ## F2. (Docs) Two header comments were not updated with the code
@@ -486,12 +507,18 @@ The design note was revised for both of these changes; the Doxygen was not.
   directory containing 00000000.APF and .APE". After the finding 2 fix it keys
   on `.APF` alone.
 
+**Resolved.** Both corrected. `decodeApeSessionRun()`'s `\param cursorRaw` also
+now states that any value is accepted and wrapped rather than range-checked,
+since the old `\return` text was the only place that contract was written down.
+
 ---
 
 ## F3. (Trivial) Stray blank line
 
 `apex_loader.cpp:172` — a blank line immediately after `backupDataDir()`'s
 opening brace, left behind when the body was extracted from `backupData()`.
+
+**Resolved.**
 
 ---
 

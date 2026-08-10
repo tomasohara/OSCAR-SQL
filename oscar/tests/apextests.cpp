@@ -452,7 +452,10 @@ void ApexTests::testLeakChannelMapping()
     EventList *totalLeak = detailed.eventlist[CPAP_LeakTotal].first();
     QCOMPARE(totalLeak->count(), 2U);
     QCOMPARE(totalLeak->time(0), startMs);
-    QCOMPARE(totalLeak->time(1), endMs);
+    // The leak trace is clamped to the pressure waveform's extent, not rec.end,
+    // so that calcLeaks() can resolve a pressure for both samples. Here the two
+    // minute records cover less than the session's three-minute span.
+    QCOMPARE(totalLeak->time(1), startMs + qint64(minutes.size()) * 60000);
     QCOMPARE(totalLeak->data(0), 17.0f);
     QCOMPARE(totalLeak->data(1), 17.0f);
 
@@ -489,7 +492,12 @@ void ApexTests::testLeakChannelMapping()
         ? summary.eventlist.value(CPAP_Leak).first()->count() : 0;
     p_profile = previousProfile;
 
-    QCOMPARE(detailedDerivedCount, 1);
+    // Both derived counts must stay at 2: gLineChart skips any event list with
+    // one sample or fewer, so a single derived point means no Leak Rate graph
+    // at all. This count is a direct function of the pressure channel's extent
+    // covering every CPAP_LeakTotal sample - do not relax it without checking
+    // what the daily graph actually renders.
+    QCOMPARE(detailedDerivedCount, 2);
     QCOMPARE(summaryDerivedCount, 2);
     QVERIFY(hasDerivedLeak);
     QCOMPARE(derivedLeakLists, 1);

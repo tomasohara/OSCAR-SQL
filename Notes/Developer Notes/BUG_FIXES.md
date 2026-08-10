@@ -5239,3 +5239,38 @@ matching the directory pattern, so an unrecognised code means a device nobody ha
 `Machine::suppressWarnOnUntested()` (`importcontext.cpp:237`), so a warning that
 reappears for a device already acknowledged points at a duplicate machine record
 rather than at this check.
+
+## 2026-08-09 - Apex XT: no Leak Rate graph on almost every session
+
+**Symptom:** after importing an XT Auto card, the Daily page showed the flat Total Leak
+line but no Leak Rate (unintentional leak) graph at all - except on one short session,
+where it appeared normally.
+
+**Root cause:** three things lining up. The device supplies only a session-average total
+leak, so `importLeakChannel()` represents it as two `CPAP_LeakTotal` samples, at the
+session start and at `rec.end`. `importMinuteDetail()` gives the pressure waveform a
+duration of exactly `minutes.size() * 60000`, which is honest but short: the device
+writes one to three fewer minute records than the session's wall-clock span. `calcLeaks()`
+(`calcs.cpp:1301`) derives a `CPAP_Leak` sample only where `TimeSeries::valueAt()` can
+resolve a pressure, and that lookup is bounded by the pressure list's own `first()` and
+`last()` (`calcs.cpp:1256-1264`). The trailing leak sample therefore fell past the end of
+the pressure waveform and was dropped, leaving a one-sample `CPAP_Leak` list - and
+`gLineChart` skips any list of one sample or fewer outright (`gLineChart.cpp:664`), so
+nothing was drawn.
+
+**Fix:** clamp the total-leak trace to the pressure waveform's extent,
+`qMin(rec.end, startMs + sampleDuration)`, so both synthetic traces end together and
+`calcLeaks()` resolves a pressure for both samples. Costs at most the final partial
+minute of a flat, session-average line. `qMin` is safe in both directions: when the
+decoded minutes outrun the session span, `rec.end` is already the smaller value.
+
+**Verified.** By decoding a real XT Auto card outside OSCAR: eight of its nine sessions
+had a minute count one to three short of the start-to-end span, and the ninth - the one
+session that rendered - was the only one where the two were exactly equal. The `<=`
+bound in `findEventListContaining()` is inclusive, which is why equality still worked.
+The reported symptom matched that split exactly, session for session.
+
+**Note:** the `.APF` timestamps carry no seconds field, so a session span is always a
+whole number of minutes. The shortfall is the device recording fewer minute records than
+the elapsed span, not rounding. `.APF` byte `0x0B` ("Duration - Util") does not account
+for it - it reads zero on every record while the shortfall varies from zero to three.
