@@ -233,13 +233,45 @@ bool parseSettings(const LogRecord &rec, Settings &out)
 
     if (rec.code == kLogSettingsChange) {
         if (rec.payload.size() < 6) { return false; }
-        out.minPressure  = byteAt(0) / 10.0f;
-        out.rampMinutes  = byteAt(1);
-        out.maxPressure  = byteAt(4) / 10.0f;
-        out.rampPressure = byteAt(5) / 10.0f;
+
+        // Payload index i is record byte 11 + i. The field order below is the
+        // S.Box's settings table, whose six vendor-printed snapshots vary every
+        // pressure and ramp field independently; the Reve's own records cannot
+        // establish it, because on that device the minimum pressure and the ramp
+        // start pressure are both 4.0 and the ramp duration and its echo are both
+        // 45. Reading the first of each pair therefore looks correct on every
+        // card held and is wrong in general -- and index 1 is the dangerous one,
+        // since the S.Box writes 0 there whenever the ramp mode is I.Ramp, which
+        // would suppress the ramp settings below.
+        out.rampPressure = byteAt(0) / 10.0f;   // record byte 11
+        out.rampMinutes  = byteAt(2);           // record byte 13
+        out.maxPressure  = byteAt(4) / 10.0f;   // record byte 15
+        out.minPressure  = byteAt(5) / 10.0f;   // record byte 16
+
         // Record byte 22. Two cards from the same device, differing only in the
         // humidifier level, differ in this byte and no other settings byte.
         if (rec.payload.size() > 11) { out.humidifierLevel = byteAt(11); }
+
+        // Record byte 21, bits 7-6, as level - 1. A card from the same device
+        // with Comfort Control Plus moved from level 2 to level 3 moved this
+        // field from 1 to 2, and the measured expiratory pressure relief rose
+        // past the range of all 34 preceding nights while the flow amplitude and
+        // the leak stayed put.
+        if (rec.payload.size() > 10) { out.comfortLevel = (byteAt(10) >> 6) + 1; }
+
+        // Record byte 10, the low half of the record's 16-bit argument -- which
+        // is a duration on apnoea records but two more settings bytes here. The
+        // theoretical mask leak is its low seven bits, in plain lpm: a card from
+        // the same device with the setting moved from 36 to 34 read 0xA4 then
+        // 0x22. Bit 7 changed at the same time and is not part of the value.
+        //
+        // Gated to the range the vendor manual documents for the setting. The
+        // reading is confirmed on one device family only, so a model that puts
+        // something else in this byte reports no mask leak rather than a wrong
+        // one.
+        const int leak = rec.arg & 0x7F;
+        if (leak >= 20 && leak <= 60) { out.maskLeak = leak; }
+
         out.valid = true;
         return true;
     }
@@ -305,6 +337,14 @@ bool readMemoryImage(const QString &path, QVector<SessionSummary> &out)
             s.maxPressure   = maxPressure / 10.0f;
             s.rampMinutes   = rampMinutes;
             s.rampPressure  = rampPressure / 10.0f;
+
+            // Word 30 is the rotated record's second word, the same field the
+            // Reve carries in log record byte 10 and on the same encoding: the
+            // theoretical mask leak in lpm, in the low seven bits. Confirmed on
+            // the Reve by a controlled 36 -> 34 change and inherited here, so it
+            // is range-gated to what the vendor manual documents.
+            const int maskLeak = be16(off + 30 * 2) & 0x7F;
+            if (maskLeak >= 20 && maskLeak <= 60) { s.maskLeak = maskLeak; }
         }
 
         s.minuteData.resize(minutes);

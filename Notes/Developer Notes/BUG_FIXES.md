@@ -4,6 +4,60 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-11 — SEFAM settings record: wrong field order, and two settings not imported
+
+**Files:** `oscar/SleepLib/loader_plugins/sefamDataParsing.cpp`,
+`sefamDataParsing.h`, `sefam_loader.cpp`, `sefam_loader.h`
+
+**Bug:** `parseSettings()` read the log settings record's payload index 0 as the
+**minimum pressure** and index 1 as the **ramp duration**. Those are in fact the ramp
+start pressure and a ramp-duration echo; the minimum is index 5 and the duration
+index 2. The mistake was invisible on every card held, because the one Rêve examined
+has minimum pressure equal to its ramp start (both 4.0) and ramp duration equal to its
+echo (both 45), so the two orders give identical numbers.
+
+**Why it mattered anyway.** Index 1 is not merely mislabelled: the S.Box writes **0**
+into the echo field whenever the ramp mode is I.Ramp, and the caller suppresses both
+`CPAP_RampTime` and `CPAP_RampPressure` when the value it reads is 0. A device in that
+mode would have silently reported no ramp settings at all. The minimum pressure would
+have been wrong on any Rêve whose ramp start differs from its minimum — the common
+case, since a ramp that starts at the therapy minimum is a ramp that does nothing.
+
+**How it was found.** A third card from the same device established that the Rêve's
+code 2 payload is the same 12-field record the S.Box keeps in its memory image, one
+byte per field instead of one uint16. The S.Box's six vendor-printed settings snapshots
+vary every pressure and ramp field independently, which fixes the order; the Rêve's own
+records never can. Align against the S.Box **archive block header**, not its settings
+table — the block header stores the record already rotated to the Rêve's byte order.
+Aligning against the table instead lands two positions off and still matches every
+pressure, which is exactly why it is worth writing down.
+
+**Also added:** two settings that are now confirmed, each by a controlled single-setting
+change on a card from the same device.
+
+- **Theoretical mask leak** — `SEFAM_MaskLeakSet` (0xe501, l/min), from record byte 10,
+  in plain lpm in the low seven bits. It sat unnoticed for two cards because bytes 9–10
+  are the log record's 16-bit argument, a duration on apnoea records, so the settings
+  payload was taken to begin at byte 11. Range-gated to the 20–60 lpm the vendor manual
+  documents, so a model that puts something else there reports nothing rather than a
+  wrong number. The S.Box gets it too, from block header word 30.
+- **Comfort Control Plus level** — `SEFAM_ComfortLevel` (0xe502), from record byte 21
+  bits 7–6 as level − 1. Confirmed twice over: the field moved 1 → 2 as the setting moved
+  2 → 3, and the measured per-breath expiratory pressure relief rose to 0.707 cmH₂O
+  against a 0.345–0.535 range across the 34 preceding nights, while flow amplitude and
+  leak stayed mid-range — so a mask change, the obvious confound, is excluded. Neither
+  CC+ nor the humidifier has an S.Box counterpart in that record; those two are extra
+  fields the Rêve appends past the twelve.
+
+**Verification:** the edited decode was simulated over the card before building. All 11
+code 2 records reproduce the vendor report exactly (ramp 4.0/45 min, 20.0/4.0, CC+ 2,
+mask leak 36) and pick up the last record's changes to CC+ 3 and 34 lpm, plus the
+humidifier history 4 → 5 → 4 → 7. All 467 S.Box archive blocks decode a mask leak of
+36 lpm with none out of range. Full analysis in
+`Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md`.
+
+---
+
 ## 2026-08-10 — Device images for the SEFAM Rêve and S.Box
 
 **Files:** `oscar/SleepLib/loader_plugins/sefam_loader.cpp`, `oscar/Resources.qrc`,

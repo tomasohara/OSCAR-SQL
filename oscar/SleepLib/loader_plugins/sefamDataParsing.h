@@ -139,16 +139,18 @@ enum LogCode {
 /*! \struct Settings
     \brief Therapy settings decoded from a log settings record.
 
-    Only fields confirmed against the manufacturer's printed settings are
-    represented. The comfort-level, patient-circuit and mask-leak bytes are
-    still positional guesses that no card examined so far can vary, so they are
-    deliberately absent — an unverified byte displayed as a therapy setting is
-    worse than showing nothing.
+    Only fields confirmed against the manufacturer's printed settings, or by a
+    controlled single-setting change on a card from the same device, are
+    represented. The patient-circuit and heated-tube bytes are still positional
+    guesses that no card examined so far can vary, so they are deliberately
+    absent — an unverified byte displayed as a therapy setting is worse than
+    showing nothing.
 
-    The humidifier level is the exception: a second card from the same device,
-    with only that one setting changed, moved exactly one settings byte by
-    exactly the amount the setting moved. See Notes/loaders/
-    SEFAM_REVE_CARD_ANALYSIS.md, "Humidifier level — byte 22". */
+    Three settings were pinned by the controlled-change method, each on its own
+    card: the humidifier level, the theoretical mask leak and the Comfort
+    Control Plus level. See Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md, sections
+    "Humidifier level — byte 22", "Theoretical mask leak — byte 10" and
+    "Comfort Control Plus — byte 21 bits 7–6". */
 struct Settings
 {
     bool  valid           = false;
@@ -157,6 +159,8 @@ struct Settings
     float rampPressure    = 0.0f;   //!< cmH2O
     int   rampMinutes     = 0;
     int   humidifierLevel = -1;     //!< 0 = off; -1 when the record omits it.
+    int   maskLeak        = -1;     //!< lpm; -1 when the record omits it.
+    int   comfortLevel    = -1;     //!< CC+ level, 1-4; -1 when the record omits it.
 };
 
 //! Offset of the session archive inside the device memory image, measured from
@@ -218,6 +222,7 @@ struct SessionSummary
     float maxPressure    = 0.0f;        //!< cmH2O
     float rampPressure   = 0.0f;        //!< cmH2O
     int   rampMinutes    = 0;           //!< 0 when the ramp is disabled.
+    int   maskLeak       = -1;          //!< lpm; -1 when out of the documented range.
 
     QVector<MinuteRecord> minuteData;
 };

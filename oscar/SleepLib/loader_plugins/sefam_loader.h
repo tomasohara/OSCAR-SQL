@@ -44,8 +44,16 @@ inline bool sefamModelIsValidated(const QString &modelCode)
         || modelCode == QLatin1String("1263R");
 }
 
-//! Humidifier level, the one accessory setting decoded from the card.
-extern ChannelID SEFAM_HumidLevel;
+/*! \name SEFAM accessory settings
+    The three settings decoded from the card's log settings record. Each was
+    pinned by a controlled single-setting change on a card from the same device;
+    see Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md. Patient circuit and heated
+    tube are the two the analyzer prints that remain undecoded.
+    @{ */
+extern ChannelID SEFAM_HumidLevel;    //!< Humidifier level, 0 = off.
+extern ChannelID SEFAM_MaskLeakSet;   //!< Theoretical mask leak at 12 cmH2O, l/min.
+extern ChannelID SEFAM_ComfortLevel;  //!< Comfort Control Plus level.
+/*! @} */
 
 /*! \class SefamLoader
     \brief Imports SEFAM CPAP SD cards.

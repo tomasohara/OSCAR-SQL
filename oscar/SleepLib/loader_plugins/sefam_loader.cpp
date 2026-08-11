@@ -153,7 +153,9 @@ void SefamLoader::Register()
     sefam_initialised = true;
 }
 
-ChannelID SEFAM_HumidLevel = 0;
+ChannelID SEFAM_HumidLevel   = 0;
+ChannelID SEFAM_MaskLeakSet  = 0;
+ChannelID SEFAM_ComfortLevel = 0;
 
 /*! \brief Register the SEFAM-specific settings channels.
 
@@ -185,6 +187,28 @@ void SefamLoader::initChannels()
     // with no option, so the numbered levels need no entries and a level beyond
     // the vendor manual's range of 10 would still display honestly.
     chan->addOption(0, STR_TR_Off);
+
+    // The mask's own published leak at 12 cmH2O, which the clinician enters so
+    // the device can subtract it. It is a configured number, not a measurement,
+    // so it is deliberately not related to CPAP_LeakTotal in any way.
+    Channel *leak = new Channel(SEFAM_MaskLeakSet = 0xe501, SETTING, MT_CPAP, SESSION,
+                                "SEFAM_MaskLeakSet", QObject::tr("Mask Leak Setting"),
+                                QObject::tr("Theoretical mask leak at 12 cmH2O"),
+                                QObject::tr("Mask Leak"), STR_UNIT_LPM, LOOKUP, Qt::black);
+    channel.add(GRP_CPAP, leak);
+
+    // Comfort Control Plus, SEFAM's expiratory pressure relief. Stored as the
+    // level the device menu shows, so no options are named -- Daily prints the
+    // raw number, which is what the user set.
+    //
+    // The short label is spelled out rather than abbreviated to "CC+": the
+    // Device Settings panel renders Channel::label(), and there is room for the
+    // full name there.
+    Channel *comfort = new Channel(SEFAM_ComfortLevel = 0xe502, SETTING, MT_CPAP, SESSION,
+                                   "SEFAM_ComfortLevel", QObject::tr("Comfort Control Plus"),
+                                   QObject::tr("Comfort Control Plus level"),
+                                   QObject::tr("Comfort Control Plus"), "", LOOKUP, Qt::black);
+    channel.add(GRP_CPAP, comfort);
 }
 
 QString SefamLoader::findSerialDir(const QString &path)
@@ -802,6 +826,12 @@ int SefamLoader::Open(const QString &path)
                 session->settings[CPAP_RampTime]     = summary->rampMinutes;
                 session->settings[CPAP_RampPressure] = summary->rampPressure;
             }
+            // The archive block carries the mask leak but neither the CC+ level
+            // nor the humidifier: those two are extra fields the Reve's log
+            // record has beyond the twelve this block repeats.
+            if (summary->maskLeak >= 0) {
+                session->settings[SEFAM_MaskLeakSet] = summary->maskLeak;
+            }
         } else if (lastKnown.valid) {
             // A-PAP is the only mode observed on any SEFAM card examined.
             session->settings[CPAP_Mode]        = MODE_APAP;
@@ -811,11 +841,17 @@ int SefamLoader::Open(const QString &path)
                 session->settings[CPAP_RampTime]     = lastKnown.rampMinutes;
                 session->settings[CPAP_RampPressure] = lastKnown.rampPressure;
             }
-            // Only the settings-change record carries this; a snapshot record
-            // leaves it at -1 and the session then shows no humidifier level
-            // rather than an inherited one.
+            // Only the settings-change record carries these; a snapshot record
+            // leaves them at -1 and the session then shows no accessory settings
+            // rather than inherited ones.
             if (lastKnown.humidifierLevel >= 0) {
                 session->settings[SEFAM_HumidLevel] = lastKnown.humidifierLevel;
+            }
+            if (lastKnown.maskLeak >= 0) {
+                session->settings[SEFAM_MaskLeakSet] = lastKnown.maskLeak;
+            }
+            if (lastKnown.comfortLevel >= 0) {
+                session->settings[SEFAM_ComfortLevel] = lastKnown.comfortLevel;
             }
         }
         // Sessions before the first settings record on a card carry no settings

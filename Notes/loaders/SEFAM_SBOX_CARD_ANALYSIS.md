@@ -289,11 +289,34 @@ implementation.
 | 8 | 130 = the apnoea response pressure the report prints as 13.0 cmH₂O | constant | constant |
 | 9 | **differs per device** — unassigned | 184 | 185 (1 in the factory slot) |
 | 10 | **differs per device** — unassigned | 50 | 80 |
-| 11 | varies within a card — unassigned | 164, and 0 in the last slot | 164, 40, 0 |
+| 11 | theoretical mask leak, lpm in bits 0–6 (see below) | 164 → 36 lpm | 164 → 36, 40 → 40 |
 
-Words 0–8 are the confirmed part. Words 9–11 are where the still-unidentified
-accessory settings must live, and word 9 or 10 differing between two devices is
-the first positive evidence that any of them is a setting rather than padding.
+Words 0–8 were the confirmed part. **Word 11 was identified later, on the Rêve**,
+whose code 2 log record turned out to be this same record with one byte per field
+instead of one uint16 — see "The settings record is the S.Box's table" in
+`SEFAM_REVE_CARD_ANALYSIS.md`. There it is byte 10, and it was pinned by a
+controlled change of the setting from 36 to 34 lpm.
+
+The reading cannot be *confirmed* here, because no S.Box report prints the mask
+leak. What can be checked is consistency, and it holds: **every non-zero word 11
+across the two devices decodes to an even number of lpm inside the documented
+20–60 range** — 164 is `0x80 | 36`, and 40 is 40. The manual specifies the
+setting in steps of 2, and both values are even. Three values, two devices, no
+exceptions. All 467 archive blocks on card A decode 36 lpm with none out of
+range.
+
+**Word 10 is *not* the CC+ level, despite an obvious temptation to read it that
+way.** The Rêve's CC+ byte lies past the end of this twelve-field record, in the
+extra bytes that model appends; the position that lines up with word 10 is the
+Rêve's byte 9, which is unassigned on both models. See the alignment table in the
+Rêve note, and the warning under it about the two-position error. Word 9 is
+likewise unassigned.
+
+**Word 11 is the one field whose position had to be read across the record
+boundary** in this table: it sits immediately *before* the next slot's ramp start
+pressure. The archive block header stores the same record already rotated, with
+words 10 and 11 leading, which is the Rêve's own byte order and is what settled
+the alignment.
 
 Decoded, the twelve slots read:
 
@@ -370,15 +393,20 @@ can only be applied as "current" — and on this card the settings changed three
 times inside a six-day period, so attributing per-session settings would be
 wrong today.
 
-**Still unidentified:** humidifier level, Comfort Control Plus, patient circuit
-diameter and heated-tube presence. Only card A has a report, so there is no
-labelled value to match card B's differing words against — the same wall the
-Rêve note describes under "Why the remaining comfort and accessory settings
-cannot be decoded". What card B narrows is *where* to look: **words 9 and 10**,
-which differ between the two devices while words 6, 7 and 8 do not. Word 6 or 7
-holding 60 on both cards is at least consistent with the Rêve's mask-leak
-candidate (0.6 lpm per count, 60 → 36 lpm, and card A's report prints 36 lpm),
-but consistency is not confirmation.
+**Still unidentified:** humidifier level, patient circuit diameter and
+heated-tube presence. Only card A has a report, so there is no labelled value to
+match card B's differing words against — the same wall the Rêve note describes
+under "What is left, and why the remaining two are hard". What card B narrowed
+was *where* to look: **words 9, 10 and 11**, which differ between the two devices
+while words 6, 7 and 8 do not. One of those three has since been named on the
+Rêve — word 11 is the theoretical mask leak — leaving **words 9 and 10**.
+
+~~Word 6 or 7 holding 60 on both cards is consistent with the Rêve's mask-leak
+candidate, 0.6 lpm per count giving 36 lpm.~~ **That reading is dead.** Words 6
+and 7 held 60 on a Rêve across a mask-leak change from 36 to 34 lpm, so they are
+an unrelated constant on both models. The 60 × 0.6 = 36 arithmetic was a
+coincidence, and a persuasive one — it is recorded here only so it is not
+rediscovered and believed a second time.
 
 ---
 
@@ -556,8 +584,11 @@ behave as the Rêve note describes and neither resembles an event marker.
    49-byte log-record shape; the second said byte 2 could not be decoded, on the
    strength of six blocks rather than all 470.)*
 2. **Humidifier, Comfort Control Plus, patient circuit and heated tube** are
-   unassigned. Words 9 and 10 are the place to look; assigning them needs a card
-   whose accessory settings are independently known.
+   unassigned, and the first two may not be in this record at all — on the Rêve
+   they sit past its twelfth field, in bytes the S.Box does not carry here. The
+   theoretical mask leak has been located in word 11 (see "Layout"). Words 9 and
+   10 are the remaining place to look, and assigning them needs a card whose
+   accessory settings are independently known.
 3. **The settings table's slot ordering** is still not understood. The offset is
    now confirmed on two devices, and "last non-zero slot" gives the right
    current settings on both, but the ring's write order does not.
@@ -571,12 +602,14 @@ behave as the Rêve note describes and neither resembles an event marker.
 ## What would still help
 
 - **An S.Box card with one accessory setting deliberately changed** — the method
-  that pinned the Rêve's humidifier byte. Words 9 and 10 are the target, and a
-  single controlled change would settle one of them outright.
+  that pinned three of the Rêve's fields, three times out of three. Words 9 and 10
+  are the target, and a single controlled change would settle one outright.
 - **An analyzer report for card B**, or for any second S.Box. Card B's therapy
-  pressures are now corroborated, but its humidifier, Comfort Control Plus,
-  circuit and heated-tube values are unknown, which is the only reason words 9
-  and 10 remain unassigned.
+  pressures are now corroborated, but its humidifier, CC+, circuit and
+  heated-tube values are unknown, which is the only reason words 9 and 10 remain
+  unassigned. Such a report would also *confirm* word 11 on this model rather
+  than leaving it inherited from the Rêve — it prints the mask leak, which is
+  exactly what that reading predicts.
 - **A card whose analyzer report shows a settings change at a known session
   boundary**, to test whether change times can be inferred rather than read.
 - **Confirmation of whether the analyzer scores events itself.** If it does, the
