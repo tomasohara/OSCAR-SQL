@@ -224,6 +224,18 @@ bool SefamLoader::Detect(const QString &path)
     return false;
 }
 
+/*! \brief Normalise an .INI "Created By" value for matching.
+    \return e.g. "REVE_AUTO " -> "REVEAUTO"; empty if the input was empty.
+
+    The S.Box writes "S.Box_AUTO" where the Rêve writes "REVE_AUTO ", so case
+    and punctuation are stripped once here rather than every spelling being
+    listed at each call site. */
+static QString sefamModelKey(const QString &createdBy)
+{
+    QString key = createdBy.trimmed().toUpper();
+    return key.remove('.').remove('_').remove(' ');
+}
+
 /*! \brief Turn an .INI "Created By" value into a display model name.
     \return e.g. "REVE_AUTO " -> "Rêve Auto"; empty if the input was empty.
 
@@ -232,15 +244,40 @@ bool SefamLoader::Detect(const QString &path)
     meaningful rather than a blank. */
 static QString sefamModelName(const QString &createdBy)
 {
-    // Normalise: the S.Box writes "S.Box_AUTO", so strip punctuation before
-    // matching rather than listing every spelling.
-    QString key = createdBy.trimmed().toUpper();
+    const QString key = sefamModelKey(createdBy);
     if (key.isEmpty()) { return QString(); }
-    key.remove('.').remove('_').remove(' ');
 
     if (key == "REVEAUTO") { return QString::fromUtf8("Rêve Auto"); }
     if (key == "SBOXAUTO") { return QStringLiteral("S.Box Auto"); }
     return createdBy.trimmed();
+}
+
+/*! \brief Which distributor's brand to display for a SEFAM-built device.
+    \param createdBy  The .INI "Created By" value; may be empty.
+    \param modelCode  Hardware model code, the card's top-level directory name.
+    \return "Sanrai" for the Rêve Auto, "Sefam" for everything else.
+
+    A SEFAM card carries no brand string anywhere — not in the .INI, not in the
+    device memory image — so the brand cannot be read off the card and has to be
+    decided per model. The Rêve Auto reaches its owners as the Sanrai Rêve Auto:
+    Sanrai Med relabels a SEFAM unit with an applied sticker, so "Sanrai" is the
+    only name on the device the user ever sees, and that is the name OSCAR shows.
+    Everything else stays "Sefam" until a card turns up that says otherwise.
+
+    Either signal alone identifies the Rêve, because PeekInfo() resolves the
+    model code before it reads any .INI: a card whose .INI will not parse is
+    still branded correctly from its directory name, and a card in an unexpected
+    directory is still branded correctly from its .INI.
+
+    Only info.brand is affected. info.series stays "Sefam" because that is what
+    keys the device-pixmap lookup in MachineLoader::getPixmap(). */
+static QString sefamBrandName(const QString &createdBy, const QString &modelCode)
+{
+    if (sefamModelKey(createdBy) == QLatin1String("REVEAUTO")
+        || modelCode == QLatin1String("1279R")) {
+        return QStringLiteral("Sanrai");
+    }
+    return QStringLiteral("Sefam");
 }
 
 MachineInfo SefamLoader::PeekInfo(const QString &path)
@@ -256,6 +293,10 @@ MachineInfo SefamLoader::PeekInfo(const QString &path)
     // device-pixmap lookup in MachineLoader::getPixmap() and must stay "Sefam".
     const QString modelCode = QFileInfo(dir.absolutePath()).dir().dirName();
     info.properties[QStringLiteral("ModelCode")] = modelCode;
+
+    // "Created By" names the model and also decides the brand, so it outlives
+    // the loop below. It stays empty if no session yields a readable header.
+    QString createdBy;
 
     const QStringList sessions =
         dir.entryList(QStringList("DATA_*"), QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
@@ -273,7 +314,8 @@ MachineInfo SefamLoader::PeekInfo(const QString &path)
 
         // Model name comes from the .INI, which is plain text and not obfuscated.
         QSettings ini(sess.absoluteFilePath(s + ".INI"), QSettings::IniFormat);
-        const QString model = sefamModelName(ini.value("Create Info/Created By").toString());
+        createdBy = ini.value("Create Info/Created By").toString();
+        const QString model = sefamModelName(createdBy);
         info.modelnumber = model.isEmpty() ? modelCode : model;
         info.model       = info.modelnumber;
 
@@ -286,6 +328,7 @@ MachineInfo SefamLoader::PeekInfo(const QString &path)
         info.modelnumber = modelCode;
         info.model       = modelCode;
     }
+    info.brand = sefamBrandName(createdBy, modelCode);
     return info;
 }
 
@@ -551,7 +594,9 @@ int SefamLoader::Open(const QString &path)
         dir.entryList(QStringList("DATA_*"), QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
     sortSessionDirs(dirs);   // chronological, not lexical — see above
 
-    emit updateMessage(QObject::tr("Reading SEFAM card..."));
+    // Brand, not "SEFAM": the user sees "Sanrai" everywhere else for a Rêve, so
+    // the manufacturer's name here would look like a different device.
+    emit updateMessage(QObject::tr("Reading %1 card...").arg(info.brand));
     emit setProgressMax(dirs.size());
     emit setProgressValue(0);
 

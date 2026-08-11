@@ -19,10 +19,47 @@ Treat SEFAM and Sanrai as one device family, the way `prisma_loader.cpp` covers
 both Weinmann and Löwenstein.
 
 Note the card itself carries **no brand string at all**: the only identity on it
-is `REVE_AUTO`, the model code `1279R`, and the serial. Detection is unaffected
-(the model code and `#03/` header are a solid fingerprint), but whatever brand
-OSCAR displays is a naming choice rather than something read from the data, and
-users will report this machine under either name.
+is `REVE_AUTO`, the model code `1279R`, and the serial. This was re-checked
+across the whole sample collection — no SEFAM-family card, and no byte of either
+memory image, contains "Sefam" or "Sanrai". Detection is unaffected (the model
+code and `#03/` header are a solid fingerprint), but whatever brand OSCAR
+displays is a naming choice rather than something read from the data, and users
+will report this machine under either name.
+
+**Decision (2026-08-10): OSCAR shows this device as a "Sanrai Rêve Auto".**
+Since the brand cannot be read off the card, `sefamBrandName()` in
+`sefam_loader.cpp` decides it per model: `Created By=REVE_AUTO` or model code
+`1279R` gives brand `Sanrai`, and every other SEFAM-family device stays `Sefam`
+until a card turns up that argues otherwise. The reasoning is that Sanrai is the
+only name printed on the unit its owner actually has, so it is the name they
+will look for. `resvent_loader.cpp` resolves the same Hoffrichter/Resvent
+question the same way, per model.
+
+Two consequences worth knowing:
+
+- A **French-market Rêve, sold under SEFAM's own name, would also display as
+  "Sanrai"** — the loader cannot tell them apart. The working hypothesis is that
+  this case does not arise, because SEFAM's own equivalent is sold as the
+  **Néa**: if `REVE_AUTO` only ever ships relabelled, "Sanrai" is right every
+  time. **This is unverified** — no Néa card has ever been seen, and whether the
+  Néa even shares this platform is itself unconfirmed (see the settings-menu
+  section below, which borrows from a Néa manual on exactly that assumption).
+  Waiting on more users; revisit the rule if a SEFAM-branded Rêve turns up.
+
+  Nothing needs changing to be ready for a Néa card: it would carry neither
+  `REVE_AUTO` nor `1279R`, so `sefamBrandName()` already returns "Sefam" for it,
+  and `sefamModelIsValidated()` already returns false, which raises the
+  untested-device warning and prompts the user for a sample.
+- Only `info.brand` changes. `info.series` stays `"Sefam"`, because that is what
+  keys the device-pixmap lookup in `MachineLoader::getPixmap()`.
+
+The brand is written to the `machines` row when the device record is first
+created, and that row is never rewritten afterwards — `Machine::SaveToDatabase()`
+refreshes series, model, model number and serial on an existing record but not
+brand. A device imported before this change therefore keeps showing "Sefam";
+re-importing into a fresh profile is the way to pick up the new name. That was
+judged acceptable rather than worth a migration, since the loader has only ever
+shipped in the v2.0.2 draft.
 **Loader:** `sefam_loader.cpp` / `sefamDataParsing.cpp`, added 2026-08-03 from
 this analysis. Design: `Notes/loaders/SEFAM_LOADER_DESIGN.md`. **Awaiting testing
 by a real user** — everything below was verified against this one card and the

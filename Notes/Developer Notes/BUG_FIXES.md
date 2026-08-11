@@ -4,6 +4,49 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-10 — SEFAM Rêve Auto now displays as "Sanrai"
+
+**Files:** `oscar/SleepLib/loader_plugins/sefam_loader.cpp`
+
+**Change (not a bug):** OSCAR showed every SEFAM-family device under the brand "Sefam".
+The Rêve Auto reaches its owners as the **Sanrai Rêve Auto** — Sanrai Med relabels a SEFAM
+unit with an applied sticker — so "Sanrai" is the only brand printed on the machine the
+user actually has, and the name they will look for.
+
+**Constraint:** the brand cannot be read from the card. A SEFAM card's only identity is
+`Created By` (e.g. `REVE_AUTO`), the model code directory name, and the serial. Verified
+by searching the whole sample collection: neither "Sefam" nor "Sanrai" appears in any card
+file or in either device memory image. The brand therefore has to be decided per model.
+
+**Fix:** new `sefamBrandName()` returns `"Sanrai"` when `Created By` normalises to
+`REVEAUTO` **or** the model code is `1279R`, and `"Sefam"` otherwise. Two signals rather
+than one because `PeekInfo()` resolves the model code before it reads any `.INI`, so a card
+with an unreadable `.INI` is still branded from its directory name. The `Created By`
+normalisation was factored out of `sefamModelName()` into `sefamModelKey()` so both share
+it. `resvent_loader.cpp` resolves Hoffrichter vs Resvent the same way, per model.
+
+The import progress message was hardcoded to `"Reading SEFAM card..."` and now reads
+`"Reading %1 card..."` with the resolved brand, so it does not contradict the brand shown
+on every other page. It was the loader's only brand-specific user-visible string; the
+others are the humidifier channel names and "Creating data backup...".
+
+`info.series` deliberately stays `"Sefam"` — it is what keys the device-pixmap lookup in
+`MachineLoader::getPixmap()`. The SEFAM loader registers no pixmap of its own today, so
+that lookup already falls through to the generic CPAP image, but `series` is the wrong
+field to carry a distributor name regardless.
+
+**Known limits, both accepted:**
+
+- A French-market Rêve sold under SEFAM's own name would also show as "Sanrai". Nothing on
+  the card distinguishes the two; revisit if such a card appears.
+- The brand is written when the `machines` row is created and never rewritten —
+  `Machine::SaveToDatabase()` refreshes series, model, model number and serial on an
+  existing record but not brand. A device imported before this change keeps showing
+  "Sefam" until it is re-imported into a fresh profile. Not worth a migration: the SEFAM
+  loader has only ever shipped in the v2.0.2 draft.
+
+---
+
 ## 2026-08-10 — Calendar colours not refreshed after Purge Range of Days (#267)
 
 **Files:** `oscar/daily.cpp`, `oscar/daily.h` (new `Daily::updateCalendarDays()`),

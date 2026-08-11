@@ -22,6 +22,12 @@ wrong slot. The counts themselves were checked separately against the
 manufacturer's report, and the matching and decoding logic was simulated over
 both sample cards before it was built.
 
+**Branding:** OSCAR displays this device as a **Sefam** S.Box Auto. Only the Rêve
+Auto is rebranded, to "Sanrai" — see the Branding section of
+`SEFAM_REVE_CARD_ANALYSIS.md` for why, and for the rule `sefamBrandName()`
+applies. No S.Box card seen so far carries any distributor marking, and the
+vendor report for one of them came from *Sefam Analyze*.
+
 ### Matching sessions to archive blocks
 
 A block carries no timestamp, so it is matched to a directory by minute count,
