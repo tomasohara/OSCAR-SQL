@@ -65,6 +65,9 @@ shipped in the v2.0.2 draft.
 
 ### Device images (added 2026-08-10)
 
+**Built and confirmed rendering the same day** — both the Rêve and the S.Box show
+their own photo.
+
 Three photos live in `oscar/icons/` and are bound in through `Resources.qrc`:
 `sanrai-reve.png`, `sefam-sbox.png`, `sefam-nea.png`. All lower case, matching
 the convention of every other icon in that directory — the filenames must match
