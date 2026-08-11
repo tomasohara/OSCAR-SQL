@@ -1140,6 +1140,17 @@ void Daily::UpdateCalendarDay(QDate date)
 ***/
     ui->calendar->setHorizontalHeaderFormat(QCalendarWidget::ShortDayNames);
 }
+
+// Refreshes the calendar appearance for a list of dates whose data has changed
+// outside of the normal load/unload cycle (for example after a range purge).
+void Daily::updateCalendarDays(const QList<QDate> &dates)
+{
+    for (const QDate &date : dates) {
+        if (date.isValid())
+            UpdateCalendarDay(date);
+    }
+}
+
 void Daily::LoadDate(QDate date)
 {
     DEBUGXD O("Daily::LoadDate") O(date);

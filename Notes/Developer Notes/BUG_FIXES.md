@@ -4,6 +4,32 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-10 — Calendar colours not refreshed after Purge Range of Days (#267)
+
+**Files:** `oscar/daily.cpp`, `oscar/daily.h` (new `Daily::updateCalendarDays()`),
+`oscar/mainwindow.cpp` (`MainWindow::on_actionPurgeRangeOfDays_triggered()`)
+
+**Symptom:** After `Data ▸ Advanced ▸ Purge Range of Days...`, the purged days kept their
+old colour and font attributes in the Daily view calendar. Selecting one of the purged days
+and then moving off it repainted that single day correctly, so the underlying data really
+was gone — only the calendar was stale.
+
+**Root cause:** `Daily::UpdateCalendarDay()` had exactly two callers.
+`Daily::on_calendar_currentPageChanged()` repaints a whole month, but is only reached when
+the displayed month actually changes; `Daily::LoadDate()` calls it solely when
+`date.month() != previous_date.month()`. The other caller is `Daily::Unload()`, which
+repaints a single date. The range purge finished with `daily->LoadDate(viewDate)`, so the
+only date that ever got repainted was `previous_date`, by way of the `Unload()` inside
+`on_ReloadDay()`. Every other purged day kept the `QTextCharFormat` stored for it in the
+calendar until the user paged to another month and back.
+
+**Fix:** Added `Daily::updateCalendarDays(const QList<QDate> &dates)`, which calls
+`UpdateCalendarDay()` for each supplied date, and called it from the range purge with the
+`purgedDates` list that the purge loop already builds. Single-day purge was traced and left
+alone — it purges `previous_date`, which the existing `Unload()` path already repaints.
+
+---
+
 ## 2026-08-02 — BMC G3X air tube type located and decoded
 
 **Files:** `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp` (`DecodeTsBlock()`),

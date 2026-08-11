@@ -2486,6 +2486,10 @@ void MainWindow::on_actionPurgeRangeOfDays_triggered()
     if (type == MT_JOURNAL)
         daily->clearJournalNotesEditor();
 
+    // Only the day being reloaded below gets its calendar entry refreshed, so
+    // repaint every purged date to clear the stale colour and font attributes.
+    daily->updateCalendarDays(purgedDates);
+
     daily->clearLastDay();
     daily->LoadDate(viewDate);
     if (overview)
