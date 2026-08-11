@@ -4,6 +4,45 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-10 — Device images for the SEFAM Rêve and S.Box
+
+**Files:** `oscar/SleepLib/loader_plugins/sefam_loader.cpp`, `oscar/Resources.qrc`,
+`oscar/icons/sanrai-reve.png`, `oscar/icons/sefam-sbox.png`, `oscar/icons/sefam-nea.png`
+
+**Change (not a bug):** SEFAM devices showed the generic CPAP image, because the loader
+registered no pixmap. Three device photos were supplied and are now bound in through
+`Resources.qrc`. Filenames are all lower case, matching every other icon in that
+directory; a case mismatch between file and `.qrc` entry is invisible on Windows and
+fatal on the case-sensitive platforms OSCAR ships to.
+
+**Mechanism:** `MachineLoader::getPixmap()` keys on `MachineInfo::series`, so a device
+needing its own image needs its own series value — the arrangement `prs1_loader.cpp` and
+`intellipap_loader.cpp` already use. Every consumer of `series` was checked first: the
+image lookup, database persistence, an XML export, and a ResMed-only S9 test in
+`welcome.cpp:58`. It is displayed nowhere in the UI, so it is free to use as a key.
+
+`SefamLoader`'s constructor registers the images against `kSeriesReve` / `kSeriesSBox` /
+`kSeriesNea`, and `PeekInfo()` assigns the same constants — deliberately the same symbols
+on both sides, because the AirSense 11 icon was once invisible when `PeekInfo()` produced
+`"AirSense11"` while the hash was keyed `"AirSense 11"` (see the 3-part ResMed icon entry
+later in this log).
+
+Brand and image are now both derived from one `sefamModelOf()` answer returning a
+`SefamModel` enum, rather than two parallel string rules that could drift as models are
+added. Model-code matching was extended to `1200R` / `1263R` for the S.Box so that a card
+with an unreadable `.INI` still gets its image.
+
+Unlike brand, series **does** reach an already-imported device: `Machine::SaveToDatabase()`
+includes it in the fields it refreshes on an existing record.
+
+**The Néa image ships deliberately unreachable.** No Néa card has ever been seen, so
+nothing assigns `kSeriesNea` and an unrecognised model keeps series `"Sefam"`, matches no
+entry, and falls through to the generic image. Using the Néa photo as the SEFAM default
+was considered and rejected: it would show an unconfirmed device's photo for whatever
+turned up. Recognising a Néa is a one-line addition to `sefamModelOf()`.
+
+---
+
 ## 2026-08-10 — SEFAM Rêve Auto now displays as "Sanrai"
 
 **Files:** `oscar/SleepLib/loader_plugins/sefam_loader.cpp`
@@ -34,6 +73,8 @@ others are the humidifier channel names and "Creating data backup...".
 `MachineLoader::getPixmap()`. The SEFAM loader registers no pixmap of its own today, so
 that lookup already falls through to the generic CPAP image, but `series` is the wrong
 field to carry a distributor name regardless.
+*(Superseded the next day — device photos were added and `series` became one value per
+device. See the entry above.)*
 
 **Known limits, both accepted:**
 

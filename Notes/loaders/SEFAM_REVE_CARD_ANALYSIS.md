@@ -50,8 +50,10 @@ Two consequences worth knowing:
   `REVE_AUTO` nor `1279R`, so `sefamBrandName()` already returns "Sefam" for it,
   and `sefamModelIsValidated()` already returns false, which raises the
   untested-device warning and prompts the user for a sample.
-- Only `info.brand` changes. `info.series` stays `"Sefam"`, because that is what
-  keys the device-pixmap lookup in `MachineLoader::getPixmap()`.
+- `info.series` is **not** a brand field — it keys the device-image lookup in
+  `MachineLoader::getPixmap()`. It stayed `"Sefam"` for one day, then became one
+  value per device when the device photos were added (2026-08-10); see "Device
+  images" below.
 
 The brand is written to the `machines` row when the device record is first
 created, and that row is never rewritten afterwards — `Machine::SaveToDatabase()`
@@ -60,6 +62,42 @@ brand. A device imported before this change therefore keeps showing "Sefam";
 re-importing into a fresh profile is the way to pick up the new name. That was
 judged acceptable rather than worth a migration, since the loader has only ever
 shipped in the v2.0.2 draft.
+
+### Device images (added 2026-08-10)
+
+Three photos live in `oscar/icons/` and are bound in through `Resources.qrc`:
+`sanrai-reve.png`, `sefam-sbox.png`, `sefam-nea.png`. All lower case, matching
+the convention of every other icon in that directory — the filenames must match
+the `.qrc` entries exactly or the images vanish on case-sensitive filesystems,
+which is most of the platforms OSCAR ships to.
+
+`MachineLoader::getPixmap()` keys on `MachineInfo::series`, so each device that
+needs its own image needs its own series value. `series` is an internal key —
+nothing in the UI displays it, and its only other reader is a ResMed-specific
+S9 check in `welcome.cpp` — so `sefam_loader.cpp` now assigns one per device
+(`kSeriesReve`, `kSeriesSBox`, `kSeriesNea`). Both the registration and the
+assignment read the same constants, which is deliberate: the AirSense 11 icon
+was once invisible because `PeekInfo()` produced `"AirSense11"` while the icon
+hash was keyed `"AirSense 11"` (`BUG_FIXES.md`, 3-part ResMed icon entry).
+
+Unlike brand, **series does propagate to an existing `machines` row** —
+`Machine::SaveToDatabase()` includes it in the fields it refreshes — so an
+already-imported device picks up its image on the next import even though it
+keeps its old brand.
+
+**The Néa image is deliberately unreachable.** No Néa card has ever been seen,
+so nothing assigns `kSeriesNea`; an unrecognised SEFAM model keeps series
+`"Sefam"`, matches no entry, and falls through to the generic CPAP image. Using
+the Néa photo as the SEFAM default was considered and rejected — it would put a
+photo of an unconfirmed device against whatever turned up. Recognising a Néa is
+a one-line addition to `sefamModelOf()` once we know its `Created By` or model
+code.
+
+Worth recording: **the Néa and Rêve product photos show the same physical
+machine** — same wedge case, same touchscreen layout, same side port, differing
+only in the printed logo. That is supporting evidence for the Néa hypothesis
+above, though marketing photography is not proof of identical internals.
+
 **Loader:** `sefam_loader.cpp` / `sefamDataParsing.cpp`, added 2026-08-03 from
 this analysis. Design: `Notes/loaders/SEFAM_LOADER_DESIGN.md`. **Awaiting testing
 by a real user** — everything below was verified against this one card and the

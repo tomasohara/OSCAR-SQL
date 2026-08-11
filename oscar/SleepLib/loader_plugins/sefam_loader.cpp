@@ -25,6 +25,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QPair>
+#include <QPixmap>
 #include <QRegularExpression>
 #include <QSettings>
 
@@ -86,9 +87,45 @@ constexpr float kBlowerOffPressure       = 2.0f;   //!< cmH2O; below this = stop
 constexpr int   kBlowerOffMinimumSeconds = 10;     //!< Ignore shorter excursions
 /*! @} */
 
+/*! \defgroup sefam_series Device-image lookup keys
+    \brief MachineInfo::series values, one per device we hold an image of.
+
+    MachineLoader::getPixmap() keys on `series`, so a device needing its own
+    image needs its own series value — the arrangement prs1_loader.cpp and
+    intellipap_loader.cpp already use. This is an internal key and nothing in
+    the UI displays it, but it is written to the machines table, so keep it
+    ASCII. A model with no entry here keeps the plain "Sefam" series, matches
+    nothing in m_pixmaps, and falls through to the generic CPAP image.
+    @{ */
+static const QString kSeriesReve = QStringLiteral("Sanrai Reve");
+static const QString kSeriesSBox = QStringLiteral("Sefam S.Box");
+static const QString kSeriesNea  = QStringLiteral("Sefam Nea");
+/*! @} */
+
 static bool sefam_initialised = false;
 
-SefamLoader::SefamLoader()  { m_type = MT_CPAP; }
+SefamLoader::SefamLoader()
+{
+    m_type = MT_CPAP;
+
+    const QString REVE_ICON = ":/icons/sanrai-reve.png";
+    const QString SBOX_ICON = ":/icons/sefam-sbox.png";
+    const QString NEA_ICON  = ":/icons/sefam-nea.png";
+
+    m_pixmap_paths[kSeriesReve] = REVE_ICON;
+    m_pixmaps[kSeriesReve]      = QPixmap(REVE_ICON);
+    m_pixmap_paths[kSeriesSBox] = SBOX_ICON;
+    m_pixmaps[kSeriesSBox]      = QPixmap(SBOX_ICON);
+
+    // No Néa card has ever been seen, so nothing assigns kSeriesNea and this
+    // entry is currently unreachable. It is registered anyway so that teaching
+    // the loader to recognise a Néa is a one-line change in sefamModelOf().
+    // Side by side, the Néa and the Rêve are visibly the same hardware under
+    // different logos, which is the basis for expecting the two to import alike.
+    m_pixmap_paths[kSeriesNea] = NEA_ICON;
+    m_pixmaps[kSeriesNea]      = QPixmap(NEA_ICON);
+}
+
 SefamLoader::~SefamLoader() = default;
 
 /*! \brief Sort DATA_nnn directory names into chronological order.
@@ -252,9 +289,44 @@ static QString sefamModelName(const QString &createdBy)
     return createdBy.trimmed();
 }
 
-/*! \brief Which distributor's brand to display for a SEFAM-built device.
+namespace {
+//! Which SEFAM-built device a card came from, as far as the card reveals.
+enum class SefamModel {
+    Reve,       //!< Rêve Auto, sold relabelled as the Sanrai Rêve Auto.
+    SBox,       //!< S.Box AUTO.
+    Unknown     //!< Anything else — imports best-effort and warns.
+};
+}   // namespace — internal linkage, this type is private to the loader
+
+/*! \brief Identify the device from the only two identifiers a card carries.
     \param createdBy  The .INI "Created By" value; may be empty.
     \param modelCode  Hardware model code, the card's top-level directory name.
+
+    Brand and device image both hang off this one answer, so they cannot drift
+    apart as models are added. Either signal alone is enough, because PeekInfo()
+    resolves the model code before it reads any .INI: a card whose .INI will not
+    parse is still identified from its directory name, and a card in an
+    unexpected directory is still identified from its .INI.
+
+    A Néa would land in Unknown — no Néa card has ever been seen, so its
+    identifiers are not known. Adding it here is all that is needed to give it
+    its brand and its image, both of which are already in place. */
+static SefamModel sefamModelOf(const QString &createdBy, const QString &modelCode)
+{
+    const QString key = sefamModelKey(createdBy);
+
+    if (key == QLatin1String("REVEAUTO") || modelCode == QLatin1String("1279R")) {
+        return SefamModel::Reve;
+    }
+    if (key == QLatin1String("SBOXAUTO")
+        || modelCode == QLatin1String("1200R")
+        || modelCode == QLatin1String("1263R")) {
+        return SefamModel::SBox;
+    }
+    return SefamModel::Unknown;
+}
+
+/*! \brief Which distributor's brand to display for a SEFAM-built device.
     \return "Sanrai" for the Rêve Auto, "Sefam" for everything else.
 
     A SEFAM card carries no brand string anywhere — not in the .INI, not in the
@@ -262,20 +334,25 @@ static QString sefamModelName(const QString &createdBy)
     decided per model. The Rêve Auto reaches its owners as the Sanrai Rêve Auto:
     Sanrai Med relabels a SEFAM unit with an applied sticker, so "Sanrai" is the
     only name on the device the user ever sees, and that is the name OSCAR shows.
-    Everything else stays "Sefam" until a card turns up that says otherwise.
-
-    Either signal alone identifies the Rêve, because PeekInfo() resolves the
-    model code before it reads any .INI: a card whose .INI will not parse is
-    still branded correctly from its directory name, and a card in an unexpected
-    directory is still branded correctly from its .INI.
-
-    Only info.brand is affected. info.series stays "Sefam" because that is what
-    keys the device-pixmap lookup in MachineLoader::getPixmap(). */
-static QString sefamBrandName(const QString &createdBy, const QString &modelCode)
+    Everything else stays "Sefam" until a card turns up that says otherwise. */
+static QString sefamBrandName(SefamModel model)
 {
-    if (sefamModelKey(createdBy) == QLatin1String("REVEAUTO")
-        || modelCode == QLatin1String("1279R")) {
-        return QStringLiteral("Sanrai");
+    return model == SefamModel::Reve ? QStringLiteral("Sanrai")
+                                     : QStringLiteral("Sefam");
+}
+
+/*! \brief Which device image to show, expressed as the series lookup key.
+    \return A \ref sefam_series key, or plain "Sefam" for an unrecognised model.
+
+    An unrecognised model deliberately gets no image of its own: showing a photo
+    of a device nobody has confirmed would be a guess, and the generic CPAP
+    image is the honest answer. */
+static QString sefamSeriesName(SefamModel model)
+{
+    switch (model) {
+    case SefamModel::Reve:    return kSeriesReve;
+    case SefamModel::SBox:    return kSeriesSBox;
+    case SefamModel::Unknown: break;
     }
     return QStringLiteral("Sefam");
 }
@@ -289,8 +366,9 @@ MachineInfo SefamLoader::PeekInfo(const QString &path)
     QDir dir(serialDir);
 
     // The hardware model code (e.g. "1279R") is the parent directory name. It is
-    // kept as a property rather than in `series`, because `series` drives the
-    // device-pixmap lookup in MachineLoader::getPixmap() and must stay "Sefam".
+    // kept as a property rather than in `series`, because `series` is reserved
+    // for the device-image lookup key — see \ref sefam_series — and several
+    // model codes can share one image.
     const QString modelCode = QFileInfo(dir.absolutePath()).dir().dirName();
     info.properties[QStringLiteral("ModelCode")] = modelCode;
 
@@ -328,7 +406,11 @@ MachineInfo SefamLoader::PeekInfo(const QString &path)
         info.modelnumber = modelCode;
         info.model       = modelCode;
     }
-    info.brand = sefamBrandName(createdBy, modelCode);
+    // Brand and device image are both decided by which device this is, so they
+    // are resolved from a single answer rather than two parallel rules.
+    const SefamModel device = sefamModelOf(createdBy, modelCode);
+    info.brand  = sefamBrandName(device);
+    info.series = sefamSeriesName(device);
     return info;
 }
 
