@@ -186,29 +186,71 @@ per-breath `.evt` `0x0C`/`0x0D` records trace a curve resembling tidal volume.
 
 ### Vendor-confirmed against PAP-Link
 
-A contributor supplied a PAP-Link plot of Monitored Tidal Volume (mL), Minute
-Ventilation (L/min) and Respiratory Rate (BPM) over a 42-minute window, which the
-raw fields reproduce feature for feature with **no scaling beyond OSCAR's existing
-gains**:
+PAP-Link plots of Monitored Tidal Volume (mL), Minute Ventilation (L/min) and
+Respiratory Rate (BPM) were compared against the raw fields over the same window.
+At a zoom level where PAP-Link prints the value under the cursor, the readout is
+**byte-exact against the raw uint16 — no rounding, offset or derived quantity**:
 
-| Feature | PAP-Link | Raw field |
-|---|---|---|
-| Opening tidal-volume peak | ~1150 mL | `0x52C` = 1188 |
-| Opening minute-ventilation peak | ~25 L/min | `0x52E` = 260 |
-| Opening respiratory-rate peak | ~26 BPM | `0x530` = 27 |
-| Later tidal-volume spike | ~1050 mL | `0x52C` = 1069 |
-| Matching ventilation bump | ~7.5 L/min | `0x52E` = 84 |
-| Settled 19-minute stretch | ~150–200 mL / ~3 L/min / ~17 BPM | 178 / 30 / 17 |
+| Channel | Field | Raw at that second | PAP-Link readout |
+|---|---|---|---|
+| Monitored Tidal Volume | `0x52C` | 596 | `596.0` mL |
+| Minute Ventilation | `0x52E` | 189 | `18.9` L/min |
+| Respiratory Rate | `0x530` | 24 | `24.0` BPM |
+
+The minute-ventilation case is the decisive one: 189 displays as 18.9, not 19.0,
+which fixes the gain at exactly 0.1 rather than any nearby value. Six further
+features across a 42-minute window agree — peaks of 1188/260/27 raw against
+plotted ~1150 mL / ~25 L/min / ~26 BPM, a later spike of 1069/84 against
+~1050 mL / ~7.5 L/min, and a settled 19-minute stretch at 178/30/17 raw against
+~150–200 mL / ~3 L/min / ~17 BPM.
 
 So `0x52C` is millilitres read directly (gain 1.0), `0x52E` is tenths of L/min
 (gain 0.1) and `0x530` is BPM (gain 1.0) — exactly what `bmc_loader.cpp` already
 applies when it creates `CPAP_TidalVolume`, `CPAP_MinuteVent` and `CPAP_RespRate`.
 The finding retires open question 1 without changing any behaviour.
 
-### The three fields are internally consistent
+### All three are per-breath values, refreshed together
 
-`0x52E` behaves as a **moving average of `0x52C × 0x530 / 100` with an effective
-window of about 60 seconds**:
+The packet stream is 1 Hz, but these three fields are **per-breath measurements
+held constant across the packets spanning each breath**. Card-wide (371 359
+packets):
+
+- `0x52C` holds its value for a median of 3.0 s and a mean of 3.19 s (68% of holds
+  are exactly 3 packets, 15% are 2, 12% are 4). The card's median respiratory rate
+  is 19 BPM, a breath period of 3.16 s.
+- `0x52E` changes **only** at instants where `0x52C` also changes — 830 exceptions
+  in 60 909 changes. It is refreshed on the same per-breath tick and simply lands
+  on the same tenth of a litre for consecutive breaths about half the time.
+- Cross-checked against the `.evt` stream on the reference night, `0x52C` changes
+  7 782 times against 7 982 `0x0C` inspiration records: **0.97 updates per breath**,
+  landing a median 1.33 s after the `0x0D` that closes the breath.
+
+### Minute ventilation is *not* computed from the other two
+
+`0x52E ≈ 0x52C × 0x530 / 100` holds well in settled breathing, but that is the
+physical definition of minute ventilation, **not the arithmetic the device
+performs**. At session start the two fields go live at different times:
+
+| Observation | Result (49 session starts) |
+|---|---|
+| `0x52E` live in the same packet as `0x52C` | **49 / 49** |
+| `0x530` live strictly later than `0x52E` | **49 / 49** |
+| `0x530` lag behind `0x52C` | 5–10 s, median **7 s** |
+
+For those seconds the device reports a real minute ventilation while the rate
+field still reads zero — 2 255 packets card-wide, median 10.0 L/min and up to
+58.9 L/min, every one of which would compute to 0.0 from `TV × RR / 100`. The
+rate estimator needs roughly two breaths before it will publish; ventilation is
+available immediately, so it is derived independently of the reported rate
+(flow integration over a trailing window being the obvious candidate).
+
+**Do not recompute any one of these fields from the other two.** The relation is
+useful for reasoning about them and for sanity-checking a decode, nothing more.
+
+### How closely the relation does hold
+
+Treating `0x52E` as a moving average of `0x52C × 0x530 / 100`, the best-fitting
+window is about 60 seconds:
 
 | Averaging window | median `MV / (TV·RR/100)` | within ±5% |
 |---|---|---|
@@ -225,24 +267,20 @@ the one short awake recording where the values sit far outside the normal range
 (TV 640, RR 27, MV 184; ratio 1.0094), which rules out a coincidence of the
 resting distribution.
 
-**A plain 60-second box filter is an approximation, not the device's actual
-filter.** In settled breathing it is near-exact — spot ratios of 1.029, 0.989,
-0.937 and 1.008 at four points in the PAP-Link window above. Through a mask-on
-transient, where tidal volume swings 27–721 mL and rate 9–20 BPM second to second,
-it scatters between 0.72 and 1.64 while the reported minute ventilation decays
-smoothly from 26 to 3 L/min. The device is evidently using a breath-weighted or
-exponentially-weighted average rather than a box car over the 1 Hz reported
-values. Use the relation to reason about the fields, not to recompute one from
-the others.
+In settled breathing the 60-second box filter is near-exact — spot ratios of
+1.029, 0.989, 0.937 and 1.008 at four points in the PAP-Link window. Through a
+mask-on transient, where tidal volume swings 27–721 mL and rate 9–20 BPM second to
+second, it scatters between 0.72 and 1.64 while the reported minute ventilation
+decays smoothly from 26 to 3 L/min. Given the startup evidence above, that
+divergence is expected: the box filter is a description of where two independently
+derived signals happen to agree, not a reconstruction of either.
 
-### Update cadence
+### `0x52C` is not an average of the `.evt` breath records
 
-`0x52C` changes on 7 782 of 23 271 one-second packet steps on the reference
-night, against 7 982 `0x0C` inspiration records — **0.97 updates per breath**.
-The field is therefore a per-breath measurement held constant between breaths,
-not a rolling average: smoothing the per-breath `.evt` series over 3–45 breaths
-*lowers* its correlation with `0x52C` monotonically (r 0.845 → 0.641). The
-update lands a median 1.33 s after the `0x0D` that closes the breath.
+Smoothing the per-breath `.evt` `0x0C`/`0x0D` `value2` series over 3–45 breaths
+*lowers* its correlation with `0x52C` monotonically (r 0.845 → 0.641), so the
+waveform field is an instantaneous per-breath measurement rather than a rolling
+mean of the event stream. See `BMC_G3X_EVT_FORMAT.md` §3b.
 
 ---
 
@@ -300,7 +338,7 @@ BMC firmware writes the same `uint16` value into two consecutive `uint16` slots 
 
 ## 9) Known Open Questions
 
-1. ~~Confirmed scale factors for Tidal Volume (`0x52C`) and Minute Ventilation (`0x52E`)~~ — **answered 2026-08-12** (§5a), confirmed against a PAP-Link plot: `0x52C` is millilitres and `0x52E` is tenths of L/min. OSCAR's existing gains (1.0 and 0.1) are correct. What remains unknown is the exact filter behind `0x52E` — it tracks a ~60 s average of `0x52C × 0x530 / 100` in settled breathing but not through transients.
+1. ~~Confirmed scale factors for Tidal Volume (`0x52C`) and Minute Ventilation (`0x52E`)~~ — **answered 2026-08-12** (§5a), byte-exact against a PAP-Link cursor readout: `0x52C` is millilitres and `0x52E` is tenths of L/min. OSCAR's existing gains (1.0 and 0.1) are correct. What remains unknown is how `0x52E` is derived — it is independent of the reported rate field (it goes live 5–10 s before it), and tracks a ~60 s average of `0x52C × 0x530 / 100` only because that is what minute ventilation physically is.
 2. Semantic meaning of `0x546` (range 512–1023, bounded counter or bitfield?).
 3. Whether any additional paired `uint16` instances exist beyond `0x76C`/`0x76E`.
 4. Whether `0x76C`/`0x76E` represent titrated target pressure, smoothed actual pressure, or something else.
