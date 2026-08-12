@@ -3,7 +3,7 @@
 **Status:** Reverse-engineered; not vendor-documented.
 **Scope:** `<serial>.evt` event/telemetry stream produced by BMC G3X cards.
 **Implementation:** `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp`
-**Last updated:** 2026-08-08 (0x11-0x13 breath tick tag; 0x02 day sequence; 0x1A milliseconds; 0x43 span durations)
+**Last updated:** 2026-08-12 (0x0C/0x0D value2 characterised; 0x11-0x13 breath tick tag; 0x02 day sequence; 0x1A milliseconds; 0x43 span durations)
 
 ---
 
@@ -127,8 +127,8 @@ The table below reflects analysis of two nights of G3X data (file `A3112345678` 
 | `0x09` | Confirmed | `CPAP_PB` | Timestamp ms (§2a) | **uint32 LE duration, ms** — `value2` (0x1C) = low 16 bits, `unk1e` (0x1E) = high 16 bits (confirmed 2026-03-30 via Lijunjun and Kavolodin data) | **Periodic breathing episode start marker.** Timestamp marks the **START** of the episode, consistent with all other respiratory event types. Duration is a uint32 spanning offsets 0x1C–0x1F (reading only the low 16 bits gives wrong durations ~28s/23s; uint32 gives correct ~159s/154s matching PAP-Link on Lijunjun 2026-03-16). Primary PB source in OSCAR. Confirmed on Lijunjun (B20A SC.75) and Kavolodin (A20) data. |
 | `0x0A` | Confirmed | `CPAP_RERA` | Timestamp ms (§2a) | **Duration, ms** (confirmed 2026-03-25; ~11 000 ms observed, ≈10 s per PAP-Link) | **Respiratory Effort Related Arousal.** Confirmed 2026-03-24: present in all five independently identified RERA windows from PAP-Link (JCCPAP data, 2026-02-12 through 2026-02-24). Two records at 02:59 and 03:10 on OSCAR day 2/22 match two PAP-Link RERAs on the same night. Duration confirmed ~10 seconds (PAP-Link). ~1–3 records/night on well-treated nights; up to ~200+ on nights with heavy FL. |
 | `0x0B` | Unknown | Not decoded | Timestamp ms (§2a) | Multiples of 20, range 400–1060; **not** duration | Frequency varies dramatically night to night (1–1,439/night in JCCPAP; only 3 in G3X-2 on 2026-02-20). On high-FL nights fires once per breath alongside `0x0E` (mild FL), sharing the same value at `0x11`-`0x13` (the breath tick tag, §3a). Not a RERA marker (absent from confirmed RERA windows). value2/1000 = 0.4–1.1 s — sub-second, consistent with per-breath timing (breath period), not event duration. Not observed in B33BF123456 reference file. |
-| `0x0C` | Per-breath inspiration | Timestamps collected; not decoded to channels | — | varies | [8308]; mirrors `0x0D` count. **Not a leak source.** Timestamp collected into `rawInspirationTimestamps` for potential future AASM-based PB detection but not currently used. The value at `0x11`-`0x13` is the breath tick tag that pairs this record with its `0x0D` (§3a). |
-| `0x0D` | Unknown | Not decoded | — | — | [8308]; mirrors `0x0C`. Per-breath expiration event; carries the same tick tag as the `0x0C` it closes (§3a). |
+| `0x0C` | Per-breath inspiration | Timestamps collected; not decoded to channels | Timestamp ms (§2a) | **value2 = a per-breath volume-like magnitude** (§3b); `unk1e` always 0 | [8308]; mirrors `0x0D` count. **Not a leak source.** Timestamp collected into `rawInspirationTimestamps` for potential future AASM-based PB detection but not currently used. The value at `0x11`-`0x13` is the breath tick tag that pairs this record with its `0x0D` (§3a). |
+| `0x0D` | Per-breath expiration | Not decoded | Timestamp ms (§2a) | **value2 = a per-breath volume-like magnitude** (§3b); `unk1e` always 0 | [8308]; mirrors `0x0C`. Carries the same tick tag as the `0x0C` it closes (§3a). |
 | `0x0E` | Confirmed | `CPAP_FLG` (Mild) | Timestamp ms (§2a) | **Inspiration duration (Ti), ms** — multiples of 20 ms; median 1.62 s; decreases with FL severity (confirmed 2026-03-26). **Used** as bar width in OSCAR. | **Mild flow limitation.** Confirmed by PAP-Link alignment on two sessions (G3X-2 2026-02-20: 376 events matching PAP-Link mild pattern; JCCPAP 2025-12-20: 181 events). Timestamp = end-of-expiration trough; bar plots forward by value2 ms to cover the inspiratory peak. |
 | `0x0F` | Confirmed | `CPAP_FLG` (Moderate) | Timestamp ms (§2a) | **Ti, ms** — multiples of 20 ms; median 1.42 s. **Used** as bar width. | **Moderate flow limitation.** Confirmed: G3X-2 2026-02-20 yielded 22 events vs PAP-Link 21; JCCPAP 2025-12-20 yielded 11 events. |
 | `0x10` | Confirmed | `CPAP_FLG` (Severe) | Timestamp ms (§2a) | **Ti, ms** — multiples of 20 ms; median 1.18 s; wider spread than mild/moderate. **Used** as bar width. | **Severe flow limitation.** Confirmed: G3X-2 2026-02-20 yielded 6 events vs PAP-Link 5; JCCPAP 2025-12-20 yielded 5 events. |
@@ -195,6 +195,61 @@ absolute error of 5.2 pp on the average and 4.4 pp on the median, 16.6 pp on the
 per-day maxima of 650%–4700% against a true 62%–107%. The markers are detection instants,
 not the flow-derived breath timing the device summarises. Publishing channels built from
 them would repeat the mistake that led to `packetIePermille` being hardcoded to 0.
+
+---
+
+## 3b) `value2` on the Breath Records (`0x0C` / `0x0D`)
+
+A contributor plotted `(timestamp, value2)` for `0x0C` alone, `0x0D` alone, and the
+two together, and reported that all three traces resemble the tidal-volume waveform
+without being identical to it, with the ranges looking like a linear transformation
+of each other. Investigated 2026-08-12 on the reference cards.
+
+The resemblance is real, the linear transformation is not exact, and following it up
+produced a useful result in a different file — see `BMC_G3X_00X_FORMAT.md` §5a, where
+the tidal volume and minute ventilation **scale factors are now settled**. The
+per-breath records themselves stay undecoded.
+
+### What the field is
+
+`value2` is populated on every `0x0C` and `0x0D` record (241 080 of 241 080 on the
+reference card), `unk1e` is always zero, and the values are not quantised to any step:
+
+| | min | p05 | median | p95 | max | distinct |
+|---|---|---|---|---|---|---|
+| `0x0C` | 21 | 145 | 239 | 457 | 1452 | 964 |
+| `0x0D` | 21 | 102 | 249 | 438 | 1711 | 1091 |
+
+Correlation against the waveform tidal volume field (`0x52C`), sampled two seconds
+after the breath, is r = +0.817 for `0x0C`, +0.776 for `0x0D` and **+0.845 for the
+sum** — high, but nothing like an identity. Only 0.8% / 2.5% of tidal-volume updates
+take a value that any nearby breath record also carries, and `(v2C + v2D) / TV` spans
+1.20–2.22 (median 1.64). So the two are different measurements of the same underlying
+quantity, not the same number in different units.
+
+### Three readings ruled out
+
+- **Not Ti / Te.** Against the timestamp-measured inspiration time the correlation is
+  only r = +0.351. Reconstructing the day's I/E as `v2C / (v2C + v2D)` and comparing
+  against the device's own daily figures (IDX `0x140`–`0x146`, §9 open question 9)
+  gives MAE 9.2 pp on the average, 7.6 pp on the median and 14.1 pp on the maximum —
+  *worse* than the tag-paired timestamp reconstruction in §3a (5.2 / 4.4 pp), and the
+  reconstruction sits at 46–53% on every night while the device reports 32–50%. This
+  does **not** answer open question 9.
+- **Not a leak-uncompensated volume.** If the waveform field were the leak-corrected
+  version of this one, the gap between them would track leak. It does not:
+  `(v2C + v2D) / TV` against leak gives r = −0.002 (`0x52A`) and +0.017 (`0x568`),
+  and against pressure trend r = −0.007.
+- **Not the source the waveform field averages.** Smoothing the per-breath series over
+  3–45 breaths lowers the correlation monotonically (0.845 → 0.641), so `0x52C` is an
+  instantaneous per-breath value, not a mean of these.
+
+### Why it is not worth decoding further
+
+OSCAR already reads tidal volume directly from the waveform at 1 Hz, and §5a of the
+`.00x` note shows that field updates once per breath in lockstep with these records.
+A second per-breath proxy for a channel we already carry adds nothing, and no linear
+map from `value2` to it survives the residual analysis above.
 
 ---
 
@@ -353,7 +408,7 @@ to need it.
 
 ## 9) Known Open Questions
 
-1. Exact function of `0x0C` and `0x0D` — the 1:1 mirrored count and regular cadence (~1/sec) suggests they may encode per-breath or per-second status, but the values do not map to the BMC leak display.
+1. Exact function of `0x0C` and `0x0D`. Partly narrowed 2026-08-12 (§3b): `value2` is a per-breath magnitude that correlates strongly with tidal volume (r = +0.845 for the pair sum) but is not a linear function of it, is not Ti/Te, is not leak-related, and is not what the waveform field averages. Low priority — OSCAR already carries tidal volume from the waveform.
 2. **What quantity `0x43` segments.** Structure resolved 2026-08-07 (§4a): the record is a start timestamp plus a uint32 ms duration, and consecutive records tile the session. The measurement itself has not been found; the only unexplained field left in the record is the uint16 at `0x12`.
 3. Whether the duration field semantics (`value2` in milliseconds) hold consistently across all firmware versions.
 4. ~~Whether `0x40` / `0x41` appear more than once per file~~ — **answered 2026-08-07**: yes, many times (63 pairs over 19 days on the reference card), and the firmware injects a pair at the noon boundary. See §6.
@@ -361,7 +416,7 @@ to need it.
 6. Whether `0x09` is absent on SC.72 firmware (same firmware generation that lacks `0x44`), or whether it exists but was not observed in available SC.72 test data.
 7. ~~Whether `unk1e` in `0x43` encodes a high duration word~~ — **answered 2026-08-07**: it does. See §4a.
 8. Cause of the single `0x09` record carrying `seq = 0` at `0x02` where its neighbours carry the correct day index (§2b). One occurrence in 246,260 records.
-9. Where the **per-sample** I:E ratio lives in the waveform packet. The daily summary is settled: the IDX day record carries I/E as percent x 10 at `0x140` (max), `0x142` (average), `0x144` (P95) and `0x146` (median), confirmed 2026-08-08 against a PAP-Link readout — see `BMC_G3X_IDX_File_Layout.md`. Those four values are an oracle for the per-sample field: the right offset is the one whose per-day statistics reproduce them. Ruled out so far: waveform tidal volume (`0x52C`), and Ti/Te reconstructed from tag-paired breath markers (§3a). Until it is found the G3X path exports no I:E, Ti or Te — `packetIePermille` is hardcoded to 0.
+9. Where the **per-sample** I:E ratio lives in the waveform packet. The daily summary is settled: the IDX day record carries I/E as percent x 10 at `0x140` (max), `0x142` (average), `0x144` (P95) and `0x146` (median), confirmed 2026-08-08 against a PAP-Link readout — see `BMC_G3X_IDX_File_Layout.md`. Those four values are an oracle for the per-sample field: the right offset is the one whose per-day statistics reproduce them. Ruled out so far: waveform tidal volume (`0x52C`), Ti/Te reconstructed from tag-paired breath markers (§3a), and `value2` on the breath records read as Ti/Te (§3b). Until it is found the G3X path exports no I:E, Ti or Te — `packetIePermille` is hardcoded to 0.
 
 ---
 
