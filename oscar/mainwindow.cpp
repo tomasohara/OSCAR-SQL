@@ -598,15 +598,24 @@ bool MainWindow::OpenProfile(QString profileName)
     ensureCleanDatabaseState();
 
     auto pit = Profiles::profiles.find(profileName);
-    if (pit == Profiles::profiles.end())
+    if (pit == Profiles::profiles.end()) {
+        // The selector lists profiles straight from the database, so an entry can be
+        // clicked that Profiles::Scan() declined to load - most often because its data
+        // folder could not be resolved or no longer exists. Without this the click
+        // simply does nothing and the log ends at "Opening profile".
+        qWarning() << "OpenProfile:" << profileName
+                   << "is listed but was not loaded by Profiles::Scan(); check earlier"
+                   << "log lines for a skipped profile directory";
         return false;
+    }
 
     Profile * prof = pit.value();
     if (p_profile) {
         if ((prof != p_profile)) {
             CloseProfile();
         } else {
-            // Already open
+            // Already open - not an error, but the caller still sees a false return.
+            qDebug() << "OpenProfile:" << profileName << "is already open";
             return false;
         }
     }
@@ -623,6 +632,8 @@ bool MainWindow::OpenProfile(QString profileName)
 
     prof = profileSelector->SelectProfile(profileName);
     if (!prof) {
+        qWarning() << "OpenProfile: profileSelector->SelectProfile() returned null for"
+                   << profileName;
         return false;
     }
 
@@ -637,6 +648,8 @@ bool MainWindow::OpenProfile(QString profileName)
                     QObject::tr("You can only work with one instance of an individual OSCAR profile at a time.")+"\n\n"+
                     QObject::tr("If you are using cloud storage, make sure OSCAR is closed and syncing has completed first on the other computer before proceeding."),
                     QMessageBox::Cancel |QMessageBox::Ok, QMessageBox::Cancel) == QMessageBox::Cancel) {
+                qDebug() << "OpenProfile:" << profileName
+                         << "cancelled by user at the lockfile prompt; lock held by" << lockhost;
                 return false;
             }
         } // not worried about localhost locks anymore, just silently drop it.

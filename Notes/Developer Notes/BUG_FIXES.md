@@ -5438,3 +5438,81 @@ The reported symptom matched that split exactly, session for session.
 whole number of minutes. The shortfall is the device recording fewer minute records than
 the elapsed span, not rounding. `.APF` byte `0x0B` ("Duration - Util") does not account
 for it - it reads zero on every record while the shortfall varies from zero to three.
+
+## 2026-08-12 - Profile on a network share could not be opened (#268)
+
+**Symptom:** with the OSCAR data folder on a Windows network share, startup logged
+`Profile directory does not exist` followed by `Skipping profile ... - directory was
+deleted`, and `Profiles::Scan()` loaded 0 profiles. The profile still appeared in the
+profile selector, but clicking it did nothing - the log showed `Opening profile` with
+nothing after it.
+
+**Root cause:** `ProfileRepository::resolvePath()` normalised the resolved path by hand,
+ending with an unconditional loop that collapsed every `//` to `/`. On a UNC path the
+leading `//` is significant: `//server/share/...` became `/server/share/...`, which
+names nothing, so `QDir::exists()` returned false. The profile was skipped and never
+entered `Profiles::profiles`. The selector populates its list straight from the
+`profiles` table rather than from memory, which is why the entry stayed visible; the
+subsequent `MainWindow::OpenProfile()` lookup missed and returned false without a
+message (`mainwindow.cpp:600-602`).
+
+Two log lines from the same run made the diagnosis: the connections log opened fine at
+`//server/share/.../logs/connections/devices.xml` while the profile check reported
+`/server/share/.../Profiles/<name>`, differing only in the leading slash. That also
+ruled out the data folder's non-default name, which was the initial suspicion - the same
+directory name resolved correctly one line earlier.
+
+**Fix:** delegate normalisation to `QDir::cleanPath()`, which converts native separators
+and collapses redundant slashes while preserving a UNC prefix on platforms that support
+one. This matches `RecentDatabases::canonicalize()` (`recent_databases.cpp:19`) and every
+other path-normalising site in the codebase; `resolvePath()` was the only one hand-rolling
+it. No database change is needed, because `data_folder` is stored portably as
+`%PROFDIR%/<username>` and only the resolution step was at fault.
+
+**Scope:** the bug reaches any profile whose data folder sits on a UNC path, and dates
+from the function's introduction (`973749d6`) rather than from a recent change. A drive
+letter mapped to the share avoids it, since that path has no `//` prefix.
+
+**Second change, forced by the first:** `cleanPath()` also strips a trailing slash, and
+the "profile contains no data and cannot be removed" guard in
+`ProfileSelector::on_buttonDestroyProfile_clicked()` compared against
+`GetAppData() + "/Profiles/"` - with one. A row resolving to the Profiles directory
+itself would have slipped past the guard and offered the whole directory for deletion.
+The comparison now cleans both sides, which also closes the same hole on the other
+branch of that function, where the path comes from `STR_GEN_DataFolder` and carries no
+trailing slash - so it never matched the guard to begin with.
+
+**How the UNC behaviour was confirmed:** by reading Qt 6.10.2's own sources rather than
+from the API docs. `QDir::cleanPath()` calls `qt_cleanPath()` (`qdir.cpp:2380`), which
+normalises with `QDirPrivate::DefaultNormalization` - note that Qt 5's `AllowUncPaths`
+flag no longer exists. UNC handling instead lives in `rootLength()`: under Windows rules
+and outside URL mode, a leading `//` makes the server name part of the root prefix, and
+`qt_normalizePathSegments()` only collapses slashes *after* that prefix. The `//` is
+therefore preserved on Windows and, as before, collapsed on Unix, where the form has no
+meaning. `qt_cleanPath()` also converts native separators, so dropping the manual
+`replace("\\", "/")` loses nothing on Windows; on Unix a backslash is a legal filename
+character and is now correctly left alone.
+
+**Not a Qt 5 to Qt 6 regression.** The broken code is plain `QString::contains()` and
+`QString::replace()`, which behave identically under both. It is also new code: 1.7.1
+has no `resolvePath()` and no `%PROFDIR%` anywhere, and its `Profiles::Scan()` enumerates
+the Profiles directory with `entryInfoList()` and takes each entry's
+`canonicalFilePath()`, so it never manipulates a path as a string and a network-share
+data folder worked. What exposed the bug was the 1.7 to 2.0 migration itself - profile
+discovery moved from directory enumeration to resolving a stored portable path.
+
+If anything the Qt-version angle runs the other way: `QDir::cleanPath()`, the call that
+should have been used from the start, has been UNC-safe on Windows in both versions.
+Qt 5.15 passed an explicit `AllowUncPaths` flag to `qt_normalizePathSegments()`
+(`qdir.cpp:2361`); Qt 6.10 dropped that flag and folded the same rule into `rootLength()`.
+Different implementations, same result - so nothing here needs a version guard, and the
+fix would be correct in 1.7.1 too if that branch ever grows the same code.
+
+**Silent failure, fixed alongside:** `MainWindow::OpenProfile()` returned false without a
+word when a listed profile was absent from `Profiles::profiles`, which is what made this
+present as a dead click whose log ended at `Opening profile`. Every early exit now leaves
+a trace: a `qWarning` when the profile is listed but was not loaded (pointing the reader
+back at the skipped-directory lines above it) and when `SelectProfile()` returns null; a
+`qDebug` for the two non-error exits, the profile already being open and the user
+cancelling at the lockfile prompt. The two pre-existing `qCritical` exits were already
+covered.
