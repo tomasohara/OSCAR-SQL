@@ -959,7 +959,9 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     BmcRespiratoryEvent pbEvt;
                     pbEvt.EventType       = BmcRespiratoryEventType::PB;
                     pbEvt.StartTime       = evtTime;
-                    pbEvt.DurationSeconds = static_cast<int>(durationMs / 1000);
+                    // Round to the nearest second (matching the respiratory event path in
+                    // Phase 2); OSCAR stores event durations as whole seconds.
+                    pbEvt.DurationSeconds = static_cast<int>(durationMs / 1000.0 + 0.5);
                     pbEvt.EndTime         = pbEvt.StartTime.addSecs(pbEvt.DurationSeconds);
                     rawPbEvents.append(pbEvt);
                     break;

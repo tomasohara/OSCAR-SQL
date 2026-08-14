@@ -4,6 +4,44 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-14 — BMC G3X periodic breathing duration truncated instead of rounded
+
+**File:** `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp`
+
+**Bug:** the EVT 0x09 periodic-breathing marker carries its episode length as a uint32
+millisecond count, and the conversion to OSCAR's whole-second event duration used integer
+division:
+
+```cpp
+pbEvt.DurationSeconds = static_cast<int>(durationMs / 1000);
+```
+
+Every PB episode was therefore reported up to one second short — a 159 900 ms episode
+became 159 s. The respiratory-event path a few hundred lines further down already rounded
+(`static_cast<int>(rawEvt.Value2Millis / 1000.0 + 0.5)`), so the same field was being
+converted by two different rules in the same file. The PB path was the odd one out.
+
+**Fix:** round to nearest in the PB path as well, matching the respiratory-event
+conversion, with a comment recording why whole seconds is the target.
+
+**Why whole seconds at all** — this is a property of OSCAR's event storage, not of the
+BMC format. `EventList::AddEvent()` takes an `EventStoreType`, which is `typedef qint16`
+(`machine_common.h:29`), and every loader creates the apnea/hypopnea/PB channels with the
+default gain of 1.0, so the stored integer *is* the number of seconds. The constraint is
+reinforced by the daily Flow Rate overlay, which reads `rawData()` and hard-codes the
+raw value as seconds without consulting the gain — `Y = X - (qint64(raw) * 1000.0L)` for
+spans (`gLineOverlay.cpp:131`) and `double d1 = jj * double(raw) * 1000.0` for flags
+(`:212`), with the hover tooltip printing `raw` verbatim (`:237`). A loader that tried to
+smuggle sub-second resolution through a fractional gain would render correctly in
+`Session::sum()`-based statistics, which do apply gain (`session.cpp:2132`), and
+incorrectly on the graph.
+
+**Impact:** cosmetic and small — at most one second per PB episode, in the span drawn on
+the Flow Rate graph and anything summing PB duration. Worth fixing because the
+inconsistency between the two conversions in one file is a trap for the next reader.
+
+---
+
 ## 2026-08-13 — SEFAM S.Box: patient circuit imported, decoded via the vendor software
 
 **Files:** `oscar/SleepLib/loader_plugins/sefamDataParsing.cpp`, `sefamDataParsing.h`,
