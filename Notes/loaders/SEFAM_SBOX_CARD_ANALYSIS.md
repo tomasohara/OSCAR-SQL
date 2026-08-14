@@ -143,7 +143,10 @@ full therapy settings block in the clear, and it is how a clinician's PC pushes 
 settings change onto a card for the device to pick up.
 
 This was established directly: *Sefam Analyze* 4.4.2, driven with no device
-attached, writes `upload.dat` and **does not touch `.RAM` or `.BKP`**.
+attached, writes `upload.dat` and **does not touch `.RAM` or `.BKP`**. The card
+being edited is identified by the software as a *patient card*; the manual also
+documents a *maintenance card* for configuring a fleet of devices, and whether
+that path writes the same structure has not been checked.
 
 ```
 0x000        0x19, constant
@@ -212,6 +215,46 @@ settings word 9 — see "Layout". **The two accessory levels do not**: they sit 
 clinician's software wrote and cannot be recovered from a card the device
 produced on its own.
 
+### The patient access lock, and how the ramp is stored
+
+Two further fields were settled the same way.
+
+**The patient access lock is bit 4 of the ramp-mode field.** Two writes differing
+only in the software's "Editable by the patient" checkbox moved byte 0x22D from
+**8** to **24** — bit 4 alone, set meaning the patient *cannot* change the ramp,
+Comfort Control Plus or Intelligent Start. The single checkbox governs all three
+settings together, so this is one flag, not the three the vendor manual's wording
+implies.
+
+That value transfers to the memory image, 0x22D being settings word 3, and it
+explains the one mode value this note could never place: card B's factory slot
+holds **28**, which is 12 (I.Ramp) with bit 4 set. It also explains the Rêve's
+byte 14, unexplained in that note since the first card — see "Byte 14 bit 4 is
+the patient access lock" there.
+
+**Ramp OFF is stored as duration zero, not as a mode.** A write made with both
+ramp settings off carries word 2 = 0, word 1 = 0 and the mode byte still reading
+8. That matches card A's own history exactly: the vendor report prints "Disabled"
+for precisely the slots whose table entries are mode 8 with word 2 = 0. There is
+no separate "off" mode value.
+
+**The practitioner and patient ramp times were not captured.** The software's
+Parameters panel offers a *Practitioner* setting — `OFF`, `I.Ramp`, or
+`T.Ramp Maxi` 5 to 45 minutes in steps of 5 — and a separate *Patient* setting
+limited to values at or below it, which reduces to On/Off when the mode is
+I.Ramp. That structure predicts word 2 is the practitioner ceiling and word 1 the
+patient's selection, which would fit every card seen: the I.Ramp slots carry
+word 1 = 0, and the T.Ramp slots carry word 1 = word 2, a patient who left it at
+the maximum. The vendor's API agrees, exporting `GetMaxRampTime` on one class and
+`GetRampTime` on another.
+
+**It is not confirmed.** Attempts to write a practitioner maximum of 45 with a
+patient value of 20 produced files whose ramp bytes stayed at zero, and marking
+the pressure section as changed turned both ramp settings off without them being
+touched. Until a write lands with the two values differing, "word 1 echoes the
+duration in T.Ramp" and "word 1 is the patient's own selection" both fit, and
+`parseSettings()` continues to report word 2.
+
 ### The file is a write command, not a snapshot
 
 **A field's byte means something only when that write was carrying it.** This is
@@ -230,8 +273,14 @@ says 15 min.
 |---|---|
 | patient circuit | `0x0010` |
 | Comfort Control Plus | `0x0008` |
+| ramp | `0x0004` |
 | humidifier | `0x0100` |
 | heated tube | `0x0200` |
+| patient access lock | `0x4000` |
+
+> **The mask does not fully predict which bytes move.** One write carrying only
+> the lock bit also changed the comfort/circuit byte. Treat the mask as a strong
+> hint about intent, not as a guarantee about content.
 
 Byte 0x01A is a running sum over the payload: under an unchanged mask it reads
 28, 30 and 38 across humidifier writes of 0, 2 and 10, and moved +1 when the
@@ -404,7 +453,7 @@ implementation.
 | 0 | ramp start pressure, ×10 cmH₂O | 40–80 | 40 |
 | 1 | repeats the ramp duration when word 3 is 8, otherwise 0 | 0 or 15 | 0 or 45 |
 | 2 | ramp duration in minutes; 0 = ramp disabled | 0, 15, 45 | 45 |
-| 3 | ramp mode: 8 = T.Ramp, 12 = I.Ramp | 8, 12 | 12, and 28 in the factory slot |
+| 3 | ramp mode (8 = T.Ramp, 12 = I.Ramp) plus **bit 4 = patient access lock** | 8, 12 | 12, and 28 = I.Ramp + locked in the factory slot |
 | 4 | maximum pressure, ×10 cmH₂O | 40–190 | 130, 200 |
 | 5 | minimum pressure, ×10 cmH₂O | 40–120 | 40, 70 |
 | 6, 7 | 60, 60 | constant | constant |
@@ -431,7 +480,7 @@ the Rêve note under "Theoretical mask leak — byte 10".
 | bits | meaning |
 |---|---|
 | 7–6 | CC+ level − 1 |
-| 5–3 | set when CC+ is enabled; all clear when off |
+| 5–3 | set when CC+ is enabled; all clear when off — not fully proven, see the Rêve note |
 | 0 | patient circuit: set = 15 mm, clear = 22 mm |
 
 Established by driving *Sefam Analyze* with no device attached. Writes of CC+
@@ -743,10 +792,17 @@ behave as the Rêve note describes and neither resembles an event marker.
    the twelve fields, and neither is recoverable from a card the device wrote.
    That is a real limit on what a loader can ever report for this model, not a
    gap waiting to close.
-3. **The settings table's slot ordering** is still not understood. The offset is
+3. **The practitioner and patient ramp times are not separated.** Words 1 and 2
+   are consistent with a practitioner ceiling and a patient selection — the
+   software presents exactly that pair, and the vendor API has a distinct
+   accessor for each — but no write has yet landed with the two differing, so
+   the older "word 1 echoes the duration in T.Ramp" reading is equally
+   consistent. `parseSettings()` reports word 2. See "The patient access lock,
+   and how the ramp is stored".
+4. **The settings table's slot ordering** is still not understood. The offset is
    now confirmed on two devices, and "last non-zero slot" gives the right
    current settings on both, but the ring's write order does not.
-4. **The rest of the 2 MiB image is undescribed.** The header's two hex-text
+5. **The rest of the 2 MiB image is undescribed.** The header's two hex-text
    configuration blocks are byte-identical between the two snapshots apart from
    the timestamp and two three-byte fields, and the device lifetime counters the
    report prints must be somewhere.

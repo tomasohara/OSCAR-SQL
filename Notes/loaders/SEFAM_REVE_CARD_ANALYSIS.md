@@ -64,6 +64,22 @@ Two consequences worth knowing:
   `REVE_AUTO` nor `1279R`, so `sefamBrandName()` already returns "Sefam" for it,
   and `sefamModelIsValidated()` already returns false, which raises the
   untested-device warning and prompts the user for a sample.
+
+  **Evidence for the hypothesis, from the vendor software (2026-08-13).** Its
+  manual lists the SEFAM range as S.Box, S.Box C, Néa Info, Néa Auto, Reve Info
+  and Reve Auto, plus the bi-level S.Box Duo S/ST, Néa Duo S/ST and Ventea S/ST.
+  So the **Néa is real, and is the Rêve's sibling** — an Info/Auto pair against an
+  Info/Auto pair. More tellingly, the software's *create a new card* dialogue
+  offers about four S.Box models and four Néa models and **does not offer the
+  Rêve at all**, though it reads a Rêve card without complaint. That is what one
+  would expect if the Néa is SEFAM's own-brand line and the Rêve ships relabelled
+  for export. Suggestive, not proof.
+
+  **This is also the cheapest route to the one fact the loader is missing.**
+  Creating a card for a Néa model should put that model's code into the identity
+  field of `upload.dat`, the way an S.Box write puts `1200R` and its serial there.
+  A Néa model code is the single thing standing between the loader and
+  recognising the device — see "Device images".
 - `info.series` is **not** a brand field — it keys the device-image lookup in
   `MachineLoader::getPixmap()`. It stayed `"Sefam"` for one day, then became one
   value per device when the device photos were added (2026-08-10); see "Device
@@ -681,7 +697,7 @@ driving *Sefam Analyze* with no device attached (see that note). The full field:
 | bits | meaning |
 |---|---|
 | 7–6 | CC+ level − 1 |
-| 5–3 | set when CC+ is enabled; all clear when it is off |
+| 5–3 | set when CC+ is enabled; all clear when it is off — see the caveat below |
 | 0 | patient circuit: set = 15 mm, clear = 22 mm |
 
 `0x79` therefore reads as CC+ level 2 **and 15 mm**, and this card's report prints
@@ -693,7 +709,15 @@ Decoded across every settings record on every card held — 478 in total, 467 S.
 archive blocks and 11 Rêve code 2 records — the level never falls outside the
 documented 1–3, and both cards that have a vendor report match it on **both**
 settings at once. Circuit Select, the vendor's third diameter choice, cannot be
-expressed by a single bit and would read as 22 mm; no card has exercised it. Byte 21 held 121 on all eleven
+expressed by a single bit and would read as 22 mm; no card has exercised it.
+
+> **Bits 5–3 are read as an enable, and that is not fully proven.** Bit 7 moved in
+> the CC+ level writes *and* in the patient-access-lock writes, so those two
+> experiments cannot separate "bits 5–3 mark CC+ enabled" from other readings of
+> the same byte. Nothing shipped depends on the difference — on all 478 real
+> records from three devices the bits are set and the level agrees with every
+> vendor report — but a card with CC+ genuinely switched off has never been seen,
+> and that is the case the reading is guessing at. Byte 21 held 121 on all eleven
 settings records spanning a month — through three humidifier changes and the two
 isolated nights when byte 14 dropped to 29 — and moved once, on the record where
 CC+ changed.
@@ -821,28 +845,37 @@ Two things follow that the Rêve's data could never have given on its own:
 > mask leak would be. The block header settles it, since there the record is
 > stored in the Rêve's own order with nothing before or after to borrow from.
 
-### Two bits cleared together, and what they might mark
+### Byte 14 bit 4 is the patient access lock
 
-Two single bits moved on the same record as the two settings, and neither is
-attributable to one change rather than the other:
+Byte 14 holds the ramp mode plus flags, and its bit 4 is the **patient access
+lock** — set means the patient cannot change the ramp, Comfort Control Plus or
+Intelligent Start.
 
-- **byte 10 bit 7**, set while the leak read 36, cleared when it read 34
-- **byte 14 bit 4**, `0x1F` → `0x0F`
+Established on the S.Box, where the vendor software can toggle it directly: two
+`upload.dat` writes differing only in the "Editable by the patient" checkbox
+moved that model's ramp-mode byte from 8 to 24, which is bit 4 alone. The single
+checkbox governs all three settings at once, so the lock is one flag rather than
+the three the vendor manual's wording suggests.
 
-The reading that fits every observation is a **factory-defaults or
-not-yet-modified-by-a-clinician marker**:
+It explains two values that had no explanation before:
 
-- Byte 14 is the S.Box's ramp mode word, where the values seen are 8 (T.Ramp),
-  12 (I.Ramp) and **28 only in the factory slot** — 28 is 12 with bit 4 set. The
-  Rêve read 31 (= 28 plus two low flags) from the first record on the card until
-  this change, and 15 (= 12 plus the same two flags) after it.
-- It survived everything in the *user* menu. A month of humidifier changes —
-  4 → 5 → 4 → 7 — never touched it. The mask leak is a *clinical* menu setting,
-  and the first clinical-menu edit ever seen on this device cleared it.
+- **The Rêve's own byte 14.** It reads 31 (`0x1F`, bit 4 set — locked) on every
+  record for a month, then 15 (`0x0F`, bit 4 clear — unlocked) on the last one,
+  which was written during the session where the clinical menu was being used.
+  Both values are the same ramp mode with the lock differing.
+- **The S.Box's "otherwise unseen mode value of 28"**, which appears only in one
+  card's factory slot. 28 is 12 (I.Ramp) with bit 4 set. Not a mode at all.
 
-That is a coherent story and it is not a confirmed one. It is also nearly
-untestable now: a bit that only ever clears cannot be exercised again on this
-device.
+> **A superseded reading, recorded so it is not retried.** This section
+> previously offered a *factory-defaults or not-yet-modified-by-a-clinician*
+> marker, on the grounds that the bit survived a month of user-menu humidifier
+> changes and cleared on the first clinical-menu edit. That story fitted the
+> observations but was untestable on this device, and it is wrong: the S.Box
+> exercises the same bit in both directions on demand.
+
+**Byte 10 bit 7 is still unexplained.** It was set while the leak read 36 and
+cleared when it read 34, on the same record as the lock change, and nothing since
+has moved it. It is the last unattributed bit in the Rêve's settings record.
 
 
 ### What is left, and why the remaining two are hard
@@ -951,12 +984,12 @@ What this does and does not settle:
 6. **Ramp type has three states and mode two**, so both are small enums. Byte 14
    carries the ramp mode — the S.Box uses 8 for T.Ramp and 12 for I.Ramp in the
    same field — so byte 24 = 3 is no longer needed to explain it.
-7. **Patient access lock covers three toggles**, so a small bitmask exists
-   somewhere. Byte 14's four low bits are the remaining candidate: the byte is
-   the ramp mode plus flags, bit 1 drops on two isolated nights, and bit 4 looks
-   instead like a factory-defaults marker (see "Two bits cleared together").
-8. **Two documented features have never been seen in any card data:** Intelligent
-   Start and the patient access lock.
+7. ~~**Patient access lock covers three toggles**, so a small bitmask exists
+   somewhere.~~ **RESOLVED: byte 14 bit 4**, and it is **one** toggle, not three
+   — the vendor software's single checkbox governs the ramp, CC+ and Intelligent
+   Start together. See "Byte 14 bit 4 is the patient access lock". Byte 14's bit 1,
+   which drops on two isolated nights, is still unexplained.
+8. **Intelligent Start has never been seen in any card data.**
 9. **CC+ appears as a toggle in the clinical menu and as a level in the user
    menu**, which reads at first like a contradiction with the analyzer's
    "Level 2". It is not, and the level half is now confirmed in byte 21 bits 7–6.
@@ -1055,10 +1088,10 @@ nights while flow amplitude and leak stayed put. See its section.
 
    A controlled single-setting change settles each of these; see "What is left,
    and why the remaining two are hard".
-9. **Two stray bits** — byte 10 bit 7 and byte 14 bit 4 — cleared on the same
-   record as the mask-leak and CC+ changes and belong to neither setting's value.
-   A factory-defaults marker is the reading that fits; see "Two bits cleared
-   together".
+9. **Byte 10 bit 7** cleared on the same record as the mask-leak and CC+ changes
+   and belongs to neither setting's value. It is the last unattributed bit in the
+   record. *(Byte 14 bit 4, once paired with it here, is the patient access
+   lock — see its section.)*
 5. ~~**Report "Average leaks"**~~ **RESOLVED.** The analyzer reports
    *unintentional* leak in **L/s**: its 0.06 / 0.05 / 0.03 for three sample
    sessions are 3.6 / 3.0 / 1.8 L/min, against OSCAR's derived `CPAP_Leak` of
