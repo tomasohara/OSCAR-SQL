@@ -54,6 +54,21 @@ constexpr quint8 kInvalidSample = 0xFF;
 //! Fixed size of one .LOG event record.
 constexpr int kLogRecordLength = 49;
 
+/*! \name Theoretical mask leak bounds
+    The span of the vendor's own mask table (`masks.txt`, shipped with Sefam
+    Analyze), which is what the setting is populated from when a clinician picks
+    a mask model: 89 masks from 18 to 60 l/min. A decoded value outside this is
+    taken as evidence that the byte does not hold a mask leak on that model, and
+    the setting is dropped rather than reported wrongly.
+
+    The Nea user manual's "20 to 60 l/min in steps of 2" describes the
+    manual-entry menu, not what a selected mask can supply — the table holds one
+    mask at 18 and two at 41.
+    @{ */
+constexpr int kMaskLeakMinLpm = 18;
+constexpr int kMaskLeakMaxLpm = 60;
+/*! @} */
+
 /*! \struct FileHeader
     \brief The decoded fixed-length text header at the start of every card file. */
 struct FileHeader
@@ -140,17 +155,17 @@ enum LogCode {
     \brief Therapy settings decoded from a log settings record.
 
     Only fields confirmed against the manufacturer's printed settings, or by a
-    controlled single-setting change on a card from the same device, are
-    represented. The patient-circuit and heated-tube bytes are still positional
-    guesses that no card examined so far can vary, so they are deliberately
-    absent — an unverified byte displayed as a therapy setting is worse than
-    showing nothing.
+    controlled single-setting change, are represented — an unverified byte
+    displayed as a therapy setting is worse than showing nothing.
 
-    Three settings were pinned by the controlled-change method, each on its own
-    card: the humidifier level, the theoretical mask leak and the Comfort
-    Control Plus level. See Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md, sections
-    "Humidifier level — byte 22", "Theoretical mask leak — byte 10" and
-    "Comfort Control Plus — byte 21 bits 7–6". */
+    The heated tube setting is deliberately absent: it was located, but it lives
+    in the file the vendor software writes to push settings onto a card, not in
+    anything the device itself records, so it cannot be recovered from an
+    ordinary card.
+
+    See Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md, sections "Humidifier level —
+    byte 22", "Theoretical mask leak — byte 10" and "Comfort Control Plus —
+    byte 21". */
 struct Settings
 {
     bool  valid           = false;
@@ -160,7 +175,8 @@ struct Settings
     int   rampMinutes     = 0;
     int   humidifierLevel = -1;     //!< 0 = off; -1 when the record omits it.
     int   maskLeak        = -1;     //!< lpm; -1 when the record omits it.
-    int   comfortLevel    = -1;     //!< CC+ level, 1-4; -1 when the record omits it.
+    int   comfortLevel    = -1;     //!< CC+ level; 0 = off, -1 when the record omits it.
+    int   patientCircuit  = -1;     //!< Tube diameter in mm, 15 or 22; -1 when absent.
 };
 
 //! Offset of the session archive inside the device memory image, measured from
@@ -223,6 +239,8 @@ struct SessionSummary
     float rampPressure   = 0.0f;        //!< cmH2O
     int   rampMinutes    = 0;           //!< 0 when the ramp is disabled.
     int   maskLeak       = -1;          //!< lpm; -1 when out of the documented range.
+    int   patientCircuit = -1;          //!< Tube diameter in mm, 15 or 22; -1 when absent.
+    int   comfortLevel   = -1;          //!< CC+ level; 0 = off, -1 when absent.
 
     QVector<MinuteRecord> minuteData;
 };

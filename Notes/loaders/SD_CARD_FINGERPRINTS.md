@@ -4511,8 +4511,9 @@ rate — Type-3 PSG-class channels in addition to flow/pressure/leak.
 │       ├── DATA_1/                       …
 │       └── DATA_2/
 ├── System Volume Information/            Windows NTFS metadata (ignore)
-└── upload.dat                  568 bytes — cloud-upload staging or session manifest
-                                          (binary, possibly encoded — see below)
+└── upload.dat                  568 bytes — XOR-0xBF; a settings write-back file
+                                          holding a patient ID and the therapy
+                                          prescription — see below
 ```
 
 The two-level `<model>/<serial>/` nesting under the SD root is the canonical layout.
@@ -4677,9 +4678,15 @@ state files at the serial-number folder level.
 
 ### `upload.dat` at SD root
 
-568 bytes, byte distribution similar to the channel data files (looks XOR-scrambled).
-Naming suggests it's a **cloud-upload staging file** or per-card manifest of what's
-been transferred. Not consumed by any loader; ignore for now.
+568 bytes, XOR-0xBF like the channel-file headers. The name is misleading: it is
+how the clinician's *Sefam Analyze* software **pushes a settings change onto the
+card** for the device to apply. It carries a patient identity string and the full
+therapy settings block in the clear.
+
+Not consumed by any loader, and it should stay that way — it records what was
+*sent*, not what the device accepted, and is present only when someone happened to
+write settings. **Treat it as personal data**: it exposes a named patient's
+prescription. Decoded byte map in `Notes/loaders/SEFAM_SBOX_CARD_ANALYSIS.md`.
 
 ### Recording-duration anomaly
 
@@ -4779,8 +4786,9 @@ Both S.Box cards confirm the family trait that distinguishes them from the Rêve
 - **`.RAM`/`.BKP` unencrypted**, against the Rêve's, which are opaque.
 
 The `1200R` card also carries an `upload.dat` at the card root — small, XOR-0xBF,
-and containing a **patient-identification field**. Nothing in OSCAR should read
-it, but be aware it exists before archiving or sharing a card image.
+containing a **patient-identification field and that patient's therapy
+settings**. Nothing in OSCAR should read it, but be aware it exists before
+archiving or sharing a card image.
 
 Full format and evidence: `Notes/loaders/SEFAM_SBOX_CARD_ANALYSIS.md`.
 

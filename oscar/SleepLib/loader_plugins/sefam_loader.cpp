@@ -156,6 +156,7 @@ void SefamLoader::Register()
 ChannelID SEFAM_HumidLevel   = 0;
 ChannelID SEFAM_MaskLeakSet  = 0;
 ChannelID SEFAM_ComfortLevel = 0;
+ChannelID SEFAM_Circuit      = 0;
 
 /*! \brief Register the SEFAM-specific settings channels.
 
@@ -209,6 +210,24 @@ void SefamLoader::initChannels()
                                    QObject::tr("Comfort Control Plus level"),
                                    QObject::tr("Comfort Control Plus"), "", LOOKUP, Qt::black);
     channel.add(GRP_CPAP, comfort);
+
+    // Only the off position is named; the numbered levels print as themselves.
+    comfort->addOption(0, STR_TR_Off);
+
+    // Tube diameter the device is calibrated for. S.Box cards only -- the flag
+    // has been located in the S.Box memory image but not on the Reve, where the
+    // byte that ought to hold it disagrees with that card's vendor report.
+    Channel *circuit = new Channel(SEFAM_Circuit = 0xe503, SETTING, MT_CPAP, SESSION,
+                                   "SEFAM_Circuit", QObject::tr("Patient Circuit"),
+                                   QObject::tr("Patient circuit diameter"),
+                                   QObject::tr("Patient Circuit"), QObject::tr("mm"),
+                                   LOOKUP, Qt::black);
+    channel.add(GRP_CPAP, circuit);
+
+    // Named so the panel reads "15 mm" rather than "15 mm mm". Any other value
+    // falls through to the numeric rendering with the channel's unit appended.
+    circuit->addOption(15, QObject::tr("15 mm"));
+    circuit->addOption(22, QObject::tr("22 mm"));
 }
 
 QString SefamLoader::findSerialDir(const QString &path)
@@ -826,11 +845,18 @@ int SefamLoader::Open(const QString &path)
                 session->settings[CPAP_RampTime]     = summary->rampMinutes;
                 session->settings[CPAP_RampPressure] = summary->rampPressure;
             }
-            // The archive block carries the mask leak but neither the CC+ level
-            // nor the humidifier: those two are extra fields the Reve's log
-            // record has beyond the twelve this block repeats.
+            // The block carries the mask leak, and the circuit and CC+ level
+            // packed into one field. It does NOT carry the humidifier: on this
+            // model that setting exists only in the file the vendor software
+            // writes, so an S.Box session reports no humidifier level at all.
             if (summary->maskLeak >= 0) {
                 session->settings[SEFAM_MaskLeakSet] = summary->maskLeak;
+            }
+            if (summary->patientCircuit > 0) {
+                session->settings[SEFAM_Circuit] = summary->patientCircuit;
+            }
+            if (summary->comfortLevel >= 0) {
+                session->settings[SEFAM_ComfortLevel] = summary->comfortLevel;
             }
         } else if (lastKnown.valid) {
             // A-PAP is the only mode observed on any SEFAM card examined.
@@ -852,6 +878,9 @@ int SefamLoader::Open(const QString &path)
             }
             if (lastKnown.comfortLevel >= 0) {
                 session->settings[SEFAM_ComfortLevel] = lastKnown.comfortLevel;
+            }
+            if (lastKnown.patientCircuit > 0) {
+                session->settings[SEFAM_Circuit] = lastKnown.patientCircuit;
             }
         }
         // Sessions before the first settings record on a card carry no settings

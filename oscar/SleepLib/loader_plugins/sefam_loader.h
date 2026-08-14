@@ -53,6 +53,7 @@ inline bool sefamModelIsValidated(const QString &modelCode)
 extern ChannelID SEFAM_HumidLevel;    //!< Humidifier level, 0 = off.
 extern ChannelID SEFAM_MaskLeakSet;   //!< Theoretical mask leak at 12 cmH2O, l/min.
 extern ChannelID SEFAM_ComfortLevel;  //!< Comfort Control Plus level.
+extern ChannelID SEFAM_Circuit;       //!< Patient circuit diameter in mm. S.Box only.
 /*! @} */
 
 /*! \class SefamLoader

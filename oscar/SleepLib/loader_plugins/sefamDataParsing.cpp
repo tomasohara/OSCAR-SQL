@@ -225,6 +225,31 @@ bool readLog(const QString &path, QVector<LogRecord> &out)
     return true;
 }
 
+/*! \brief Split the packed comfort/circuit field into its two settings.
+
+    One field carries both Comfort Control Plus and the patient circuit, on both
+    models: it is log record byte 21 on the Reve and settings word 9 on the
+    S.Box. Sefam Analyze wrote 0x00, 0x38 and 0xB8 for CC+ off, level 1 and
+    level 3 with nothing else touched, which places the level in bits 7-6 and an
+    enabled marker in bits 5-3; a separate pair of writes moved bit 0 alone
+    between 22 mm and 15 mm.
+
+    Both cards holding a vendor report agree, each on both settings at once:
+    the S.Box's word 9 of 0xB8 against its printed "Level 3 / 22 mm", and the
+    Reve's byte 21 of 0x79 against its printed "Level 2 / 15 mm".
+
+    \param raw   the packed field.
+    \param level receives the CC+ level, or 0 when the feature is off.
+    \param circuit receives the circuit diameter in mm.
+
+    The vendor offers a third circuit choice, Circuit Select, which bit 0 cannot
+    express; it would read as 22 mm. No card exercising it has been seen. */
+static void decodeComfortAndCircuit(int raw, int &level, int &circuit)
+{
+    level   = (raw & 0x38) ? (((raw >> 6) & 0x03) + 1) : 0;
+    circuit = (raw & 0x01) ? 15 : 22;
+}
+
 bool parseSettings(const LogRecord &rec, Settings &out)
 {
     const auto byteAt = [&rec](int index) -> int {
@@ -252,12 +277,16 @@ bool parseSettings(const LogRecord &rec, Settings &out)
         // humidifier level, differ in this byte and no other settings byte.
         if (rec.payload.size() > 11) { out.humidifierLevel = byteAt(11); }
 
-        // Record byte 21, bits 7-6, as level - 1. A card from the same device
-        // with Comfort Control Plus moved from level 2 to level 3 moved this
-        // field from 1 to 2, and the measured expiratory pressure relief rose
-        // past the range of all 34 preceding nights while the flow amplitude and
-        // the leak stayed put.
-        if (rec.payload.size() > 10) { out.comfortLevel = (byteAt(10) >> 6) + 1; }
+        // Record byte 21 carries Comfort Control Plus and the patient circuit
+        // together. The CC+ half was pinned on this model first: a card from the
+        // same device with the level moved from 2 to 3 moved the field from 1 to
+        // 2, and the measured expiratory pressure relief rose past the range of
+        // all 34 preceding nights while the flow amplitude and the leak stayed
+        // put. The circuit half arrived later, from the S.Box -- and bit 0 reads
+        // 15 mm here, which is what this card's own report prints.
+        if (rec.payload.size() > 10) {
+            decodeComfortAndCircuit(byteAt(10), out.comfortLevel, out.patientCircuit);
+        }
 
         // Record byte 10, the low half of the record's 16-bit argument -- which
         // is a duration on apnoea records but two more settings bytes here. The
@@ -265,12 +294,15 @@ bool parseSettings(const LogRecord &rec, Settings &out)
         // the same device with the setting moved from 36 to 34 read 0xA4 then
         // 0x22. Bit 7 changed at the same time and is not part of the value.
         //
-        // Gated to the range the vendor manual documents for the setting. The
-        // reading is confirmed on one device family only, so a model that puts
-        // something else in this byte reports no mask leak rather than a wrong
-        // one.
+        // Gated so that a model putting something else in this byte reports no
+        // mask leak rather than a wrong one. The bound is the vendor's own mask
+        // table (masks.txt, shipped with Sefam Analyze), which is what the
+        // setting is populated from: 89 masks spanning 18 to 60 lpm. The Nea
+        // user manual's "20 to 60 in steps of 2" describes the manual-entry
+        // menu, not the values a selected mask can supply -- the table holds a
+        // mask at 18, and two at 41.
         const int leak = rec.arg & 0x7F;
-        if (leak >= 20 && leak <= 60) { out.maskLeak = leak; }
+        if (leak >= kMaskLeakMinLpm && leak <= kMaskLeakMaxLpm) { out.maskLeak = leak; }
 
         out.valid = true;
         return true;
@@ -341,10 +373,19 @@ bool readMemoryImage(const QString &path, QVector<SessionSummary> &out)
             // Word 30 is the rotated record's second word, the same field the
             // Reve carries in log record byte 10 and on the same encoding: the
             // theoretical mask leak in lpm, in the low seven bits. Confirmed on
-            // the Reve by a controlled 36 -> 34 change and inherited here, so it
-            // is range-gated to what the vendor manual documents.
+            // the Reve by a controlled 36 -> 34 change, and on this model by
+            // card A's own vendor report. Range-gated as in parseSettings().
             const int maskLeak = be16(off + 30 * 2) & 0x7F;
-            if (maskLeak >= 20 && maskLeak <= 60) { s.maskLeak = maskLeak; }
+            if (maskLeak >= kMaskLeakMinLpm && maskLeak <= kMaskLeakMaxLpm) {
+                s.maskLeak = maskLeak;
+            }
+
+            // Word 40 is settings-table word 9, which packs Comfort Control Plus
+            // and the patient circuit into one field -- see
+            // decodeComfortAndCircuit(). This card's vendor report prints
+            // "Level 3" and "22 mm" and the stored 0xB8 gives both.
+            decodeComfortAndCircuit(be16(off + 40 * 2), s.comfortLevel,
+                                    s.patientCircuit);
         }
 
         s.minuteData.resize(minutes);

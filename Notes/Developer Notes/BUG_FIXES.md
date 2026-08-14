@@ -4,6 +4,67 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-13 — SEFAM S.Box: patient circuit imported, decoded via the vendor software
+
+**Files:** `oscar/SleepLib/loader_plugins/sefamDataParsing.cpp`, `sefamDataParsing.h`,
+`sefam_loader.cpp`, `sefam_loader.h`
+
+**Change (not a bug):** S.Box sessions now report the **patient circuit diameter**, from
+settings word 9 of each archive block header (image word 40). Bit 0 is the vendor's own
+`IsCalibTube15mm` flag: set means 15 mm, clear means 22 mm. New channel `SEFAM_Circuit`
+(0xe503) with named options so the panel reads "15 mm" rather than "15 mm mm".
+
+**How it was decoded, and why the method matters.** *Sefam Analyze* 4.4.2 can be driven
+with **no device attached**: changing a setting and writing to the card produces
+`upload.dat` at the card root — XOR-0xBF, and carrying the full settings block in the
+clear. That makes a controlled single-setting experiment possible without the hardware,
+which had been the blocker on every remaining accessory setting. Writing 22 mm then
+15 mm, with nothing else touched, moved exactly one byte: 184 → 185.
+
+That byte is settings word 9, which the memory image already stores per session. Card A's
+own vendor report prints `Patient circuit 22 mm` against the 184 the device had recorded,
+so the decode rests on two independent lines rather than one.
+
+**This answers a question the analysis carried for weeks** — "no byte anywhere holds 15
+or 22" — with the reason: the diameter is never stored as a number, only as a boolean.
+
+**Verification:** all 467 archive blocks on card A decode, splitting 172 sessions at 15 mm
+and 295 at 22 mm, with the settings table (current values only) reading 22 mm throughout,
+matching the report's "latest settings for the period". Card B reads 15 mm on all three of
+its sessions and 185 in its table. The mask leak, previously *inherited* from the Rêve on
+this model, is confirmed at the same time: card A's report prints 36 lpm and all 467
+blocks decode 36.
+
+**The field turned out to carry two settings.** Later writes of Comfort Control Plus
+off, level 1 and level 3 moved the *same* byte — `0x00`, `0x38`, `0xB8` — so word 9 is
+packed: CC+ level in bits 7–6, an enabled marker in bits 5–3, the circuit in bit 0.
+Card A's report agrees on both halves at once, printing `Level 3` and `22 mm` against
+the stored `0xB8`.
+
+**That also fixed a wrong conclusion about the Rêve.** This entry first recorded the
+circuit as not transferring to that model, because the byte aligning with word 9 looked
+like code 2 byte 20, whose bit 0 is clear while the Rêve's report says 15 mm. The
+alignment was off by one: byte 20 is a Rêve-only insertion and **byte 21** is word 9. It
+reads `0x79` — CC+ level 2 and 15 mm — which is exactly what that card's report prints.
+So both models now report the circuit, and the S.Box gains CC+ as well.
+
+Decoded over every settings record held — 467 S.Box archive blocks and 11 Rêve code 2
+records — the CC+ level never falls outside the manual's documented 1–3, and both cards
+with a vendor report match it on both settings simultaneously.
+
+**Deliberately not done:**
+
+- **The heated tube level is not imported.** The same experiment placed it at
+  `upload.dat` byte 0x234 (0 = off, 1–5, 6 = Auto), but it has no counterpart among the
+  twelve fields the device itself records, so it cannot be recovered from an ordinary
+  card.
+- **Nothing is imported from `upload.dat`.** It records what a clinician *sent*, not what
+  the device ran; it is present only when someone wrote settings; and its unselected
+  sections are stale. It is a decoding instrument, not a data source — and it exposes a
+  named patient's prescription, so it is also personal data.
+
+---
+
 ## 2026-08-11 — SEFAM settings record: wrong field order, and two settings not imported
 
 **Files:** `oscar/SleepLib/loader_plugins/sefamDataParsing.cpp`,
@@ -33,7 +94,8 @@ Aligning against the table instead lands two positions off and still matches eve
 pressure, which is exactly why it is worth writing down.
 
 **Also added:** two settings that are now confirmed, each by a controlled single-setting
-change on a card from the same device.
+change on a card from the same device. *(The CC+ field was later found to carry the
+patient circuit in its low bit as well — see the 2026-08-13 entry.)*
 
 - **Theoretical mask leak** — `SEFAM_MaskLeakSet` (0xe501, l/min), from record byte 10,
   in plain lpm in the low seven bits. It sat unnoticed for two cards because bytes 9–10

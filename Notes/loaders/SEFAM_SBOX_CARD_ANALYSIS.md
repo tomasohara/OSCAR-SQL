@@ -1,5 +1,18 @@
 # SEFAM S.Box AUTO — SD card format analysis
 
+**Settings decode, as of 2026-08-13.** Eleven of the twelve settings-record
+fields are identified, and **every setting the vendor report prints is now
+decoded or known to be absent**. Word 10 is the only unassigned field and nothing
+printed is left to match it against. The patient circuit (word 9) and theoretical mask
+leak (word 11) were settled by driving *Sefam Analyze* against a card with **no
+device attached**, which writes its changes to `upload.dat` — see that section
+for the method and its traps.
+
+The same method placed the **humidifier and heated tube levels**, and showed that
+neither is in the record the device writes. **Those two settings can never be
+imported from an S.Box card**; that is now a known limit rather than an open
+question.
+
 **Status:** container and waveforms decode with the existing loader. **These
 cards carry no event log**, and neither events nor therapy settings live
 anywhere the loader currently looks — both are in the device memory image
@@ -120,19 +133,128 @@ Directory names are **not zero-padded** (`DATA_0` … `DATA_2`, `DATA_90` …
 `DATA_111`), so they must be sorted numerically. This is the same trap the Rêve
 note records.
 
-### `upload.dat`
+### `upload.dat` is the settings write-back channel
 
-Card B carries a 568-byte `upload.dat` at the **card root**, outside the model
-directory. It is XOR-0xBF obfuscated like the file headers, and is almost
-entirely zero: a short leader, then a patient-identification string field, then
-padding, with a few bytes at the tail. On the card examined the identification
-field held the device's "undefined" placeholder.
+A 568-byte `upload.dat` sits at the **card root**, outside the model directory,
+XOR-0xBF obfuscated like the file headers. An earlier revision of this note
+described it as "a staging file for the manufacturer's upload path" whose one
+populated field is a patient identifier. **That was wrong.** It also carries the
+full therapy settings block in the clear, and it is how a clinician's PC pushes a
+settings change onto a card for the device to pick up.
 
-**Treat this file as personal data.** It is a staging file for the
-manufacturer's upload path, and its one populated field is a patient
-identifier. OSCAR has no reason to read it, and a backup that copies the card
-verbatim will carry it along — worth knowing before anything on this card is
-archived or shared.
+This was established directly: *Sefam Analyze* 4.4.2, driven with no device
+attached, writes `upload.dat` and **does not touch `.RAM` or `.BKP`**.
+
+```
+0x000        0x19, constant
+0x001        varies
+0x002        0
+0x003        '3'
+0x004-0x017  20-char space-padded identity string
+0x018-0x01A  section selector and a running sum over the payload
+0x01B-0x01C  2, 27, constant
+0x01D-0x027  8-char identity string, null-padded
+0x028-0x224  zero
+0x225-0x236  the settings block
+0x237        per-device, constant across writes — not a payload checksum
+```
+
+The settings block holds the same twelve fields as the memory image's settings
+record, in the block header's rotated order, plus extra bytes the record has no
+room for:
+
+| offset | field | card A | card B |
+|---|---|---|---|
+| 0x225 | settings word 10 | 50 | 80 |
+| 0x226 | theoretical mask leak | 164 → 36 lpm | 40 lpm |
+| 0x227 | minimum pressure ×10 | 120 | 70 |
+| 0x228 | maximum pressure ×10 | 190 | 130 |
+| 0x229 | ramp start pressure ×10 | 80 | 40 |
+| 0x22A | ramp duration | — | 45 |
+| 0x22B | ramp duration echo | — | 45 |
+| 0x22C | apnoea response pressure ×10 | 130 | 130 |
+| 0x22D | ramp mode | 8 = T.Ramp | 12 = I.Ramp |
+| 0x22E | **patient circuit**, bit 0 = 15 mm | 184 / 185 | 185 |
+| 0x22F | constant 60 | 60 | 60 |
+| 0x230-0x232 | 0, 5, 0 | constant | constant |
+| **0x233** | **humidifier level**, 0 = off | 0 / 10 | 5 |
+| **0x234** | **heated tube level** | 0 / 1 / 5 / 6 | 1 |
+| 0x235-0x236 | 1, 0 | constant | constant |
+
+**Controlled changes, one setting per write, same device:**
+
+| written | 0x22E | 0x233 | 0x234 |
+|---|---|---|---|
+| circuit 22 mm | 184 | 5 | 0 |
+| circuit 15 mm | **185** | 5 | 0 |
+| CC+ off | **0** | 5 | 0 |
+| CC+ level 1 | **56** = `0x38` | 5 | 0 |
+| CC+ level 3 | **184** = `0xB8` | 5 | 0 |
+| heated tube level 1 | 184 | 5 | **1** |
+| heated tube level 5 | 184 | 5 | **5** |
+| heated tube Auto | 184 | 5 | **6** |
+| humidifier off | 184 | **0** | 0 |
+| humidifier 2 | 184 | **2** | 0 |
+| humidifier 10 | 184 | **10** | 0 |
+
+Exactly one byte moved per change. **0x233 is the humidifier level** and
+**0x234 the heated tube level** (0 = off, 1–5 = levels, 6 = Auto); the humidifier
+is an exact identity over three points spanning its whole documented OFF–10 range,
+no scale and no offset, and the heated tube behaves the same way.
+
+**0x22E carries two settings at once** — the CC+ writes moved the same byte the
+circuit writes had — which is what identified settings word 9 as a packed field.
+See "Layout" for the bit map.
+
+Both the circuit and the CC+ level transfer to the memory image, 0x22E being
+settings word 9 — see "Layout". **The two accessory levels do not**: they sit past
+0x22F, outside the twelve fields, so they are readable only from a file the
+clinician's software wrote and cannot be recovered from a card the device
+produced on its own.
+
+### The file is a write command, not a snapshot
+
+**A field's byte means something only when that write was carrying it.** This is
+not a subtlety — it is demonstrated: `0x233` reads **5** in all five circuit and
+heated-tube writes, while the device's actual humidifier level is **2**, as both
+the vendor report and the software's own dialogue show. The real value appears in
+none of the seven files. Reading an uncarried field gives a placeholder, not the
+setting.
+
+The same explains ramp duration reading 0 in those writes on a card whose report
+says 15 min.
+
+**Bytes 0x018-0x019 are a big-endian bitmask of which fields the write carries:**
+
+| write | mask |
+|---|---|
+| patient circuit | `0x0010` |
+| Comfort Control Plus | `0x0008` |
+| humidifier | `0x0100` |
+| heated tube | `0x0200` |
+
+Byte 0x01A is a running sum over the payload: under an unchanged mask it reads
+28, 30 and 38 across humidifier writes of 0, 2 and 10, and moved +1 when the
+circuit byte went 184 → 185. Three points on one field, tracking one-for-one.
+
+This also explains why card B's file looked like a complete and correct settings
+dump while card A's single-field writes did not: card B's mask is `0x74FC`, a
+dozen bits set — a full write. **So a full write *is* a usable snapshot; a
+single-field write is not.**
+
+> **Circuit Select could not be exercised.** The software refuses to offer it
+> unless the device is already set that way, which matches its manual. Since bit
+> 0 only says "is 15 mm", Circuit Select is indistinguishable from 22 mm.
+
+**Treat this file as personal data**, more so than before: it carries a patient
+identity string — a locale-specific "undefined" placeholder on the card examined
+— *and* that patient's therapy prescription. OSCAR has no reason to read it, and
+a backup that copies the card verbatim will carry it along.
+
+> **Do not import settings from it.** It records what a clinician *sent*, not
+> what the device accepted or ran, it is present only when someone happened to
+> write settings, and its unselected sections are meaningless. It is a decoding
+> instrument, not a data source.
 
 ---
 
@@ -287,30 +409,61 @@ implementation.
 | 5 | minimum pressure, ×10 cmH₂O | 40–120 | 40, 70 |
 | 6, 7 | 60, 60 | constant | constant |
 | 8 | 130 = the apnoea response pressure the report prints as 13.0 cmH₂O | constant | constant |
-| 9 | **differs per device** — unassigned | 184 | 185 (1 in the factory slot) |
-| 10 | **differs per device** — unassigned | 50 | 80 |
+| 9 | **CC+ level (bits 7–6) and patient circuit (bit 0)**, packed (see below) | 184 → Level 3, 22 mm | 185 → Level 3, 15 mm |
+| 10 | **differs per device** — unassigned, and nothing the reports print is left to assign to it | 50 | 80 |
 | 11 | theoretical mask leak, lpm in bits 0–6 (see below) | 164 → 36 lpm | 164 → 36, 40 → 40 |
 
 Words 0–8 were the confirmed part. **Word 11 was identified later, on the Rêve**,
 whose code 2 log record turned out to be this same record with one byte per field
 instead of one uint16 — see "The settings record is the S.Box's table" in
-`SEFAM_REVE_CARD_ANALYSIS.md`. There it is byte 10, and it was pinned by a
-controlled change of the setting from 36 to 34 lpm.
+`SEFAM_REVE_CARD_ANALYSIS.md`. There it is byte 10, pinned by a controlled change
+of the setting from 36 to 34 lpm.
 
-The reading cannot be *confirmed* here, because no S.Box report prints the mask
-leak. What can be checked is consistency, and it holds: **every non-zero word 11
-across the two devices decodes to an even number of lpm inside the documented
-20–60 range** — 164 is `0x80 | 36`, and 40 is 40. The manual specifies the
-setting in steps of 2, and both values are even. Three values, two devices, no
-exceptions. All 467 archive blocks on card A decode 36 lpm with none out of
-range.
+**Word 11 is now confirmed on this model too, not merely inherited.** Card A's
+vendor report prints `Theoretical mask leak 36 lpm`, and that card stores 164 =
+`0x80 | 36` in all 467 of its archive blocks. Card B, which has no report, reads
+36 on its first session and 40 on the other two — both inside the 18–60 lpm span
+of the vendor's own mask table, which is what the setting is populated from. See
+the Rêve note under "Theoretical mask leak — byte 10".
 
-**Word 10 is *not* the CC+ level, despite an obvious temptation to read it that
-way.** The Rêve's CC+ byte lies past the end of this twelve-field record, in the
-extra bytes that model appends; the position that lines up with word 10 is the
-Rêve's byte 9, which is unassigned on both models. See the alignment table in the
-Rêve note, and the warning under it about the two-position error. Word 9 is
-likewise unassigned.
+**Word 9 packs two settings**: Comfort Control Plus and the patient circuit.
+
+| bits | meaning |
+|---|---|
+| 7–6 | CC+ level − 1 |
+| 5–3 | set when CC+ is enabled; all clear when off |
+| 0 | patient circuit: set = 15 mm, clear = 22 mm |
+
+Established by driving *Sefam Analyze* with no device attached. Writes of CC+
+off, level 1 and level 3 produced `0x00`, `0x38` and `0xB8`; a separate pair of
+writes moved bit 0 alone, 184 for 22 mm and 185 for 15 mm. Card A's own vendor
+report then agrees on **both** halves at once: it prints `Comfort Control Plus
+Level 3` and `Patient circuit 22 mm`, and the device had stored `0xB8`.
+
+Bit 0 is the vendor's own `IsCalibTube15mm` flag, which answers a question this
+analysis carried for weeks: **no byte holds 15 or 22 because the diameter is
+never stored as a number.** The flag only says "is 15 mm", so the vendor's third
+choice, *Circuit Select*, cannot be distinguished from 22 mm.
+
+The block headers show both halves genuinely varying over card A's 467 sessions
+— CC+ at levels 1, 2 and 3, and the circuit at both diameters — while its
+settings table, which holds only current values, reads 184 throughout and matches
+the report's "latest settings". Card B reads `0xB9` on all three of its sessions.
+**Across all 478 settings records held, on both models, the level never falls
+outside the manual's documented 1–3.**
+
+**Word 10 remains unassigned, and there is now nothing left to guess it as.**
+Card A's report prints `Humidifier Level 2` and `Comfort Control Plus Level 3`,
+and its word 10 is 50 = `0x32` — nibbles 3 and 2, which looked like both levels
+packed into one byte. Both halves of that guess are dead: the humidifier moved to
+0 and then to 10 with word 10 sitting at 50 throughout, and CC+ turned out to
+live in word 9. A two-field match out of one byte was a coincidence, which is why
+it was recorded as a candidate rather than believed.
+
+Every setting the vendor report prints is now accounted for elsewhere, so word 10
+holds something the reports never show. It differs per device (50 against 80) and
+is constant within each, which fits a calibration constant better than a
+setting.
 
 **Word 11 is the one field whose position had to be read across the record
 boundary** in this table: it sits immediately *before* the next slot's ramp start
@@ -583,12 +736,13 @@ behave as the Rêve note describes and neither resembles an event marker.
    source existed at all, because it searched the memory image for the Rêve's
    49-byte log-record shape; the second said byte 2 could not be decoded, on the
    strength of six blocks rather than all 470.)*
-2. **Humidifier, Comfort Control Plus, patient circuit and heated tube** are
-   unassigned, and the first two may not be in this record at all — on the Rêve
-   they sit past its twelfth field, in bytes the S.Box does not carry here. The
-   theoretical mask leak has been located in word 11 (see "Layout"). Words 9 and
-   10 are the remaining place to look, and assigning them needs a card whose
-   accessory settings are independently known.
+2. **Word 10 is the only unassigned field**, and no printed setting is left to
+   match it against — it differs per device and is constant within one, which
+   fits a calibration constant. **The humidifier and heated tube levels are not
+   in this record at all**: both were located in `upload.dat`, both sit outside
+   the twelve fields, and neither is recoverable from a card the device wrote.
+   That is a real limit on what a loader can ever report for this model, not a
+   gap waiting to close.
 3. **The settings table's slot ordering** is still not understood. The offset is
    now confirmed on two devices, and "last non-zero slot" gives the right
    current settings on both, but the ring's write order does not.
@@ -601,15 +755,13 @@ behave as the Rêve note describes and neither resembles an event marker.
 
 ## What would still help
 
-- **An S.Box card with one accessory setting deliberately changed** — the method
-  that pinned three of the Rêve's fields, three times out of three. Words 9 and 10
-  are the target, and a single controlled change would settle one outright.
-- **An analyzer report for card B**, or for any second S.Box. Card B's therapy
-  pressures are now corroborated, but its humidifier, CC+, circuit and
-  heated-tube values are unknown, which is the only reason words 9 and 10 remain
-  unassigned. Such a report would also *confirm* word 11 on this model rather
-  than leaving it inherited from the Rêve — it prints the mask leak, which is
-  exactly what that reading predicts.
+- **A ramp-type flip, I.Ramp against T.Ramp**, written through *Sefam Analyze*.
+  It would confirm by controlled change the rule that word 1 echoes the ramp
+  duration only in T.Ramp — currently inferred from vendor snapshots, and the
+  thing that made the field-order bug dangerous. This is the last experiment with
+  a clear payoff; word 10 has no candidate left to test against.
+- **An analyzer report for card B**, or for any second S.Box, to confirm the
+  circuit and mask leak on a second device rather than resting both on card A.
 - **A card whose analyzer report shows a settings change at a known session
   boundary**, to test whether change times can be inferred rather than read.
 - **Confirmation of whether the analyzer scores events itself.** If it does, the

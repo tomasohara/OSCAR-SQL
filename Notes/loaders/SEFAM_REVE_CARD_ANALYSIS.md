@@ -5,14 +5,18 @@ report** for the same 31 sessions. Container, waveform scalings, event taxonomy
 and therapy settings are all confirmed. Remaining gaps are small and listed at
 the end.
 
-**Settings decode, as of 2026-08-11.** Three cards have now come from the same
-device, each with a known setting changed. Between them they pin three of the
-five accessory settings the analyzer prints — humidifier level (byte 22),
-theoretical mask leak (byte 10) and Comfort Control Plus level (byte 21, bits
-7–6). **Patient circuit and heated-tube presence are the only two left.** The
-record's field *order* was corrected at the same time, against the S.Box's
-settings table, which resolves an ambiguity the Rêve's own data never can — see
-"The settings record is the S.Box's table".
+**Settings decode, as of 2026-08-13.** Four of the five accessory settings the
+analyzer prints are decoded: humidifier level (byte 22), theoretical mask leak
+(byte 10), and Comfort Control Plus level **and patient circuit** sharing byte 21.
+**Only the heated tube is left**, and it is now known to be unrecoverable — it
+exists on the S.Box solely in the file the vendor software writes, not in
+anything the device records.
+
+Three of those came from cards with a single setting deliberately changed. The
+fourth, the circuit, came from driving *Sefam Analyze* against a card with no
+device attached; the same exercise fixed the record's field order, which the
+Rêve's own data can never settle — see "The settings record is the S.Box's
+table".
 
 **Device:** SEFAM Rêve Auto (APAP). `Created By=REVE_AUTO`, model code `1279R`,
 firmware `VER :A010500`. SEFAM is a French sleep-medicine manufacturer.
@@ -614,9 +618,18 @@ The field is **byte 10, holding the value in lpm in its low seven bits**:
 Two points, exact, on a scale with no fitted constant — and the second was
 **pre-registered**. The prediction table written before the card existed listed
 "reads 34" as the outcome that would mean the setting is stored in literal lpm.
-It does; the table only had the wrong byte. Range 20–60 lpm in steps of 2 fits in
-seven bits with room to spare, and 164 is outside that range, so bit 7 has to be
-a separate flag.
+It does; the table only had the wrong byte. The value fits in seven bits with room
+to spare, and 164 is outside any plausible leak, so bit 7 has to be a separate
+flag.
+
+> **The real value range is 18–60, not the manual's 20–60.** *Sefam Analyze*
+> ships its mask database as `masks.txt` — `maker;type;model;leak`, 89 masks from
+> eleven manufacturers — and a clinician sets this field either by typing a
+> number or by picking a model from that list, which writes the table's lpm
+> figure straight into the setting. The table spans **18 to 60**, and it holds
+> two masks at **41**, so the Nea manual's "20 to 60 in steps of 2" describes the
+> manual-entry menu rather than what a selected mask can supply. The loader's
+> sanity bounds (`kMaskLeakMinLpm` / `kMaskLeakMaxLpm`) follow the table.
 
 > **Why the field went unseen for so long.** Byte 10 is the low half of the
 > 16-bit "argument" that every log record carries at offsets 9–10. For apnoea
@@ -659,7 +672,28 @@ settings byte that moved:
 | after | `0xB9` | 2 | `0x39` | 3 |
 
 So **level = field + 1**, pinned by two points exactly as the humidifier byte
-was, with room in two bits for levels 1–4. Byte 21 held 121 on all eleven
+was, with room in two bits for levels 1–4 — of which the vendor manual documents
+1, 2 and 3.
+
+**Byte 21 turned out to carry a second setting**, found later on the S.Box by
+driving *Sefam Analyze* with no device attached (see that note). The full field:
+
+| bits | meaning |
+|---|---|
+| 7–6 | CC+ level − 1 |
+| 5–3 | set when CC+ is enabled; all clear when it is off |
+| 0 | patient circuit: set = 15 mm, clear = 22 mm |
+
+`0x79` therefore reads as CC+ level 2 **and 15 mm**, and this card's report prints
+exactly that pair. Writes of CC+ off, 1 and 3 produced `0x00`, `0x38` and `0xB8`,
+which is where the enable bits and the level field come from; a separate pair of
+writes moved bit 0 alone between the two diameters.
+
+Decoded across every settings record on every card held — 478 in total, 467 S.Box
+archive blocks and 11 Rêve code 2 records — the level never falls outside the
+documented 1–3, and both cards that have a vendor report match it on **both**
+settings at once. Circuit Select, the vendor's third diameter choice, cannot be
+expressed by a single bit and would read as 22 mm; no card has exercised it. Byte 21 held 121 on all eleven
 settings records spanning a month — through three humidifier changes and the two
 isolated nights when byte 14 dropped to 29 — and moved once, on the record where
 CC+ changed.
@@ -731,7 +765,9 @@ byte order. Verified directly on all 467 blocks of one S.Box card:
 | 8 | 37 | 17 | constant | 60 | 60 |
 | 9 | 38 | 18 | constant | 60 | 60 |
 | 10 | 39 | 19 | apnoea response pressure ×10 | 130 | 130 |
-| 11 | 40 | 20 | per-device, unassigned | 184 | 200 |
+| 11 | 40 | **21** | **CC+ level and patient circuit, packed** | 184 | 121 → 185 |
+
+Rêve byte 20 has no S.Box counterpart and is unassigned; see the note below.
 
 Twelve consecutive positions line up. Four carry identical values on the two
 models — the 60, 60, 130 run and the 164 — and the rest each hold that model's
@@ -741,11 +777,28 @@ minimum 4.0 all match its vendor report under this alignment, as the S.Box's
 
 **The Rêve's record continues past the twelve and the S.Box's does not.** Bytes
 21–25 are Rêve-only, and two of them are known: byte 21 is the CC+ level and
-byte 22 the humidifier level, both confirmed by controlled changes. Neither has
-an S.Box counterpart anywhere in this record, which is unsurprising for a device
-that appears to have no humidifier. **So the S.Box's word 10 is not the CC+
-level** — it is the Rêve's byte 9, unassigned on both models. Anyone carrying
-the Rêve's CC+ finding across to the S.Box will land on that word and be wrong.
+byte 22 the humidifier level, both confirmed by controlled changes. **So the
+S.Box's word 10 is not the Rêve's CC+ byte** — the position that lines up with
+word 10 is the Rêve's byte 9, which is unassigned on both models. Anyone carrying
+the Rêve's `bits 7–6` reading across to that word will be wrong.
+
+The S.Box does have both settings — its vendor report prints `Humidifier Level 2`
+and `Comfort Control Plus Level 3` — so they are stored somewhere on that model
+too, just not where this record puts them. Word 10 is the surviving candidate
+there; see the S.Box note. *(An earlier revision of this section said the S.Box
+"appears to have no humidifier". That was a guess from the record's shape and the
+report contradicts it.)*
+
+> **Byte 21 is the S.Box's word 9, and byte 20 is a Rêve-only insertion.** The
+> field-by-field alignment above runs true through byte 19, then the Rêve carries
+> one extra byte — byte 20, reading 200 on every record, which is also this
+> card's maximum pressure and may simply be a repeat of it. Byte 21 is what
+> corresponds to the S.Box's word 9.
+>
+> This was got wrong once. An earlier revision counted byte 20 as word 9, found
+> its bit 0 clear where the Rêve's report says 15 mm, and recorded the circuit as
+> "does not transfer, unresolved". The mistake was the off-by-one, not the
+> encoding: byte 21 decodes to 15 mm and matches.
 
 Two things follow that the Rêve's data could never have given on its own:
 
@@ -805,8 +858,8 @@ The analyzer's full device-settings panel for the first card reads:
 | Comfort Control Plus | Level 2 | **byte 21 bits 7–6**, confirmed |
 | Theoretical mask leak | 36 lpm | **byte 10 bits 0–6**, confirmed |
 | Humidifier | Level 4 | **byte 22**, confirmed |
-| Patient Circuit | 15 mm | open |
-| Heated tube | Present | open |
+| Patient Circuit | 15 mm | open — solved on the S.Box, does not transfer here |
+| Heated tube | Present | open — exists only in `upload.dat` on the S.Box |
 
 **Both survivors are two-state settings that have never varied**, so there is
 still nothing to correlate them against, and both would be a single bit. The
