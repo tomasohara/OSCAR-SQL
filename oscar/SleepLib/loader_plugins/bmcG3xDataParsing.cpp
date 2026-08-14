@@ -951,8 +951,6 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                     // Periodic breathing episode start marker (confirmed 2026-03-30).
                     // Unlike other respiratory events, timestamp marks the START of the episode.
                     // Duration is a uint32 at offset 0x1C: low 16 bits (value2) | high 16 bits at 0x1E.
-                    // Reading as uint16 only gives ~28s/23s; uint32 gives correct ~159s/154s
-                    // matching PAP-Link (confirmed 2026-03-30 via Lijunjun data).
                     ++rawRespType09Count;
                     const quint32 durationMs = static_cast<quint32>(value2) |
                                                (static_cast<quint32>(ReadUInt16LEPtr(rec, 0x1E)) << 16);
