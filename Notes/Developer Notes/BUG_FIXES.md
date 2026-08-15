@@ -4,6 +4,42 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-14 — Three summary-storage defects found while splitting CH/OH
+
+**Files:** `oscar/SleepLib/session.cpp`, `oscar/database/daily_summary_repository.cpp`,
+`oscar/database/database_schema.cpp`, `oscar/docs/system_reports.orf`
+
+All three surfaced while implementing separate Central/Obstructive Hypopnea channels,
+because OAHI + CAHI == AHI has to hold in SQL as well as in the app, and it did not.
+
+**1. `Session::StoreSummaryToDatabase()` stored RDI under the name AHI.** The fallback
+used for summary-only sessions (those with no `m_wavg[CPAP_AHI]`) hand-summed the event
+counts, and the list was wrong in two directions: it omitted `CPAP_AllApnea` and included
+`CPAP_RERA`. That is the definition of RDI, not AHI. Fixed by calling
+`count(AllAhiChannels)`, which walks the same `ahiChannels` list `Day::calcAHI()` uses, so
+the two can no longer drift.
+
+**2. `CPAP_AllApnea` was never stored in either summary table.** It contributes to AHI, so
+every hand-rolled AHI in `system_reports.orf` (`obstructive + unclassified + hypopnea +
+clear_airway`) disagreed with the stored `ahi` column for any device reporting an
+undifferentiated apnea. Schema v18 adds `all_apnea_count` to `session_summaries` and
+`daily_summaries`, `DailySummaryRepository::calculateFromDay()` and
+`Session::StoreSummaryToDatabase()` populate it, and the `.orf` sums now include it.
+Pre-v18 rows read 0 and are not backfilled, so a stale row still understates those days
+until it is recalculated.
+
+**3. Summary-only sessions lost their unclassified-apnea count on reload.**
+`Session::LoadFromDatabase()` restored `m_cnt` for OA, CA, H and RERA only, so
+`unclassified_count` was written on store and dropped on load — a summary-only session
+with UA events under-reported its AHI after a restart. The restore is now a small lambda
+applied to every stored channel, including UA and the new A/OH/CH.
+
+**Impact:** items 1 and 3 affect only summary-only sessions (devices that record no
+detailed data). Item 2 affects SQL reporting for the few loaders that emit `CPAP_AllApnea`;
+the in-app AHI was always correct, since `Day::calcAHI()` counts events directly.
+
+---
+
 ## 2026-08-14 — BMC G3X periodic breathing duration truncated instead of rounded
 
 **File:** `oscar/SleepLib/loader_plugins/bmcG3xDataParsing.cpp`

@@ -1,7 +1,33 @@
 # Separate Central and Obstructive Hypopnea channels (CH / OH)
 
-Status: **reviewed — all open questions answered 2026-08-07; ready to implement.**
-Decisions are recorded in §8 and already folded into §2–§7.
+Status: **implemented 2026-08-14.** Decisions are recorded in §8 and were folded into
+§2–§7 before implementation. The file:line references below are to the pre-change tree and
+are kept as a record of the plan; the notes under "As built" record where the finished code
+differs from it.
+
+## As built — deviations from the plan
+
+- **Channel IDs** `0x1011` (OH) and `0x1012` (CH), as proposed in §2.2.
+- **Colours** are distinct, not inherited from `H` (§2.6, left open): OH `#3090d0`, a
+  steel blue near `H`'s blue; CH `#d060d0`, an orchid clearly separable from `CA`'s purple.
+  No `COLOR_*` constants were added — the defaults in `schema.cpp` were enough.
+- **Bucket dispatch is generic.** Instead of adding a branch per sentinel to the four
+  count/sum entry points, `machine_common.h` gained `ahiChannelGroup(ChannelID)`, which maps
+  `AllAhiChannels` / `AllOahiChannels` / `AllCahiChannels` to their vectors and returns
+  `nullptr` for an ordinary channel. `oahiChannels` is computed in `schema::init()` as
+  `ahiChannels − cahiChannels`, so the identity holds by construction (§5).
+- **Index strings**: `STR_TR_OH`, `STR_TR_CH`, `STR_TR_OAHI` and `STR_TR_CAHI` were added.
+  `STR_TR_OHI` / `STR_TR_CHI` (§2.5) were **not** — `STR_TR_HI` is itself unused, and the
+  printed report builds its `OHI=`/`CHI=` labels inline, so they would have been dead
+  strings in ~30 translation files.
+- **Two extra defects fixed** beyond §4.10's one, both required for the identity to hold:
+  the summary-only AHI fallback in `Session::StoreSummaryToDatabase()` (it computed RDI),
+  and `Session::LoadFromDatabase()` dropping `unclassified_count` on reload. See
+  `Notes/Developer Notes/BUG_FIXES.md`, 2026-08-14.
+- **Printed report** (§3.3) shows `OHI=`/`CHI=` only when the day actually has OH or CH
+  data, rather than printing `0.00` for every other device. `OAHI=`/`CAHI=` always show.
+- **Daily sidebar** (§5.4) shows OAHI and CAHI on one line directly beneath the AHI banner.
+- `Notes/Database/*` were also brought forward from v16 to v18 — the v17 row was missing.
 
 ## Goal
 

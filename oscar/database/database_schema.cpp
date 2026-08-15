@@ -249,6 +249,14 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
         fromVersion = 17;
     }
 
+    if (fromVersion == 17) {
+        if (!migrateV17ToV18(db)) {
+            qCritical() << "DatabaseSchema: v17->v18 migration failed";
+            return false;
+        }
+        fromVersion = 18;
+    }
+
     if (fromVersion != CURRENT_SCHEMA_VERSION) {
         qCritical() << "DatabaseSchema: No migration path from version" << fromVersion;
         return false;
@@ -892,6 +900,11 @@ bool DatabaseSchema::createSessionSummariesTable(QSqlDatabase& db)
         "    hypopnea_count INTEGER DEFAULT 0,"
         "    rera_count INTEGER DEFAULT 0,"
         "    clear_airway_count INTEGER DEFAULT 0,"
+        "    obstructive_hypopnea_count INTEGER DEFAULT 0,"
+        "    central_hypopnea_count INTEGER DEFAULT 0,"
+        "    all_apnea_count INTEGER DEFAULT 0,"
+        "    oahi REAL DEFAULT 0,"
+        "    cahi REAL DEFAULT 0,"
         "    pressure_avg REAL,"
         "    pressure_min REAL,"
         "    pressure_max REAL,"
@@ -1075,6 +1088,11 @@ bool DatabaseSchema::createDailySummariesTable(QSqlDatabase& db)
         "    hypopnea_count INTEGER DEFAULT 0,"
         "    rera_count INTEGER DEFAULT 0,"
         "    clear_airway_count INTEGER DEFAULT 0,"
+        "    obstructive_hypopnea_count INTEGER DEFAULT 0,"
+        "    central_hypopnea_count INTEGER DEFAULT 0,"
+        "    all_apnea_count INTEGER DEFAULT 0,"
+        "    oahi REAL DEFAULT 0,"
+        "    cahi REAL DEFAULT 0,"
         "    "
         "    pressure_avg REAL,"
         "    pressure_min REAL,"
@@ -1721,5 +1739,71 @@ bool DatabaseSchema::migrateV16ToV17(QSqlDatabase& db)
     }
 
     qDebug() << "DatabaseSchema: Migration v16->v17 complete";
+    return true;
+}
+
+/*
+ * Migrate database from schema version 17 to 18
+ *
+ * Adds the Central / Obstructive hypopnea columns to both summary tables, plus
+ * all_apnea_count, which contributes to AHI but had never been stored.
+ *
+ * Purely additive: five ALTER TABLE ADD COLUMNs per table, each with a DEFAULT so
+ * existing rows stay valid. No backfill — pre-v18 rows read 0 in the new columns
+ * until the day is recalculated or re-imported, which is a deliberate decision
+ * (recalculating every historical day at upgrade time would be slow and, for days
+ * whose original card is long gone, would not recover the OH/CH split anyway).
+ */
+bool DatabaseSchema::migrateV17ToV18(QSqlDatabase& db)
+{
+    qDebug() << "DatabaseSchema: Migrating v17 -> v18";
+
+    if (!db.transaction()) {
+        qCritical() << "DatabaseSchema: migrateV17ToV18: failed to start transaction";
+        return false;
+    }
+
+    static const char* const newColumns[] = {
+        "obstructive_hypopnea_count INTEGER DEFAULT 0",
+        "central_hypopnea_count INTEGER DEFAULT 0",
+        "all_apnea_count INTEGER DEFAULT 0",
+        "oahi REAL DEFAULT 0",
+        "cahi REAL DEFAULT 0"
+    };
+    static const char* const tables[] = { "session_summaries", "daily_summaries" };
+
+    QSqlQuery q(db);
+    for (const char* table : tables) {
+        for (const char* column : newColumns) {
+            const QString sql = QString("ALTER TABLE %1 ADD COLUMN %2")
+                                    .arg(QString::fromLatin1(table), QString::fromLatin1(column));
+            if (!q.exec(sql)) {
+                // SQLite has no ADD COLUMN IF NOT EXISTS, so a column that is already
+                // present is reported as an error and has to be tolerated to keep the
+                // migration re-runnable.
+                const QString err = q.lastError().text();
+                if (!err.contains("duplicate column", Qt::CaseInsensitive)) {
+                    qCritical() << "DatabaseSchema: migrateV17ToV18:" << sql << "failed:" << err;
+                    DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV17ToV18", q);
+                    db.rollback();
+                    return false;
+                }
+            }
+        }
+    }
+
+    if (!setSchemaVersion(db, 18)) {
+        qCritical() << "DatabaseSchema: migrateV17ToV18: setSchemaVersion failed";
+        db.rollback();
+        return false;
+    }
+
+    if (!db.commit()) {
+        qCritical() << "DatabaseSchema: migrateV17ToV18: commit failed";
+        db.rollback();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: Migration v17->v18 complete";
     return true;
 }

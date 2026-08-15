@@ -1112,6 +1112,8 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
         int mappedOsaCount  = 0;
         int mappedCsaCount  = 0;
         int mappedHypCount  = 0;
+        int mappedOhCount   = 0;
+        int mappedChCount   = 0;
         int mappedUaCount   = 0;
         int mappedReraCount = 0;
         int ignoredCount    = 0;
@@ -1125,8 +1127,10 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             case kG3xEvtTypeUA:  mappedType = BmcRespiratoryEventType::UA;   break;
             case kG3xEvtTypeOSA: mappedType = BmcRespiratoryEventType::OSA;  break;
             case kG3xEvtTypeCSA: mappedType = BmcRespiratoryEventType::CSA;  break;
-            case kG3xEvtTypeOH:
-            case kG3xEvtTypeCH:  mappedType = BmcRespiratoryEventType::HYP;  break;
+            // The G3X scores hypopneas by mechanism as well as reporting an
+            // unclassified kind (0x01), so all three hypopnea channels can appear.
+            case kG3xEvtTypeOH:  mappedType = BmcRespiratoryEventType::OH;   break;
+            case kG3xEvtTypeCH:  mappedType = BmcRespiratoryEventType::CH;   break;
             case kG3xEvtTypeRERA: mappedType = BmcRespiratoryEventType::RERA; break;
             default: hasMappedType = false; break;
             }
@@ -1150,6 +1154,8 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
             case BmcRespiratoryEventType::OSA:  ++mappedOsaCount;  break;
             case BmcRespiratoryEventType::CSA:  ++mappedCsaCount;  break;
             case BmcRespiratoryEventType::HYP:  ++mappedHypCount;  break;
+            case BmcRespiratoryEventType::OH:   ++mappedOhCount;   break;
+            case BmcRespiratoryEventType::CH:   ++mappedChCount;   break;
             case BmcRespiratoryEventType::UA:   ++mappedUaCount;   break;
             case BmcRespiratoryEventType::RERA: ++mappedReraCount; break;
             default: break;
@@ -1170,6 +1176,8 @@ BmcDateSession BmcG3xData::ReadDateSession(QDate aDate)
                  << "mappedOSA"   << mappedOsaCount
                  << "mappedCSA"   << mappedCsaCount
                  << "mappedHYP"   << mappedHypCount
+                 << "mappedOH"    << mappedOhCount
+                 << "mappedCH"    << mappedChCount
                  << "mappedRERA"  << mappedReraCount
                  << "ignored"     << ignoredCount;
 

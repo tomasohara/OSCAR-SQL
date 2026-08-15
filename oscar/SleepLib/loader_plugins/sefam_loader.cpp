@@ -994,7 +994,8 @@ int SefamLoader::Open(const QString &path)
         if (!data.log.isEmpty() && data.header.utcEpoch != 0) {
             EventList *oa    = session->AddEventList(CPAP_Obstructive, EVL_Event);
             EventList *ca    = session->AddEventList(CPAP_ClearAirway, EVL_Event);
-            EventList *hyp   = session->AddEventList(CPAP_Hypopnea,    EVL_Event);
+            EventList *oh    = session->AddEventList(CPAP_ObstructiveHypopnea, EVL_Event);
+            EventList *ch    = session->AddEventList(CPAP_CentralHypopnea,     EVL_Event);
             EventList *snore = session->AddEventList(CPAP_VSnore,      EVL_Event);
             EventList *fl    = session->AddEventList(CPAP_FlowLimit,   EVL_Event);
 
@@ -1020,15 +1021,14 @@ int SefamLoader::Open(const QString &path)
                     oa->AddEvent(when - durMs, rec.arg / 10.0f); break;
                 case SefamParsing::kLogCentralApnea:
                     ca->AddEvent(when - durMs, rec.arg / 10.0f); break;
-                // OSCAR has no central hypopnea channel; bmcG3xDataParsing and
-                // prisma_loader both fold both kinds into CPAP_Hypopnea. The
-                // stored duration stays zero because the card does not report
-                // one; only the flag placement is corrected, using the vendor's
+                // The card distinguishes the two mechanisms, so each goes to its own
+                // channel. The stored duration stays zero because the card does not
+                // report one; only the flag placement is corrected, using the vendor's
                 // published mean durations (see the constants above).
                 case SefamParsing::kLogObstructiveHypop:
-                    hyp->AddEvent(when - kObstructiveHypopneaPlacementMs, 0); break;
+                    oh->AddEvent(when - kObstructiveHypopneaPlacementMs, 0); break;
                 case SefamParsing::kLogCentralHypopnea:
-                    hyp->AddEvent(when - kCentralHypopneaPlacementMs, 0); break;
+                    ch->AddEvent(when - kCentralHypopneaPlacementMs, 0); break;
                 case SefamParsing::kLogSnore:
                     snore->AddEvent(when, 0); break;
                 case SefamParsing::kLogFlowLimitation:
@@ -1046,7 +1046,8 @@ int SefamLoader::Open(const QString &path)
         if (summary) {
             EventList *oa    = session->AddEventList(CPAP_Obstructive, EVL_Event);
             EventList *ca    = session->AddEventList(CPAP_ClearAirway, EVL_Event);
-            EventList *hyp   = session->AddEventList(CPAP_Hypopnea,    EVL_Event);
+            EventList *oh    = session->AddEventList(CPAP_ObstructiveHypopnea, EVL_Event);
+            EventList *ch    = session->AddEventList(CPAP_CentralHypopnea,     EVL_Event);
             EventList *snore = session->AddEventList(CPAP_VSnore,      EVL_Event);
             EventList *fl    = session->AddEventList(CPAP_FlowLimit,   EVL_Event);
 
@@ -1065,7 +1066,7 @@ int SefamLoader::Open(const QString &path)
                 }
             };
 
-            int oaTotal = 0, caTotal = 0, hypTotal = 0, snoreTotal = 0, flTotal = 0;
+            int oaTotal = 0, caTotal = 0, ohTotal = 0, chTotal = 0, snoreTotal = 0, flTotal = 0;
             for (int m = 0; m < summary->minuteData.size(); ++m) {
                 const qint64 minuteMs = startMs + static_cast<qint64>(m) * 60000LL;
                 if (minuteMs >= endMs) { break; }
@@ -1073,15 +1074,17 @@ int SefamLoader::Open(const QString &path)
 
                 place(oa,    minuteMs, r.obstructiveApnea);
                 place(ca,    minuteMs, r.centralApnea);
-                // OSCAR has no central hypopnea channel, so both kinds fold into
-                // CPAP_Hypopnea — the same choice the log-based path above makes.
-                place(hyp,   minuteMs, r.obstructiveHypopnea + r.centralHypopnea);
+                // The minute record counts the two hypopnea kinds separately, so each
+                // goes to its own channel — the same choice the log-based path makes.
+                place(oh,    minuteMs, r.obstructiveHypopnea);
+                place(ch,    minuteMs, r.centralHypopnea);
                 place(snore, minuteMs, r.snore);
                 place(fl,    minuteMs, r.flowLimitation);
 
                 oaTotal    += r.obstructiveApnea;
                 caTotal    += r.centralApnea;
-                hypTotal   += r.obstructiveHypopnea + r.centralHypopnea;
+                ohTotal    += r.obstructiveHypopnea;
+                chTotal    += r.centralHypopnea;
                 snoreTotal += r.snore;
                 flTotal    += r.flowLimitation;
             }
@@ -1092,14 +1095,16 @@ int SefamLoader::Open(const QString &path)
             // should be visible rather than quietly imported.
             if (oaTotal != summary->obstructiveApneas
                 || caTotal != summary->centralApneas
-                || hypTotal != summary->obstructiveHypopneas + summary->centralHypopneas
+                || ohTotal != summary->obstructiveHypopneas
+                || chTotal != summary->centralHypopneas
                 || snoreTotal != summary->snores
                 || flTotal != summary->flowLimitations) {
                 qWarning() << "Sefam:" << d << "archive minutes disagree with the"
                            << "block totals — OA" << oaTotal
                            << summary->obstructiveApneas << "CA" << caTotal
-                           << summary->centralApneas << "hyp" << hypTotal
-                           << summary->obstructiveHypopneas + summary->centralHypopneas
+                           << summary->centralApneas
+                           << "OH" << ohTotal << summary->obstructiveHypopneas
+                           << "CH" << chTotal << summary->centralHypopneas
                            << "snore" << snoreTotal << summary->snores
                            << "FL" << flTotal << summary->flowLimitations;
             }
