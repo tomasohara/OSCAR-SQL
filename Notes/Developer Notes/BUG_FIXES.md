@@ -4,6 +4,37 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-16 — Screenshot shrunk into the corner of a large black area on high-DPI displays
+
+**File:** `oscar/mainwindow.cpp` (`MainWindow::DelayedScreenshot()`)
+
+GitLab #272. On a high-DPI Windows display the saved screenshot showed the OSCAR window
+scaled down into the top-left corner of a much larger, otherwise black image. 1.7 was
+unaffected. Switching the graphics engine to Software made no difference, which had
+previously been assumed to be a workaround.
+
+**Root cause:** a device-pixel-ratio mismatch introduced when the screenshot switched from
+`QScreen::grabWindow()` to `QWidget::grab()` in order to drop the title bar. `QWidget::grab()`
+returns a pixmap sized `widgetSize * devicePixelRatio` and tags it with that ratio
+(`qwidget.cpp`). The version header was then composited onto a canvas built from
+`clientPixmap.width()/height()`, which are *raw* pixel counts, producing a canvas of the
+right raw size but with a device pixel ratio of 1.0. `QPainter::drawPixmap()` draws a pixmap
+at its *device-independent* size (`QPaintEngineEx::drawPixmap()` uses
+`pm.deviceIndependentSize()`), so the grab landed at 1/ratio of the canvas — 40% of it in the
+reported case. The remainder of the canvas was never initialised, and uninitialised pixmap
+memory renders as black. The graphics engine setting has no bearing on the device pixel
+ratio, hence no effect on the symptom, and 1.7 escaped it because it saved the grab directly
+with no compositing step.
+
+**Fix:** compose in device-independent coordinates. The destination pixmap is allocated at
+`deviceIndependentSize * ratio` and tagged with the same ratio, so the painter's logical
+coordinates match the grab's and the copy is pixel-for-pixel. The canvas is also filled white
+up front, so no uninitialised memory can reach the file. At ratio 1.0 the result is identical
+to the previous behaviour. A `qDebug()` line now records the ratio and grabbed size, so a log
+from an affected machine confirms the ratio in play.
+
+---
+
 ## 2026-08-14 — Three summary-storage defects found while splitting CH/OH
 
 **Files:** `oscar/SleepLib/session.cpp`, `oscar/database/daily_summary_repository.cpp`,
@@ -11,15 +42,16 @@ Notable bugs found and fixed during development/investigation.
 
 All three surfaced while implementing separate Central/Obstructive Hypopnea channels,
 because OAHI + CAHI == AHI has to hold in SQL as well as in the app, and it did not.
+Filed retroactively as GitLab #269, #270 and #271.
 
-**1. `Session::StoreSummaryToDatabase()` stored RDI under the name AHI.** The fallback
+**1. `Session::StoreSummaryToDatabase()` stored RDI under the name AHI.** (#269) The fallback
 used for summary-only sessions (those with no `m_wavg[CPAP_AHI]`) hand-summed the event
 counts, and the list was wrong in two directions: it omitted `CPAP_AllApnea` and included
 `CPAP_RERA`. That is the definition of RDI, not AHI. Fixed by calling
 `count(AllAhiChannels)`, which walks the same `ahiChannels` list `Day::calcAHI()` uses, so
 the two can no longer drift.
 
-**2. `CPAP_AllApnea` was never stored in either summary table.** It contributes to AHI, so
+**2. `CPAP_AllApnea` was never stored in either summary table.** (#270) It contributes to AHI, so
 every hand-rolled AHI in `system_reports.orf` (`obstructive + unclassified + hypopnea +
 clear_airway`) disagreed with the stored `ahi` column for any device reporting an
 undifferentiated apnea. Schema v18 adds `all_apnea_count` to `session_summaries` and
@@ -28,7 +60,7 @@ undifferentiated apnea. Schema v18 adds `all_apnea_count` to `session_summaries`
 Pre-v18 rows read 0 and are not backfilled, so a stale row still understates those days
 until it is recalculated.
 
-**3. Summary-only sessions lost their unclassified-apnea count on reload.**
+**3. Summary-only sessions lost their unclassified-apnea count on reload.** (#271)
 `Session::LoadFromDatabase()` restored `m_cnt` for OA, CA, H and RERA only, so
 `unclassified_count` was written on store and dropped on load — a summary-only session
 with UA events under-reported its AHI after a restart. The restore is now a small lambda

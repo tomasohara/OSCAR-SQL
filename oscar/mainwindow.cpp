@@ -1986,14 +1986,33 @@ void MainWindow::DelayedScreenshot()
     // high-DPI/Retina displays automatically without requiring screen capture permissions.
     QPixmap clientPixmap = grab();
 
+    // grab() returns a pixmap whose raw size is the widget size multiplied by the
+    // display's device pixel ratio, and it tags the pixmap with that ratio (1.0 at
+    // 100% display scaling, above that on high-DPI screens). The composed pixmap
+    // has to carry the same ratio: QPainter draws a pixmap at its device-independent
+    // size, so compositing onto a ratio-1.0 canvas of the same raw dimensions
+    // shrinks the grab into the top-left corner by 1/ratio and leaves the rest of
+    // the never-initialised canvas showing as black.
+    const qreal dpr = clientPixmap.devicePixelRatio();
+    const QSizeF clientSize = clientPixmap.deviceIndependentSize();
+    qDebug() << "Screenshot: device pixel ratio" << dpr
+             << "grabbed size" << clientPixmap.size();
+
     // Prepend a plain version header to replace the title bar information.
-    int headerHeight = fontMetrics().height() + 8;
-    QPixmap pixmap(clientPixmap.width(), clientPixmap.height() + headerHeight);
+    // Sizes here are device-independent pixels, matching fontMetrics().
+    const int headerHeight = fontMetrics().height() + 8;
+    const QSizeF composedSize(clientSize.width(), clientSize.height() + headerHeight);
+
+    QPixmap pixmap((composedSize * dpr).toSize());
+    pixmap.setDevicePixelRatio(dpr);
+    pixmap.fill(Qt::white);
+
     QPainter painter(&pixmap);
-    painter.fillRect(0, 0, pixmap.width(), headerHeight, Qt::white);
+    painter.fillRect(QRectF(0, 0, composedSize.width(), headerHeight), Qt::white);
     painter.setPen(Qt::black);
-    painter.drawText(QRect(8, 0, pixmap.width(), headerHeight), Qt::AlignLeft | Qt::AlignVCenter, getMainWindowTitle());
-    painter.drawPixmap(0, headerHeight, clientPixmap);
+    painter.drawText(QRectF(8, 0, composedSize.width() - 8, headerHeight),
+                     Qt::AlignLeft | Qt::AlignVCenter, getMainWindowTitle());
+    painter.drawPixmap(QPointF(0, headerHeight), clientPixmap);
     painter.end();
 
     QString default_filename = "/screenshot-" + QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss") + ".png";
