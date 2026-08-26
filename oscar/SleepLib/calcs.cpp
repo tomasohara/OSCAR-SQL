@@ -1419,7 +1419,10 @@ void flagLargeLeaks(Session *session)
 
 int calcPulseChange(Session *session)
 {
-    if (session->eventlist.contains(OXI_PulseChange)) { return 0; }
+    // An empty registered flag channel means a loader opted out; empty event lists aren't
+    // persisted, so after a reload only m_availableChannels still carries that marker.
+    if (session->eventlist.contains(OXI_PulseChange)
+        || session->m_availableChannels.contains(OXI_PulseChange)) { return 0; }
 
     auto it = session->eventlist.find(OXI_Pulse);
 
@@ -1495,7 +1498,8 @@ int calcPulseChange(Session *session)
 
 int calcSPO2Drop(Session *session)
 {
-    if (session->eventlist.contains(OXI_SPO2Drop)) { return 0; }
+    if (session->eventlist.contains(OXI_SPO2Drop)
+        || session->m_availableChannels.contains(OXI_SPO2Drop)) { return 0; }
 
     auto it = session->eventlist.find(OXI_SPO2);
     if (it == session->eventlist.end()) { return 0; }

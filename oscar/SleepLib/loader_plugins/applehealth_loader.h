@@ -33,15 +33,35 @@ class AppleHealthLoader : public MachineLoader
     virtual const QString &loaderName() { return applehealth_class_name; }
 
     virtual MachineInfo newInfo() {
-        return MachineInfo(MT_OXIMETER, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Apple Watch"), QString(), QString(), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
+        return MachineInfo(MT_OXIMETER, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Apple Watch"), QString(), QStringLiteral("Vitals"), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
     }
 
     MachineInfo newInfoSleep() {
-        return MachineInfo(MT_SLEEPSTAGE, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Apple Watch Sleep"), QString(), QString(), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
+        return MachineInfo(MT_SLEEPSTAGE, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Apple Watch Sleep"), QString(), QStringLiteral("Sleep"), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
     }
 
   private:
+    QDate nightDate(qint64 timeMs) const;
+    Session *buildSleepSession(Machine *mach,
+                               const QVector<AppleHealthInterval> &stages,
+                               const QVector<AppleHealthNightScalar> &breathingDisturbances,
+                               const QVector<AppleHealthNightScalar> &wristTemp);
+    Session *buildOxiSession(Machine *mach,
+                             const QVector<AppleHealthSample> &heartRate,
+                             const QVector<AppleHealthSample> &spo2,
+                             const QVector<AppleHealthSample> &respRate,
+                             const QVector<AppleHealthSample> &hrv);
+    void importSamples(ChannelID channel, const QVector<AppleHealthSample> &samples,
+                       qint64 gapThresholdMs);
+    void AddEvent(ChannelID channel, qint64 timeMs, EventDataType value);
+    void EndEventList(ChannelID channel, qint64 timeMs);
+    void AddSample(ChannelID channel, qint64 timeMs, EventDataType value);
+    void EndSampleList(ChannelID channel);
+
     AppleHealthData m_data;
+    Session *m_session = nullptr;
+    QHash<ChannelID, EventList *> m_importChannels;
+    QHash<ChannelID, EventDataType> m_importLastValue;
 };
 
 #endif // APPLEHEALTHLOADER_H
