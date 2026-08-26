@@ -52,7 +52,40 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         return -1;
     }
 
-    qDebug() << "AppleHealthLoader::OpenFile: recognized Apple Health export:" << filename;
+    AppleHealthParser parser;
+    // cutoff wired to the profile CPAP range in a later stage
+    if (!parser.parse(filename, m_data)) {
+        qWarning() << "AppleHealthLoader::OpenFile:" << parser.errorString();
+        return -1;
+    }
+
+    if (!m_data.sleepStages.isEmpty()) {
+        qDebug() << "AppleHealthLoader::OpenFile: stages:" << m_data.sleepStages.size();
+    }
+    if (!m_data.heartRate.isEmpty()) {
+        qDebug() << "AppleHealthLoader::OpenFile: hr:" << m_data.heartRate.size();
+    }
+    if (!m_data.spo2.isEmpty()) {
+        qDebug() << "AppleHealthLoader::OpenFile: spo2:" << m_data.spo2.size();
+    }
+    if (!m_data.respRate.isEmpty()) {
+        qDebug() << "AppleHealthLoader::OpenFile: resp:" << m_data.respRate.size();
+    }
+    if (!m_data.hrv.isEmpty()) {
+        qDebug() << "AppleHealthLoader::OpenFile: hrv:" << m_data.hrv.size();
+    }
+    if (!m_data.breathingDisturbances.isEmpty()) {
+        qDebug() << "AppleHealthLoader::OpenFile: bd:"
+                 << m_data.breathingDisturbances.size();
+    }
+    if (!m_data.wristTemp.isEmpty()) {
+        qDebug() << "AppleHealthLoader::OpenFile: wristTemp:" << m_data.wristTemp.size();
+    }
+    if (!m_data.weights.isEmpty()) {
+        qDebug() << "AppleHealthLoader::OpenFile: weights:" << m_data.weights.size();
+    }
+    qDebug() << "AppleHealthLoader::OpenFile: recordsSeen:" << m_data.recordsSeen;
+    qDebug() << "AppleHealthLoader::OpenFile: sleepSourceCounts:" << m_data.sleepSourceCounts;
     return 0;
 }
 

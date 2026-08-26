@@ -10,6 +10,7 @@
 #define APPLEHEALTHLOADER_H
 
 #include "SleepLib/machine_loader.h"
+#include "applehealthDataParsing.h"
 
 const QString applehealth_class_name = "AppleHealth";
 const int applehealth_data_version = 1;
@@ -38,6 +39,9 @@ class AppleHealthLoader : public MachineLoader
     MachineInfo newInfoSleep() {
         return MachineInfo(MT_SLEEPSTAGE, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Apple Watch Sleep"), QString(), QString(), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
     }
+
+  private:
+    AppleHealthData m_data;
 };
 
 #endif // APPLEHEALTHLOADER_H
