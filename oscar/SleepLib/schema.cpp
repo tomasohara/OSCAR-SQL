@@ -376,6 +376,14 @@ void init()
     schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeToZ    = 0x2008, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeToZ",      QObject::tr("Time to Sleep"), QObject::tr("Time taken to get to sleep"), QObject::tr("Time to Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
     schema::channel.add(GRP_SLEEP, new Channel(ZEO_ZQ         = 0x2009, DATA,   MT_SLEEPSTAGE,  SESSION, "ZeoZQ", QObject::tr("Zeo ZQ"), QObject::tr("Zeo sleep quality measurement"), QObject::tr("ZEO ZQ"),  QString(), INTEGER,  Qt::black));
 
+    // Apple Watch channels
+    schema::channel.add(GRP_SLEEP, new Channel(AW_RespRate = 0x2100, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "AWRespRate",
+            QObject::tr("Respiratory Rate (Watch)"), QObject::tr("Breaths per minute measured by Apple Watch"), QObject::tr("Resp. Rate (Watch)"),  STR_UNIT_BreathsPerMinute, DEFAULT,  QColor("teal")));
+    schema::channel.add(GRP_SLEEP, new Channel(AW_HRV = 0x2101, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "AWHRV",
+            QObject::tr("Heart Rate Variability (SDNN)"), QObject::tr("Heart rate variability measured by Apple Watch"), QObject::tr("HRV (SDNN)"),  STR_UNIT_ms, DEFAULT,  QColor("purple")));
+    schema::channel.add(GRP_SLEEP, new Channel(AW_BreathingDisturbances = 0x2102, DATA,   MT_SLEEPSTAGE,  SESSION, "AWBreathingDisturbances", QObject::tr("Breathing Disturbances"), QObject::tr("Apple's per-night sleep-breathing-disturbance count"), QObject::tr("Breathing Disturbances"),  QString(), DOUBLE,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(AW_WristTemp = 0x2103, DATA,   MT_SLEEPSTAGE,  SESSION, "AWWristTemp", QObject::tr("Wrist Temperature"), QObject::tr("Wrist temperature measured by Apple Watch, stored in Celsius"), QObject::tr("Wrist Temperature"),  "ºC", DOUBLE,  Qt::black));
+
     //////////////////////////////////////////////////////////////////////
     // Manufacturer-specific channels
     // **** Ensure your channel ID is unique
