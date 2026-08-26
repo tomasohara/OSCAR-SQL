@@ -50,6 +50,7 @@
 #include <chrono>
 
 // Gah! I must add the real darn plugin system one day.
+#include "SleepLib/loader_plugins/applehealth_loader.h"
 #include "SleepLib/loader_plugins/prs1_loader.h"
 #include "SleepLib/loader_plugins/cms50_loader.h"
 #include "SleepLib/loader_plugins/cms50f37_loader.h"
@@ -1021,6 +1022,7 @@ int main(int argc, char *argv[]) {
     YuwellLoader::Register();
     SefamLoader::Register();
     ApexLoader::Register();
+    AppleHealthLoader::Register();
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Migrate from OSCAR 1.x if needed

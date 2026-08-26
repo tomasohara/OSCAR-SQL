@@ -2237,6 +2237,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="separator"/>
     <addaction name="actionImport_ZEO_Data"/>
     <addaction name="actionImport_Dreem_Data"/>
+    <addaction name="actionImport_AppleHealth_Data"/>
     <addaction name="actionImport_Somnopose_Data"/>
     <addaction name="actionImport_Viatom_Data"/>
     <addaction name="actionImport_RemStar_MSeries_Data"/>
@@ -2476,6 +2477,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionImport_Dreem_Data">
    <property name="text">
     <string>Import Dreem Data</string>
+   </property>
+  </action>
+  <action name="actionImport_AppleHealth_Data">
+   <property name="text">
+    <string>Import Apple Health Data</string>
    </property>
   </action>
   <action name="actionImport_RemStar_MSeries_Data">

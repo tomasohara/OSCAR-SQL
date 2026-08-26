@@ -376,6 +376,7 @@ SOURCES += \
     SleepLib/event.cpp \
     SleepLib/importcontext.cpp \
     SleepLib/journal.cpp \
+    SleepLib/loader_plugins/applehealth_loader.cpp \
     SleepLib/loader_plugins/apexDataParsing.cpp \
     SleepLib/loader_plugins/apex_loader.cpp \
     SleepLib/loader_plugins/bmcDataParsing.cpp \
@@ -551,6 +552,7 @@ HEADERS  += \
     SleepLib/profiles.h \
     SleepLib/schema.h \
     SleepLib/session.h \
+    SleepLib/loader_plugins/applehealth_loader.h \
     SleepLib/loader_plugins/apexDataParsing.h \
     SleepLib/loader_plugins/apex_loader.h \
     SleepLib/loader_plugins/bmcDataParsing.h \

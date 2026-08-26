@@ -65,6 +65,7 @@
 // Custom loaders that don't autoscan..
 #include <SleepLib/loader_plugins/zeo_loader.h>
 #include <SleepLib/loader_plugins/dreem_loader.h>
+#include <SleepLib/loader_plugins/applehealth_loader.h>
 #include <SleepLib/loader_plugins/somnopose_loader.h>
 #include <SleepLib/loader_plugins/viatom_loader.h>
 
@@ -2924,6 +2925,12 @@ void MainWindow::on_actionImport_Dreem_Data_triggered()
 {
     DreemLoader dreem;
     importNonCPAP(dreem, STR_PREF_LastDreemPath);
+}
+
+void MainWindow::on_actionImport_AppleHealth_Data_triggered()
+{
+    AppleHealthLoader applehealth;
+    importNonCPAP(applehealth, STR_PREF_LastAppleHealthPath);
 }
 
 void MainWindow::on_actionImport_RemStar_MSeries_Data_triggered()
