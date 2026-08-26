@@ -11,6 +11,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QMap>
+#include <QSet>
 #include <QTime>
 
 #include <algorithm>
@@ -19,6 +20,31 @@
 #include "applehealth_loader.h"
 #include "SleepLib/machine.h"
 #include "SleepLib/session.h"
+
+namespace {
+
+static QString autoMatchedSleepSource(const QHash<QString, int> &sourceCounts)
+{
+    QString matchedSource;
+    int matchedCount = -1;
+    for (auto it = sourceCounts.cbegin(); it != sourceCounts.cend(); ++it) {
+        QString normalized = it.key();
+        normalized.replace(QChar(0x00A0), QLatin1Char(' '));
+        if (!normalized.contains(QStringLiteral("Apple"))
+            || !normalized.contains(QStringLiteral("Watch"))) {
+            continue;
+        }
+        if (it.value() > matchedCount
+            || (it.value() == matchedCount
+                && it.key().compare(matchedSource, Qt::CaseInsensitive) < 0)) {
+            matchedSource = it.key();
+            matchedCount = it.value();
+        }
+    }
+    return matchedSource;
+}
+
+} // namespace
 
 AppleHealthLoader::AppleHealthLoader()
 {
@@ -35,8 +61,18 @@ bool AppleHealthLoader::Detect(const QString & path)
     return false;
 }
 
+int AppleHealthLoader::Open(const QStringList &paths)
+{
+    const bool previousForwarding = m_forwardParserProgress;
+    m_forwardParserProgress = (paths.size() == 1);
+    const int result = MachineLoader::Open(paths);
+    m_forwardParserProgress = previousForwarding;
+    return result;
+}
+
 int AppleHealthLoader::OpenFile(const QString & filename)
 {
+    m_lastImportSummary = AppleHealthImportSummary();
     m_data = AppleHealthData();
     m_session = nullptr;
     m_importChannels.clear();
@@ -67,8 +103,14 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     file.close();
 
     AppleHealthParser parser;
+    parser.setProgressCallback([this](qint64 bytesRead, qint64 bytesTotal) {
+        if (m_forwardParserProgress && bytesTotal > 0) {
+            const int percent = qBound(0, static_cast<int>((bytesRead * 100) / bytesTotal), 100);
+            emit setProgressValue(percent);
+        }
+    });
     qint64 cutoffMs = 0;
-    if (p_profile != nullptr) {
+    if (!m_importFullHistory && p_profile != nullptr) {
         const QDate firstCpapDay = p_profile->FirstDay(MT_CPAP);
         if (firstCpapDay.isValid() && p_profile->FindDay(firstCpapDay, MT_CPAP) != nullptr) {
             cutoffMs = QDateTime(firstCpapDay.addDays(-7), QTime(0, 0), Qt::LocalTime)
@@ -81,6 +123,30 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         m_data = AppleHealthData();
         return -1;
     }
+
+    const QString autoSource = autoMatchedSleepSource(m_data.sleepSourceCounts);
+    QString chosenSource = autoSource;
+    if (m_sleepSourceChooser && m_data.sleepSourceCounts.size() > 1) {
+        const QString requestedSource = m_sleepSourceChooser(m_data.sleepSourceCounts);
+        if (requestedSource.isEmpty()) {
+            // Chooser dismissed: abort before anything is written.
+            abort();
+            m_data = AppleHealthData();
+            return 0;
+        }
+        chosenSource = requestedSource;
+        if (requestedSource != autoSource) {
+            parser.setSleepSource(requestedSource);
+            if (!parser.parse(filename, m_data)) {
+                qWarning() << "AppleHealthLoader::OpenFile:" << parser.errorString();
+                m_data = AppleHealthData();
+                return -1;
+            }
+        }
+    }
+    m_lastImportSummary.validFile = true;
+    m_lastImportSummary.sleepSourceCounts = m_data.sleepSourceCounts;
+    m_lastImportSummary.chosenSleepSource = chosenSource;
 
     if (!m_data.sleepStages.isEmpty()) {
         qDebug() << "AppleHealthLoader::OpenFile: stages:" << m_data.sleepStages.size();
@@ -186,6 +252,7 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     bool sleepChanged = false;
     bool oxiChanged = false;
     int imported = 0;
+    QSet<QDate> skippedExistingNights;
 
     for (auto nightIt = nights.cbegin(); nightIt != nights.cend(); ++nightIt) {
         const QDate night = nightIt.key();
@@ -223,9 +290,12 @@ int AppleHealthLoader::OpenFile(const QString & filename)
                 if (sleepMach->AddSession(session)) {
                     sleepChanged = true;
                     ++imported;
+                    ++m_lastImportSummary.sleepSessions;
                 } else {
                     delete session;
                 }
+            } else {
+                skippedExistingNights.insert(night);
             }
         }
 
@@ -240,12 +310,17 @@ int AppleHealthLoader::OpenFile(const QString & filename)
                 if (oxiMach->AddSession(session)) {
                     oxiChanged = true;
                     ++imported;
+                    ++m_lastImportSummary.oxiSessions;
                 } else {
                     delete session;
                 }
+            } else {
+                skippedExistingNights.insert(night);
             }
         }
     }
+
+    m_lastImportSummary.skippedExisting = skippedExistingNights.size();
 
     if (sleepChanged) {
         sleepMach->Save();
@@ -294,6 +369,22 @@ Session *AppleHealthLoader::buildSleepSession(
     m_importLastValue.clear();
     session->really_set_first(firstMs);
     session->really_set_last(lastMs);
+
+    static constexpr qint64 runToleranceMs = 15LL * 60LL * 1000LL;
+    qint64 runStartMs = stages.constFirst().startMs;
+    qint64 runEndMs = stages.constFirst().endMs;
+    for (int i = 1; i < stages.size(); ++i) {
+        const AppleHealthInterval &interval = stages.at(i);
+        // Gap from the run's furthest end, so nested intervals can't open an overlapping slice.
+        if (interval.startMs - runEndMs > runToleranceMs) {
+            session->m_slices.append(SessionSlice(runStartMs, runEndMs, MaskOn));
+            runStartMs = interval.startMs;
+            runEndMs = interval.endMs;
+        } else {
+            runEndMs = std::max(runEndMs, interval.endMs);
+        }
+    }
+    session->m_slices.append(SessionSlice(runStartMs, runEndMs, MaskOn));
 
     qint64 stageTimeMs[5] = {0, 0, 0, 0, 0};
     int awakenings = 0;

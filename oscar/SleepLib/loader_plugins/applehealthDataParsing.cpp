@@ -17,6 +17,8 @@
 #include <QTime>
 #include <QXmlStreamReader>
 
+#include <utility>
+
 namespace {
 
 enum class RecordKind
@@ -145,6 +147,12 @@ void AppleHealthParser::setSleepSource(const QString &sourceName)
     m_sleepSource = sourceName;
 }
 
+void AppleHealthParser::setProgressCallback(
+    std::function<void(qint64 bytesRead, qint64 bytesTotal)> cb)
+{
+    m_progressCallback = std::move(cb);
+}
+
 QString AppleHealthParser::errorString() const
 {
     return m_error;
@@ -161,6 +169,20 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
         return false;
     }
 
+    const qint64 bytesTotal = file.size();
+    qint64 lastProgressBytes = 0;
+    if (m_progressCallback) {
+        m_progressCallback(0, bytesTotal);
+    }
+    const auto reportProgress = [&]() {
+        static constexpr qint64 progressInterval = 2LL * 1024LL * 1024LL;
+        const qint64 bytesRead = file.pos();
+        if (m_progressCallback && bytesRead - lastProgressBytes >= progressInterval) {
+            lastProgressBytes = bytesRead;
+            m_progressCallback(bytesRead, bytesTotal);
+        }
+    };
+
     QXmlStreamReader xml(&file);
     QSet<QString> unknownSleepValues;
     int malformedWarnings = 0;
@@ -173,6 +195,9 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
 
     const auto parseRecord = [&](const QXmlStreamAttributes &attributes) {
         ++out.recordsSeen;
+        if ((out.recordsSeen % 4096) == 0) {
+            reportProgress();
+        }
 
         const QStringView fullType = attributes.value(QStringLiteral("type"));
         const RecordKind kind = recordKind(fullType);
@@ -381,6 +406,9 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
     if (file.error() != QFileDevice::NoError) {
         m_error = QStringLiteral("Error reading %1: %2").arg(path, file.errorString());
         return false;
+    }
+    if (m_progressCallback && lastProgressBytes < bytesTotal) {
+        m_progressCallback(bytesTotal, bytesTotal);
     }
     return true;
 }

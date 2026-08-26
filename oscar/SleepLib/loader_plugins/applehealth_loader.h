@@ -12,9 +12,20 @@
 #include "SleepLib/machine_loader.h"
 #include "applehealthDataParsing.h"
 
+#include <functional>
+
 const QString applehealth_class_name = "AppleHealth";
 const int applehealth_data_version = 1;
 
+struct AppleHealthImportSummary
+{
+    int sleepSessions = 0;
+    int oxiSessions = 0;
+    int skippedExisting = 0;
+    QHash<QString, int> sleepSourceCounts;
+    QString chosenSleepSource;
+    bool validFile = false;
+};
 
 class AppleHealthLoader : public MachineLoader
 {
@@ -25,6 +36,7 @@ class AppleHealthLoader : public MachineLoader
     virtual bool Detect(const QString & path);
 
     virtual int Open(const QString & path) { Q_UNUSED(path); return 0; }
+    virtual int Open(const QStringList & paths) override;
     virtual int OpenFile(const QString & path);
     virtual QStringList getNameFilter() { return QStringList("Apple Health Export (export.xml)"); }
     static void Register();
@@ -39,6 +51,14 @@ class AppleHealthLoader : public MachineLoader
     MachineInfo newInfoSleep() {
         return MachineInfo(MT_SLEEPSTAGE, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Apple Watch Sleep"), QString(), QStringLiteral("Sleep"), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
     }
+
+    void setSleepSourceChooser(
+        const std::function<QString(const QHash<QString, int> &)> &chooser)
+    {
+        m_sleepSourceChooser = chooser;
+    }
+    void setImportFullHistory(bool fullHistory) { m_importFullHistory = fullHistory; }
+    const AppleHealthImportSummary &lastImportSummary() const { return m_lastImportSummary; }
 
   private:
     QDate nightDate(qint64 timeMs) const;
@@ -62,6 +82,10 @@ class AppleHealthLoader : public MachineLoader
     Session *m_session = nullptr;
     QHash<ChannelID, EventList *> m_importChannels;
     QHash<ChannelID, EventDataType> m_importLastValue;
+    std::function<QString(const QHash<QString, int> &)> m_sleepSourceChooser;
+    bool m_importFullHistory = false;
+    bool m_forwardParserProgress = true;
+    AppleHealthImportSummary m_lastImportSummary;
 };
 
 #endif // APPLEHEALTHLOADER_H

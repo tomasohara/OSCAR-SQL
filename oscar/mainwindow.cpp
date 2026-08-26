@@ -12,6 +12,7 @@
 
 #include <QHostInfo>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QResource>
 #include <QProgressBar>
@@ -2930,7 +2931,95 @@ void MainWindow::on_actionImport_Dreem_Data_triggered()
 void MainWindow::on_actionImport_AppleHealth_Data_triggered()
 {
     AppleHealthLoader applehealth;
-    importNonCPAP(applehealth, STR_PREF_LastAppleHealthPath);
+
+    if (p_profile != nullptr && p_profile->FirstDay(MT_CPAP).isValid()) {
+        const QMessageBox::StandardButton historyChoice = QMessageBox::question(
+            this, tr("Apple Health Import"),
+            tr("Import only data overlapping your CPAP history (recommended), or your full Apple Health history?"),
+            QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
+        if (historyChoice == QMessageBox::Cancel) {
+            return;
+        }
+        applehealth.setImportFullHistory(historyChoice == QMessageBox::No);
+    }
+
+    applehealth.setSleepSourceChooser(
+        [this](const QHash<QString, int> &sourceCounts) -> QString {
+            QStringList sourceNames = sourceCounts.keys();
+            sourceNames.sort(Qt::CaseInsensitive);
+
+            QStringList choices;
+            int defaultIndex = 0;
+            int defaultCount = -1;
+            for (int i = 0; i < sourceNames.size(); ++i) {
+                const QString &sourceName = sourceNames.at(i);
+                const int count = sourceCounts.value(sourceName);
+                choices.append(tr("%1 (%2 records)").arg(sourceName).arg(count));
+
+                QString normalized = sourceName;
+                normalized.replace(QChar(0x00A0), QLatin1Char(' '));
+                if (normalized.contains(QStringLiteral("Apple"))
+                    && normalized.contains(QStringLiteral("Watch"))
+                    && count > defaultCount) {
+                    defaultIndex = i;
+                    defaultCount = count;
+                }
+            }
+
+            bool accepted = false;
+            const QString selected = QInputDialog::getItem(
+                this, tr("Apple Health Sleep Source"), tr("Choose the source for sleep stages:"),
+                choices, defaultIndex, false, &accepted);
+            if (!accepted) {
+                return QString();
+            }
+            const int selectedIndex = choices.indexOf(selected);
+            return selectedIndex >= 0 ? sourceNames.at(selectedIndex) : QString();
+        });
+
+    ProgressDialog progress(this);
+    progress.setMessage(tr("Reading Apple Health export..."));
+    progress.setProgressMax(100);
+    progress.setProgressValue(0);
+    bool parserProgressActive = false;
+    connect(&applehealth, &MachineLoader::setProgressValue, &progress,
+            [&progress, &parserProgressActive](int value) {
+                if (value == 0) {
+                    parserProgressActive = true;
+                    if (!progress.isVisible()) {
+                        progress.open();
+                    }
+                }
+                if (!parserProgressActive) {
+                    return;
+                }
+                progress.setProgressValue(value);
+                QCoreApplication::processEvents();
+                if (value >= 100) {
+                    parserProgressActive = false;
+                }
+            });
+
+    const bool committed = importNonCPAP(applehealth, STR_PREF_LastAppleHealthPath);
+
+    progress.allowClose();
+    progress.close();
+    QCoreApplication::processEvents();
+
+    const AppleHealthImportSummary &summary = applehealth.lastImportSummary();
+    if (committed && summary.validFile) {
+        const QString sleepSource = summary.chosenSleepSource.isEmpty()
+                                        ? tr("No matching Apple Watch source")
+                                        : summary.chosenSleepSource;
+        Notify(tr("Imported %1 sleep session(s) and %2 vitals session(s).\n"
+                  "Skipped %3 already-imported night(s).\n"
+                  "Sleep source: %4")
+                   .arg(summary.sleepSessions)
+                   .arg(summary.oxiSessions)
+                   .arg(summary.skippedExisting)
+                   .arg(sleepSource),
+               tr("Apple Health Import Summary"));
+    }
 }
 
 void MainWindow::on_actionImport_RemStar_MSeries_Data_triggered()
@@ -3167,7 +3256,7 @@ void MainWindow::refreshProfileSelector()
     }
 }
 
-void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefKey)
+bool MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefKey)
 {
     // get save location from profile.
     QDir folder = QDir(profilePath(folderPrefKey));
@@ -3219,6 +3308,7 @@ void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
             if (size > 1) {
                 disconnect(&loader, SIGNAL(setProgressValue(int)), &progress, SLOT(setProgressValue(int)));
                 disconnect(&progress, SIGNAL(abortClicked()), &loader, SLOT(abortImport()));
+                progress.allowClose();
                 progress.close();
             }
             loader.SetContext(nullptr);
@@ -3227,7 +3317,7 @@ void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
                 tr("Cannot import data: the OSCAR database is locked by another application.\n\n"
                    "If you have the database open in a SQLite viewer or editor, "
                    "please close it and try again.\n\nError: %1").arg(errText));
-            return;
+            return false;
         }
 
         int res = loader.Open(files);
@@ -3265,6 +3355,7 @@ void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
         if (size > 1) {
             disconnect(&loader, SIGNAL(setProgressValue(int)), &progress, SLOT(setProgressValue(int)));
             disconnect(&progress, SIGNAL(abortClicked()), &loader, SLOT(abortImport()));
+            progress.allowClose();
             progress.close();
             QCoreApplication::processEvents();
         }
@@ -3275,10 +3366,13 @@ void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
                    "If you have the OSCAR database open in another application "
                    "(e.g., a SQLite viewer or editor), please close it and try again.\n\nError: %1")
                 .arg(commitError));
-            return;
+            return false;
         }
 
-        if (res < 0) {
+        const bool aborted = loader.isAborted();
+        if (aborted) {
+            // Aborting mid-import is not an error; skip the failure notices.
+        } else if (res < 0) {
             // res is used as an index to an array and will cause a crash if not handled.
             // Negative numbers indicate a problem with the file format or the file does not exist.
             //QString fileName = QFileInfo(files[0]).fileName();
@@ -3286,10 +3380,9 @@ void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
                 .arg(name, QFileInfo( files[0]).fileName() ) );
             //QString msg = QString(tr("There was a problem parsing %1 \nData File: %2") .arg(name, fileName) );
             Notify(msg,"",20*1000 /* convert sec to ms */);
-        } else
-        if (res == 0) {
+        } else if (res == 0) {
             Notify(tr("There was a problem opening %1 Data File: %2").arg(name, files[0]));
-            return;
+            return false;
         } else if (res < size){
             Notify(tr("%1 Data Import of %2 file(s) complete").arg(name).arg(res) + "\n\n" +
                    tr("There was a problem opening %1 Data File: %2").arg(name, files[res]),
@@ -3306,7 +3399,9 @@ void MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
         if (overview) overview->ReloadGraphs();
         if (welcome) welcome->refreshPage();
         daily->LoadDate(daily->getDate());
+        return !aborted;
     }
+    return false;
 }
 
 void MainWindow::on_actionImport_Somnopose_Data_triggered()

@@ -14,6 +14,8 @@
 #include <QVector>
 #include <QtGlobal>
 
+#include <functional>
+
 struct AppleHealthSample
 {
     qint64 timeMs;
@@ -62,6 +64,7 @@ class AppleHealthParser
 
     void setCutoff(qint64 epochMsUtc);
     void setSleepSource(const QString &sourceName);
+    void setProgressCallback(std::function<void(qint64 bytesRead, qint64 bytesTotal)> cb);
     bool parse(const QString &path, AppleHealthData &out);
     QString errorString() const;
 
@@ -70,6 +73,7 @@ class AppleHealthParser
     QString m_coarseCutoffDate;
     QString m_sleepSource;
     QString m_error;
+    std::function<void(qint64, qint64)> m_progressCallback;
 };
 
 #endif // APPLEHEALTH_DATA_PARSING_H
