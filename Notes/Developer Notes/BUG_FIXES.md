@@ -4,6 +4,49 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-26 — BMC G3X/E5 showed two Reslex settings the device does not have
+
+**Files:** `oscar/SleepLib/loader_plugins/bmc_loader.{h,cpp}`,
+`oscar/SleepLib/loader_plugins/bmcg3x_loader.h`, `oscar/SleepLib/day.cpp`
+
+GitLab #274, from a forum report comparing OSCAR's Device Settings against PAP-Link.
+"Reslex Availability" and "Reslex Mode" appeared for G3X and E5 machines; PAP-Link shows
+neither, and both are legacy-BMC concepts.
+
+Neither value was ever read from a G3X card:
+
+- **Reslex Availability** (`BMC_RESLEX_PATIENT`) has a source only in the legacy IDX
+  parser, at byte `0x151` bit 7. The G3X parser never assigns `ReslexPatient`, so the
+  struct default `false` was published and displayed as "Clinician" on every session.
+- **Reslex Mode** (`BMC_RESLEX_MODE`) was hard-coded to `0` for *every* BMC device, and
+  the channel registers exactly one option, "Full Time". No parser has ever read it. The
+  same construct is present in 1.7.1, which has no G3X loader — so it was written for
+  legacy BMC and the G3X path inherited it by reusing `setSessionMachineSettings()`.
+
+Both are now gated on a new `BmcLoader::ExportReslexDetails()` virtual, defaulting to
+true and overridden to false in `BmcG3xLoader`. This follows the existing
+`ExportTimingChannels()` / `ExportPeriodicBreathing()` idiom, and leaves legacy BMC
+behaviour untouched. Reslex itself (TS `0x86`) is confirmed for the G3X and still
+published.
+
+**Secondary effect that had to be handled.** `BMC_RESLEX_MODE` does double duty: it is
+also the channel `BmcLoader::PresReliefMode()` returns, and `Day::getPressureRelief()`
+emits nothing unless that setting exists — it falls through to "None". Simply suppressing
+it would have made the Daily summary, the Statistics page and printed reports all read
+"Relief: None" for G3X/E5 users with Reslex active. `getPressureRelief()` therefore gained
+a branch that renders label and level alone when a device reports a relief level but no
+mode. The branch is reached only where the function previously returned "None", so no
+loader that currently produces a relief string can be affected.
+
+**Audit for siblings.** Every other setting the shared `setSessionMachineSettings()`
+publishes unconditionally is assigned by the G3X parser (ramp, Reslex level, auto on/off,
+humidifier, mask type, leak alert); air tube type was already gated by
+`AirTubeTypeKnown`. `ReslexPatient` was the only remaining gap of this kind.
+
+**Existing imports are not corrected.** Session settings are persisted in the
+`session_settings` table, so days already imported keep both rows until the machine is
+purged and re-imported. The fix applies to new imports.
+
 ## 2026-08-16 — Screenshot shrunk into the corner of a large black area on high-DPI displays
 
 **File:** `oscar/mainwindow.cpp` (`MainWindow::DelayedScreenshot()`)
