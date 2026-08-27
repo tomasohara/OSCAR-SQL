@@ -15,6 +15,7 @@
 #include <QSet>
 #include <QStringView>
 #include <QTime>
+#include <QtNumeric>
 #include <QXmlStreamReader>
 
 #include <utility>
@@ -305,8 +306,14 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
                     return;
                 }
                 // Apple writes fractions (0.96) under unit "%"; third-party apps may write 96.
-                if (value <= 1.0f) {
+                if (value >= 0.0f && value <= 1.0f) {
                     value *= 100.0f;
+                }
+                // 0 and negatives are no-reading sentinels, not measurements.
+                if (!qIsFinite(value) || value <= 0.0f || value > 100.0f) {
+                    warnMalformed(QStringLiteral("skipping OxygenSaturation with out-of-range value %1")
+                                      .arg(valueText.toString()));
+                    return;
                 }
                 out.spo2.append(AppleHealthSample{startMs, value});
             }

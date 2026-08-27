@@ -3274,6 +3274,11 @@ void MainWindow::refreshProfileSelector()
 
 bool MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefKey)
 {
+    if (p_profile == nullptr) {
+        QMessageBox::warning(this, tr("Import"), tr("Please open or create a profile before importing data."));
+        return false;
+    }
+
     // get save location from profile.
     QDir folder = QDir(profilePath(folderPrefKey));
 
@@ -3414,6 +3419,7 @@ bool MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
         PopulatePurgeMenu();
         if (overview) overview->ReloadGraphs();
         if (welcome) welcome->refreshPage();
+        GenerateStatistics();
         daily->LoadDate(daily->getDate());
         return !aborted;
     }
