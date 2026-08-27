@@ -65,6 +65,7 @@ QString htmlLeftAHI;
 QString htmlLeftMachineInfo;
 QString htmlLeftSleepTime;
 QString htmlLeftIndices;
+QString htmlLeftAppleWatch;
 QString htmlLeftPieChart = "";
 QString htmlLeftNoHours = "";
 QString htmlLeftStatistics;
@@ -104,6 +105,7 @@ const QList<QString> standardGraphOrder = {
     STR_GRAPH_PTB, STR_GRAPH_RespEvent, STR_GRAPH_Ti, STR_GRAPH_Te, STR_GRAPH_IE,
     STR_GRAPH_SleepStage, STR_GRAPH_Inclination, STR_GRAPH_Orientation, STR_GRAPH_Motion, STR_GRAPH_TestChan1,
     STR_GRAPH_Oxi_Pulse, STR_GRAPH_Oxi_SPO2, STR_GRAPH_Oxi_Perf, STR_GRAPH_Oxi_Plethy,
+    "AWRespRate", "AWHRV",   // Apple Watch (match channel codes)
     STR_GRAPH_AHI, STR_GRAPH_TAP, STR_GRAPH_ObstructLevel, STR_GRAPH_PressureMeasured, STR_GRAPH_rRMV, STR_GRAPH_rMVFluctuation,
     STR_GRAPH_FlowFull
     #if defined(STEADY_BREATHING)
@@ -119,6 +121,7 @@ const QList<QString> advancedGraphOrder = {
     STR_GRAPH_IE_Ratio, STR_GRAPH_RespRate, STR_GRAPH_PTB, STR_GRAPH_RespEvent,
     STR_GRAPH_SleepStage, STR_GRAPH_Inclination, STR_GRAPH_Orientation, STR_GRAPH_Motion, STR_GRAPH_TestChan1,
     STR_GRAPH_Oxi_Pulse, STR_GRAPH_Oxi_SPO2, STR_GRAPH_Oxi_Perf, STR_GRAPH_Oxi_Plethy,
+    "AWRespRate", "AWHRV",   // Apple Watch (match channel codes)
     STR_GRAPH_AHI, STR_GRAPH_TAP, STR_GRAPH_ObstructLevel, STR_GRAPH_PressureMeasured, STR_GRAPH_rRMV, STR_GRAPH_rMVFluctuation,
     STR_GRAPH_FlowFull
     #if defined(STEADY_BREATHING)
@@ -334,7 +337,7 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     }
 
     const ChannelID oximetercodes[] = {
-        OXI_Pulse, OXI_SPO2, OXI_Perf, OXI_Plethy
+        OXI_Pulse, OXI_SPO2, OXI_Perf, OXI_Plethy, AW_RespRate, AW_HRV
     };
 
     // Add graphs from the Oximeter code list
@@ -544,6 +547,8 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     }
     if (auto *g = graphlist.value(schema::channel[OXI_Perf].code())) g->AddLayer(new gLineChart(OXI_Perf, false));
     if (auto *g = graphlist.value(schema::channel[OXI_Plethy].code())) g->AddLayer(new gLineChart(OXI_Plethy, false));
+    if (auto *g = graphlist.value(schema::channel[AW_RespRate].code())) g->AddLayer(new gLineChart(AW_RespRate, square));
+    if (auto *g = graphlist.value(schema::channel[AW_HRV].code())) g->AddLayer(new gLineChart(AW_HRV, square));
 
 
     // Fix me
@@ -1519,6 +1524,27 @@ QString Daily::getOximeterInformation(Day * day)
     }
     return html;
 }
+
+QString Daily::getAppleWatchInformation(Day * day)
+{
+    QString html;
+    if (!day || (!day->settingExists(AW_BreathingDisturbances) && !day->settingExists(AW_WristTemp))) return html;
+
+    // Appended under the indices table, so it follows that section's collapse state
+#ifndef COMBINE_MODE_3
+    if (!leftSideBarEnable[LSB_SLEEPTIME_INDICES]) return html;
+#else
+    if (!leftSideBarEnable[LSB_MACHINE_INFO]) return html;
+#endif
+
+    html+="<table cellpadding=0 cellspacing=0 border=0 width=100%>";
+    if (day->settingExists(AW_BreathingDisturbances)) html+=QString("<tr><td colspan=5 align=center>%1: %2</td></tr>").arg(tr("Breathing Disturbances (Apple)")).arg(day->settings_wavg(AW_BreathingDisturbances),0,'f',2);
+    if (day->settingExists(AW_WristTemp)) html+=QString("<tr><td colspan=5 align=center>%1: %2 %3</td></tr>").arg(tr("Wrist Temperature")).arg(day->settings_wavg(AW_WristTemp),0,'f',1).arg(schema::channel[AW_WristTemp].units());
+    html+="</table>\n";
+    html+="<hr/>\n";
+    return html;
+}
+
 QString Daily::getCPAPInformation(Day * day)
 {
     QString html;
@@ -2008,7 +2034,8 @@ QString Daily::getLeftSidebar (bool honorPieChart) {
                    + htmlLeftAHI
                    + htmlLeftMachineInfo
                    + htmlLeftSleepTime
-                   + htmlLeftIndices;
+                   + htmlLeftIndices
+                   + htmlLeftAppleWatch;
     // Include pie chart if wanted and enabled.
     if (honorPieChart && AppSetting->showPieChart())
         html += htmlLeftPieChart;
@@ -2088,6 +2115,7 @@ void Daily::Load(QDate date)
     htmlLeftMachineInfo.clear();
     htmlLeftSleepTime.clear();
     htmlLeftIndices.clear();
+    htmlLeftAppleWatch.clear();
     htmlLeftPieChart.clear();
     htmlLeftNoHours.clear();
     htmlLeftStatistics.clear();
@@ -2205,6 +2233,7 @@ void Daily::Load(QDate date)
     PERF_TIMER_STOP("Daily::Load::LeftPanel");
     if (day) {
         htmlLeftOximeter = getOximeterInformation(day);
+        htmlLeftAppleWatch = getAppleWatchInformation(day);
         htmlLeftMachineSettings = getMachineSettings(day);
         htmlLeftSessionInfo= getSessionInformation(day);
     }

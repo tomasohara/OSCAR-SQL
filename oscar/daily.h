@@ -373,6 +373,7 @@ private:
     QString getStatisticsInfo(Day *);
     QString getCPAPInformation(Day *);
     QString getOximeterInformation(Day *);
+    QString getAppleWatchInformation(Day *);
     QString getEventBreakdown(Day *);
     QString getPieChart(float values, Day *);
     QString getIndices(Day * day, QHash<ChannelID, EventDataType>& values );
