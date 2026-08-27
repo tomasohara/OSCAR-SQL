@@ -30,6 +30,8 @@ OSCAR 2.0 adds three major features for users who want to examine their data mor
 
 3. **Direct SQL access**: because the database is SQLite, any SQL-capable program can read OSCAR's data directly, including the waveform data used for graphs.
 
+4. **Apple Health (Apple Watch) import** (*File / Import Apple Health Data...*) reads the export file produced by an iPhone (Health app → tap your profile picture → *Export All Health Data*; unzip the resulting `export.zip` and select `export.xml`). OSCAR imports the watch's sleep stages, heart rate, SpO2, respiratory rate, heart rate variability, nightly breathing-disturbance score, and wrist temperature, shown on the same Daily-view timeline as your CPAP data — so sleep the watch recorded while your mask was off is visible alongside your therapy data. The import creates two devices, "Apple Watch Sleep" (stages) and "Apple Watch" (vitals); on first import you can choose between importing only the period overlapping your CPAP history or the watch's full history, and re-importing a newer export only adds nights not already present. If your sleep data comes from a phone app as well as the watch, OSCAR asks which source to use. Vitals are trimmed to each night's sleep window, since the watch also records heart rate all day.
+
 ## If You Need to Go Back
 
 If you ever need to load OSCAR 2.0 data back into OSCAR 1.x, use *Data / Rebuild CPAP Data / \<machine\>* in OSCAR 1.x and point it to the Backup directory inside your OSCAR 2.0 profile.

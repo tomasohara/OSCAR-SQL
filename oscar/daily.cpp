@@ -65,7 +65,6 @@ QString htmlLeftAHI;
 QString htmlLeftMachineInfo;
 QString htmlLeftSleepTime;
 QString htmlLeftIndices;
-QString htmlLeftAppleWatch;
 QString htmlLeftPieChart = "";
 QString htmlLeftNoHours = "";
 QString htmlLeftStatistics;
@@ -1510,9 +1509,9 @@ QString Daily::getOximeterInformation(Day * day)
                 spo2Count += sess->count(OXI_SPO2);
                 pulseCount += sess->count(OXI_Pulse);
             }
-            html+=QString("<tr><td colspan=5 align=center>%1: %2</td></tr>").arg(tr("SpO2 spot checks")).arg(int(spo2Count));
-            html+=QString("<tr><td colspan=5 align=center>%1: %2</td></tr>").arg(tr("Pulse readings")).arg(int(pulseCount));
-            html+=QString("<tr><td colspan=5 align=center>%1</td></tr>").arg(tr("Spot-check data; desaturation detection is not applicable"));
+            html+=QString("<tr><td colspan=3>%1</td><td colspan=2>%2</td></tr>").arg(tr("SpO2 spot checks")).arg(int(spo2Count));
+            html+=QString("<tr><td colspan=3>%1</td><td colspan=2>%2</td></tr>").arg(tr("Pulse readings")).arg(int(pulseCount));
+            html+=QString("<tr><td colspan=5><i>%1</i></td></tr>").arg(tr("Spot-check data; desaturation detection is not applicable"));
         } else {
             // Include SpO2 and PC drops per hour of Oximetry data in case CPAP data is missing
             html+=QString("<tr><td colspan=5 align=center>%1: %2 (%3%) %4/h</td></tr>").arg(tr("SpO2 Desaturations")).arg(day->count(OXI_SPO2Drop)).arg((100.0/day->hours(MT_OXIMETER)) * (day->sum(OXI_SPO2Drop)/3600.0),0,'f',2).arg((day->count(OXI_SPO2Drop)/day->hours(MT_OXIMETER)),0,'f',2);
@@ -1522,26 +1521,6 @@ QString Daily::getOximeterInformation(Day * day)
         html+="</table>\n";
         html+="<hr/>\n";
     }
-    return html;
-}
-
-QString Daily::getAppleWatchInformation(Day * day)
-{
-    QString html;
-    if (!day || (!day->settingExists(AW_BreathingDisturbances) && !day->settingExists(AW_WristTemp))) return html;
-
-    // Appended under the indices table, so it follows that section's collapse state
-#ifndef COMBINE_MODE_3
-    if (!leftSideBarEnable[LSB_SLEEPTIME_INDICES]) return html;
-#else
-    if (!leftSideBarEnable[LSB_MACHINE_INFO]) return html;
-#endif
-
-    html+="<table cellpadding=0 cellspacing=0 border=0 width=100%>";
-    if (day->settingExists(AW_BreathingDisturbances)) html+=QString("<tr><td colspan=5 align=center>%1: %2</td></tr>").arg(tr("Breathing Disturbances (Apple)")).arg(day->settings_wavg(AW_BreathingDisturbances),0,'f',2);
-    if (day->settingExists(AW_WristTemp)) html+=QString("<tr><td colspan=5 align=center>%1: %2 %3</td></tr>").arg(tr("Wrist Temperature")).arg(day->settings_wavg(AW_WristTemp),0,'f',1).arg(schema::channel[AW_WristTemp].units());
-    html+="</table>\n";
-    html+="<hr/>\n";
     return html;
 }
 
@@ -1904,6 +1883,31 @@ QString Daily::getIndices(Day * day, QHash<ChannelID, EventDataType>& values ) {
                 .arg(tooltip);
     }
 
+    if (day->settingExists(AW_BreathingDisturbances)) {
+        schema::Channel & chan = schema::channel[AW_BreathingDisturbances];
+        QString tooltip=chan.description();
+        tooltip.replace("'", "&apos;");
+        QColor altcolor = (brightness(chan.defaultColor()) < 0.3) ? Qt::white : Qt::black;
+        html+=QString("<tr><td align='left' bgcolor='%1' title='<p>%5</p>'><b><font color='%2'>%3</font></b></td><td width=20% bgcolor='%1'><b><font color='%2'>%4</font></b></td></tr>")
+                .arg(chan.defaultColor().name())
+                .arg(altcolor.name())
+                .arg(tr("Breathing Disturbances (Apple)"))
+                .arg(day->settings_wavg(AW_BreathingDisturbances),0,'f',2)
+                .arg(tooltip);
+    }
+    if (day->settingExists(AW_WristTemp)) {
+        schema::Channel & chan = schema::channel[AW_WristTemp];
+        QString tooltip=chan.description();
+        tooltip.replace("'", "&apos;");
+        QColor altcolor = (brightness(chan.defaultColor()) < 0.3) ? Qt::white : Qt::black;
+        html+=QString("<tr><td align='left' bgcolor='%1' title='<p>%5</p>'><b><font color='%2'>%3</font></b></td><td width=20% bgcolor='%1'><b><font color='%2'>%4</font></b></td></tr>")
+                .arg(chan.defaultColor().name())
+                .arg(altcolor.name())
+                .arg(tr("Wrist Temperature"))
+                .arg(QString("%1 %2").arg(day->settings_wavg(AW_WristTemp),0,'f',1).arg(chan.units()))
+                .arg(tooltip);
+    }
+
     html+="</table><hr/>";
 
 #ifndef COMBINE_MODE_3
@@ -2034,8 +2038,7 @@ QString Daily::getLeftSidebar (bool honorPieChart) {
                    + htmlLeftAHI
                    + htmlLeftMachineInfo
                    + htmlLeftSleepTime
-                   + htmlLeftIndices
-                   + htmlLeftAppleWatch;
+                   + htmlLeftIndices;
     // Include pie chart if wanted and enabled.
     if (honorPieChart && AppSetting->showPieChart())
         html += htmlLeftPieChart;
@@ -2115,7 +2118,6 @@ void Daily::Load(QDate date)
     htmlLeftMachineInfo.clear();
     htmlLeftSleepTime.clear();
     htmlLeftIndices.clear();
-    htmlLeftAppleWatch.clear();
     htmlLeftPieChart.clear();
     htmlLeftNoHours.clear();
     htmlLeftStatistics.clear();
@@ -2233,7 +2235,6 @@ void Daily::Load(QDate date)
     PERF_TIMER_STOP("Daily::Load::LeftPanel");
     if (day) {
         htmlLeftOximeter = getOximeterInformation(day);
-        htmlLeftAppleWatch = getAppleWatchInformation(day);
         htmlLeftMachineSettings = getMachineSettings(day);
         htmlLeftSessionInfo= getSessionInformation(day);
     }
