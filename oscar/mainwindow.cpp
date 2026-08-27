@@ -3389,8 +3389,7 @@ bool MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
         if (aborted) {
             // Aborting mid-import is not an error; skip the failure notices.
         } else if (res < 0) {
-            // res is used as an index to an array and will cause a crash if not handled.
-            // Negative numbers indicate a problem with the file format or the file does not exist.
+            // Negative res means a bad file format or a missing file.
             //QString fileName = QFileInfo(files[0]).fileName();
             QString msg = QString(tr("There was a problem parsing %1 \nData File: %2")
                 .arg(name, QFileInfo( files[0]).fileName() ) );
