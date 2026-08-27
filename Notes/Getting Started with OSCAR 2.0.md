@@ -50,7 +50,7 @@ If you used iCloud Drive, download it on your computer from [icloud.com](https:/
 
 ![iCloud Drive in a browser showing the exported zip](images/icloud-drive-download.png)
 
-Unzip the archive; the file OSCAR needs is `apple_health_export/export.xml`.
+There is no need to unzip the archive — OSCAR reads `export.zip` directly.
 
 **Step 3 — Import into OSCAR.** Choose *Data / Import Apple Health Data*:
 
@@ -60,9 +60,9 @@ If your profile already has CPAP data, OSCAR asks how much history to bring in �
 
 ![History prompt: Overlapping CPAP history (recommended), Full history, or Cancel](images/oscar-history-prompt.png)
 
-Select the `export.xml` you unzipped:
+Select the `export.zip` you downloaded (an already-unzipped `export.xml` works too):
 
-![File dialog with export.xml selected](images/oscar-select-export.png)
+![File dialog with the export selected](images/oscar-select-export.png)
 
 If your Health data contains sleep records from phone apps as well as the watch, OSCAR asks which source to use for sleep stages — the Apple Watch is preselected:
 
