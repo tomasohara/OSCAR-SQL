@@ -44,6 +44,19 @@ static QString autoMatchedSleepSource(const QHash<QString, int> &sourceCounts)
     return matchedSource;
 }
 
+static QVector<AppleHealthSample> samplesInWindow(
+    const QVector<AppleHealthSample> &samples, qint64 startMs, qint64 endMs)
+{
+    QVector<AppleHealthSample> filtered;
+    filtered.reserve(samples.size());
+    for (const AppleHealthSample &sample : samples) {
+        if (sample.timeMs >= startMs && sample.timeMs <= endMs) {
+            filtered.append(sample);
+        }
+    }
+    return filtered;
+}
+
 } // namespace
 
 AppleHealthLoader::AppleHealthLoader()
@@ -279,6 +292,30 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         const QVector<AppleHealthNightScalar> &wristTemp =
             wristTempIt != wristTempByNight.cend() ? wristTempIt.value() : noScalars;
 
+        qint64 windowStartMs;
+        qint64 windowEndMs;
+        if (!stages.isEmpty()) {
+            windowStartMs = stages.constFirst().startMs;
+            windowEndMs = stages.constFirst().endMs;
+            for (const AppleHealthInterval &interval : stages) {
+                windowEndMs = std::max(windowEndMs, interval.endMs);
+            }
+        } else {
+            windowStartMs = QDateTime(night, QTime(20, 0), Qt::LocalTime).toMSecsSinceEpoch();
+            windowEndMs = QDateTime(night.addDays(1), QTime(12, 0), Qt::LocalTime)
+                              .toMSecsSinceEpoch();
+        }
+
+        // Watch samples run all day; trim them so the Daily view axis spans only sleep.
+        const QVector<AppleHealthSample> filteredHeartRate =
+            samplesInWindow(heartRate, windowStartMs, windowEndMs);
+        const QVector<AppleHealthSample> filteredSpo2 =
+            samplesInWindow(spo2, windowStartMs, windowEndMs);
+        const QVector<AppleHealthSample> filteredRespRate =
+            samplesInWindow(respRate, windowStartMs, windowEndMs);
+        const QVector<AppleHealthSample> filteredHrv =
+            samplesInWindow(hrv, windowStartMs, windowEndMs);
+
         if (!stages.isEmpty()) {
             if (sleepMach == nullptr) {
                 sleepMach = p_profile->CreateMachine(newInfoSleep());
@@ -299,11 +336,13 @@ int AppleHealthLoader::OpenFile(const QString & filename)
             }
         }
 
-        if (!heartRate.isEmpty() || !spo2.isEmpty() || !respRate.isEmpty() || !hrv.isEmpty()) {
+        if (!filteredHeartRate.isEmpty() || !filteredSpo2.isEmpty()
+            || !filteredRespRate.isEmpty() || !filteredHrv.isEmpty()) {
             if (oxiMach == nullptr) {
                 oxiMach = p_profile->CreateMachine(newInfo());
             }
-            Session *session = buildOxiSession(oxiMach, heartRate, spo2, respRate, hrv);
+            Session *session = buildOxiSession(
+                oxiMach, filteredHeartRate, filteredSpo2, filteredRespRate, filteredHrv);
             if (session != nullptr) {
                 session->SetChanged(true);
                 session->UpdateSummaries();
