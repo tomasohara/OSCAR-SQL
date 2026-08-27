@@ -228,8 +228,6 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     QMap<QDate, QVector<AppleHealthSample>> hrvByNight;
     QMap<QDate, QVector<AppleHealthNightScalar>> disturbancesByNight;
     QMap<QDate, QVector<AppleHealthNightScalar>> wristTempByNight;
-    QMap<QDate, int> overnightHeartRateCounts;
-    QMap<QDate, bool> nights;
 
     for (const AppleHealthInterval &interval : m_data.sleepStages) {
         if (interval.endMs <= interval.startMs || interval.stage < 1 || interval.stage > 4) {
@@ -237,15 +235,10 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         }
         const QDate night = nightDate(interval.startMs);
         stagesByNight[night].append(interval);
-        nights[night] = true;
     }
     for (const AppleHealthSample &sample : m_data.heartRate) {
         const QDate night = nightDate(sample.timeMs);
         heartRateByNight[night].append(sample);
-        const QTime localTime = QDateTime::fromMSecsSinceEpoch(sample.timeMs, Qt::LocalTime).time();
-        if (localTime >= QTime(20, 0) || localTime < QTime(12, 0)) {
-            ++overnightHeartRateCounts[night];
-        }
     }
     for (const AppleHealthSample &sample : m_data.spo2) {
         spo2ByNight[nightDate(sample.timeMs)].append(sample);
@@ -261,11 +254,6 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     }
     for (const AppleHealthNightScalar &scalar : m_data.wristTemp) {
         wristTempByNight[nightDate(scalar.startMs)].append(scalar);
-    }
-    for (auto it = overnightHeartRateCounts.cbegin(); it != overnightHeartRateCounts.cend(); ++it) {
-        if (it.value() >= 10) {
-            nights[it.key()] = true;
-        }
     }
 
     const auto sortSamples = [](auto &samplesByNight) {
@@ -290,19 +278,38 @@ int AppleHealthLoader::OpenFile(const QString & filename)
                   });
     }
 
-    const QVector<AppleHealthInterval> noStages;
     const QVector<AppleHealthSample> noSamples;
     const QVector<AppleHealthNightScalar> noScalars;
     Machine *sleepMach = nullptr;
     Machine *oxiMach = nullptr;
+    QSet<QDate> existingSleepNights;
+    QSet<QDate> existingOxiNights;
+    for (Machine *machine : p_profile->GetMachines(MT_SLEEPSTAGE)) {
+        if (machine->loaderName() != applehealth_class_name) {
+            continue;
+        }
+        sleepMach = machine;
+        for (Session *session : machine->sessionlist) {
+            existingSleepNights.insert(nightDate(session->first()));
+        }
+    }
+    for (Machine *machine : p_profile->GetMachines(MT_OXIMETER)) {
+        if (machine->loaderName() != applehealth_class_name) {
+            continue;
+        }
+        oxiMach = machine;
+        for (Session *session : machine->sessionlist) {
+            existingOxiNights.insert(nightDate(session->first()));
+        }
+    }
     bool sleepChanged = false;
     bool oxiChanged = false;
     int imported = 0;
     QSet<QDate> skippedExistingNights;
 
-    for (auto nightIt = nights.cbegin(); nightIt != nights.cend(); ++nightIt) {
+    // Stages are published only after a night ends, so the newest night is never partial.
+    for (auto nightIt = stagesByNight.cbegin(); nightIt != stagesByNight.cend(); ++nightIt) {
         const QDate night = nightIt.key();
-        const auto stagesIt = stagesByNight.constFind(night);
         const auto heartRateIt = heartRateByNight.constFind(night);
         const auto spo2It = spo2ByNight.constFind(night);
         const auto respRateIt = respRateByNight.constFind(night);
@@ -310,8 +317,7 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         const auto disturbancesIt = disturbancesByNight.constFind(night);
         const auto wristTempIt = wristTempByNight.constFind(night);
 
-        const QVector<AppleHealthInterval> &stages =
-            stagesIt != stagesByNight.cend() ? stagesIt.value() : noStages;
+        const QVector<AppleHealthInterval> &stages = nightIt.value();
         const QVector<AppleHealthSample> &heartRate =
             heartRateIt != heartRateByNight.cend() ? heartRateIt.value() : noSamples;
         const QVector<AppleHealthSample> &spo2 =
@@ -325,18 +331,10 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         const QVector<AppleHealthNightScalar> &wristTemp =
             wristTempIt != wristTempByNight.cend() ? wristTempIt.value() : noScalars;
 
-        qint64 windowStartMs;
-        qint64 windowEndMs;
-        if (!stages.isEmpty()) {
-            windowStartMs = stages.constFirst().startMs;
-            windowEndMs = stages.constFirst().endMs;
-            for (const AppleHealthInterval &interval : stages) {
-                windowEndMs = std::max(windowEndMs, interval.endMs);
-            }
-        } else {
-            windowStartMs = QDateTime(night, QTime(20, 0), Qt::LocalTime).toMSecsSinceEpoch();
-            windowEndMs = QDateTime(night.addDays(1), QTime(12, 0), Qt::LocalTime)
-                              .toMSecsSinceEpoch();
+        const qint64 windowStartMs = stages.constFirst().startMs;
+        qint64 windowEndMs = stages.constFirst().endMs;
+        for (const AppleHealthInterval &interval : stages) {
+            windowEndMs = std::max(windowEndMs, interval.endMs);
         }
 
         // Watch samples run all day; trim them so the Daily view axis spans only sleep.
@@ -349,7 +347,9 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         const QVector<AppleHealthSample> filteredHrv =
             samplesInWindow(hrv, windowStartMs, windowEndMs);
 
-        if (!stages.isEmpty()) {
+        if (existingSleepNights.contains(night)) {
+            skippedExistingNights.insert(night);
+        } else {
             if (sleepMach == nullptr) {
                 sleepMach = p_profile->CreateMachine(newInfoSleep());
             }
@@ -369,8 +369,10 @@ int AppleHealthLoader::OpenFile(const QString & filename)
             }
         }
 
-        if (!filteredHeartRate.isEmpty() || !filteredSpo2.isEmpty()
-            || !filteredRespRate.isEmpty() || !filteredHrv.isEmpty()) {
+        if (existingOxiNights.contains(night)) {
+            skippedExistingNights.insert(night);
+        } else if (!filteredHeartRate.isEmpty() || !filteredSpo2.isEmpty()
+                   || !filteredRespRate.isEmpty() || !filteredHrv.isEmpty()) {
             if (oxiMach == nullptr) {
                 oxiMach = p_profile->CreateMachine(newInfo());
             }

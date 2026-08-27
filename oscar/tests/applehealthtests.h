@@ -26,6 +26,7 @@ private slots:
     void testLoaderImport();
     void testLoaderIdempotency();
     void testLoaderImportsZip();
+    void testLoaderSkipsShiftedNights();
     void testLoaderRejectsGarbage();
     void cleanupTestCase();
 

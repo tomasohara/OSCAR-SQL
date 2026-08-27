@@ -12,7 +12,9 @@
 #include <QDir>
 #include <QFile>
 #include <QRegularExpression>
+#include <QStringList>
 #include <QTemporaryDir>
+#include <QTime>
 
 #include <algorithm>
 
@@ -65,9 +67,57 @@ static QByteArray toLocalStamps(const QByteArray &xml)
     return out.toUtf8();
 }
 
-static QByteArray fixtureXml()
+// Shifts only the Apple-source stage records of the fixture's first night; vitals keep
+// their stamps, so a re-import match can only come from night-date dedupe.
+static QByteArray shiftFirstNightStages(const QByteArray &xml, int seconds)
 {
-    return toLocalStamps(QByteArray(R"XML(<?xml version="1.0" encoding="UTF-8"?>
+    QStringList lines = QString::fromUtf8(xml).split(QLatin1Char('\n'));
+    static const QString sleepType =
+        QStringLiteral("type=\"HKCategoryTypeIdentifierSleepAnalysis\"");
+    static const QString appleSource = QStringLiteral("sourceName=\"") + kAppleSource
+        + QLatin1Char('"');
+    static const QRegularExpression stageValueRe(
+        QStringLiteral("value=\"HKCategoryValueSleepAnalysis(?:Awake|AsleepCore|AsleepDeep|AsleepREM|AsleepUnspecified)\""));
+    static const QRegularExpression timestampRe(
+        QStringLiteral("(startDate|endDate)=\"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})( [+-]\\d{4})\""));
+    static const QString timestampFormat = QStringLiteral("yyyy-MM-dd HH:mm:ss");
+
+    for (QString &line : lines) {
+        if (!line.contains(sleepType) || !line.contains(appleSource)
+            || !stageValueRe.match(line).hasMatch()) {
+            continue;
+        }
+        const QRegularExpressionMatch startMatch = timestampRe.match(line);
+        if (!startMatch.hasMatch()) {
+            continue;
+        }
+        const QDateTime start = QDateTime::fromString(startMatch.captured(2), timestampFormat);
+        const QDate night = start.time() < QTime(12, 0)
+            ? start.date().addDays(-1) : start.date();
+        if (night != QDate(2025, 7, 1)) {
+            continue;
+        }
+
+        QString shiftedLine;
+        qsizetype copied = 0;
+        QRegularExpressionMatchIterator it = timestampRe.globalMatch(line);
+        while (it.hasNext()) {
+            const QRegularExpressionMatch match = it.next();
+            shiftedLine += line.mid(copied, match.capturedStart(2) - copied);
+            const QDateTime timestamp =
+                QDateTime::fromString(match.captured(2), timestampFormat);
+            shiftedLine += timestamp.addSecs(seconds).toString(timestampFormat);
+            copied = match.capturedEnd(2);
+        }
+        shiftedLine += line.mid(copied);
+        line = shiftedLine;
+    }
+    return lines.join(QLatin1Char('\n')).toUtf8();
+}
+
+static QByteArray fixtureXml(int firstNightStageShiftSeconds = 0)
+{
+    QByteArray xml = toLocalStamps(QByteArray(R"XML(<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE HealthData [
 <!ELEMENT HealthData (ExportDate, Record*, Correlation*, Workout*)>
 <!ATTLIST HealthData locale CDATA #REQUIRED>
@@ -152,12 +202,23 @@ static QByteArray fixtureXml()
   </Workout>
 </HealthData>
 )XML"));
+    if (firstNightStageShiftSeconds != 0) {
+        xml = shiftFirstNightStages(xml, firstNightStageShiftSeconds);
+    }
+    return xml;
 }
 
 // Fixture times are local wall clock, matching what toLocalStamps() wrote.
 static qint64 epochMs(const QString &wallClock)
 {
     return QDateTime::fromString(wallClock, QStringLiteral("yyyy-MM-dd HH:mm:ss")).toMSecsSinceEpoch();
+}
+
+// Mirrors AppleHealthLoader::nightDate() (local noon-to-noon).
+static QDate loaderNightDate(qint64 timeMs)
+{
+    const QDateTime local = QDateTime::fromMSecsSinceEpoch(timeMs, Qt::LocalTime);
+    return local.time() < QTime(12, 0) ? local.date().addDays(-1) : local.date();
 }
 
 static const AppleHealthInterval *findInterval(const AppleHealthData &data, qint64 startMs)
@@ -381,9 +442,9 @@ void AppleHealthTests::testParserCutoff()
 
 void AppleHealthTests::testLoaderImport()
 {
-    QCOMPARE(s_loader->OpenFile(m_exportPath), 5);
+    QCOMPARE(s_loader->OpenFile(m_exportPath), 4);
     QCOMPARE(s_loader->lastImportSummary().sleepSessions, 2);
-    QCOMPARE(s_loader->lastImportSummary().oxiSessions, 3);
+    QCOMPARE(s_loader->lastImportSummary().oxiSessions, 2);
     QCOMPARE(s_loader->lastImportSummary().chosenSleepSource, kAppleSource);
 
     const QList<Machine *> sleepMachines = p_profile->GetMachines(MT_SLEEPSTAGE);
@@ -440,7 +501,13 @@ void AppleHealthTests::testLoaderImport()
     QVERIFY(qAbs(night2Sleep->settings.value(AW_WristTemp).toDouble() - 36.5) < 0.000001);
 
     const QList<Session *> oxiSessions = sortedSessions(oxiMachines.constFirst());
-    QCOMPARE(oxiSessions.size(), 3);
+    QCOMPARE(oxiSessions.size(), 2);
+    const QDate absentNight =
+        loaderNightDate(epochMs(QStringLiteral("2025-07-04 22:00:00")));
+    QVERIFY(std::none_of(oxiSessions.cbegin(), oxiSessions.cend(),
+                         [absentNight](Session *session) {
+                             return loaderNightDate(session->first()) == absentNight;
+                         }));
     for (Session *session : oxiSessions) {
         QVERIFY(session->sessionRowId() > 0);
         QVERIFY(session->LoadFromDatabase());
@@ -453,8 +520,6 @@ void AppleHealthTests::testLoaderImport()
         QVERIFY(session->m_availableChannels.contains(OXI_PulseChange));
         QCOMPARE(session->count(OXI_PulseChange), 0.0F);
     }
-    QVERIFY(oxiSessions.at(2)->m_availableChannels.contains(OXI_PulseChange));
-    QCOMPARE(oxiSessions.at(2)->count(OXI_PulseChange), 0.0F);
     QCOMPARE(oxiSessions.at(0)->eventlist.value(OXI_Pulse).size(), 2);
     QCOMPARE(oxiSessions.at(0)->eventlist.value(OXI_Pulse).at(0)->count(), 5U);
     QCOMPARE(oxiSessions.at(0)->eventlist.value(OXI_Pulse).at(1)->count(), 7U);
@@ -466,10 +531,6 @@ void AppleHealthTests::testLoaderImport()
     QCOMPARE(oxiSessions.at(0)->eventlist.value(OXI_SPO2).size(), 1);
     QCOMPARE(oxiSessions.at(0)->eventlist.value(OXI_SPO2).constFirst()->count(), 2U);
     QCOMPARE(oxiSessions.at(1)->eventlist.value(OXI_Pulse).size(), 1);
-    QCOMPARE(oxiSessions.at(2)->eventlist.value(OXI_Pulse).size(), 1);
-    QCOMPARE(oxiSessions.at(2)->eventlist.value(OXI_Pulse).constFirst()->count(), 10U);
-    QCOMPARE(oxiSessions.at(2)->first(), epochMs(QStringLiteral("2025-07-04 22:00:00")));
-    QCOMPARE(oxiSessions.at(2)->last(), epochMs(QStringLiteral("2025-07-04 22:45:00")));
 }
 
 void AppleHealthTests::testLoaderIdempotency()
@@ -486,7 +547,7 @@ void AppleHealthTests::testLoaderIdempotency()
     QCOMPARE(oxiMachine->sessionlist.size(), oxiCount);
     QCOMPARE(s_loader->lastImportSummary().sleepSessions, 0);
     QCOMPARE(s_loader->lastImportSummary().oxiSessions, 0);
-    QCOMPARE(s_loader->lastImportSummary().skippedExisting, 3);
+    QCOMPARE(s_loader->lastImportSummary().skippedExisting, 2);
 }
 
 void AppleHealthTests::testLoaderImportsZip()
@@ -512,7 +573,7 @@ void AppleHealthTests::testLoaderImportsZip()
     QVERIFY(s_loader->lastImportSummary().validFile);
     QCOMPARE(s_loader->lastImportSummary().sleepSessions, 0);
     QCOMPARE(s_loader->lastImportSummary().oxiSessions, 0);
-    QCOMPARE(s_loader->lastImportSummary().skippedExisting, 3);
+    QCOMPARE(s_loader->lastImportSummary().skippedExisting, 2);
 
     const QString invalidZipPath = m_tempDir->path() + QStringLiteral("/invalid-export.zip");
     {
@@ -526,6 +587,31 @@ void AppleHealthTests::testLoaderImportsZip()
     QCOMPARE(sleepMachine->sessionlist.size(), sleepCount);
     QCOMPARE(oxiMachine->sessionlist.size(), oxiCount);
     QVERIFY(!s_loader->lastImportSummary().validFile);
+}
+
+void AppleHealthTests::testLoaderSkipsShiftedNights()
+{
+    Machine *sleepMachine = p_profile->GetMachine(MT_SLEEPSTAGE);
+    Machine *oxiMachine = p_profile->GetMachine(MT_OXIMETER);
+    QVERIFY(sleepMachine != nullptr);
+    QVERIFY(oxiMachine != nullptr);
+    const int sleepCount = sleepMachine->sessionlist.size();
+    const int oxiCount = oxiMachine->sessionlist.size();
+
+    const QString shiftedExportPath =
+        m_tempDir->path() + QStringLiteral("/shifted-export.xml");
+    QFile shiftedExport(shiftedExportPath);
+    QVERIFY(shiftedExport.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    const QByteArray shiftedXml = fixtureXml(60);
+    QCOMPARE(shiftedExport.write(shiftedXml), static_cast<qint64>(shiftedXml.size()));
+    shiftedExport.close();
+
+    QCOMPARE(s_loader->OpenFile(shiftedExportPath), 0);
+    QCOMPARE(s_loader->lastImportSummary().sleepSessions, 0);
+    QCOMPARE(s_loader->lastImportSummary().oxiSessions, 0);
+    QCOMPARE(s_loader->lastImportSummary().skippedExisting, 2);
+    QCOMPARE(sleepMachine->sessionlist.size(), sleepCount);
+    QCOMPARE(oxiMachine->sessionlist.size(), oxiCount);
 }
 
 void AppleHealthTests::testLoaderRejectsGarbage()
