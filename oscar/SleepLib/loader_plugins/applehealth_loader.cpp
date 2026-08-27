@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "applehealth_loader.h"
+#include "SleepLib/day.h"
 #include "SleepLib/machine.h"
 #include "SleepLib/session.h"
 #include "zip.h"
@@ -58,6 +59,58 @@ static QVector<AppleHealthSample> samplesInWindow(
         }
     }
     return filtered;
+}
+
+// Creates the session directly: Journal::getJournal() needs mainwin->getDaily(),
+// which is null in headless tests.
+static Session *getOrCreateJournalSession(QDate date)
+{
+    Day *day = p_profile->GetDay(date, MT_JOURNAL);
+    if (day) {
+        if (Session *session = day->firstSession(MT_JOURNAL)) {
+            return session;
+        }
+    }
+
+    Machine *machine = p_profile->GetMachine(MT_JOURNAL);
+    if (!machine) {
+        machine = new Machine(p_profile, 0);
+        MachineInfo info;
+        info.loadername = "Journal";
+        info.serial = machine->hexid();
+        info.brand = "Journal";
+        info.type = MT_JOURNAL;
+        machine->setInfo(info);
+        machine->setType(MT_JOURNAL);
+        p_profile->AddMachine(machine);
+        if (!machine->SaveToDatabase()) {
+            qWarning() << "getOrCreateJournalSession: could not save journal machine";
+        }
+    }
+
+    Session *session = new Session(machine, 0);
+    qint64 startMs;
+    qint64 endMs;
+    Day *currentDay = p_profile->GetDay(date);
+    if (currentDay && currentDay->first() > 0) {
+        startMs = currentDay->first();
+        endMs = currentDay->last();
+    } else {
+        startMs = qint64(QDateTime(date, QTime(20, 0)).toSecsSinceEpoch()) * 1000L;
+        // AddSession keeps sessions shorter than the ignore threshold (up to 90 min) out
+        // of the Day, which would hide the weight. Span the fallback past the threshold.
+        const qint64 minSpanMs =
+            (qint64(p_profile->session->ignoreShortSessions()) + 1) * 60000L;
+        endMs = startMs + qMax<qint64>(3600000L, minSpanMs);
+    }
+    session->SetSessionID(startMs / 1000L);
+    session->set_first(startMs);
+    session->set_last(endMs);
+    if (!machine->AddSession(session, true)) {
+        delete session;
+        return nullptr;
+    }
+    return session;
 }
 
 } // namespace
@@ -218,8 +271,6 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     }
     qDebug() << "AppleHealthLoader::OpenFile: recordsSeen:" << m_data.recordsSeen;
     qDebug() << "AppleHealthLoader::OpenFile: sleepSourceCounts:" << m_data.sleepSourceCounts;
-
-    // TODO: import BodyMass
 
     QMap<QDate, QVector<AppleHealthInterval>> stagesByNight;
     QMap<QDate, QVector<AppleHealthSample>> heartRateByNight;
@@ -396,6 +447,42 @@ int AppleHealthLoader::OpenFile(const QString & filename)
 
     m_lastImportSummary.skippedExisting = skippedExistingNights.size();
 
+    QMap<QDate, AppleHealthWeight> weightsByNight;
+    for (const AppleHealthWeight &weight : m_data.weights) {
+        const QDate night = nightDate(weight.timeMs);
+        const auto existing = weightsByNight.constFind(night);
+        if (existing == weightsByNight.cend() || existing.value().timeMs <= weight.timeMs) {
+            weightsByNight.insert(night, weight);
+        }
+    }
+
+    Machine *journalMach = nullptr;
+    bool journalChanged = false;
+    for (auto it = weightsByNight.cbegin(); it != weightsByNight.cend(); ++it) {
+        Session *journal = getOrCreateJournalSession(it.key());
+        // A weight already in the journal is the user's; imports never overwrite it
+        // (as Journal::RestoreDay, same epsilon).
+        if (journal == nullptr
+            || (journal->settings.contains(Journal_Weight)
+                && journal->settings[Journal_Weight].toDouble() > 0.0001)) {
+            continue;
+        }
+
+        const double kg = it.value().kg;
+        journal->settings[Journal_Weight] = kg;
+        const double heightCm = p_profile->user->height();
+        if (heightCm > 0.0001) {
+            const double heightM = heightCm / 100.0;
+            journal->settings[Journal_BMI] = kg / (heightM * heightM);
+        }
+        journal->settings[LastUpdated] = QDateTime::currentDateTime();
+        journal->SetChanged(true);
+        journalMach = journal->machine();
+        journalChanged = true;
+        ++imported;
+        ++m_lastImportSummary.weightDays;
+    }
+
     if (sleepChanged) {
         sleepMach->Save();
         sleepMach->SaveSummaryCache();
@@ -403,6 +490,10 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     if (oxiChanged) {
         oxiMach->Save();
         oxiMach->SaveSummaryCache();
+    }
+    if (journalChanged) {
+        journalMach->Save();
+        journalMach->SaveSummaryCache();
     }
     if (imported > 0) {
         p_profile->StoreMachines();

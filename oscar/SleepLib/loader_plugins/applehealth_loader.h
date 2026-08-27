@@ -21,6 +21,7 @@ struct AppleHealthImportSummary
 {
     int sleepSessions = 0;
     int oxiSessions = 0;
+    int weightDays = 0;
     int skippedExisting = 0;
     QHash<QString, int> sleepSourceCounts;
     QString chosenSleepSource;

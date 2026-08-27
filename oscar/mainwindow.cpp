@@ -3023,13 +3023,17 @@ void MainWindow::on_actionImport_AppleHealth_Data_triggered()
         const QString sleepSource = summary.chosenSleepSource.isEmpty()
                                         ? tr("No matching Apple Watch source")
                                         : summary.chosenSleepSource;
-        Notify(tr("Imported %1 sleep session(s) and %2 vitals session(s).\n"
-                  "Skipped %3 already-imported night(s).\n"
-                  "Sleep source: %4")
-                   .arg(summary.sleepSessions)
-                   .arg(summary.oxiSessions)
-                   .arg(summary.skippedExisting)
-                   .arg(sleepSource),
+        QString message = tr("Imported %1 sleep session(s) and %2 vitals session(s).\n"
+                             "Skipped %3 already-imported night(s).\n"
+                             "Sleep source: %4")
+                              .arg(summary.sleepSessions)
+                              .arg(summary.oxiSessions)
+                              .arg(summary.skippedExisting)
+                              .arg(sleepSource);
+        if (summary.weightDays > 0) {
+            message += QStringLiteral("\n") + tr("Imported weight for %1 day(s).").arg(summary.weightDays);
+        }
+        Notify(message,
                tr("Apple Health Import Summary"));
     }
 }

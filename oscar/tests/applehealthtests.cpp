@@ -20,6 +20,7 @@
 
 #include "SleepLib/appsettings.h"
 #include "SleepLib/common.h"
+#include "SleepLib/day.h"
 #include "SleepLib/machine.h"
 #include "SleepLib/preferences.h"
 #include "SleepLib/profiles.h"
@@ -192,8 +193,9 @@ static QByteArray fixtureXml(int firstNightStageShiftSeconds = 0)
   <Record type="HKQuantityTypeIdentifierAppleSleepingBreathingDisturbances" sourceName="test’s Apple Watch" unit="count" value="2.5" startDate="2025-07-02 22:00:00 -0400" endDate="2025-07-02 23:00:00 -0400"/>
   <Record type="HKQuantityTypeIdentifierAppleSleepingWristTemperature" sourceName="test’s Apple Watch" unit="degF" value="98.6" startDate="2025-07-01 22:00:00 -0400" endDate="2025-07-02 00:40:00 -0400"/>
   <Record type="HKQuantityTypeIdentifierAppleSleepingWristTemperature" sourceName="test’s Apple Watch" unit="degC" value="36.5" startDate="2025-07-02 22:00:00 -0400" endDate="2025-07-02 23:00:00 -0400"/>
-  <Record type="HKQuantityTypeIdentifierBodyMass" sourceName="Test Scale" unit="lb" value="180" startDate="2025-07-02 08:00:00 -0400" endDate="2025-07-02 08:00:00 -0400"/>
-  <Record type="HKQuantityTypeIdentifierBodyMass" sourceName="Test Scale" unit="kg" value="75" startDate="2025-07-03 08:00:00 -0400" endDate="2025-07-03 08:00:00 -0400"/>
+  <Record type="HKQuantityTypeIdentifierBodyMass" sourceName="Test Scale" unit="lb" value="180" startDate="2025-07-01 20:00:00 -0400" endDate="2025-07-01 20:00:00 -0400"/>
+  <Record type="HKQuantityTypeIdentifierBodyMass" sourceName="Test Scale" unit="lb" value="181" startDate="2025-07-02 08:00:00 -0400" endDate="2025-07-02 08:00:00 -0400"/>
+  <Record type="HKQuantityTypeIdentifierBodyMass" sourceName="Test Scale" unit="lb" value="175" startDate="2025-07-04 20:00:00 -0400" endDate="2025-07-04 20:00:00 -0400"/>
   <Correlation type="HKCorrelationTypeIdentifierBloodPressure">
     <Record type="HKQuantityTypeIdentifierOxygenSaturation" sourceName="Nested Test" unit="%" value="0.50" startDate="2025-07-01 22:30:00 -0400" endDate="2025-07-01 22:30:00 -0400"/>
   </Correlation>
@@ -290,6 +292,7 @@ void AppleHealthTests::initTestCase()
         p_profile = Profiles::Create(kProfileName, &profileDir);
     }
     QVERIFY(p_profile != nullptr);
+    p_profile->user->setHeight(180.0);
 
     s_loader = dynamic_cast<AppleHealthLoader *>(lookupLoader(applehealth_class_name));
     QVERIFY(s_loader != nullptr);
@@ -335,7 +338,7 @@ void AppleHealthTests::testParser()
     AppleHealthData data;
     QVERIFY2(parser.parse(m_exportPath, data), qPrintable(parser.errorString()));
 
-    QCOMPARE(data.recordsSeen, 66LL);
+    QCOMPARE(data.recordsSeen, 67LL);
     QCOMPARE(data.sleepStages.size(), 10);
     QCOMPARE(data.heartRate.size(), 35);
     QCOMPARE(data.spo2.size(), 5);
@@ -343,7 +346,7 @@ void AppleHealthTests::testParser()
     QCOMPARE(data.hrv.size(), 2);
     QCOMPARE(data.breathingDisturbances.size(), 2);
     QCOMPARE(data.wristTemp.size(), 2);
-    QCOMPARE(data.weights.size(), 2);
+    QCOMPARE(data.weights.size(), 3);
 
     QCOMPARE(data.typeCounts.size(), 8);
     QCOMPARE(data.typeCounts.value(QStringLiteral("SleepAnalysis")), 10LL);
@@ -353,7 +356,7 @@ void AppleHealthTests::testParser()
     QCOMPARE(data.typeCounts.value(QStringLiteral("HeartRateVariabilitySDNN")), 2LL);
     QCOMPARE(data.typeCounts.value(QStringLiteral("AppleSleepingBreathingDisturbances")), 2LL);
     QCOMPARE(data.typeCounts.value(QStringLiteral("AppleSleepingWristTemperature")), 2LL);
-    QCOMPARE(data.typeCounts.value(QStringLiteral("BodyMass")), 2LL);
+    QCOMPARE(data.typeCounts.value(QStringLiteral("BodyMass")), 3LL);
 
     QCOMPARE(data.sleepSourceCounts.size(), 2);
     QCOMPARE(data.sleepSourceCounts.value(kAppleSource), 12);
@@ -379,7 +382,8 @@ void AppleHealthTests::testParser()
 
     QVERIFY(qAbs(data.spo2.at(0).value - 97.0F) < 0.001F);
     QVERIFY(qAbs(data.weights.at(0).kg - 81.6466266) < 0.000001);
-    QCOMPARE(data.weights.at(1).kg, 75.0);
+    QVERIFY(qAbs(data.weights.at(1).kg - 82.10021897) < 0.000001);
+    QVERIFY(qAbs(data.weights.at(2).kg - 79.37866475) < 0.000001);
     QVERIFY(qAbs(data.wristTemp.at(0).value - 37.0) < 0.000001);
     QCOMPARE(data.wristTemp.at(1).value, 36.5);
     QVERIFY(std::none_of(data.heartRate.cbegin(), data.heartRate.cend(), [](const AppleHealthSample &sample) {
@@ -442,9 +446,10 @@ void AppleHealthTests::testParserCutoff()
 
 void AppleHealthTests::testLoaderImport()
 {
-    QCOMPARE(s_loader->OpenFile(m_exportPath), 4);
+    QCOMPARE(s_loader->OpenFile(m_exportPath), 6);
     QCOMPARE(s_loader->lastImportSummary().sleepSessions, 2);
     QCOMPARE(s_loader->lastImportSummary().oxiSessions, 2);
+    QCOMPARE(s_loader->lastImportSummary().weightDays, 2);
     QCOMPARE(s_loader->lastImportSummary().chosenSleepSource, kAppleSource);
 
     const QList<Machine *> sleepMachines = p_profile->GetMachines(MT_SLEEPSTAGE);
@@ -547,7 +552,51 @@ void AppleHealthTests::testLoaderIdempotency()
     QCOMPARE(oxiMachine->sessionlist.size(), oxiCount);
     QCOMPARE(s_loader->lastImportSummary().sleepSessions, 0);
     QCOMPARE(s_loader->lastImportSummary().oxiSessions, 0);
+    QCOMPARE(s_loader->lastImportSummary().weightDays, 0);
     QCOMPARE(s_loader->lastImportSummary().skippedExisting, 2);
+}
+
+// The fixture's Jul-1 20:00 and Jul-2 08:00 weights share one noon-to-noon night
+// (the later reading wins); Jul-4's weight has no sleep data yet still imports.
+void AppleHealthTests::testLoaderImportsWeight()
+{
+    Machine *journalMachine = p_profile->GetMachine(MT_JOURNAL);
+    QVERIFY(journalMachine != nullptr);
+    QCOMPARE(journalMachine->sessionlist.size(), 2);
+
+    Day *july1Day = p_profile->GetDay(QDate(2025, 7, 1), MT_JOURNAL);
+    Day *july4Day = p_profile->GetDay(QDate(2025, 7, 4), MT_JOURNAL);
+    QVERIFY(july1Day != nullptr);
+    QVERIFY(july4Day != nullptr);
+    Session *july1Journal = july1Day->firstSession(MT_JOURNAL);
+    Session *july4Journal = july4Day->firstSession(MT_JOURNAL);
+    QVERIFY(july1Journal != nullptr);
+    QVERIFY(july4Journal != nullptr);
+    QVERIFY(july1Journal->sessionRowId() > 0);
+    QVERIFY(july4Journal->sessionRowId() > 0);
+    QVERIFY(july1Journal->LoadFromDatabase());
+    QVERIFY(july4Journal->LoadFromDatabase());
+
+    const double july1Kg = 181.0 * 0.45359237;
+    const double july4Kg = 175.0 * 0.45359237;
+    QVERIFY(qAbs(july1Journal->settings.value(Journal_Weight).toDouble() - july1Kg) < 0.0001);
+    QVERIFY(qAbs(july1Journal->settings.value(Journal_BMI).toDouble()
+                 - july1Kg / 1.8 / 1.8) < 0.0001);
+    QVERIFY(qAbs(july4Journal->settings.value(Journal_Weight).toDouble() - july4Kg) < 0.0001);
+
+    const double manualKg = 70.0;
+    const double manualBmi = manualKg / 1.8 / 1.8;
+    july1Journal->settings[Journal_Weight] = manualKg;
+    july1Journal->settings[Journal_BMI] = manualBmi;
+    july1Journal->SetChanged(true);
+    journalMachine->Save();
+    journalMachine->SaveSummaryCache();
+
+    QCOMPARE(s_loader->OpenFile(m_exportPath), 0);
+    QVERIFY(qAbs(july1Journal->settings.value(Journal_Weight).toDouble() - manualKg) < 0.0001);
+    QVERIFY(qAbs(july1Journal->settings.value(Journal_BMI).toDouble() - manualBmi) < 0.0001);
+    QVERIFY(qAbs(july4Journal->settings.value(Journal_Weight).toDouble() - july4Kg) < 0.0001);
+    QCOMPARE(s_loader->lastImportSummary().weightDays, 0);
 }
 
 void AppleHealthTests::testLoaderImportsZip()
@@ -573,6 +622,7 @@ void AppleHealthTests::testLoaderImportsZip()
     QVERIFY(s_loader->lastImportSummary().validFile);
     QCOMPARE(s_loader->lastImportSummary().sleepSessions, 0);
     QCOMPARE(s_loader->lastImportSummary().oxiSessions, 0);
+    QCOMPARE(s_loader->lastImportSummary().weightDays, 0);
     QCOMPARE(s_loader->lastImportSummary().skippedExisting, 2);
 
     const QString invalidZipPath = m_tempDir->path() + QStringLiteral("/invalid-export.zip");
@@ -587,6 +637,7 @@ void AppleHealthTests::testLoaderImportsZip()
     QCOMPARE(sleepMachine->sessionlist.size(), sleepCount);
     QCOMPARE(oxiMachine->sessionlist.size(), oxiCount);
     QVERIFY(!s_loader->lastImportSummary().validFile);
+    QCOMPARE(s_loader->lastImportSummary().weightDays, 0);
 }
 
 void AppleHealthTests::testLoaderSkipsShiftedNights()
@@ -609,6 +660,7 @@ void AppleHealthTests::testLoaderSkipsShiftedNights()
     QCOMPARE(s_loader->OpenFile(shiftedExportPath), 0);
     QCOMPARE(s_loader->lastImportSummary().sleepSessions, 0);
     QCOMPARE(s_loader->lastImportSummary().oxiSessions, 0);
+    QCOMPARE(s_loader->lastImportSummary().weightDays, 0);
     QCOMPARE(s_loader->lastImportSummary().skippedExisting, 2);
     QCOMPARE(sleepMachine->sessionlist.size(), sleepCount);
     QCOMPARE(oxiMachine->sessionlist.size(), oxiCount);
@@ -622,4 +674,5 @@ void AppleHealthTests::testLoaderRejectsGarbage()
     QVERIFY(!s_loader->lastImportSummary().validFile);
     QCOMPARE(s_loader->lastImportSummary().sleepSessions, 0);
     QCOMPARE(s_loader->lastImportSummary().oxiSessions, 0);
+    QCOMPARE(s_loader->lastImportSummary().weightDays, 0);
 }
