@@ -30,7 +30,45 @@ OSCAR 2.0 adds three major features for users who want to examine their data mor
 
 3. **Direct SQL access**: because the database is SQLite, any SQL-capable program can read OSCAR's data directly, including the waveform data used for graphs.
 
-4. **Apple Health (Apple Watch) import** (*File / Import Apple Health Data...*) reads the export file produced by an iPhone (Health app → tap your profile picture → *Export All Health Data*; unzip the resulting `export.zip` and select `export.xml`). OSCAR imports the watch's sleep stages, heart rate, SpO2, respiratory rate, heart rate variability, nightly breathing-disturbance score, and wrist temperature, shown on the same Daily-view timeline as your CPAP data — so sleep the watch recorded while your mask was off is visible alongside your therapy data. The import creates two devices, "Apple Watch Sleep" (stages) and "Apple Watch" (vitals); on first import you can choose between importing only the period overlapping your CPAP history or the watch's full history, and re-importing a newer export only adds nights not already present. If your sleep data comes from a phone app as well as the watch, OSCAR asks which source to use. Vitals are trimmed to each night's sleep window, since the watch also records heart rate all day.
+4. **Apple Health (Apple Watch) import** (*Data / Import Apple Health Data*) reads the export file produced by an iPhone. OSCAR imports the watch's sleep stages, heart rate, SpO2, respiratory rate, heart rate variability, nightly breathing-disturbance score, and wrist temperature, shown on the same Daily-view timeline as your CPAP data — so sleep the watch recorded while your mask was off is visible alongside your therapy data. The import creates two devices, "Apple Watch Sleep" (stages) and "Apple Watch" (vitals); re-importing a newer export only adds nights not already present. Vitals are trimmed to each night's sleep window, since the watch also records heart rate all day. See the walkthrough below.
+
+## Importing Apple Health Data
+
+**Step 1 — Export from the iPhone.** In the Health app, tap your profile picture in the top-right corner of the Summary screen:
+
+![Health app Summary screen; the profile picture is at top right](images/health-summary.png)
+
+Scroll to the bottom of the profile page and tap *Export All Health Data*. The export takes a few minutes to prepare:
+
+![Profile page with the Export All Health Data button at the bottom](images/health-export-button.png)
+
+**Step 2 — Get the file to your computer.** When the export finishes, a share sheet opens with the `export.zip` archive. Send it to your computer however you prefer — AirDrop, or *Save to Files* into iCloud Drive:
+
+![Share sheet for export.zip; Save to Files sends it to iCloud Drive](images/health-share-sheet.png)
+
+If you used iCloud Drive, download it on your computer from [icloud.com](https://www.icloud.com) → Drive (1), where the export appears in Recents (2):
+
+![iCloud Drive in a browser showing the exported zip](images/icloud-drive-download.png)
+
+Unzip the archive; the file OSCAR needs is `apple_health_export/export.xml`.
+
+**Step 3 — Import into OSCAR.** Choose *Data / Import Apple Health Data*:
+
+![OSCAR Data menu with Import Apple Health Data highlighted](images/oscar-import-menu.png)
+
+If your profile already has CPAP data, OSCAR asks how much history to bring in — importing only the period overlapping your CPAP history is recommended, and you can re-run the import later for more:
+
+![History prompt: Overlapping CPAP history (recommended), Full history, or Cancel](images/oscar-history-prompt.png)
+
+Select the `export.xml` you unzipped:
+
+![File dialog with export.xml selected](images/oscar-select-export.png)
+
+If your Health data contains sleep records from phone apps as well as the watch, OSCAR asks which source to use for sleep stages — the Apple Watch is preselected:
+
+![Sleep-stage source picker listing each source with its record count](images/oscar-sleep-source.png)
+
+The import then runs; a progress bar tracks the file parse, and a summary reports how many sleep and vitals sessions were added.
 
 ## If You Need to Go Back
 
