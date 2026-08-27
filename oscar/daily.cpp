@@ -1923,6 +1923,10 @@ QString Daily::getIndices(Day * day, QHash<ChannelID, EventDataType>& values ) {
             continue;
         }
         if (s->type() == MT_SLEEPSTAGE) {
+            // Other stage loaders (Zeo, Dreem) share the machine type but aren't the watch.
+            if (s->machine()->loaderName() != applehealth_class_name) {
+                continue;
+            }
             hasWatchSleep = true;
             const qint64 correction = s->correctionMs();
             for (const SessionSlice &slice : s->m_slices) {

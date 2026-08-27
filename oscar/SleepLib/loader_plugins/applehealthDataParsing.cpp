@@ -254,6 +254,9 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
                 stage = 3;
             } else if (value.endsWith(QStringLiteral("AsleepDeep"))) {
                 stage = 4;
+            } else if (value.endsWith(QStringLiteral("Asleep"))) {
+                // Pre-iOS 16 exports use plain "Asleep" with no stage breakdown.
+                stage = 3;
             } else if (value.endsWith(QStringLiteral("InBed"))) {
                 return;
             } else {
@@ -293,9 +296,19 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
             break;
         }
         case RecordKind::OxygenSaturation: {
-            const float value = valueText.toFloat(&ok);
+            float value = valueText.toFloat(&ok);
             if (ok) {
-                out.spo2.append(AppleHealthSample{startMs, value * 100.0f});
+                const QStringView unit = attributes.value(QStringLiteral("unit"));
+                if (unit != QStringLiteral("%")) {
+                    warnMalformed(QStringLiteral("skipping OxygenSaturation with unknown unit %1")
+                                      .arg(unit.toString()));
+                    return;
+                }
+                // Apple writes fractions (0.96) under unit "%"; third-party apps may write 96.
+                if (value <= 1.0f) {
+                    value *= 100.0f;
+                }
+                out.spo2.append(AppleHealthSample{startMs, value});
             }
             break;
         }

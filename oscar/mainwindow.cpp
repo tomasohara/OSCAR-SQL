@@ -3396,6 +3396,7 @@ bool MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
                 .arg(name, QFileInfo( files[0]).fileName() ) );
             //QString msg = QString(tr("There was a problem parsing %1 \nData File: %2") .arg(name, fileName) );
             Notify(msg,"",20*1000 /* convert sec to ms */);
+            return false;
         } else if (res == 0) {
             Notify(tr("There was a problem opening %1 Data File: %2").arg(name, files[0]));
             return false;

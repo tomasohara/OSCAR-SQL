@@ -382,7 +382,7 @@ void init()
     schema::channel.add(GRP_SLEEP, new Channel(AW_HRV = 0x2101, WAVEFORM,   MT_OXIMETER,  SESSION, "AWHRV",
             QObject::tr("Heart Rate Variability (SDNN)"), QObject::tr("Heart rate variability measured by Apple Watch"), QObject::tr("HRV (SDNN)"),  STR_UNIT_ms, DEFAULT,  QColor("purple")));
     schema::channel.add(GRP_SLEEP, new Channel(AW_BreathingDisturbances = 0x2102, DATA,   MT_SLEEPSTAGE,  SESSION, "AWBreathingDisturbances", QObject::tr("Breathing Disturbances"), QObject::tr("Apple's per-night sleep-breathing-disturbance count"), QObject::tr("Breathing Disturbances"),  QString(), DOUBLE,  QColor("darkorange")));
-    schema::channel.add(GRP_SLEEP, new Channel(AW_WristTemp = 0x2103, DATA,   MT_SLEEPSTAGE,  SESSION, "AWWristTemp", QObject::tr("Wrist Temperature"), QObject::tr("Wrist temperature measured by Apple Watch, stored in Celsius"), QObject::tr("Wrist Temperature"),  "ºC", DOUBLE,  QColor("steelblue")));
+    schema::channel.add(GRP_SLEEP, new Channel(AW_WristTemp = 0x2103, DATA,   MT_SLEEPSTAGE,  SESSION, "AWWristTemp", QObject::tr("Wrist Temperature"), QObject::tr("Wrist temperature measured by Apple Watch, stored in Celsius"), QObject::tr("Wrist Temperature"),  "°C", DOUBLE,  QColor("steelblue")));
 
     //////////////////////////////////////////////////////////////////////
     // Manufacturer-specific channels
