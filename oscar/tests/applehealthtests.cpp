@@ -26,6 +26,7 @@
 #include "SleepLib/loader_plugins/applehealthDataParsing.h"
 #include "SleepLib/loader_plugins/applehealth_loader.h"
 #include "database/database_manager.h"
+#include "zip.h"
 
 namespace {
 
@@ -486,6 +487,45 @@ void AppleHealthTests::testLoaderIdempotency()
     QCOMPARE(s_loader->lastImportSummary().sleepSessions, 0);
     QCOMPARE(s_loader->lastImportSummary().oxiSessions, 0);
     QCOMPARE(s_loader->lastImportSummary().skippedExisting, 3);
+}
+
+void AppleHealthTests::testLoaderImportsZip()
+{
+    Machine *sleepMachine = p_profile->GetMachine(MT_SLEEPSTAGE);
+    Machine *oxiMachine = p_profile->GetMachine(MT_OXIMETER);
+    QVERIFY(sleepMachine != nullptr);
+    QVERIFY(oxiMachine != nullptr);
+    const int sleepCount = sleepMachine->sessionlist.size();
+    const int oxiCount = oxiMachine->sessionlist.size();
+
+    const QString exportZipPath = m_tempDir->path() + QStringLiteral("/export.zip");
+    {
+        ZipFile zip;
+        QVERIFY(zip.Open(exportZipPath));
+        QVERIFY(zip.AddFile(m_exportPath, QStringLiteral("apple_health_export/export.xml")));
+        zip.Close();
+    }
+
+    QCOMPARE(s_loader->OpenFile(exportZipPath), 0);
+    QCOMPARE(sleepMachine->sessionlist.size(), sleepCount);
+    QCOMPARE(oxiMachine->sessionlist.size(), oxiCount);
+    QVERIFY(s_loader->lastImportSummary().validFile);
+    QCOMPARE(s_loader->lastImportSummary().sleepSessions, 0);
+    QCOMPARE(s_loader->lastImportSummary().oxiSessions, 0);
+    QCOMPARE(s_loader->lastImportSummary().skippedExisting, 3);
+
+    const QString invalidZipPath = m_tempDir->path() + QStringLiteral("/invalid-export.zip");
+    {
+        ZipFile zip;
+        QVERIFY(zip.Open(invalidZipPath));
+        QVERIFY(zip.AddFile(m_garbagePath, QStringLiteral("apple_health_export/garbage.xml")));
+        zip.Close();
+    }
+
+    QCOMPARE(s_loader->OpenFile(invalidZipPath), -1);
+    QCOMPARE(sleepMachine->sessionlist.size(), sleepCount);
+    QCOMPARE(oxiMachine->sessionlist.size(), oxiCount);
+    QVERIFY(!s_loader->lastImportSummary().validFile);
 }
 
 void AppleHealthTests::testLoaderRejectsGarbage()

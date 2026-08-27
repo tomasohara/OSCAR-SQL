@@ -38,7 +38,7 @@ class AppleHealthLoader : public MachineLoader
     virtual int Open(const QString & path) { Q_UNUSED(path); return 0; }
     virtual int Open(const QStringList & paths) override;
     virtual int OpenFile(const QString & path);
-    virtual QStringList getNameFilter() { return QStringList("Apple Health Export (export.xml)"); }
+    virtual QStringList getNameFilter() { return QStringList("Apple Health Export (*.xml *.zip)"); }
     static void Register();
 
     virtual int Version() { return applehealth_data_version; }

@@ -12,14 +12,17 @@
 #include <QFileInfo>
 #include <QMap>
 #include <QSet>
+#include <QTemporaryDir>
 #include <QTime>
 
 #include <algorithm>
 #include <limits>
+#include <memory>
 
 #include "applehealth_loader.h"
 #include "SleepLib/machine.h"
 #include "SleepLib/session.h"
+#include "zip.h"
 
 namespace {
 
@@ -91,26 +94,56 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     m_importChannels.clear();
     m_importLastValue.clear();
 
+    QString importFilename = filename;
+    std::unique_ptr<QTemporaryDir> tempDir;
     if (filename.endsWith(".zip", Qt::CaseInsensitive)) {
-        qDebug() << "AppleHealthLoader::OpenFile:" << filename << "is a ZIP archive; extract export.xml first";
-        return -1;
+        tempDir = std::make_unique<QTemporaryDir>();
+        if (!tempDir->isValid()) {
+            qWarning() << "AppleHealthLoader::OpenFile: could not create temporary directory";
+            return -1;
+        }
+
+        UnzipFile archive;
+        if (!archive.Open(filename)) {
+            qWarning() << "AppleHealthLoader::OpenFile: could not open ZIP archive:" << filename;
+            return -1;
+        }
+        importFilename = tempDir->path() + QStringLiteral("/export.xml");
+        // export.xml can be hundreds of MB; without progress the UI looks hung during extraction.
+        int lastPercent = -1;
+        if (!archive.ExtractEntry(QStringLiteral("apple_health_export/export.xml"),
+                                  importFilename,
+                                  [this, &lastPercent](qint64 bytesWritten, qint64 bytesTotal) {
+                                      if (!m_forwardParserProgress || bytesTotal <= 0) {
+                                          return;
+                                      }
+                                      const int percent = qBound(
+                                          0, static_cast<int>((bytesWritten * 100) / bytesTotal), 100);
+                                      if (percent != lastPercent) {
+                                          lastPercent = percent;
+                                          emit setProgressValue(percent);
+                                      }
+                                  })) {
+            qWarning() << "AppleHealthLoader::OpenFile: could not extract apple_health_export/export.xml from:" << filename;
+            return -1;
+        }
     }
 
-    QFileInfo fileInfo(filename);
+    QFileInfo fileInfo(importFilename);
     if (!fileInfo.exists() || !fileInfo.isFile()) {
-        qDebug() << "AppleHealthLoader::OpenFile: file does not exist:" << filename;
+        qDebug() << "AppleHealthLoader::OpenFile: file does not exist:" << importFilename;
         return -1;
     }
 
-    QFile file(filename);
+    QFile file(importFilename);
     if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "AppleHealthLoader::OpenFile: could not open:" << filename;
+        qDebug() << "AppleHealthLoader::OpenFile: could not open:" << importFilename;
         return -1;
     }
 
     const QByteArray prefix = file.read(8192);
     if (!prefix.contains("HealthData") && !prefix.contains("HealthKit Export")) {
-        qDebug() << "AppleHealthLoader::OpenFile: file does not look like an Apple Health export:" << filename;
+        qDebug() << "AppleHealthLoader::OpenFile: file does not look like an Apple Health export:" << importFilename;
         return -1;
     }
     file.close();
@@ -131,7 +164,7 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         }
     }
     parser.setCutoff(cutoffMs);
-    if (!parser.parse(filename, m_data)) {
+    if (!parser.parse(importFilename, m_data)) {
         qWarning() << "AppleHealthLoader::OpenFile:" << parser.errorString();
         m_data = AppleHealthData();
         return -1;
@@ -150,7 +183,7 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         chosenSource = requestedSource;
         if (requestedSource != autoSource) {
             parser.setSleepSource(requestedSource);
-            if (!parser.parse(filename, m_data)) {
+            if (!parser.parse(importFilename, m_data)) {
                 qWarning() << "AppleHealthLoader::OpenFile:" << parser.errorString();
                 m_data = AppleHealthData();
                 return -1;

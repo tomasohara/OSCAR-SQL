@@ -25,6 +25,7 @@ private slots:
     void testParserCutoff();
     void testLoaderImport();
     void testLoaderIdempotency();
+    void testLoaderImportsZip();
     void testLoaderRejectsGarbage();
     void cleanupTestCase();
 
