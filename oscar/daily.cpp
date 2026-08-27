@@ -1391,7 +1391,7 @@ QString Daily::getMachineSettings(Day * day) {
         } else {
             html+="<tr><td colspan=5>&nbsp;</td></tr>";
         }
-        QString fmt = QString("<tr><td colspan=3><p title='%2'>%1</p></td><td colspan=2>%3</td></tr>");
+        QString fmt = QString("<tr><td colspan=3 width='60%'><p title='%2'>%1</p></td><td colspan=2 width='40%'>%3</td></tr>");
 
         QMap<QString, QString> other;
         Session * sess = day->firstSession(MT_CPAP);
@@ -1509,8 +1509,8 @@ QString Daily::getOximeterInformation(Day * day)
                 spo2Count += sess->count(OXI_SPO2);
                 pulseCount += sess->count(OXI_Pulse);
             }
-            html+=QString("<tr><td colspan=3>%1</td><td colspan=2>%2</td></tr>").arg(tr("SpO2 spot checks")).arg(int(spo2Count));
-            html+=QString("<tr><td colspan=3>%1</td><td colspan=2>%2</td></tr>").arg(tr("Pulse readings")).arg(int(pulseCount));
+            html+=QString("<tr><td colspan=3 width='60%'>%1</td><td colspan=2 width='40%'>%2</td></tr>").arg(tr("SpO2 spot checks")).arg(int(spo2Count));
+            html+=QString("<tr><td colspan=3 width='60%'>%1</td><td colspan=2 width='40%'>%2</td></tr>").arg(tr("Pulse readings")).arg(int(pulseCount));
             html+=QString("<tr><td colspan=5><i>%1</i></td></tr>").arg(tr("Spot-check data; desaturation detection is not applicable"));
         } else {
             // Include SpO2 and PC drops per hour of Oximetry data in case CPAP data is missing
