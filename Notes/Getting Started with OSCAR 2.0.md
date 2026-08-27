@@ -22,7 +22,7 @@ Once your data is migrated, day-to-day use of OSCAR 2.0 will be familiar: you ca
 
 ## What's New
 
-OSCAR 2.0 adds three major features for users who want to examine their data more closely:
+OSCAR 2.0 adds four major features for users who want to examine their data more closely:
 
 1. **CSV Export has been replaced** with a more flexible and powerful export tool (*File / Export Data / CSV Export Wizard...*). You can extract any numeric information visible in OSCAR, or the underlying data needed to recalculate those numbers.
 
@@ -68,7 +68,7 @@ If your Health data contains sleep records from phone apps as well as the watch,
 
 ![Sleep-stage source picker listing each source with its record count](images/oscar-sleep-source.png)
 
-The import then runs; a progress bar tracks the file parse, and a summary reports how many sleep and vitals sessions were added, and how many days got a weight.
+The import then runs; a progress bar tracks the import, and a summary reports how many sleep and vitals sessions were added, and how many days got a weight.
 
 ## If You Need to Go Back
 
