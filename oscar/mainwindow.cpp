@@ -2933,14 +2933,26 @@ void MainWindow::on_actionImport_AppleHealth_Data_triggered()
     AppleHealthLoader applehealth;
 
     if (p_profile != nullptr && p_profile->FirstDay(MT_CPAP).isValid()) {
-        const QMessageBox::StandardButton historyChoice = QMessageBox::question(
-            this, tr("Apple Health Import"),
-            tr("Import only data overlapping your CPAP history (recommended), or your full Apple Health history?"),
-            QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
-        if (historyChoice == QMessageBox::Cancel) {
+        QMessageBox historyChoice(QMessageBox::Question,
+            tr("Apple Health Import"),
+            tr("How much of your Apple Health history should be imported?"),
+            QMessageBox::NoButton, this);
+        QPushButton *overlappingHistoryButton = historyChoice.addButton(
+            tr("Overlapping CPAP history (recommended)"), QMessageBox::AcceptRole);
+        QPushButton *fullHistoryButton = historyChoice.addButton(
+            tr("Full history"), QMessageBox::AcceptRole);
+        QPushButton *cancelButton = historyChoice.addButton(QMessageBox::Cancel);
+        historyChoice.setDefaultButton(overlappingHistoryButton);
+        historyChoice.setEscapeButton(cancelButton);
+        historyChoice.exec();
+
+        if (historyChoice.clickedButton() == overlappingHistoryButton) {
+            applehealth.setImportFullHistory(false);
+        } else if (historyChoice.clickedButton() == fullHistoryButton) {
+            applehealth.setImportFullHistory(true);
+        } else {
             return;
         }
-        applehealth.setImportFullHistory(historyChoice == QMessageBox::No);
     }
 
     applehealth.setSleepSourceChooser(
