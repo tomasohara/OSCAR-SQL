@@ -1908,6 +1908,88 @@ QString Daily::getIndices(Day * day, QHash<ChannelID, EventDataType>& values ) {
                 .arg(tooltip);
     }
 
+    struct Interval {
+        qint64 start;
+        qint64 end;
+    };
+    QVector<Interval> watchIntervals;
+    QVector<Interval> maskIntervals;
+    qint64 totalWatchSleep = 0;
+    bool hasWatchSleep = false;
+    bool hasCpap = false;
+    // Sessions from different machines carry different clock corrections; compare in display time.
+    for (Session *s : day->sessions) {
+        if (!s->enabled()) {
+            continue;
+        }
+        if (s->type() == MT_SLEEPSTAGE) {
+            hasWatchSleep = true;
+            const qint64 correction = s->correctionMs();
+            for (const SessionSlice &slice : s->m_slices) {
+                if (slice.end > slice.start) {
+                    watchIntervals.append({slice.start + correction, slice.end + correction});
+                    totalWatchSleep += slice.end - slice.start;
+                }
+            }
+        } else if (s->type() == MT_CPAP) {
+            hasCpap = true;
+            const qint64 correction = s->correctionMs();
+            if (s->m_slices.isEmpty()) {
+                // No slices means the whole session was mask-on, as Session::hours() assumes.
+                if (s->realLast() > s->realFirst()) {
+                    maskIntervals.append({s->realFirst() + correction, s->realLast() + correction});
+                }
+            } else {
+                for (const SessionSlice &slice : s->m_slices) {
+                    if (slice.status == MaskOn && slice.end > slice.start) {
+                        maskIntervals.append({slice.start + correction, slice.end + correction});
+                    }
+                }
+            }
+        }
+    }
+
+    if (hasWatchSleep && hasCpap && totalWatchSleep > 0) {
+        std::sort(maskIntervals.begin(), maskIntervals.end(), [](const Interval &a, const Interval &b) {
+            return a.start < b.start || (a.start == b.start && a.end < b.end);
+        });
+        QVector<Interval> mergedMaskIntervals;
+        for (const Interval &interval : maskIntervals) {
+            if (mergedMaskIntervals.isEmpty() || interval.start > mergedMaskIntervals.last().end) {
+                mergedMaskIntervals.append(interval);
+            } else {
+                mergedMaskIntervals.last().end = std::max(mergedMaskIntervals.last().end, interval.end);
+            }
+        }
+
+        qint64 maskedWatchSleep = 0;
+        for (const Interval &watch : watchIntervals) {
+            for (const Interval &mask : mergedMaskIntervals) {
+                if (mask.end <= watch.start) continue;
+                if (mask.start >= watch.end) break;
+                maskedWatchSleep += std::min(watch.end, mask.end) - std::max(watch.start, mask.start);
+            }
+        }
+
+        const qint64 unmaskedSleep = totalWatchSleep - maskedWatchSleep;
+        const qint64 totalMinutes = unmaskedSleep / 60000;
+        const int percentage = static_cast<int>(std::lround(100.0 * unmaskedSleep / totalWatchSleep));
+        const QString data = QString("%1:%2 (%3%)")
+                .arg(totalMinutes / 60)
+                .arg(totalMinutes % 60, 2, 10, QChar('0'))
+                .arg(percentage);
+        const QColor color("darkred");
+        const QColor altcolor = (brightness(color) < 0.3) ? Qt::white : Qt::black;
+        QString tooltip = tr("Time within the watch's sleep session spent without the CPAP mask on, and its share of that session");
+        tooltip.replace("'", "&apos;");
+        html+=QString("<tr><td align='left' bgcolor='%1' title='<p>%5</p>'><b><font color='%2'>%3</font></b></td><td width=20% bgcolor='%1'><b><font color='%2'>%4</font></b></td></tr>")
+                .arg(color.name())
+                .arg(altcolor.name())
+                .arg(tr("Unmasked Sleep"))
+                .arg(data)
+                .arg(tooltip);
+    }
+
     html+="</table><hr/>";
 
 #ifndef COMBINE_MODE_3
