@@ -26,6 +26,10 @@ practitioner/patient ramp question, exposed log code 13 as something other than 
 settings record, and identified the therapy mode and the prescribed pressure —
 the last two unassigned fields of any size in the record. See "The Néa Auto".
 
+**Comparing OSCAR against the vendor software?** Read
+`SEFAM_ANALYZE_VS_OSCAR.md` first. Several differences are structural — the AHI
+definition above all — and it lists which ones will never close.
+
 **Device:** SEFAM Rêve Auto (APAP). `Created By=REVE_AUTO`, model code `1279R`,
 firmware `VER :A010500`. SEFAM is a French sleep-medicine manufacturer.
 

@@ -94,6 +94,10 @@ warns.
 
 ---
 
+**Comparing OSCAR against the vendor software?** Read
+`SEFAM_ANALYZE_VS_OSCAR.md` first — it lists the differences that are structural
+rather than defects, calibrated against a card that has a full vendor report.
+
 ## Card layout
 
 ```
