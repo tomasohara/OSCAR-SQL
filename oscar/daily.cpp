@@ -44,6 +44,7 @@
 #include "SleepLib/profiles.h"
 #include "SleepLib/session.h"
 #include "SleepLib/performance_timer.h"
+#include "SleepLib/loader_plugins/applehealth_loader.h"
 #include "database/session_repository.h"
 
 #include "Graphs/gLineOverlay.h"
@@ -1496,10 +1497,23 @@ QString Daily::getOximeterInformation(Day * day)
 //        html+="<tr><td colspan=5 align=center>&nbsp;</td></tr>";
         html+="<tr><td colspan=5 align=center>"+oxi->brand()+" "+oxi->model()+"</td></tr>\n";
 //        html+="<tr><td colspan=5 align=center>&nbsp;</td></tr>";
-        // Include SpO2 and PC drops per hour of Oximetry data in case CPAP data is missing
-        html+=QString("<tr><td colspan=5 align=center>%1: %2 (%3%) %4/h</td></tr>").arg(tr("SpO2 Desaturations")).arg(day->count(OXI_SPO2Drop)).arg((100.0/day->hours(MT_OXIMETER)) * (day->sum(OXI_SPO2Drop)/3600.0),0,'f',2).arg((day->count(OXI_SPO2Drop)/day->hours(MT_OXIMETER)),0,'f',2);
-        html+=QString("<tr><td colspan=5 align=center>%1: %2 (%3%) %4/h</td></tr>").arg(tr("Pulse Change events")).arg(day->count(OXI_PulseChange)).arg((100.0/day->hours(MT_OXIMETER)) * (day->sum(OXI_PulseChange)/3600.0),0,'f',2).arg((day->count(OXI_PulseChange)/day->hours(MT_OXIMETER)),0,'f',2);
-        html+=QString("<tr><td colspan=5 align=center>%1: %2%</td></tr>").arg(tr("SpO2 Baseline Used")).arg(day->settings_wavg(OXI_SPO2Drop),0,'f',2); // CHECKME: Should this value be wavg OXI_SPO2 isntead?
+        if (oxi->loaderName() == applehealth_class_name) {
+            // Per-machine, since day->count() would fold in a CPAP's SpO2/pulse from the same day
+            EventDataType spo2Count = 0, pulseCount = 0;
+            for (auto & sess : day->sessions) {
+                if (!sess->enabled() || sess->machine() != oxi) continue;
+                spo2Count += sess->count(OXI_SPO2);
+                pulseCount += sess->count(OXI_Pulse);
+            }
+            html+=QString("<tr><td colspan=5 align=center>%1: %2</td></tr>").arg(tr("SpO2 spot checks")).arg(int(spo2Count));
+            html+=QString("<tr><td colspan=5 align=center>%1: %2</td></tr>").arg(tr("Pulse readings")).arg(int(pulseCount));
+            html+=QString("<tr><td colspan=5 align=center>%1</td></tr>").arg(tr("Spot-check data; desaturation detection is not applicable"));
+        } else {
+            // Include SpO2 and PC drops per hour of Oximetry data in case CPAP data is missing
+            html+=QString("<tr><td colspan=5 align=center>%1: %2 (%3%) %4/h</td></tr>").arg(tr("SpO2 Desaturations")).arg(day->count(OXI_SPO2Drop)).arg((100.0/day->hours(MT_OXIMETER)) * (day->sum(OXI_SPO2Drop)/3600.0),0,'f',2).arg((day->count(OXI_SPO2Drop)/day->hours(MT_OXIMETER)),0,'f',2);
+            html+=QString("<tr><td colspan=5 align=center>%1: %2 (%3%) %4/h</td></tr>").arg(tr("Pulse Change events")).arg(day->count(OXI_PulseChange)).arg((100.0/day->hours(MT_OXIMETER)) * (day->sum(OXI_PulseChange)/3600.0),0,'f',2).arg((day->count(OXI_PulseChange)/day->hours(MT_OXIMETER)),0,'f',2);
+            html+=QString("<tr><td colspan=5 align=center>%1: %2%</td></tr>").arg(tr("SpO2 Baseline Used")).arg(day->settings_wavg(OXI_SPO2Drop),0,'f',2); // CHECKME: Should this value be wavg OXI_SPO2 isntead?
+        }
         html+="</table>\n";
         html+="<hr/>\n";
     }

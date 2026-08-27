@@ -45,11 +45,11 @@ class AppleHealthLoader : public MachineLoader
     virtual const QString &loaderName() { return applehealth_class_name; }
 
     virtual MachineInfo newInfo() {
-        return MachineInfo(MT_OXIMETER, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Apple Watch"), QString(), QStringLiteral("Vitals"), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
+        return MachineInfo(MT_OXIMETER, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Watch"), QString(), QStringLiteral("Vitals"), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
     }
 
     MachineInfo newInfoSleep() {
-        return MachineInfo(MT_SLEEPSTAGE, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Apple Watch Sleep"), QString(), QStringLiteral("Sleep"), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
+        return MachineInfo(MT_SLEEPSTAGE, 0, applehealth_class_name, QObject::tr("Apple"), QObject::tr("Watch Sleep"), QString(), QStringLiteral("Sleep"), QObject::tr("Apple Health"), QDateTime::currentDateTime(), applehealth_data_version);
     }
 
     void setSleepSourceChooser(
