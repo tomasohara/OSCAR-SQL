@@ -4,6 +4,152 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-08-26 — SEFAM: therapy mode hard-coded, sessions discarded on a dropped record, wrong ramp time, and a non-settings record read as settings
+
+**Files:** `oscar/SleepLib/loader_plugins/sefamDataParsing.{h,cpp}`,
+`oscar/SleepLib/loader_plugins/sefam_loader.{h,cpp}`
+
+All three found by importing the first **Néa Auto** card. That device is the Rêve's
+platform under another logo — same format tag, same headers, same log records — but its
+settings were edited far more often and its card is less clean, which exposed readings
+that were only ever right by coincidence on the cards held before it. The third defect
+turned out to affect a real user's S.Box card as well.
+
+### 1. The ramp time reported was the clinician's ceiling, not the patient's setting
+
+The settings record carries the ramp duration twice. The second field was taken as the
+duration and the first as an echo of it, because on a Rêve both read 45 and on the S.Box's
+settings table they are either equal or the first is zero.
+
+They are two different settings: **the first is the patient's own ramp time, the second is
+the practitioner's ceiling on it** — the pair the vendor's Parameters panel presents, and
+the pair its API exposes as `GetRampTime` and `GetMaxRampTime`. The Néa's ceiling stayed at
+30 minutes for a year while the patient's moved 30, 10, 0, 20, 10. The reverse assignment
+is impossible: the vendor software will not let the patient exceed the ceiling, so a
+ceiling of 0 against a patient setting of 30 cannot occur.
+
+The S.Box's own session archive said the same thing and had never been checked for it:
+across all 467 blocks of one card the patient's value never exceeds the ceiling and falls
+strictly below it in five distinct T.Ramp states.
+
+`SefamParsing::rampMinutesFor()` now reports the patient's value, except under I.Ramp —
+ramp-mode bit 2 — where the patient chooses only on or off and has no duration of their
+own. Both the log path (`parseSettings()`) and the S.Box memory-image path
+(`readMemoryImage()`) use it.
+
+**No card with a manufacturer report changes.** The rule reproduces every ramp figure
+printed on both reports held, on their I.Ramp and T.Ramp sessions alike, and the Rêve card
+is byte-for-byte identical before and after. On the Néa it corrects 27 of 146 sessions,
+including nights the patient had the ramp switched off entirely and OSCAR showed 30
+minutes.
+
+### 2. Log code 13 was read as a settings snapshot; it is the device's pressure limits
+
+Code 13 was used as a fallback wherever a session carried no code 2 record. Its three
+pressure bytes read **40, 100, 200** in every such record on both cards — including Néa
+records written months after that device's prescription had been narrowed to 6.0–7.5.
+They are the model's settable range and its default (4.0, 10.0, 20.0), not a setting. The
+record also carries a six-digit ASCII number that is constant per device.
+
+The reading survived because the Rêve's own prescription *is* 4.0–20.0, so the fallback
+happened to produce the right answer there. On the Néa two sessions carry code 13 and no
+code 2: both reported the full pressure range instead of the real one, and left it behind
+as the carried-forward settings for every session after them.
+
+The fallback is removed and the enumerator renamed `kLogDeviceLimits`. A session with no
+settings record of its own now keeps the previous session's, which is what the device's
+write-on-change behaviour implies.
+
+### 3. A single dropped record threw away the rest of the session
+
+Each 10-second record ends with a checksum and a 1-based sequence number, and
+`readChannel()` truncated the channel wherever either failed — written for a card
+unplugged mid-write, which leaves a torn final record.
+
+The device also **drops a record and keeps counting**. The sequence runs
+`… 17, 18, 20, 21 …` and then continues cleanly to the end of the file, with every
+checksum passing on both sides of the hole and the file still an exact whole number
+of records. That is not corruption, and the data after it was being discarded:
+
+| card | sessions | records lost |
+|---|---|---|
+| Néa Auto | 3 of 146 | 811, 128, 335 (~3.5 h) |
+| S.Box `1200R` | 3 of 22 | 771, 718, 733 (~6.2 h) |
+| Rêve Auto | none | — |
+
+The S.Box case was the damaging one. Those three files begin at sequence **2**, so
+every channel truncated to zero records and `readSession()` then rejected the whole
+session with "no populated channels" — three of a real user's 22 nights vanished
+without anything in the log pointing at why.
+
+`readChannel()` now fills each missing record with `kInvalidSample` and carries on.
+The caller already builds a per-sample validity mask, so the hole renders as an
+ordinary drop-out, and every later sample keeps its true offset from the session
+start — dropping the gap silently instead would slide the rest of the night ten
+seconds early per missing record and shorten the session. `records` counts the
+filled slots, so it still equals the last sequence number accepted and the session
+end time stays right.
+
+A checksum failure still truncates. So does a sequence that goes backwards, or one
+that jumps further ahead than the file has records left — both fall out of the same
+bound, since the subtraction is done in a `quint16` and a backwards step wraps to a
+huge gap.
+
+**The Rêve card is unaffected**, having no gaps at all.
+
+### 4. Every fixed-pressure session was reported as an auto band
+
+`MODE_APAP` was hard-coded, on the grounds that A-PAP was the only mode ever seen
+on a SEFAM card. It is not: **145 of the 146 sessions on the Néa card ran fixed
+CPAP at 7.0 cmH₂O**, and so did 11 of the 467 archived sessions on the S.Box card.
+All of them were shown with a minimum and maximum the device never titrated
+across — on the Néa, 4.0–20.0 for eight months, then 6.0–7.5.
+
+The mode is **settings-record byte 17** — 60 for A-PAP, 0 for CPAP — and **byte 9**
+is the pressure prescribed for it, with 80 meaning none. Byte 17 had been written
+down as "constant 60" and byte 9 as "per-device, unassigned", because on the two
+devices examined first neither ever moves.
+
+Three independent confirmations:
+
+- *Sefam Analyze* has a per-day settings table with **Mode** and **Prescribed
+  pressure** columns, and a CSV export carrying both. It reports CPAP at 7.0 on
+  exactly the days the Néa's byte 17 reads 0 and its byte 9 reads 70, and A-PAP
+  with a dash for prescribed pressure on every Rêve day and on the Néa's factory
+  row, where the bytes read 60 and 80.
+- The S.Box settles it from measurement alone. That model stores a mean pressure
+  for every minute of every session, and splitting its 467 blocks on byte 17
+  gives a p10–p90 spread of **0.10 cmH₂O** for the CPAP group — flat — sitting on
+  byte 9 in five cases out of five, against 3.17 cmH₂O for the A-PAP group,
+  landing on it in four out of 225.
+- It explains the Néa's dead-flat delivered pressure, which is what drew
+  attention to byte 9 in the first place: p05 6.5, p50 7.0, p99 7.3 across
+  185 000 samples in a single night, while the band read 4.0–20.0.
+
+`setPressureMode()` in `sefam_loader.cpp` now publishes either `CPAP_Pressure`
+with `MODE_CPAP`, or the band with `MODE_APAP` — never both, following
+`apex_loader.cpp:229`. `Day::getPressure()` (`day.cpp:1648`) renders each from its
+own fields, so publishing the unused pair would put a band on a fixed-pressure
+session. An unrecognised mode byte is reported as A-PAP with a warning, which is
+the old behaviour; a bi-level SEFAM almost certainly uses a third value, and none
+has been seen.
+
+**The Rêve card is unchanged** — all 47 of its sessions are A-PAP either way.
+
+### Also in this change: the Néa Auto is recognised
+
+`Created By=NEA_AUTO`, model code `1265R`. It displays as "Néa Auto" with brand "Sefam"
+and the Néa device image, which had been registered since 2026-08-10 and unreachable until
+now. It takes the Rêve's import path unchanged — all 146 sessions of the sample parse with
+nothing altered.
+
+It is deliberately **not** added to `sefamModelIsValidated()`, so importing one still
+raises the untested-device notice: no manufacturer report exists for a Néa, and the therapy
+mode is unresolved. That card ran a flat 7.0 cmH₂O for eight months while its minimum and
+maximum fields read 4.0 and 20.0, and no field in the settings record marks the change; the
+loader's hard-coded `MODE_APAP` is wrong for that period and cannot yet be fixed from the
+card. Recorded in `Notes/loaders/SEFAM_REVE_CARD_ANALYSIS.md`, "The Néa Auto".
+
 ## 2026-08-26 — BMC G3X/E5 showed two Reslex settings the device does not have
 
 **Files:** `oscar/SleepLib/loader_plugins/bmc_loader.{h,cpp}`,
