@@ -2961,21 +2961,13 @@ void MainWindow::on_actionImport_AppleHealth_Data_triggered()
             sourceNames.sort(Qt::CaseInsensitive);
 
             QStringList choices;
-            int defaultIndex = 0;
-            int defaultCount = -1;
-            for (int i = 0; i < sourceNames.size(); ++i) {
-                const QString &sourceName = sourceNames.at(i);
-                const int count = sourceCounts.value(sourceName);
-                choices.append(tr("%1 (%2 records)").arg(sourceName).arg(count));
-
-                QString normalized = sourceName;
-                normalized.replace(QChar(0x00A0), QLatin1Char(' '));
-                if (normalized.contains(QStringLiteral("Apple"))
-                    && normalized.contains(QStringLiteral("Watch"))
-                    && count > defaultCount) {
-                    defaultIndex = i;
-                    defaultCount = count;
-                }
+            for (const QString &sourceName : sourceNames) {
+                choices.append(tr("%1 (%2 records)")
+                                   .arg(sourceName).arg(sourceCounts.value(sourceName)));
+            }
+            int defaultIndex = sourceNames.indexOf(autoMatchedSleepSource(sourceCounts));
+            if (defaultIndex < 0) {
+                defaultIndex = 0;
             }
 
             bool accepted = false;

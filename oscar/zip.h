@@ -11,10 +11,17 @@
 #include <QString>
 #include <QDir>
 #include <QFile>
+#include <QVector>
 
 #include <functional>
 
 class ProgressDialog;
+
+struct UnzipEntry
+{
+    QString name;
+    qint64 uncompressedSize;
+};
 
 class ZipFile : public QObject
 {
@@ -104,6 +111,15 @@ public:
     bool ExtractEntry(const QString& entryName, const QString& destPath,
                       const std::function<void(qint64 bytesWritten, qint64 bytesTotal)>& progress
                           = std::function<void(qint64, qint64)>());
+
+    /*!
+     * \brief List the file entries in the archive.
+     *
+     * Directory entries are omitted.
+     *
+     * \return Archive names and uncompressed sizes for each file entry.
+     */
+    QVector<UnzipEntry> ListEntries();
 
     /*!
      * \brief Close the archive and free internal resources.

@@ -65,13 +65,13 @@ class AppleHealthLoader : public MachineLoader
     QDate nightDate(qint64 timeMs) const;
     Session *buildSleepSession(Machine *mach,
                                const QVector<AppleHealthInterval> &stages,
+                               const QVector<AppleHealthSample> &respRate,
+                               const QVector<AppleHealthSample> &hrv,
                                const QVector<AppleHealthNightScalar> &breathingDisturbances,
                                const QVector<AppleHealthNightScalar> &wristTemp);
     Session *buildOxiSession(Machine *mach,
                              const QVector<AppleHealthSample> &heartRate,
-                             const QVector<AppleHealthSample> &spo2,
-                             const QVector<AppleHealthSample> &respRate,
-                             const QVector<AppleHealthSample> &hrv);
+                             const QVector<AppleHealthSample> &spo2);
     void importSamples(ChannelID channel, const QVector<AppleHealthSample> &samples,
                        qint64 gapThresholdMs);
     void AddEvent(ChannelID channel, qint64 timeMs, EventDataType value);

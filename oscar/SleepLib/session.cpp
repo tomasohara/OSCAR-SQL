@@ -1348,15 +1348,6 @@ void Session::UpdateSummaries()
     QHash<ChannelID, QVector<EventList *> >::iterator c = eventlist.begin();
     QHash<ChannelID, QVector<EventList *> >::iterator ev_end = eventlist.end();
 
-    // A channel registered with no events is a loader opting out of the calculations above;
-    // the empty list isn't persisted, so the marker must survive the rebuild below.
-    QList<ChannelID> optOutChannels;
-    for (ChannelID id : m_availableChannels) {
-        if (!eventlist.contains(id) && m_cnt.value(id, -1) == 0) {
-            optOutChannels.push_back(id);
-        }
-    }
-
     m_availableChannels.clear();
 
     for (; c != ev_end; c++) {
@@ -1394,11 +1385,6 @@ void Session::UpdateSummaries()
             sph(id);
             avg(id);
             wavg(id);
-        }
-    }
-    for (ChannelID id : optOutChannels) {
-        if (!m_availableChannels.contains(id)) {
-            m_availableChannels.push_back(id);
         }
     }
 

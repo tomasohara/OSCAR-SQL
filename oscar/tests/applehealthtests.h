@@ -29,6 +29,9 @@ private slots:
     void testLoaderImportsZip();
     void testLoaderSkipsShiftedNights();
     void testLoaderRejectsGarbage();
+    void testLoaderImportsSingleNonWatchSource();
+    void testLoaderSkipsNonAppleOximeterNight();
+    void testSPO2DropSparsity();
     void cleanupTestCase();
 
 private:

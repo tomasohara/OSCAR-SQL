@@ -643,6 +643,35 @@ bool UnzipFile::ExtractEntry(const QString& entryName, const QString& destPath,
 }
 
 /*!
+ * \brief List the file entries in the archive.
+ */
+QVector<UnzipEntry> UnzipFile::ListEntries()
+{
+    QVector<UnzipEntry> entries;
+    if (!m_open) {
+        qWarning() << "UnzipFile::ListEntries: archive not open";
+        return entries;
+    }
+
+    mz_zip_archive* pZip = static_cast<mz_zip_archive*>(m_ctx);
+    const int count = static_cast<int>(mz_zip_reader_get_num_files(pZip));
+    entries.reserve(count);
+    for (int i = 0; i < count; ++i) {
+        if (mz_zip_reader_is_file_a_directory(pZip, static_cast<mz_uint>(i))) {
+            continue;
+        }
+        mz_zip_archive_file_stat stat;
+        if (!mz_zip_reader_file_stat(pZip, static_cast<mz_uint>(i), &stat)) {
+            qWarning() << "UnzipFile::ListEntries: file_stat failed for index" << i;
+            continue;
+        }
+        entries.append(UnzipEntry{QString::fromUtf8(stat.m_filename),
+                                  static_cast<qint64>(stat.m_uncomp_size)});
+    }
+    return entries;
+}
+
+/*!
  * \brief Close the archive and release the miniz reader state.
  */
 void UnzipFile::Close()

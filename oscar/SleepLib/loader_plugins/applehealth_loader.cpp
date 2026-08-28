@@ -27,27 +27,6 @@
 
 namespace {
 
-static QString autoMatchedSleepSource(const QHash<QString, int> &sourceCounts)
-{
-    QString matchedSource;
-    int matchedCount = -1;
-    for (auto it = sourceCounts.cbegin(); it != sourceCounts.cend(); ++it) {
-        QString normalized = it.key();
-        normalized.replace(QChar(0x00A0), QLatin1Char(' '));
-        if (!normalized.contains(QStringLiteral("Apple"))
-            || !normalized.contains(QStringLiteral("Watch"))) {
-            continue;
-        }
-        if (it.value() > matchedCount
-            || (it.value() == matchedCount
-                && it.key().compare(matchedSource, Qt::CaseInsensitive) < 0)) {
-            matchedSource = it.key();
-            matchedCount = it.value();
-        }
-    }
-    return matchedSource;
-}
-
 static QVector<AppleHealthSample> samplesInWindow(
     const QVector<AppleHealthSample> &samples, qint64 startMs, qint64 endMs)
 {
@@ -161,11 +140,40 @@ int AppleHealthLoader::OpenFile(const QString & filename)
             qWarning() << "AppleHealthLoader::OpenFile: could not open ZIP archive:" << filename;
             return -1;
         }
+        const QString standardEntry = QStringLiteral("apple_health_export/export.xml");
+        const QVector<UnzipEntry> entries = archive.ListEntries();
+        QString exportEntry;
+        for (const UnzipEntry &entry : entries) {
+            if (entry.name == standardEntry) {
+                exportEntry = entry.name;
+                break;
+            }
+        }
+        if (exportEntry.isEmpty()) {
+            qint64 largestSize = -1;
+            for (const UnzipEntry &entry : entries) {
+                const QString fileName = QFileInfo(entry.name).fileName();
+                if (!entry.name.endsWith(QStringLiteral(".xml"), Qt::CaseInsensitive)
+                    || fileName.contains(QStringLiteral("_cda"), Qt::CaseInsensitive)) {
+                    continue;
+                }
+                if (entry.uncompressedSize > largestSize) {
+                    exportEntry = entry.name;
+                    largestSize = entry.uncompressedSize;
+                }
+            }
+        }
+        if (exportEntry.isEmpty()) {
+            qWarning() << "AppleHealthLoader::OpenFile: could not find export XML in:" << filename;
+            return -1;
+        }
+        if (exportEntry != standardEntry) {
+            qWarning() << "AppleHealthLoader::OpenFile: using ZIP export entry:" << exportEntry;
+        }
         importFilename = tempDir->path() + QStringLiteral("/export.xml");
         // export.xml can be hundreds of MB; without progress the UI looks hung during extraction.
         int lastPercent = -1;
-        if (!archive.ExtractEntry(QStringLiteral("apple_health_export/export.xml"),
-                                  importFilename,
+        if (!archive.ExtractEntry(exportEntry, importFilename,
                                   [this, &lastPercent](qint64 bytesWritten, qint64 bytesTotal) {
                                       if (!m_forwardParserProgress || bytesTotal <= 0) {
                                           return;
@@ -177,7 +185,8 @@ int AppleHealthLoader::OpenFile(const QString & filename)
                                           emit setProgressValue(percent);
                                       }
                                   })) {
-            qWarning() << "AppleHealthLoader::OpenFile: could not extract apple_health_export/export.xml from:" << filename;
+            qWarning() << "AppleHealthLoader::OpenFile: could not extract" << exportEntry
+                       << "from:" << filename;
             return -1;
         }
     }
@@ -223,8 +232,7 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         return -1;
     }
 
-    const QString autoSource = autoMatchedSleepSource(m_data.sleepSourceCounts);
-    QString chosenSource = autoSource;
+    QString chosenSource = autoMatchedSleepSource(m_data.sleepSourceCounts);
     if (m_sleepSourceChooser && m_data.sleepSourceCounts.size() > 1) {
         const QString requestedSource = m_sleepSourceChooser(m_data.sleepSourceCounts);
         if (requestedSource.isEmpty()) {
@@ -234,15 +242,17 @@ int AppleHealthLoader::OpenFile(const QString & filename)
             return 0;
         }
         chosenSource = requestedSource;
-        if (requestedSource != autoSource) {
-            parser.setSleepSource(requestedSource);
-            if (!parser.parse(importFilename, m_data)) {
-                qWarning() << "AppleHealthLoader::OpenFile:" << parser.errorString();
-                m_data = AppleHealthData();
-                return -1;
+    }
+    QVector<AppleHealthInterval> selectedStages;
+    selectedStages.reserve(m_data.sleepStages.size());
+    if (!chosenSource.isEmpty()) {
+        for (const AppleHealthInterval &interval : m_data.sleepStages) {
+            if (interval.source == chosenSource) {
+                selectedStages.append(interval);
             }
         }
     }
+    m_data.sleepStages = selectedStages;
     m_lastImportSummary.validFile = true;
     m_lastImportSummary.sleepSourceCounts = m_data.sleepSourceCounts;
     m_lastImportSummary.chosenSleepSource = chosenSource;
@@ -336,19 +346,17 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     QSet<QDate> existingSleepNights;
     QSet<QDate> existingOxiNights;
     for (Machine *machine : p_profile->GetMachines(MT_SLEEPSTAGE)) {
-        if (machine->loaderName() != applehealth_class_name) {
-            continue;
+        if (machine->loaderName() == applehealth_class_name) {
+            sleepMach = machine;
         }
-        sleepMach = machine;
         for (Session *session : machine->sessionlist) {
             existingSleepNights.insert(nightDate(session->first()));
         }
     }
     for (Machine *machine : p_profile->GetMachines(MT_OXIMETER)) {
-        if (machine->loaderName() != applehealth_class_name) {
-            continue;
+        if (machine->loaderName() == applehealth_class_name) {
+            oxiMach = machine;
         }
-        oxiMach = machine;
         for (Session *session : machine->sessionlist) {
             existingOxiNights.insert(nightDate(session->first()));
         }
@@ -404,7 +412,8 @@ int AppleHealthLoader::OpenFile(const QString & filename)
             if (sleepMach == nullptr) {
                 sleepMach = p_profile->CreateMachine(newInfoSleep());
             }
-            Session *session = buildSleepSession(sleepMach, stages, disturbances, wristTemp);
+            Session *session = buildSleepSession(
+                sleepMach, stages, filteredRespRate, filteredHrv, disturbances, wristTemp);
             if (session != nullptr) {
                 session->SetChanged(true);
                 session->UpdateSummaries();
@@ -420,27 +429,27 @@ int AppleHealthLoader::OpenFile(const QString & filename)
             }
         }
 
-        if (existingOxiNights.contains(night)) {
-            skippedExistingNights.insert(night);
-        } else if (!filteredHeartRate.isEmpty() || !filteredSpo2.isEmpty()
-                   || !filteredRespRate.isEmpty() || !filteredHrv.isEmpty()) {
-            if (oxiMach == nullptr) {
-                oxiMach = p_profile->CreateMachine(newInfo());
-            }
-            Session *session = buildOxiSession(
-                oxiMach, filteredHeartRate, filteredSpo2, filteredRespRate, filteredHrv);
-            if (session != nullptr) {
-                session->SetChanged(true);
-                session->UpdateSummaries();
-                if (oxiMach->AddSession(session)) {
-                    oxiChanged = true;
-                    ++imported;
-                    ++m_lastImportSummary.oxiSessions;
-                } else {
-                    delete session;
-                }
-            } else {
+        if (!filteredHeartRate.isEmpty() || !filteredSpo2.isEmpty()) {
+            if (existingOxiNights.contains(night)) {
                 skippedExistingNights.insert(night);
+            } else {
+                if (oxiMach == nullptr) {
+                    oxiMach = p_profile->CreateMachine(newInfo());
+                }
+                Session *session = buildOxiSession(oxiMach, filteredHeartRate, filteredSpo2);
+                if (session != nullptr) {
+                    session->SetChanged(true);
+                    session->UpdateSummaries();
+                    if (oxiMach->AddSession(session)) {
+                        oxiChanged = true;
+                        ++imported;
+                        ++m_lastImportSummary.oxiSessions;
+                    } else {
+                        delete session;
+                    }
+                } else {
+                    skippedExistingNights.insert(night);
+                }
             }
         }
     }
@@ -514,6 +523,7 @@ QDate AppleHealthLoader::nightDate(qint64 timeMs) const
 
 Session *AppleHealthLoader::buildSleepSession(
     Machine *mach, const QVector<AppleHealthInterval> &stages,
+    const QVector<AppleHealthSample> &respRate, const QVector<AppleHealthSample> &hrv,
     const QVector<AppleHealthNightScalar> &breathingDisturbances,
     const QVector<AppleHealthNightScalar> &wristTemp)
 {
@@ -568,6 +578,9 @@ Session *AppleHealthLoader::buildSleepSession(
         EndEventList(ZEO_SleepStage, interval.endMs);
     }
 
+    importSamples(AW_RespRate, respRate, 30LL * 60LL * 1000LL);
+    importSamples(AW_HRV, hrv, 0);
+
     session->settings[ZEO_TimeInWake] = stageTimeMs[1] / 60000L;
     session->settings[ZEO_TimeInREM] = stageTimeMs[2] / 60000L;
     session->settings[ZEO_TimeInLight] = stageTimeMs[3] / 60000L;
@@ -596,8 +609,7 @@ Session *AppleHealthLoader::buildSleepSession(
 
 Session *AppleHealthLoader::buildOxiSession(
     Machine *mach, const QVector<AppleHealthSample> &heartRate,
-    const QVector<AppleHealthSample> &spo2, const QVector<AppleHealthSample> &respRate,
-    const QVector<AppleHealthSample> &hrv)
+    const QVector<AppleHealthSample> &spo2)
 {
     qint64 firstMs = std::numeric_limits<qint64>::max();
     qint64 lastMs = 0;
@@ -609,8 +621,6 @@ Session *AppleHealthLoader::buildOxiSession(
     };
     updateTimes(heartRate);
     updateTimes(spo2);
-    updateTimes(respRate);
-    updateTimes(hrv);
 
     const SessionID sessionId = static_cast<SessionID>(firstMs / 1000L);
     if (mach->SessionExists(sessionId)) {
@@ -626,18 +636,6 @@ Session *AppleHealthLoader::buildOxiSession(
 
     importSamples(OXI_Pulse, heartRate, 10LL * 60LL * 1000LL);
     importSamples(OXI_SPO2, spo2, 45LL * 60LL * 1000LL);
-    importSamples(AW_RespRate, respRate, 30LL * 60LL * 1000LL);
-    importSamples(AW_HRV, hrv, 0);
-
-    // Watch samples are far too sparse for OSCAR's desat/pulse-change detection to be
-    // meaningful; registering the flag channels empty makes calcSPO2Drop()/calcPulseChange()
-    // skip this session.
-    if (!spo2.isEmpty()) {
-        session->AddEventList(OXI_SPO2Drop, EVL_Event);
-    }
-    if (!heartRate.isEmpty()) {
-        session->AddEventList(OXI_PulseChange, EVL_Event);
-    }
 
     return session;
 }

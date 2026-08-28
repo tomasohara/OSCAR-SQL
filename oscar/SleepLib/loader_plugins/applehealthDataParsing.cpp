@@ -131,6 +131,35 @@ static qint64 parseAppleDate(QStringView text)
 
 } // namespace
 
+bool isAppleWatchSleepSource(const QString &sourceName)
+{
+    QString normalized = sourceName;
+    normalized.replace(QChar(0x00A0), QLatin1Char(' '));
+    return normalized.contains(QStringLiteral("Apple"))
+           && normalized.contains(QStringLiteral("Watch"));
+}
+
+QString autoMatchedSleepSource(const QHash<QString, int> &sourceCounts)
+{
+    QString matchedSource;
+    int matchedCount = -1;
+    for (auto it = sourceCounts.cbegin(); it != sourceCounts.cend(); ++it) {
+        if (!isAppleWatchSleepSource(it.key())) {
+            continue;
+        }
+        if (it.value() > matchedCount
+            || (it.value() == matchedCount
+                && it.key().compare(matchedSource, Qt::CaseInsensitive) < 0)) {
+            matchedSource = it.key();
+            matchedCount = it.value();
+        }
+    }
+    if (matchedSource.isEmpty() && sourceCounts.size() == 1) {
+        return sourceCounts.cbegin().key();
+    }
+    return matchedSource;
+}
+
 AppleHealthParser::AppleHealthParser() = default;
 
 void AppleHealthParser::setCutoff(qint64 epochMsUtc)
@@ -141,11 +170,6 @@ void AppleHealthParser::setCutoff(qint64 epochMsUtc)
         m_coarseCutoffDate = QDateTime::fromMSecsSinceEpoch(m_cutoffMs, Qt::UTC)
                                  .date().addDays(-2).toString(Qt::ISODate);
     }
-}
-
-void AppleHealthParser::setSleepSource(const QString &sourceName)
-{
-    m_sleepSource = sourceName;
 }
 
 void AppleHealthParser::setProgressCallback(
@@ -233,17 +257,6 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
             // Sleep source totals include every SleepAnalysis record that passes the cutoff.
             ++out.sleepSourceCounts[sourceName];
 
-            bool sourceMatches = (sourceName == m_sleepSource);
-            if (m_sleepSource.isEmpty()) {
-                QString normalized = sourceName;
-                normalized.replace(QChar(0x00A0), QLatin1Char(' '));
-                sourceMatches = normalized.contains(QStringLiteral("Apple"))
-                                && normalized.contains(QStringLiteral("Watch"));
-            }
-            if (!sourceMatches) {
-                return;
-            }
-
             const QStringView value = attributes.value(QStringLiteral("value"));
             int stage = 0;
             if (value.endsWith(QStringLiteral("Awake"))) {
@@ -274,7 +287,7 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
                 warnMalformed(QStringLiteral("skipping SleepAnalysis with malformed startDate"));
                 return;
             }
-            out.sleepStages.append(AppleHealthInterval{startMs, endMs, stage});
+            out.sleepStages.append(AppleHealthInterval{startMs, endMs, stage, sourceName});
             ++out.typeCounts[shortTypeName(kind)];
             return;
         }
@@ -292,6 +305,11 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
         case RecordKind::HeartRate: {
             const float value = valueText.toFloat(&ok);
             if (ok) {
+                if (!qIsFinite(value) || value <= 0.0f || value > 3000.0f) {
+                    warnMalformed(QStringLiteral("skipping HeartRate with out-of-range value %1")
+                                      .arg(valueText.toString()));
+                    return;
+                }
                 out.heartRate.append(AppleHealthSample{startMs, value});
             }
             break;
@@ -322,6 +340,11 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
         case RecordKind::RespiratoryRate: {
             const float value = valueText.toFloat(&ok);
             if (ok) {
+                if (!qIsFinite(value) || value <= 0.0f || value > 3000.0f) {
+                    warnMalformed(QStringLiteral("skipping RespiratoryRate with out-of-range value %1")
+                                      .arg(valueText.toString()));
+                    return;
+                }
                 out.respRate.append(AppleHealthSample{startMs, value});
             }
             break;
@@ -329,6 +352,11 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
         case RecordKind::HeartRateVariability: {
             const float value = valueText.toFloat(&ok);
             if (ok) {
+                if (!qIsFinite(value) || value <= 0.0f || value > 3000.0f) {
+                    warnMalformed(QStringLiteral("skipping HeartRateVariabilitySDNN with out-of-range value %1")
+                                      .arg(valueText.toString()));
+                    return;
+                }
                 out.hrv.append(AppleHealthSample{startMs, value});
             }
             break;
@@ -336,6 +364,11 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
         case RecordKind::BreathingDisturbances: {
             const double value = valueText.toDouble(&ok);
             if (ok) {
+                if (!qIsFinite(value) || value < 0.0) {
+                    warnMalformed(QStringLiteral("skipping AppleSleepingBreathingDisturbances with out-of-range value %1")
+                                      .arg(valueText.toString()));
+                    return;
+                }
                 out.breathingDisturbances.append(AppleHealthNightScalar{startMs, endMs, value});
             }
             break;
@@ -351,6 +384,11 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
                 } else if (unit != QStringLiteral("degC")) {
                     warnMalformed(QStringLiteral("skipping AppleSleepingWristTemperature with unknown unit %1")
                                       .arg(unit.toString()));
+                    return;
+                }
+                if (!qIsFinite(value)) {
+                    warnMalformed(QStringLiteral("skipping AppleSleepingWristTemperature with out-of-range value %1")
+                                      .arg(valueText.toString()));
                     return;
                 }
                 out.wristTemp.append(AppleHealthNightScalar{startMs, endMs, value});
@@ -372,6 +410,11 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
                 } else if (unit != QStringLiteral("kg")) {
                     warnMalformed(QStringLiteral("skipping BodyMass with unknown unit %1")
                                       .arg(unit.toString()));
+                    return;
+                }
+                if (!qIsFinite(value) || value <= 0.0 || value > 500.0) {
+                    warnMalformed(QStringLiteral("skipping BodyMass with out-of-range value %1")
+                                      .arg(valueText.toString()));
                     return;
                 }
                 out.weights.append(AppleHealthWeight{startMs, value});

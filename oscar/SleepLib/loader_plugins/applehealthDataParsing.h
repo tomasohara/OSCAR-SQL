@@ -27,6 +27,7 @@ struct AppleHealthInterval
     qint64 startMs;
     qint64 endMs;
     int stage;
+    QString source;
 };
 
 struct AppleHealthNightScalar
@@ -57,13 +58,15 @@ struct AppleHealthData
     qint64 recordsSeen = 0;
 };
 
+bool isAppleWatchSleepSource(const QString &sourceName);
+QString autoMatchedSleepSource(const QHash<QString, int> &sourceCounts);
+
 class AppleHealthParser
 {
   public:
     AppleHealthParser();
 
     void setCutoff(qint64 epochMsUtc);
-    void setSleepSource(const QString &sourceName);
     void setProgressCallback(std::function<void(qint64 bytesRead, qint64 bytesTotal)> cb);
     bool parse(const QString &path, AppleHealthData &out);
     QString errorString() const;
@@ -71,7 +74,6 @@ class AppleHealthParser
   private:
     qint64 m_cutoffMs = 0;
     QString m_coarseCutoffDate;
-    QString m_sleepSource;
     QString m_error;
     std::function<void(qint64, qint64)> m_progressCallback;
 };
