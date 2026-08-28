@@ -42,6 +42,7 @@
 
 #include "common_gui.h"
 #include "SleepLib/profiles.h"
+#include "SleepLib/journal.h"
 #include "SleepLib/session.h"
 #include "SleepLib/performance_timer.h"
 #include "SleepLib/loader_plugins/applehealth_loader.h"
@@ -2479,6 +2480,7 @@ void Daily::set_JournalZombie(QDate& date, int value) {
     if (!journal) {
         journal=CreateJournalSession(date);
     }
+    if (!journal) { return; }
     if (value==0) {
         // should delete zombie entry here. if null.
         auto jit = journal->settings.find(Journal_ZombieMeter);
@@ -2497,6 +2499,7 @@ void Daily::set_JournalWeightValue(QDate& date, double kg) {
     if (!journal) {
         journal=CreateJournalSession(date);
     }
+    if (!journal) { return; }
 
     if (journal->settings.contains(Journal_Weight)) {
         QVariant old = journal->settings[Journal_Weight];
@@ -2559,6 +2562,7 @@ void Daily::set_JournalNotesHtml(QDate& date, QString html) {
         if (!journal) {
             journal = CreateJournalSession(date);
         }
+        if (!journal) { return; }
     }
     journal->settings[Journal_Notes] = html;
     journal->SetChanged(true);
@@ -2722,41 +2726,7 @@ void Daily::on_JournalNotesColour_clicked()
 }
 Session * Daily::CreateJournalSession(QDate date)
 {
-    Machine *m = p_profile->GetMachine(MT_JOURNAL);
-    if (!m) {
-        m=new Machine(p_profile, 0);
-        MachineInfo info;
-        info.loadername = "Journal";
-        info.serial = m->hexid();
-        info.brand = "Journal";
-        info.type = MT_JOURNAL;
-        m->setInfo(info);
-        m->setType(MT_JOURNAL);
-        p_profile->AddMachine(m);
-        
-        // CRITICAL: Save the journal machine to database so sessions can be stored
-        if (!m->SaveToDatabase()) {
-            qWarning() << "Daily::CreateJournalSession(): Failed to save journal machine to database!";
-        }
-    }
-
-    Session *sess=new Session(m,0);
-    qint64 st,et;
-
-    Day *cday=p_profile->GetDay(date);
-    if (cday && cday->first() > 0) {
-        st=cday->first();
-        et=cday->last();
-    } else {
-        QDateTime dt(date,QTime(20,0));
-        st=qint64(dt.toSecsSinceEpoch())*1000L;
-        et=st+3600000L;
-    }
-    sess->SetSessionID(st / 1000L);
-    sess->set_first(st);
-    sess->set_last(et);
-    m->AddSession(sess, true);
-    return sess;
+    return GetOrCreateJournalSession(date);
 }
 
 Session * Daily::GetJournalSession(QDate date , bool create) // Get the first journal session
@@ -3147,6 +3117,7 @@ void Daily::update_Bookmarks()
     if (!journal) {
         journal=CreateJournalSession(previous_date);
     }
+    if (!journal) { return; }
 
     journal->settings[Bookmark_Start]=start;
     journal->settings[Bookmark_End]=end;

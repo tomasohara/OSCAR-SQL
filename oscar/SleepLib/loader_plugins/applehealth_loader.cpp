@@ -20,7 +20,7 @@
 #include <memory>
 
 #include "applehealth_loader.h"
-#include "SleepLib/day.h"
+#include "SleepLib/journal.h"
 #include "SleepLib/machine.h"
 #include "SleepLib/session.h"
 #include "zip.h"
@@ -38,58 +38,6 @@ static QVector<AppleHealthSample> samplesInWindow(
         }
     }
     return filtered;
-}
-
-// Creates the session directly: Journal::getJournal() needs mainwin->getDaily(),
-// which is null in headless tests.
-static Session *getOrCreateJournalSession(QDate date)
-{
-    Day *day = p_profile->GetDay(date, MT_JOURNAL);
-    if (day) {
-        if (Session *session = day->firstSession(MT_JOURNAL)) {
-            return session;
-        }
-    }
-
-    Machine *machine = p_profile->GetMachine(MT_JOURNAL);
-    if (!machine) {
-        machine = new Machine(p_profile, 0);
-        MachineInfo info;
-        info.loadername = "Journal";
-        info.serial = machine->hexid();
-        info.brand = "Journal";
-        info.type = MT_JOURNAL;
-        machine->setInfo(info);
-        machine->setType(MT_JOURNAL);
-        p_profile->AddMachine(machine);
-        if (!machine->SaveToDatabase()) {
-            qWarning() << "getOrCreateJournalSession: could not save journal machine";
-        }
-    }
-
-    Session *session = new Session(machine, 0);
-    qint64 startMs;
-    qint64 endMs;
-    Day *currentDay = p_profile->GetDay(date);
-    if (currentDay && currentDay->first() > 0) {
-        startMs = currentDay->first();
-        endMs = currentDay->last();
-    } else {
-        startMs = qint64(QDateTime(date, QTime(20, 0)).toSecsSinceEpoch()) * 1000L;
-        // AddSession keeps sessions shorter than the ignore threshold (up to 90 min) out
-        // of the Day, which would hide the weight. Span the fallback past the threshold.
-        const qint64 minSpanMs =
-            (qint64(p_profile->session->ignoreShortSessions()) + 1) * 60000L;
-        endMs = startMs + qMax<qint64>(3600000L, minSpanMs);
-    }
-    session->SetSessionID(startMs / 1000L);
-    session->set_first(startMs);
-    session->set_last(endMs);
-    if (!machine->AddSession(session, true)) {
-        delete session;
-        return nullptr;
-    }
-    return session;
 }
 
 } // namespace
@@ -111,16 +59,26 @@ bool AppleHealthLoader::Detect(const QString & path)
 
 int AppleHealthLoader::Open(const QStringList &paths)
 {
+    m_lastImportSummary = AppleHealthImportSummary();
+    m_chosenSleepSources.clear();
+    m_importSkippedNights.clear();
     const bool previousForwarding = m_forwardParserProgress;
+    const bool previousAccumulating = m_accumulatingImportSummary;
     m_forwardParserProgress = (paths.size() == 1);
+    m_accumulatingImportSummary = true;
     const int result = MachineLoader::Open(paths);
+    m_accumulatingImportSummary = previousAccumulating;
     m_forwardParserProgress = previousForwarding;
     return result;
 }
 
 int AppleHealthLoader::OpenFile(const QString & filename)
 {
-    m_lastImportSummary = AppleHealthImportSummary();
+    if (!m_accumulatingImportSummary) {
+        m_lastImportSummary = AppleHealthImportSummary();
+        m_chosenSleepSources.clear();
+        m_importSkippedNights.clear();
+    }
     m_data = AppleHealthData();
     m_session = nullptr;
     m_importChannels.clear();
@@ -254,8 +212,13 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     }
     m_data.sleepStages = selectedStages;
     m_lastImportSummary.validFile = true;
-    m_lastImportSummary.sleepSourceCounts = m_data.sleepSourceCounts;
-    m_lastImportSummary.chosenSleepSource = chosenSource;
+    for (auto it = m_data.sleepSourceCounts.cbegin(); it != m_data.sleepSourceCounts.cend(); ++it) {
+        m_lastImportSummary.sleepSourceCounts[it.key()] += it.value();
+    }
+    if (!chosenSource.isEmpty() && !m_chosenSleepSources.contains(chosenSource)) {
+        m_chosenSleepSources.append(chosenSource);
+        m_lastImportSummary.chosenSleepSource = m_chosenSleepSources.join(QStringLiteral(", "));
+    }
 
     if (!m_data.sleepStages.isEmpty()) {
         qDebug() << "AppleHealthLoader::OpenFile: stages:" << m_data.sleepStages.size();
@@ -454,7 +417,8 @@ int AppleHealthLoader::OpenFile(const QString & filename)
         }
     }
 
-    m_lastImportSummary.skippedExisting = skippedExistingNights.size();
+    m_importSkippedNights.unite(skippedExistingNights);
+    m_lastImportSummary.skippedExisting = m_importSkippedNights.size();
 
     QMap<QDate, AppleHealthWeight> weightsByNight;
     for (const AppleHealthWeight &weight : m_data.weights) {
@@ -468,7 +432,7 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     Machine *journalMach = nullptr;
     bool journalChanged = false;
     for (auto it = weightsByNight.cbegin(); it != weightsByNight.cend(); ++it) {
-        Session *journal = getOrCreateJournalSession(it.key());
+        Session *journal = GetOrCreateJournalSession(it.key());
         // A weight already in the journal is the user's; imports never overwrite it
         // (as Journal::RestoreDay, same epsilon).
         if (journal == nullptr

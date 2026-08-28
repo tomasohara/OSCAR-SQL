@@ -843,6 +843,68 @@ void AppleHealthTests::testLoaderSkipsNonAppleOximeterNight()
     QCOMPARE(sleepSession->Max(AW_HRV), 50.0F);
 }
 
+void AppleHealthTests::testLoaderSummarizesMultipleFiles()
+{
+    const QString firstPath = m_tempDir->path() + QStringLiteral("/multi-export-1.xml");
+    QFile firstFile(firstPath);
+    QVERIFY(firstFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    const QByteArray firstXml = toLocalStamps(QByteArray(R"XML(<?xml version="1.0" encoding="UTF-8"?>
+<HealthData locale="en_US">
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="test’s Apple Watch" unit="" value="HKCategoryValueSleepAnalysisAsleepCore" startDate="2025-09-01 22:00:00 -0400" endDate="2025-09-01 23:00:00 -0400"/>
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="test’s Apple Watch" unit="count/min" value="65" startDate="2025-09-01 22:15:00 -0400" endDate="2025-09-01 22:15:00 -0400"/>
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="test’s Apple Watch" unit="count/min" value="66" startDate="2025-09-01 22:45:00 -0400" endDate="2025-09-01 22:45:00 -0400"/>
+  <Record type="HKQuantityTypeIdentifierBodyMass" sourceName="Test Scale" unit="kg" value="75" startDate="2025-09-01 20:00:00 -0400" endDate="2025-09-01 20:00:00 -0400"/>
+</HealthData>
+)XML"));
+    QCOMPARE(firstFile.write(firstXml), static_cast<qint64>(firstXml.size()));
+    firstFile.close();
+
+    const QString secondPath = m_tempDir->path() + QStringLiteral("/multi-export-2.xml");
+    QFile secondFile(secondPath);
+    QVERIFY(secondFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    const QByteArray secondXml = toLocalStamps(QByteArray(R"XML(<?xml version="1.0" encoding="UTF-8"?>
+<HealthData locale="en_US">
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="Sleep Cycle" unit="" value="HKCategoryValueSleepAnalysisAsleepCore" startDate="2025-09-02 22:00:00 -0400" endDate="2025-09-02 23:00:00 -0400"/>
+  <Record type="HKQuantityTypeIdentifierOxygenSaturation" sourceName="Sleep Cycle" unit="%" value="0.97" startDate="2025-09-02 22:15:00 -0400" endDate="2025-09-02 22:15:00 -0400"/>
+  <Record type="HKQuantityTypeIdentifierOxygenSaturation" sourceName="Sleep Cycle" unit="%" value="0.96" startDate="2025-09-02 22:45:00 -0400" endDate="2025-09-02 22:45:00 -0400"/>
+  <Record type="HKQuantityTypeIdentifierBodyMass" sourceName="Test Scale" unit="kg" value="74" startDate="2025-09-02 20:00:00 -0400" endDate="2025-09-02 20:00:00 -0400"/>
+</HealthData>
+)XML"));
+    QCOMPARE(secondFile.write(secondXml), static_cast<qint64>(secondXml.size()));
+    secondFile.close();
+
+    QCOMPARE(s_loader->Open(QStringList{firstPath, secondPath}), 2);
+    const AppleHealthImportSummary &summary = s_loader->lastImportSummary();
+    QVERIFY(summary.validFile);
+    QCOMPARE(summary.sleepSessions, 2);
+    QCOMPARE(summary.oxiSessions, 2);
+    QCOMPARE(summary.weightDays, 2);
+    QCOMPARE(summary.skippedExisting, 0);
+    QCOMPARE(summary.sleepSourceCounts.value(kAppleSource), 1);
+    QCOMPARE(summary.sleepSourceCounts.value(QStringLiteral("Sleep Cycle")), 1);
+    QCOMPARE(summary.chosenSleepSource,
+             kAppleSource + QStringLiteral(", Sleep Cycle"));
+}
+
+void AppleHealthTests::testLoaderCancelledChooserImportsNothing()
+{
+    // Fresh loader: the abort flag set by a dismissed chooser is per-instance.
+    AppleHealthLoader loader;
+    bool chooserCalled = false;
+    loader.setSleepSourceChooser(
+        [&chooserCalled](const QHash<QString, int> &) {
+            chooserCalled = true;
+            return QString();
+        });
+
+    QCOMPARE(loader.Open(QStringList{m_exportPath}), 0);
+    QVERIFY(chooserCalled);
+    QVERIFY(loader.isAborted());
+    QVERIFY(!loader.lastImportSummary().validFile);
+    QCOMPARE(loader.lastImportSummary().sleepSessions, 0);
+    QCOMPARE(loader.lastImportSummary().oxiSessions, 0);
+}
+
 void AppleHealthTests::testSPO2DropSparsity()
 {
     const MachineInfo machineInfo(

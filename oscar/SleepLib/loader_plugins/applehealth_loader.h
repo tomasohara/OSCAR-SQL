@@ -12,6 +12,8 @@
 #include "SleepLib/machine_loader.h"
 #include "applehealthDataParsing.h"
 
+#include <QSet>
+
 #include <functional>
 
 const QString applehealth_class_name = "AppleHealth";
@@ -86,6 +88,9 @@ class AppleHealthLoader : public MachineLoader
     std::function<QString(const QHash<QString, int> &)> m_sleepSourceChooser;
     bool m_importFullHistory = false;
     bool m_forwardParserProgress = true;
+    bool m_accumulatingImportSummary = false;
+    QStringList m_chosenSleepSources;
+    QSet<QDate> m_importSkippedNights;
     AppleHealthImportSummary m_lastImportSummary;
 };
 

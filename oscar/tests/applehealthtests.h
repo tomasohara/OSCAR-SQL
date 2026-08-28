@@ -31,6 +31,8 @@ private slots:
     void testLoaderRejectsGarbage();
     void testLoaderImportsSingleNonWatchSource();
     void testLoaderSkipsNonAppleOximeterNight();
+    void testLoaderSummarizesMultipleFiles();
+    void testLoaderCancelledChooserImportsNothing();
     void testSPO2DropSparsity();
     void cleanupTestCase();
 

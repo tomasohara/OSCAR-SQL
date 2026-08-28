@@ -3384,7 +3384,10 @@ bool MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
 
         const bool aborted = loader.isAborted();
         if (aborted) {
-            // Aborting mid-import is not an error; skip the failure notices.
+            if (res > 0) {
+                Notify(tr("Import aborted: %1 file(s) already imported were kept").arg(res),
+                       tr("%1 Import Partial Success").arg(name));
+            }
         } else if (res < 0) {
             // Negative res means a bad file format or a missing file.
             //QString fileName = QFileInfo(files[0]).fileName();
@@ -3413,7 +3416,7 @@ bool MainWindow::importNonCPAP(MachineLoader &loader, const QString &folderPrefK
         if (welcome) welcome->refreshPage();
         GenerateStatistics();
         daily->LoadDate(daily->getDate());
-        return !aborted;
+        return !aborted || res > 0;
     }
     return false;
 }
