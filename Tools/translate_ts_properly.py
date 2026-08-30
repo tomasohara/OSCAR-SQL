@@ -205,6 +205,7 @@ def main():
         'Russian.ru': 'Russian',
         'Russkiy.ru': 'Russian',
         'Turkish.tr': 'Turkish',
+        'Ukrainska.uk': 'Ukrainian',
         'Arabic.ar': 'Arabic',
         'Hebrew.he': 'Hebrew',
         'Greek.el': 'Greek',
