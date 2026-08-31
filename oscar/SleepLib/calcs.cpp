@@ -1667,10 +1667,22 @@ int calcSPO2Drop(Session *session)
 #if defined(STEADY_BREATHING)
 EventDataType FlowParser::RMSOfVectorFluctuation(QVector<EventDataType> vector){
     EventDataType rms = 0;
-    EventDataType value;
+    EventDataType value = 0;
+    EventDataType average = 0;
+
+    //Need to calculate the RMS of the breathing, not the total flow rate.
+    //The Luna G3 doesn't have a breathing rate.  It has a full flow rate.
+    //Calculate the average of the buffer, then subtract it from all values.
+    //This removes the offset leaving only the breathing.  It is effectively a high pass filter.
+    //On machines with breathing flow rate, this will have no to little effect.
+    //ResMed and Löwenstein machines have the breathing flow rate rather than full flow.
 
     for (int i=0;i<vector.count();++i){
-        value = vector.at(i);
+        average = average + vector.at(i);
+    }
+    average = average/vector.count();
+    for (int i=0;i<vector.count();++i){
+        value = vector.at(i)-average;
         rms = rms + value*value;
     }
 
@@ -1678,7 +1690,6 @@ EventDataType FlowParser::RMSOfVectorFluctuation(QVector<EventDataType> vector){
 
     return rms;
 }
-
 void FlowParser::calcSteadyBreathingWaveform(){
     /////////////////////////////////////////////////////////////////////////////////
     // Steady Breathing wavefrom
