@@ -363,17 +363,17 @@ void init()
     //////////////////////////////////////////////////////////////////////
     // Sleep Stage Channels
     //////////////////////////////////////////////////////////////////////
-    schema::channel.add(GRP_SLEEP, new Channel(ZEO_SleepStage = 0x2000, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "SleepStage",
+    schema::channel.add(GRP_SLEEP, new Channel(SLEEP_Stage = 0x2000, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "SleepStage",
             QObject::tr("Sleep Stage"), QObject::tr("1=Awake 2=REM 3=Light Sleep 4=Deep Sleep"), QObject::tr("Sleep Stage"),  QString(), INTEGER,  Qt::darkGray));
     schema::channel.add(GRP_SLEEP, new Channel(0x2001, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "ZeoBW",
             QObject::tr("Brain Wave"), QObject::tr("Brain Wave"), QObject::tr("BrainWave"),  QString(), INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, new Channel(ZEO_Awakenings = 0x2002, DATA,   MT_SLEEPSTAGE,  SESSION, "Awakenings",  QObject::tr("Awakenings"), QObject::tr("Number of Awakenings"), QObject::tr("Awakenings"),  QString(), INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, new Channel(ZEO_MorningFeel= 0x2003, DATA,   MT_SLEEPSTAGE,  SESSION, "MorningFeel", QObject::tr("Morning Feel"), QObject::tr("How you felt in the morning"), QObject::tr("Morning Feel"),  QString(), INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeInWake = 0x2004, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInWake",  QObject::tr("Time Awake"), QObject::tr("Time spent awake"), QObject::tr("Time Awake"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeInREM  = 0x2005, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInREM",    QObject::tr("Time In REM Sleep"), QObject::tr("Time spent in REM Sleep"), QObject::tr("Time in REM Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeInLight= 0x2006, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInLight",QObject::tr("Time In Light Sleep"), QObject::tr("Time spent in light sleep"), QObject::tr("Time in Light Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeInDeep = 0x2007, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInDeep",   QObject::tr("Time In Deep Sleep"), QObject::tr("Time spent in deep sleep"), QObject::tr("Time in Deep Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
-    schema::channel.add(GRP_SLEEP, new Channel(ZEO_TimeToZ    = 0x2008, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeToZ",      QObject::tr("Time to Sleep"), QObject::tr("Time taken to get to sleep"), QObject::tr("Time to Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(SLEEP_Awakenings = 0x2002, DATA,   MT_SLEEPSTAGE,  SESSION, "Awakenings",  QObject::tr("Awakenings"), QObject::tr("Number of Awakenings"), QObject::tr("Awakenings"),  QString(), INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(SLEEP_MorningFeel= 0x2003, DATA,   MT_SLEEPSTAGE,  SESSION, "MorningFeel", QObject::tr("Morning Feel"), QObject::tr("How you felt in the morning"), QObject::tr("Morning Feel"),  QString(), INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(SLEEP_TimeInWake = 0x2004, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInWake",  QObject::tr("Time Awake"), QObject::tr("Time spent awake"), QObject::tr("Time Awake"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(SLEEP_TimeInREM  = 0x2005, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInREM",    QObject::tr("Time In REM Sleep"), QObject::tr("Time spent in REM Sleep"), QObject::tr("Time in REM Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(SLEEP_TimeInLight= 0x2006, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInLight",QObject::tr("Time In Light Sleep"), QObject::tr("Time spent in light sleep"), QObject::tr("Time in Light Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(SLEEP_TimeInDeep = 0x2007, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeInDeep",   QObject::tr("Time In Deep Sleep"), QObject::tr("Time spent in deep sleep"), QObject::tr("Time in Deep Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));
+    schema::channel.add(GRP_SLEEP, new Channel(SLEEP_TimeToSleep = 0x2008, DATA,   MT_SLEEPSTAGE,  SESSION, "TimeToZ",      QObject::tr("Time to Sleep"), QObject::tr("Time taken to get to sleep"), QObject::tr("Time to Sleep"),  STR_UNIT_Minutes, INTEGER,  Qt::black));  // code string stays "TimeToZ": it is persisted in databases and saved graph layouts
     schema::channel.add(GRP_SLEEP, new Channel(ZEO_ZQ         = 0x2009, DATA,   MT_SLEEPSTAGE,  SESSION, "ZeoZQ", QObject::tr("Zeo ZQ"), QObject::tr("Zeo sleep quality measurement"), QObject::tr("ZEO ZQ"),  QString(), INTEGER,  Qt::black));
 
     // Apple Watch channels

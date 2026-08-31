@@ -254,7 +254,7 @@ int AppleHealthLoader::OpenFile(const QString & filename)
     QMap<QDate, QVector<AppleHealthNightScalar>> wristTempByNight;
 
     for (const AppleHealthInterval &interval : m_data.sleepStages) {
-        if (interval.endMs <= interval.startMs || interval.stage < 1 || interval.stage > 4) {
+        if (interval.endMs <= interval.startMs || interval.stage < Stage_Awake || interval.stage > Stage_Deep) {
             continue;
         }
         const QDate night = nightDate(interval.startMs);
@@ -525,12 +525,12 @@ Session *AppleHealthLoader::buildSleepSession(
     }
     session->m_slices.append(SessionSlice(runStartMs, runEndMs, MaskOn));
 
-    qint64 stageTimeMs[5] = {0, 0, 0, 0, 0};
+    qint64 stageTimeMs[Stage_Deep + 1] = {0, 0, 0, 0, 0};
     int awakenings = 0;
     bool foundSleep = false;
     for (const AppleHealthInterval &interval : stages) {
         stageTimeMs[interval.stage] += interval.endMs - interval.startMs;
-        if (interval.stage == 1) {
+        if (interval.stage == Stage_Awake) {
             if (foundSleep) {
                 ++awakenings;
             }
@@ -538,18 +538,18 @@ Session *AppleHealthLoader::buildSleepSession(
             foundSleep = true;
         }
 
-        AddEvent(ZEO_SleepStage, interval.startMs, -interval.stage);
-        EndEventList(ZEO_SleepStage, interval.endMs);
+        AddEvent(SLEEP_Stage, interval.startMs, -interval.stage);
+        EndEventList(SLEEP_Stage, interval.endMs);
     }
 
     importSamples(AW_RespRate, respRate, 30LL * 60LL * 1000LL);
     importSamples(AW_HRV, hrv, 0);
 
-    session->settings[ZEO_TimeInWake] = stageTimeMs[1] / 60000L;
-    session->settings[ZEO_TimeInREM] = stageTimeMs[2] / 60000L;
-    session->settings[ZEO_TimeInLight] = stageTimeMs[3] / 60000L;
-    session->settings[ZEO_TimeInDeep] = stageTimeMs[4] / 60000L;
-    session->settings[ZEO_Awakenings] = awakenings;
+    session->settings[SLEEP_TimeInWake] = stageTimeMs[Stage_Awake] / 60000L;
+    session->settings[SLEEP_TimeInREM] = stageTimeMs[Stage_REM] / 60000L;
+    session->settings[SLEEP_TimeInLight] = stageTimeMs[Stage_Light] / 60000L;
+    session->settings[SLEEP_TimeInDeep] = stageTimeMs[Stage_Deep] / 60000L;
+    session->settings[SLEEP_Awakenings] = awakenings;
 
     if (!breathingDisturbances.isEmpty()) {
         const auto latest = std::max_element(

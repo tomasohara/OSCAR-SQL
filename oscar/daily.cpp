@@ -308,7 +308,7 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     const ChannelID cpapcodes[] = {
         CPAP_FlowRate, CPAP_Pressure, CPAP_Leak, CPAP_FLG, CPAP_Snore, CPAP_TidalVolume,
         CPAP_MaskPressure, CPAP_RespRate, CPAP_MinuteVent, CPAP_PTB, PRS1_PeakFlow, CPAP_RespEvent, CPAP_Ti, CPAP_Te,
-        CPAP_IE, ZEO_SleepStage, POS_Inclination, POS_Orientation, POS_Movement, CPAP_Test1,
+        CPAP_IE, SLEEP_Stage, POS_Inclination, POS_Orientation, POS_Movement, CPAP_Test1,
         Prisma_ObstructLevel, Prisma_rRMV, Prisma_rMVFluctuation, Prisma_PressureMeasured, Prisma_FlowFull
         ,  BMC_PressureWave, BMC_FlowAbnormality, BMC_IE_Ratio
         ,  RMVENT_AlvMinVent, RMVENT_SpontCyc, RMVENT_SpontTrig
@@ -528,7 +528,7 @@ Daily::Daily(QWidget *parent,gGraphView * shared)
     if (auto *g = graphlist.value(schema::channel[RMVENT_SpontCyc].code())) g->AddLayer(new gLineChart(RMVENT_SpontCyc, square));
     if (auto *g = graphlist.value(schema::channel[RMVENT_SpontTrig].code())) g->AddLayer(new gLineChart(RMVENT_SpontTrig, square));
 
-    if (auto *g = graphlist.value(schema::channel[ZEO_SleepStage].code())) g->AddLayer(new gLineChart(ZEO_SleepStage, true));
+    if (auto *g = graphlist.value(schema::channel[SLEEP_Stage].code())) g->AddLayer(new gLineChart(SLEEP_Stage, true));
 
 //    gLineOverlaySummary *los1=new gLineOverlaySummary(STR_UNIT_EventsPerHour,5,-4);
 //    gLineOverlaySummary *los2=new gLineOverlaySummary(STR_UNIT_EventsPerHour,5,-4);
