@@ -359,6 +359,7 @@ SOURCES += \
     Graphs/gPressureChart.cpp \
     Graphs/gSegmentChart.cpp \
     Graphs/gSessionTimesChart.cpp \
+    Graphs/gSleepStageChart.cpp \
     Graphs/gspacer.cpp \
     Graphs/gStatsLine.cpp \
     Graphs/gSummaryChart.cpp \
@@ -536,6 +537,7 @@ HEADERS  += \
     Graphs/gTTIAChart.h \
     Graphs/gUsageChart.h \
     Graphs/gSessionTimesChart.h \
+    Graphs/gSleepStageChart.h \
     Graphs/gPressureChart.h \
     Graphs/gOverviewGraph.h \
     Graphs/gXAxis.h \

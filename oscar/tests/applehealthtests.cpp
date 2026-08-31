@@ -517,14 +517,14 @@ void AppleHealthTests::testLoaderImport()
     QCOMPARE(night2SliceTime, 120LL * 60LL * 1000LL);
     QVERIFY(night2SliceTime < night2Sleep->last() - night2Sleep->first());
 
-    QCOMPARE(night1Sleep->settings.value(ZEO_TimeInWake).toLongLong(), 10LL);
-    QCOMPARE(night1Sleep->settings.value(ZEO_TimeInREM).toLongLong(), 30LL);
-    QCOMPARE(night1Sleep->settings.value(ZEO_TimeInLight).toLongLong(), 90LL);
-    QCOMPARE(night1Sleep->settings.value(ZEO_TimeInDeep).toLongLong(), 30LL);
-    QCOMPARE(night2Sleep->settings.value(ZEO_TimeInWake).toLongLong(), 10LL);
-    QCOMPARE(night2Sleep->settings.value(ZEO_TimeInREM).toLongLong(), 20LL);
-    QCOMPARE(night2Sleep->settings.value(ZEO_TimeInLight).toLongLong(), 60LL);
-    QCOMPARE(night2Sleep->settings.value(ZEO_TimeInDeep).toLongLong(), 30LL);
+    QCOMPARE(night1Sleep->settings.value(SLEEP_TimeInWake).toLongLong(), 10LL);
+    QCOMPARE(night1Sleep->settings.value(SLEEP_TimeInREM).toLongLong(), 30LL);
+    QCOMPARE(night1Sleep->settings.value(SLEEP_TimeInLight).toLongLong(), 90LL);
+    QCOMPARE(night1Sleep->settings.value(SLEEP_TimeInDeep).toLongLong(), 30LL);
+    QCOMPARE(night2Sleep->settings.value(SLEEP_TimeInWake).toLongLong(), 10LL);
+    QCOMPARE(night2Sleep->settings.value(SLEEP_TimeInREM).toLongLong(), 20LL);
+    QCOMPARE(night2Sleep->settings.value(SLEEP_TimeInLight).toLongLong(), 60LL);
+    QCOMPARE(night2Sleep->settings.value(SLEEP_TimeInDeep).toLongLong(), 30LL);
 
     QVERIFY(night1Sleep->settings.contains(AW_BreathingDisturbances));
     QVERIFY(night1Sleep->settings.contains(AW_WristTemp));
@@ -769,7 +769,7 @@ void AppleHealthTests::testLoaderImportsSingleNonWatchSource()
     Session *session = sleepMachine->SessionExists(
         static_cast<SessionID>(epochMs(QStringLiteral("2025-08-01 22:00:00")) / 1000L));
     QVERIFY(session != nullptr);
-    QCOMPARE(session->settings.value(ZEO_TimeInLight).toLongLong(), 60LL);
+    QCOMPARE(session->settings.value(SLEEP_TimeInLight).toLongLong(), 60LL);
     QCOMPARE(session->count(AW_RespRate), 1.0F);
     QCOMPARE(session->Min(AW_RespRate), 14.5F);
     QCOMPARE(session->Max(AW_RespRate), 14.5F);

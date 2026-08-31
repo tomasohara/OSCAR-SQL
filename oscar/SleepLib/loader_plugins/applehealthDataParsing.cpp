@@ -7,6 +7,7 @@
  * for more details. */
 
 #include "applehealthDataParsing.h"
+#include "SleepLib/machine_common.h"
 
 #include <QDate>
 #include <QDateTime>
@@ -258,19 +259,19 @@ bool AppleHealthParser::parse(const QString &path, AppleHealthData &out)
             ++out.sleepSourceCounts[sourceName];
 
             const QStringView value = attributes.value(QStringLiteral("value"));
-            int stage = 0;
+            SleepStageValue stage = Stage_None;
             if (value.endsWith(QStringLiteral("Awake"))) {
-                stage = 1;
+                stage = Stage_Awake;
             } else if (value.endsWith(QStringLiteral("AsleepREM"))) {
-                stage = 2;
+                stage = Stage_REM;
             } else if (value.endsWith(QStringLiteral("AsleepCore"))
                        || value.endsWith(QStringLiteral("AsleepUnspecified"))) {
-                stage = 3;
+                stage = Stage_Light;
             } else if (value.endsWith(QStringLiteral("AsleepDeep"))) {
-                stage = 4;
+                stage = Stage_Deep;
             } else if (value.endsWith(QStringLiteral("Asleep"))) {
                 // Pre-iOS 16 exports use plain "Asleep" with no stage breakdown.
-                stage = 3;
+                stage = Stage_Light;
             } else if (value.endsWith(QStringLiteral("InBed"))) {
                 return;
             } else {
