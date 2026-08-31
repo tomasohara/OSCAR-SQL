@@ -364,7 +364,7 @@ void init()
     // Sleep Stage Channels
     //////////////////////////////////////////////////////////////////////
     schema::channel.add(GRP_SLEEP, new Channel(SLEEP_Stage = 0x2000, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "SleepStage",
-            QObject::tr("Sleep Stage"), QObject::tr("1=Awake 2=REM 3=Light Sleep 4=Deep Sleep"), QObject::tr("Sleep Stage"),  QString(), INTEGER,  Qt::darkGray));
+            QObject::tr("Sleep Stage"), QObject::tr("1=Awake 2=REM 3=Light Sleep 4=Deep Sleep"), QObject::tr("Sleep Stage"),  QString(), INTEGER,  Qt::darkGray));  // This tr() string is kept stable for its existing translations; the Daily lane chart labels the stages to match
     schema::channel.add(GRP_SLEEP, new Channel(0x2001, WAVEFORM,   MT_SLEEPSTAGE,  SESSION, "ZeoBW",
             QObject::tr("Brain Wave"), QObject::tr("Brain Wave"), QObject::tr("BrainWave"),  QString(), INTEGER,  Qt::black));
     schema::channel.add(GRP_SLEEP, new Channel(SLEEP_Awakenings = 0x2002, DATA,   MT_SLEEPSTAGE,  SESSION, "Awakenings",  QObject::tr("Awakenings"), QObject::tr("Number of Awakenings"), QObject::tr("Awakenings"),  QString(), INTEGER,  Qt::black));
