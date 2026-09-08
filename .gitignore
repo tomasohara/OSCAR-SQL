@@ -55,6 +55,10 @@ Makefile*
 *.bak
 *~
 
+#Python bytecode, left behind by the scripts in Tools/, Notes/ and history/
+__pycache__/
+*.pyc
+
 #Doxygen output does not go in repository
 doxydoc
 
