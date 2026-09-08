@@ -3996,7 +3996,7 @@ Aanbevole aksies:
   • Herstel elke profiel vanaf 'n onlangse rugsteun (Lêer → Herstel Profiel)
   • Hervoer data in vanaf u CPAP SD-kaart(e)
 
-Vir gevorderde herstелopsies, sien die OSCAR-dokumentasie.</translation>
+Vir gevorderde herstelopsies, sien die OSCAR-dokumentasie.</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.cpp" line="3951" />
@@ -11708,7 +11708,7 @@ Aanbevole aksies:
   • Herstel elke profiel vanaf 'n onlangse rugsteun (Lêer → Herstel Profiel)
   • Hervoer data in vanaf u CPAP SD-kaart(e)
 
-Vir gevorderde herstелopsies, sien die OSCAR-dokumentasie.
+Vir gevorderde herstelopsies, sien die OSCAR-dokumentasie.
 
 U kan voortgaan, maar sommige data mag onvolledig of verkeerd wees.</translation>
     </message>
@@ -14050,7 +14050,7 @@ Dit sal ook %1 verslag variëteite verwyder.</translation>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="41" />
       <source>Copy Report Variety</source>
-      <translation type="unfinished">Kopieer Verslагvariëteit</translation>
+      <translation type="unfinished">Kopieer Verslagvariëteit</translation>
     </message>
     <message>
       <location filename="../oscar/reportvarietyeditor.cpp" line="43" />

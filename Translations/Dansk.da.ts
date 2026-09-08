@@ -589,7 +589,7 @@ Understøttede tjenester: Dropbox, Google Drive, OneDrive, Box, 0x0.st eller et 
     </message>
     <message>
       <source>Zombie</source>
-      <translation type="obsolete">Βρυκόλακας</translation>
+      <translation type="obsolete">Zombie</translation>
     </message>
     <message>
       <source>I'm feeling ...</source>
@@ -8571,7 +8571,7 @@ TTIA: %1</translation>
     </message>
     <message>
       <source>Zombie</source>
-      <translation type="obsolete">Βρυκόλακας</translation>
+      <translation type="obsolete">Zombie</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="886" />
@@ -11540,7 +11540,7 @@ TTIA: %1</translation>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="340" />
       <source>Notes</source>
-      <translation>Σημειώσεις</translation>
+      <translation>Noter</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="340" />
@@ -13604,7 +13604,7 @@ Dreem-data skal være formateret som en semikolon-afgrænset CSV-fil. Sørg venl
     <message>
       <location filename="../oscar/database/profile_repository.cpp" line="542" />
       <source>Deleting session channel data...</source>
-      <translation type="unfinished">Sletter sessionskaналdata...</translation>
+      <translation type="unfinished">Sletter sessionskanaldata...</translation>
     </message>
     <message>
       <location filename="../oscar/database/profile_repository.cpp" line="593" />

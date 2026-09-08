@@ -5931,3 +5931,110 @@ where an on-screen widget would work, and this failure mode is Windows-specific.
 **Not verified on the reporting hardware** - no ARM64 machine is available here. The
 existing escape hatches (hold Shift at launch to toggle the engine, or `--legacy`) work
 today and remain the advice for anyone already stuck.
+
+---
+
+## 2026-09-07 - Czech (and Danish) translations showed Greek text (#278)
+
+**Files:** `Translations/Czech.cz.ts`, `Translations/Dansk.da.ts`,
+`Translations/Afrikaans.af.ts`, `Translations/Filipino.fil.ts`, `Translations/Hebrew.he.ts`
+
+A user running 2.0.1 in Czech reported that several interface strings appeared in Greek:
+the main tabs, the Welcome screen, and parts of Daily and Statistics. The same words
+were affected everywhere they occurred - `Statistics`, `Events`, `Notes`, `Bookmarks`,
+`Color`, `Duration`, `Weight`, `Journal` - nine distinct source strings across 27
+`<message>` entries in seven contexts, the ninth being `Graphs`.
+
+**Not caused by the automatic-translation tooling.** `Translations/Czech.cz.ts` was added
+to the repository on 2023-03-24 and already contained the same Greek in the same contexts
+at that first commit, years before any of the `Tools/*.py` translation scripts existed.
+Twenty-six of the twenty-seven translations are byte-identical to the translation carried
+by `Greek.el.ts` for the same source string; the twenty-seventh, `Graphs`, is an older
+spelling of the current Greek one. The Czech catalogue was evidently seeded from a copy of
+the Greek catalogue and only partly translated over. Reverting to a pre-auto-translation
+revision would therefore have reinstated the identical defect.
+
+Re-running `Tools/translate_ts_properly.py` would not have repaired it either: that script
+treats any non-empty `<translation>` body as already translated and skips it, so text that
+is present but in the wrong language is invisible to it.
+
+**Why it reached users.** All 27 entries are `type="unfinished"`, and `lrelease` includes
+unfinished translations unless `-nounfinished` is given, which `oscar.pro` does not pass.
+The Greek strings were therefore compiled into the shipped `Czech.cz.qm`. Suppressing
+unfinished translations is *not* an available workaround here - every one of the 2981
+active Czech messages is marked unfinished, so that flag would blank the whole catalogue.
+
+A scan of all 31 catalogues for translations written in a script other than the target
+language's turned up the same leak in Danish: `Notes` translated as `Σημειώσεις` (marked
+finished, so it shipped) and two obsolete `Zombie` entries.
+
+All 30 entries were corrected in place, leaving each `<translation>` element's attributes
+and the surrounding XML formatting untouched.
+
+### A second, unrelated defect found by the same scan: stray characters mid-word
+
+Seven auto-translated strings in four catalogues contained one to three characters from a
+completely unrelated script wedged into the middle of an otherwise correct word. These
+were introduced by the batch translation in `Tools/translate_ts_properly.py`, not
+inherited: the model emitted a homoglyph-like substitution partway through a token.
+
+| Catalogue | Was | Now |
+| --- | --- | --- |
+| Afrikaans (x2) | `herst`+Cyrillic `ел`+`opsies` | `herstelopsies` |
+| Afrikaans | `Kopieer Versl`+Cyrillic `аг`+`variëteit` | `Kopieer Verslagvariëteit` |
+| Danish | `sessionska`+Cyrillic `нал`+`data` | `sessionskanaldata` |
+| Filipino | `ka`+Hangul `안`+`kaanang` | sentence rewritten (see below) |
+| Hebrew | `עד ש` + ARABIC TATWEEL + ` OSCAR` | `עד ש-OSCAR` |
+| Hebrew | `—` + Hangul `덧` + `כתוב` | `— שכתוב` |
+
+The Afrikaans and Danish repairs are exact: the stray characters stand in for specific
+Latin letters, and the intended spelling is confirmed by other entries in the same file
+(`herstelopsies` and `Herstelopsies` appear correctly elsewhere in Afrikaans, as does
+`Nuwe Verslagvariëteit`; Danish uses `kanal`/`hændelseskanaler` throughout).
+
+The Hebrew tatweel is an Arabic letter-elongation mark with no meaning in Hebrew. It was
+dropped and the prefix joined with a hyphen, matching how the rest of the Hebrew catalogue
+attaches a Hebrew prefix to a Latin-script word (`מ-OSCAR`, `ייבוא מ-OSCAR...`).
+
+Two repairs are reconstructions rather than mechanical substitutions, because the stray
+character destroyed the word it landed in, and **a native speaker should confirm them**:
+
+- Hebrew `החלף — שכתוב על הפרופיל הקיים (מסוכן)` for "Replace - overwrite the existing
+  profile (DANGEROUS)". The Korean syllable that had to be removed, `덧`, is the prefix
+  "over-" in Korean `덧쓰기` (overwrite), so the model was evidently reaching for
+  over + `כתוב` (write); `שכתוב` is the Hebrew for overwrite.
+- Filipino "Sa kasamaang-palad, ang iyong %1 CPAP Device (Model %2) ay hindi isang
+  modelong kayang mag-datos." The damaged word could not be recovered, so the sentence was
+  restructured to put "unfortunately" at the front, which is the natural position for it.
+
+All seven strings are `type="unfinished"`, so a translator working in Linguist will see
+them flagged for review.
+
+### `Tools/ts_check_scripts.py`
+
+Neither defect is visible by eye across 62 catalogues, and neither is caught by lupdate,
+lrelease or Qt Linguist - a Greek string in the Czech catalogue is perfectly well-formed
+as far as the tooling is concerned. Both were found by an ad-hoc scan, which has been
+kept as `Tools/ts_check_scripts.py`.
+
+It flags any translation containing a character from a script the target language does not
+use, and separates the two cases: a string where most letters are foreign is reported as
+*wrong-language* (naming the script, not each letter), and one with only a few is reported
+as *corrupted*, listing every offending character with its position and Unicode name.
+Latin is allowed everywhere, because product names and abbreviations (OSCAR, CPAP, ResMed)
+legitimately stay in Latin in every language; only the reverse is reported.
+
+    python Tools/ts_check_scripts.py [translations_dir]
+
+Exit status is 0 when clean and 1 when anything is reported, so it can gate a release.
+Run it after `lupdate` and after any automatic-translation pass.
+
+Two things it deliberately does not do. It does not guess at an unlisted language: a
+language code missing from its `EXTRA_SCRIPTS` table is reported as skipped rather than
+assumed to be Latin, since a new non-Latin language would otherwise be flagged from top to
+bottom. And it treats script-neutral symbols as belonging to no language - without that,
+Spanish `n.º 1` and the Japanese prolonged sound mark in `データ` produce roughly 1,100
+false positives between them.
+
+Checked against the pre-fix catalogues it reports exactly the 30 wrong-language and 7
+corrupted strings described above; against the fixed tree, all 62 catalogues are clean.

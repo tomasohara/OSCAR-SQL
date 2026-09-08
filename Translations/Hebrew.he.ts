@@ -5119,7 +5119,7 @@ Index</source>
     <message>
       <location filename="../oscar/oximeterimport.ui" line="648" />
       <source>CMS50E/F users, when importing directly, please don't select upload on your device until OSCAR prompts you to.</source>
-      <translation type="unfinished">משתמשי CMS50E/F, בעת ייבוא ישיר, אנא אל תבחרו העלאה במכשיר שלכם עד שـ OSCAR יבקש זאת מכם.</translation>
+      <translation type="unfinished">משתמשי CMS50E/F, בעת ייבוא ישיר, אנא אל תבחרו העלאה במכשיר שלכם עד ש-OSCAR יבקש זאת מכם.</translation>
     </message>
     <message>
       <location filename="../oscar/oximeterimport.ui" line="685" />
@@ -14270,7 +14270,7 @@ Create it?</source>
     <message>
       <location filename="../oscar/restoredialog.ui" line="353" />
       <source>Replace — overwrite the existing profile (DANGEROUS)</source>
-      <translation type="unfinished">החלף —덧כתוב על הפרופיל הקיים (מסוכן)</translation>
+      <translation type="unfinished">החלף — שכתוב על הפרופיל הקיים (מסוכן)</translation>
     </message>
     <message>
       <location filename="../oscar/restoredialog.ui" line="360" />

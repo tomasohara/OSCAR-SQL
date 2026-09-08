@@ -529,7 +529,7 @@ Podporované služby: Dropbox, Google Drive, OneDrive, Box, 0x0.st nebo jakýkol
     <message>
       <location filename="../oscar/daily.ui" line="886" />
       <source>Events</source>
-      <translation type="unfinished">Εκδηλώσεις</translation>
+      <translation type="unfinished">Události</translation>
     </message>
     <message>
       <location filename="../oscar/daily.ui" line="948" />
@@ -540,12 +540,12 @@ Podporované služby: Dropbox, Google Drive, OneDrive, Box, 0x0.st nebo jakýkol
       <location filename="../oscar/daily.ui" line="993" />
       <location filename="../oscar/daily.ui" line="1508" />
       <source>Notes</source>
-      <translation type="unfinished">Σημειώσεις</translation>
+      <translation type="unfinished">Poznámky</translation>
     </message>
     <message>
       <location filename="../oscar/daily.ui" line="1047" />
       <source>Journal</source>
-      <translation type="unfinished">Ημερολόγιο διάφορων πράξεων</translation>
+      <translation type="unfinished">Deník</translation>
     </message>
     <message>
       <location filename="../oscar/daily.ui" line="1075" />
@@ -565,7 +565,7 @@ Podporované služby: Dropbox, Google Drive, OneDrive, Box, 0x0.st nebo jakýkol
     <message>
       <location filename="../oscar/daily.ui" line="1109" />
       <source>Color</source>
-      <translation type="unfinished">Χρώμα</translation>
+      <translation type="unfinished">Barva</translation>
     </message>
     <message>
       <location filename="../oscar/daily.ui" line="1131" />
@@ -596,7 +596,7 @@ Podporované služby: Dropbox, Google Drive, OneDrive, Box, 0x0.st nebo jakýkol
     <message>
       <location filename="../oscar/daily.ui" line="1400" />
       <source>Weight</source>
-      <translation type="unfinished">Βάρος</translation>
+      <translation type="unfinished">Hmotnost</translation>
     </message>
     <message>
       <location filename="../oscar/daily.ui" line="1397" />
@@ -643,7 +643,7 @@ Podporované služby: Dropbox, Google Drive, OneDrive, Box, 0x0.st nebo jakýkol
     <message>
       <location filename="../oscar/daily.ui" line="1459" />
       <source>Bookmarks</source>
-      <translation type="unfinished">Σελιδοδείκτες</translation>
+      <translation type="unfinished">Záložky</translation>
     </message>
     <message>
       <location filename="../oscar/daily.ui" line="1480" />
@@ -758,7 +758,7 @@ Podporované služby: Dropbox, Google Drive, OneDrive, Box, 0x0.st nebo jakýkol
     <message>
       <location filename="../oscar/daily.cpp" line="1281" />
       <source>Duration</source>
-      <translation type="unfinished">Διάρκεια</translation>
+      <translation type="unfinished">Trvání</translation>
     </message>
     <message>
       <location filename="../oscar/daily.cpp" line="1495" />
@@ -923,7 +923,7 @@ Podporované služby: Dropbox, Google Drive, OneDrive, Box, 0x0.st nebo jakýkol
     <message>
       <location filename="../oscar/daily.cpp" line="1531" />
       <source>Statistics</source>
-      <translation type="unfinished">Στατιστικά</translation>
+      <translation type="unfinished">Statistiky</translation>
     </message>
     <message>
       <location filename="../oscar/daily.cpp" line="1628" />
@@ -1052,7 +1052,7 @@ Přejde na datum</translation>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="509" />
       <source>Notes</source>
-      <translation type="unfinished">Σημειώσεις</translation>
+      <translation type="unfinished">Poznámky</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="510" />
@@ -1062,7 +1062,7 @@ Přejde na datum</translation>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="511" />
       <source>Bookmarks</source>
-      <translation type="unfinished">Σελιδοδείκτες</translation>
+      <translation type="unfinished">Záložky</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="512" />
@@ -1212,7 +1212,7 @@ Přejde na události data</translation>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="508" />
       <source>Journal</source>
-      <translation type="unfinished">Ημερολόγιο διάφορων πράξεων</translation>
+      <translation type="unfinished">Deník</translation>
     </message>
     <message>
       <location filename="../oscar/dailySearchTab.cpp" line="539" />
@@ -2903,7 +2903,7 @@ Chcete pokračovat?</translation>
       <location filename="../oscar/mainwindow.ui" line="507" />
       <location filename="../oscar/mainwindow.ui" line="1009" />
       <source>Statistics</source>
-      <translation type="unfinished">Στατιστικά</translation>
+      <translation type="unfinished">Statistiky</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.ui" line="1059" />
@@ -3130,7 +3130,7 @@ Chcete pokračovat?</translation>
     <message>
       <location filename="../oscar/mainwindow.ui" line="1369" />
       <source>Bookmarks</source>
-      <translation type="unfinished">Σελιδοδείκτες</translation>
+      <translation type="unfinished">Záložky</translation>
     </message>
     <message>
       <location filename="../oscar/mainwindow.ui" line="2015" />
@@ -4582,7 +4582,7 @@ Datový soubor: %2</translation>
     <message>
       <location filename="../oscar/newprofile.ui" line="687" />
       <source>Notes</source>
-      <translation type="unfinished">Σημειώσεις</translation>
+      <translation type="unfinished">Poznámky</translation>
     </message>
     <message>
       <location filename="../oscar/newprofile.ui" line="729" />
@@ -4944,7 +4944,7 @@ Poznámka: anonymní sdílení může být zakázáno v nastavení vašeho účt
     <message>
       <location filename="../oscar/overview.ui" line="269" />
       <source>Graphs</source>
-      <translation type="unfinished">Γραφικες Παράστασης</translation>
+      <translation type="unfinished">Grafy</translation>
     </message>
     <message>
       <location filename="../oscar/overview.cpp" line="153" />
@@ -5132,7 +5132,7 @@ hmotnosti</translation>
       <location filename="../oscar/oximeterimport.ui" line="1101" />
       <location filename="../oscar/oximeterimport.ui" line="1353" />
       <source>Duration</source>
-      <translation type="unfinished">Διάρκεια</translation>
+      <translation type="unfinished">Trvání</translation>
     </message>
     <message>
       <location filename="../oscar/oximeterimport.ui" line="1217" />
@@ -5955,7 +5955,7 @@ Hlavně ovlivňuje importér.</translation>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2051" />
       <source>Events</source>
-      <translation type="unfinished">Εκδηλώσεις</translation>
+      <translation type="unfinished">Události</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2117" />
@@ -6406,7 +6406,7 @@ Určeno pro pracovníky podpory a vývojáře.</translation>
       <location filename="../oscar/preferencesdialog.ui" line="2627" />
       <location filename="../oscar/preferencesdialog.ui" line="3152" />
       <source>Statistics</source>
-      <translation type="unfinished">Στατιστικά</translation>
+      <translation type="unfinished">Statistiky</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.ui" line="2596" />
@@ -6829,7 +6829,7 @@ Tato možnost musí být povolena před importem, jinak je nutné provést vymaz
       <location filename="../oscar/preferencesdialog.cpp" line="545" />
       <location filename="../oscar/preferencesdialog.cpp" line="676" />
       <source>Color</source>
-      <translation type="unfinished">Χρώμα</translation>
+      <translation type="unfinished">Barva</translation>
     </message>
     <message>
       <location filename="../oscar/preferencesdialog.cpp" line="547" />
@@ -7658,13 +7658,13 @@ Chcete to provést nyní?</translation>
     <message>
       <location filename="../oscar/Graphs/gLineOverlay.cpp" line="378" />
       <source>Events</source>
-      <translation type="unfinished">Εκδηλώσεις</translation>
+      <translation type="unfinished">Události</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gLineOverlay.cpp" line="376" />
       <location filename="../oscar/Graphs/gLineOverlay.cpp" line="379" />
       <source>Duration</source>
-      <translation type="unfinished">Διάρκεια</translation>
+      <translation type="unfinished">Trvání</translation>
     </message>
     <message>
       <location filename="../oscar/Graphs/gLineOverlay.cpp" line="393" />
@@ -8000,7 +8000,7 @@ TTIA: %1</translation>
       <location filename="../oscar/SleepLib/common.cpp" line="884" />
       <location filename="../oscar/SleepLib/schema.cpp" line="338" />
       <source>Weight</source>
-      <translation type="unfinished">Βάρος</translation>
+      <translation type="unfinished">Hmotnost</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="886" />
@@ -8591,7 +8591,7 @@ TTIA: %1</translation>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="989" />
       <source>Bookmarks</source>
-      <translation type="unfinished">Σελιδοδείκτες</translation>
+      <translation type="unfinished">Záložky</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/common.cpp" line="993" />
@@ -10965,7 +10965,7 @@ TTIA: %1</translation>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="340" />
       <source>Notes</source>
-      <translation type="unfinished">Σημειώσεις</translation>
+      <translation type="unfinished">Poznámky</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="340" />
@@ -11005,7 +11005,7 @@ TTIA: %1</translation>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="348" />
       <source>Journal</source>
-      <translation type="unfinished">Ημερολόγιο διάφορων πράξεων</translation>
+      <translation type="unfinished">Deník</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/schema.cpp" line="355" />
@@ -15907,7 +15907,7 @@ Před sdílením těchto dat se ujistěte, že příjemci důvěřujete.</transl
     <message>
       <location filename="../oscar/exports/system_report_strings.cpp" line="36" />
       <source>Statistics</source>
-      <translation type="unfinished">Στατιστικά</translation>
+      <translation type="unfinished">Statistiky</translation>
     </message>
     <message>
       <location filename="../oscar/exports/system_report_strings.cpp" line="41" />
@@ -16098,7 +16098,7 @@ Před sdílením těchto dat se ujistěte, že příjemci důvěřujete.</transl
     <message>
       <location filename="../oscar/welcome.ui" line="337" />
       <source>Statistics</source>
-      <translation type="unfinished">Στατιστικά</translation>
+      <translation type="unfinished">Statistiky</translation>
     </message>
     <message>
       <location filename="../oscar/welcome.ui" line="622" />

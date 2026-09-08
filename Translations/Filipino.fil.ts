@@ -8892,7 +8892,7 @@ TTIA: %1</translation>
     <message>
       <location filename="../oscar/SleepLib/importcontext.cpp" line="202" />
       <source>Your %1 CPAP Device (Model %2) is unfortunately not a data capable model.</source>
-      <translation type="unfinished">Ang iyong %1 CPAP Device (Model %2) ay ka안kaanang hindi isang modelong kayang mag-datos.</translation>
+      <translation type="unfinished">Sa kasamaang-palad, ang iyong %1 CPAP Device (Model %2) ay hindi isang modelong kayang mag-datos.</translation>
     </message>
     <message>
       <location filename="../oscar/SleepLib/importcontext.cpp" line="203" />
