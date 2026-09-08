@@ -6038,3 +6038,30 @@ false positives between them.
 
 Checked against the pre-fix catalogues it reports exactly the 30 wrong-language and 7
 corrupted strings described above; against the fixed tree, all 62 catalogues are clean.
+
+### `Tools/translate_ts_properly.py` destroyed the DOCTYPE and every XML comment
+
+Found while running `lupdate` over all 31 catalogues afterwards. The script read a `.ts`
+file with ElementTree, edited the tree and wrote it back with `ElementTree.write()`. That
+round trip cannot reproduce a Qt `.ts` file: it silently discards the `<!DOCTYPE TS>`
+declaration and every XML comment, and re-indents the whole document in its own style
+(two-space, `'` in the XML declaration, `line="35" />`).
+
+The visible consequences were that 30 of the 31 catalogues had lost their DOCTYPE, and
+that any change to a single string produced a whole-file diff - the reason the `lupdate`
+run showed roughly 300,000 changed lines for what was a 113-string update. The one it had
+not yet caused, but would have on its next run, was the loss of the translator attribution
+comment at the top of `Ukrainska.uk.ts`; that is the only catalogue carrying a comment, and
+`lupdate` itself strips it too, so it has to be restored after every `lupdate` run.
+
+The script now parses with ElementTree only to decide *what* needs translating, and splices
+the results into the raw file text, replacing just the body of each `<translation>` element
+(or of its first `<lengthvariant>`). Everything else - DOCTYPE, comments, attributes,
+indentation, line endings - is left byte for byte as `lupdate` wrote it. `indent_xml()` and
+`write_xml()` are gone. Before writing, the number of `<message>` blocks found in the text
+is checked against the number in the parsed tree, and a mismatch raises rather than writing
+to a guessed offset.
+
+`Tools/fix_translation_spacing.py` still writes through `ElementTree.write()` and has the
+same defect. It has already been run, so nothing is pending, but it must not be run again
+as it stands.

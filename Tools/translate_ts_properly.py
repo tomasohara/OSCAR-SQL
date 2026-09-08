@@ -3,7 +3,18 @@
 """
 Proper .ts file translator that works message-by-message with full XML fidelity.
 Preserves multiline strings, format variables, HTML tags, and all structure.
+
+The file is parsed with ElementTree to decide what needs translating, but the
+translations are spliced back into the raw file text rather than written out from
+the tree.  ElementTree's writer cannot reproduce a Qt .ts file: it discards the
+<!DOCTYPE TS> declaration and every XML comment, and re-indents the whole
+document in its own style.  Writing through it previously stripped the DOCTYPE
+from all 31 catalogues and would have destroyed the translator attribution
+comment at the top of Ukrainska.uk.ts, and it turned any change, however small,
+into a whole-file diff.  Splicing leaves every other byte exactly as lupdate
+wrote it.
 """
+import re
 import xml.etree.ElementTree as ET
 from anthropic import Anthropic
 import sys
@@ -17,12 +28,19 @@ def get_all_text(element):
 
 
 def extract_unfinished_messages(ts_file):
-    """Extract all messages with empty translations from the .ts file"""
+    """Extract all messages with empty translations from the .ts file.
+
+    Returns (messages, total).  Each message records its 'index' -- its position
+    in document order among *all* <message> elements -- which is how the splice
+    step locates it again in the raw text.  'total' is that element count, used
+    to prove the text walk and the parsed tree agree before anything is written.
+    """
     tree = ET.parse(ts_file)
     root = tree.getroot()
 
+    all_messages = root.findall('.//message')
     messages = []
-    for message in root.findall('.//message'):
+    for index, message in enumerate(all_messages):
         # Skip plural forms (numerus="yes") - they need special handling
         if message.get('numerus') == 'yes':
             continue
@@ -49,8 +67,7 @@ def extract_unfinished_messages(ts_file):
 
             msg_data = {
                 'source': source_text,
-                'element': translation_elem,
-                'message_elem': message,
+                'index': index,
                 'is_variant': True,
                 'num_variants': len(lengthvariants),
             }
@@ -61,14 +78,13 @@ def extract_unfinished_messages(ts_file):
 
             msg_data = {
                 'source': source_text,
-                'element': translation_elem,
-                'message_elem': message,
+                'index': index,
                 'is_variant': False,
             }
 
         messages.append(msg_data)
 
-    return messages, root
+    return messages, len(all_messages)
 
 
 def translate_messages_batch(messages_batch, client, target_language="English"):
@@ -102,12 +118,29 @@ Sources to translate:
 
     try:
         response = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=4096,
+            model="claude-sonnet-5",
+            max_tokens=8192,
+            # Sonnet 5 runs adaptive thinking unless told otherwise, which put a
+            # ThinkingBlock first in response.content and spent part of the token
+            # budget reasoning about what is a mechanical substitution.
+            thinking={"type": "disabled"},
             messages=[{"role": "user", "content": prompt}]
         )
 
-        response_text = response.content[0].text
+        # response.content is a list of blocks (TextBlock, ThinkingBlock, ...);
+        # take the text ones rather than assuming the first block is text.
+        response_text = "".join(block.text for block in response.content
+                                if block.type == "text")
+
+        if not response_text:
+            # A refusal or an empty turn would otherwise look like a parse failure.
+            detail = getattr(response, 'stop_details', None)
+            print(f"No text in response (stop_reason={response.stop_reason}"
+                  f"{', ' + str(detail) if detail else ''})")
+            return {}
+        if response.stop_reason == "max_tokens":
+            print(f"Response hit max_tokens; batch truncated. ", end="")
+
         translations = {}
 
         for line in response_text.strip().split('\n'):
@@ -133,59 +166,64 @@ Sources to translate:
         return {}
 
 
-def apply_translations(messages, translations):
-    """Apply translations back to the XML elements"""
-    applied = 0
+# "&" has to be substituted first or it would corrupt the entities that follow.
+# Qt's own tools escape all five of these in element text; matching them keeps a
+# later lupdate run from rewriting the lines this script touched.
+XML_ESCAPES = (("&", "&amp;"), ("<", "&lt;"), (">", "&gt;"),
+               ('"', "&quot;"), ("'", "&apos;"))
 
-    for i, msg_data in enumerate(messages, 1):
-        if i not in translations:
+MESSAGE_RE = re.compile(r'<message\b[^>]*>.*?</message>', re.S)
+TRANSLATION_RE = re.compile(r'(<translation\b[^>]*>)(.*?)(</translation>)', re.S)
+LENGTHVARIANT_RE = re.compile(r'(<lengthvariant\b[^>]*>)(.*?)(</lengthvariant>)', re.S)
+
+
+def xml_escape(text):
+    """Escape text for an XML element body, the way Qt's own tools do."""
+    for raw, entity in XML_ESCAPES:
+        text = text.replace(raw, entity)
+    return text
+
+
+def apply_translations(text, resolved, total_messages, newline='\n'):
+    """Splice translations into the raw file text; return (new_text, count).
+
+    *resolved* maps a message's document-order index to (is_variant, translation).
+    Only the body of the <translation> element -- or of its first <lengthvariant>
+    -- is replaced, so attributes, indentation, comments and the DOCTYPE survive
+    untouched.  type="unfinished" is left in place so Linguist still flags these
+    as machine output needing review.
+
+    Edits are applied back to front so that the offsets of the earlier ones stay
+    valid.  If the number of <message> blocks found in the text does not match the
+    number in the parsed tree the two views have diverged, and rather than write
+    to a guessed offset the function raises.
+    """
+    blocks = list(MESSAGE_RE.finditer(text))
+    if len(blocks) != total_messages:
+        raise RuntimeError(
+            "found %d <message> blocks in the file text but %d in the parsed "
+            "tree; refusing to edit" % (len(blocks), total_messages))
+
+    edits = []
+    for index, (is_variant, translation) in resolved.items():
+        block = blocks[index]
+        body = block.group(0)
+        # A variant translation holds its text in <lengthvariant> children; the
+        # <translation> element's own text is whitespace and must stay that way.
+        target = (LENGTHVARIANT_RE if is_variant else TRANSLATION_RE).search(body)
+        if target is None:
+            print("  warning: no place to put translation for message %d" % index)
             continue
 
-        trans_text = translations[i].replace('\\n', '\n')
-        trans_elem = msg_data['element']
+        replacement = xml_escape(translation.replace('\\n', '\n'))
+        if newline != '\n':
+            replacement = replacement.replace('\n', newline)
+        edits.append((block.start() + target.start(2),
+                      block.start() + target.end(2), replacement))
 
-        if msg_data.get('is_variant'):
-            # Write translation into the first <lengthvariant> only.
-            # Do NOT touch trans_elem.text — it must stay as whitespace.
-            # Leave other lengthvariants empty (Qt accepts this).
-            lengthvariants = trans_elem.findall('lengthvariant')
-            if lengthvariants:
-                lengthvariants[0].text = trans_text
-            else:
-                # No lengthvariant children yet — create one
-                lv = ET.SubElement(trans_elem, 'lengthvariant')
-                lv.text = trans_text
-        else:
-            # Regular message: set translation text directly
-            trans_elem.text = trans_text
-
-        # Preserve type="unfinished" so linguist can identify auto-translated strings
-        applied += 1
-
-    return applied
-
-
-def indent_xml(elem, level=0):
-    """Add proper indentation to XML elements"""
-    indent = "\n" + ("  " * level)
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = indent + "  "
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = indent
-        for child in elem:
-            indent_xml(child, level + 1)
-        if not child.tail or not child.tail.strip():
-            child.tail = indent
-    else:
-        if level and (not elem.tail or not elem.tail.strip()):
-            elem.tail = indent
-
-
-def write_xml(root, output_file):
-    """Write XML with proper formatting"""
-    tree = ET.ElementTree(root)
-    tree.write(output_file, encoding='utf-8', xml_declaration=True)
+    for start, end, replacement in sorted(edits, reverse=True):
+        text = text[:start] + replacement + text[end:]
+    return text, len(edits)
 
 
 def main():
@@ -240,7 +278,7 @@ def main():
     client = Anthropic()
 
     print(f"Loading {lang}.ts...")
-    messages, root = extract_unfinished_messages(ts_file)
+    messages, total_messages = extract_unfinished_messages(ts_file)
 
     variants = [m for m in messages if m.get('is_variant')]
     regular = [m for m in messages if not m.get('is_variant')]
@@ -251,7 +289,9 @@ def main():
         return
 
     batch_size = 20
-    total_applied = 0
+    # Collected across every batch, then spliced into the file in one pass at the
+    # end: {document index -> (is_variant, translation)}.
+    resolved = {}
 
     for batch_start in range(0, len(messages), batch_size):
         batch = messages[batch_start:batch_start + batch_size]
@@ -262,20 +302,27 @@ def main():
         translations = translate_messages_batch(batch, client, target_language)
 
         if translations:
-            applied = apply_translations(batch, translations)
-            total_applied += applied
+            applied = 0
+            for position, msg_data in enumerate(batch, 1):
+                if position in translations:
+                    resolved[msg_data['index']] = (msg_data.get('is_variant', False),
+                                                   translations[position])
+                    applied += 1
             print(f"{applied}/{len(batch)}")
         else:
             print("Failed")
 
     print(f"\n{'='*60}")
-    print(f"Total translated: {total_applied}/{len(messages)}")
+    print(f"Total translated: {len(resolved)}/{len(messages)}")
 
-    if total_applied > 0:
+    if resolved:
         print("Writing .ts file...")
-        indent_xml(root)
-        write_xml(root, ts_file)
-        print(f"Done: {ts_file}")
+        # Read and write as bytes so the file's own line endings are preserved.
+        text = open(ts_file, 'rb').read().decode('utf-8')
+        newline = '\r\n' if '\r\n' in text else '\n'
+        text, spliced = apply_translations(text, resolved, total_messages, newline)
+        open(ts_file, 'wb').write(text.encode('utf-8'))
+        print(f"Done: {ts_file} ({spliced} spliced)")
     else:
         print("No translations applied.")
 
