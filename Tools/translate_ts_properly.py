@@ -14,10 +14,11 @@ comment at the top of Ukrainska.uk.ts, and it turned any change, however small,
 into a whole-file diff.  Splicing leaves every other byte exactly as lupdate
 wrote it.
 """
-import re
 import xml.etree.ElementTree as ET
 from anthropic import Anthropic
 import sys
+
+import ts_splice
 
 
 def get_all_text(element):
@@ -166,64 +167,8 @@ Sources to translate:
         return {}
 
 
-# "&" has to be substituted first or it would corrupt the entities that follow.
-# Qt's own tools escape all five of these in element text; matching them keeps a
-# later lupdate run from rewriting the lines this script touched.
-XML_ESCAPES = (("&", "&amp;"), ("<", "&lt;"), (">", "&gt;"),
-               ('"', "&quot;"), ("'", "&apos;"))
-
-MESSAGE_RE = re.compile(r'<message\b[^>]*>.*?</message>', re.S)
-TRANSLATION_RE = re.compile(r'(<translation\b[^>]*>)(.*?)(</translation>)', re.S)
-LENGTHVARIANT_RE = re.compile(r'(<lengthvariant\b[^>]*>)(.*?)(</lengthvariant>)', re.S)
-
-
-def xml_escape(text):
-    """Escape text for an XML element body, the way Qt's own tools do."""
-    for raw, entity in XML_ESCAPES:
-        text = text.replace(raw, entity)
-    return text
-
-
-def apply_translations(text, resolved, total_messages, newline='\n'):
-    """Splice translations into the raw file text; return (new_text, count).
-
-    *resolved* maps a message's document-order index to (is_variant, translation).
-    Only the body of the <translation> element -- or of its first <lengthvariant>
-    -- is replaced, so attributes, indentation, comments and the DOCTYPE survive
-    untouched.  type="unfinished" is left in place so Linguist still flags these
-    as machine output needing review.
-
-    Edits are applied back to front so that the offsets of the earlier ones stay
-    valid.  If the number of <message> blocks found in the text does not match the
-    number in the parsed tree the two views have diverged, and rather than write
-    to a guessed offset the function raises.
-    """
-    blocks = list(MESSAGE_RE.finditer(text))
-    if len(blocks) != total_messages:
-        raise RuntimeError(
-            "found %d <message> blocks in the file text but %d in the parsed "
-            "tree; refusing to edit" % (len(blocks), total_messages))
-
-    edits = []
-    for index, (is_variant, translation) in resolved.items():
-        block = blocks[index]
-        body = block.group(0)
-        # A variant translation holds its text in <lengthvariant> children; the
-        # <translation> element's own text is whitespace and must stay that way.
-        target = (LENGTHVARIANT_RE if is_variant else TRANSLATION_RE).search(body)
-        if target is None:
-            print("  warning: no place to put translation for message %d" % index)
-            continue
-
-        replacement = xml_escape(translation.replace('\\n', '\n'))
-        if newline != '\n':
-            replacement = replacement.replace('\n', newline)
-        edits.append((block.start() + target.start(2),
-                      block.start() + target.end(2), replacement))
-
-    for start, end, replacement in sorted(edits, reverse=True):
-        text = text[:start] + replacement + text[end:]
-    return text, len(edits)
+# The splice itself lives in ts_splice so that fix_translation_spacing.py, which
+# has the same need and must not depend on the Anthropic SDK, shares one copy.
 
 
 def main():
@@ -305,8 +250,11 @@ def main():
             applied = 0
             for position, msg_data in enumerate(batch, 1):
                 if position in translations:
-                    resolved[msg_data['index']] = (msg_data.get('is_variant', False),
-                                                   translations[position])
+                    # The model returns "\n" as two characters, because that is
+                    # how the sources were shown to it in the prompt.
+                    resolved[msg_data['index']] = (
+                        msg_data.get('is_variant', False),
+                        translations[position].replace('\\n', '\n'))
                     applied += 1
             print(f"{applied}/{len(batch)}")
         else:
@@ -317,11 +265,10 @@ def main():
 
     if resolved:
         print("Writing .ts file...")
-        # Read and write as bytes so the file's own line endings are preserved.
-        text = open(ts_file, 'rb').read().decode('utf-8')
-        newline = '\r\n' if '\r\n' in text else '\n'
-        text, spliced = apply_translations(text, resolved, total_messages, newline)
-        open(ts_file, 'wb').write(text.encode('utf-8'))
+        text, newline = ts_splice.read_text(ts_file)
+        text, spliced = ts_splice.splice_translations(
+            text, resolved, total_messages, newline)
+        ts_splice.write_text(ts_file, text)
         print(f"Done: {ts_file} ({spliced} spliced)")
     else:
         print("No translations applied.")

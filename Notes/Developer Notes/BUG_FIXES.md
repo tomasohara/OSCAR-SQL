@@ -6054,14 +6054,23 @@ not yet caused, but would have on its next run, was the loss of the translator a
 comment at the top of `Ukrainska.uk.ts`; that is the only catalogue carrying a comment, and
 `lupdate` itself strips it too, so it has to be restored after every `lupdate` run.
 
-The script now parses with ElementTree only to decide *what* needs translating, and splices
-the results into the raw file text, replacing just the body of each `<translation>` element
-(or of its first `<lengthvariant>`). Everything else - DOCTYPE, comments, attributes,
+Both scripts now parse with ElementTree only to decide *what* to change, and splice the
+result into the raw file text, replacing just the body of each `<translation>` element (or
+of its first `<lengthvariant>`). Everything else - DOCTYPE, comments, attributes,
 indentation, line endings - is left byte for byte as `lupdate` wrote it. `indent_xml()` and
 `write_xml()` are gone. Before writing, the number of `<message>` blocks found in the text
 is checked against the number in the parsed tree, and a mismatch raises rather than writing
 to a guessed offset.
 
-`Tools/fix_translation_spacing.py` still writes through `ElementTree.write()` and has the
-same defect. It has already been run, so nothing is pending, but it must not be run again
-as it stands.
+The splice lives in `Tools/ts_splice.py` so that the two callers share one copy - the
+offset ordering, the count guard and the Qt-style escaping are all easy to get subtly
+wrong, and `fix_translation_spacing.py` must not have to import the Anthropic SDK to reach
+them. `translate_ts_properly.py` decodes the model's two-character `\n` before handing the
+text over; `fix_translation_spacing.py` does not, because it is repairing text that is
+already in the file.
+
+`fix_translation_spacing.py` picked up one further guard while it was open: it now skips a
+`<translation>` that has child elements. Its own text in that case is only the whitespace
+around the `<lengthvariant>` children, and the old code would have rewritten that
+whitespace had it ever met a translation marked both `type="unfinished"` and
+`variants="yes"`. No catalogue currently contains one.
