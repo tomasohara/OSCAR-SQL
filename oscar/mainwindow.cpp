@@ -890,11 +890,9 @@ void MainWindow::CloseProfile()
 void MainWindow::TestWindowsOpenGL()
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(5,4,0)) && !defined(BROKEN_OPENGL_BUILD)
-    // 1. Set OpenGLCompatibilityCheck=1 in registry.
-    QSettings settings;
-    settings.setValue("OpenGLCompatibilityCheck", true);
-
-    // 2. See if OpenGL crashes the application:
+    // The crash sentinel is already armed by main() and stays armed until Startup()
+    // has drawn the window, so this only has to provoke the crash: put a real
+    // QOpenGLWidget on screen and let it render.
     QOpenGLWidget* gl;
     gl = new QOpenGLWidget(ui->tabWidget);
     ui->tabWidget->insertTab(2, gl, "");
@@ -904,9 +902,6 @@ void MainWindow::TestWindowsOpenGL()
     // If we get here, OpenGL won't crash the application.
     ui->tabWidget->removeTab(2);
     delete gl;
-
-    // 3. Remove OpenGLCompatibilityCheck from the registry upon success.
-    settings.remove("OpenGLCompatibilityCheck");
 #endif
 }
 #endif
@@ -918,6 +913,14 @@ void MainWindow::Startup()
     QSettings settings;
     if (getFingerprint() != settings.value("Fingerprint"))
         TestWindowsOpenGL();
+
+    // The window is up, and on a new machine or after a driver change a QOpenGLWidget
+    // has just rendered on it, so the selected graphics engine works here: clear the
+    // sentinel main() armed. processEvents() first, to be sure anything still queued
+    // has been drawn while the sentinel can still catch it. Everything past this point
+    // is data rather than graphics and must not be blamed on the graphics engine.
+    QApplication::processEvents();
+    disarmGraphicsCrashSentinel();
 #endif
 
     for (auto & loader : GetLoaders()) {

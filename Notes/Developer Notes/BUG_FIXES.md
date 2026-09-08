@@ -5873,3 +5873,61 @@ back at the skipped-directory lines above it) and when `SelectProfile()` returns
 `qDebug` for the two non-error exits, the profile already being open and the user
 cancelling at the lockfile prompt. The two pre-existing `qCritical` exits were already
 covered.
+
+## 2026-09-07 - Windows: unrecoverable crash loop at startup when OpenGL is unusable (#277)
+
+**Reported on Windows 11 on ARM64**, running the x64 build under emulation: OSCAR
+crashed immediately after the first-run dialogs, on every launch, and the built-in
+graphics fallback never engaged. The Windows event log showed `0xc0000005` with
+"faulting module unknown, offset 0x0" (all that says is that the fault was in emulated
+code, which belongs to no loaded module) followed by `0xc000041d`,
+`STATUS_FATAL_USER_CALLBACK_EXCEPTION` - a crash inside a Win32 window procedure. The
+reporter eventually got in only by chance, after which OSCAR reverted to the software
+engine by itself and worked. Three defects, all in the same startup path:
+
+**1. The crash sentinel was armed too late to cover the crash.** The recovery mechanism
+is a registry flag: `MainWindow::TestWindowsOpenGL()` set `OpenGLCompatibilityCheck`,
+created a `QOpenGLWidget`, and cleared the flag if it survived; `main()` saw a leftover
+flag on the next launch and forced `GFX_Software`. But that test runs from
+`MainWindow::Startup()`, a 50 ms `singleShot` queued at the end of `SetupGUI()`, and two
+OpenGL uses come before it: the version probe reached through `makeBuildInfo()`, and
+`prepOpenGL()` at the top of `SetupGUI()`, which constructs a `QOpenGLWidget` and marks
+the main window `WA_NativeWindow`. A crash at either point left the flag unset, so the
+next launch did exactly the same thing - with no UI ever reachable, and no message.
+
+The flag is now owned by `main()` through `GraphicsCrashSentinelGuard`, a scope guard
+declared just before `MainWindow` is created. `armGraphicsCrashSentinel()` writes the
+flag and calls `QSettings::sync()` immediately; the destructor clears it. Because a crash
+never runs destructors, a leftover flag now means precisely "the last run died before it
+finished drawing", while every normal exit - including the early `return 0` paths taken
+when the user cancels a startup dialog - clears it. `Startup()` disarms it explicitly
+immediately after `TestWindowsOpenGL()`, preceded by a `processEvents()` so anything
+still queued is drawn while the sentinel can still catch it. That keeps the covered
+window to the graphics path alone - the version probe, `prepOpenGL()`, the window's own
+first paint and the `TestWindowsOpenGL()` render - so a later crash in profile loading or
+import is not misattributed to the graphics engine and does not needlessly drop the user
+into the software engine. `TestWindowsOpenGL()` no longer touches the flag itself; it
+just provokes the crash. Windows-only, matching the existing recovery machinery.
+
+**2. `getOpenGLVersionString()` crashed instead of reporting no OpenGL.** It ignored the
+result of `surf.create()`, `ctx.create()` and `ctx.makeCurrent()`, then called
+`ctx.functions()->glGetString(GL_VERSION)`. When context creation fails, that dispatches
+through a context that was never initialised. It is the first OpenGL call OSCAR makes,
+so on a machine with no usable driver it is a prime candidate for the reported fault.
+Each step is now checked and an unusable driver reports itself as `CSTR_GFX_None`, which
+`getOpenGLVersion()` already parses as 0.
+
+**3. The detected OpenGL version was computed and thrown away.** `main()` called
+`getOpenGLVersion()` and discarded the result, then went on to build `QOpenGLWidget`s
+regardless. OSCAR's graphs need OpenGL 2.0; a stub 1.1 driver cannot back a
+`QOpenGLWidget` and crashes rather than failing cleanly. On Windows, a version below 2.0
+while OpenGL is the selected engine now switches the setting to `GFX_Software`, tells the
+user, and restarts OSCAR - the engine is chosen through an application attribute that can
+only be set before `QApplication` is constructed, so an in-flight switch is not possible.
+The check is skipped when the software engine is already selected, so it can restart at
+most once. Other platforms only log a warning: the offscreen probe can fail on Linux
+where an on-screen widget would work, and this failure mode is Windows-specific.
+
+**Not verified on the reporting hardware** - no ARM64 machine is available here. The
+existing escape hatches (hold Shift at launch to toggle the engine, or `--legacy`) work
+today and remain the advice for anyone already stuck.
