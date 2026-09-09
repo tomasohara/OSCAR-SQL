@@ -45,6 +45,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QStorageInfo>
+#include <QOperatingSystemVersion>
 #include <cmath>
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   #include <QRandomGenerator>
@@ -168,7 +169,27 @@ MainWindow::MainWindow(QWidget *parent) :
     settings.endGroup();
 
     // Nifty Notification popups in System Tray (uses Growl on Mac)
-    if (QSystemTrayIcon::isSystemTrayAvailable() && QSystemTrayIcon::supportsMessages()) {
+    bool useSystemTray = QSystemTrayIcon::isSystemTrayAvailable() && QSystemTrayIcon::supportsMessages();
+
+#ifdef Q_OS_MAC
+    // Clicking the status-bar item aborts the application on macOS 27 and later.
+    // Qt's QCocoaSystemTrayIcon::emitActivated() asks NSApp.currentEvent for its
+    // clickCount, but AppKit now drives NSControls through gesture recognizers and
+    // defers the action callback past the event that triggered it, so the current
+    // event is no longer a mouse event and -[NSEvent clickCount] raises an uncaught
+    // Objective-C exception (SIGABRT).  Fixed upstream in qtbase commit 65020b43cdd2,
+    // "macOS: Don't assume the current event is a mouse event in the tray icon", which
+    // is in neither Qt 6.11.1 nor 6.11.2.  Until the macOS builds use a Qt carrying
+    // that fix, do without the tray icon: Notify() then shows its message box, exactly
+    // as it does for a user who has asked for message boxes.  See GitLab issue #279.
+    if (useSystemTray && QOperatingSystemVersion::current() >=
+            QOperatingSystemVersion(QOperatingSystemVersion::MacOS, 27)) {
+        qDebug() << "Not using System Tray: Qt aborts on a status-item click on macOS 27+";
+        useSystemTray = false;
+    }
+#endif
+
+    if (useSystemTray) {
         qDebug() << "Using System Tray for Menu";
         systray = new QSystemTrayIcon(QIcon(":/icons/logo-sm.png"), this);
         systray->show();

@@ -4,6 +4,43 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-09-09 - macOS 27: clicking the menu-bar icon aborts OSCAR (#279)
+
+**File:** `oscar/mainwindow.cpp`
+
+A crash report from a macOS 27 tester showed `abort()` on the main thread with an
+uncaught Objective-C exception. The stack is a menu-bar click: `-[NSStatusItem
+popUpStatusItemMenu:]` starts a menu tracking session, which posts
+`NSMenuDidBeginTrackingNotification`, whose observer inside `libqcocoa` sends
+`clickCount` to an `NSEvent` and trips an `NSAssertionHandler` failure.
+
+The defect is Qt's, not OSCAR's. `QCocoaSystemTrayIcon::emitActivated()` reads
+`NSApp.currentEvent` and asks it for its `clickCount`, because the status item button's
+action callback carries no event of its own. As of macOS 27 AppKit drives `NSControl`s
+through gesture recognizers, which defer that callback past the event that triggered it,
+so the current event is no longer a mouse event - and `-[NSEvent clickCount]` raises
+`NSInternalInconsistencyException` on anything but a mouse event. Nothing catches it, so
+the process aborts.
+
+Upstream fixed it in qtbase commit `65020b43cdd2`, "macOS: Don't assume the current event
+is a mouse event in the tray icon" (2026-08-04, picked to 6.12, 6.11 and 6.8), which
+reports the activation as `Unknown` in that case. The tag `v6.11.2` does not contain it,
+so no Qt release OSCAR currently builds against is safe.
+
+Removing only the context menu would not have helped. Qt reaches `emitActivated()` by two
+routes: the tracking notification, registered only when the status item has a menu, and
+`statusItemClicked`, wired to the button's action for left, right and other mouse-down.
+The second fires whether or not a menu exists.
+
+OSCAR therefore skips the tray icon altogether on macOS 27 and later. It is used only so
+that `Notify()` can call `showMessage()` - nothing connects to `QSystemTrayIcon::activated`
+- and with `systray` null `Notify()` falls through to `createNotifyMessageBox()`, the same
+path a user gets by ticking the notify-by-message-box preference. The guard is written
+against `QOperatingSystemVersion(MacOS, 27)` rather than the named `MacOSGoldenGate`
+constant, which only exists from Qt 6.11. Remove the guard once the macOS builds use a Qt
+that carries the upstream fix.
+
+---
 ## 2026-08-26 — SEFAM: therapy mode hard-coded, sessions discarded on a dropped record, wrong ramp time, and a non-settings record read as settings
 
 **Files:** `oscar/SleepLib/loader_plugins/sefamDataParsing.{h,cpp}`,
