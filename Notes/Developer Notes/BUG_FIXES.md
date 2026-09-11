@@ -4,6 +4,44 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-09-11 - PRS1: summary-only Clear0/Clear1 duplicates overwrite full sessions (#280)
+
+**Files:** `oscar/SleepLib/importcontext.cpp`, `oscar/SleepLib/importcontext.h`
+
+Reported on ApneaBoard with a fix by the reporter. When Encore clears a PRS1 card it
+moves the old data into a `ClearN` folder and writes summary-only copies of earlier
+sessions, under the same session IDs, into the new folder. `PRS1Loader::Open()` walks
+every P-Series subfolder that has a PROP.TXT (Clear0, Clear1, ..., serial folder) in one
+run, and `ScanFiles()` skips already-imported sessions via `context()->SessionExists()`.
+That only consulted `Machine::sessionlist`, which is not filled until
+`ImportContext::Commit()` runs after `Open()` returns - so the check was false for the
+whole run and every duplicate was imported again.
+
+The `finishAddingSessions()` call at the end of `PRS1Loader::OpenMachine()` does not
+help: it iterates `MachineLoader::new_sessions`, which the PRS1 loader never populates
+(`PRS1Import::run()` hands sessions to `ImportContext::AddSession()` instead).
+
+In 2.0 the damage is done in `Session::StoreToDatabase()`: the duplicate finds the
+existing row, updates it as summary-only, and replaces `session_settings` and
+`session_channels` with the summary-only set, wiping the full channel data. Then
+`m_sessions[sid] = session` replaced the pointer, leaking the full Session, so `Commit()`
+added only the summary-only copy. The result is long runs of empty days in the AHI and
+event graphs, both on a first import of such a card and on a rebuild from backup.
+
+Fix (two commits cherry-picked from the reporter's fork): `SessionExists()` now also
+returns true for a session already pending in `m_sessions` for the same machine, so
+the first folder's copy wins as it did before commit `947a27b7` moved the commit out of
+the loader. As a second line of defence `AddSession()` rejects a duplicate session ID
+before `Store()` is called, deletes it and logs a warning. PRS1 is the only caller of
+`context()->SessionExists()`; Prisma dedups its own IDs, so neither change affects it.
+The reporter's third commit (a mutex around `Store()`) was not taken: import
+multithreading is hard-disabled in `AppSettings`.
+
+Same defect exists in 1.7.1 (`importcontext.cpp:55`); the reporter's OSCAR-code fork
+carries matching branches for a backport.
+
+---
+
 ## 2026-09-09 - macOS 27: clicking the menu-bar icon aborts OSCAR (#279)
 
 **File:** `oscar/mainwindow.cpp`
