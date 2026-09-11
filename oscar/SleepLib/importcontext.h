@@ -40,6 +40,8 @@ public:
     // TODO: Eventually backup (and rebuild) should be handled invisibly to loaders.
     virtual QString GetBackupPath();
 
+    // True if the session is already in the device's database, or has been added to this
+    // context and is waiting to be committed.
     virtual bool SessionExists(SessionID sid);
     
     // Create an in-memory Session object for the importer to fill out.

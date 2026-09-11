@@ -59,6 +59,24 @@ QString ImportContext::GetBackupPath()
 bool ImportContext::SessionExists(SessionID sid)
 {
     Q_ASSERT(m_machine);
+
+    // Sessions imported earlier in this same run have already been written to disk, but they
+    // don't show up in the device's session list until Commit(). Loaders use this check to
+    // skip previously imported sessions, so the ones still pending must count as existing.
+    //
+    // Otherwise a session that appears in more than one folder of the same card (e.g. the
+    // summary-only chunks the device flushes into a Clear0/Clear1 folder when the card is
+    // cleared) gets imported a second time, and that second, less complete copy overwrites
+    // the full data already stored on disk.
+    m_sessionMutex.lock();
+    QMap<SessionID, Session *>::const_iterator it = m_sessions.constFind(sid);
+    bool pending = (it != m_sessions.constEnd() && it.value()->machine() == m_machine);
+    m_sessionMutex.unlock();
+
+    if (pending) {
+        return true;
+    }
+
     return m_machine->SessionExists(sid);
 }
 
