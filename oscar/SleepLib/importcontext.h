@@ -48,6 +48,7 @@ public:
     virtual Session* CreateSession(SessionID sid);
 
     // Write the session to disk and release its memory, adding it to the queue to be committed.
+    // Takes ownership of the session: a session rejected as a duplicate is deleted.
     virtual bool AddSession(Session* session);
     
     // Update the database to include all the newly added sessions.

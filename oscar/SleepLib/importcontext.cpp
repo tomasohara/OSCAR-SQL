@@ -88,6 +88,23 @@ Session* ImportContext::CreateSession(SessionID sid)
 
 bool ImportContext::AddSession(Session* session)
 {
+    SessionID sid = session->session();
+
+    // Never let a second copy of a session clobber the one already written to disk. The
+    // loaders are supposed to filter these out via SessionExists(), so reaching this point
+    // means something slipped through; discarding the duplicate is safer than overwriting
+    // data that may well be more complete.
+    m_sessionMutex.lock();
+    bool duplicate = m_sessions.contains(sid);
+    m_sessionMutex.unlock();
+
+    if (duplicate) {
+        qWarning() << "ImportContext::AddSession: session" << sid
+                   << "already imported in this run, discarding duplicate";
+        delete session;
+        return false;
+    }
+
     // Make sure the session will be saved.
     session->SetChanged(true);
 
@@ -97,7 +114,7 @@ bool ImportContext::AddSession(Session* session)
     // Write the session file to disk.
     bool ok = session->Store(session->machine()->getDataPath());
     if (!ok) {
-        qWarning() << "ImportContext::AddSession: Failed to store session" << session->session();
+        qWarning() << "ImportContext::AddSession: Failed to store session" << sid;
     }
 
     // Unload the memory-intensive data now that it's written to disk.
@@ -106,7 +123,7 @@ bool ImportContext::AddSession(Session* session)
     // TODO: Remove MachineLoader::addSession once all loaders use this.
     // Add the session to the database
     m_sessionMutex.lock();
-    m_sessions[session->session()] = session;
+    m_sessions[sid] = session;
     m_sessionMutex.unlock();
 
     return ok;
