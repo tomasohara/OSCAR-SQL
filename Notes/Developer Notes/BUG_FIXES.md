@@ -4,6 +4,34 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-09-12 - Czech UI still shows English day and month names in dates (#283)
+
+**Files:** `oscar/translation.cpp`
+
+A Czech user reported that the Welcome page shows "pátek 11. září 2026" but Statistics,
+Overview, device information and the calendar button show "Fri 11. Sep 2026" and
+"07 Jul 2026 (Tuesday)". Commit b071ac84 had already switched those call sites from
+`QDate::toString(format)` (always English names in Qt 6) to `QLocale().toString(date,
+format)` and added `QLocale::setDefault(QLocale(language))` after installing the
+translators, so the fix should have covered them.
+
+The root cause is the language code. OSCAR derives it from the catalogue filename, and the
+Czech catalogue is `Czech.cz.ts`, so `language` is `"cz"`. That is not an ISO 639 code
+(Czech is `cs`), and `QLocale("cz")` silently returns the C locale. The default locale was
+therefore English and every `QLocale().toString()` produced English names, while the
+Welcome page - which uses `QLocale::system()` directly - was correct on a Czech Windows.
+`English.en_UK.ts` has the same defect: territory `UK` is not ISO 3166 (`GB` is), so
+`QLocale("en_UK")` resolves to en_US formats.
+
+Renaming the catalogues would have needed a settings migration (the code is stored in
+QSettings) and touched the translation tooling, which keys on `cz` in several places.
+Instead the default locale is now built from `QTranslator::language()`, the language tag
+that `lrelease` embeds in the `.qm` from the `.ts` header (`cs_CZ` and `en_GB`
+respectively - verified in the compiled `Czech.cz.qm`), falling back to the filename code
+only if the tag is absent. All 31 catalogues declare a valid `language` attribute.
+
+---
+
 ## 2026-09-11 - SpO2 dotted lines: 95% and 99.5% (Max) lines indistinguishable (#281)
 
 **Files:** `oscar/SleepLib/schema.cpp`

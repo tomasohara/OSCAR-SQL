@@ -261,7 +261,16 @@ void initTranslations()
 
         // Set the default QLocale to match the selected language so that
         // QLocale().toString(date, format) produces localised day/month names.
-        QLocale::setDefault(QLocale(language));
+        // Prefer the language declared inside the .qm file over the filename code:
+        // some catalogues use codes that are not valid locale names (Czech.cz.ts
+        // declares cs_CZ; English.en_UK.ts declares en_GB), and QLocale() silently
+        // falls back to the C locale (English names) for an unrecognised code.
+        QString localeName = translator->language();
+        if (localeName.isEmpty()) {
+            localeName = language;
+        }
+        QLocale::setDefault(QLocale(localeName));
+        qDebug() << "Default locale set to" << QLocale().name() << "from" << localeName;
     } else {
         qDebug() << "Using default language" << language.toLocal8Bit().data();
     }
