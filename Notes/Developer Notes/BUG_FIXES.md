@@ -4,6 +4,36 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-09-11 - SpO2 dotted lines: 95% and 99.5% (Max) lines indistinguishable (#281)
+
+**Files:** `oscar/SleepLib/schema.cpp`
+
+Originally CrimsonNape/OSCAR-code #41. The reporter believed the 95% and 99.5% dotted
+lines on the SpO2 graph shared a line of code. They do not: `Day::calcPercentile()` and
+`Day::calcMax()` call `percentile()` with 0.95 and 0.995 respectively. The lines look
+identical for two reasons.
+
+SpO2 is integer-valued over a narrow range and `percentile()` returns an observed
+sample value, so the 95th and 99.5th percentiles often land on the same or adjacent
+integer (8 of 40 sessions in the test database were identical; most differed by 1-2).
+
+The real defect was the colour scheme. `adjustcolor()` derived the Min / Middle /
+Percentile / Max line colours by multiplying the channel's RGB components, plus a
+`rand() & 64` jitter. For a saturated primary base such as SpO2's pure blue (0,0,255)
+the red and green components are zero and stay zero, so all four lines came out
+(near-)pure blue - the same as the SpO2 plot and the hard-coded blue Lower Threshold
+line. The jitter was 0 or 64 per component, so the lines were frequently exactly the
+same colour, and different from run to run.
+
+Fix: replaced `adjustcolor()` with `calcLineColor()`, which rotates the base colour's
+hue by a fixed offset per calc type (-72, 72, 144, 216 degrees), spacing the four lines
+and the base colour evenly around the colour wheel. Greyscale bases (Snore, PS, Flow
+Limit, etc.) have no hue to rotate, so they are given a fixed saturated hue and a
+lightened value first. This changes the dotted-line colours on every waveform graph;
+the colours are not persisted anywhere, so there is no migration impact.
+
+---
+
 ## 2026-09-11 - PRS1: summary-only Clear0/Clear1 duplicates overwrite full sessions (#280)
 
 **Files:** `oscar/SleepLib/importcontext.cpp`, `oscar/SleepLib/importcontext.h`
