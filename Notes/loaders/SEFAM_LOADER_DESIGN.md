@@ -309,12 +309,14 @@ detected off-span (2 OA, 1 CA, 4 snore) and they sit at the detection
 boundaries; dropping them would disturb event counts validated against the
 manufacturer's report to within one event.
 
-**A session that is entirely blower-off gets no slices at all**, and a warning.
-An empty slice list silently means "no slice information", so `hours()` falls
-back to the full span — the opposite of the intent — but the alternative is
-worse: `Day::cph()` divides by `hours()` with no guard (`day.cpp:1109`, and
-`sph()` likewise), so a zero-usage day would produce inf/nan. One session on the
-validated card is in this state and overstates usage by 7 minutes out of 158 h.
+**A session that is entirely blower-off is skipped** (since 2026-09-13). It
+cannot be represented: an empty slice list means "no slice information", so
+`hours()` falls back to the full span and the session overstates usage — which is
+what happened until then, 7 minutes out of 158 h on the validated card — while
+all-off slices make `hours()` zero and `Day::cph()` / `Session::cph()` divide by
+it with no guard (`day.cpp:1109`, `session.cpp:2202`), which would store NaN in
+`session_channels`. Nothing in such a session survives the blower-off exclusion
+anyway, so `addMaskSlices()` returns false and `Open()` drops it with a warning.
 
 Two things this does **not** fix. The vendor's `Mask disconnected` column is a
 different measurement — it is non-zero on sessions where the blower never

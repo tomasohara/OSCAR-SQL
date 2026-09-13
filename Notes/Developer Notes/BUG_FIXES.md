@@ -4,6 +4,48 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-09-13 — SEFAM: rejected sessions counted as imported and leaked; all-blower-off sessions inflated usage
+
+**File:** `oscar/SleepLib/loader_plugins/sefam_loader.cpp`
+
+Both from an external code review of the loader.
+
+### 1. `Machine::AddSession()`'s return value was ignored
+
+`AddSession()` refuses a session that is a duplicate, has a zero start time, or is
+older than the profile's ignore-older-sessions cutoff (`machine.cpp:306-332`), and takes
+no ownership when it does. The loader called it, discarded the result, and incremented
+`imported` regardless — so a refused session was reported as imported, its span and
+usage were added to the run totals, and the `Session` leaked. The Apex loader is the
+pattern: check the return and delete on failure. Now done, with the session counted as
+skipped; `AddSession()` has already logged the reason.
+
+### 2. An entirely blower-off session was imported with its full span as usage
+
+`addMaskSlices()` returned early with no slices for a session in which the blower never
+ran. An empty slice list means "no slice information", so `Session::hours()` fell back to
+the full powered-on span — the opposite of the intent, and a known limitation recorded
+when the blower-off exclusion was written. It was reachable: every session with a log
+gets its six event lists whether or not any event fell in it, so the "no valid samples"
+check in `Open()` never caught these.
+
+The review suggested all-MaskOff slices, which make `hours()` zero. That is not safe:
+`Session::cph()` (`session.cpp:2202`) and `Day::cph()` (`day.cpp:1109`) divide by
+`hours()` with no guard, and `Session::cph()` runs in `UpdateSummaries()`, so 0/0 would
+be stored as NaN in `session_channels.cph`. The session-summary and Day AHI paths do
+guard, but those two do not.
+
+Such a session is now skipped instead: `addMaskSlices()` returns false and `Open()`
+drops it with a warning. Nothing in it would have survived the blower-off exclusion —
+every waveform sample is invalidated — so the only loss is the record of the machine
+having been switched on. One session on the validated Rêve card is affected: 7 minutes
+of overstated usage out of 158 h.
+
+**Not changed:** the unguarded divisions in `cph()`. Any loader that produces a
+zero-hour session with events hits them; a one-line guard in each would let an all-off
+session be kept with zero usage, which is what the vendor software shows. Left for a
+separate decision since it is core code, not loader code.
+
 ## 2026-09-12 - Czech UI still shows English day and month names in dates (#283)
 
 **Files:** `oscar/translation.cpp`
@@ -5661,11 +5703,11 @@ Deliberately not changed: scored events. Only 7 of 1568 fall inside an off-span 
 they sit at the detection boundaries; dropping them would disturb counts validated
 against the vendor to within one event.
 
-Known limitation: a session that is entirely blower-off gets no slices and a warning,
-so its usage falls back to full span (7 min out of 158 h on the validated card). An
-empty slice list means "no slice information", and the alternative is worse -
-`Day::cph()` divides by `hours()` unguarded (`day.cpp:1109`, and `sph()` likewise), so
-a zero-usage day would yield inf/nan.
+Known limitation *(closed 2026-09-13 — such sessions are now skipped; see that entry)*:
+a session that is entirely blower-off gets no slices and a warning, so its usage falls
+back to full span (7 min out of 158 h on the validated card). An empty slice list means
+"no slice information", and the alternative is worse - `Day::cph()` divides by `hours()`
+unguarded (`day.cpp:1109`, and `sph()` likewise), so a zero-usage day would yield inf/nan.
 
 ## 2026-08-04 - Session::avg() divides by only the last EventList's count (#260)
 

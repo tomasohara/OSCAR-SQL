@@ -595,11 +595,13 @@ static void clearSpans(QVector<bool> &valid,
     \param session   Session to append slices to.
     \param startMs   Session start.
     \param endMs     Session end.
-    \param offSpans  Blower-off spans, in milliseconds from \a startMs. */
-static void addMaskSlices(Session *session, qint64 startMs, qint64 endMs,
+    \param offSpans  Blower-off spans, in milliseconds from \a startMs.
+    \return false if the blower never ran, in which case no slices are set and
+            the session should not be imported — see the note at the end. */
+static bool addMaskSlices(Session *session, qint64 startMs, qint64 endMs,
                           const QVector<QPair<qint64, qint64>> &offSpans)
 {
-    if (offSpans.isEmpty()) { return; }      // ran throughout: the fallback is correct
+    if (offSpans.isEmpty()) { return true; }   // ran throughout: the fallback is correct
 
     QVector<SessionSlice> slices;
     qint64 cursor = startMs;
@@ -612,19 +614,18 @@ static void addMaskSlices(Session *session, qint64 startMs, qint64 endMs,
     }
     if (cursor < endMs) { slices.append(SessionSlice(cursor, endMs, MaskOn)); }
 
-    // An all-off session would leave hours() with nothing to sum, and an empty
-    // slice list silently means "no slice information" — which would report the
-    // full span, the opposite of the intent. Leave the slices off and say so.
-    bool anyOn = false;
+    // An all-off session cannot be represented: an empty slice list means "no
+    // slice information" and hours() then reports the full span, while all-off
+    // slices make hours() zero and Session::cph() and Day::cph() divide by it
+    // unguarded, which would store NaN in session_channels. The caller drops the
+    // session instead — the machine was powered on but never treated.
     for (const SessionSlice &s : slices) {
-        if (s.status == MaskOn) { anyOn = true; break; }
+        if (s.status == MaskOn) {
+            session->m_slices = slices;
+            return true;
+        }
     }
-    if (!anyOn) {
-        qWarning() << "Sefam: session" << session->session()
-                   << "is entirely blower-off; usage time will be its full span";
-        return;
-    }
-    session->m_slices = slices;
+    return false;
 }
 
 void SefamLoader::importWaveform(Session *session, const QVector<qint16> &values,
@@ -930,7 +931,16 @@ int SefamLoader::Open(const QString &path)
         // pressure down and inflate the session length.
         const QVector<QPair<qint64, qint64>> offSpans =
             findBlowerOffSpans(pre, preSpec.freq);
-        addMaskSlices(session, startMs, endMs, offSpans);
+        if (!addMaskSlices(session, startMs, endMs, offSpans)) {
+            // Powered on, blower never started. Nothing below would survive the
+            // blower-off exclusion anyway, and importing it would either count
+            // the whole span as usage or produce a zero-hour session that the
+            // per-hour indices cannot divide by.
+            qWarning() << "Sefam:" << d << "skipped — entirely blower-off";
+            delete session;
+            ++skipped;
+            continue;
+        }
 
         // Scored events are deliberately left alone. Only 7 of 1568 on the
         // validated card fall inside a blower-off span, and they sit at the
@@ -1149,9 +1159,19 @@ int SefamLoader::Open(const QString &path)
         }
 
         session->UpdateSummaries();
+        const qint64 usageMs = static_cast<qint64>(session->hours() * 3600000.0);
+
+        // AddSession() refuses a duplicate, a zero start time, or a session older
+        // than the profile's ignore-older-sessions cutoff, and takes no ownership
+        // when it does; it has already logged why. Counting it as imported would
+        // misreport the run, and dropping the pointer would leak the session.
+        if (!mach->AddSession(session)) {
+            delete session;
+            ++skipped;
+            continue;
+        }
         totalSpanMs  += endMs - startMs;
-        totalUsageMs += static_cast<qint64>(session->hours() * 3600000.0);
-        mach->AddSession(session);
+        totalUsageMs += usageMs;
         ++imported;
     }
 
