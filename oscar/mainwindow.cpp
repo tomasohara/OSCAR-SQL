@@ -1017,11 +1017,21 @@ int MainWindow::importCPAP(ImportPath import, const QString &message)
         return -1;
     }
 
+    import.loader->resetDailySummariesCalculated();
     int c = import.loader->Open(import.path);
 
     progdlg->setMessage(QObject::tr("Finishing up..."));
     QCoreApplication::processEvents();
     ctx->Commit();
+
+    // Loaders that add sessions with mach->AddSession() directly (BMC, G3X, Resvent)
+    // never call finishAddingSessions(), so nothing refreshed daily_summaries for the
+    // days they imported: new days were only filled in by the load-time reconcile, and
+    // re-imported days kept the row computed from the old data (#286). Do it here for
+    // them, inside the transaction so the rows commit together with the sessions.
+    if (c > 0 && !import.loader->dailySummariesCalculated()) {
+        p_profile->calculateDailySummaries();
+    }
 
     // Update lastImported timestamp for the machine(s) just imported.
     // This must happen inside the transaction so the update commits atomically with the sessions.
@@ -2685,6 +2695,8 @@ void MainWindow::purgeMachine(Machine * mach)
 
     // Technicially the above won't sessions under short session limit.. Using Purge to clean up the rest.
     if (mach->Purge(3478216)) {
+        const QDate firstDay = mach->FirstDay();
+        const QDate lastDay = mach->LastDay();
         mach->sessionlist.clear();
         mach->day.clear();
         QDir dir;
@@ -2699,6 +2711,20 @@ void MainWindow::purgeMachine(Machine * mach)
             MachineRepository repo;
             repo.remove(dbId);
         }
+
+        // Drop the daily_summaries rows this machine contributed to, then recompute the
+        // days the remaining machines still cover. Without this a Rebuild re-imports on
+        // top of rows computed from the purged data, and for loaders that never refresh
+        // daily_summaries at import time those stale rows survived indefinitely (#286).
+        if (firstDay.isValid() && lastDay.isValid()) {
+            ProfileRepository profileRepo;
+            ProfileData profileData = profileRepo.findByUsername(p_profile->user->userName());
+            if (profileData.id > 0) {
+                DailySummaryRepository summaryRepo;
+                summaryRepo.invalidateRange(profileData.id, firstDay, lastDay);
+            }
+        }
+        p_profile->calculateDailySummaries();
         // Remove the directory only if it is empty; leave it intact if anything unexpected remains.
         if (!dir.rmdir(path)) {
             qWarning() << "Could not remove device directory (may not be empty), leaving intact:" << path;

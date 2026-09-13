@@ -114,9 +114,20 @@ signals:
     void deviceIsUntested(MachineInfo & info);
     void deviceIsUnsupported(MachineInfo & info);
 
+    //! \brief True once finishAddingSessions() has refreshed daily_summaries during
+    //! the current import. Loaders that add sessions with Machine::AddSession()
+    //! directly never call finishAddingSessions(), so MainWindow::importCPAP() checks
+    //! this after Open() and runs the refresh itself when it is still false (#286).
+    bool dailySummariesCalculated() const { return m_dailySummariesCalculated; }
+
+    //! \brief Clear the flag before Open() so it reflects only the current import.
+    void resetDailySummariesCalculated() { m_dailySummariesCalculated = false; }
+
 protected:
     ImportContext* m_ctx;
     void finishAddingSessions();
+
+    bool m_dailySummariesCalculated;
 
     static QPixmap * genericCPAPPixmap;
 

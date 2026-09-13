@@ -6248,3 +6248,44 @@ hypopneas) and are truncated by the INTEGER columns, so it would have stored 5/6
 than a new schema version because v18 had only reached a few testers; databases already
 at v18 do not re-run it, so those testers need *Rebuild CPAP Data* (or a re-import) to
 correct their historical rows.
+
+## 2026-09-12 - daily_summaries not refreshed on import for BMC/G3X/Resvent, nor after a machine purge (#286)
+
+Found while cross-checking #285. For one BMC profile, 27 single-session days had
+`daily_summaries` rows (`mask_on_hours`, `ahi`) that no longer matched the sessions or the
+Daily page. The rows were timestamped the evening before a Rebuild CPAP Data that re-stored
+every session with different mask-on slices, and nothing had recomputed them since.
+
+Three things combined:
+
+- `bmc_loader.cpp` (whose `BmcLoaderTask` also serves `bmcg3x_loader.cpp`) and
+  `resvent_loader.cpp` add sessions with `mach->AddSession()` directly. They never call
+  `MachineLoader::finishAddingSessions()`, which is where every other loader's import runs
+  `Profile::calculateDailySummaries()`, and they do not use `ImportContext`, whose
+  `Commit()` recomputes the imported days. `MainWindow::importCPAP()` had no recompute of
+  its own, so for these loaders nothing refreshed `daily_summaries` at import time.
+- `MainWindow::purgeMachine()`, which Rebuild uses, deleted the sessions but left the
+  machine's `daily_summaries` rows in place.
+- The load-time reconcile added for #239 only fills *missing* days, so a stale existing row
+  never self-healed. New BMC days were therefore filled in on the next launch, but any day
+  that was re-imported (Rebuild, or BMC's routine re-import of the last day on the card)
+  kept the row computed from the earlier data.
+
+Fix: `MachineLoader` now records whether `finishAddingSessions()` ran during the current
+import (`dailySummariesCalculated()`, reset by `importCPAP()` before `Open()`), and
+`importCPAP()` runs `calculateDailySummaries()` itself, inside the import transaction, when
+sessions were imported and the loader did not. `purgeMachine()` now invalidates the purged
+machine's date range in `daily_summaries` and recomputes what the remaining machines still
+cover. No loader code was changed.
+
+Two other things turned up in the same cross-check and were left alone:
+
+- ResMed summary-only sessions carry fractional event counts (STR index x hours, e.g. 5.94
+  hypopneas). `ahi` is computed from the float counts and is right; the INTEGER count columns
+  in `daily_summaries`, `session_summaries` and `session_channels` truncate them, so a SQL
+  sum of counts divided by hours understates the AHI of such days by up to one event per
+  channel. `session_channels.cph` (REAL) is the exact rate - which is why the #285 backfill
+  sums `cph` rather than dividing the count columns.
+- `Session::LoadFromDatabase()` restores those counts as `qRound(cph * hours)`, so after a
+  reload the Daily page shows e.g. 1.81 where the import-time value was 1.8. At most half
+  an event; not worth a fix.

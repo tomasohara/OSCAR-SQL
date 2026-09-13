@@ -38,6 +38,7 @@ MachineLoader::MachineLoader() :QObject(nullptr)
     m_type = MT_UNKNOWN;
     m_status = NEUTRAL;
     m_ctx = nullptr;
+    m_dailySummariesCalculated = false;
 }
 
 MachineLoader::~MachineLoader()
@@ -85,6 +86,7 @@ void MachineLoader::finishAddingSessions()
     // so we always call calculateDailySummaries() regardless of new_sessions state
     if (p_profile) {
         p_profile->calculateDailySummaries();
+        m_dailySummariesCalculated = true;
         qDebug() << "MachineLoader::finishAddingSessions: Calculated daily summaries for imported data";
     }
 
