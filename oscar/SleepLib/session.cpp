@@ -2060,7 +2060,11 @@ EventDataType Session::rangeMax(ChannelID id, qint64 first, qint64 last)
 
 EventDataType Session::count(ChannelID id)
 {
-    int sum = 0;
+    // Counts can be fractional (ResMed summary-only sessions store STR index * hours),
+    // so the accumulator must not be an int: summing the AHI channel group into one
+    // truncated each channel's count and made StoreSummaryToDatabase() store a lower
+    // AHI than the Daily page shows (#288). Day::count() already uses EventDataType.
+    EventDataType sum = 0;
 
     if (const QVector<ChannelID> * group = ahiChannelGroup(id)) {
         for (int i = 0; i < group->size(); i++)

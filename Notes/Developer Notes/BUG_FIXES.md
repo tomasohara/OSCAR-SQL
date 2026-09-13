@@ -6307,3 +6307,20 @@ to one event per channel.
 
 All three sites now use `qRound()`. Existing rows are not rewritten; `session_channels.cph`
 is unaffected and remains the exact rate.
+
+## 2026-09-13 - Session::count() truncated fractional counts when summing the AHI group (#288)
+
+Found by an external review of the four commits above. `Session::count()` declared its
+accumulator as `int sum = 0;` (unchanged since 2021), and the channel-group path added
+for the CH/OH split (`bede825f`) does `sum += count(group->at(i))`, so each fractional
+per-channel count was truncated as it was added: `count(AllAhiChannels)` returned 5 for a
+ResMed summary-only session with 5.94 hypopneas. `Day::count()` uses an `EventDataType`
+accumulator, so the Daily page and `daily_summaries` were unaffected, but the #285 change
+to `StoreSummaryToDatabase()` divides `count(AllAhiChannels)` by `hours()`, so the next
+store of such a session would have written 5/6.6 = 0.76 where the Daily page and the
+v17 -> v18 backfill (sum of `session_channels.cph`) both give 0.9. `cph()` and `rdi` go
+through the same `count()`. No row in the test database shows it yet: every summary-only
+session there was stored before `bede825f`.
+
+The accumulator is now `EventDataType`. The event-list path stores the same `sum` into
+`m_cnt`, which is already an `EventDataType` hash, so nothing else changes.
