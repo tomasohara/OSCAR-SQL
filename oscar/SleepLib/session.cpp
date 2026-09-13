@@ -3346,30 +3346,23 @@ bool Session::StoreSummaryToDatabase()
         sessionSummaryData.maskOnHours = sessionSummaryData.hoursUsed;
     }
     
-    // Get AHI and RDI from cached values
-    // For summary-only sessions, calculate AHI from event counts since m_wavg[CPAP_AHI] won't be set
-    if (m_wavg.contains(CPAP_AHI)) {
-        sessionSummaryData.ahi = m_wavg[CPAP_AHI];
-    } else {
-        // Calculate AHI from event counts for summary-only sessions.
-        // count() walks ahiChannels, so this stays correct as channels are added and
-        // cannot drift from Day::calcAHI() the way the previous hand-rolled sum did
-        // (it omitted CPAP_AllApnea and added CPAP_RERA, i.e. it computed RDI).
-        if (sessionSummaryData.hoursUsed > 0) {
-            sessionSummaryData.ahi = count(AllAhiChannels) / sessionSummaryData.hoursUsed;
-        }
-    }
-    if (m_wavg.contains(CPAP_RDI)) {
-        sessionSummaryData.rdi = m_wavg[CPAP_RDI];
-    }
-
-    // Obstructive and central shares of the AHI. Always count-derived: no device
-    // reports them, so unlike ahi above there is no cached value to prefer. They sum
-    // to the count-derived AHI exactly; against a device-reported m_wavg[CPAP_AHI]
-    // they may differ slightly, the same way OSCAR's own AHI already can.
-    if (sessionSummaryData.hoursUsed > 0) {
-        sessionSummaryData.oahi = count(AllOahiChannels) / sessionSummaryData.hoursUsed;
-        sessionSummaryData.cahi = count(AllCahiChannels) / sessionSummaryData.hoursUsed;
+    // AHI, RDI, OAHI and CAHI are events per hour of mask-on time, exactly as
+    // Day::calcAHI() and friends compute them for the Daily page (hours() is
+    // mask-on time when slices exist, the full span otherwise, i.e. maskOnHours).
+    //
+    // Do NOT use m_wavg[CPAP_AHI] here.  No loader reports an AHI channel; CPAP_AHI
+    // is the rolling-window graph built by calcAHIGraph(), and its average is
+    // systematically below events/hour because events in the final window only
+    // contribute for the remaining session time.  Storing it made session_summaries
+    // disagree with both its own event-count columns and the Daily page (#285).
+    // count() walks ahiChannels, so this stays correct as channels are added.
+    const double indexHours = hours();
+    if (indexHours > 0) {
+        const double ahiEvents = count(AllAhiChannels);
+        sessionSummaryData.ahi = ahiEvents / indexHours;
+        sessionSummaryData.rdi = (ahiEvents + count(CPAP_RERA)) / indexHours;
+        sessionSummaryData.oahi = count(AllOahiChannels) / indexHours;
+        sessionSummaryData.cahi = count(AllCahiChannels) / indexHours;
     }
 
     // Event counts from cached values

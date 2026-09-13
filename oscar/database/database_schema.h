@@ -46,8 +46,11 @@ public:
      * - all_apnea_count closes a pre-existing gap: CPAP_AllApnea contributes to
      *   AHI but was never stored, so SQL could not reproduce the app's AHI for
      *   devices that report an undifferentiated apnea.
-     * - Purely additive. Pre-v18 rows keep 0 in all five columns until the day is
-     *   recalculated or re-imported; no backfill is performed.
+     * - Purely additive. Pre-v18 rows keep 0 in the OH/CH columns until the day is
+     *   recalculated or re-imported. all_apnea_count is backfilled from
+     *   session_channels, and session_summaries.ahi/rdi/oahi/cahi are recomputed
+     *   from the count columns / mask_on_hours (#285: earlier rows stored the
+     *   rolling AHI graph's average, not events per hour).
      *
      * Version 17: Per-device per-night time corrections (all device types)
      * - Added device_time_corrections table

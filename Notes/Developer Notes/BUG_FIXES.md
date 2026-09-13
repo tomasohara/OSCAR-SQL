@@ -6207,3 +6207,39 @@ already in the file.
 around the `<lengthvariant>` children, and the old code would have rewritten that
 whitespace had it ever met a translation marked both `type="unfinished"` and
 `variants="yes"`. No catalogue currently contains one.
+
+## 2026-09-12 - session_summaries.ahi disagreed with its own event counts and the Daily page (#285)
+
+A SQL report over `session_summaries` showed `ahi` below the value obtained by dividing
+the row's own event-count columns by its hours, and below what the Daily page shows for
+the same night. One ResMed session had 6 hypopneas in 8.07 h: Daily page and count/hours
+both give 0.74, the stored `ahi` was 0.68.
+
+`Session::StoreSummaryToDatabase()` preferred `m_wavg[CPAP_AHI]` whenever the session had
+that channel, falling back to count/hours only for summary-only sessions. The comment
+described the cached value as "device-reported", but no loader produces a `CPAP_AHI`
+channel: it is the rolling 60-minute AHI *graph* built by `calcAHIGraph()`. The average of
+that graph is not events per hour. Each event contributes to the rolling window for one
+hour after it occurs, or for the rest of the session if less than an hour remains, so
+events in the last hour are under-weighted and the graph average is systematically below
+count/hours. Replaying `calcAHIGraph()`'s loop over the stored hypopnea times of the
+example session reproduces the stored 0.6804 exactly (its last two events fall 43 min
+before the session end). `rdi` had the same defect and, because only the PRS1 loader gets
+a `CPAP_RDI` graph, was stored as 0 for every other device.
+
+`StoreSummaryToDatabase()` now derives `ahi`, `rdi`, `oahi` and `cahi` from event counts
+divided by `hours()` - mask-on time when slices exist, the full span otherwise - which is
+the denominator `Day::calcAHI()` uses for the Daily page and the one 1.7.1's per-session
+CSV export used (`count(AllAhiChannels) / sess->hours()`). It is also the `mask_on_hours`
+column, so the stored indices now agree with the `by Session` system report's
+count-based formulas. Previously `oahi`/`cahi` used `hoursUsed` (full span); they follow
+the same denominator now so OAHI + CAHI == AHI still holds per row.
+
+Existing rows are repaired by the v17 -> v18 migration, which now recomputes `ahi`,
+`rdi`, `oahi` and `cahi` for every `session_summaries` row from its count columns and
+`mask_on_hours` in two SQL UPDATEs (under a second for 56,000 rows on the test
+database), after first filling `all_apnea_count` from `session_channels` so the formula
+is complete for devices that report an undifferentiated apnea. It was folded into the
+existing v18 step rather than a new schema version because v18 had only reached a few
+testers; databases already at v18 do not re-run it, so those testers need
+*Rebuild CPAP Data* (or a re-import) to correct their historical rows.

@@ -1749,10 +1749,23 @@ bool DatabaseSchema::migrateV16ToV17(QSqlDatabase& db)
  * all_apnea_count, which contributes to AHI but had never been stored.
  *
  * Purely additive: five ALTER TABLE ADD COLUMNs per table, each with a DEFAULT so
- * existing rows stay valid. No backfill — pre-v18 rows read 0 in the new columns
- * until the day is recalculated or re-imported, which is a deliberate decision
- * (recalculating every historical day at upgrade time would be slow and, for days
- * whose original card is long gone, would not recover the OH/CH split anyway).
+ * existing rows stay valid. The OH/CH columns are not backfilled — pre-v18 rows read
+ * 0 in them until the day is recalculated or re-imported, which is a deliberate
+ * decision (recalculating every historical day at upgrade time would be slow and,
+ * for days whose original card is long gone, would not recover the OH/CH split
+ * anyway).
+ *
+ * Two session_summaries backfills are done in SQL, both cheap (well under a second
+ * for tens of thousands of rows) and both derived from data already in the database:
+ *  - all_apnea_count is filled from session_channels, where CPAP_AllApnea was always
+ *    counted, so the AHI formula below is complete for the devices that report it.
+ *  - ahi, rdi, oahi and cahi are recomputed as event counts / mask_on_hours. Every
+ *    row written before this migration stored the average of the rolling AHI graph
+ *    instead of events per hour (#285), so it disagreed with its own count columns
+ *    and with the Daily page; rdi was 0 for all but PRS1. This is the formula
+ *    Session::StoreSummaryToDatabase() now uses, and the one the by-Session report
+ *    already used. daily_summaries is not touched: its indices come from
+ *    Day::calcAHI() and were always correct.
  */
 bool DatabaseSchema::migrateV17ToV18(QSqlDatabase& db)
 {
@@ -1791,6 +1804,43 @@ bool DatabaseSchema::migrateV17ToV18(QSqlDatabase& db)
             }
         }
     }
+
+    // Backfill all_apnea_count from session_channels (CPAP_AllApnea = 0x1010), then
+    // recompute the per-session indices from the count columns. mask_on_hours is the
+    // denominator Day::calcAHI() uses; rows with no mask-on time get 0, as
+    // StoreSummaryToDatabase() stores for them.
+    static const char* const backfills[] = {
+        "UPDATE session_summaries SET all_apnea_count = COALESCE("
+        "  (SELECT sc.count FROM session_channels sc"
+        "    WHERE sc.session_id = session_summaries.session_id AND sc.channel_id = 4112), 0)"
+        " WHERE all_apnea_count = 0",
+
+        "UPDATE session_summaries SET"
+        " ahi = CASE WHEN mask_on_hours > 0 THEN"
+        "   (obstructive_count + clear_airway_count + hypopnea_count + obstructive_hypopnea_count"
+        "    + central_hypopnea_count + unclassified_count + all_apnea_count) / mask_on_hours"
+        "   ELSE 0 END,"
+        " rdi = CASE WHEN mask_on_hours > 0 THEN"
+        "   (obstructive_count + clear_airway_count + hypopnea_count + obstructive_hypopnea_count"
+        "    + central_hypopnea_count + unclassified_count + all_apnea_count + rera_count) / mask_on_hours"
+        "   ELSE 0 END,"
+        " oahi = CASE WHEN mask_on_hours > 0 THEN"
+        "   (obstructive_count + hypopnea_count + obstructive_hypopnea_count"
+        "    + unclassified_count + all_apnea_count) / mask_on_hours"
+        "   ELSE 0 END,"
+        " cahi = CASE WHEN mask_on_hours > 0 THEN"
+        "   (clear_airway_count + central_hypopnea_count) / mask_on_hours"
+        "   ELSE 0 END"
+    };
+    for (const char* sql : backfills) {
+        if (!q.exec(QString::fromLatin1(sql))) {
+            qCritical() << "DatabaseSchema: migrateV17ToV18: backfill failed:" << q.lastError().text();
+            DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV17ToV18", q);
+            db.rollback();
+            return false;
+        }
+    }
+    qDebug() << "DatabaseSchema: migrateV17ToV18: recomputed session_summaries indices";
 
     if (!setSchemaVersion(db, 18)) {
         qCritical() << "DatabaseSchema: migrateV17ToV18: setSchemaVersion failed";
