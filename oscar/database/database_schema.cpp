@@ -1759,13 +1759,13 @@ bool DatabaseSchema::migrateV16ToV17(QSqlDatabase& db)
  * for tens of thousands of rows) and both derived from data already in the database:
  *  - all_apnea_count is filled from session_channels, where CPAP_AllApnea was always
  *    counted, so the AHI formula below is complete for the devices that report it.
- *  - ahi, rdi, oahi and cahi are recomputed as event counts / mask_on_hours. Every
- *    row written before this migration stored the average of the rolling AHI graph
- *    instead of events per hour (#285), so it disagreed with its own count columns
- *    and with the Daily page; rdi was 0 for all but PRS1. This is the formula
- *    Session::StoreSummaryToDatabase() now uses, and the one the by-Session report
- *    already used. daily_summaries is not touched: its indices come from
- *    Day::calcAHI() and were always correct.
+ *  - ahi, rdi, oahi and cahi are recomputed as the sum of session_channels.cph over
+ *    the channels in each group (= events per mask-on hour). Every row written before
+ *    this migration stored the average of the rolling AHI graph instead of events per
+ *    hour (#285), so it disagreed with the Daily page; rdi was 0 for all but PRS1.
+ *    This equals what Session::StoreSummaryToDatabase() now computes.
+ *    daily_summaries is not touched: its indices come from Day::calcAHI() and were
+ *    always correct.
  */
 bool DatabaseSchema::migrateV17ToV18(QSqlDatabase& db)
 {
@@ -1806,9 +1806,17 @@ bool DatabaseSchema::migrateV17ToV18(QSqlDatabase& db)
     }
 
     // Backfill all_apnea_count from session_channels (CPAP_AllApnea = 0x1010), then
-    // recompute the per-session indices from the count columns. mask_on_hours is the
-    // denominator Day::calcAHI() uses; rows with no mask-on time get 0, as
-    // StoreSummaryToDatabase() stores for them.
+    // recompute the per-session indices by summing session_channels.cph over each
+    // channel group. cph is count / hours() as a REAL, so the sum is exactly what
+    // Session::StoreSummaryToDatabase() now computes. The integer count columns are
+    // NOT usable for this: ResMed summary-only sessions carry fractional counts
+    // (STR index * hours) that the INTEGER columns truncate, and dividing those
+    // would understate the AHI of every such session. A session with no rows in a
+    // group sums to NULL, hence the COALESCE to 0.
+    //
+    // Channel ids (schema.cpp): ClearAirway 4097, Obstructive 4098, Hypopnea 4099,
+    // Apnea 4100, RERA 4102, AllApnea 4112, ObstructiveHypopnea 4113,
+    // CentralHypopnea 4114. Groups follow ahiChannels / oahiChannels / cahiChannels.
     static const char* const backfills[] = {
         "UPDATE session_summaries SET all_apnea_count = COALESCE("
         "  (SELECT sc.count FROM session_channels sc"
@@ -1816,21 +1824,18 @@ bool DatabaseSchema::migrateV17ToV18(QSqlDatabase& db)
         " WHERE all_apnea_count = 0",
 
         "UPDATE session_summaries SET"
-        " ahi = CASE WHEN mask_on_hours > 0 THEN"
-        "   (obstructive_count + clear_airway_count + hypopnea_count + obstructive_hypopnea_count"
-        "    + central_hypopnea_count + unclassified_count + all_apnea_count) / mask_on_hours"
-        "   ELSE 0 END,"
-        " rdi = CASE WHEN mask_on_hours > 0 THEN"
-        "   (obstructive_count + clear_airway_count + hypopnea_count + obstructive_hypopnea_count"
-        "    + central_hypopnea_count + unclassified_count + all_apnea_count + rera_count) / mask_on_hours"
-        "   ELSE 0 END,"
-        " oahi = CASE WHEN mask_on_hours > 0 THEN"
-        "   (obstructive_count + hypopnea_count + obstructive_hypopnea_count"
-        "    + unclassified_count + all_apnea_count) / mask_on_hours"
-        "   ELSE 0 END,"
-        " cahi = CASE WHEN mask_on_hours > 0 THEN"
-        "   (clear_airway_count + central_hypopnea_count) / mask_on_hours"
-        "   ELSE 0 END"
+        " ahi = COALESCE((SELECT SUM(sc.cph) FROM session_channels sc"
+        "   WHERE sc.session_id = session_summaries.session_id"
+        "     AND sc.channel_id IN (4097, 4098, 4099, 4100, 4112, 4113, 4114)), 0),"
+        " rdi = COALESCE((SELECT SUM(sc.cph) FROM session_channels sc"
+        "   WHERE sc.session_id = session_summaries.session_id"
+        "     AND sc.channel_id IN (4097, 4098, 4099, 4100, 4102, 4112, 4113, 4114)), 0),"
+        " oahi = COALESCE((SELECT SUM(sc.cph) FROM session_channels sc"
+        "   WHERE sc.session_id = session_summaries.session_id"
+        "     AND sc.channel_id IN (4098, 4099, 4100, 4112, 4113)), 0),"
+        " cahi = COALESCE((SELECT SUM(sc.cph) FROM session_channels sc"
+        "   WHERE sc.session_id = session_summaries.session_id"
+        "     AND sc.channel_id IN (4097, 4114)), 0)"
     };
     for (const char* sql : backfills) {
         if (!q.exec(QString::fromLatin1(sql))) {

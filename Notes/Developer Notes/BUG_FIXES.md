@@ -6236,10 +6236,15 @@ count-based formulas. Previously `oahi`/`cahi` used `hoursUsed` (full span); the
 the same denominator now so OAHI + CAHI == AHI still holds per row.
 
 Existing rows are repaired by the v17 -> v18 migration, which now recomputes `ahi`,
-`rdi`, `oahi` and `cahi` for every `session_summaries` row from its count columns and
-`mask_on_hours` in two SQL UPDATEs (under a second for 56,000 rows on the test
-database), after first filling `all_apnea_count` from `session_channels` so the formula
-is complete for devices that report an undifferentiated apnea. It was folded into the
-existing v18 step rather than a new schema version because v18 had only reached a few
-testers; databases already at v18 do not re-run it, so those testers need
-*Rebuild CPAP Data* (or a re-import) to correct their historical rows.
+`rdi`, `oahi` and `cahi` for every `session_summaries` row as the sum of
+`session_channels.cph` over each channel group, in two SQL UPDATEs (under a second for
+56,000 rows on the test database), after first filling `all_apnea_count` from
+`session_channels`. `cph` is `count / hours()` kept as a REAL, so the sum is exactly the
+value the fixed `StoreSummaryToDatabase()` produces. The first version of the backfill
+divided the integer count columns by `mask_on_hours` instead; that is wrong for ResMed
+summary-only sessions, whose counts are fractional (STR index x hours, e.g. 5.94
+hypopneas) and are truncated by the INTEGER columns, so it would have stored 5/6.6 =
+0.76 where the Daily page shows 0.9. It was folded into the existing v18 step rather
+than a new schema version because v18 had only reached a few testers; databases already
+at v18 do not re-run it, so those testers need *Rebuild CPAP Data* (or a re-import) to
+correct their historical rows.
