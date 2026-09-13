@@ -302,17 +302,19 @@ DailySummaryData DailySummaryRepository::calculateFromDay(Day* day)
         }
     }
 
-    // Event counts using Day's count() method
-    data.obstructiveCount = static_cast<int>(day->count(CPAP_Obstructive));
-    data.unclassifiedCount = static_cast<int>(day->count(CPAP_Apnea));
-    data.hypopneaCount = static_cast<int>(day->count(CPAP_Hypopnea));
-    data.reraCount = static_cast<int>(day->count(CPAP_RERA));
-    data.clearAirwayCount = static_cast<int>(day->count(CPAP_ClearAirway));
-    data.obstructiveHypopneaCount = static_cast<int>(day->count(CPAP_ObstructiveHypopnea));
-    data.centralHypopneaCount = static_cast<int>(day->count(CPAP_CentralHypopnea));
+    // Event counts using Day's count() method. Day::count() is a float sum and can be
+    // fractional (ResMed summary-only sessions store STR index * hours), so round to
+    // the nearest event; static_cast<int> truncated and understated those days.
+    data.obstructiveCount = qRound(day->count(CPAP_Obstructive));
+    data.unclassifiedCount = qRound(day->count(CPAP_Apnea));
+    data.hypopneaCount = qRound(day->count(CPAP_Hypopnea));
+    data.reraCount = qRound(day->count(CPAP_RERA));
+    data.clearAirwayCount = qRound(day->count(CPAP_ClearAirway));
+    data.obstructiveHypopneaCount = qRound(day->count(CPAP_ObstructiveHypopnea));
+    data.centralHypopneaCount = qRound(day->count(CPAP_CentralHypopnea));
     // CPAP_AllApnea contributes to AHI but was never stored before schema v18, which
     // is why SQL sums over these columns used to disagree with the stored ahi.
-    data.allApneaCount = static_cast<int>(day->count(CPAP_AllApnea));
+    data.allApneaCount = qRound(day->count(CPAP_AllApnea));
     
     // Pressure statistics using Day's aggregation methods
     if (day->channelHasData(CPAP_Pressure)) {

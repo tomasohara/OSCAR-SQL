@@ -2919,7 +2919,11 @@ bool Session::StoreToDatabase()
         for (ChannelID id : m_availableChannels) {
             SessionChannelData channel;
             channel.channelId = id;
-            channel.count = m_cnt.value(id, 0);
+            // Counts are EventDataType and can be fractional (ResMed summary-only
+            // sessions store STR index * hours). Round to the nearest event, as
+            // LoadFromDatabase() does when it rebuilds them from cph, rather than
+            // letting the int conversion truncate.
+            channel.count = qRound(m_cnt.value(id, 0));
             channel.sum = m_sum.value(id, 0);
             channel.avg = m_avg.value(id, 0);
             channel.wavg = m_wavg.value(id, 0);
@@ -3365,34 +3369,36 @@ bool Session::StoreSummaryToDatabase()
         sessionSummaryData.cahi = count(AllCahiChannels) / indexHours;
     }
 
-    // Event counts from cached values
+    // Event counts from cached values. They can be fractional (ResMed summary-only
+    // sessions store STR index * hours), so round to the nearest event rather than
+    // letting the int fields truncate; this matches what LoadFromDatabase() restores.
     if (m_cnt.contains(CPAP_Obstructive)) {
-        sessionSummaryData.obstructiveCount = m_cnt[CPAP_Obstructive];
+        sessionSummaryData.obstructiveCount = qRound(m_cnt[CPAP_Obstructive]);
     }
     if (m_cnt.contains(CPAP_ClearAirway)) {
-        sessionSummaryData.clearAirwayCount = m_cnt[CPAP_ClearAirway];
+        sessionSummaryData.clearAirwayCount = qRound(m_cnt[CPAP_ClearAirway]);
     }
     if (m_cnt.contains(CPAP_Hypopnea)) {
-        sessionSummaryData.hypopneaCount = m_cnt[CPAP_Hypopnea];
+        sessionSummaryData.hypopneaCount = qRound(m_cnt[CPAP_Hypopnea]);
     }
     if (m_cnt.contains(CPAP_ObstructiveHypopnea)) {
-        sessionSummaryData.obstructiveHypopneaCount = m_cnt[CPAP_ObstructiveHypopnea];
+        sessionSummaryData.obstructiveHypopneaCount = qRound(m_cnt[CPAP_ObstructiveHypopnea]);
     }
     if (m_cnt.contains(CPAP_CentralHypopnea)) {
-        sessionSummaryData.centralHypopneaCount = m_cnt[CPAP_CentralHypopnea];
+        sessionSummaryData.centralHypopneaCount = qRound(m_cnt[CPAP_CentralHypopnea]);
     }
     if (m_cnt.contains(CPAP_RERA)) {
-        sessionSummaryData.reraCount = m_cnt[CPAP_RERA];
+        sessionSummaryData.reraCount = qRound(m_cnt[CPAP_RERA]);
     }
     // Also handle CPAP_Apnea (unknown/unclassified apnea) - store in unclassifiedCount
     if (m_cnt.contains(CPAP_Apnea)) {
-        sessionSummaryData.unclassifiedCount = m_cnt[CPAP_Apnea];
+        sessionSummaryData.unclassifiedCount = qRound(m_cnt[CPAP_Apnea]);
     }
     // CPAP_AllApnea is the undifferentiated apnea a few devices report. It counts
     // towards AHI, so leaving it unstored made SQL sums over these columns disagree
     // with the stored ahi for those devices (schema v18 added the column).
     if (m_cnt.contains(CPAP_AllApnea)) {
-        sessionSummaryData.allApneaCount = m_cnt[CPAP_AllApnea];
+        sessionSummaryData.allApneaCount = qRound(m_cnt[CPAP_AllApnea]);
     }
 
     // Pressure statistics from cached values

@@ -6278,14 +6278,32 @@ sessions were imported and the loader did not. `purgeMachine()` now invalidates 
 machine's date range in `daily_summaries` and recomputes what the remaining machines still
 cover. No loader code was changed.
 
-Two other things turned up in the same cross-check and were left alone:
+Two other things turned up in the same cross-check. The first is fixed as #287 below; the
+second is left alone:
 
 - ResMed summary-only sessions carry fractional event counts (STR index x hours, e.g. 5.94
   hypopneas). `ahi` is computed from the float counts and is right; the INTEGER count columns
-  in `daily_summaries`, `session_summaries` and `session_channels` truncate them, so a SQL
-  sum of counts divided by hours understates the AHI of such days by up to one event per
-  channel. `session_channels.cph` (REAL) is the exact rate - which is why the #285 backfill
-  sums `cph` rather than dividing the count columns.
+  in `daily_summaries`, `session_summaries` and `session_channels` truncated them (#287).
+  `session_channels.cph` (REAL) is the exact rate - which is why the #285 backfill sums
+  `cph` rather than dividing the count columns.
 - `Session::LoadFromDatabase()` restores those counts as `qRound(cph * hours)`, so after a
   reload the Daily page shows e.g. 1.81 where the import-time value was 1.8. At most half
   an event; not worth a fix.
+
+## 2026-09-12 - Fractional event counts truncated, not rounded, when stored (#287)
+
+ResMed summary-only sessions get their event counts as STR index x hours
+(`resmed_loader.cpp`, `setCount(CPAP_Hypopnea, R.hi * sess->hours())`), so `m_cnt` holds
+values like 5.94. Commit `23d99481` (2026-02-02) made `LoadFromDatabase()` rebuild those
+counts as `qRound(cph * hours)`, but the three places that write them never got the same
+treatment and converted float to int by truncation: `session_channels.count`
+(`session.cpp`, `channel.count = m_cnt.value(id, 0)`), the `session_summaries` count
+fields (`StoreSummaryToDatabase()`), and the `daily_summaries` count fields
+(`DailySummaryRepository::calculateFromDay()`, `static_cast<int>`). The database therefore
+held the floor while the app showed the rounded value: in the test database all 331
+decisive summary-only ResMed rows (fraction >= .5) stored the floor - 5.81 -> 5,
+16.71 -> 16, 0.56 -> 0 - and SQL sums over the count columns understated those days by up
+to one event per channel.
+
+All three sites now use `qRound()`. Existing rows are not rewritten; `session_channels.cph`
+is unaffected and remains the exact rate.
