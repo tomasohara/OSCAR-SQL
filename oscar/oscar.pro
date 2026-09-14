@@ -323,6 +323,7 @@ SOURCES += \
     sqleditor.cpp \
     reportmanager.cpp \
     reportvarietyeditor.cpp \
+    datafolderdialog.cpp \
     importprofile.cpp \
     profileimporter.cpp \
     logger.cpp \
@@ -509,6 +510,7 @@ HEADERS  += \
     sqleditor.h \
     reportmanager.h \
     reportvarietyeditor.h \
+    datafolderdialog.h \
     importprofile.h \
     profileimporter.h \
     mainwindow.h \

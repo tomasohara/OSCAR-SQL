@@ -39,6 +39,7 @@
 #include "version.h"
 #include "logger.h"
 #include "mainwindow.h"
+#include "datafolderdialog.h"
 #include "SleepLib/profiles.h"
 #include "translation.h"
 #include "speedcheck.h"
@@ -647,6 +648,18 @@ int main(int argc, char *argv[]) {
 #endif
     QStringList args = mainapp.arguments();
 
+    // Everything shown before the preferences are loaded (language choice, data folder
+    // setup, startup warnings) would otherwise use the platform default font, which on
+    // Windows is a point smaller than OSCAR's own default. Use OSCAR's default size now;
+    // setApplicationFont() applies the user's preference once it is available.
+    {
+        QFont startupFont = QApplication::font();
+        if (startupFont.pointSize() < DefaultApplicationFontSize) {
+            startupFont.setPointSize(DefaultApplicationFontSize);
+            QApplication::setFont(startupFont);
+        }
+    }
+
 #ifdef Q_OS_WIN
     // QMessageBox must come after the application is created. The graphics engine has to be selected before.
     if (oscarCrashed) {
@@ -673,6 +686,9 @@ int main(int argc, char *argv[]) {
     ////////////////////////////////////////////////////////////////////////////////////////////
     bool force_data_dir = false;
     QString load_profile; // null profile means no --profile param
+    QString dataDirArg;   // resolved --datadir path, empty if not given
+    // Data folder recorded before this launch, so a cancelled first-time setup can put it back.
+    const QString appDataAtLaunch = settings.value("Settings/AppData").toString();
     for (int i = 1; i < args.size(); i++) {
         if ((args[i] == "--language") || (args[i] == "--l") ) {
             settings.setValue(LangSetting,"");
@@ -701,7 +717,11 @@ int main(int argc, char *argv[]) {
                     datadir = homeDocs+datadir;
                     qDebug() << "--datadir was:" << datadirwas << "; --datadir is:" << datadir;
                 }
-                SetAppData(datadir);
+                // In memory only for now: the folder is recorded in settings once it is
+                // known to exist (or has been created), so that cancelling the setup
+                // dialogs for a missing folder leaves the previously recorded one in place.
+                dataDirArg = datadir;
+                SetAppData(datadir, false);
 //            force_data_dir = true;
             } else {
                 optionExit(2,"Missing argument to --datadir\n");
@@ -808,74 +828,76 @@ int main(int argc, char *argv[]) {
     ////////////////////////////////////////////////////////////////////////////////////////////
     bool haveNewFolder = false;
 
-    if (!settings.contains("Settings/AppData")) {       // This is first time execution
-        SetAppData(homeDocs + getModifiedAppData());    // set up new data directory path
-        qDebug() << "First time: Setting " + GetAppData();
+    // GetAppData() is now --datadir if given, else the folder recorded in settings, else
+    // (first run) a fallback that is never used: the setup dialog decides. Nothing has been
+    // written to settings yet: that happens only once a folder is confirmed below, so
+    // cancelling here leaves the previously recorded folder — or a genuine first-run
+    // state — untouched.
+    const bool firstRun = dataDirArg.isEmpty() && !settings.contains("Settings/AppData");
+    if (firstRun)
+        qDebug() << "First time: no data folder recorded";
+
+    if (!force_data_dir && (firstRun || !QDir(GetAppData()).exists())) {
+        // Either a first run or the recorded folder has gone (moved, deleted, drive or
+        // cloud mirror not mounted). Creating a folder and finding one are separate
+        // paths: the single "choose or create" picker used before led many users to
+        // hand back the intended parent folder, putting the database in Documents.
+        const QString missingPath = firstRun ? QString() : QDir::cleanPath(GetAppData());
+        // The setup dialog always suggests the default folder name; the location is where
+        // the missing folder used to be, or Documents on a first run.
+        const QString suggestedLocation = missingPath.isEmpty() ? QDir::cleanPath(homeDocs)
+                                                                : QFileInfo(missingPath).absolutePath();
+        QString chosen;
+
+        while (chosen.isEmpty()) {
+            const StartupChoice choice = showStartupChoice(missingPath);
+
+            if (choice == StartupChoice::Cancel) {
+                QMessageBox::information(nullptr, QObject::tr("Exiting"),
+                                         QObject::tr("As you did not select a data folder, OSCAR will exit.")+"\n"+
+                                         QObject::tr("Next time you run OSCAR, you will be asked again."));
+                return 0;
+            }
+
+            if (choice == StartupChoice::FirstUse) {
+                DataFolderCreateDialog dlg(DataFolderCreateDialog::Mode::Startup,
+                                           suggestedLocation, STR_AppData);
+                if (dlg.exec() == QDialog::Accepted)
+                    chosen = dlg.folderPath();
+                continue;                       // Cancel returns to the startup choice
+            }
+
+            // StartupChoice::FindExisting — locate an existing OSCAR 2 data folder.
+            QString startDir = missingPath.isEmpty() ? homeDocs : QFileInfo(missingPath).absolutePath();
+            for (;;) {
+                QString datadir = QFileDialog::getExistingDirectory(nullptr,
+                                      QObject::tr("Locate your OSCAR 2 data folder"), startDir,
+                                      QFileDialog::ShowDirsOnly | nativeDialogOption());
+                if (datadir.isEmpty())
+                    break;                      // Cancel returns to the startup choice
+
+                const DataFolderStatus status = classifyDataFolder(datadir);
+                if (status == DataFolderStatus::Oscar2) {
+                    chosen = datadir;
+                    break;
+                }
+                QString why = (status == DataFolderStatus::Oscar1)
+                                  ? QObject::tr("This folder contains OSCAR 1.x data, not OSCAR 2 data.")
+                                  : QObject::tr("This folder does not contain an OSCAR 2 database.");
+                QMessageBox::warning(nullptr, QObject::tr("Not an OSCAR 2 data folder"),
+                                     why + "\n\n" + QDir::toNativeSeparators(datadir) + "\n\n" +
+                                     QObject::tr("Choose another folder, or Cancel to return to the previous screen."));
+                startDir = datadir;
+            }
+        }
+
+        SetAppData(chosen);
+        qDebug() << "Data folder selected:" << chosen;
     }
-
-    QDir dir(GetAppData());
-
-    if ( ! dir.exists() ) {             // directory doesn't exist, verify user's choice
-        if ( ! force_data_dir ) {       // unless they explicitly selected it by --datadir param
-            if (QMessageBox::question(nullptr, STR_MessageBox_Question,
-                                      QObject::tr("OSCAR will set up a folder for your data.")+"\n"+
-                                      QObject::tr("If you have been using an older version of OSCAR 1.x,") + "\n" +
-                                      QObject::tr("OSCAR can copy your old data to this folder later.")+"\n"+
-                                      QObject::tr("We suggest you use this folder: ")+QDir::toNativeSeparators(GetAppData())+"\n"+
-                                      QObject::tr("Click Ok to accept this, or No if you want to use a different folder.") + "\n",
-                                      QMessageBox::Ok | QMessageBox::No, QMessageBox::Ok) == QMessageBox::No) {
-                // User wants a different folder for data
-                bool change_data_dir = true;
-                while (change_data_dir) {           // Create or select an acceptable folder
-                    QString datadir = QFileDialog::getExistingDirectory(nullptr,
-                                      QObject::tr("Choose or create a new folder for OSCAR data"), homeDocs, QFileDialog::ShowDirsOnly | nativeDialogOption());
-
-                    if (datadir.isEmpty()) {        // User hit Cancel instead of selecting or creating a folder
-                        QMessageBox::information(nullptr, QObject::tr("Exiting"),
-                                                 QObject::tr("As you did not select a data folder, OSCAR will exit.")+"\n"+
-                                                 QObject::tr("Next time you run OSCAR, you will be asked again."));
-                        return 0;
-                    } else {                        // We have a folder, see if is already an OSCAR folder
-                        QDir dir(datadir);
-                        QFile prefFile(datadir + "/Preferences.xml");
-                        QDir  dirProfiles(datadir + "/Profiles");
-                        QFile dbFile(datadir + "/oscar.db");
-
-                        if (dbFile.exists() && dirProfiles.exists()) {     // It has a database file and a Profiles directory
-                            SetAppData(datadir);
-                            qDebug() << "Changing data folder to" << datadir;
-                            break;       // It is an OSCAR 2.0 folder. Use it.
-                        }
-
-                        if (prefFile.exists() && dirProfiles.exists()) {     // It has a Preferences.xml file and a Profiles directory
-                            // It's an OSCAR 1.x directory -- cannot use it
-                            QMessageBox::question(nullptr, STR_MessageBox_Warning,
-                                                      QObject::tr("The folder you chose is for OSCAR 1.x. You must use a different folder for OSCAR 2.0.") +
-                                                          +"\n\n" + datadir, QMessageBox::Ok);
-                            continue;   // Nope, don't use it, go around the loop again
-                        }
-
-                        if (!dirProfiles.exists() || !dbFile.exists()) {       // It doesn't have a database or a Profiles directory in it
-                            if (dir.count() > 2) {  // but it has more than dot and dotdot
-                                // Not a new OSCAR 2.0 directory.. nag the user.
-                                if (QMessageBox::question(nullptr, STR_MessageBox_Warning,
-                                                          QObject::tr("The folder you chose is not empty, nor does it already contain valid OSCAR data.") +
-                                                          "\n\n"+QObject::tr("Are you sure you want to use this folder?")+"\n\n" +
-                                                          datadir, QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) {
-                                    continue;   // If no, don't use it, go around the loop again
-                                } // User responded "yes"
-                            }
-                            SetAppData(datadir);
-                            qDebug() << "Changing data folder to" << datadir;
-                            break;
-                        }
-                    }
-                }           // the while loop
-            }           // user wants a different folder
-        }           // user used --datadir folder to select a folder
-    }           // The folder doesn't exist
     else {
         qDebug() << "AppData folder already exists, so ...";
+        if (!dataDirArg.isEmpty())
+            SetAppData(dataDirArg);         // --datadir folder exists: record it for next time
     }
     qDebug().noquote() << "Using " + GetAppData() + " as OSCAR data folder";
 
@@ -1098,10 +1120,42 @@ int main(int argc, char *argv[]) {
     ///////////////////////////////////////////////////////////////////////////////////////////
     if (haveNewFolder)
     {
-        if (QMessageBox::question(nullptr, QObject::tr("Migrate Data from OSCAR 1.x?"),
-                                  QObject::tr("On the next screen OSCAR will ask you to select a folder with OSCAR 1.x data") +"\n" +
-                                  QObject::tr("Click [OK] to go to the next screen or [No] if you do not wish to use any OSCAR 1.x data."),
-                                  QMessageBox::Ok|QMessageBox::No, QMessageBox::Ok) == QMessageBox::Ok) {
+        const MigrationChoice choice = showMigrationChoice();
+
+        if (choice == MigrationChoice::Cancel) {
+            // The user has backed out of setting up this folder. Release everything that
+            // holds a file open inside it, remove it, and point settings back at whatever
+            // was in use before, so the next launch does not come straight back here.
+            const QString newFolder = GetAppData();
+            qDebug() << "Setup cancelled at the migration step; removing new data folder" << newFolder;
+            DatabaseManager::instance().close();
+            lockFile.unlock();
+            shutdownLogger();                   // closes the debug log inside the folder
+            if (!QDir(newFolder).removeRecursively())
+                qWarning() << "Unable to remove" << newFolder;
+            RecentDatabases::remove(newFolder);
+
+            // Prefer the folder recorded before this launch (after a Database ▸ New relaunch
+            // that is the database the user came from). If nothing was recorded, or it was
+            // this same folder, fall back to the most recently used remaining database, and
+            // to a first run if there is none.
+            QString restore = appDataAtLaunch;
+            if (restore.isEmpty() || QDir::cleanPath(restore).compare(QDir::cleanPath(newFolder), Qt::CaseInsensitive) == 0) {
+                const QStringList recent = RecentDatabases::entries();
+                restore = recent.isEmpty() ? QString() : recent.first();
+            }
+            if (restore.isEmpty())
+                settings.remove("Settings/AppData");
+            else
+                settings.setValue("Settings/AppData", restore);
+            // Put the dirty-shutdown flags back as they were for the previous database.
+            settings.setValue(DBCleanShutdownKey, prevShutdownClean);
+            settings.setValue(DBLastPathKey, prevShutdownPath);
+            settings.sync();
+            return 0;
+        }
+
+        if (choice == MigrationChoice::Migrate) {
             migrateFromOSCAR( GetAppData() );              // doesn't matter if no migration
             // Migrate any .shg files copied in by the 1.x importer
             importLegacyNamedLayouts();

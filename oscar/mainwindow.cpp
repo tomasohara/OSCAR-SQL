@@ -96,6 +96,7 @@
 #include "exports/journalnotesdialog.h"
 #include "exports/exportcsv.h"
 #include "importprofile.h"
+#include "datafolderdialog.h"
 #include "profileimporter.h"
 #include "SleepLib/schema.h"
 #include "Graphs/glcommon.h"
@@ -3211,21 +3212,15 @@ void MainWindow::populateRecentDatabasesMenu()
 
 void MainWindow::on_actionDatabaseNew_triggered()
 {
-    QString path = QFileDialog::getExistingDirectory(this,
-        tr("Select or Create an Empty Folder for New Database"),
-        QFileInfo(GetAppData()).absolutePath(),
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    if (path.isEmpty())
+    // OSCAR creates the folder from a name and a location, rather than asking the user to
+    // create one inside a file picker (which often ended with the parent folder selected).
+    // The dialog has already validated and created the folder when it returns Accepted.
+    DataFolderCreateDialog dlg(DataFolderCreateDialog::Mode::NewDatabase,
+                               QFileInfo(GetAppData()).absolutePath(), STR_AppData, this);
+    if (dlg.exec() != QDialog::Accepted)
         return;
 
-    if (QFileInfo::exists(path + "/oscar.db")) {
-        QMessageBox::warning(this, tr("New Database"),
-            tr("The selected folder already contains an OSCAR database.\n"
-               "Use File ▸ Database ▸ Open to open an existing database."));
-        return;
-    }
-
-    switchToDatabase(path);
+    switchToDatabase(dlg.folderPath());
 }
 
 void MainWindow::on_actionDatabaseOpen_triggered()
@@ -3237,7 +3232,14 @@ void MainWindow::on_actionDatabaseOpen_triggered()
     if (path.isEmpty())
         return;
 
-    if (!QFileInfo::exists(path + "/oscar.db")) {
+    const DataFolderStatus status = classifyDataFolder(path);
+    if (status == DataFolderStatus::Oscar1) {
+        QMessageBox::warning(this, tr("Open Database"),
+            tr("The selected folder contains OSCAR 1.x data, which OSCAR 2 cannot open directly.") + "\n\n" +
+            tr("To bring that data into OSCAR 2, use File ▸ Profiles ▸ Import from OSCAR..."));
+        return;
+    }
+    if (status != DataFolderStatus::Oscar2) {
         QMessageBox::warning(this, tr("Open Database"),
             tr("The selected folder does not contain an OSCAR database.\n"
                "Please select a folder that contains an oscar.db file."));

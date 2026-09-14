@@ -4,6 +4,56 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-09-13 - First-run setup let users pick the parent folder instead of creating OSCAR20_Data (#291)
+
+**Files:** `oscar/datafolderdialog.h/.cpp` (new), `oscar/main.cpp`, `oscar/mainwindow.cpp`,
+`oscar/SleepLib/preferences.h/.cpp`, `oscar/oscar.pro`
+
+When OSCAR had no data folder (first run, or the recorded folder had gone) it asked a
+yes/no question and then, for "No", showed one directory picker titled "Choose or create a
+new folder for OSCAR data". Users did not realise they had to create the new folder inside
+the picker before returning it, so they handed back the intended parent - usually Documents
+- and OSCAR initialised its database there. File > Database > New used the same picker and
+had the same failure mode. A second, smaller defect: the default path was written to
+`Settings/AppData` before the user had chosen anything, so cancelling on a first run made
+the next launch look like a lost folder; `--datadir` did the same, persisting a path the
+moment it was parsed even if the folder did not exist and the user then cancelled.
+
+Creating a folder and finding one are now separate paths:
+
+- **OSCAR 2 Startup** offers *First Use of OSCAR 2* / *Find my OSCAR 2 data folder* /
+  Cancel. When a recorded folder is missing, its path is shown and *Find* is the default.
+- **OSCAR 2 Initial Setup** (`DataFolderCreateDialog`) takes the folder *name* and the
+  *location* separately and creates the folder itself, showing the full path it will
+  create as the fields change. It rejects invalid names (reserved characters and Windows
+  device names, trailing space or period), a location that does not exist, and a target
+  that holds OSCAR 1.x data, an OSCAR 2 database, or anything else; warns when the location
+  looks cloud-managed (OneDrive, Google Drive, Dropbox, iCloud - Windows often redirects
+  Documents into OneDrive silently); then creates the folder and checks it is writable.
+- *Find* accepts only a folder containing `oscar.db` and explains a 1.x folder.
+- `Settings/AppData` is written only once a folder is confirmed: after the dialogs, or,
+  for `--datadir`, once the folder is known to exist. `SetAppData()` gained a `persist`
+  flag so `--datadir` can set the in-memory path without recording it.
+- **OSCAR 1.x Data Migration** now offers *Migrate* / *Skip migration* / *Cancel*. Cancel
+  closes the database, lock and log, removes the just-created folder, and restores
+  `Settings/AppData` to the folder recorded before launch (or the most recent remaining
+  database after a Database > New relaunch, or nothing), so the next start returns to the
+  Startup dialog rather than silently adopting an empty folder.
+- File > Database > New uses the same creation dialog (default name pre-filled, location
+  = parent of the current folder); Database > Open tells the user when a 1.x folder was
+  selected and points at File > Profiles > Import from OSCAR.
+- Dialogs shown before the preferences are loaded used the platform default font (9 pt on
+  Windows) and looked smaller than the rest of OSCAR. `main()` now applies OSCAR's default
+  application size (`DefaultApplicationFontSize`, 10 pt) as soon as the QApplication
+  exists; `setApplicationFont()` still applies the user's preference later. That alone did
+  not fix QMessageBox text: `MainWindow`'s constructor sets an application stylesheet,
+  which goes through `QApplication::setStyle()` and re-applies the platform theme's
+  per-class fonts - on Windows a 9 pt "message box font" for `QMessageBox`. The three
+  setup screens are therefore plain `QDialog`s (`SetupChoiceDialog`, `DataFolderCreateDialog`)
+  sharing one frame: bold heading, 28 px margins, 600 px minimum width, resizable, no icon.
+
+---
+
 ## 2026-09-13 — SEFAM: rejected sessions counted as imported and leaked; all-blower-off sessions inflated usage
 
 **File:** `oscar/SleepLib/loader_plugins/sefam_loader.cpp`
