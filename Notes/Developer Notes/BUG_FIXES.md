@@ -4,6 +4,34 @@ Notable bugs found and fixed during development/investigation.
 
 ---
 
+## 2026-09-15 - Database schema upgraded silently at startup, with no way to decline and no progress
+
+**Files:** `oscar/main.cpp`, `oscar/database/database_manager.h/.cpp`, `oscar/database/database_schema.h/.cpp`
+
+`DatabaseManager::initialize()` ran every pending schema migration as soon as it found an older
+database. A loader data-format change gets `Profile::DataFormatError()` - an explanation, a
+warning that the profile can no longer be opened by the previous version, and a No that exits -
+but the schema upgrade, which is equally irreversible, had none of that. It also ran on the GUI
+thread with no dialog, so a multi-minute migration looked like a hang.
+
+`initialize()` now opens an older database without touching it and reports the on-disk
+version through `pendingSchemaUpgradeFrom()`. `main()` then asks: **Back up and upgrade**
+(default), **Upgrade**, or **Exit**. Exit closes the connection and marks a clean shutdown.
+The backup is `DatabaseManager::snapshotTo()` - `VACUUM INTO` on a private connection, so it
+is one self-contained file (`oscar-backup-v<N>-<timestamp>.db` beside `oscar.db`) that includes
+everything still in the WAL; a hand copy of `oscar.db` alone would miss that. Free space is
+checked first, and a failed backup offers "Upgrade without backup" or Exit. The copy and the
+migrations run on a worker thread (`DatabaseManager::upgradeSchema()`, also on a private
+connection with the same per-connection pragmas) behind an application-modal progress dialog
+that names the step (`step n of m`). There is no Cancel: each migration is one transaction
+that cannot be interrupted, and the choice to stop was offered before anything changed.
+`completeInitialization()` then finishes what `initialize()` used to do after a migration.
+`DatabaseSchema::upgradeSchema()` was rewritten as a step table so it can count steps and
+report them. The `databaseError` connection in `main()` now has `qApp` as its context so an
+emission from the worker thread (via `checkQueryError()`) is queued to the GUI thread.
+
+---
+
 ## 2026-09-13 - First-run setup let users pick the parent folder instead of creating OSCAR20_Data (#291)
 
 **Files:** `oscar/datafolderdialog.h/.cpp` (new), `oscar/main.cpp`, `oscar/mainwindow.cpp`,

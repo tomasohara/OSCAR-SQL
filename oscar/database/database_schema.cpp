@@ -204,8 +204,9 @@ int DatabaseSchema::getSchemaVersion(QSqlDatabase& db)
  * Upgrade database schema to current version
  *
  * Parameters:
- *   db - Database connection to use
+ *   db - Database connection to use (any thread; need not be DatabaseManager's)
  *   fromVersion - Current version in database
+ *   progress - Optional callback invoked before each migration step
  *
  * Returns: true if upgrade succeeded, false otherwise
  *
@@ -213,52 +214,60 @@ int DatabaseSchema::getSchemaVersion(QSqlDatabase& db)
  * Each step calls the relevant createXxx / ALTER TABLE helpers and then advances
  * the stored schema version before moving to the next step.
  */
-bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion)
+bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion,
+                                   const UpgradeProgress& progress)
 {
     qDebug() << "DatabaseSchema::upgradeSchema: from" << fromVersion << "to" << CURRENT_SCHEMA_VERSION;
 
-    if (fromVersion == 13) {
-        if (!migrateV13ToV14(db)) {
-            qCritical() << "DatabaseSchema: v13->v14 migration failed";
-            return false;
-        }
-        fromVersion = 14;
+    if (fromVersion == CURRENT_SCHEMA_VERSION) {
+        return true;
     }
 
-    if (fromVersion == 14) {
-        if (!migrateV14ToV15(db)) {
-            qCritical() << "DatabaseSchema: v14->v15 migration failed";
-            return false;
+    // One entry per consecutive version pair, in ascending order; each takes the
+    // schema from `from` to `from + 1`. Add a new entry here for every new version.
+    struct MigrationStep {
+        int from;
+        bool (*migrate)(QSqlDatabase&);
+    };
+    static const MigrationStep steps[] = {
+        { 13, &migrateV13ToV14 },
+        { 14, &migrateV14ToV15 },
+        { 15, &migrateV15ToV16 },
+        { 16, &migrateV16ToV17 },
+        { 17, &migrateV17ToV18 },
+    };
+    const int stepsAvailable = int(sizeof(steps) / sizeof(steps[0]));
+
+    // Locate the first step that applies; versions older than the table have no path.
+    int first = -1;
+    for (int i = 0; i < stepsAvailable; ++i) {
+        if (steps[i].from == fromVersion) {
+            first = i;
+            break;
         }
-        fromVersion = 15;
+    }
+    if (first < 0) {
+        qCritical() << "DatabaseSchema: No migration path from version" << fromVersion;
+        return false;
     }
 
-    if (fromVersion == 15) {
-        if (!migrateV15ToV16(db)) {
-            qCritical() << "DatabaseSchema: v15->v16 migration failed";
+    const int stepCount = stepsAvailable - first;
+    for (int i = first; i < stepsAvailable; ++i) {
+        const int from = steps[i].from;
+        const int to = from + 1;
+        if (progress) {
+            progress(i - first + 1, stepCount, from, to);
+        }
+        if (!steps[i].migrate(db)) {
+            qCritical() << "DatabaseSchema: v" << from << "->v" << to << "migration failed";
             return false;
         }
-        fromVersion = 16;
-    }
-
-    if (fromVersion == 16) {
-        if (!migrateV16ToV17(db)) {
-            qCritical() << "DatabaseSchema: v16->v17 migration failed";
-            return false;
-        }
-        fromVersion = 17;
-    }
-
-    if (fromVersion == 17) {
-        if (!migrateV17ToV18(db)) {
-            qCritical() << "DatabaseSchema: v17->v18 migration failed";
-            return false;
-        }
-        fromVersion = 18;
+        fromVersion = to;
     }
 
     if (fromVersion != CURRENT_SCHEMA_VERSION) {
-        qCritical() << "DatabaseSchema: No migration path from version" << fromVersion;
+        qCritical() << "DatabaseSchema: migration table ends at version" << fromVersion
+                    << "but CURRENT_SCHEMA_VERSION is" << CURRENT_SCHEMA_VERSION;
         return false;
     }
 

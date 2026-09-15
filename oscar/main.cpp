@@ -35,6 +35,9 @@
 #include <QStyleFactory>
 #include <QLockFile>
 #include <QProcess>
+#include <QPushButton>
+#include <QDateTime>
+#include <functional>
 
 #include "version.h"
 #include "logger.h"
@@ -507,6 +510,161 @@ int main(int argc, char* argv[])
 
 #else
 
+/*
+ * Run a blocking job on a worker thread while the caller's event loop keeps the
+ * UI (a wait or progress dialog) responsive. Returns when the job has finished.
+ */
+static void runOnWorkerThread(const std::function<void()>& work)
+{
+    QThread* worker = QThread::create(work);
+    QEventLoop loop;
+    QObject::connect(worker, &QThread::finished, &loop, &QEventLoop::quit);
+    worker->start();
+    loop.exec();
+    worker->wait();
+    delete worker;
+}
+
+/*
+ * Gate an irreversible database schema upgrade behind the user's consent.
+ *
+ * Mirrors Profile::DataFormatError(), which does the same when a loader's data
+ * format changes: explain what is about to happen, let the user exit instead,
+ * and only then proceed. Here the user can also have OSCAR write a complete
+ * single-file copy of the database first (VACUUM INTO folds the WAL in, so
+ * nothing is missed the way a hand copy of oscar.db alone would be).
+ *
+ * The copy and the migrations run on a worker thread behind an application-modal
+ * progress dialog. The dialog has no Cancel button: each migration is one atomic
+ * transaction that cannot be interrupted, and the decision to stop was offered
+ * before anything was touched.
+ *
+ * Returns true when the database is upgraded and DatabaseManager is ready;
+ * false when the user chose to exit or the upgrade failed. Failures have been
+ * reported to the user before returning; the caller only needs to exit.
+ */
+static bool confirmAndUpgradeDatabase(const QString& dbPath, int fromVersion)
+{
+    DatabaseManager& dbMgr = DatabaseManager::instance();
+    const int toVersion = DatabaseSchema::CURRENT_SCHEMA_VERSION;
+    const QString folder = QDir::toNativeSeparators(QFileInfo(dbPath).absolutePath());
+
+    QString msg = "<font size=+1>"
+        + QObject::tr("OSCAR %1 needs to upgrade its database from version %2 to version %3.")
+              .arg(getVersion().displayString()).arg(fromVersion).arg(toVersion)
+        + "</font><br/><br/>"
+        + "<font size=+1>" + QObject::tr("Important:") + "</font> "
+        + QObject::tr("Once upgraded, this database <font size=+1>cannot</font> be opened by earlier versions of OSCAR, and the upgrade cannot be undone.")
+        + "<br/><br/>"
+        + QObject::tr("<b>Back up and upgrade</b> first saves a complete copy of the current database in %1, so you can go back to it if needed.").arg(folder)
+        + "<br/><br/>"
+        + QObject::tr("<b>Exit</b> leaves the database unchanged, so you can back it up yourself before starting OSCAR again.")
+        + "<br/><br/>"
+        + "<font size=+1>" + QObject::tr("Are you ready to upgrade?") + "</font>";
+
+    QMessageBox question(QMessageBox::Warning, QObject::tr("Database Upgrade Required"), msg);
+    QPushButton* backupButton = question.addButton(QObject::tr("Back up and upgrade"), QMessageBox::AcceptRole);
+    question.addButton(QObject::tr("Upgrade"), QMessageBox::AcceptRole);
+    QPushButton* exitButton = question.addButton(QObject::tr("Exit"), QMessageBox::RejectRole);
+    question.setDefaultButton(backupButton);
+    question.setEscapeButton(exitButton);
+    question.exec();
+
+    if (question.clickedButton() == exitButton) {
+        qDebug() << "Main: User declined the schema upgrade from" << fromVersion << "to" << toVersion;
+        return false;
+    }
+    const bool makeBackup = (question.clickedButton() == backupButton);
+
+    // Busy indicator (range 0,0) plus a label naming the current step: each step is
+    // a single transaction, so there is no finer-grained progress to show.
+    QProgressDialog progress(QString(), QString(), 0, 0, nullptr,
+                             Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    progress.setWindowTitle(QObject::tr("Upgrading Database"));
+    progress.setWindowModality(Qt::ApplicationModal);
+    progress.setCancelButton(nullptr);
+    progress.setMinimumDuration(0);
+    progress.setMinimumWidth(450);
+    progress.setAutoClose(false);
+    progress.setAutoReset(false);
+
+    // The worker thread reports through this; the dialog must only be touched
+    // on the GUI thread, so queue the update.
+    auto setStatus = [&progress](const QString& text) {
+        QMetaObject::invokeMethod(&progress, [&progress, text]() {
+            progress.setLabelText(text);
+        }, Qt::QueuedConnection);
+    };
+
+    QString backupPath;
+    if (makeBackup) {
+        backupPath = QFileInfo(dbPath).dir().filePath(
+            QString("oscar-backup-v%1-%2.db").arg(fromVersion)
+                .arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")));
+        progress.setLabelText(QObject::tr("Backing up the database to %1...").arg(QFileInfo(backupPath).fileName()));
+        progress.show();
+        QApplication::processEvents();
+
+        bool backupOk = false;
+        QString backupError;
+        runOnWorkerThread([&]() {
+            backupOk = dbMgr.snapshotTo(backupPath, &backupError);
+        });
+
+        if (!backupOk) {
+            progress.hide();
+            QMessageBox retry(QMessageBox::Warning, QObject::tr("Database Backup Failed"),
+                QObject::tr("OSCAR could not save a copy of the database:") + "\n\n" + backupError + "\n\n"
+                    + QObject::tr("You can upgrade without a backup, or exit and back up the database yourself first."));
+            QPushButton* noBackupButton = retry.addButton(QObject::tr("Upgrade without backup"), QMessageBox::AcceptRole);
+            QPushButton* retryExitButton = retry.addButton(QObject::tr("Exit"), QMessageBox::RejectRole);
+            retry.setDefaultButton(retryExitButton);
+            retry.setEscapeButton(retryExitButton);
+            retry.exec();
+            if (retry.clickedButton() != noBackupButton) {
+                qDebug() << "Main: User exited after backup failure:" << backupError;
+                return false;
+            }
+            backupPath.clear();
+        }
+        qDebug() << "Main: Pre-upgrade database copy:" << (backupPath.isEmpty() ? "none" : backupPath);
+    }
+
+    progress.setLabelText(QObject::tr("Upgrading database from version %1 to version %2...").arg(fromVersion).arg(toVersion));
+    progress.show();
+    QApplication::processEvents();
+
+    bool upgradeOk = false;
+    runOnWorkerThread([&]() {
+        upgradeOk = dbMgr.upgradeSchema([&](int step, int stepCount, int from, int to) {
+            setStatus(QObject::tr("Upgrading database from version %1 to version %2 (step %3 of %4)...")
+                          .arg(from).arg(to).arg(step).arg(stepCount));
+        });
+    });
+    progress.hide();
+
+    if (upgradeOk) {
+        upgradeOk = dbMgr.completeInitialization();
+    }
+    if (!upgradeOk) {
+        qCritical() << "Main: Database schema upgrade failed";
+        QString text = QObject::tr("OSCAR could not upgrade your database from version %1 to version %2.")
+                           .arg(fromVersion).arg(toVersion) + "\n\n";
+        if (!backupPath.isEmpty()) {
+            text += QObject::tr("The copy made before the upgrade is unchanged:") + "\n"
+                    + QDir::toNativeSeparators(backupPath) + "\n\n";
+        }
+        text += QObject::tr("Each completed step has been kept, and OSCAR will try the remaining steps the next time it starts. "
+                            "If the problem persists, restore the database from a backup or delete oscar.db and re-import your CPAP data.")
+                + "\n\n" + QObject::tr("OSCAR will now close.");
+        QMessageBox::critical(nullptr, QObject::tr("Database Upgrade Failed"), text);
+        return false;
+    }
+
+    qDebug() << "Main: Database schema upgraded from" << fromVersion << "to" << toVersion;
+    return true;
+}
+
 #ifndef Q_OS_LINUX
 // Due to a bug in Qt, creating multiple QApplication instances in a process
 // causes subsequent native file dialog boxes to hang on Fedora 35.
@@ -973,7 +1131,9 @@ int main(int argc, char *argv[]) {
     settings.setValue(DBLastPathKey, dbPath);
     settings.sync();
 
-    QObject::connect(&DatabaseManager::instance(), &DatabaseManager::databaseError,
+    // qApp as context: the schema upgrade runs on a worker thread and may emit
+    // this (via checkQueryError), so the dialog must be queued to the GUI thread.
+    QObject::connect(&DatabaseManager::instance(), &DatabaseManager::databaseError, qApp,
                      [](const QString& error) {
                          qCritical() << "Database Manager Error:" << error;
                          QMessageBox::critical(nullptr, STR_MessageBox_Error,
@@ -982,6 +1142,17 @@ int main(int argc, char *argv[]) {
 
     if (!DatabaseManager::instance().initialize(dbPath)) {
         qCritical() << "Main: Database initialization failed";
+        return 0;
+    }
+
+    // An older schema was found. The upgrade is irreversible, so ask first (and
+    // offer a copy of the database); the user may exit instead, as with a loader
+    // data-format change. Either way the connection is closed in order, so the
+    // shutdown counts as clean and no integrity check runs on the next launch.
+    const int pendingFrom = DatabaseManager::instance().pendingSchemaUpgradeFrom();
+    if (pendingFrom > 0 && !confirmAndUpgradeDatabase(dbPath, pendingFrom)) {
+        DatabaseManager::instance().close();
+        DatabaseManager::markCleanShutdown(dbPath);
         return 0;
     }
 
@@ -1013,15 +1184,9 @@ int main(int argc, char *argv[]) {
         QApplication::processEvents();
 
         bool integrityOk = false;
-        QThread* checkThread = QThread::create([&integrityOk]() {
+        runOnWorkerThread([&integrityOk]() {
             integrityOk = DatabaseManager::instance().checkIntegrity();
         });
-        QEventLoop waitLoop;
-        QObject::connect(checkThread, &QThread::finished, &waitLoop, &QEventLoop::quit);
-        checkThread->start();
-        waitLoop.exec();
-        checkThread->wait();
-        delete checkThread;
 
         integrityWait.hide();
 

@@ -15,6 +15,7 @@
 
 #include <QSqlDatabase>
 #include <QString>
+#include <functional>
 
 /*!
  * \class DatabaseSchema
@@ -124,15 +125,32 @@ public:
     static int getSchemaVersion(QSqlDatabase& db);
 
     /*!
+     * \brief Progress callback for upgradeSchema()
+     * \param step        1-based index of the migration about to run
+     * \param stepCount   Total number of migrations this upgrade will run
+     * \param fromVersion Schema version the migration starts from
+     * \param toVersion   Schema version the migration produces
+     *
+     * Called on the thread running upgradeSchema(), immediately before each
+     * migration starts. A migration is a single transaction, so this is the only
+     * granularity at which progress can be reported.
+     */
+    using UpgradeProgress = std::function<void(int step, int stepCount, int fromVersion, int toVersion)>;
+
+    /*!
      * \brief Upgrade database schema to current version
      * \param db Database connection to use
      * \param fromVersion Current version in database
+     * \param progress Optional callback invoked before each migration step
      * \return true if successful, false otherwise
      *
      * Applies incremental migrations until the database is at CURRENT_SCHEMA_VERSION.
      * Each version-specific migration is additive; no existing data is destroyed.
+     * Each migration runs in its own transaction, so a failure leaves the database
+     * at the last version that completed.
      */
-    static bool upgradeSchema(QSqlDatabase& db, int fromVersion);
+    static bool upgradeSchema(QSqlDatabase& db, int fromVersion,
+                              const UpgradeProgress& progress = UpgradeProgress());
 
     /*!
      * \brief Check and update CSV report version
