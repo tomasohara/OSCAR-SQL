@@ -146,11 +146,16 @@ static QVBoxLayout* makeSetupLayout(QDialog* dialog, const QString& heading)
     return layout;
 }
 
-/*! \brief Word-wrapped body text for a setup dialog. */
-static QLabel* makeBodyLabel(const QString& text, QWidget* parent)
+/*!
+ * \brief Word-wrapped body text for a setup dialog.
+ * \param format Qt::PlainText for prose; Qt::RichText when the caller has built HTML
+ *               (bulleted lists need it for a hanging indent). Rich-text callers must
+ *               pass translated strings through QString::toHtmlEscaped().
+ */
+static QLabel* makeBodyLabel(const QString& text, QWidget* parent, Qt::TextFormat format = Qt::PlainText)
 {
     auto* label = new QLabel(text, parent);
-    label->setTextFormat(Qt::PlainText);
+    label->setTextFormat(format);
     label->setWordWrap(true);
     return label;
 }
@@ -160,29 +165,34 @@ static QLabel* makeBodyLabel(const QString& text, QWidget* parent)
  * \brief A setup dialog with a heading, explanatory text and a row of choice buttons.
  *
  * Replaces QMessageBox for the startup and migration screens (see makeSetupLayout()).
- * The first choice is the default button; the last is the Cancel choice, which is also
- * what Escape and closing the window return.
+ * \a defaultChoice is the button Enter activates and the one that starts with focus; the
+ * buttons keep Qt's auto-default behaviour, so the default frame follows the focus as the
+ * user tabs between them. The last choice is Cancel, which is also what Escape and
+ * closing the window return.
  */
 class SetupChoiceDialog : public QDialog
 {
 public:
     SetupChoiceDialog(const QString& heading, const QString& body, const QStringList& choices,
+                      int defaultChoice = 0, Qt::TextFormat bodyFormat = Qt::PlainText,
                       QWidget* parent = nullptr)
         : QDialog(parent)
         , m_choice(choices.size() - 1)
     {
         QVBoxLayout* layout = makeSetupLayout(this, heading);
-        layout->addWidget(makeBodyLabel(body, this));
+        layout->addWidget(makeBodyLabel(body, this, bodyFormat));
         layout->addStretch();
 
         auto* buttonRow = new QHBoxLayout();
         buttonRow->addStretch();
         for (int i = 0; i < choices.size(); i++) {
             auto* button = new QPushButton(choices.at(i), this);
-            button->setDefault(i == 0);
-            button->setAutoDefault(false);
             connect(button, &QPushButton::clicked, this, [this, i]() { m_choice = i; accept(); });
             buttonRow->addWidget(button);
+            if (i == defaultChoice) {
+                button->setDefault(true);
+                button->setFocus();
+            }
         }
         layout->addLayout(buttonRow);
     }
@@ -196,19 +206,32 @@ private:
 
 StartupChoice showStartupChoice(const QString& missingPath)
 {
-    const QString bullet = QStringLiteral("• ");
-    QString text = QObject::tr("You are seeing this message because either") + "\n\n" +
-                   bullet + QObject::tr("This is the first time you have used OSCAR 2.") + " " +
-                            QObject::tr("OSCAR will need to create a data folder for you.") + "\n\n" +
-                   bullet + QObject::tr("OSCAR 2 could not find the OSCAR 2 data folder you last used.") + " " +
-                            QObject::tr("You will need to help OSCAR find the OSCAR 2 data folder.");
-    if (!missingPath.isEmpty())
-        text += "\n\n" + QObject::tr("OSCAR was looking for:") + " " + QDir::toNativeSeparators(missingPath);
+    // Rich text so the two alternatives are real list items: indented, with wrapped lines
+    // aligned under the text rather than the bullet, and "or" set between margin and bullet.
+    const QString lead   = QObject::tr("You are seeing this message because either").toHtmlEscaped();
+    const QString first  = (QObject::tr("This is the first time you have used OSCAR 2.") + " " +
+                            QObject::tr("OSCAR will need to create a data folder for you.")).toHtmlEscaped();
+    const QString second = (QObject::tr("OSCAR 2 could not find the OSCAR 2 data folder you last used.") + " " +
+                            QObject::tr("You will need to help OSCAR find the OSCAR 2 data folder.")).toHtmlEscaped();
+    const QString either = QObject::tr("or").toHtmlEscaped();
 
+    QString text = "<p style=\"margin:0\">" + lead + "</p>"
+                   "<ul style=\"margin-top:10px;margin-bottom:0\"><li>" + first + "</li></ul>"
+                   "<p style=\"margin-top:6px;margin-bottom:6px;margin-left:0px\">" + either + "</p>"
+                   "<ul style=\"margin-top:0;margin-bottom:0\"><li>" + second + "</li></ul>";
+    if (!missingPath.isEmpty()) {
+        text += "<p style=\"margin-top:14px;margin-bottom:0\">" + QObject::tr("OSCAR was looking for:").toHtmlEscaped() +
+                " " + QDir::toNativeSeparators(missingPath).toHtmlEscaped() + "</p>";
+    }
+
+    // A genuine first run defaults to creating; a folder OSCAR remembers but cannot find
+    // defaults to finding it.
+    const int defaultChoice = missingPath.isEmpty() ? 0 : 1;
     SetupChoiceDialog dialog(QObject::tr("OSCAR 2 Startup"), text,
-                             { QObject::tr("First Use of OSCAR 2"),
+                             { QObject::tr("Create OSCAR 2 data folder"),
                                QObject::tr("Find my OSCAR 2 data folder"),
-                               QObject::tr("Cancel") });
+                               QObject::tr("Cancel") },
+                             defaultChoice, Qt::RichText);
     dialog.exec();
 
     switch (dialog.choice()) {
@@ -288,11 +311,8 @@ DataFolderCreateDialog::DataFolderCreateDialog(Mode mode, const QString& locatio
     auto* buttonRow = new QHBoxLayout();
     m_createButton = new QPushButton(mode == Mode::Startup ? tr("Create OSCAR folder")
                                                            : tr("Create new database"), this);
-    m_createButton->setDefault(true);
+    m_createButton->setDefault(true);   // Enter in either field creates the folder
     auto* cancelButton = new QPushButton(tr("Cancel"), this);
-    // Enter always means Create, whichever field or button has focus.
-    browseButton->setAutoDefault(false);
-    cancelButton->setAutoDefault(false);
     buttonRow->addStretch();
     buttonRow->addWidget(m_createButton);
     buttonRow->addWidget(cancelButton);
