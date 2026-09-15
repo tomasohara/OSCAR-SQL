@@ -32,6 +32,39 @@ emission from the worker thread (via `checkQueryError()`) is queued to the GUI t
 
 ---
 
+## 2026-09-15 - OAHI/CAHI shown for devices that cannot report them (#261)
+
+**Files:** `oscar/SleepLib/machine.h/.cpp`, `oscar/SleepLib/session.cpp`,
+`oscar/database/session_summaries_repository.h/.cpp`, `oscar/database/daily_summary_repository.h/.cpp`,
+`oscar/database/database_schema.h/.cpp`, `oscar/SleepLib/loader_plugins/{bmc,sefam,prisma}_loader.cpp`,
+`oscar/daily.cpp`, `oscar/reports.cpp`, `oscar/statistics.cpp`, `oscar/docs/system_reports.orf`,
+`oscar/tests/machinetests.h/.cpp`
+
+OAHI/CAHI were computed and displayed for every device. For any device that does not split
+hypopneas by mechanism (everything except BMC G3X, SEFAM and prisma) OAHI merely restated
+AHI and CAHI the clear-airway rate, implying a classification the device never made. Legacy
+BMC devices also listed `OH 0.00 / CH 0.00` in the Daily events list and the Statistics
+per-channel rows, because the shared BMC event writer pre-created the OH/CH lists and an
+empty list is stored as a zero-count `session_channels` row, which is what
+`Machine::hasChannel()` reads. The summary tables stored 0 in `oahi`/`cahi` and the OH/CH
+counts for those devices, indistinguishable from "scored none".
+
+Capability is now derived from the data: `Machine::m_reportedChannels` (channels with
+count > 0 on some session, ever), `hasReportedEvents()` and `reportsHypopneaMechanism()`,
+computed on the main thread at load and in a pre-pass in `Machine::Save()` before the
+parallel `SaveTask`s write summary rows. The Daily sidebar, printed report and Statistics
+page gate on it (Statistics per period: `"-"` unless every CPAP day in the period is from a
+capable device). The three OH/CH loaders create those two lists on the first event only.
+The summary tables store `NULL` for metrics that do not apply (schema v19, with the #285
+recompute relocated from v18 so v18 tester databases receive it). A device reporting a
+channel for the first time after rows exist has its earlier rows rebuilt from
+`session_channels`. `system_reports.orf` sums were `COALESCE`d — `SUM()` over an all-NULL
+group is `NULL`, which would have blanked every ResMed profile's RDI.
+
+Design: `Notes/specs/2026-09-14-oh-ch-capability-gating-design.md`.
+
+---
+
 ## 2026-09-13 - First-run setup let users pick the parent folder instead of creating OSCAR20_Data (#291)
 
 **Files:** `oscar/datafolderdialog.h/.cpp` (new), `oscar/main.cpp`, `oscar/mainwindow.cpp`,

@@ -1811,10 +1811,13 @@ QString Daily::getAHI(Day * day, bool isBrick) {
     }
     html +="</tr>\n";
 
-    // Obstructive and central breakdown of the same index. The two always sum to AHI,
-    // so they are shown together on one line directly beneath it. RERA is excluded even
-    // in RDI mode, since an arousal is neither obstructive nor central.
-    if (!isBrick && hours > 0) {
+    // Obstructive and central breakdown of the same index, shown only for a device that
+    // scores hypopneas by mechanism — for any other device OAHI would just restate AHI
+    // (GitLab #261). The two always sum to AHI, so they are shown together on one line
+    // directly beneath it. RERA is excluded even in RDI mode, since an arousal is
+    // neither obstructive nor central.
+    Machine * cpap = day->machine(MT_CPAP);
+    if (!isBrick && hours > 0 && cpap && cpap->reportsHypopneaMechanism()) {
         EventDataType oahi = day->calcOAHI();
         EventDataType cahi = day->calcCAHI();
         html +="<tr>";

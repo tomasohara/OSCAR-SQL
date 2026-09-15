@@ -40,6 +40,19 @@ public:
      * Increment this when schema changes. Used to determine if
      * database upgrades are needed.
      *
+     * Version 19: NULL for summary metrics that do not apply (GitLab #261)
+     * - No column changes. session_summaries and daily_summaries now store NULL, not 0,
+     *   for counts of channels the device has never reported, for oahi/cahi unless the
+     *   device splits hypopneas by mechanism, for rdi unless it reports RERA, and for
+     *   pressure/leak/oximetry statistics a row has no data for.
+     * - The #285 index recompute that v18 used to carry runs here instead, so v18
+     *   databases that never received it are corrected.
+     * - Zero-count OH/CH session_channels rows of devices that never scored either are
+     *   removed (the loaders no longer create them).
+     * - daily_summaries rows are rewritten in SQL at profile level; profiles whose CPAP
+     *   devices disagree on some channel have their rows deleted and regenerated on
+     *   next open.
+     *
      * Version 18: Central / Obstructive hypopnea split
      * - session_summaries and daily_summaries each gained five columns:
      *   obstructive_hypopnea_count, central_hypopnea_count, all_apnea_count
@@ -85,7 +98,7 @@ public:
      * - Added type field to channels
      * - Removed events_file and summary_file from sessions (no longer needed)
      */
-    static const int CURRENT_SCHEMA_VERSION = 18;
+    static const int CURRENT_SCHEMA_VERSION = 19;
 
     /*!
      * \brief Oldest schema version that can be restored into the current database.
@@ -218,6 +231,9 @@ private:
 
     // Migration from v17 to v18
     static bool migrateV17ToV18(QSqlDatabase& db);
+
+    // Migration from v18 to v19
+    static bool migrateV18ToV19(QSqlDatabase& db);
 
     static bool createIndexes(QSqlDatabase& db);
     static bool setSchemaVersion(QSqlDatabase& db, int version);

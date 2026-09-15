@@ -462,7 +462,12 @@ void PrismaImport::AddEvents(ChannelID channel, QList<Prisma_Event_Type> eventTy
             eventList ->AddEvent(startdate + event.endTime(), event.duration(), event.strength());
         }
     }
-    session->AddEventList(channel, EVL_Event);
+    // Every channel keeps an (empty) list so it appears in the events list from the first
+    // import — except OH and CH, whose presence is read as "this device splits hypopneas
+    // by mechanism". Those two exist only once an event has been seen (GitLab #261).
+    if (channel != CPAP_ObstructiveHypopnea && channel != CPAP_CentralHypopnea) {
+        session->AddEventList(channel, EVL_Event);
+    }
 }
 
 //********************************************************************************************

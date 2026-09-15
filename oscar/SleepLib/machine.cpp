@@ -40,6 +40,8 @@
 #include "../database/machine_repository.h"
 #include "../database/profile_repository.h"
 #include "../database/session_repository.h"
+#include "../database/session_summaries_repository.h"
+#include "../database/daily_summary_repository.h"
 #include "../database/database_manager.h"
 #include "../database/device_time_correction_repository.h"
 
@@ -1285,6 +1287,35 @@ bool Machine::Save()
 
     QHash<SessionID, Session *>::iterator s;
 
+    // Settle this device's reported-channel set before any SaveTask runs: the tasks
+    // write session_summaries in parallel and each row's NULL columns depend on it
+    // (Session::StoreSummaryToDatabase). The pre-pass also detects a device reporting
+    // a channel for the first time after rows already exist — a G3X's first central
+    // hypopnea weeks in, a ResMed's first RERA — and rebuilds its earlier rows, which
+    // were stored NULL for that channel (GitLab #261).
+    const QSet<ChannelID> before = m_reportedChannels;
+    bool hasStoredRows = false;
+    for (s = sessionlist.begin(); s != sessionlist.end(); s++) {
+        if ((*s)->IsChanged()) noteReportedChannels(*s);
+        if ((*s)->sessionRowId() != 0) hasStoredRows = true;
+    }
+    if (hasStoredRows && m_database_id > 0 && m_reportedChannels != before) {
+        qDebug() << "Machine::Save(): device reports new channels; rebuilding stored summaries for machine" << m_database_id;
+        QSqlDatabase db = DatabaseManager::instance().database();
+        if (SessionSummariesRepository::rebuildFromChannels(db, m_database_id)) {
+            // Daily rows: recompute this device's days. calculateAndStoreFromDay() is an
+            // INSERT OR REPLACE, so nothing needs invalidating first. The post-import
+            // pass may cover only the imported days (ImportContext::Commit), so the
+            // older days are not left to it.
+            DailySummaryRepository dailyRepo;
+            const qint64 profileId = getProfileId();
+            for (auto it = day.begin(); it != day.end(); ++it) {
+                Day * d = it.value();
+                if (d && d->hasEnabledSessions()) dailyRepo.calculateAndStoreFromDay(d, profileId);
+            }
+        }
+    }
+
 //  m_savelist.clear();
 
     // Store any event summaries to files (existing behavior)
@@ -1381,6 +1412,24 @@ void Machine::updateChannels(Session * sess)
     }
 }
 
+void Machine::noteReportedChannels(Session * sess)
+{
+    // A session loaded from the database carries its counts in m_cnt ...
+    for (auto it = sess->m_cnt.cbegin(); it != sess->m_cnt.cend(); ++it) {
+        if (it.value() > 0) m_reportedChannels.insert(it.key());
+    }
+    // ... while one built by a loader still has its events in the EventLists.
+    for (auto it = sess->eventlist.cbegin(); it != sess->eventlist.cend(); ++it) {
+        if (m_reportedChannels.contains(it.key())) continue;
+        for (EventList * el : it.value()) {
+            if (el && el->count() > 0) {
+                m_reportedChannels.insert(it.key());
+                break;
+            }
+        }
+    }
+}
+
 QList<ChannelID> Machine::availableChannels(quint32 chantype)
 {
     QList<ChannelID> list;
@@ -1429,6 +1478,9 @@ bool Machine::LoadSessionsFromDatabase(ProgressDialog *progress)
         
         // Load from database
         if (sess->LoadFromDatabase()) {
+            // m_cnt is populated now and the event lists are empty, so this is the
+            // point to learn which channels the device has actually scored.
+            noteReportedChannels(sess);
             // Add to machine (this creates Day objects)
             if (AddSession(sess, true)) {
                 loaded++;

@@ -3292,14 +3292,14 @@ bool Session::LoadFromDatabase()
             }
         };
 
-        restoreCount(CPAP_Obstructive, summaryData.obstructiveCount);
-        restoreCount(CPAP_ClearAirway, summaryData.clearAirwayCount);
-        restoreCount(CPAP_Hypopnea, summaryData.hypopneaCount);
-        restoreCount(CPAP_ObstructiveHypopnea, summaryData.obstructiveHypopneaCount);
-        restoreCount(CPAP_CentralHypopnea, summaryData.centralHypopneaCount);
-        restoreCount(CPAP_Apnea, summaryData.unclassifiedCount);
-        restoreCount(CPAP_AllApnea, summaryData.allApneaCount);
-        restoreCount(CPAP_RERA, summaryData.reraCount);
+        restoreCount(CPAP_Obstructive, summaryData.obstructiveCount.value_or(0));
+        restoreCount(CPAP_ClearAirway, summaryData.clearAirwayCount.value_or(0));
+        restoreCount(CPAP_Hypopnea, summaryData.hypopneaCount.value_or(0));
+        restoreCount(CPAP_ObstructiveHypopnea, summaryData.obstructiveHypopneaCount.value_or(0));
+        restoreCount(CPAP_CentralHypopnea, summaryData.centralHypopneaCount.value_or(0));
+        restoreCount(CPAP_Apnea, summaryData.unclassifiedCount.value_or(0));
+        restoreCount(CPAP_AllApnea, summaryData.allApneaCount.value_or(0));
+        restoreCount(CPAP_RERA, summaryData.reraCount.value_or(0));
     }
 
     // Mark summary as loaded since we have the cached statistics
@@ -3364,86 +3364,67 @@ bool Session::StoreSummaryToDatabase()
     // contribute for the remaining session time.  Storing it made session_summaries
     // disagree with both its own event-count columns and the Daily page (#285).
     // count() walks ahiChannels, so this stays correct as channels are added.
+    //
+    // NULL rule (schema v19, GitLab #261; spec §5.2): a count column is NULL when this
+    // device has never reported the channel and 0 when it has but this session scored
+    // none. oahi/cahi are NULL unless the device splits hypopneas by mechanism; rdi is
+    // NULL unless it reports RERA, since without RERA the RDI is just the AHI restated.
+    // s_machine's answer was settled by the pre-pass in Machine::Save() before any
+    // SaveTask reached this point.
     const double indexHours = hours();
+    const bool mechanism   = s_machine->reportsHypopneaMechanism();
+    const bool reportsRera = s_machine->hasReportedEvents(CPAP_RERA);
     if (indexHours > 0) {
         const double ahiEvents = count(AllAhiChannels);
         sessionSummaryData.ahi = ahiEvents / indexHours;
-        sessionSummaryData.rdi = (ahiEvents + count(CPAP_RERA)) / indexHours;
-        sessionSummaryData.oahi = count(AllOahiChannels) / indexHours;
-        sessionSummaryData.cahi = count(AllCahiChannels) / indexHours;
+        if (reportsRera) sessionSummaryData.rdi = (ahiEvents + count(CPAP_RERA)) / indexHours;
+        if (mechanism) {
+            sessionSummaryData.oahi = count(AllOahiChannels) / indexHours;
+            sessionSummaryData.cahi = count(AllCahiChannels) / indexHours;
+        }
+    } else {
+        if (reportsRera) sessionSummaryData.rdi = 0.0;
+        if (mechanism) { sessionSummaryData.oahi = 0.0; sessionSummaryData.cahi = 0.0; }
     }
 
-    // Event counts from cached values. They can be fractional (ResMed summary-only
-    // sessions store STR index * hours), so round to the nearest event rather than
-    // letting the int fields truncate; this matches what LoadFromDatabase() restores.
-    if (m_cnt.contains(CPAP_Obstructive)) {
-        sessionSummaryData.obstructiveCount = qRound(m_cnt[CPAP_Obstructive]);
-    }
-    if (m_cnt.contains(CPAP_ClearAirway)) {
-        sessionSummaryData.clearAirwayCount = qRound(m_cnt[CPAP_ClearAirway]);
-    }
-    if (m_cnt.contains(CPAP_Hypopnea)) {
-        sessionSummaryData.hypopneaCount = qRound(m_cnt[CPAP_Hypopnea]);
-    }
-    if (m_cnt.contains(CPAP_ObstructiveHypopnea)) {
-        sessionSummaryData.obstructiveHypopneaCount = qRound(m_cnt[CPAP_ObstructiveHypopnea]);
-    }
-    if (m_cnt.contains(CPAP_CentralHypopnea)) {
-        sessionSummaryData.centralHypopneaCount = qRound(m_cnt[CPAP_CentralHypopnea]);
-    }
-    if (m_cnt.contains(CPAP_RERA)) {
-        sessionSummaryData.reraCount = qRound(m_cnt[CPAP_RERA]);
-    }
-    // Also handle CPAP_Apnea (unknown/unclassified apnea) - store in unclassifiedCount
-    if (m_cnt.contains(CPAP_Apnea)) {
-        sessionSummaryData.unclassifiedCount = qRound(m_cnt[CPAP_Apnea]);
-    }
+    // Event counts. They can be fractional (ResMed summary-only sessions store STR
+    // index * hours), so round to the nearest event rather than letting the int fields
+    // truncate; this matches what LoadFromDatabase() restores.
+    auto storeCount = [&](std::optional<int> & field, ChannelID id) {
+        if (!s_machine->hasReportedEvents(id)) return;          // never reported: NULL
+        field = qRound(m_cnt.value(id, 0));
+    };
+    storeCount(sessionSummaryData.obstructiveCount,         CPAP_Obstructive);
+    storeCount(sessionSummaryData.clearAirwayCount,         CPAP_ClearAirway);
+    storeCount(sessionSummaryData.hypopneaCount,            CPAP_Hypopnea);
+    storeCount(sessionSummaryData.obstructiveHypopneaCount, CPAP_ObstructiveHypopnea);
+    storeCount(sessionSummaryData.centralHypopneaCount,     CPAP_CentralHypopnea);
+    storeCount(sessionSummaryData.reraCount,                CPAP_RERA);
+    storeCount(sessionSummaryData.unclassifiedCount,        CPAP_Apnea);
     // CPAP_AllApnea is the undifferentiated apnea a few devices report. It counts
     // towards AHI, so leaving it unstored made SQL sums over these columns disagree
     // with the stored ahi for those devices (schema v18 added the column).
-    if (m_cnt.contains(CPAP_AllApnea)) {
-        sessionSummaryData.allApneaCount = qRound(m_cnt[CPAP_AllApnea]);
-    }
+    storeCount(sessionSummaryData.allApneaCount,            CPAP_AllApnea);
 
-    // Pressure statistics from cached values
+    // Continuous statistics: present only when the session has the channel.
     if (m_wavg.contains(CPAP_Pressure)) {
         sessionSummaryData.pressureAvg = m_wavg[CPAP_Pressure];
-        if (m_min.contains(CPAP_Pressure)) {
-            sessionSummaryData.pressureMin = m_min[CPAP_Pressure];
-        }
-        if (m_max.contains(CPAP_Pressure)) {
-            sessionSummaryData.pressureMax = m_max[CPAP_Pressure];
-        }
-        // For 95th percentile, we need to calculate it if events are loaded
-        // Otherwise leave at 0
-        if (s_events_loaded) {
-            sessionSummaryData.pressure95th = percentile(CPAP_Pressure, 0.95);
-        }
+        if (m_min.contains(CPAP_Pressure)) sessionSummaryData.pressureMin = m_min[CPAP_Pressure];
+        if (m_max.contains(CPAP_Pressure)) sessionSummaryData.pressureMax = m_max[CPAP_Pressure];
+        // The percentile needs the events; without them it is unknown, not 0.
+        if (s_events_loaded) sessionSummaryData.pressure95th = percentile(CPAP_Pressure, 0.95);
     }
-    
-    // Leak statistics from cached values
     if (m_wavg.contains(CPAP_LeakTotal)) {
         sessionSummaryData.leakTotalAvg = m_wavg[CPAP_LeakTotal];
-        if (m_max.contains(CPAP_LeakTotal)) {
-            sessionSummaryData.leakTotalMax = m_max[CPAP_LeakTotal];
-        }
-        // For 95th percentile
-        if (s_events_loaded) {
-            sessionSummaryData.leakTotal95th = percentile(CPAP_LeakTotal, 0.95);
-        }
+        if (m_max.contains(CPAP_LeakTotal)) sessionSummaryData.leakTotalMax = m_max[CPAP_LeakTotal];
+        if (s_events_loaded) sessionSummaryData.leakTotal95th = percentile(CPAP_LeakTotal, 0.95);
     }
-    
-    // Oximetry data from cached values if available
     if (m_wavg.contains(OXI_SPO2)) {
         sessionSummaryData.spo2Avg = m_wavg[OXI_SPO2];
-        if (m_min.contains(OXI_SPO2)) {
-            sessionSummaryData.spo2Min = m_min[OXI_SPO2];
-        }
+        if (m_min.contains(OXI_SPO2)) sessionSummaryData.spo2Min = m_min[OXI_SPO2];
     }
-    if (m_wavg.contains(OXI_Pulse)) {
-        sessionSummaryData.pulseAvg = m_wavg[OXI_Pulse];
-    }
-    
+    if (m_wavg.contains(OXI_Pulse)) sessionSummaryData.pulseAvg = m_wavg[OXI_Pulse];
+
     // Create or update the summary
     bool success = sessionSummariesRepo.createOrUpdate(sessionSummaryData);
     

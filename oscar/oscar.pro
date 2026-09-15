@@ -831,7 +831,8 @@ test {
         tests/dreemtests.cpp \
         tests/eventstabtests.cpp \
         tests/zeotests.cpp \
-        tests/applehealthtests.cpp
+        tests/applehealthtests.cpp \
+        tests/machinetests.cpp
 
     HEADERS += \
         tests/AutoTest.h \
@@ -847,7 +848,8 @@ test {
         tests/dreemtests.h \
         tests/eventstabtests.h \
         tests/zeotests.h \
-        tests/applehealthtests.h
+        tests/applehealthtests.h \
+        tests/machinetests.h
 }
 
 macx {

@@ -21,6 +21,7 @@
 #include <QSemaphore>
 
 #include <QHash>
+#include <QSet>
 #include <QVector>
 
 #include "SleepLib/progressdialog.h"
@@ -133,6 +134,29 @@ class Machine
     inline bool hasSetting(ChannelID code) {
         return m_availableSettings.contains(code);
     }
+
+    //! \brief True if any session of this device has ever recorded at least one event
+    //! on \p code. Unlike hasChannel(), an empty EventList is not evidence: loaders that
+    //! pre-create lists (BMC, SEFAM, prisma) make hasChannel() true for channels the
+    //! device has never scored.
+    inline bool hasReportedEvents(ChannelID code) const {
+        return m_reportedChannels.contains(code);
+    }
+
+    //! \brief True once the device has scored an obstructive or central hypopnea, i.e. it
+    //! splits hypopneas by mechanism and OAHI/CAHI are meaningful for it. Derived from
+    //! the data, never declared by a loader (GitLab #261). See
+    //! Notes/specs/2026-09-14-oh-ch-capability-gating-design.md.
+    inline bool reportsHypopneaMechanism() const {
+        return hasReportedEvents(CPAP_ObstructiveHypopnea) || hasReportedEvents(CPAP_CentralHypopnea);
+    }
+
+    //! \brief Record which of \p sess's channels carry at least one event.
+    //! Reads both the in-memory EventLists (an import-time session) and m_cnt (a
+    //! session loaded from session_channels). Main thread only: called from
+    //! LoadSessionsFromDatabase() and the pre-pass in Save(), never from the
+    //! SaveTask workers, which is why this is not part of updateChannels().
+    void noteReportedChannels(Session * sess);
 
     //! \brief Returns a pointer to a valid Session object if SessionID exists
     Session *SessionExists(SessionID session);
@@ -303,6 +327,7 @@ class Machine
 
     QHash<ChannelID, bool> m_availableChannels;
     QHash<ChannelID, bool> m_availableSettings;
+    QSet<ChannelID> m_reportedChannels;   //!< channels with count > 0 on some session, ever
 
     QString m_summaryPath;
     QString m_eventsPath;

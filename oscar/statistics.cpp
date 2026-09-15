@@ -698,6 +698,7 @@ void Statistics::updateRXChanges()
 }
 
 EventDataType calcAHI(QDate start, QDate end); //forward declareation
+static bool anyMechanismDays(QDate start, QDate end); // forward declaration
 
 EventDataType MEDIAN_NULL = std::numeric_limits<double>::infinity();
 
@@ -780,8 +781,13 @@ Statistics::Statistics(QObject *parent) :
         rows.push_back(StatisticsRow(STR_TR_AHI ,        SC_AHI_ONLY ,     MT_CPAP));
     }
     rows.push_back(StatisticsRow(tr("AHI Median"),  SC_MEDIAN_AHI,MT_CPAP));
-    rows.push_back(StatisticsRow(STR_TR_OAHI, SC_OAHI, MT_CPAP));
-    rows.push_back(StatisticsRow(STR_TR_CAHI, SC_CAHI, MT_CPAP));
+    // OAHI/CAHI rows exist only when some device in the profile splits hypopneas by
+    // mechanism; a period that mixes such a device with another shows "-" instead
+    // (see StatisticsRow::value). GitLab #261.
+    if (anyMechanismDays(p_profile->FirstDay(MT_CPAP), p_profile->LastDay(MT_CPAP))) {
+        rows.push_back(StatisticsRow(STR_TR_OAHI, SC_OAHI, MT_CPAP));
+        rows.push_back(StatisticsRow(STR_TR_CAHI, SC_CAHI, MT_CPAP));
+    }
     rows.push_back(StatisticsRow("AllApnea",   SC_CPH,     MT_CPAP));
     rows.push_back(StatisticsRow("Obstructive",   SC_CPH,     MT_CPAP));
     rows.push_back(StatisticsRow("Hypopnea",   SC_CPH,     MT_CPAP));
@@ -1087,6 +1093,31 @@ static EventDataType calcOAHI(QDate start, QDate end) {
 
 static EventDataType calcCAHI(QDate start, QDate end) {
   return calcAhiBucket(cahiChannels, start, end);
+}
+
+// How many CPAP days in [start, end] belong to a device that splits hypopneas by
+// mechanism, and how many CPAP days there are at all. OAHI/CAHI are shown for a period
+// only when the two are equal: mixing a capable device's days with another device's
+// would either restate AHI or break OAHI + CAHI == AHI for that column (GitLab #261).
+static void mechanismDays(QDate start, QDate end, int & capable, int & total)
+{
+    capable = 0;
+    total = 0;
+    for (QDate date = start; date <= end; date = date.addDays(1)) {
+        Day * day = p_profile->GetGoodDay(date, MT_CPAP);
+        if (!day) continue;
+        Machine * mach = day->machine(MT_CPAP);
+        total++;
+        if (mach && mach->reportsHypopneaMechanism()) capable++;
+    }
+}
+
+// True if any CPAP day in [start, end] belongs to a device that splits hypopneas.
+static bool anyMechanismDays(QDate start, QDate end)
+{
+    int capable, total;
+    mechanismDays(start, end, capable, total);
+    return capable > 0;
 }
 
 // Calculate flow limits per hour
@@ -2141,10 +2172,19 @@ QString StatisticsRow::value(QDate start, QDate end, MachineType typeOverride)
         value = QString("%1").arg(calcAHI(start, end), 0, 'f', decimals);
     } else if (calc == SC_AHI_ONLY) {
         value = QString("%1").arg((calcAHIorRDI(start, end, RDI_MODE::RM_AHI)), 0, 'f', decimals);
-    } else if (calc == SC_OAHI) {
-        value = QString("%1").arg(calcOAHI(start, end), 0, 'f', decimals);
-    } else if (calc == SC_CAHI) {
-        value = QString("%1").arg(calcCAHI(start, end), 0, 'f', decimals);
+    } else if (calc == SC_OAHI || calc == SC_CAHI) {
+        // Shown only when every CPAP day in the period comes from a device that splits
+        // hypopneas by mechanism; a mixed period would restate AHI for the other
+        // device's days, or break OAHI + CAHI == AHI for this column (GitLab #261).
+        int capable, total;
+        mechanismDays(start, end, capable, total);
+        if (capable == total) {
+            EventDataType index = (calc == SC_OAHI) ? calcOAHI(start, end) : calcCAHI(start, end);
+            value = QString("%1").arg(index, 0, 'f', decimals);
+        } else {
+            value = QString("<span title='%1'>-</span>")
+                        .arg(QObject::tr("Not available for all devices in this period"));
+        }
     } else if (calc == SC_MEDIAN_HOURS) {
         EventDataType median = calcMedian(start, end,  &getHours );
         if (median==MEDIAN_NULL) { value = QString("-"); } else {

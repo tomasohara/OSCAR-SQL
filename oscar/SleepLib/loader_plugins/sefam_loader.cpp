@@ -1035,8 +1035,10 @@ int SefamLoader::Open(const QString &path)
         if (!data.log.isEmpty() && data.header.utcEpoch != 0) {
             EventList *oa    = session->AddEventList(CPAP_Obstructive, EVL_Event);
             EventList *ca    = session->AddEventList(CPAP_ClearAirway, EVL_Event);
-            EventList *oh    = session->AddEventList(CPAP_ObstructiveHypopnea, EVL_Event);
-            EventList *ch    = session->AddEventList(CPAP_CentralHypopnea,     EVL_Event);
+            // OH/CH lists are created on the first event: an empty list would record
+            // the device as able to score them (GitLab #261).
+            EventList *oh    = nullptr;
+            EventList *ch    = nullptr;
             EventList *snore = session->AddEventList(CPAP_VSnore,      EVL_Event);
             EventList *fl    = session->AddEventList(CPAP_FlowLimit,   EVL_Event);
 
@@ -1067,8 +1069,10 @@ int SefamLoader::Open(const QString &path)
                 // report one; only the flag placement is corrected, using the vendor's
                 // published mean durations (see the constants above).
                 case SefamParsing::kLogObstructiveHypop:
+                    if (!oh) oh = session->AddEventList(CPAP_ObstructiveHypopnea, EVL_Event);
                     oh->AddEvent(when - kObstructiveHypopneaPlacementMs, 0); break;
                 case SefamParsing::kLogCentralHypopnea:
+                    if (!ch) ch = session->AddEventList(CPAP_CentralHypopnea, EVL_Event);
                     ch->AddEvent(when - kCentralHypopneaPlacementMs, 0); break;
                 case SefamParsing::kLogSnore:
                     snore->AddEvent(when, 0); break;
@@ -1087,8 +1091,9 @@ int SefamLoader::Open(const QString &path)
         if (summary) {
             EventList *oa    = session->AddEventList(CPAP_Obstructive, EVL_Event);
             EventList *ca    = session->AddEventList(CPAP_ClearAirway, EVL_Event);
-            EventList *oh    = session->AddEventList(CPAP_ObstructiveHypopnea, EVL_Event);
-            EventList *ch    = session->AddEventList(CPAP_CentralHypopnea,     EVL_Event);
+            // OH/CH lists are created on the first event, as in the log path (GitLab #261).
+            EventList *oh    = nullptr;
+            EventList *ch    = nullptr;
             EventList *snore = session->AddEventList(CPAP_VSnore,      EVL_Event);
             EventList *fl    = session->AddEventList(CPAP_FlowLimit,   EVL_Event);
 
@@ -1117,8 +1122,14 @@ int SefamLoader::Open(const QString &path)
                 place(ca,    minuteMs, r.centralApnea);
                 // The minute record counts the two hypopnea kinds separately, so each
                 // goes to its own channel — the same choice the log-based path makes.
-                place(oh,    minuteMs, r.obstructiveHypopnea);
-                place(ch,    minuteMs, r.centralHypopnea);
+                if (r.obstructiveHypopnea) {
+                    if (!oh) oh = session->AddEventList(CPAP_ObstructiveHypopnea, EVL_Event);
+                    place(oh, minuteMs, r.obstructiveHypopnea);
+                }
+                if (r.centralHypopnea) {
+                    if (!ch) ch = session->AddEventList(CPAP_CentralHypopnea, EVL_Event);
+                    place(ch, minuteMs, r.centralHypopnea);
+                }
                 place(snore, minuteMs, r.snore);
                 place(fl,    minuteMs, r.flowLimitation);
 

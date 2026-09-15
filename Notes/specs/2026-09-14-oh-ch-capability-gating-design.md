@@ -1,8 +1,28 @@
 # OH/CH capability gating and NULL summary columns — design
 
 **Date:** 2026-09-14
-**Status:** approved design, not yet implemented
+**Status:** implemented 2026-09-15 (branch `oh-ch-gating`); see "As built" below
 **Tracking:** GitLab #261
+
+## As built — deviations from the plan
+
+- **§5.5 (c), `daily_summaries` in the migration.** Not deleted wholesale. The CSV Export
+  Wizard reads only `daily_summaries` and can export a profile that has not been opened since
+  the upgrade, so deleting every row would have blanked those exports. Instead the migration
+  NULLs the count/index/statistic columns at *profile* level ("no device of this profile has
+  reported the channel"), which equals the machine-level answer whenever the profile's CPAP
+  devices agree, and deletes rows only for profiles whose devices disagree on some channel
+  (one scores RERA and another does not, say) — those are regenerated on next open. Both
+  lookups run off indexed temp tables; the whole v19 migration took ~11 s on a database of
+  57,000 sessions and a million `session_channels` rows.
+- **§5.6, aggregated SQL.** Beyond `COALESCE`ing the additive sums, the aggregated `RDI`,
+  `OAHI` and `CAHI` columns in `system_reports.orf` are `NULL` when the group has no RERA /
+  no OH-CH at all, so a report never restates AHI where the tables would store `NULL`.
+- **§1.3, flip fix-up.** Daily rows are recomputed by iterating the machine's own `day` map
+  through `DailySummaryRepository::calculateAndStoreFromDay()` (an INSERT OR REPLACE), so no
+  `invalidateRange()` call is needed.
+- The QTest for the capability set lives in `oscar/tests/machinetests.{h,cpp}` (new file, in
+  the `test` build only).
 **Builds on:** `Notes/specs/2026-08-06-central-obstructive-hypopnea-design.md` (schema v18,
 OH/CH channels, OAHI/CAHI), issue #285 (`session_summaries` indices = events / mask-on hours)
 

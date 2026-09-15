@@ -10,6 +10,7 @@
  * for more details. */
 
 #include "database_schema.h"
+#include "session_summaries_repository.h"
 #include "database_manager.h"
 #include "reports_initializer.h"
 #include <QSqlQuery>
@@ -235,6 +236,7 @@ bool DatabaseSchema::upgradeSchema(QSqlDatabase& db, int fromVersion,
         { 15, &migrateV15ToV16 },
         { 16, &migrateV16ToV17 },
         { 17, &migrateV17ToV18 },
+        { 18, &migrateV18ToV19 },
     };
     const int stepsAvailable = int(sizeof(steps) / sizeof(steps[0]));
 
@@ -1764,17 +1766,10 @@ bool DatabaseSchema::migrateV16ToV17(QSqlDatabase& db)
  * for days whose original card is long gone, would not recover the OH/CH split
  * anyway).
  *
- * Two session_summaries backfills are done in SQL, both cheap (well under a second
- * for tens of thousands of rows) and both derived from data already in the database:
- *  - all_apnea_count is filled from session_channels, where CPAP_AllApnea was always
- *    counted, so the AHI formula below is complete for the devices that report it.
- *  - ahi, rdi, oahi and cahi are recomputed as the sum of session_channels.cph over
- *    the channels in each group (= events per mask-on hour). Every row written before
- *    this migration stored the average of the rolling AHI graph instead of events per
- *    hour (#285), so it disagreed with the Daily page; rdi was 0 for all but PRS1.
- *    This equals what Session::StoreSummaryToDatabase() now computes.
- *    daily_summaries is not touched: its indices come from Day::calcAHI() and were
- *    always correct.
+ * The #285 recompute of session_summaries (all_apnea_count from session_channels;
+ * ahi/rdi/oahi/cahi as the sum of session_channels.cph) was originally done here. It
+ * now lives in migrateV18ToV19, so that databases already at v18 — which never ran
+ * it — are corrected as well.
  */
 bool DatabaseSchema::migrateV17ToV18(QSqlDatabase& db)
 {
@@ -1814,47 +1809,6 @@ bool DatabaseSchema::migrateV17ToV18(QSqlDatabase& db)
         }
     }
 
-    // Backfill all_apnea_count from session_channels (CPAP_AllApnea = 0x1010), then
-    // recompute the per-session indices by summing session_channels.cph over each
-    // channel group. cph is count / hours() as a REAL, so the sum is exactly what
-    // Session::StoreSummaryToDatabase() now computes. The integer count columns are
-    // NOT usable for this: ResMed summary-only sessions carry fractional counts
-    // (STR index * hours) that the INTEGER columns truncate, and dividing those
-    // would understate the AHI of every such session. A session with no rows in a
-    // group sums to NULL, hence the COALESCE to 0.
-    //
-    // Channel ids (schema.cpp): ClearAirway 4097, Obstructive 4098, Hypopnea 4099,
-    // Apnea 4100, RERA 4102, AllApnea 4112, ObstructiveHypopnea 4113,
-    // CentralHypopnea 4114. Groups follow ahiChannels / oahiChannels / cahiChannels.
-    static const char* const backfills[] = {
-        "UPDATE session_summaries SET all_apnea_count = COALESCE("
-        "  (SELECT sc.count FROM session_channels sc"
-        "    WHERE sc.session_id = session_summaries.session_id AND sc.channel_id = 4112), 0)"
-        " WHERE all_apnea_count = 0",
-
-        "UPDATE session_summaries SET"
-        " ahi = COALESCE((SELECT SUM(sc.cph) FROM session_channels sc"
-        "   WHERE sc.session_id = session_summaries.session_id"
-        "     AND sc.channel_id IN (4097, 4098, 4099, 4100, 4112, 4113, 4114)), 0),"
-        " rdi = COALESCE((SELECT SUM(sc.cph) FROM session_channels sc"
-        "   WHERE sc.session_id = session_summaries.session_id"
-        "     AND sc.channel_id IN (4097, 4098, 4099, 4100, 4102, 4112, 4113, 4114)), 0),"
-        " oahi = COALESCE((SELECT SUM(sc.cph) FROM session_channels sc"
-        "   WHERE sc.session_id = session_summaries.session_id"
-        "     AND sc.channel_id IN (4098, 4099, 4100, 4112, 4113)), 0),"
-        " cahi = COALESCE((SELECT SUM(sc.cph) FROM session_channels sc"
-        "   WHERE sc.session_id = session_summaries.session_id"
-        "     AND sc.channel_id IN (4097, 4114)), 0)"
-    };
-    for (const char* sql : backfills) {
-        if (!q.exec(QString::fromLatin1(sql))) {
-            qCritical() << "DatabaseSchema: migrateV17ToV18: backfill failed:" << q.lastError().text();
-            DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV17ToV18", q);
-            db.rollback();
-            return false;
-        }
-    }
-    qDebug() << "DatabaseSchema: migrateV17ToV18: recomputed session_summaries indices";
 
     if (!setSchemaVersion(db, 18)) {
         qCritical() << "DatabaseSchema: migrateV17ToV18: setSchemaVersion failed";
@@ -1869,5 +1823,134 @@ bool DatabaseSchema::migrateV17ToV18(QSqlDatabase& db)
     }
 
     qDebug() << "DatabaseSchema: Migration v17->v18 complete";
+    return true;
+}
+
+/*
+ * Migrate database from schema version 18 to 19
+ *
+ * No column changes. Applies the NULL convention of
+ * Notes/specs/2026-09-14-oh-ch-capability-gating-design.md (GitLab #261) to rows that
+ * already exist:
+ *  - session_summaries: SessionSummariesRepository::rebuildFromChannels() for every
+ *    machine. This also carries the #285 recompute of ahi/rdi/oahi/cahi from
+ *    session_channels.cph, which v18 used to do and which v18 tester databases missed.
+ *  - session_channels: zero-count OH/CH rows are removed for machines that never
+ *    scored either; the loaders no longer create the empty lists that produced them.
+ *  - daily_summaries: the table carries no machine id, so a row can only be rewritten
+ *    in SQL where the profile's answer is the machine's answer. Count, index and
+ *    statistic columns are NULLed at profile level ("no device of this profile has
+ *    reported the channel"). Profiles whose CPAP devices disagree on some channel —
+ *    one scores RERA and another does not, say — have their rows deleted instead; the
+ *    table is a cache, and Profile::LoadMachineData() regenerates it on the next open
+ *    (the existingCount == 0 branch), after every machine has loaded.
+ *
+ * Cost: about ten seconds for a database of 57,000 sessions and a million
+ * session_channels rows, dominated by the rebuild's temp-table scan.
+ */
+bool DatabaseSchema::migrateV18ToV19(QSqlDatabase& db)
+{
+    qDebug() << "DatabaseSchema: Migrating v18 -> v19";
+
+    if (!db.transaction()) {
+        qCritical() << "DatabaseSchema: migrateV18ToV19: failed to start transaction";
+        return false;
+    }
+
+    if (!SessionSummariesRepository::rebuildFromChannels(db, 0)) {
+        qCritical() << "DatabaseSchema: migrateV18ToV19: session_summaries rebuild failed";
+        db.rollback();
+        return false;
+    }
+
+    // One pass over session_channels builds the two lookup tables every later statement
+    // keys on; both are indexed so each per-row EXISTS is a point lookup. Channel ids
+    // follow schema.cpp: ClearAirway 4097, Obstructive 4098, Hypopnea 4099, Apnea 4100,
+    // RERA 4102, AllApnea 4112, ObstructiveHypopnea 4113, CentralHypopnea 4114.
+    QStringList sql;
+    sql << "DROP TABLE IF EXISTS temp.machine_reported"
+        << "CREATE TEMP TABLE machine_reported AS"
+           " SELECT DISTINCT s.machine_id, sc.channel_id"
+           " FROM session_channels sc JOIN sessions s ON s.id = sc.session_id"
+           " WHERE sc.count > 0 AND sc.channel_id IN (4097, 4098, 4099, 4100, 4102, 4112, 4113, 4114)"
+        << "CREATE INDEX temp.idx_machine_reported ON machine_reported(machine_id, channel_id)"
+        << "DROP TABLE IF EXISTS temp.profile_reported"
+        << "CREATE TEMP TABLE profile_reported AS"
+           " SELECT DISTINCT m.profile_id, mr.channel_id"
+           " FROM machine_reported mr JOIN machines m ON m.id = mr.machine_id"
+        << "CREATE INDEX temp.idx_profile_reported ON profile_reported(profile_id, channel_id)";
+
+    // session_channels: zero-count OH/CH rows of machines that never scored either.
+    sql << "DELETE FROM session_channels WHERE channel_id IN (4113, 4114) AND count = 0"
+           " AND session_id IN (SELECT s.id FROM sessions s WHERE NOT EXISTS"
+           "   (SELECT 1 FROM machine_reported mr WHERE mr.machine_id = s.machine_id"
+           "    AND mr.channel_id IN (4113, 4114)))";
+
+    // daily_summaries: NULL where no device of the profile reports the channel.
+    const QString profileReported =
+        "EXISTS (SELECT 1 FROM profile_reported pr"
+        " WHERE pr.profile_id = daily_summaries.profile_id AND pr.channel_id %1)";
+    struct DailyCol { const char * column; const char * channel; };
+    static const DailyCol dailyCols[] = {
+        { "clear_airway_count", "= 4097" }, { "obstructive_count",  "= 4098" },
+        { "hypopnea_count",     "= 4099" }, { "unclassified_count", "= 4100" },
+        { "rera_count",         "= 4102" }, { "all_apnea_count",    "= 4112" },
+        { "obstructive_hypopnea_count", "= 4113" }, { "central_hypopnea_count", "= 4114" },
+        { "rdi",  "= 4102" },
+        { "oahi", "IN (4113, 4114)" }, { "cahi", "IN (4113, 4114)" },
+    };
+    for (const DailyCol & c : dailyCols) {
+        sql << QString("UPDATE daily_summaries SET %1 = NULL WHERE NOT %2")
+               .arg(QString::fromLatin1(c.column))
+               .arg(profileReported.arg(QString::fromLatin1(c.channel)));
+    }
+    // Continuous statistics on daily rows were written as 0 when the day had no such
+    // channel. Therapy pressure and pulse are never 0, and a night with zero average
+    // and zero maximum leak does not occur on a real device, so 0 across the group is
+    // "no data". leak_unintentional_avg is left alone: 0 can be genuine there.
+    sql << "UPDATE daily_summaries SET pressure_avg = NULL, pressure_min = NULL, pressure_max = NULL,"
+           " pressure_95th = NULL WHERE pressure_avg = 0 AND pressure_max = 0"
+        << "UPDATE daily_summaries SET leak_total_avg = NULL, leak_total_95th = NULL, leak_total_max = NULL"
+           " WHERE leak_total_avg = 0 AND leak_total_max = 0"
+        << "UPDATE daily_summaries SET spo2_avg = NULL, spo2_min = NULL WHERE spo2_avg = 0"
+        << "UPDATE daily_summaries SET pulse_avg = NULL, pulse_min = NULL, pulse_max = NULL WHERE pulse_avg = 0";
+
+    // Profiles whose CPAP devices (those with sessions) disagree on some channel: a daily
+    // row there cannot be rewritten in SQL, so the rows go and are regenerated on open.
+    sql << "DELETE FROM daily_summaries WHERE profile_id IN ("
+           "WITH mach AS (SELECT id, profile_id FROM machines WHERE machine_type = 1"
+           "   AND id IN (SELECT DISTINCT machine_id FROM sessions)),"
+           " per AS (SELECT mach.profile_id, mr.channel_id, COUNT(DISTINCT mr.machine_id) AS n"
+           "   FROM mach JOIN machine_reported mr ON mr.machine_id = mach.id"
+           "   GROUP BY mach.profile_id, mr.channel_id),"
+           " tot AS (SELECT profile_id, COUNT(*) AS total FROM mach GROUP BY profile_id)"
+           " SELECT DISTINCT per.profile_id FROM per JOIN tot ON tot.profile_id = per.profile_id"
+           " WHERE per.n < tot.total)"
+        << "DROP TABLE IF EXISTS temp.profile_reported"
+        << "DROP TABLE IF EXISTS temp.machine_reported";
+
+    QSqlQuery q(db);
+    for (const QString & statement : sql) {
+        if (!q.exec(statement)) {
+            qCritical() << "DatabaseSchema: migrateV18ToV19:" << statement.left(80)
+                        << "failed:" << q.lastError().text();
+            DatabaseManager::instance().checkQueryError("DatabaseSchema::migrateV18ToV19", q);
+            db.rollback();
+            return false;
+        }
+    }
+
+    if (!setSchemaVersion(db, 19)) {
+        qCritical() << "DatabaseSchema: migrateV18ToV19: setSchemaVersion failed";
+        db.rollback();
+        return false;
+    }
+    if (!db.commit()) {
+        qCritical() << "DatabaseSchema: migrateV18ToV19: commit failed";
+        db.rollback();
+        return false;
+    }
+
+    qDebug() << "DatabaseSchema: Migration v18->v19 complete";
     return true;
 }

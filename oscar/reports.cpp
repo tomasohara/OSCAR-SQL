@@ -287,12 +287,15 @@ void Report::PrintReport(gGraphView *gv, QString name, QDate date)
             stats = QObject::tr("AI=%1 HI=%2 CAI=%3 ").arg(oai, 0, 'f', 2).arg(hi, 0, 'f', 2).arg(cai, 0, 'f',
                     2);
 
-            // Only devices that score hypopneas by mechanism report these, so keep them
-            // off the line entirely for everything else rather than printing 0.00.
-            if (day->channelHasData(CPAP_ObstructiveHypopnea) || day->channelHasData(CPAP_CentralHypopnea)) {
+            // Only a device that scores hypopneas by mechanism reports these; for any
+            // other device OAHI would just restate AHI, so the whole group stays off
+            // the line rather than printing 0.00 (GitLab #261). Gated on the device,
+            // not on today's data, so a capable device's zero night prints 0.00 like
+            // the Daily sidebar does.
+            if (cpap->reportsHypopneaMechanism()) {
                 stats += QObject::tr("OHI=%1 CHI=%2 ").arg(ohi, 0, 'f', 2).arg(chi, 0, 'f', 2);
+                stats += QObject::tr("OAHI=%1 CAHI=%2 ").arg(oahi, 0, 'f', 2).arg(cahi, 0, 'f', 2);
             }
-            stats += QObject::tr("OAHI=%1 CAHI=%2 ").arg(oahi, 0, 'f', 2).arg(cahi, 0, 'f', 2);
 
             if (cpap->loaderName() == STR_MACH_PRS1) {
 
