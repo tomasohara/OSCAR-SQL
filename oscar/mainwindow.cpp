@@ -3073,6 +3073,23 @@ void MainWindow::on_actionImport_AppleHealth_Data_triggered()
                               .arg(summary.oxiSessions)
                               .arg(summary.skippedExisting)
                               .arg(sleepSource);
+        QStringList vitalsSources = summary.importedVitalsSources;
+        vitalsSources.sort(Qt::CaseInsensitive);
+        message += QStringLiteral("\n") + tr("Vitals sources: %1")
+                       .arg(vitalsSources.isEmpty() ? tr("none")
+                                                   : vitalsSources.join(QStringLiteral(", ")));
+        QStringList ignoredSources = summary.ignoredVitalsCounts.keys();
+        ignoredSources.sort(Qt::CaseInsensitive);
+        QStringList ignoredVitals;
+        for (const QString &sourceName : ignoredSources) {
+            ignoredVitals.append(tr("%1 (%2 records)")
+                                     .arg(sourceName)
+                                     .arg(summary.ignoredVitalsCounts.value(sourceName)));
+        }
+        if (!ignoredVitals.isEmpty()) {
+            message += QStringLiteral("\n") + tr("Ignored vitals from: %1")
+                           .arg(ignoredVitals.join(QStringLiteral(", ")));
+        }
         if (summary.weightDays > 0) {
             message += QStringLiteral("\n") + tr("Imported weight for %1 day(s).").arg(summary.weightDays);
         }
